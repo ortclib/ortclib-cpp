@@ -62,6 +62,8 @@ namespace ortc
       static IMessageQueuePtr queuePacket();
       static IMessageQueuePtr queueBlockingMediaStartStopThread();
       static IMessageQueuePtr queueCertificateGeneration();
+
+      static Optional<Log::Level> webrtcLogLevel();
     };
 
     //-----------------------------------------------------------------------
@@ -110,6 +112,9 @@ namespace ortc
       virtual Milliseconds ntpServerTime() const;
       virtual void ntpServerTime(const Milliseconds &value);
 
+      virtual void defaultWebrtcLogLevel(Log::Level level);
+      virtual void webrtcLogLevel(Log::Level level);
+
       //---------------------------------------------------------------------
       #pragma mark
       #pragma mark ORTC => IORTCForInternal
@@ -121,6 +126,8 @@ namespace ortc
       virtual IMessageQueuePtr queuePacket() const;
       virtual IMessageQueuePtr queueBlockingMediaStartStopThread() const;
       virtual IMessageQueuePtr queueCertificateGeneration() const;
+
+      virtual Optional<Log::Level> webrtcLogLevel() const;
 
       //---------------------------------------------------------------------
       #pragma mark
@@ -149,6 +156,9 @@ namespace ortc
       mutable size_t mNextPacketQueueThread {};
 
       Milliseconds mNTPServerTime {};
+
+      Optional<Log::Level> mDefaultWebRTCLogLevel{};
+      Optional<Log::Level> mWebRTCLogLevel {};
     };
   }
 }

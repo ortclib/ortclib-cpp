@@ -268,6 +268,7 @@ namespace ortc
 
     interaction IRTPMediaEngineForORTC
     {
+      static void setLogLevel(Log::Level level);
       static void ntpServerTime(const Milliseconds &value);
     };
 
@@ -662,7 +663,8 @@ namespace ortc
       #pragma mark RTPMediaEngine => IRTPMediaEngineForORTC
       #pragma mark
 
-      void ntpServerTime(const Milliseconds &value);
+      static void ntpServerTime(const Milliseconds &value);
+      static void setLogLevel(Log::Level level);
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -793,6 +795,8 @@ namespace ortc
       Log::Params debug(const char *message) const;
       virtual ElementPtr toDebug() const;
 
+      virtual void internalSetLogLevel(Log::Level level);
+
       bool isReady() const;
       bool isShuttingDown() const;
       bool isShutdown() const;
@@ -821,7 +825,21 @@ namespace ortc
       class WebRtcTraceCallback : public webrtc::TraceCallback
       {
       public:
-        virtual void Print(webrtc::TraceLevel level, const char* message, int length);
+        virtual void Print(webrtc::TraceLevel level, const char* message, int length) override;
+      };
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPMediaEngine::WebRtcTraceCallback
+      #pragma mark
+
+      class WebRtcLogSink : public rtc::LogSink
+      {
+      public:
+        virtual void OnLogMessage(const std::string& message) override;
       };
 
       //-----------------------------------------------------------------------
@@ -1578,6 +1596,7 @@ namespace ortc
       rtc::scoped_ptr<webrtc::VoiceEngine, VoiceEngineDeleter> mVoiceEngine;
 
       rtc::scoped_ptr<WebRtcTraceCallback> mTraceCallback;
+      rtc::scoped_ptr<WebRtcLogSink> mLogSink;
     };
 
     //-------------------------------------------------------------------------

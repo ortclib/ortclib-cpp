@@ -1,6 +1,6 @@
 /*
 
- Copyright (c) 2014, Hookflash Inc. / Hookflash Inc.
+ Copyright (c) 2015, Hookflash Inc. / Hookflash Inc.
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -29,32 +29,19 @@
  
  */
 
-#pragma once
+#include <ortc/internal/types.h>
 
-#include <ortc/types.h>
+#include <zsLib/Log.h>
+
+namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_webrtc) }
 
 namespace ortc
 {
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IORTC
-  #pragma mark
-
-  interaction IORTC
+  namespace internal
   {
-    typedef zsLib::Log Log;
-
-    static void setup(IMessageQueuePtr defaultDelegateMessageQueue);
-
-    static Milliseconds ntpServerTime();
-    static void ntpServerTime(const Milliseconds &value);
-
-    static void setDefaultLogLevel(Log::Level level);
-    static void setLogLevel(const char *componenet, Log::Level level);
-
-    virtual ~IORTC() {} // make polymorphic
-  };
+    void webrtcTrace(Log::Severity severity, Log::Level level, const char *message)
+    {
+      ZS_LOG_WITH_SEVERITY(severity, level, message);
+    }
+  }
 }

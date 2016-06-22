@@ -73,8 +73,6 @@
 #define ASSERT(x)
 #endif //_DEBUG
 
-//#define ENABLE_SENSITIVE_WEBRTC_LOG
-
 namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_rtpmediaengine) }
 
 namespace ortc
@@ -98,6 +96,9 @@ namespace ortc
     #pragma mark
     #pragma mark (helpers)
     #pragma mark
+
+    // foreward declaration
+    void webrtcTrace(Log::Severity severity, Log::Level level, const char *message);
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -205,6 +206,19 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
+      static RTPMediaEnginePtr getEngineIfAlive()
+      {
+        auto pThis(singleton());
+        if (!pThis) return RTPMediaEnginePtr();
+
+        AutoRecursiveLock lock(*pThis);
+        auto result = pThis->mEngineRegistration.lock();
+        if (!result) return RTPMediaEnginePtr();
+
+        return result->getRTPEngine();
+      }
+
+      //-----------------------------------------------------------------------
       Log::Params log(const char *message) const
       {
         ElementPtr objectEl = Element::create("ortc::RTPMediaEngineSingleton");
@@ -274,10 +288,16 @@ namespace ortc
     #pragma mark IRTPMediaEngineForORTC
     #pragma mark
 
+    //-------------------------------------------------------------------------
+    void IRTPMediaEngineForORTC::setLogLevel(Log::Level level)
+    {
+      RTPMediaEngine::setLogLevel(level);
+    }
+
+    //-------------------------------------------------------------------------
     void IRTPMediaEngineForORTC::ntpServerTime(const Milliseconds &value)
     {
-      auto singleton = RTPMediaEngineSingleton::singleton();
-      return singleton->getEngineRegistration()->getRTPEngine()->ntpServerTime(value);
+      RTPMediaEngine::ntpServerTime(value);
     }
 
     //-------------------------------------------------------------------------
@@ -433,7 +453,8 @@ namespace ortc
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
       mRegistration(registration),
-      mTraceCallback(new WebRtcTraceCallback())
+      mTraceCallback(new WebRtcTraceCallback()),
+      mLogSink(new WebRtcLogSink())
     {
       EventWriteOrtcRtpMediaEngineCreate(__func__, mID);
       ZS_LOG_DETAIL(debug("created"))
@@ -442,14 +463,15 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPMediaEngine::init()
     {
-      AutoRecursiveLock lock(*this);
-
-#ifdef ENABLE_SENSITIVE_WEBRTC_LOG
-      rtc::LogMessage::LogToDebug(rtc::LS_SENSITIVE);
       webrtc::Trace::CreateTrace();
       webrtc::Trace::SetTraceCallback(mTraceCallback.get());
-      webrtc::Trace::set_level_filter(webrtc::kTraceAll);
-#endif
+
+      auto level = IORTCForInternal::webrtcLogLevel();
+      if (level.hasValue()) {
+        internalSetLogLevel(level);
+      }
+
+      AutoRecursiveLock lock(*this);
 
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
@@ -458,9 +480,9 @@ namespace ortc
     RTPMediaEngine::~RTPMediaEngine()
     {
       if (isNoop()) return;
-#ifdef ENABLE_SENSITIVE_WEBRTC_LOG
+
       webrtc::Trace::SetTraceCallback(nullptr);
-#endif
+      webrtc::Trace::ReturnTrace();
 
       ZS_LOG_DETAIL(log("destroyed"))
       mThisWeak.reset();
@@ -593,6 +615,15 @@ namespace ortc
     #pragma mark
     #pragma mark RTPMediaEngine => IRTPMediaEngineForORTC
     #pragma mark
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::setLogLevel(Log::Level level)
+    {
+      auto engine = RTPMediaEngineSingleton::getEngineIfAlive();
+      if (engine) {
+        engine->internalSetLogLevel(level);
+      }
+    }
 
     //-------------------------------------------------------------------------
     void RTPMediaEngine::ntpServerTime(const Milliseconds &value)
@@ -950,6 +981,28 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    void RTPMediaEngine::internalSetLogLevel(Log::Level level)
+    {
+      webrtc::TraceLevel traceLevel {webrtc::kTraceAll};
+      rtc::LoggingSeverity rtcLevel {rtc::LS_INFO};
+
+      switch (level)
+      {
+        case Log::Level::None:    rtcLevel = rtc::LS_NONE; traceLevel = static_cast<webrtc::TraceLevel>(webrtc::kTraceNone); break;
+        case Log::Level::Basic:   rtcLevel = rtc::LS_ERROR; traceLevel = static_cast<webrtc::TraceLevel>(webrtc::kTraceCritical | webrtc::kTraceError); break;
+        case Log::Level::Detail:  rtcLevel = rtc::LS_WARNING; traceLevel = static_cast<webrtc::TraceLevel>(webrtc::kTraceWarning | webrtc::kTraceError | webrtc::kTraceCritical); break;
+        case Log::Level::Debug:   rtcLevel = rtc::LS_INFO; traceLevel = static_cast<webrtc::TraceLevel>(webrtc::kTraceDefault); break;
+        case Log::Level::Trace:   rtcLevel = rtc::LS_VERBOSE; traceLevel = static_cast<webrtc::TraceLevel>(webrtc::kTraceDefault | webrtc::kTraceModuleCall | webrtc::kTraceTimer | webrtc::kTraceDebug); break;
+        case Log::Level::Insane:  rtcLevel = rtc::LS_SENSITIVE; traceLevel = static_cast<webrtc::TraceLevel>(webrtc::kTraceAll); break;
+      }
+
+      rtc::LogMessage::RemoveLogToStream(mLogSink.get());
+      rtc::LogMessage::AddLogToStream(mLogSink.get(), rtcLevel);
+
+      webrtc::Trace::set_level_filter(traceLevel);
+    }
+
+    //-------------------------------------------------------------------------
     bool RTPMediaEngine::isReady() const
     {
       return State_Ready == mCurrentState;
@@ -1233,40 +1286,59 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void RTPMediaEngine::WebRtcTraceCallback::Print(webrtc::TraceLevel level, const char* message, int length)
+    void RTPMediaEngine::WebRtcTraceCallback::Print(webrtc::TraceLevel trace, const char* message, int length)
     {
-      rtc::LoggingSeverity sev = rtc::LS_VERBOSE;
-      if (level == webrtc::kTraceError || level == webrtc::kTraceCritical)
-        sev = rtc::LS_ERROR;
-      else if (level == webrtc::kTraceWarning)
-        sev = rtc::LS_WARNING;
-      else if (level == webrtc::kTraceStateInfo || level == webrtc::kTraceInfo)
-        sev = rtc::LS_INFO;
-      else if (level == webrtc::kTraceTerseInfo)
-        sev = rtc::LS_INFO;
+      static const size_t stripLength = 34;
+
+      Log::Severity severity {Log::Severity::Informational};
+      Log::Level level {Log::Level::Basic};
+
+      switch (trace)
+      {
+        case webrtc::kTraceNone:        level = Log::Level::None; break;
+        case webrtc::kTraceStateInfo:   level = Log::Level::Debug; break;
+        case webrtc::kTraceCritical:    severity = Log::Severity::Fatal; level = Log::Level::Basic; break;
+        case webrtc::kTraceError:       severity = Log::Severity::Error; level = Log::Level::Basic; break;
+        case webrtc::kTraceWarning:     severity = Log::Severity::Warning; level = Log::Level::Detail; break;
+        case webrtc::kTraceApiCall:     level = Log::Level::Debug; break;
+        case webrtc::kTraceDefault:     level = Log::Level::Debug; break;
+        case webrtc::kTraceModuleCall:  level = Log::Level::Trace; break;
+        case webrtc::kTraceMemory:      level = Log::Level::Trace; break;
+        case webrtc::kTraceTimer:       level = Log::Level::Trace; break;
+        case webrtc::kTraceStream:      level = Log::Level::Insane; break;
+        case webrtc::kTraceDebug:       level = Log::Level::Insane; break;
+        case webrtc::kTraceInfo:        level = Log::Level::Insane; break;
+        case webrtc::kTraceTerseInfo:   level = Log::Level::Insane; break;
+        case webrtc::kTraceAll:         level = Log::Level::Insane; break;
+      }
 
       // Skip past boilerplate prefix text
-      if (length < 72) {
+      if (length < stripLength) {
         std::string msg(message, length);
-        LOG(LS_ERROR) << "Malformed webrtc log message: ";
-        LOG_V(sev) << msg;
+        webrtcTrace(Log::Severity::Error, Log::Level::Basic, (std::string("Malformed webrtc log message: ") + msg).c_str());
       } else {
-        std::string msg(message + 71, length - 72);
-        switch (sev) {
-        case rtc::LS_VERBOSE:
-          LOG_V(sev) << "webrtc - verbose: " << msg;
-          break;
-        case rtc::LS_ERROR:
-          LOG_V(sev) << "webrtc - error: " << msg;
-          break;
-        case rtc::LS_WARNING:
-          LOG_V(sev) << "webrtc - warning: " << msg;
-          break;
-        case rtc::LS_INFO:
-          LOG_V(sev) << "webrtc - info: " << msg;
-          break;
-        }
+        std::string msg(message + (stripLength-1), length - stripLength);
+        webrtcTrace(severity, level, msg.c_str());
       }
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPMediaEngine::WebRtcTraceCallback
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::WebRtcLogSink::OnLogMessage(const std::string& message)
+    {
+      if (message.length() < 1) return;
+
+      bool hasEOL = ('\n' == message[message.length() - 1]);
+     
+      std::string msg(message.c_str(), message.length() - (hasEOL ? 1 : 0));
+
+      webrtcTrace(Log::Severity::Informational, Log::Level::Basic, msg.c_str());
     }
 
     //-------------------------------------------------------------------------
