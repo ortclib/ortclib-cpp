@@ -664,12 +664,12 @@ namespace ortc
       auto packet = mQueuedRTP.front();
 
       mChannelResourceLifetimeHolderPromise = UseMediaEngine::setupChannel(
-                                                          mThisWeak.lock(),
-                                                          mTransport,
-                                                          MediaStreamTrack::convert(mTrack),
-                                                          mParameters,
-                                                          packet
-                                                          );
+                                                                           mThisWeak.lock(),
+                                                                           mTransport,
+                                                                           MediaStreamTrack::convert(mTrack),
+                                                                           mParameters,
+                                                                           packet
+                                                                           );
 
       mChannelResourceLifetimeHolderPromise->thenWeak(mThisWeak.lock());
 

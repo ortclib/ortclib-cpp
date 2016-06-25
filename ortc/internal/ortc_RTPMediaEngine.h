@@ -458,10 +458,10 @@ namespace ortc
 
     interaction IRTPMediaEngineForRTPSenderChannelMediaBase
     {
-      ZS_DECLARE_TYPEDEF_PTR(IRTPMediaEngineForRTPSenderChannelMediaBase, ForRTPSenderChannelMediaBase)
-      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelMediaBaseForRTPMediaEngine, UseSenderChannelMediaBase)
-      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPMediaEngine, UseMediaStreamTrack)
-      ZS_DECLARE_TYPEDEF_PTR(webrtc::Transport, Transport)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPMediaEngineForRTPSenderChannelMediaBase, ForRTPSenderChannelMediaBase);
+      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelMediaBaseForRTPMediaEngine, UseSenderChannelMediaBase);
+      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPMediaEngine, UseMediaStreamTrack);
+      ZS_DECLARE_TYPEDEF_PTR(webrtc::Transport, Transport);
 
       ElementPtr toDebug(ForRTPSenderChannelMediaBasePtr object);
 
@@ -577,7 +577,48 @@ namespace ortc
 
     interaction IRTPMediaEngineAsyncDelegate
     {
-      virtual ~IRTPMediaEngineAsyncDelegate() {}
+      ZS_DECLARE_STRUCT_PTR(SetupSenderChannel);
+      ZS_DECLARE_STRUCT_PTR(SetupReceiverChannel);
+      ZS_DECLARE_STRUCT_PTR(SetupDevice);
+
+      ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverChannelMediaBaseForRTPMediaEngine, UseReceiverChannelMediaBase);
+      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelMediaBaseForRTPMediaEngine, UseSenderChannelMediaBase);
+      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPMediaEngine, UseMediaStreamTrack);
+      ZS_DECLARE_TYPEDEF_PTR(webrtc::Transport, Transport);
+
+      struct SetupResource
+      {
+        IRTPMediaEngineRegistrationPtr mRegistration;
+      };
+
+      struct SetupChannel : public SetupResource
+      {
+        PromiseWithRTPMediaEngineChannelResourcePtr mPromise;
+        TransportPtr mTransport;
+        UseMediaStreamTrackPtr mTrack;
+        ParametersPtr mParameters;
+      };
+
+      struct SetupSenderChannel : public SetupChannel
+      {
+        UseSenderChannelMediaBasePtr mChannel;
+      };
+
+      struct SetupReceiverChannel : public SetupChannel
+      {
+        UseReceiverChannelMediaBasePtr mChannel;
+        RTPPacketPtr mPacket;
+      };
+
+      struct SetupDevice : public SetupResource
+      {
+        PromiseWithRTPMediaEngineDeviceResourcePtr mPromise;
+        UseMediaStreamTrackPtr mTrack;
+      };
+
+      virtual void onSetupSenderChannel(SetupSenderChannelPtr channel) = 0;
+      virtual void onSetupReceiverChannel(SetupReceiverChannelPtr channel) = 0;
+      virtual void onSetupDevice(SetupDevicePtr channel) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -649,22 +690,23 @@ namespace ortc
       friend interaction IRTPMediaEngineForDeviceResource;
       friend interaction IRTPMediaEngineForChannelResource;
 
-      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPMediaEngine, UseMediaStreamTrack)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverChannelMediaBaseForRTPMediaEngine, UseReceiverChannelMediaBase);
+      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelMediaBaseForRTPMediaEngine, UseSenderChannelMediaBase);
+      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPMediaEngine, UseMediaStreamTrack);
+      ZS_DECLARE_TYPEDEF_PTR(webrtc::Transport, Transport);
 
-      ZS_DECLARE_TYPEDEF_PTR(webrtc::Transport, Transport)
+      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::Kinds, Kinds);
+      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::ConstraintSet, ConstraintSet);
+      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::ConstrainLongRange, ConstrainLongRange);
+      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::ConstrainDoubleRange, ConstrainDoubleRange);
 
-      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::Kinds, Kinds)
-      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::ConstraintSet, ConstraintSet)
-      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::ConstrainLongRange, ConstrainLongRange)
-      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::ConstrainDoubleRange, ConstrainDoubleRange)
-
-      ZS_DECLARE_CLASS_PTR(BaseResource)
-      ZS_DECLARE_CLASS_PTR(DeviceResource)
-      ZS_DECLARE_CLASS_PTR(ChannelResource)
-      ZS_DECLARE_CLASS_PTR(AudioReceiverChannelResource)
-      ZS_DECLARE_CLASS_PTR(AudioSenderChannelResource)
-      ZS_DECLARE_CLASS_PTR(VideoReceiverChannelResource)
-      ZS_DECLARE_CLASS_PTR(VideoSenderChannelResource)
+      ZS_DECLARE_CLASS_PTR(BaseResource);
+      ZS_DECLARE_CLASS_PTR(DeviceResource);
+      ZS_DECLARE_CLASS_PTR(ChannelResource);
+      ZS_DECLARE_CLASS_PTR(AudioReceiverChannelResource);
+      ZS_DECLARE_CLASS_PTR(AudioSenderChannelResource);
+      ZS_DECLARE_CLASS_PTR(VideoReceiverChannelResource);
+      ZS_DECLARE_CLASS_PTR(VideoSenderChannelResource);
 
       struct VideoCaptureCapabilityWithDistance
       {
@@ -856,6 +898,10 @@ namespace ortc
       #pragma mark RTPMediaEngine => IRTPMediaEngineAsyncDelegate
       #pragma mark
 
+      virtual void onSetupSenderChannel(SetupSenderChannelPtr setup) override;
+      virtual void onSetupReceiverChannel(SetupReceiverChannelPtr setup) override;
+      virtual void onSetupDevice(SetupDevicePtr setup) override;
+
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark RTPMediaEngine => (friend DeviceResource)
@@ -967,10 +1013,12 @@ namespace ortc
         void notifyPromisesResolve();
         void notifyPromisesReject();
 
-        std::shared_ptr<Promise> createPromise() { return internalSetupPromise(Promise::create(delegateQueue())); }
+        //std::shared_ptr<Promise> createPromise() { return internalSetupPromise(Promise::create(delegateQueue())); }
 
-        template <typename data_type>
-        std::shared_ptr<PromiseWith<data_type> > createPromise() {return ZS_DYNAMIC_PTR_CAST(PromiseWith<data_type>, internalSetupPromise(PromiseWith<data_type>::create(delegateQueue())));}
+        //template <typename data_type>
+        //static std::shared_ptr<PromiseWith<data_type> > createPromise() {return ZS_DYNAMIC_PTR_CAST(PromiseWith<data_type>, internalSetupPromise(PromiseWith<data_type>::create(delegateQueue())));}
+
+        void registerPromise(PromisePtr promise) {internalSetupPromise(promise);}
 
         template <typename self_type>
         std::shared_ptr<self_type> getThis() const {return ZS_DYNAMIC_PTR_CAST(self_type, mThisWeak.lock());}
@@ -986,7 +1034,7 @@ namespace ortc
         #pragma mark RTPMediaEngine::BaseResource => (internal)
         #pragma mark
 
-        IMessageQueuePtr delegateQueue();
+        static IMessageQueuePtr delegateQueue();
         PromisePtr internalSetupPromise(PromisePtr promise);
         void internalFixState();
 
@@ -1867,6 +1915,12 @@ ZS_DECLARE_PROXY_METHOD_2(onProvideStats, PromiseWithStatsReportPtr, StatsTypeSe
 ZS_DECLARE_PROXY_END()
 
 ZS_DECLARE_PROXY_BEGIN(ortc::internal::IRTPMediaEngineAsyncDelegate)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::IRTPMediaEngineAsyncDelegate::SetupSenderChannelPtr, SetupSenderChannelPtr)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::IRTPMediaEngineAsyncDelegate::SetupReceiverChannelPtr, SetupReceiverChannelPtr)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::IRTPMediaEngineAsyncDelegate::SetupDevicePtr, SetupDevicePtr)
+ZS_DECLARE_PROXY_METHOD_1(onSetupSenderChannel, SetupSenderChannelPtr)
+ZS_DECLARE_PROXY_METHOD_1(onSetupReceiverChannel, SetupReceiverChannelPtr)
+ZS_DECLARE_PROXY_METHOD_1(onSetupDevice, SetupDevicePtr)
 ZS_DECLARE_PROXY_END()
 
 ZS_DECLARE_PROXY_BEGIN(ortc::internal::IRTPMediaEngineHandlePacketAsyncDelegate)

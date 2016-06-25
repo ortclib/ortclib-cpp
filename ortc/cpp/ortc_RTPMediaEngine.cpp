@@ -663,38 +663,19 @@ namespace ortc
                                                                              RTPPacketPtr packet
                                                                              )
     {
-       PromiseWithRTPMediaEngineChannelResourcePtr promise;
+      // WARNING - DO NOT ENTER A LOCK!
 
-      {
-        AutoRecursiveLock lock(*this);
-        if (ZS_DYNAMIC_PTR_CAST(IRTPReceiverChannelAudioForRTPMediaEngine, channel)) {
-          AudioReceiverChannelResourcePtr resource = AudioReceiverChannelResource::create(
-                                                                                          mRegistration.lock(),
-                                                                                          transport,
-                                                                                          track,
-                                                                                          parameters,
-                                                                                          packet
-                                                                                          );
-          promise = resource->createPromise<IRTPMediaEngineChannelResource>();
-          mChannelResources[resource->getID()] = resource;
-          mPendingSetupChannelResources.push_back(resource);
-        } else if (ZS_DYNAMIC_PTR_CAST(IRTPReceiverChannelVideoForRTPMediaEngine, channel)) {
-          VideoReceiverChannelResourcePtr resource = VideoReceiverChannelResource::create(
-                                                                                          mRegistration.lock(),
-                                                                                          transport,
-                                                                                          track,
-                                                                                          parameters,
-                                                                                          packet
-                                                                                          );
-          promise = resource->createPromise<IRTPMediaEngineChannelResource>();
-          mChannelResources[resource->getID()] = resource;
-          mPendingSetupChannelResources.push_back(resource);
-        }
-      }
+      auto setup = make_shared<IRTPMediaEngineAsyncDelegate::SetupReceiverChannel>();
+      setup->mRegistration = mRegistration.lock();
+      setup->mPromise = PromiseWithRTPMediaEngineChannelResource::create(IORTCForInternal::queueORTC());
+      setup->mTransport = transport;
+      setup->mTrack = track;
+      setup->mParameters = parameters;
+      setup->mPacket = packet;
 
-      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
+      IRTPMediaEngineAsyncDelegateProxy::create(mThisWeak.lock())->onSetupReceiverChannel(setup);
 
-      return promise;
+      return setup->mPromise;
     }
 
     //-------------------------------------------------------------------------
@@ -738,36 +719,16 @@ namespace ortc
                                                                              ParametersPtr parameters
                                                                              )
     {
-      PromiseWithRTPMediaEngineChannelResourcePtr promise;
+      auto setup = make_shared<IRTPMediaEngineAsyncDelegate::SetupSenderChannel>();
+      setup->mRegistration = mRegistration.lock();
+      setup->mPromise = PromiseWithRTPMediaEngineChannelResource::create(IORTCForInternal::queueORTC());
+      setup->mTransport = transport;
+      setup->mTrack = track;
+      setup->mParameters = parameters;
 
-      {
-        AutoRecursiveLock lock(*this);
-        if (ZS_DYNAMIC_PTR_CAST(IRTPSenderChannelAudioForRTPMediaEngine, channel)) {
-          ChannelResourcePtr resource = AudioSenderChannelResource::create(
-                                                                           mRegistration.lock(),
-                                                                           transport,
-                                                                           track,
-                                                                           parameters
-                                                                           );
-          promise = resource->createPromise<IRTPMediaEngineChannelResource>();
-          mChannelResources[resource->getID()] = resource;
-          mPendingSetupChannelResources.push_back(resource);
-        } else if (ZS_DYNAMIC_PTR_CAST(IRTPSenderChannelVideoForRTPMediaEngine, channel)) {
-          ChannelResourcePtr resource = VideoSenderChannelResource::create(
-                                                                           mRegistration.lock(),
-                                                                           transport,
-                                                                           track,
-                                                                           parameters
-                                                                           );
-          promise = resource->createPromise<IRTPMediaEngineChannelResource>();
-          mChannelResources[resource->getID()] = resource;
-          mPendingSetupChannelResources.push_back(resource);
-        }
-      }
+      IRTPMediaEngineAsyncDelegateProxy::create(mThisWeak.lock())->onSetupSenderChannel(setup);
 
-      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
-
-      return promise;
+      return setup->mPromise;
     }
 
     //-------------------------------------------------------------------------
@@ -797,22 +758,14 @@ namespace ortc
     //-------------------------------------------------------------------------
     PromiseWithRTPMediaEngineDeviceResourcePtr RTPMediaEngine::setupDevice(UseMediaStreamTrackPtr track)
     {
-      PromiseWithRTPMediaEngineDeviceResourcePtr promise;
+      auto setup = make_shared<IRTPMediaEngineAsyncDelegate::SetupDevice>();
+      setup->mRegistration = mRegistration.lock();
+      setup->mPromise = PromiseWithRTPMediaEngineDeviceResource::create(IORTCForInternal::queueORTC());
+      setup->mTrack = track;
 
-      {
-        AutoRecursiveLock lock(*this);
-        DeviceResourcePtr resource = DeviceResource::create(
-                                                            mRegistration.lock(),
-                                                            track
-                                                            );
-        promise = resource->createPromise<IRTPMediaEngineDeviceResource>();
-        mDeviceResources[resource->getID()] = resource;
-        mPendingSetupDeviceResources.push_back(resource);
-      }
+      IRTPMediaEngineAsyncDelegateProxy::create(mThisWeak.lock())->onSetupDevice(setup);
 
-      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
-
-      return promise;
+      return setup->mPromise;
     }
 
     //-------------------------------------------------------------------------
@@ -917,6 +870,85 @@ namespace ortc
     #pragma mark
     #pragma mark RTPMediaEngine => IRTPMediaEngineAsyncDelegate
     #pragma mark
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::onSetupSenderChannel(SetupSenderChannelPtr setup)
+    {
+      AutoRecursiveLock lock(*this);
+
+      if (ZS_DYNAMIC_PTR_CAST(IRTPSenderChannelAudioForRTPMediaEngine, setup->mChannel)) {
+        ChannelResourcePtr resource = AudioSenderChannelResource::create(
+                                                                         setup->mRegistration,
+                                                                         setup->mTransport,
+                                                                         setup->mTrack,
+                                                                         setup->mParameters
+                                                                         );
+        resource->registerPromise(setup->mPromise);
+        mChannelResources[resource->getID()] = resource;
+        mPendingSetupChannelResources.push_back(resource);
+      } else if (ZS_DYNAMIC_PTR_CAST(IRTPSenderChannelVideoForRTPMediaEngine, setup->mChannel)) {
+        ChannelResourcePtr resource = VideoSenderChannelResource::create(
+                                                                         setup->mRegistration,
+                                                                         setup->mTransport,
+                                                                         setup->mTrack,
+                                                                         setup->mParameters
+                                                                         );
+        resource->registerPromise(setup->mPromise);
+        mChannelResources[resource->getID()] = resource;
+        mPendingSetupChannelResources.push_back(resource);
+      }
+
+      step();
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::onSetupReceiverChannel(SetupReceiverChannelPtr setup)
+    {
+      AutoRecursiveLock lock(*this);
+
+      if (ZS_DYNAMIC_PTR_CAST(IRTPReceiverChannelAudioForRTPMediaEngine, setup->mChannel)) {
+        AudioReceiverChannelResourcePtr resource = AudioReceiverChannelResource::create(
+                                                                                        setup->mRegistration,
+                                                                                        setup->mTransport,
+                                                                                        setup->mTrack,
+                                                                                        setup->mParameters,
+                                                                                        setup->mPacket
+                                                                                        );
+        resource->registerPromise(setup->mPromise);
+        mChannelResources[resource->getID()] = resource;
+        mPendingSetupChannelResources.push_back(resource);
+      } else if (ZS_DYNAMIC_PTR_CAST(IRTPReceiverChannelVideoForRTPMediaEngine, setup->mChannel)) {
+        VideoReceiverChannelResourcePtr resource = VideoReceiverChannelResource::create(
+                                                                                        setup->mRegistration,
+                                                                                        setup->mTransport,
+                                                                                        setup->mTrack,
+                                                                                        setup->mParameters,
+                                                                                        setup->mPacket
+                                                                                        );
+        resource->registerPromise(setup->mPromise);
+        mChannelResources[resource->getID()] = resource;
+        mPendingSetupChannelResources.push_back(resource);
+      }
+
+      step();
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::onSetupDevice(SetupDevicePtr setup)
+    {
+      AutoRecursiveLock lock(*this);
+      DeviceResourcePtr resource = DeviceResource::create(
+                                                         setup->mRegistration,
+                                                         setup->mTrack
+                                                         );
+
+      resource->registerPromise(setup->mPromise);
+
+      mDeviceResources[resource->getID()] = resource;
+      mPendingSetupDeviceResources.push_back(resource);
+
+      step();
+    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
