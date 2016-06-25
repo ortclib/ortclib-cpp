@@ -207,8 +207,9 @@ namespace ortc
       if (delegate) {
         DTMFSenderPtr pThis = mThisWeak.lock();
 
-#define TODO_DO_WE_NEED_TO_TELL_ABOUT_ANY_MISSED_EVENTS 1
-#define TODO_DO_WE_NEED_TO_TELL_ABOUT_ANY_MISSED_EVENTS 2
+        if (mCurrentTone.hasData()) {
+          delegate->onDTMFSenderToneChanged(pThis, mCurrentTone);
+        }
       }
 
       if (isShutdown()) {
@@ -219,7 +220,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool DTMFSender::canInsertDDTMF() const
+    bool DTMFSender::canInsertDTMF() const
     {
 #define TODO 1
 #define TODO 2
@@ -231,7 +232,10 @@ namespace ortc
                                 const char *tones,
                                 Milliseconds duration,
                                 Milliseconds interToneGap
-                                ) throw (InvalidStateError)
+                                ) throw (
+                                         InvalidStateError,
+                                         InvalidCharacterError
+                                         )
     {
 #define TODO 1
 #define TODO 2

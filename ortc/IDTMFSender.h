@@ -69,7 +69,7 @@ namespace ortc
 
     virtual IDTMFSenderSubscriptionPtr subscribe(IDTMFSenderDelegatePtr delegate) = 0;
 
-    virtual bool canInsertDDTMF() const = 0;
+    virtual bool canInsertDTMF() const = 0;
 
     virtual void insertDTMF(
                             const char *tones,

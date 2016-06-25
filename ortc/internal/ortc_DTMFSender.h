@@ -156,13 +156,16 @@ namespace ortc
 
       virtual IDTMFSenderSubscriptionPtr subscribe(IDTMFSenderDelegatePtr delegate) override;
 
-      virtual bool canInsertDDTMF() const override;
+      virtual bool canInsertDTMF() const override;
 
       virtual void insertDTMF(
                               const char *tones,
                               Milliseconds duration = Milliseconds(70),
                               Milliseconds interToneGap = Milliseconds(70)
-                              ) throw (InvalidStateError) override;
+                              ) throw (
+                                       InvalidStateError,
+                                       InvalidCharacterError
+                                       ) override;
 
       virtual IRTPSenderPtr sender() const override;
 
@@ -235,6 +238,7 @@ namespace ortc
       UseRTPSenderWeakPtr mRTPSender;
 
       bool mShutdown {false};
+      String mCurrentTone;
     };
 
     //-------------------------------------------------------------------------
