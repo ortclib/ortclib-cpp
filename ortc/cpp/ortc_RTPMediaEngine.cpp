@@ -56,6 +56,7 @@
 #include <cryptopp/sha.h>
 
 #include <webrtc/base/timeutils.h>
+#include <webrtc/base/event_tracer.h>
 #include <webrtc/voice_engine/include/voe_codec.h>
 #include <webrtc/voice_engine/include/voe_rtp_rtcp.h>
 #include <webrtc/voice_engine/include/voe_network.h>
@@ -301,6 +302,36 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    void IRTPMediaEngineForORTC::startMediaTracing()
+    {
+      RTPMediaEngine::startMediaTracing();
+    }
+
+    //-------------------------------------------------------------------------
+    void IRTPMediaEngineForORTC::stopMediaTracing()
+    {
+      RTPMediaEngine::stopMediaTracing();
+    }
+
+    //-------------------------------------------------------------------------
+    bool IRTPMediaEngineForORTC::isMediaTracing()
+    {
+      return RTPMediaEngine::isMediaTracing();
+    }
+
+    //-------------------------------------------------------------------------
+    bool IRTPMediaEngineForORTC::saveMediaTrace(String filename)
+    {
+      return RTPMediaEngine::saveMediaTrace(filename);
+    }
+
+    //-------------------------------------------------------------------------
+    bool IRTPMediaEngineForORTC::saveMediaTrace(String host, int port)
+    {
+      return RTPMediaEngine::saveMediaTrace(host, port);
+    }
+
+    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -455,6 +486,10 @@ namespace ortc
       if (level.hasValue()) {
         internalSetLogLevel(level);
       }
+
+#if defined(WINRT)
+      webrtc::SetupEventTracer(&GetCategoryGroupEnabled, &AddTraceEvent);
+#endif
 
       AutoRecursiveLock lock(*this);
 
@@ -614,6 +649,54 @@ namespace ortc
     void RTPMediaEngine::ntpServerTime(const Milliseconds &value)
     {
       rtc::SyncWithNtp(value.count());
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::startMediaTracing()
+    {
+      auto engine = RTPMediaEngineSingleton::getEngineIfAlive();
+      if (engine) {
+        engine->internalStartMediaTracing();
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::stopMediaTracing()
+    {
+      auto engine = RTPMediaEngineSingleton::getEngineIfAlive();
+      if (engine) {
+        engine->internalStopMediaTracing();
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    bool RTPMediaEngine::isMediaTracing()
+    {
+      auto engine = RTPMediaEngineSingleton::getEngineIfAlive();
+      if (engine) {
+        return engine->internalIsMediaTracing();
+      }
+      return false;
+    }
+
+    //-------------------------------------------------------------------------
+    bool RTPMediaEngine::saveMediaTrace(String filename)
+    {
+      auto engine = RTPMediaEngineSingleton::getEngineIfAlive();
+      if (engine) {
+        return engine->internalSaveMediaTrace(filename);
+      }
+      return false;
+    }
+
+    //-------------------------------------------------------------------------
+    bool RTPMediaEngine::saveMediaTrace(String host, int port)
+    {
+      auto engine = RTPMediaEngineSingleton::getEngineIfAlive();
+      if (engine) {
+        return engine->internalSaveMediaTrace(host, port);
+      }
+      return false;
     }
 
     //-------------------------------------------------------------------------
@@ -892,6 +975,40 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
+    #pragma mark RTPMediaEngine => webrtc::SetupEventTracer
+    #pragma mark
+
+#if defined(WINRT)
+    const unsigned char *RTPMediaEngine::GetCategoryGroupEnabled(const char *categoryGroup)
+    {
+      return reinterpret_cast<const unsigned char*>("webrtc");
+    }
+
+    void __cdecl RTPMediaEngine::AddTraceEvent(
+                                               char phase,
+                                               const unsigned char *categoryGroupEnabled,
+                                               const char *name,
+                                               uint64 id,
+                                               int numArgs,
+                                               const char **argNames,
+                                               const unsigned char *argTypes,
+                                               const uint64 *argValues,
+                                               unsigned char flags
+                                               )
+    {
+      auto engine = RTPMediaEngineSingleton::getEngineIfAlive();
+      if (engine) {
+        engine->internalAddTraceEvent(phase, categoryGroupEnabled, name, id,
+          numArgs, argNames, argTypes, argValues, flags);
+      }
+    }
+#endif
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
     #pragma mark RTPMediaEngine => (friend ChannelResource)
     #pragma mark
 
@@ -978,6 +1095,54 @@ namespace ortc
       rtc::LogMessage::AddLogToStream(mLogSink.get(), rtcLevel);
 
       webrtc::Trace::set_level_filter(traceLevel);
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::internalStartMediaTracing()
+    {
+      mTraceLog.EnableTraceInternalStorage();
+      mTraceLog.StartTracing();
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::internalStopMediaTracing()
+    {
+      mTraceLog.StopTracing();
+    }
+
+    //-------------------------------------------------------------------------
+    bool RTPMediaEngine::internalIsMediaTracing()
+    {
+      return mTraceLog.IsTracing();
+    }
+
+    //-------------------------------------------------------------------------
+    bool RTPMediaEngine::internalSaveMediaTrace(String filename)
+    {
+      return mTraceLog.Save(filename);
+    }
+
+    //-------------------------------------------------------------------------
+    bool RTPMediaEngine::internalSaveMediaTrace(String host, int port)
+    {
+      return mTraceLog.Save(host, port);
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::internalAddTraceEvent(
+                                               char phase,
+                                               const unsigned char *categoryGroupEnabled,
+                                               const char *name,
+                                               uint64 id,
+                                               int numArgs,
+                                               const char **argNames,
+                                               const unsigned char *argTypes,
+                                               const uint64 *argValues,
+                                               unsigned char flags
+                                               )
+    {
+      mTraceLog.Add(phase, categoryGroupEnabled, name, id,
+        numArgs, argNames, argTypes, argValues, flags);
     }
 
     //-------------------------------------------------------------------------

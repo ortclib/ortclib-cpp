@@ -47,6 +47,7 @@
 #include "webrtc/base/scoped_ptr.h"
 #include <webrtc/base/logging.h>
 #include <webrtc/system_wrappers/include/trace.h>
+#include <webrtc/base/tracelog.h>
 #include <webrtc/audio/audio_send_stream.h>
 #include <webrtc/audio/audio_receive_stream.h>
 #include <webrtc/video/video_send_stream.h>
@@ -270,6 +271,11 @@ namespace ortc
     {
       static void setLogLevel(Log::Level level);
       static void ntpServerTime(const Milliseconds &value);
+      static void startMediaTracing();
+      static void stopMediaTracing();
+      static bool isMediaTracing();
+      static bool saveMediaTrace(String filename);
+      static bool saveMediaTrace(String host, int port);
     };
 
     //-------------------------------------------------------------------------
@@ -663,6 +669,11 @@ namespace ortc
 
       static void ntpServerTime(const Milliseconds &value);
       static void setLogLevel(Log::Level level);
+      static void startMediaTracing();
+      static void stopMediaTracing();
+      static bool isMediaTracing();
+      static bool saveMediaTrace(String filename);
+      static bool saveMediaTrace(String host, int port);
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -773,6 +784,27 @@ namespace ortc
 
       //-----------------------------------------------------------------------
       #pragma mark
+      #pragma mark RTPMediaEngine => webrtc::SetupEventTracer
+      #pragma mark
+
+#if defined(WINRT)
+      static const unsigned char *GetCategoryGroupEnabled(const char *categoryGroup);
+
+      static void __cdecl AddTraceEvent(
+                                        char phase,
+                                        const unsigned char *categoryGroupEnabled,
+                                        const char *name,
+                                        uint64 id,
+                                        int numArgs,
+                                        const char **argNames,
+                                        const unsigned char *argTypes,
+                                        const uint64 *argValues,
+                                        unsigned char flags
+                                        );
+#endif
+
+      //-----------------------------------------------------------------------
+      #pragma mark
       #pragma mark RTPMediaEngine => (friend ChannelResource)
       #pragma mark
 
@@ -789,6 +821,22 @@ namespace ortc
       virtual ElementPtr toDebug() const;
 
       virtual void internalSetLogLevel(Log::Level level);
+      virtual void internalStartMediaTracing();
+      virtual void internalStopMediaTracing();
+      virtual bool internalIsMediaTracing();
+      virtual bool internalSaveMediaTrace(String filename);
+      virtual bool internalSaveMediaTrace(String host, int port);
+      virtual void internalAddTraceEvent(
+                                         char phase,
+                                         const unsigned char *categoryGroupEnabled,
+                                         const char *name,
+                                         uint64 id,
+                                         int numArgs,
+                                         const char **argNames,
+                                         const unsigned char *argTypes,
+                                         const uint64 *argValues,
+                                         unsigned char flags
+                                         );
 
       bool isReady() const;
       bool isShuttingDown() const;
@@ -1590,6 +1638,7 @@ namespace ortc
 
       rtc::scoped_ptr<WebRtcTraceCallback> mTraceCallback;
       rtc::scoped_ptr<WebRtcLogSink> mLogSink;
+      rtc::TraceLog mTraceLog;
     };
 
     //-------------------------------------------------------------------------

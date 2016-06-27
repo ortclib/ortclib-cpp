@@ -55,6 +55,12 @@ namespace ortc
     static void setDefaultLogLevel(Log::Level level);
     static void setLogLevel(const char *componenet, Log::Level level);
 
+    static void startMediaTracing();
+    static void stopMediaTracing();
+    static bool isMediaTracing();
+    static bool saveMediaTrace(String filename);
+    static bool saveMediaTrace(String host, int port);
+
     virtual ~IORTC() {} // make polymorphic
   };
 }
