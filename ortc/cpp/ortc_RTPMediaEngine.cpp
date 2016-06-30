@@ -2990,13 +2990,16 @@ namespace ortc
       std::vector<IRTPTypes::PayloadType> rtxPayloadTypes;
 
       bool videoCodecSet = false;
+      bool rtxCodecSet = false;
+      bool redCodecSet = false;
+      bool fecCodecSet = false;
       for (auto codecIter = mParameters->mCodecs.begin(); codecIter != mParameters->mCodecs.end(); ++codecIter) {
         auto supportedCodec = IRTPTypes::toSupportedCodec(codecIter->mName);
-        if (IRTPTypes::getCodecKind(supportedCodec) == IRTPTypes::CodecKind_Video && videoCodecSet)
-          continue;
         switch (supportedCodec) {
           case IRTPTypes::SupportedCodec_VP8:
           {
+            if (videoCodecSet)
+              continue;
             webrtc::VideoDecoder* videoDecoder = webrtc::VideoDecoder::Create(webrtc::VideoDecoder::kVp8);
             decoder.decoder = videoDecoder;
             decoder.payload_name = IRTPTypes::toString(supportedCodec);
@@ -3005,6 +3008,8 @@ namespace ortc
           }
           case IRTPTypes::SupportedCodec_VP9:
           {
+            if (videoCodecSet)
+              continue;
             webrtc::VideoDecoder* videoDecoder = webrtc::VideoDecoder::Create(webrtc::VideoDecoder::kVp9);
             decoder.decoder = videoDecoder;
             decoder.payload_name = IRTPTypes::toString(supportedCodec);
@@ -3013,6 +3018,8 @@ namespace ortc
           }
           case IRTPTypes::SupportedCodec_H264:
           {
+            if (videoCodecSet)
+              continue;
 #ifndef WINRT
             webrtc::VideoDecoder* videoDecoder = webrtc::VideoDecoder::Create(webrtc::VideoDecoder::kH264);
 #else
@@ -3026,17 +3033,26 @@ namespace ortc
           }
           case IRTPTypes::SupportedCodec_RTX:
           {
+            if (rtxCodecSet)
+              continue;
             rtxPayloadTypes.push_back(codecIter->mPayloadType);
+            rtxCodecSet = true;
             break;
           }
           case IRTPTypes::SupportedCodec_RED:
           {
+            if (redCodecSet)
+              continue;
             config.rtp.fec.red_payload_type = codecIter->mPayloadType;
+            redCodecSet = true;
             break;
           }
           case IRTPTypes::SupportedCodec_ULPFEC:
           {
+            if (fecCodecSet)
+              continue;
             config.rtp.fec.ulpfec_payload_type = codecIter->mPayloadType;
+            fecCodecSet = true;
             break;
           }
           case IRTPTypes::SupportedCodec_FlexFEC:
@@ -3497,13 +3513,16 @@ namespace ortc
       encoderConfig.content_type = webrtc::VideoEncoderConfig::ContentType::kRealtimeVideo;
 
       bool videoCodecSet = false;
+      bool rtxCodecSet = false;
+      bool redCodecSet = false;
+      bool fecCodecSet = false;
       for (auto codecIter = mParameters->mCodecs.begin(); codecIter != mParameters->mCodecs.end(); codecIter++) {
         auto supportedCodec = IRTPTypes::toSupportedCodec(codecIter->mName);
-        if (IRTPTypes::getCodecKind(supportedCodec) == IRTPTypes::CodecKind_Video && videoCodecSet)
-          continue;
         switch (supportedCodec) {
           case IRTPTypes::SupportedCodec_VP8:
           {
+            if (videoCodecSet)
+              continue;
             webrtc::VideoEncoder* videoEncoder = webrtc::VideoEncoder::Create(webrtc::VideoEncoder::kVp8);
             config.encoder_settings.encoder = videoEncoder;
             config.encoder_settings.payload_name = IRTPTypes::toString(supportedCodec);
@@ -3517,6 +3536,8 @@ namespace ortc
           }
           case IRTPTypes::SupportedCodec_VP9:
           {
+            if (videoCodecSet)
+              continue;
             webrtc::VideoEncoder* videoEncoder = webrtc::VideoEncoder::Create(webrtc::VideoEncoder::kVp9);
             config.encoder_settings.encoder = videoEncoder;
             config.encoder_settings.payload_name = IRTPTypes::toString(supportedCodec);
@@ -3528,6 +3549,8 @@ namespace ortc
           }
           case IRTPTypes::SupportedCodec_H264:
           {
+            if (videoCodecSet)
+              continue;
 #ifndef WINRT
             webrtc::VideoEncoder* videoEncoder = webrtc::VideoEncoder::Create(webrtc::VideoEncoder::kH264);
 #else
@@ -3544,17 +3567,26 @@ namespace ortc
           }
           case IRTPTypes::SupportedCodec_RTX:
           {
+            if (rtxCodecSet)
+              continue;
             config.rtp.rtx.payload_type = codecIter->mPayloadType;
+            rtxCodecSet = true;
             break;
           }
           case IRTPTypes::SupportedCodec_RED:
           {
+            if (redCodecSet)
+              continue;
             config.rtp.fec.red_payload_type = codecIter->mPayloadType;
+            redCodecSet = true;
             break;
           }
           case IRTPTypes::SupportedCodec_ULPFEC:
           {
+            if (fecCodecSet)
+              continue;
             config.rtp.fec.ulpfec_payload_type = codecIter->mPayloadType;
+            fecCodecSet = true;
             break;
           }
           case IRTPTypes::SupportedCodec_FlexFEC:
