@@ -207,8 +207,6 @@ namespace ortc
       if (delegate) {
         DTMFSenderPtr pThis = mThisWeak.lock();
 
-#define TODO_DO_WE_NEED_TO_TELL_ABOUT_ANY_MISSED_EVENTS 1
-#define TODO_DO_WE_NEED_TO_TELL_ABOUT_ANY_MISSED_EVENTS 2
       }
 
       if (isShutdown()) {
@@ -221,9 +219,25 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool DTMFSender::canInsertDDTMF() const
     {
-#define TODO 1
-#define TODO 2
-      return false;
+      UseRTPSenderPtr sender;
+
+      {
+        AutoRecursiveLock lock(*this);
+
+        if (isClosed()) {
+          ZS_LOG_WARNING(Trace, log("already closed"));
+          return false;
+        }
+
+        sender = mRTPSender.lock();
+      }
+
+      if (!sender) {
+        ZS_LOG_WARNING(Trace, log("sender is gone"));
+        return false;
+      }
+
+      return sender->canInsertDTMF();
     }
 
     //-------------------------------------------------------------------------

@@ -210,6 +210,7 @@ namespace ortc
       Log::Params debug(const char *message) const;
       virtual ElementPtr toDebug() const;
 
+      bool isClosed() const { return isShuttingDown() || isShutdown(); }
       bool isShuttingDown() const;
       bool isShutdown() const;
 

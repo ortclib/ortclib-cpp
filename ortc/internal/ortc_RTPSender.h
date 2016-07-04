@@ -144,6 +144,8 @@ namespace ortc
       static ElementPtr toDebug(ForDTMFSenderPtr transport);
 
       virtual PUID getID() const = 0;
+
+      virtual bool canInsertDTMFTone() const = 0;
     };
 
     //-------------------------------------------------------------------------
