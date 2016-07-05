@@ -353,8 +353,6 @@ namespace ortc
     //-------------------------------------------------------------------------
     IMediaStreamTrackTypes::Kinds MediaStreamTrack::kind() const
     {
-      AutoRecursiveLock lock(*this);
-
       return mKind;
     }
 
@@ -438,6 +436,8 @@ namespace ortc
     void MediaStreamTrack::stop()
     {
       AutoRecursiveLock lock(*this);
+      if (mDeviceResource)
+        mDeviceResource->stop();
     }
 
     //-------------------------------------------------------------------------
@@ -752,9 +752,8 @@ namespace ortc
     {
       AutoRecursiveLock lock(*this);
 
-      UseStatsReport::StatMap reportStats;
-
-      promise->resolve(UseStatsReport::create(reportStats));
+      if (mDeviceResource)
+        mDeviceResource->requestStats(promise, stats);
     }
 
     //-------------------------------------------------------------------------
@@ -765,7 +764,8 @@ namespace ortc
     {
       AutoRecursiveLock lock(*this);
         
-      promise->reject();
+      if (mDeviceResource)
+        mDeviceResource->updateConstraints(promise, constraints);
     }
 
     //-------------------------------------------------------------------------

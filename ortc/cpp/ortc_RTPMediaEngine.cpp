@@ -668,6 +668,7 @@ namespace ortc
       auto setup = make_shared<IRTPMediaEngineAsyncDelegate::SetupReceiverChannel>();
       setup->mRegistration = mRegistration.lock();
       setup->mPromise = PromiseWithRTPMediaEngineChannelResource::create(IORTCForInternal::queueORTC());
+      setup->mChannel = channel;
       setup->mTransport = transport;
       setup->mTrack = track;
       setup->mParameters = parameters;
@@ -722,6 +723,7 @@ namespace ortc
       auto setup = make_shared<IRTPMediaEngineAsyncDelegate::SetupSenderChannel>();
       setup->mRegistration = mRegistration.lock();
       setup->mPromise = PromiseWithRTPMediaEngineChannelResource::create(IORTCForInternal::queueORTC());
+      setup->mChannel = channel;
       setup->mTransport = transport;
       setup->mTrack = track;
       setup->mParameters = parameters;
@@ -1642,10 +1644,10 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPMediaEngine::DeviceResource::notifyUpdate(TrackConstraintsPtr constraints)
+    void RTPMediaEngine::DeviceResource::updateConstraints(PromisePtr promise, TrackConstraintsPtr constraints)
     {
       auto pThis = ZS_DYNAMIC_PTR_CAST(DeviceResource, mThisWeak.lock());
-      IRTPMediaEngineDeviceResourceAsyncDelegateProxy::create(pThis)->onUpdate(constraints);
+      IRTPMediaEngineDeviceResourceAsyncDelegateProxy::create(pThis)->onUpdateConstraints(promise, constraints);
     }
 
     //-------------------------------------------------------------------------
@@ -1660,7 +1662,7 @@ namespace ortc
     {
       AutoRecursiveLock lock(*this);
 
-      if (mTrack->kind() == Kinds::Kind_Video) {
+      if (mTrack.lock()->kind() == Kinds::Kind_Video) {
         mVideoRenderCallbackReferenceHolder = callback;
         mVideoRendererCallback = dynamic_cast<webrtc::VideoRenderCallback*>(callback.get());
       }
@@ -1677,7 +1679,7 @@ namespace ortc
         mVideoRendererCallback->RenderFrame(1, *videoFrame);
       }
 
-      auto settings = mTrack->getSettings();
+      auto settings = mTrack.lock()->getSettings();
       if (NULL == settings) {
         return;
       }
@@ -1710,16 +1712,21 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void RTPMediaEngine::DeviceResource::onUpdate(TrackConstraintsPtr constraints)
+    void RTPMediaEngine::DeviceResource::onUpdateConstraints(PromisePtr promise, TrackConstraintsPtr constraints)
     {
       AutoRecursiveLock lock(*this);
 
-      auto settings = mTrack->getSettings();
+      auto track = mTrack.lock();
+      if (!track) {
+        return;
+      }
+
+      auto settings = track->getSettings();
       if (NULL == settings) {
         return;
       }
 
-      if (mTrack->kind() == Kinds::Kind_Audio && mTrack->remote()) {
+      if (track->kind() == Kinds::Kind_Audio && track->remote()) {
 
         mDeviceID = constraints->mAdvanced.front()->mDeviceID.mValue.value().mValue.value();
 
@@ -1737,6 +1744,8 @@ namespace ortc
 
         settings->mDeviceID = mDeviceID;
       }
+
+      promise->resolve();
     }
 
     //-------------------------------------------------------------------------
@@ -1746,7 +1755,12 @@ namespace ortc
 
       UseStatsReport::StatMap reportStats;
 
-      auto settings = mTrack->getSettings();
+      auto track = mTrack.lock();
+      if (!track) {
+        return;
+      }
+
+      auto settings = track->getSettings();
       if (NULL == settings) {
         return;
       }
@@ -1757,15 +1771,15 @@ namespace ortc
 
         decltype(report->mFramesPerSecond) framesPerSecond{};
 
-        if (!mTrack->remote())
+        if (!track->remote())
           framesPerSecond = mAverageFramesSent.value<decltype(framesPerSecond)>();
         else
           framesPerSecond = mAverageFramesReceived.value<decltype(framesPerSecond)>();
 
-        report->mID = mTrack->id();
+        report->mID = track->id();
 
-        report->mTrackID = mTrack->id();
-        report->mRemoteSource = mTrack->remote();
+        report->mTrackID = track->id();
+        report->mRemoteSource = track->remote();
         report->mFrameWidth = settings->mWidth.hasValue() ? settings->mWidth : 0;
         report->mFrameHeight = settings->mHeight.hasValue() ? settings->mHeight : 0;
         report->mFramesPerSecond = framesPerSecond;
@@ -1789,7 +1803,7 @@ namespace ortc
 
         if (mVideoRendererCallback) mVideoRendererCallback->RenderFrame(1, *frame);
 
-        track = mTrack;
+        track = mTrack.lock();
       }
 
       if (!track) return;
@@ -1813,21 +1827,28 @@ namespace ortc
 
       auto pThis = ZS_DYNAMIC_PTR_CAST(DeviceResource, mThisWeak.lock());
 
-      auto settings = mTrack->getSettings();
-      if (NULL == settings) {
+      auto track = mTrack.lock();
+      if (!track) {
         notifyPromisesReject();
         return;
       }
 
-      auto constraints = mTrack->getConstraints();
-      if (NULL == constraints) {
+      auto settings = track->getSettings();
+      if (NULL == settings) {
         notifyPromisesReject();
         return;
       }
 
       mTransport = VideoCaptureTransport::create(pThis);
 
-      if (mTrack->kind() == Kinds::Kind_Video && !mTrack->remote()) {
+      if (track->kind() == Kinds::Kind_Video && !track->remote()) {
+
+        auto constraints = track->getConstraints();
+        if (NULL == constraints) {
+          notifyPromisesReject();
+          return;
+        }
+
         mDeviceID = constraints->mAdvanced.front()->mDeviceID.mValue.value().mValue.value();
         mVideoCaptureModule = webrtc::VideoCaptureFactory::Create(0, mDeviceID.c_str());
         if (!mVideoCaptureModule) {
@@ -1974,7 +1995,13 @@ namespace ortc
           mVideoCaptureModule->DeRegisterCaptureDataCallback();
           return;
         }
-      } else if (mTrack->kind() == Kinds::Kind_Audio && !mTrack->remote()) {
+      } else if (track->kind() == Kinds::Kind_Audio && !track->remote()) {
+
+        auto constraints = track->getConstraints();
+        if (NULL == constraints) {
+          notifyPromisesReject();
+          return;
+        }
 
         mDeviceID = constraints->mAdvanced.front()->mDeviceID.mValue.value().mValue.value();
 
@@ -1992,6 +2019,8 @@ namespace ortc
 
         settings->mDeviceID = mDeviceID;
       }
+
+      notifyPromisesResolve();
     }
 
     //-------------------------------------------------------------------------
@@ -2531,6 +2560,11 @@ namespace ortc
 
       webrtc::AudioReceiveStream::Stats receiveStreamStats = mReceiveStream->GetStats();
 
+      auto track = mTrack.lock();
+      if (!track) {
+        return;
+      }
+
       if (stats.hasStatType(IStatsReportTypes::StatsTypes::StatsType_InboundRTP)) {
 
         auto report = make_shared<IStatsReport::InboundRTPStreamStats>();
@@ -2540,7 +2574,7 @@ namespace ortc
         report->mSSRC = receiveStreamStats.remote_ssrc;
         report->mIsRemote = true;
         report->mMediaType = "audio";
-        report->mMediaTrackID = mTrack->id();
+        report->mMediaTrackID = track->id();
         report->mCodecID = mCodecPayloadName;
         report->mPacketsReceived = receiveStreamStats.packets_rcvd;
         report->mBytesReceived = receiveStreamStats.bytes_rcvd;
@@ -3041,6 +3075,11 @@ namespace ortc
 
       webrtc::AudioSendStream::Stats sendStreamStats = mSendStream->GetStats();
 
+      auto track = mTrack.lock();
+      if (!track) {
+        return;
+      }
+
       if (stats.hasStatType(IStatsReportTypes::StatsTypes::StatsType_OutboundRTP)) {
 
         auto report = make_shared<IStatsReport::OutboundRTPStreamStats>();
@@ -3050,7 +3089,7 @@ namespace ortc
         report->mSSRC = sendStreamStats.local_ssrc;
         report->mIsRemote = false;
         report->mMediaType = "audio";
-        report->mMediaTrackID = mTrack->id();
+        report->mMediaTrackID = track->id();
         report->mCodecID = mCodecPayloadName;
         report->mPacketsSent = sendStreamStats.packets_sent;
         report->mBytesSent = sendStreamStats.bytes_sent;
@@ -3405,7 +3444,7 @@ namespace ortc
       auto frameCopy = make_shared<webrtc::VideoFrame>();
       frameCopy->ShallowCopy(videoFrame);
 
-      mVideoTrack->renderVideoFrame(frameCopy);
+      mVideoTrack.lock()->renderVideoFrame(frameCopy);
     }
 
     //-------------------------------------------------------------------------
@@ -3552,6 +3591,12 @@ namespace ortc
 
       webrtc::VideoReceiveStream::Stats receiveStreamStats = mReceiveStream->GetStats();
 
+      auto track = mTrack.lock();
+      if (!track) {
+        notifyPromisesReject();
+        return;
+      }
+
       if (stats.hasStatType(IStatsReportTypes::StatsTypes::StatsType_InboundRTP)) {
 
         auto report = make_shared<IStatsReport::InboundRTPStreamStats>();
@@ -3561,7 +3606,7 @@ namespace ortc
         report->mSSRC = receiveStreamStats.ssrc;
         report->mIsRemote = true;
         report->mMediaType = "video";
-        report->mMediaTrackID = mTrack->id();
+        report->mMediaTrackID = track->id();
         report->mCodecID = mCodecPayloadName;
         report->mFIRCount = receiveStreamStats.rtcp_packet_type_counts.fir_packets;
         report->mPLICount = receiveStreamStats.rtcp_packet_type_counts.pli_packets;
@@ -3697,10 +3742,15 @@ namespace ortc
     {
       AutoRecursiveLock lock(*this);
 
+      auto track = mTrack.lock();
+      if (!track) {
+        return;
+      }
+
       mModuleProcessThread = webrtc::ProcessThread::Create("VideoReceiverChannelResourceModuleProcessThread");
       mPacerThread = webrtc::ProcessThread::Create("VideoReceiverChannelResourcePacerThread");
 
-      mReceiverVideoRenderer.setMediaStreamTrack(mTrack);
+      mReceiverVideoRenderer.setMediaStreamTrack(track);
 
       mBitrateAllocator = rtc::scoped_ptr<webrtc::BitrateAllocator>(new webrtc::BitrateAllocator());
       mCallStats = rtc::scoped_ptr<webrtc::CallStats>(new webrtc::CallStats(mClock));
@@ -4045,6 +4095,11 @@ namespace ortc
 
       webrtc::VideoSendStream::Stats sendStreamStats = mSendStream->GetStats();
 
+      auto track = mTrack.lock();
+      if (!track) {
+        return;
+      }
+
       if (stats.hasStatType(IStatsReportTypes::StatsTypes::StatsType_OutboundRTP)) {
 
         for (auto statsIter = sendStreamStats.substreams.begin(); statsIter != sendStreamStats.substreams.end(); statsIter++) {
@@ -4056,7 +4111,7 @@ namespace ortc
           report->mSSRC = (*statsIter).first;
           report->mIsRemote = false;
           report->mMediaType = "video";
-          report->mMediaTrackID = mTrack->id();
+          report->mMediaTrackID = track->id();
           report->mCodecID = mCodecPayloadName;
           report->mFIRCount = (*statsIter).second.rtcp_packet_type_counts.fir_packets;
           report->mPLICount = (*statsIter).second.rtcp_packet_type_counts.pli_packets;
@@ -4190,6 +4245,11 @@ namespace ortc
     {
       AutoRecursiveLock lock(*this);
 
+      auto track = mTrack.lock();
+      if (!track) {
+        return;
+      }
+
       mModuleProcessThread = webrtc::ProcessThread::Create("VideoSenderChannelResourceModuleProcessThread");
       mPacerThread = webrtc::ProcessThread::Create("VideoSenderChannelResourcePacerThread");
 
@@ -4209,7 +4269,7 @@ namespace ortc
       size_t sourceWidth = 640;
       size_t sourceHeight = 480;
       int sourceMaxFramerate = 15;
-      IMediaStreamTrack::SettingsPtr trackSettings = mTrack->getSettings();
+      IMediaStreamTrack::SettingsPtr trackSettings = track->getSettings();
       if (trackSettings->mWidth.hasValue())
         sourceWidth = trackSettings->mWidth.value();
       if (trackSettings->mHeight.hasValue())

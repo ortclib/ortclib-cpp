@@ -157,7 +157,7 @@ namespace ortc
 
       virtual void stop() = 0;
 
-      virtual void notifyUpdate(TrackConstraintsPtr constraints) = 0;
+      virtual void updateConstraints(PromisePtr promise, TrackConstraintsPtr constraints) = 0;
 
       virtual void requestStats(PromiseWithStatsReportPtr promise, const StatsTypeSet &stats) = 0;
 
@@ -207,7 +207,7 @@ namespace ortc
       ZS_DECLARE_TYPEDEF_PTR(IStatsReportTypes::StatsTypeSet, StatsTypeSet)
       ZS_DECLARE_TYPEDEF_PTR(webrtc::VideoFrame, VideoFrame);
 
-      virtual void onUpdate(TrackConstraintsPtr constraints) = 0;
+      virtual void onUpdateConstraints(PromisePtr promise, TrackConstraintsPtr constraints) = 0;
       virtual void onProvideStats(PromiseWithStatsReportPtr promise, IStatsReportTypes::StatsTypeSet stats) = 0;
       virtual void onCapturedVideoFrame(VideoFramePtr frame) = 0;
     };
@@ -618,7 +618,7 @@ namespace ortc
 
       virtual void onSetupSenderChannel(SetupSenderChannelPtr channel) = 0;
       virtual void onSetupReceiverChannel(SetupReceiverChannelPtr channel) = 0;
-      virtual void onSetupDevice(SetupDevicePtr channel) = 0;
+      virtual void onSetupDevice(SetupDevicePtr device) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -1112,7 +1112,7 @@ namespace ortc
         virtual String getDeviceID() const override;
         virtual PromisePtr shutdown() override;
         virtual void stop() override;
-        virtual void notifyUpdate(TrackConstraintsPtr constraints) override;
+        virtual void updateConstraints(PromisePtr promise, TrackConstraintsPtr constraints) override;
         virtual void requestStats(PromiseWithStatsReportPtr promise, const StatsTypeSet &stats) override;
 
         virtual void setVideoRenderCallback(IMediaStreamTrackRenderCallbackPtr callback) override;
@@ -1126,7 +1126,7 @@ namespace ortc
         #pragma mark RTPMediaEngine::DeviceResource => IRTPMediaEngineDeviceResourceAsyncDelegate
         #pragma mark
 
-        virtual void onUpdate(TrackConstraintsPtr constraints) override;
+        virtual void onUpdateConstraints(PromisePtr promise, TrackConstraintsPtr constraints) override;
 
         virtual void onProvideStats(PromiseWithStatsReportPtr promise, IStatsReportTypes::StatsTypeSet stats) override;
 
@@ -1233,7 +1233,7 @@ namespace ortc
         std::atomic<size_t> mAccessFromNonLockedMethods {};
         std::atomic<bool> mDenyNonLockedAccess {};
 
-        UseMediaStreamTrackPtr mTrack;
+        UseMediaStreamTrackWeakPtr mTrack;
 
         VideoCaptureTransportPtr mTransport;  // keep lifetime of webrtc callback separate from this object
 
@@ -1462,7 +1462,7 @@ namespace ortc
         TransportPtr mTransport;
         std::atomic<ISecureTransport::States> mTransportState { ISecureTransport::State_Pending };
 
-        UseMediaStreamTrackPtr mTrack;
+        UseMediaStreamTrackWeakPtr mTrack;
 
         ParametersPtr mParameters;
 
@@ -1584,7 +1584,7 @@ namespace ortc
         TransportPtr mTransport;
         std::atomic<ISecureTransport::States> mTransportState { ISecureTransport::State_Pending };
 
-        UseMediaStreamTrackPtr mTrack;
+        UseMediaStreamTrackWeakPtr mTrack;
 
         ParametersPtr mParameters;
 
@@ -1625,7 +1625,7 @@ namespace ortc
           virtual bool IsTextureSupported() const override;
 
         private:
-          UseMediaStreamTrackPtr mVideoTrack;
+          UseMediaStreamTrackWeakPtr mVideoTrack;
         };
 
       public:
@@ -1713,7 +1713,7 @@ namespace ortc
         TransportPtr mTransport;
         std::atomic<ISecureTransport::States> mTransportState { ISecureTransport::State_Pending };
 
-        UseMediaStreamTrackPtr mTrack;
+        UseMediaStreamTrackWeakPtr mTrack;
 
         ParametersPtr mParameters;
 
@@ -1834,7 +1834,7 @@ namespace ortc
         TransportPtr mTransport;
         std::atomic<ISecureTransport::States> mTransportState { ISecureTransport::State_Pending };
 
-        UseMediaStreamTrackPtr mTrack;
+        UseMediaStreamTrackWeakPtr mTrack;
 
         ParametersPtr mParameters;
 
@@ -1900,7 +1900,7 @@ namespace ortc
 ZS_DECLARE_PROXY_BEGIN(ortc::internal::IRTPMediaEngineDeviceResourceAsyncDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IStatsProviderTypes::PromiseWithStatsReportPtr, PromiseWithStatsReportPtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IStatsReportTypes::StatsTypeSet, StatsTypeSet)
-ZS_DECLARE_PROXY_METHOD_1(onUpdate, TrackConstraintsPtr)
+ZS_DECLARE_PROXY_METHOD_2(onUpdateConstraints, PromisePtr, TrackConstraintsPtr)
 ZS_DECLARE_PROXY_METHOD_2(onProvideStats, PromiseWithStatsReportPtr, StatsTypeSet)
 ZS_DECLARE_PROXY_METHOD_1(onCapturedVideoFrame, VideoFramePtr)
 ZS_DECLARE_PROXY_END()
