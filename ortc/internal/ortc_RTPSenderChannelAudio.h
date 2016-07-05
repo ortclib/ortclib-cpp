@@ -48,6 +48,8 @@
 
 //#define ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE "ortc/sctp/max-message-size"
 
+#define ORTC_SENDER_CHANNEL_PENDING_TONE_LOCK_OUT_MAGIC_STRING "PENDING"
+
 namespace ortc
 {
   namespace internal
@@ -180,6 +182,7 @@ namespace ortc
                                   public IRTPSenderChannelAudioForMediaStreamTrack,
                                   public IRTPSenderChannelAudioForRTPMediaEngine,
                                   public IWakeDelegate,
+                                  public IDTMFSenderDelegate,
                                   public zsLib::ITimerDelegate,
                                   public zsLib::IPromiseSettledDelegate,
                                   public IRTPSenderChannelAudioAsyncDelegate
@@ -224,6 +227,19 @@ namespace ortc
         State_Shutdown,
       };
       static const char *toString(States state);
+
+      ZS_DECLARE_STRUCT_PTR(ToneInfo);
+
+      struct ToneInfo
+      {
+        String mTones;
+        Milliseconds mDuration {};
+        Milliseconds mInterToneGap {};
+
+        ElementPtr toDebug() const;
+      };
+
+      typedef std::list<ToneInfoPtr> ToneInfoList;
 
     public:
       RTPSenderChannelAudio(
@@ -271,6 +287,16 @@ namespace ortc
       
       virtual void requestStats(PromiseWithStatsReportPtr promise, const StatsTypeSet &stats) override;
 
+      virtual void insertDTMF(
+                              const char *tones,
+                              Milliseconds duration,
+                              Milliseconds interToneGap
+                              ) override;
+
+      virtual String toneBuffer() const override;
+      virtual Milliseconds duration() const override;
+      virtual Milliseconds interToneGap() const override;
+
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark RTPSenderChannelAudio => IRTPSenderChannelAudioForRTPSenderChannel
@@ -312,6 +338,16 @@ namespace ortc
       #pragma mark
 
       virtual void onWake() override;
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPSenderChannelAudio => IDTMFSenderDelegate
+      #pragma mark
+
+      virtual void onDTMFSenderToneChanged(
+                                           IDTMFSenderPtr sender,
+                                           String tone
+                                           ) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -441,6 +477,8 @@ namespace ortc
 
       TransportPtr mTransport;  // allow lifetime of callback to exist separate from "this" object
       std::atomic<ISecureTransport::States> mTransportState { ISecureTransport::State_Pending };
+
+      ToneInfoList mPendingTones;
     };
 
     //-------------------------------------------------------------------------

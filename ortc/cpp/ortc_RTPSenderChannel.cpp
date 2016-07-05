@@ -391,6 +391,34 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    void RTPSenderChannel::insertDTMF(
+                                      const char *tones,
+                                      Milliseconds duration,
+                                      Milliseconds interToneGap
+                                      )
+    {
+      mMediaBase->insertDTMF(tones, duration, interToneGap);
+    }
+
+    //-------------------------------------------------------------------------
+    String RTPSenderChannel::toneBuffer() const
+    {
+      return mMediaBase->toneBuffer();
+    }
+
+    //-------------------------------------------------------------------------
+    Milliseconds RTPSenderChannel::duration() const
+    {
+      return mMediaBase->duration();
+    }
+
+    //-------------------------------------------------------------------------
+    Milliseconds RTPSenderChannel::interToneGap() const
+    {
+      return mMediaBase->interToneGap();
+    }
+
+    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -541,6 +569,18 @@ namespace ortc
     #pragma mark
     #pragma mark RTPSenderChannel => ForRTPSenderChannelAudio
     #pragma mark
+
+    //-------------------------------------------------------------------------
+    void RTPSenderChannel::notifyDTMFSenderToneChanged(const char *tone)
+    {
+      auto sender = mSender.lock();
+      if (!sender) {
+        ZS_LOG_WARNING(Debug, log("cannot forward tone event (sender gone)"));
+        return;
+      }
+
+      sender->notifyDTMFSenderToneChanged(tone);
+    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------

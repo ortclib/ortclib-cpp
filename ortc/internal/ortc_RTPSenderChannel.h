@@ -126,6 +126,16 @@ namespace ortc
       virtual bool handlePacket(RTCPPacketPtr packet) = 0;
 
       virtual void requestStats(PromiseWithStatsReportPtr promise, const StatsTypeSet &stats) = 0;
+
+      virtual void insertDTMF(
+                              const char *tones,
+                              Milliseconds duration,
+                              Milliseconds interToneGap
+                              ) = 0;
+
+      virtual String toneBuffer() const = 0;
+      virtual Milliseconds duration() const = 0;
+      virtual Milliseconds interToneGap() const = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -158,6 +168,8 @@ namespace ortc
     interaction IRTPSenderChannelForRTPSenderChannelAudio : public IRTPSenderChannelForRTPSenderChannelMediaBase
     {
       ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelForRTPSenderChannelAudio, ForRTPSenderChannelAudio)
+
+      virtual void notifyDTMFSenderToneChanged(const char *tone) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -353,6 +365,16 @@ namespace ortc
 
       virtual void requestStats(PromiseWithStatsReportPtr promise, const StatsTypeSet &stats) override;
 
+      virtual void insertDTMF(
+                              const char *tones,
+                              Milliseconds duration,
+                              Milliseconds interToneGap
+                              ) override;
+
+      virtual String toneBuffer() const override;
+      virtual Milliseconds duration() const override;
+      virtual Milliseconds interToneGap() const override;
+
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark RTPSenderChannel => IRTPSenderChannelForRTPSenderChannelMediaBase
@@ -368,6 +390,8 @@ namespace ortc
       #pragma mark
       #pragma mark RTPSenderChannel => IRTPSenderChannelForRTPSenderChannelAudio
       #pragma mark
+
+      virtual void notifyDTMFSenderToneChanged(const char *tone) override;
 
       //-----------------------------------------------------------------------
       #pragma mark

@@ -115,6 +115,26 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
+    #pragma mark RTPSenderChannelAudio::ToneInfo
+    #pragma mark
+    
+    //-------------------------------------------------------------------------
+    ElementPtr RTPSenderChannelAudio::ToneInfo::toDebug() const
+    {
+      ElementPtr resultEl = Element::create("ortc::RTPSenderChannelAudio::ToneInfo");
+
+      UseServicesHelper::debugAppend(resultEl, "tones", mTones);
+      UseServicesHelper::debugAppend(resultEl, "duration", mDuration);
+      UseServicesHelper::debugAppend(resultEl, "inter tone gap", mInterToneGap);
+
+      return resultEl;
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
     #pragma mark RTPSenderChannelAudio
     #pragma mark
     
@@ -158,7 +178,8 @@ namespace ortc
                                                                                                      mThisWeak.lock(),
                                                                                                      transport,
                                                                                                      MediaStreamTrack::convert(mTrack),
-                                                                                                     mParameters
+                                                                                                     mParameters,
+                                                                                                     mThisWeak.lock()
                                                                                                      );
       {
         AutoRecursiveLock lock(*this);
@@ -278,6 +299,88 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    void RTPSenderChannelAudio::insertDTMF(
+                                           const char *tones,
+                                           Milliseconds duration,
+                                           Milliseconds interToneGap
+                                           )
+    {
+      UseChannelResourcePtr channelResource;
+      {
+        AutoRecursiveLock lock(*this);
+        channelResource = mChannelResource;
+
+        if ((!channelResource) ||
+            (mPendingTones.size() > 0)) {
+          auto info = make_shared<ToneInfo>();
+          info->mTones = String(tones);
+          info->mDuration = duration;
+          info->mInterToneGap = interToneGap;
+          mPendingTones.push_back(info);
+          return;
+        }
+      }
+
+      channelResource->insertDTMF(tones, duration, interToneGap);
+    }
+
+    //-------------------------------------------------------------------------
+    String RTPSenderChannelAudio::toneBuffer() const
+    {
+      UseChannelResourcePtr channelResource;
+      {
+        AutoRecursiveLock lock(*this);
+        channelResource = mChannelResource;
+
+        if (mPendingTones.size() > 0) {
+          auto info = mPendingTones.front();
+          return info->mTones;
+        }
+      }
+
+      if (!channelResource) return String();
+
+      return channelResource->toneBuffer();
+    }
+
+    //-------------------------------------------------------------------------
+    Milliseconds RTPSenderChannelAudio::duration() const
+    {
+      UseChannelResourcePtr channelResource;
+      {
+        AutoRecursiveLock lock(*this);
+        channelResource = mChannelResource;
+        if (mPendingTones.size() > 0) {
+          auto info = mPendingTones.front();
+          return info->mDuration;
+        }
+      }
+
+      if (!channelResource) return Milliseconds();
+
+      return channelResource->duration();
+    }
+
+    //-------------------------------------------------------------------------
+    Milliseconds RTPSenderChannelAudio::interToneGap() const
+    {
+      UseChannelResourcePtr channelResource;
+      {
+        AutoRecursiveLock lock(*this);
+        channelResource = mChannelResource;
+        if (mPendingTones.size() > 0) {
+          auto info = mPendingTones.front();
+          return info->mInterToneGap;
+        }
+      }
+
+      if (!channelResource) return Milliseconds();
+
+      return channelResource->interToneGap();
+    }
+
+
+    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -337,10 +440,81 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPSenderChannelAudio::onWake()
     {
-      ZS_LOG_DEBUG(log("wake"))
+      ZS_LOG_DEBUG(log("wake"));
 
-      AutoRecursiveLock lock(*this);
-      step();
+      ToneInfoList pending;
+      UseChannelResourcePtr channelResource;
+
+      {
+        AutoRecursiveLock lock(*this);
+        step();
+
+        if ((mChannelResource) &&
+            (mPendingTones.size() > 0)) {
+          pending = mPendingTones;
+          mPendingTones.clear();
+
+          auto tempLockoutTones = make_shared<ToneInfo>();
+          tempLockoutTones->mTones = ORTC_SENDER_CHANNEL_PENDING_TONE_LOCK_OUT_MAGIC_STRING;
+
+          mPendingTones.push_back(tempLockoutTones);
+
+          channelResource = mChannelResource;
+        }
+      }
+
+      if (pending.size() > 0)
+      {
+        while (pending.size() > 0)
+        {
+          ToneInfoPtr tone = pending.front();
+          pending.pop_front();
+
+          if (0 == tone->mTones.compare(ORTC_SENDER_CHANNEL_PENDING_TONE_LOCK_OUT_MAGIC_STRING)) continue;
+
+          channelResource->insertDTMF(tone->mTones, tone->mDuration, tone->mInterToneGap);
+        }
+
+        {
+          AutoRecursiveLock lock(*this);
+
+          if (mPendingTones.size() > 1) {
+            // NOTE: a pending tone was inserted while the current tone was
+            // being played out thus attempt to deliver pending tones again
+            IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
+            return;
+          }
+
+          // NOTE: the only possible tone in the tone buffer is the lock out
+          /// tone thus clear out the pending tone
+          mPendingTones.clear();
+        }
+      }
+    }
+
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPSenderChannelAudio => IWakeDelegate
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void RTPSenderChannelAudio::onDTMFSenderToneChanged(
+                                                        IDTMFSenderPtr sender,
+                                                        String tone
+                                                        )
+    {
+      auto senderChannel = mSenderChannel.lock();
+
+      if (!senderChannel) {
+        ZS_LOG_WARNING(Debug, log("cannot foreward tone event (sender channel is gone)"));
+        return;
+      }
+
+      senderChannel->notifyDTMFSenderToneChanged(tone);
     }
 
     //-------------------------------------------------------------------------
@@ -628,7 +802,7 @@ namespace ortc
       ZS_LOG_DEBUG(log("media channel is setup") + ZS_PARAM("channel", mChannelResource->getID()))
 
       mChannelResource->notifyTransportState(mTransportState);
-
+      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
       return true;
     }
 

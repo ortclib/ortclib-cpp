@@ -385,7 +385,8 @@ namespace ortc
                                                                                                           UseSenderChannelMediaBasePtr channel,
                                                                                                           TransportPtr transport,
                                                                                                           UseMediaStreamTrackPtr track,
-                                                                                                          ParametersPtr parameters
+                                                                                                          ParametersPtr parameters,
+                                                                                                          IDTMFSenderDelegatePtr dtmfDelegate
                                                                                                           )
     {
       auto singleton = RTPMediaEngineSingleton::singleton();
@@ -394,7 +395,8 @@ namespace ortc
                                                                               channel,
                                                                               transport,
                                                                               track,
-                                                                              parameters
+                                                                              parameters,
+                                                                              dtmfDelegate
                                                                               );
     }
 
@@ -716,7 +718,8 @@ namespace ortc
                                                                              UseSenderChannelMediaBasePtr channel,
                                                                              TransportPtr transport,
                                                                              UseMediaStreamTrackPtr track,
-                                                                             ParametersPtr parameters
+                                                                             ParametersPtr parameters,
+                                                                             IDTMFSenderDelegatePtr dtmfDelegate
                                                                              )
     {
       auto setup = make_shared<IRTPMediaEngineAsyncDelegate::SetupSenderChannel>();
@@ -725,6 +728,7 @@ namespace ortc
       setup->mTransport = transport;
       setup->mTrack = track;
       setup->mParameters = parameters;
+      setup->mDTMFDelegate = dtmfDelegate;
 
       IRTPMediaEngineAsyncDelegateProxy::create(mThisWeak.lock())->onSetupSenderChannel(setup);
 
@@ -881,7 +885,8 @@ namespace ortc
                                                                          setup->mRegistration,
                                                                          setup->mTransport,
                                                                          setup->mTrack,
-                                                                         setup->mParameters
+                                                                         setup->mParameters,
+                                                                         setup->mDTMFDelegate
                                                                          );
         resource->registerPromise(setup->mPromise);
         mChannelResources[resource->getID()] = resource;
@@ -2923,12 +2928,14 @@ namespace ortc
                                                                            IRTPMediaEngineRegistrationPtr registration,
                                                                            TransportPtr transport,
                                                                            UseMediaStreamTrackPtr track,
-                                                                           ParametersPtr parameters
+                                                                           ParametersPtr parameters,
+                                                                           IDTMFSenderDelegatePtr dtmfDelegate
                                                                            ) :
       ChannelResource(priv, registration),
       mTransport(transport),
       mTrack(track),
-      mParameters(parameters)
+      mParameters(parameters),
+      mDTMFSenderDelegate(IDTMFSenderDelegateProxy::createWeak(dtmfDelegate))
     {
     }
 
@@ -2943,7 +2950,8 @@ namespace ortc
                                                                                                      IRTPMediaEngineRegistrationPtr registration,
                                                                                                      TransportPtr transport,
                                                                                                      UseMediaStreamTrackPtr track,
-                                                                                                     ParametersPtr parameters
+                                                                                                     ParametersPtr parameters,
+                                                                                                     IDTMFSenderDelegatePtr dtmfDelegate
                                                                                                      )
     {
       auto pThis = make_shared<AudioSenderChannelResource>(
@@ -2951,7 +2959,8 @@ namespace ortc
                                                            registration,
                                                            transport,
                                                            track,
-                                                           parameters
+                                                           parameters,
+                                                           dtmfDelegate
                                                            );
       pThis->mThisWeak = pThis;
       pThis->init();
@@ -3089,6 +3098,47 @@ namespace ortc
     {
       IRTPMediaEngineHandlePacketAsyncDelegateProxy::createUsingQueue(mHandlePacketQueue, getThis<AudioSenderChannelResource>())->onHandleRTCPPacket(packet.buffer());
       return true;
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::AudioSenderChannelResource::insertDTMF(
+                                                                const char *tones,
+                                                                Milliseconds duration,
+                                                                Milliseconds interToneGap
+                                                                )
+    {
+      AutoRecursiveLock lock(*this);
+#define TODO_MOSA_INSERT_DTMF 1
+#define TODO_MOSA_INSERT_DTMF 2
+    }
+
+    //-------------------------------------------------------------------------
+    String RTPMediaEngine::AudioSenderChannelResource::toneBuffer() const
+    {
+      AutoRecursiveLock lock(*this);
+#define TODO_MOSA_TONE_BUFFER 1
+#define TODO_MOSA_TONE_BUFFER 2
+      return String();
+    }
+
+    //-------------------------------------------------------------------------
+    Milliseconds RTPMediaEngine::AudioSenderChannelResource::duration() const
+    {
+      AutoRecursiveLock lock(*this);
+#define TODO_MOSA_DURAATION 1
+#define TODO_MOSA_DURAATION 2
+
+      return Milliseconds();
+    }
+
+    //-------------------------------------------------------------------------
+    Milliseconds RTPMediaEngine::AudioSenderChannelResource::interToneGap() const
+    {
+      AutoRecursiveLock lock(*this);
+#define TODO_MOSA_INTER_TONE_GAP 1
+#define TODO_MOSA_INTER_TONE_GAP 2
+
+      return Milliseconds();
     }
 
     //-------------------------------------------------------------------------
@@ -3384,6 +3434,16 @@ namespace ortc
       return codec;
     }
 
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::AudioSenderChannelResource::notifyToneEvent(const char *tone)
+    {
+      if (!mDTMFSenderDelegate) return;
+
+      try {
+        mDTMFSenderDelegate->onDTMFSenderToneChanged(IDTMFSenderPtr(), tone);
+      } catch (const IDTMFSenderDelegateProxy::Exceptions::DelegateGone &) {
+      }
+    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -3721,13 +3781,16 @@ namespace ortc
       std::vector<IRTPTypes::PayloadType> rtxPayloadTypes;
 
       bool videoCodecSet = false;
+      bool rtxCodecSet = false;
+      bool redCodecSet = false;
+      bool fecCodecSet = false;
       for (auto codecIter = mParameters->mCodecs.begin(); codecIter != mParameters->mCodecs.end(); ++codecIter) {
         auto supportedCodec = IRTPTypes::toSupportedCodec(codecIter->mName);
-        if (IRTPTypes::getCodecKind(supportedCodec) == IRTPTypes::CodecKind_Video && videoCodecSet)
-          continue;
         switch (supportedCodec) {
           case IRTPTypes::SupportedCodec_VP8:
           {
+            if (videoCodecSet)
+              continue;
             webrtc::VideoDecoder* videoDecoder = webrtc::VideoDecoder::Create(webrtc::VideoDecoder::kVp8);
             decoder.decoder = videoDecoder;
             decoder.payload_name = IRTPTypes::toString(supportedCodec);
@@ -3736,6 +3799,8 @@ namespace ortc
           }
           case IRTPTypes::SupportedCodec_VP9:
           {
+            if (videoCodecSet)
+              continue;
             webrtc::VideoDecoder* videoDecoder = webrtc::VideoDecoder::Create(webrtc::VideoDecoder::kVp9);
             decoder.decoder = videoDecoder;
             decoder.payload_name = IRTPTypes::toString(supportedCodec);
@@ -3744,6 +3809,8 @@ namespace ortc
           }
           case IRTPTypes::SupportedCodec_H264:
           {
+            if (videoCodecSet)
+              continue;
 #ifndef WINRT
             webrtc::VideoDecoder* videoDecoder = webrtc::VideoDecoder::Create(webrtc::VideoDecoder::kH264);
 #else
@@ -3757,17 +3824,26 @@ namespace ortc
           }
           case IRTPTypes::SupportedCodec_RTX:
           {
+            if (rtxCodecSet)
+              continue;
             rtxPayloadTypes.push_back(codecIter->mPayloadType);
+            rtxCodecSet = true;
             break;
           }
           case IRTPTypes::SupportedCodec_RED:
           {
+            if (redCodecSet)
+              continue;
             config.rtp.fec.red_payload_type = codecIter->mPayloadType;
+            redCodecSet = true;
             break;
           }
           case IRTPTypes::SupportedCodec_ULPFEC:
           {
+            if (fecCodecSet)
+              continue;
             config.rtp.fec.ulpfec_payload_type = codecIter->mPayloadType;
+            fecCodecSet = true;
             break;
           }
           case IRTPTypes::SupportedCodec_FlexFEC:
@@ -4225,13 +4301,16 @@ namespace ortc
       encoderConfig.content_type = webrtc::VideoEncoderConfig::ContentType::kRealtimeVideo;
 
       bool videoCodecSet = false;
+      bool rtxCodecSet = false;
+      bool redCodecSet = false;
+      bool fecCodecSet = false;
       for (auto codecIter = mParameters->mCodecs.begin(); codecIter != mParameters->mCodecs.end(); codecIter++) {
         auto supportedCodec = IRTPTypes::toSupportedCodec(codecIter->mName);
-        if (IRTPTypes::getCodecKind(supportedCodec) == IRTPTypes::CodecKind_Video && videoCodecSet)
-          continue;
         switch (supportedCodec) {
           case IRTPTypes::SupportedCodec_VP8:
           {
+            if (videoCodecSet)
+              continue;
             webrtc::VideoEncoder* videoEncoder = webrtc::VideoEncoder::Create(webrtc::VideoEncoder::kVp8);
             config.encoder_settings.encoder = videoEncoder;
             config.encoder_settings.payload_name = IRTPTypes::toString(supportedCodec);
@@ -4245,6 +4324,8 @@ namespace ortc
           }
           case IRTPTypes::SupportedCodec_VP9:
           {
+            if (videoCodecSet)
+              continue;
             webrtc::VideoEncoder* videoEncoder = webrtc::VideoEncoder::Create(webrtc::VideoEncoder::kVp9);
             config.encoder_settings.encoder = videoEncoder;
             config.encoder_settings.payload_name = IRTPTypes::toString(supportedCodec);
@@ -4256,6 +4337,8 @@ namespace ortc
           }
           case IRTPTypes::SupportedCodec_H264:
           {
+            if (videoCodecSet)
+              continue;
 #ifndef WINRT
             webrtc::VideoEncoder* videoEncoder = webrtc::VideoEncoder::Create(webrtc::VideoEncoder::kH264);
 #else
@@ -4272,17 +4355,26 @@ namespace ortc
           }
           case IRTPTypes::SupportedCodec_RTX:
           {
+            if (rtxCodecSet)
+              continue;
             config.rtp.rtx.payload_type = codecIter->mPayloadType;
+            rtxCodecSet = true;
             break;
           }
           case IRTPTypes::SupportedCodec_RED:
           {
+            if (redCodecSet)
+              continue;
             config.rtp.fec.red_payload_type = codecIter->mPayloadType;
+            redCodecSet = true;
             break;
           }
           case IRTPTypes::SupportedCodec_ULPFEC:
           {
+            if (fecCodecSet)
+              continue;
             config.rtp.fec.ulpfec_payload_type = codecIter->mPayloadType;
+            fecCodecSet = true;
             break;
           }
           case IRTPTypes::SupportedCodec_FlexFEC:

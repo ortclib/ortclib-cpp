@@ -35,6 +35,7 @@
 #include <ortc/internal/ortc_ISecureTransport.h>
 
 #include <ortc/IICETransport.h>
+#include <ortc/IDTMFSender.h>
 #include <ortc/IDTLSTransport.h>
 #include <ortc/IRTPTypes.h>
 #include <ortc/IMediaStreamTrack.h>
@@ -282,6 +283,16 @@ namespace ortc
     interaction IRTPMediaEngineAudioSenderChannelResource : public IRTPMediaEngineChannelResource
     {
       virtual bool handlePacket(const RTCPPacket &packet) = 0;
+
+      virtual void insertDTMF(
+                              const char *tones,
+                              Milliseconds duration,
+                              Milliseconds interToneGap
+                              ) = 0;
+
+      virtual String toneBuffer() const = 0;
+      virtual Milliseconds duration() const = 0;
+      virtual Milliseconds interToneGap() const = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -471,7 +482,8 @@ namespace ortc
                                                                       UseSenderChannelMediaBasePtr channel,
                                                                       TransportPtr transport,
                                                                       UseMediaStreamTrackPtr track,
-                                                                      ParametersPtr parameters
+                                                                      ParametersPtr parameters,
+                                                                      IDTMFSenderDelegatePtr dtmfDelegate
                                                                       );
 
       virtual PUID getID() const = 0;
@@ -602,6 +614,7 @@ namespace ortc
       struct SetupSenderChannel : public SetupChannel
       {
         UseSenderChannelMediaBasePtr mChannel;
+        IDTMFSenderDelegatePtr mDTMFDelegate;
       };
 
       struct SetupReceiverChannel : public SetupChannel
@@ -831,7 +844,8 @@ namespace ortc
                                                                UseSenderChannelMediaBasePtr channel,
                                                                TransportPtr transport,
                                                                UseMediaStreamTrackPtr track,
-                                                               ParametersPtr parameters
+                                                               ParametersPtr parameters,
+                                                               IDTMFSenderDelegatePtr dtmfDelegate
                                                                );
 
       // (duplicate) virtual PUID getID() const = 0;
@@ -1495,7 +1509,8 @@ namespace ortc
                                    IRTPMediaEngineRegistrationPtr registration,
                                    TransportPtr transport,
                                    UseMediaStreamTrackPtr track,
-                                   ParametersPtr parameters
+                                   ParametersPtr parameters,
+                                   IDTMFSenderDelegatePtr dtmfDelegate
                                    );
         virtual ~AudioSenderChannelResource();
 
@@ -1503,7 +1518,8 @@ namespace ortc
                                                     IRTPMediaEngineRegistrationPtr registration,
                                                     TransportPtr transport,
                                                     UseMediaStreamTrackPtr track,
-                                                    ParametersPtr parameters
+                                                    ParametersPtr parameters,
+                                                    IDTMFSenderDelegatePtr dtmfDelegate
                                                     );
 
       protected:
@@ -1543,6 +1559,16 @@ namespace ortc
 
         virtual bool handlePacket(const RTCPPacket &packet) override;
 
+        virtual void insertDTMF(
+                                const char *tones,
+                                Milliseconds duration,
+                                Milliseconds interToneGap
+                                ) override;
+
+        virtual String toneBuffer() const override;
+        virtual Milliseconds duration() const override;
+        virtual Milliseconds interToneGap() const override;
+
         //---------------------------------------------------------------------
         #pragma mark
         #pragma mark RTPMediaEngine::AudioSenderChannelResource => IRTPMediaEngineHandlePacketAsyncDelegate
@@ -1578,6 +1604,8 @@ namespace ortc
                                         String payloadName
                                         );
 
+        void notifyToneEvent(const char *tone);
+
       protected:
         int mChannel{};
 
@@ -1592,6 +1620,8 @@ namespace ortc
         BYTE mSendCodecPayloadType {0};
 
         rtc::scoped_ptr<webrtc::AudioSendStream> mSendStream;
+
+        IDTMFSenderDelegatePtr mDTMFSenderDelegate;
       };
 
       //-----------------------------------------------------------------------

@@ -269,6 +269,16 @@ namespace ortc
 
       virtual void requestStats(PromiseWithStatsReportPtr promise, const StatsTypeSet &stats) override;
 
+      virtual void insertDTMF(
+                              const char *tones,
+                              Milliseconds duration,
+                              Milliseconds interToneGap
+                              ) override {}
+
+      virtual String toneBuffer() const override { return String(); }
+      virtual Milliseconds duration() const override { return Milliseconds(); }
+      virtual Milliseconds interToneGap() const override { return Milliseconds(); }
+
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark RTPSenderChannelVideo => IRTPSenderChannelVideoForRTPSenderChannel

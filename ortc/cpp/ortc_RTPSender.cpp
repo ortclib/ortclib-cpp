@@ -233,7 +233,35 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPSender::ChannelHolder::requestStats(PromiseWithStatsReportPtr promise, const StatsTypeSet &stats)
     {
-      return mChannel->requestStats(promise, stats);
+      mChannel->requestStats(promise, stats);
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPSender::ChannelHolder::insertDTMF(
+                                              const char *tones,
+                                              Milliseconds duration,
+                                              Milliseconds interToneGap
+                                              )
+    {
+      mChannel->insertDTMF(tones, duration, interToneGap);
+    }
+
+    //-------------------------------------------------------------------------
+    String RTPSender::ChannelHolder::toneBuffer() const
+    {
+      return mChannel->toneBuffer();
+    }
+
+    //-------------------------------------------------------------------------
+    Milliseconds RTPSender::ChannelHolder::duration() const
+    {
+      return mChannel->duration();
+    }
+
+    //-------------------------------------------------------------------------
+    Milliseconds RTPSender::ChannelHolder::interToneGap() const
+    {
+      return mChannel->interToneGap();
     }
 
     //-------------------------------------------------------------------------
@@ -900,6 +928,14 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    void RTPSender::notifyDTMFSenderToneChanged(const char *tone)
+    {
+      AutoRecursiveLock lock(*this);
+
+      mDTMFSubscriptions.delegate()->onDTMFSenderToneChanged(mThisWeak.lock(), String(tone));
+    }
+
+    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -914,6 +950,181 @@ namespace ortc
     #pragma mark
     #pragma mark RTPSender => IRTPSenderForDTMFSender
     #pragma mark
+
+    //-------------------------------------------------------------------------
+    IDTMFSenderSubscriptionPtr RTPSender::subscribeDTMF(IDTMFSenderDelegatePtr originalDelegate)
+    {
+      ZS_LOG_DETAIL(log("subscribing to dtmf"));
+
+      AutoRecursiveLock lock(*this);
+      if (!originalDelegate) return IDTMFSenderSubscriptionPtr();
+
+      IDTMFSenderSubscriptionPtr subscription = mDTMFSubscriptions.subscribe(originalDelegate, IORTCForInternal::queueDelegate());
+
+      IDTMFSenderDelegatePtr delegate = mDTMFSubscriptions.delegate(subscription, true);
+
+      if (delegate) {
+        //DTMFSenderPtr pThis = mThisWeak.lock();
+
+      }
+
+      if (isShutdown()) {
+        mSubscriptions.clear();
+      }
+
+      return subscription;
+    }
+
+    //-------------------------------------------------------------------------
+    bool RTPSender::canInsertDTMF() const
+    {
+      AutoRecursiveLock lock(*this);
+
+      if (!mKind.hasValue()) {
+        ZS_LOG_TRACE(log("kind is not set (thus cannot insert DTMF tone)"));
+        return false;
+      }
+
+      if (IMediaStreamTrackTypes::Kind_Audio != mKind.value()) {
+        ZS_LOG_TRACE(log("kind is not audio (thus cannot insert DTMF tone)"));
+        return false;
+      }
+
+      if ((isShuttingDown()) ||
+          (isShutdown())) {
+        ZS_LOG_TRACE(log("cannot insert tone while shutting down / shutdown"));
+        return false;
+      }
+
+      if (!mParameters) {
+        ZS_LOG_TRACE(log("parameters are not set (thus cannot insert DTMF tone)"));
+        return false;
+      }
+
+      RTPTypesHelper::FindCodecOptions options;
+      options.mSupportedCodec = IRTPTypes::SupportedCodec_TelephoneEvent;
+
+      auto result = RTPTypesHelper::findCodec(*mParameters, options);
+
+      if (NULL == result) {
+        ZS_LOG_TRACE(log("could not find telephone event codec (thus cannot insert DTMF tone)"));
+        return false;
+      }
+
+      return true;
+    }
+
+    //-------------------------------------------------------------------------
+    void RTPSender::insertDTMF(
+                               const char *tones,
+                               Milliseconds duration,
+                               Milliseconds interToneGap
+                               ) throw (
+                               InvalidStateError,
+                               InvalidCharacterError
+                               )
+    {
+      ZS_THROW_CUSTOM_IF(InvalidCharacterError, NULL == tones);
+      ZS_THROW_CUSTOM_IF(InvalidCharacterError, '\0' == *tones);
+
+      for (const char *pos = tones; '\0' != *pos; ++pos)
+      {
+        switch (*pos)
+        {
+          case '0':
+          case '1':
+          case '2':
+          case '3':
+          case '4':
+          case '5':
+          case '6':
+          case '7':
+          case '8':
+          case '9':
+          case 'A':
+          case 'B':
+          case 'C':
+          case 'D':
+          case 'E':
+          case 'F':
+          case 'a':
+          case 'b':
+          case 'c':
+          case 'd':
+          case 'e':
+          case 'f':
+          case '*':
+          case '#': break;
+          default: {
+            ZS_THROW_CUSTOM(InvalidCharacterError, (String("tone(s) specified are not valid: ") + tones));
+          }
+        }
+      }
+
+      ChannelHolderPtr holder;
+
+      {
+        AutoRecursiveLock lock(*this);
+        ORTC_THROW_INVALID_STATE_IF(!canInsertDTMF());
+
+        holder = getDTMFChannelHolder();
+      }
+
+      ORTC_THROW_INVALID_STATE_IF(!holder);
+
+      holder->insertDTMF(tones, duration, interToneGap);
+    }
+
+    //-------------------------------------------------------------------------
+    IRTPSenderPtr RTPSender::sender() const
+    {
+      return mThisWeak.lock();
+    }
+
+    //-------------------------------------------------------------------------
+    String RTPSender::toneBuffer() const
+    {
+      ChannelHolderPtr holder;
+
+      {
+        AutoRecursiveLock lock(*this);
+        holder = getDTMFChannelHolder();
+      }
+
+      if (!holder) return String();
+
+      return holder->toneBuffer();
+    }
+
+    //-------------------------------------------------------------------------
+    Milliseconds RTPSender::duration() const
+    {
+      ChannelHolderPtr holder;
+
+      {
+        AutoRecursiveLock lock(*this);
+        holder = getDTMFChannelHolder();
+      }
+
+      if (!holder) return Milliseconds();
+
+      return holder->duration();
+    }
+
+    //-------------------------------------------------------------------------
+    Milliseconds RTPSender::interToneGap() const
+    {
+      ChannelHolderPtr holder;
+
+      {
+        AutoRecursiveLock lock(*this);
+        holder = getDTMFChannelHolder();
+      }
+
+      if (!holder) return Milliseconds();
+
+      return holder->interToneGap();
+    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -954,6 +1165,26 @@ namespace ortc
 
       AutoRecursiveLock lock(*this);
       step();
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPSender => IDTMFSenderDelegate
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void RTPSender::onDTMFSenderToneChanged(
+                                            IDTMFSenderPtr sender,
+                                            String tone
+                                            )
+    {
+      ZS_LOG_DEBUG(log("forwarding DTMF tone event") + ZS_PARAM("tone", tone));
+
+      AutoRecursiveLock(*this);
+      mDTMFSubscriptions.delegate()->onDTMFSenderToneChanged(mThisWeak.lock(), tone);
     }
 
     //-------------------------------------------------------------------------
@@ -1264,6 +1495,22 @@ namespace ortc
 
         channel->notify(mLastReportedTransportStateToChannels);
       }
+    }
+
+    //-------------------------------------------------------------------------
+    RTPSender::ChannelHolderPtr RTPSender::getDTMFChannelHolder() const
+    {
+      if (mParametersGroupedIntoChannels.size() < 1) return ChannelHolderPtr();
+
+      auto params = mParametersGroupedIntoChannels.front();
+
+      ZS_THROW_BAD_STATE_IF(!params);
+      ZS_THROW_BAD_STATE_IF(!mChannels);
+
+      auto found = mChannels->find(params);
+      if (found == mChannels->end()) return ChannelHolderPtr();
+
+      return (*found).second;
     }
 
     //-------------------------------------------------------------------------

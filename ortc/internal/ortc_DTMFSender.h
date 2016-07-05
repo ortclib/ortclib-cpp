@@ -38,7 +38,6 @@
 #include <openpeer/services/IWakeDelegate.h>
 
 #include <zsLib/MessageQueueAssociator.h>
-#include <zsLib/Timer.h>
 
 //#define ORTC_SETTING_SRTP_TRANSPORT_WARN_OF_KEY_LIFETIME_EXHAUGSTION_WHEN_REACH_PERCENTAGE_USSED "ortc/srtp/warm-key-lifetime-exhaustion-when-reach-percentage-used"
 
@@ -101,7 +100,7 @@ namespace ortc
                        public IDTMFSenderForSettings,
                        public IDTMFSenderForRTPSender,
                        public IWakeDelegate,
-                       public zsLib::ITimerDelegate
+                       public IDTMFSenderDelegate
     {
     protected:
       struct make_private {};
@@ -156,13 +155,16 @@ namespace ortc
 
       virtual IDTMFSenderSubscriptionPtr subscribe(IDTMFSenderDelegatePtr delegate) override;
 
-      virtual bool canInsertDDTMF() const override;
+      virtual bool canInsertDTMF() const override;
 
       virtual void insertDTMF(
                               const char *tones,
                               Milliseconds duration = Milliseconds(70),
                               Milliseconds interToneGap = Milliseconds(70)
-                              ) throw (InvalidStateError) override;
+                              ) throw (
+                                       InvalidStateError,
+                                       InvalidCharacterError
+                                       ) override;
 
       virtual IRTPSenderPtr sender() const override;
 
@@ -188,10 +190,13 @@ namespace ortc
 
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark DTMFSender => ITimerDelegate
+      #pragma mark DTMFSender => IDTMFSenderDelegate
       #pragma mark
 
-      virtual void onTimer(TimerPtr timer) override;
+      virtual void onDTMFSenderToneChanged(
+                                           IDTMFSenderPtr sender,
+                                           String tone
+                                           ) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -216,7 +221,7 @@ namespace ortc
 
       void step();
 
-      bool stepBogusDoSomething();
+      bool stepSubscribeSender();
 
       void cancel();
 
@@ -234,6 +239,7 @@ namespace ortc
       IDTMFSenderSubscriptionPtr mDefaultSubscription;
 
       UseRTPSenderWeakPtr mRTPSender;
+      IDTMFSenderSubscriptionPtr mRTPSenderSubscription;
 
       bool mShutdown {false};
     };

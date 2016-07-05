@@ -80,6 +80,16 @@ namespace ortc
       virtual bool handlePacket(RTCPPacketPtr packet) = 0;
 
       virtual void requestStats(PromiseWithStatsReportPtr promise, const StatsTypeSet &stats) = 0;
+
+      virtual void insertDTMF(
+                              const char *tones,
+                              Milliseconds duration,
+                              Milliseconds interToneGap
+                              ) = 0;
+
+      virtual String toneBuffer() const = 0;
+      virtual Milliseconds duration() const = 0;
+      virtual Milliseconds interToneGap() const = 0;
     };
 
     //-------------------------------------------------------------------------
