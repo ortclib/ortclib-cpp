@@ -243,6 +243,7 @@ namespace ortc
       virtual void onSecureTransportState(ISecureTransport::States state) = 0;
       virtual void onUpdate(ParametersPtr params) = 0;
       virtual void onProvideStats(PromiseWithStatsReportPtr promise, IStatsReportTypes::StatsTypeSet stats) = 0;
+      virtual void onSendDTMFTone() = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -1313,6 +1314,13 @@ namespace ortc
 
         //---------------------------------------------------------------------
         #pragma mark
+        #pragma mark RTPMediaEngine::ChannelResource => IRTPMediaEngineChannelResourceAsyncDelegate
+        #pragma mark
+
+        virtual void onSendDTMFTone() override { }
+
+        //---------------------------------------------------------------------
+        #pragma mark
         #pragma mark RTPMediaEngine::ChannelResource => (friend RTPMediaEngine)
         #pragma mark
 
@@ -1483,6 +1491,8 @@ namespace ortc
         RTPPacketPtr mInitPacket;
 
         rtc::scoped_ptr<webrtc::AudioReceiveStream> mReceiveStream;
+
+        int mDTMFPayloadType{ 0 };
       };
 
       //-----------------------------------------------------------------------
@@ -1495,6 +1505,7 @@ namespace ortc
 
       class AudioSenderChannelResource : public IRTPMediaEngineAudioSenderChannelResource,
                                          public ChannelResource,
+                                         public zsLib::ITimerDelegate,
                                          public webrtc::BitrateObserver
       {
       public:
@@ -1502,6 +1513,11 @@ namespace ortc
 
         ZS_DECLARE_TYPEDEF_PTR(IStatsProviderTypes::PromiseWithStatsReport, PromiseWithStatsReport);
         ZS_DECLARE_TYPEDEF_PTR(IStatsReportTypes::StatsTypeSet, StatsTypeSet)
+
+        const int dtmfTwoSecondsDelayCode = -1;
+        const int dtmfTwoSecondInMs = 2000;
+        const char dtmfValidTones[22] = ",0123456789*#ABCDabcd";
+        const char dtmfTonesTable[18] = ",0123456789*#ABCD";
 
       public:
         AudioSenderChannelResource(
@@ -1552,6 +1568,8 @@ namespace ortc
 
         virtual void onProvideStats(PromiseWithStatsReportPtr promise, IStatsReportTypes::StatsTypeSet stats) override;
 
+        virtual void onSendDTMFTone() override;
+
         //---------------------------------------------------------------------
         #pragma mark
         #pragma mark RTPMediaEngine::AudioSenderChannelResource => IRTPMediaEngineAudioSenderChannelResource
@@ -1577,6 +1595,13 @@ namespace ortc
         virtual void onHandleRTPPacket(DWORD timestamp, SecureByteBlockPtr buffer) override {}
         virtual void onHandleRTCPPacket(SecureByteBlockPtr buffer) override;
         virtual void onSendVideoFrame(VideoFramePtr videoFrame) override {}
+
+        //-----------------------------------------------------------------------
+        #pragma mark
+        #pragma mark RTPMediaEngine::AudioSenderChannelResource => ITimerDelegate
+        #pragma mark
+
+        virtual void onTimer(TimerPtr timer) override;
 
         //---------------------------------------------------------------------
         #pragma mark
@@ -1621,7 +1646,12 @@ namespace ortc
 
         rtc::scoped_ptr<webrtc::AudioSendStream> mSendStream;
 
+        int mDTMFPayloadType {0};
         IDTMFSenderDelegatePtr mDTMFSenderDelegate;
+        TimerPtr mDTMFTimer;
+        String mDTMFTones;
+        Milliseconds mDTMFDuration;
+        Milliseconds mDTMFInterToneGap;
       };
 
       //-----------------------------------------------------------------------
@@ -1942,6 +1972,7 @@ ZS_DECLARE_PROXY_TYPEDEF(ortc::IStatsReportTypes::StatsTypeSet, StatsTypeSet)
 ZS_DECLARE_PROXY_METHOD_1(onSecureTransportState, States)
 ZS_DECLARE_PROXY_METHOD_1(onUpdate, ParametersPtr)
 ZS_DECLARE_PROXY_METHOD_2(onProvideStats, PromiseWithStatsReportPtr, StatsTypeSet)
+ZS_DECLARE_PROXY_METHOD_0(onSendDTMFTone)
 ZS_DECLARE_PROXY_END()
 
 ZS_DECLARE_PROXY_BEGIN(ortc::internal::IRTPMediaEngineAsyncDelegate)

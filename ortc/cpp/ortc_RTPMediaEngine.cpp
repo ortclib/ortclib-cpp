@@ -3124,6 +3124,47 @@ namespace ortc
       promise->resolve(UseStatsReport::create(reportStats));
     }
 
+    void RTPMediaEngine::AudioSenderChannelResource::onSendDTMFTone()
+    {
+      AutoRecursiveLock lock(*this);
+
+      if (mDTMFPayloadType == 0)
+        return;
+
+      size_t firstTonePosition = mDTMFTones.find_first_of(dtmfValidTones);
+      int code = 0;
+      if (firstTonePosition == std::string::npos) {
+        mDTMFTones.clear();
+        notifyToneEvent("");
+        return;
+      } else {
+        char tone = mDTMFTones[firstTonePosition];
+        char event = toupper(tone);
+        const char* p = strchr(dtmfTonesTable, event);
+        if (!p) {
+          mDTMFTones.clear();
+          notifyToneEvent("");
+          return;
+        }
+        code = p - dtmfTonesTable - 1;
+      }
+
+      int toneGap = mDTMFInterToneGap.count();
+      if (code == dtmfTwoSecondsDelayCode) {
+        toneGap = dtmfTwoSecondInMs;
+      } else {
+        mSendStream->SendTelephoneEvent(mDTMFPayloadType, code, mDTMFDuration.count());
+        toneGap += mDTMFDuration.count();
+      }
+
+      notifyToneEvent(mDTMFTones.substr(firstTonePosition, 1).c_str());
+
+      mDTMFTones.erase(0, firstTonePosition + 1);
+
+      auto pThis = ZS_DYNAMIC_PTR_CAST(AudioSenderChannelResource, mThisWeak.lock());
+      mDTMFTimer = Timer::create(pThis, Milliseconds(toneGap), false);
+    }
+
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -3147,37 +3188,36 @@ namespace ortc
                                                                 )
     {
       AutoRecursiveLock lock(*this);
-#define TODO_MOSA_INSERT_DTMF 1
-#define TODO_MOSA_INSERT_DTMF 2
+
+      auto pThis = ZS_DYNAMIC_PTR_CAST(AudioSenderChannelResource, mThisWeak.lock());
+      mDTMFTones = tones;
+      mDTMFDuration = duration;
+      mDTMFInterToneGap = interToneGap;
+      mDTMFTimer = Timer::create(pThis, Milliseconds(0), false);
     }
 
     //-------------------------------------------------------------------------
     String RTPMediaEngine::AudioSenderChannelResource::toneBuffer() const
     {
       AutoRecursiveLock lock(*this);
-#define TODO_MOSA_TONE_BUFFER 1
-#define TODO_MOSA_TONE_BUFFER 2
-      return String();
+
+      return mDTMFTones;
     }
 
     //-------------------------------------------------------------------------
     Milliseconds RTPMediaEngine::AudioSenderChannelResource::duration() const
     {
       AutoRecursiveLock lock(*this);
-#define TODO_MOSA_DURAATION 1
-#define TODO_MOSA_DURAATION 2
 
-      return Milliseconds();
+      return mDTMFDuration;
     }
 
     //-------------------------------------------------------------------------
     Milliseconds RTPMediaEngine::AudioSenderChannelResource::interToneGap() const
     {
       AutoRecursiveLock lock(*this);
-#define TODO_MOSA_INTER_TONE_GAP 1
-#define TODO_MOSA_INTER_TONE_GAP 2
 
-      return Milliseconds();
+      return mDTMFInterToneGap;
     }
 
     //-------------------------------------------------------------------------
@@ -3199,6 +3239,26 @@ namespace ortc
       if (NULL == stream) return;
 
       bool result = stream->DeliverRtcp(buffer->BytePtr(), buffer->SizeInBytes());
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPMediaEngine::AudioSenderChannelResource => ITimerDelegate
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::AudioSenderChannelResource::onTimer(TimerPtr timer)
+    {
+      AutoRecursiveLock lock(*this);
+
+      auto pThis = ZS_DYNAMIC_PTR_CAST(AudioSenderChannelResource, mThisWeak.lock());
+      IRTPMediaEngineChannelResourceAsyncDelegateProxy::create(pThis)->onSendDTMFTone();
+
+      mDTMFTimer->cancel();
+      mDTMFTimer.reset();
     }
 
     //-------------------------------------------------------------------------
@@ -3310,6 +3370,9 @@ namespace ortc
             goto set_rtcp_feedback;
           case IRTPTypes::SupportedCodec_RED:
             webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetREDStatus(mChannel, true, codecIter->mPayloadType);
+            break;
+          case IRTPTypes::SupportedCodec_TelephoneEvent:
+            mDTMFPayloadType = codecIter->mPayloadType;
             break;
         }
         continue;
