@@ -197,7 +197,7 @@ namespace ortc
       #pragma mark
       #pragma mark FakeMediaStreamTrack => IMediaStreamTrackForRTPSenderChannelAudio
       #pragma mark
-
+#if 0
       webrtc::AudioDeviceModule* FakeMediaStreamTrack::getAudioDeviceModule()
       {
         return mAudioDeviceModule;
@@ -216,7 +216,7 @@ namespace ortc
           mAudioDeviceModule->StartPlayout();
         }
       }
-
+#endif
       void FakeMediaStreamTrack::stop()
       {
         AutoRecursiveLock lock(*this);

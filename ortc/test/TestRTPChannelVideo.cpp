@@ -234,8 +234,8 @@ namespace ortc
           mVideoCaptureModule->DeRegisterCaptureDataCallback();
         }
 
-        if (mVideoRenderModule)
-          mVideoRenderModule->StopRender(1);
+        //if (mVideoRenderModule)
+        //  mVideoRenderModule->StopRender(1);
       }
 
       //-------------------------------------------------------------------------
@@ -245,11 +245,11 @@ namespace ortc
 
 #define WARNING_THIS_HAS_CHANGED 1
 #define WARNING_THIS_HAS_CHANGED 2
-        mVideoRenderModule = webrtc::VideoRender::CreateVideoRender(1, nullptr, false);
+        //mVideoRenderModule = webrtc::VideoRender::CreateVideoRender(1, nullptr, false);
 
-        mVideoRendererCallback = mVideoRenderModule->AddIncomingRenderStream(1, 0, 0.0, 0.0, 1.0, 1.0);
+        //mVideoRendererCallback = mVideoRenderModule->AddIncomingRenderStream(1, 0, 0.0, 0.0, 1.0, 1.0);
 
-        mVideoRenderModule->StartRender(1);
+        //mVideoRenderModule->StartRender(1);
       }
 
       //-------------------------------------------------------------------------
@@ -267,7 +267,7 @@ namespace ortc
       #pragma mark
       #pragma mark FakeMediaStreamTrack => IMediaStreamTrackForRTPReceiverChannelVideo
       #pragma mark
-
+#if 0
       //-------------------------------------------------------------------------
       void FakeMediaStreamTrack::renderVideoFrame(const webrtc::VideoFrame& videoFrame)
       {
@@ -276,7 +276,7 @@ namespace ortc
         if (mVideoRendererCallback)
           mVideoRendererCallback->RenderFrame(1, videoFrame);
       }
-
+#endif
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
@@ -302,8 +302,8 @@ namespace ortc
           mVideoRendererCallback->RenderFrame(1, videoFrame);
 
         auto senderChannel = mSenderChannel.lock();
-        if (senderChannel)
-          senderChannel->sendVideoFrame(videoFrame);
+        //if (senderChannel)
+        //  senderChannel->sendVideoFrame(videoFrame);
       }
 
       //-------------------------------------------------------------------------
@@ -635,14 +635,14 @@ namespace ortc
 
         return result;
       }
-
+#if 0
       //-------------------------------------------------------------------------
       void FakeSenderChannel::sendVideoFrame(const webrtc::VideoFrame& videoFrame)
       {
         if (!mSenderChannelVideo) return;
         mSenderChannelVideo->sendVideoFrame(videoFrame);
       }
-
+#endif
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
