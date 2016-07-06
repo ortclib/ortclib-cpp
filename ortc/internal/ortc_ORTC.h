@@ -115,6 +115,12 @@ namespace ortc
       virtual void defaultWebrtcLogLevel(Log::Level level);
       virtual void webrtcLogLevel(Log::Level level);
 
+      virtual void startMediaTracing();
+      virtual void stopMediaTracing();
+      virtual bool isMediaTracing();
+      virtual bool saveMediaTrace(String filename);
+      virtual bool saveMediaTrace(String host, int port);
+
       //---------------------------------------------------------------------
       #pragma mark
       #pragma mark ORTC => IORTCForInternal

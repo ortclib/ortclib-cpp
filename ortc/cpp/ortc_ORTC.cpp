@@ -220,6 +220,36 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    void ORTC::startMediaTracing()
+    {
+      IRTPMediaEngineForORTC::startMediaTracing();
+    }
+
+    //-------------------------------------------------------------------------
+    void ORTC::stopMediaTracing()
+    {
+      IRTPMediaEngineForORTC::stopMediaTracing();
+    }
+
+    //-------------------------------------------------------------------------
+    bool ORTC::isMediaTracing()
+    {
+      return IRTPMediaEngineForORTC::isMediaTracing();
+    }
+
+    //-------------------------------------------------------------------------
+    bool ORTC::saveMediaTrace(String filename)
+    {
+      return IRTPMediaEngineForORTC::saveMediaTrace(filename);
+    }
+
+    //-------------------------------------------------------------------------
+    bool ORTC::saveMediaTrace(String host, int port)
+    {
+      return IRTPMediaEngineForORTC::saveMediaTrace(host, port);
+    }
+
+    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -377,6 +407,46 @@ namespace ortc
     }
 
     UseServicesLogger::setLogLevel(componenet, level);
+  }
+
+  //-------------------------------------------------------------------------
+  void IORTC::startMediaTracing()
+  {
+    auto singleton = internal::ORTC::singleton();
+    if (!singleton) return;
+    singleton->startMediaTracing();
+  }
+
+  //-------------------------------------------------------------------------
+  void IORTC::stopMediaTracing()
+  {
+    auto singleton = internal::ORTC::singleton();
+    if (!singleton) return;
+    singleton->stopMediaTracing();
+  }
+
+  //-------------------------------------------------------------------------
+  bool IORTC::isMediaTracing()
+  {
+    auto singleton = internal::ORTC::singleton();
+    if (!singleton) return false;
+    return singleton->isMediaTracing();
+  }
+
+  //-------------------------------------------------------------------------
+  bool IORTC::saveMediaTrace(String filename)
+  {
+    auto singleton = internal::ORTC::singleton();
+    if (!singleton) return false;
+    return singleton->saveMediaTrace(filename);
+  }
+
+  //-------------------------------------------------------------------------
+  bool IORTC::saveMediaTrace(String host, int port)
+  {
+    auto singleton = internal::ORTC::singleton();
+    if (!singleton) return false;
+    return singleton->saveMediaTrace(host, port);
   }
 
 }
