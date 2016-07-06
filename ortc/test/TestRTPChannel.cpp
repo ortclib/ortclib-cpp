@@ -1391,12 +1391,12 @@ namespace ortc
 
 #define MOSA_THESE_METHODS_ARE_CALLED_BY_YOUR_REAL_RECEIVER_CHANNEL_CLASS_TO_FAKE_MEDIA_TRACK 1
 #define MOSA_THESE_METHODS_ARE_CALLED_BY_YOUR_REAL_RECEIVER_CHANNEL_CLASS_TO_FAKE_MEDIA_TRACK 2
-
+#if 0
       //-----------------------------------------------------------------------
       void FakeMediaStreamTrack::renderVideoFrame(const webrtc::VideoFrame& videoFrame)
       {
       }
-
+#endif
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------

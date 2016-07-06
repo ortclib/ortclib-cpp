@@ -205,11 +205,8 @@ namespace ortc
       IDTMFSenderDelegatePtr delegate = mSubscriptions.delegate(subscription, true);
 
       if (delegate) {
-        DTMFSenderPtr pThis = mThisWeak.lock();
+        //DTMFSenderPtr pThis = mThisWeak.lock();
 
-        if (mCurrentTone.hasData()) {
-          delegate->onDTMFSenderToneChanged(pThis, mCurrentTone);
-        }
       }
 
       if (isShutdown()) {
@@ -222,9 +219,25 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool DTMFSender::canInsertDTMF() const
     {
-#define TODO 1
-#define TODO 2
-      return false;
+      UseRTPSenderPtr sender;
+
+      {
+        AutoRecursiveLock lock(*this);
+
+        if (isClosed()) {
+          ZS_LOG_WARNING(Trace, log("already closed"));
+          return false;
+        }
+
+        sender = mRTPSender.lock();
+      }
+
+      if (!sender) {
+        ZS_LOG_WARNING(Trace, log("sender is gone"));
+        return false;
+      }
+
+      return sender->canInsertDTMF();
     }
 
     //-------------------------------------------------------------------------
@@ -237,40 +250,103 @@ namespace ortc
                                          InvalidCharacterError
                                          )
     {
-#define TODO 1
-#define TODO 2
+      UseRTPSenderPtr sender;
+
+      {
+        AutoRecursiveLock lock(*this);
+
+        if (isClosed()) {
+          ZS_LOG_WARNING(Trace, log("already closed"));
+          return;
+        }
+
+        sender = mRTPSender.lock();
+      }
+
+      if (!sender) {
+        ZS_LOG_WARNING(Trace, log("sender is gone"));
+        return;
+      }
+
+      sender->insertDTMF(tones, duration, interToneGap);
     }
 
     //-------------------------------------------------------------------------
     IRTPSenderPtr DTMFSender::sender() const
     {
-#define TODO 1
-#define TODO 2
       return RTPSender::convert(mRTPSender.lock());
     }
 
     //-------------------------------------------------------------------------
     String DTMFSender::toneBuffer() const
     {
-#define TODO 1
-#define TODO 2
-      return String();
+      UseRTPSenderPtr sender;
+
+      {
+        AutoRecursiveLock lock(*this);
+
+        if (isClosed()) {
+          ZS_LOG_WARNING(Trace, log("already closed"));
+          return String();
+        }
+
+        sender = mRTPSender.lock();
+      }
+
+      if (!sender) {
+        ZS_LOG_WARNING(Trace, log("sender is gone"));
+        return String();
+      }
+
+      return sender->toneBuffer();
     }
 
     //-------------------------------------------------------------------------
     Milliseconds DTMFSender::duration() const
     {
-#define TODO 1
-#define TODO 2
-      return Milliseconds();
+      UseRTPSenderPtr sender;
+
+      {
+        AutoRecursiveLock lock(*this);
+
+        if (isClosed()) {
+          ZS_LOG_WARNING(Trace, log("already closed"));
+          return Milliseconds();
+        }
+
+        sender = mRTPSender.lock();
+      }
+
+      if (!sender) {
+        ZS_LOG_WARNING(Trace, log("sender is gone"));
+        return Milliseconds();
+      }
+
+      return sender->duration();
     }
 
     //-------------------------------------------------------------------------
     Milliseconds DTMFSender::interToneGap() const
     {
-#define TODO 1
-#define TODO 2
-      return Milliseconds();
+      UseRTPSenderPtr sender;
+
+      {
+        AutoRecursiveLock lock(*this);
+
+        if (isClosed()) {
+          ZS_LOG_WARNING(Trace, log("already closed"));
+          return Milliseconds();
+        }
+
+        sender = mRTPSender.lock();
+      }
+
+      if (!sender) {
+        ZS_LOG_WARNING(Trace, log("sender is gone"));
+        return Milliseconds();
+      }
+
+      return sender->duration();
     }
 
     //-------------------------------------------------------------------------
@@ -304,17 +380,21 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark DTMFSender => ITimerDelegate
+    #pragma mark DTMFSender => IDTMFSenderDelegate
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void DTMFSender::onTimer(TimerPtr timer)
+    void DTMFSender::onDTMFSenderToneChanged(
+                                             IDTMFSenderPtr sender,
+                                             String tone
+                                             )
     {
-      ZS_LOG_DEBUG(log("timer") + ZS_PARAM("timer id", timer->getID()))
+      ZS_LOG_DEBUG(log("notified of DTMF tone event") + ZS_PARAM("tone", tone));
 
       AutoRecursiveLock lock(*this);
-#define TODO 1
-#define TODO 2
+
+      auto pThis = mThisWeak.lock();
+      mSubscriptions.delegate()->onDTMFSenderToneChanged(pThis, tone);
     }
 
     //-------------------------------------------------------------------------
@@ -398,7 +478,7 @@ namespace ortc
       }
 
       // ... other steps here ...
-      if (!stepBogusDoSomething()) goto not_ready;
+      if (!stepSubscribeSender()) goto not_ready;
       // ... other steps here ...
 
       goto ready;
@@ -416,25 +496,21 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool DTMFSender::stepBogusDoSomething()
+    bool DTMFSender::stepSubscribeSender()
     {
-      if ( /* step already done */ false ) {
-        ZS_LOG_TRACE(log("already completed do something"))
+      if (mRTPSenderSubscription) {
+        ZS_LOG_TRACE(log("already subscribed"));
         return true;
       }
 
-      if ( /* cannot do step yet */ false) {
-        ZS_LOG_DEBUG(log("waiting for XYZ to complete before continuing"))
+      UseRTPSenderPtr sender = mRTPSender.lock();
+      if (!sender) {
+        ZS_LOG_WARNING(Debug, log("sender object gone"));
+        cancel();
         return false;
       }
 
-      ZS_LOG_DEBUG(log("doing step XYZ"))
-
-      // ....
-#define TODO 1
-#define TODO 2
-      
-      return true;
+      mRTPSenderSubscription = sender->subscribe(mThisWeak.lock());
     }
 
     //-------------------------------------------------------------------------

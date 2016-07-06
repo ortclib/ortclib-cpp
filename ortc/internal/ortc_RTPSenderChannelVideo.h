@@ -98,13 +98,15 @@ namespace ortc
       ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelVideoForRTPSenderChannel, ForRTPSenderChannel)
 
       ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
+      ZS_DECLARE_TYPEDEF_PTR(webrtc::VideoFrame, VideoFrame);
 
       static RTPSenderChannelVideoPtr create(
                                              RTPSenderChannelPtr senderChannel,
                                              MediaStreamTrackPtr track,
                                              const Parameters &params
                                              );
-      virtual void sendVideoFrame(const webrtc::VideoFrame& videoFrame) = 0;
+
+      virtual void sendVideoFrame(VideoFramePtr videoFrame) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -210,6 +212,7 @@ namespace ortc
       ZS_DECLARE_PTR(RTCPPacketList);
       ZS_DECLARE_TYPEDEF_PTR(IStatsProviderTypes::PromiseWithStatsReport, PromiseWithStatsReport);
       ZS_DECLARE_TYPEDEF_PTR(IStatsReportTypes::StatsTypeSet, StatsTypeSet)
+      ZS_DECLARE_TYPEDEF_PTR(webrtc::VideoFrame, VideoFrame);
 
       enum States
       {
@@ -266,6 +269,16 @@ namespace ortc
 
       virtual void requestStats(PromiseWithStatsReportPtr promise, const StatsTypeSet &stats) override;
 
+      virtual void insertDTMF(
+                              const char *tones,
+                              Milliseconds duration,
+                              Milliseconds interToneGap
+                              ) override {}
+
+      virtual String toneBuffer() const override { return String(); }
+      virtual Milliseconds duration() const override { return Milliseconds(); }
+      virtual Milliseconds interToneGap() const override { return Milliseconds(); }
+
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark RTPSenderChannelVideo => IRTPSenderChannelVideoForRTPSenderChannel
@@ -277,7 +290,7 @@ namespace ortc
                                              const Parameters &params
                                              );
 
-      virtual void sendVideoFrame(const webrtc::VideoFrame& videoFrame) override;
+      virtual void sendVideoFrame(VideoFramePtr videoFrame) override;
       
       //-----------------------------------------------------------------------
       #pragma mark

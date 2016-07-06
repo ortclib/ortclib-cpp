@@ -120,7 +120,7 @@ namespace ortc
         #pragma mark FakeMediaStreamTrack => IMediaStreamTrackForRTPReceiverChannelVideo
         #pragma mark
 
-        virtual void renderVideoFrame(const webrtc::VideoFrame& videoFrame) override;
+        //virtual void renderVideoFrame(const webrtc::VideoFrame& videoFrame) override;
 
         //---------------------------------------------------------------------
         #pragma mark
@@ -181,7 +181,7 @@ namespace ortc
         UseSenderChannelVideoWeakPtr mSenderChannelVideo;
 
         webrtc::VideoCaptureModule* mVideoCaptureModule;
-        webrtc::VideoRender* mVideoRenderModule;
+        //webrtc::VideoRender* mVideoRenderModule;
         webrtc::VideoRenderCallback* mVideoRendererCallback;
       };
 
@@ -347,7 +347,7 @@ namespace ortc
 
         virtual ElementPtr toDebug() const override;
 
-        virtual void sendVideoFrame(const webrtc::VideoFrame& videoFrame) override;
+        //virtual void sendVideoFrame(const webrtc::VideoFrame& videoFrame) override;
 
         //---------------------------------------------------------------------
         #pragma mark

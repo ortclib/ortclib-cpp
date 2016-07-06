@@ -38,7 +38,6 @@
 #include <openpeer/services/IWakeDelegate.h>
 
 #include <zsLib/MessageQueueAssociator.h>
-#include <zsLib/Timer.h>
 
 //#define ORTC_SETTING_SRTP_TRANSPORT_WARN_OF_KEY_LIFETIME_EXHAUGSTION_WHEN_REACH_PERCENTAGE_USSED "ortc/srtp/warm-key-lifetime-exhaustion-when-reach-percentage-used"
 
@@ -101,7 +100,7 @@ namespace ortc
                        public IDTMFSenderForSettings,
                        public IDTMFSenderForRTPSender,
                        public IWakeDelegate,
-                       public zsLib::ITimerDelegate
+                       public IDTMFSenderDelegate
     {
     protected:
       struct make_private {};
@@ -191,10 +190,13 @@ namespace ortc
 
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark DTMFSender => ITimerDelegate
+      #pragma mark DTMFSender => IDTMFSenderDelegate
       #pragma mark
 
-      virtual void onTimer(TimerPtr timer) override;
+      virtual void onDTMFSenderToneChanged(
+                                           IDTMFSenderPtr sender,
+                                           String tone
+                                           ) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -213,12 +215,13 @@ namespace ortc
       Log::Params debug(const char *message) const;
       virtual ElementPtr toDebug() const;
 
+      bool isClosed() const { return isShuttingDown() || isShutdown(); }
       bool isShuttingDown() const;
       bool isShutdown() const;
 
       void step();
 
-      bool stepBogusDoSomething();
+      bool stepSubscribeSender();
 
       void cancel();
 
@@ -236,9 +239,9 @@ namespace ortc
       IDTMFSenderSubscriptionPtr mDefaultSubscription;
 
       UseRTPSenderWeakPtr mRTPSender;
+      IDTMFSenderSubscriptionPtr mRTPSenderSubscription;
 
       bool mShutdown {false};
-      String mCurrentTone;
     };
 
     //-------------------------------------------------------------------------

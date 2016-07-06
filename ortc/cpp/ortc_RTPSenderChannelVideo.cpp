@@ -157,7 +157,8 @@ namespace ortc
                                                                                                      mThisWeak.lock(),
                                                                                                      transport,
                                                                                                      MediaStreamTrack::convert(mTrack),
-                                                                                                     mParameters
+                                                                                                     mParameters,
+                                                                                                     IDTMFSenderDelegatePtr()
                                                                                                      );
       {
         AutoRecursiveLock lock(*this);
@@ -306,7 +307,7 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void RTPSenderChannelVideo::sendVideoFrame(const webrtc::VideoFrame& videoFrame)
+    void RTPSenderChannelVideo::sendVideoFrame(VideoFramePtr videoFrame)
     {
       UseChannelResourcePtr channelResource;
 

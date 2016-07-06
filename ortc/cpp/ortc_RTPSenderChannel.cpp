@@ -391,6 +391,34 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    void RTPSenderChannel::insertDTMF(
+                                      const char *tones,
+                                      Milliseconds duration,
+                                      Milliseconds interToneGap
+                                      )
+    {
+      mMediaBase->insertDTMF(tones, duration, interToneGap);
+    }
+
+    //-------------------------------------------------------------------------
+    String RTPSenderChannel::toneBuffer() const
+    {
+      return mMediaBase->toneBuffer();
+    }
+
+    //-------------------------------------------------------------------------
+    Milliseconds RTPSenderChannel::duration() const
+    {
+      return mMediaBase->duration();
+    }
+
+    //-------------------------------------------------------------------------
+    Milliseconds RTPSenderChannel::interToneGap() const
+    {
+      return mMediaBase->interToneGap();
+    }
+
+    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -543,6 +571,18 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
+    void RTPSenderChannel::notifyDTMFSenderToneChanged(const char *tone)
+    {
+      auto sender = mSender.lock();
+      if (!sender) {
+        ZS_LOG_WARNING(Debug, log("cannot forward tone event (sender gone)"));
+        return;
+      }
+
+      sender->notifyDTMFSenderToneChanged(tone);
+    }
+
+    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -572,7 +612,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPSenderChannel::sendVideoFrame(const webrtc::VideoFrame& videoFrame)
+    void RTPSenderChannel::sendVideoFrame(VideoFramePtr videoFrame)
     {
       if (!mVideo) return;
       mVideo->sendVideoFrame(videoFrame);

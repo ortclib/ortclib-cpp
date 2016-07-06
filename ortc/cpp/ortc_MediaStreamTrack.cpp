@@ -59,9 +59,6 @@
 #include <float.h>
 #include <math.h>
 
-#include <webrtc/modules/video_capture/video_capture_factory.h>
-#include <webrtc/modules/audio_device/audio_device_impl.h>
-
 #ifdef _DEBUG
 #define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))
 #else
@@ -162,173 +159,8 @@ namespace ortc
       mStatsTimer = Timer::create(mThisWeak.lock(), Seconds(1));
 
       mCapabilities = make_shared<Capabilities>();
+      mSettings = make_shared<TrackSettings>();
 
-      mSettings = make_shared<Settings>();
-
-      mTransport = Transport::create(mThisWeak.lock());
-
-      if (mKind == Kind_Video && !mRemote) {
-        mDeviceID = mConstraints->mAdvanced.front()->mDeviceID.mValue.value().mValue.value();
-        mVideoCaptureModule = webrtc::VideoCaptureFactory::Create(0, mDeviceID.c_str());
-        if (!mVideoCaptureModule) {
-          return;
-        }
-
-        mVideoCaptureModule->AddRef();
-
-        mVideoCaptureModule->RegisterCaptureDataCallback(*mTransport);
-
-        webrtc::VideoCaptureModule::DeviceInfo* info = webrtc::VideoCaptureFactory::CreateDeviceInfo(0);
-        if (!info) {
-          return;
-        }
-        
-        std::list<VideoCaptureCapabilityWithDistance> capabilityCandidates;
-        int32_t numCapabilities = info->NumberOfCapabilities(mDeviceID.c_str());
-        for (INT i = 0; i < numCapabilities; ++i) {
-          webrtc::VideoCaptureCapability capability;
-          if (info->GetCapability(mDeviceID.c_str(), i, capability) == -1)
-            continue;
-          ConstrainLongRange widthRange;
-          ConstrainLongRange heightRange;
-          if (mConstraints->mWidth.mValue.hasValue())
-            widthRange.mIdeal = mConstraints->mWidth.mValue.value();
-          if (mConstraints->mHeight.mValue.hasValue())
-            heightRange.mIdeal = mConstraints->mHeight.mValue.value();
-          if (mConstraints->mWidth.mRange.hasValue())
-            widthRange = mConstraints->mWidth.mRange;
-          if (mConstraints->mHeight.mRange.hasValue())
-            heightRange = mConstraints->mHeight.mRange;
-          FLOAT sizeDistance = calculateSizeDistance(widthRange, heightRange, capability);
-          if (sizeDistance == FLT_MAX)
-            continue;
-          ConstrainDoubleRange frameRateRange;
-          if (mConstraints->mFrameRate.mValue.hasValue())
-            frameRateRange.mIdeal = mConstraints->mFrameRate.mValue.value();
-          if (mConstraints->mFrameRate.mRange.hasValue())
-            frameRateRange = mConstraints->mFrameRate.mRange;
-          FLOAT frameRateDistance = calculateFrameRateDistance(frameRateRange, capability);
-          if (frameRateDistance == FLT_MAX)
-            continue;
-          ConstrainDoubleRange aspectRatioRange;
-          if (mConstraints->mAspectRatio.mValue.hasValue())
-            aspectRatioRange.mIdeal = mConstraints->mAspectRatio.mValue.value();
-          if (mConstraints->mAspectRatio.mRange.hasValue())
-            aspectRatioRange = mConstraints->mAspectRatio.mRange;
-          FLOAT aspectRatioDistance = calculateAspectRatioDistance(aspectRatioRange, capability);
-          if (aspectRatioDistance == FLT_MAX)
-            continue;
-          FLOAT formatDistance = calculateFormatDistance(capability);
-          FLOAT totalDistance = 200.0F * sizeDistance + 20.0F * frameRateDistance + 10.0F * aspectRatioDistance + formatDistance;
-          VideoCaptureCapabilityWithDistance capabilityWithDistance;
-          capabilityWithDistance.mCapability = capability;
-          capabilityWithDistance.mDistance = totalDistance;
-          capabilityCandidates.push_back(capabilityWithDistance);
-        }
-        delete info;
-
-        std::list<VideoCaptureCapabilityWithDistance> advancedCapabilityCandidates;
-        std::list<ConstraintSetPtr>::iterator constraintsIter = mConstraints->mAdvanced.begin();
-        while (constraintsIter != mConstraints->mAdvanced.end()) {
-          std::list<VideoCaptureCapabilityWithDistance>::iterator capabilityCandidatesIter = capabilityCandidates.begin();
-          while (capabilityCandidatesIter != capabilityCandidates.end()) {
-            ConstrainLongRange widthRange;
-            ConstrainLongRange heightRange;
-            if ((*constraintsIter)->mWidth.mValue.hasValue())
-              widthRange.mExact = (*constraintsIter)->mWidth.mValue.value();
-            if ((*constraintsIter)->mHeight.mValue.hasValue())
-              heightRange.mExact = (*constraintsIter)->mHeight.mValue.value();
-            if ((*constraintsIter)->mWidth.mRange.hasValue())
-              widthRange = (*constraintsIter)->mWidth.mRange;
-            if ((*constraintsIter)->mHeight.mRange.hasValue())
-              heightRange = (*constraintsIter)->mHeight.mRange;
-            FLOAT sizeDistance = calculateSizeDistance(widthRange, heightRange, capabilityCandidatesIter->mCapability);
-            if (sizeDistance == FLT_MAX) {
-              capabilityCandidatesIter++;
-              continue;
-            }
-            ConstrainDoubleRange frameRateRange;
-            if ((*constraintsIter)->mFrameRate.mValue.hasValue())
-              frameRateRange.mExact = (*constraintsIter)->mFrameRate.mValue.value();
-            if ((*constraintsIter)->mFrameRate.mRange.hasValue())
-              frameRateRange = (*constraintsIter)->mFrameRate.mRange;
-            FLOAT frameRateDistance = calculateFrameRateDistance(frameRateRange, capabilityCandidatesIter->mCapability);
-            if (frameRateDistance == FLT_MAX) {
-              capabilityCandidatesIter++;
-              continue;
-            }
-            ConstrainDoubleRange aspectRatioRange;
-            if ((*constraintsIter)->mAspectRatio.mValue.hasValue())
-              aspectRatioRange.mExact = (*constraintsIter)->mAspectRatio.mValue.value();
-            if ((*constraintsIter)->mAspectRatio.mRange.hasValue())
-              aspectRatioRange = (*constraintsIter)->mAspectRatio.mRange;
-            FLOAT aspectRatioDistance = calculateAspectRatioDistance(aspectRatioRange, capabilityCandidatesIter->mCapability);
-            if (aspectRatioDistance == FLT_MAX) {
-              capabilityCandidatesIter++;
-              continue;
-            }
-            FLOAT formatDistance = calculateFormatDistance(capabilityCandidatesIter->mCapability);
-            FLOAT totalDistance = 200.0F * sizeDistance + 20.0F * frameRateDistance + 10.0F * aspectRatioDistance + formatDistance;
-            VideoCaptureCapabilityWithDistance capabilityWithDistance;
-            capabilityWithDistance.mCapability = capabilityCandidatesIter->mCapability;
-            capabilityWithDistance.mDistance = totalDistance;
-            advancedCapabilityCandidates.push_back(capabilityWithDistance);
-            capabilityCandidatesIter++;
-          }
-          if (advancedCapabilityCandidates.size() > 0)
-            break;
-          constraintsIter++;
-        }
-        
-        FLOAT bestDistance = FLT_MAX;
-        webrtc::VideoCaptureCapability bestCapability;
-        if (advancedCapabilityCandidates.size() > 0) {
-          std::list<VideoCaptureCapabilityWithDistance>::iterator advancedCapabilityCandidatesIter = advancedCapabilityCandidates.begin();
-          while (advancedCapabilityCandidatesIter != advancedCapabilityCandidates.end()) {
-            if (advancedCapabilityCandidatesIter->mDistance <= bestDistance) {
-              bestDistance = advancedCapabilityCandidatesIter->mDistance;
-              bestCapability = advancedCapabilityCandidatesIter->mCapability;
-            }
-            advancedCapabilityCandidatesIter++;
-          }
-        } else if (advancedCapabilityCandidates.size() > 0) {
-          std::list<VideoCaptureCapabilityWithDistance>::iterator capabilityCandidatesIter = capabilityCandidates.begin();
-          while (capabilityCandidatesIter != capabilityCandidates.end()) {
-            if (capabilityCandidatesIter->mDistance <= bestDistance) {
-              bestDistance = capabilityCandidatesIter->mDistance;
-              bestCapability = capabilityCandidatesIter->mCapability;
-            }
-            capabilityCandidatesIter++;
-          }
-        }
-        
-        if (bestDistance == FLT_MAX)
-          return;
-
-        mSettings->mWidth = bestCapability.width;
-        mSettings->mHeight = bestCapability.height;
-        mSettings->mFrameRate = bestCapability.maxFPS;
-        mSettings->mDeviceID = mDeviceID;
-
-        if (mVideoCaptureModule->StartCapture(bestCapability) != 0) {
-          mVideoCaptureModule->DeRegisterCaptureDataCallback();
-          return;
-        }
-      } else if (mKind == Kind_Video && mRemote) {
-
-      } else if (mKind == Kind_Audio) {
-        if (!mRemote)
-          mDeviceID = mConstraints->mAdvanced.front()->mDeviceID.mValue.value().mValue.value();
-        mAudioDeviceModule = webrtc::AudioDeviceModuleImpl::Create(1, webrtc::AudioDeviceModule::kWindowsWasapiAudio);
-        if (!mAudioDeviceModule) {
-          return;
-        }
-        mAudioDeviceModule->AddRef();
-        //mAudioDeviceModule->RegisterAudioCallback(mTransport.get());
-        mAudioDeviceModule->Init();
-
-        mSettings->mDeviceID = mDeviceID;
-      }
 
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
@@ -521,8 +353,6 @@ namespace ortc
     //-------------------------------------------------------------------------
     IMediaStreamTrackTypes::Kinds MediaStreamTrack::kind() const
     {
-      AutoRecursiveLock lock(*this);
-
       return mKind;
     }
 
@@ -606,20 +436,8 @@ namespace ortc
     void MediaStreamTrack::stop()
     {
       AutoRecursiveLock lock(*this);
-
-      if (mVideoCaptureModule) {
-        mVideoCaptureModule->StopCapture();
-        mVideoCaptureModule->DeRegisterCaptureDataCallback();
-      }
-
-      if (mAudioDeviceModule) {
-        if (!mRemote)
-          mAudioDeviceModule->StopRecording();
-        else
-          mAudioDeviceModule->StopPlayout();
-        //mAudioDeviceModule->RegisterAudioCallback(nullptr);
-        mAudioDeviceModule->Terminate();
-      }
+      if (mDeviceResource)
+        mDeviceResource->stop();
     }
 
     //-------------------------------------------------------------------------
@@ -661,10 +479,9 @@ namespace ortc
     {
       AutoRecursiveLock lock(*this);
 
-      if (mKind == Kind_Video) {
-        mVideoRenderCallbackReferenceHolder = callback;
-        mVideoRendererCallback = dynamic_cast<webrtc::VideoRenderCallback*>(callback.get());
-      }
+      mVideoRendererCallback = callback;
+      if (mDeviceResource)
+        mDeviceResource->setVideoRenderCallback(callback);
     }
 
     //-------------------------------------------------------------------------
@@ -754,8 +571,6 @@ namespace ortc
     //-------------------------------------------------------------------------
     MediaStreamTrackPtr MediaStreamTrack::create(Kinds kind)
     {
-#define TODO_MOSA_VERIFY_THIS_LOGIC 1
-#define TODO_MOSA_VERIFY_THIS_LOGIC 2
       return create(kind, true, TrackConstraintsPtr());
     }
 
@@ -806,20 +621,35 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void MediaStreamTrack::renderVideoFrame(const webrtc::VideoFrame& videoFrame)
+    void MediaStreamTrack::renderVideoFrame(VideoFramePtr videoFrame)
     {
-      ++mFramesReceived;
-
       AutoRecursiveLock lock(*this);
 
-      if (mVideoRendererCallback) {
-        mVideoRendererCallback->RenderFrame(1, videoFrame);
+      if (mDeviceResource) mDeviceResource->renderVideoFrame(videoFrame);
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark MediaStreamTrack => IMediaStreamTrackForMediaEngine
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void MediaStreamTrack::sendCapturedVideoFrame(VideoFramePtr videoFrame)
+    {
+      UseSenderChannelPtr channel;
+
+      {
+        AutoRecursiveLock lock(*this);
+
+        channel = mSenderChannel.lock();
       }
 
-      if (!mSettings->mWidth.hasValue() || (mSettings->mWidth != videoFrame.width()))
-        mSettings->mWidth = videoFrame.width();
-      if (!mSettings->mHeight.hasValue() || (mSettings->mHeight != videoFrame.height()))
-        mSettings->mHeight = videoFrame.height();
+      if (!channel) return;
+
+      channel->sendVideoFrame(videoFrame);
     }
 
     //-------------------------------------------------------------------------
@@ -837,29 +667,6 @@ namespace ortc
     #pragma mark
     #pragma mark MediaStreamTrack => IMediaStreamTrackForMediaEngine
     #pragma mark
-
-    webrtc::AudioDeviceModule* MediaStreamTrack::getAudioDeviceModule()
-    {
-      AutoRecursiveLock lock(*this);
-
-      return mAudioDeviceModule;
-    }
-
-    void MediaStreamTrack::start()
-    {
-      AutoRecursiveLock lock(*this);
-      if (mAudioDeviceModule) {
-        if (!mRemote) {
-          mAudioDeviceModule->SetRecordingDevice(webrtc::AudioDeviceModule::kDefaultCommunicationDevice);
-          mAudioDeviceModule->InitRecording();
-          mAudioDeviceModule->StartRecording();
-        } else {
-          mAudioDeviceModule->SetPlayoutDevice(webrtc::AudioDeviceModule::kDefaultCommunicationDevice);
-          mAudioDeviceModule->InitPlayout();
-          mAudioDeviceModule->StartPlayout();
-        }
-      }
-    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -909,16 +716,27 @@ namespace ortc
       AutoRecursiveLock lock(*this);
 
       if (mStatsTimer) {
-        if (timer->getID() == mStatsTimer->getID()) {
-          if (mFramesSent > 5) {
-            mAverageFramesSent += mFramesSent;
-          }
-          if (mFramesReceived > 5) {
-            mAverageFramesReceived += mFramesReceived;
-          }
-          return;
+        if (mDeviceResource && timer->getID() == mStatsTimer->getID()) {
+          mDeviceResource->setFrameCount();
         }
       }
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark MediaStreamTrack => IPromiseSettledDelegate
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void MediaStreamTrack::onPromiseSettled(PromisePtr promise)
+    {
+      ZS_LOG_DEBUG(log("promise settled") + ZS_PARAM("promise", promise->getID()))
+
+      AutoRecursiveLock lock(*this);
+      step();
     }
 
     //-------------------------------------------------------------------------
@@ -934,34 +752,8 @@ namespace ortc
     {
       AutoRecursiveLock lock(*this);
 
-      UseStatsReport::StatMap reportStats;
-
-      if (stats.hasStatType(IStatsReportTypes::StatsTypes::StatsType_Track)) {
-
-        auto report = make_shared<IStatsReport::MediaStreamTrackStats>();
-
-        decltype(report->mFramesPerSecond) framesPerSecond {};
-
-        if (!mRemote)
-          framesPerSecond = mAverageFramesSent.value<decltype(framesPerSecond)>();
-        else
-          framesPerSecond = mAverageFramesReceived.value<decltype(framesPerSecond)>();
-
-        report->mID = mTrackID;
-
-        report->mTrackID = mTrackID;
-        report->mRemoteSource = mRemote;
-        report->mFrameWidth = mSettings->mWidth.hasValue() ? mSettings->mWidth : 0;
-        report->mFrameHeight = mSettings->mHeight.hasValue() ? mSettings->mHeight : 0;
-        report->mFramesPerSecond = framesPerSecond;
-        report->mFramesSent = mFramesSent;
-        report->mFramesReceived = mFramesReceived;
-        report->mAudioLevel = 0.0;
-
-        reportStats[report->mID] = report;
-      }
-
-      promise->resolve(UseStatsReport::create(reportStats));
+      if (mDeviceResource)
+        mDeviceResource->requestStats(promise, stats);
     }
 
     //-------------------------------------------------------------------------
@@ -971,9 +763,9 @@ namespace ortc
                                               )
     {
       AutoRecursiveLock lock(*this);
-#define TODO 1
-#define TODO 2
-      promise->reject();  // temporarily reject everything
+        
+      if (mDeviceResource)
+        mDeviceResource->updateConstraints(promise, constraints);
     }
 
     //-------------------------------------------------------------------------
@@ -1020,241 +812,6 @@ namespace ortc
 
 #define TODO 1
 #define TODO 2
-    }
-
-    //-------------------------------------------------------------------------
-    void MediaStreamTrack::onCapturedVideoFrame(int32_t id, VideoFramePtr frame)
-    {
-      UseSenderChannelPtr channel;
-
-      {
-        AutoRecursiveLock lock(*this);
-
-        if (mVideoRendererCallback) mVideoRendererCallback->RenderFrame(1, *frame);
-
-        channel = mSenderChannel.lock();
-      }
-
-      if (!channel) return;
-
-      channel->sendVideoFrame(*frame);
-      ++mFramesSent;
-    }
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaStreamTrack => webrtc::VideoCaptureDataCallback
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    void MediaStreamTrack::OnIncomingCapturedFrame(const int32_t id, const webrtc::VideoFrame& videoFrame)
-    {
-      auto newFrame = make_shared<VideoFrame>();
-      newFrame->ShallowCopy(videoFrame);
-
-      IMediaStreamTrackAsyncDelegateProxy::create(mThisWeak.lock())->onCapturedVideoFrame(id, newFrame);
-    }
-
-    //-------------------------------------------------------------------------
-    void MediaStreamTrack::OnCaptureDelayChanged(const int32_t id, const int32_t delay)
-    {
-#define TODO 1
-#define TODO 2
-    }
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaStreamTrack => webrtc::AudioTransport
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    int32_t MediaStreamTrack::RecordedDataIsAvailable(
-                                                      const void* audioSamples,
-                                                      const size_t nSamples,
-                                                      const size_t nBytesPerSample,
-                                                      const uint8_t nChannels,
-                                                      const uint32_t samplesPerSec,
-                                                      const uint32_t totalDelayMS,
-                                                      const int32_t clockDrift,
-                                                      const uint32_t currentMicLevel,
-                                                      const bool keyPressed,
-                                                      uint32_t& newMicLevel
-                                                      )
-    {
-      UseSenderChannelPtr channel;
-      {
-        AutoRecursiveLock lock(*this);
-        channel = mSenderChannel.lock();
-      }
-
-#define TODO_VERIFY_RETURN_RESULT 1
-#define TODO_VERIFY_RETURN_RESULT 2
-      if (!channel) return 0;
-      
-      return channel->sendAudioSamples(audioSamples, nSamples, nChannels);
-    }
-
-    //-------------------------------------------------------------------------
-    int32_t MediaStreamTrack::NeedMorePlayData(
-                                               const size_t nSamples,
-                                               const size_t nBytesPerSample,
-                                               const uint8_t nChannels,
-                                               const uint32_t samplesPerSec,
-                                               void* audioSamples,
-                                               size_t& nSamplesOut,
-                                               int64_t* elapsed_time_ms,
-                                               int64_t* ntp_time_ms
-                                               )
-    {
-      nSamplesOut = 0;  // no samples
-      
-      UseReceiverChannelPtr channel;
-      
-      {
-        AutoRecursiveLock lock(*this);
-        channel = mReceiverChannel.lock();
-      }
-      
-#define TODO_VERIFY_RETURN_RESULT 1
-#define TODO_VERIFY_RETURN_RESULT 2
-      if (!channel) return 0;
-      
-      return channel->getAudioSamples(nSamples, nChannels, audioSamples, nSamplesOut);
-    }
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaStreamTrack::Transport
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    MediaStreamTrack::Transport::Transport(
-                                           const make_private &,
-                                           MediaStreamTrackPtr outer
-                                           ) :
-      mOuter(outer)
-    {
-    }
-        
-    //-------------------------------------------------------------------------
-    MediaStreamTrack::Transport::~Transport()
-    {
-      mThisWeak.reset();
-    }
-    
-    //-------------------------------------------------------------------------
-    void MediaStreamTrack::Transport::init()
-    {
-    }
-    
-    //-------------------------------------------------------------------------
-    MediaStreamTrack::TransportPtr MediaStreamTrack::Transport::create(MediaStreamTrackPtr outer)
-    {
-      TransportPtr pThis(make_shared<Transport>(make_private{}, outer));
-      pThis->mThisWeak = pThis;
-      pThis->init();
-      return pThis;
-    }
-    
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaStreamTrack::Transport => webrtc::VideoCaptureDataCallback
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    void MediaStreamTrack::Transport::OnIncomingCapturedFrame(const int32_t id, const webrtc::VideoFrame& videoFrame)
-    {
-      auto outer = mOuter.lock();
-      if (!outer) return;
-      return outer->OnIncomingCapturedFrame(id, videoFrame);
-    }
-    
-    //-------------------------------------------------------------------------
-    void MediaStreamTrack::Transport::OnCaptureDelayChanged(const int32_t id, const int32_t delay)
-    {
-      auto outer = mOuter.lock();
-      if (!outer) return;
-      return outer->OnCaptureDelayChanged(id, delay);
-    }
-    
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaStreamTrack::Transport => webrtc::AudioTransport
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    int32_t MediaStreamTrack::Transport::RecordedDataIsAvailable(
-                                                                 const void* audioSamples,
-                                                                 const size_t nSamples,
-                                                                 const size_t nBytesPerSample,
-                                                                 const size_t nChannels,
-                                                                 const uint32_t samplesPerSec,
-                                                                 const uint32_t totalDelayMS,
-                                                                 const int32_t clockDrift,
-                                                                 const uint32_t currentMicLevel,
-                                                                 const bool keyPressed,
-                                                                 uint32_t& newMicLevel
-                                                                 )
-    {
-      auto outer = mOuter.lock();
-#define TODO_VERIFY_RESULT 1
-#define TODO_VERIFY_RESULT 2
-      if (!outer) return 0;
-      return outer->RecordedDataIsAvailable(
-                                            audioSamples,
-                                            nSamples,
-                                            nBytesPerSample,
-                                            nChannels,
-                                            samplesPerSec,
-                                            totalDelayMS,
-                                            clockDrift,
-                                            currentMicLevel,
-                                            keyPressed,
-                                            newMicLevel
-                                            );
-    }
-    
-    //-------------------------------------------------------------------------
-    int32_t MediaStreamTrack::Transport::NeedMorePlayData(
-                                                          const size_t nSamples,
-                                                          const size_t nBytesPerSample,
-                                                          const size_t nChannels,
-                                                          const uint32_t samplesPerSec,
-                                                          void* audioSamples,
-                                                          size_t& nSamplesOut,
-                                                          int64_t* elapsed_time_ms,
-                                                          int64_t* ntp_time_ms
-                                                          )
-    {
-      auto outer = mOuter.lock();
-#define TODO_VERIFY_RESULT 1
-#define TODO_VERIFY_RESULT 2
-      if (!outer) return 0;
-      return outer->NeedMorePlayData(
-                                     nSamples,
-                                     nBytesPerSample,
-                                     nChannels,
-                                     samplesPerSec,
-                                     audioSamples,
-                                     nSamplesOut,
-                                     elapsed_time_ms,
-                                     ntp_time_ms
-                                     );
     }
 
     //-------------------------------------------------------------------------
@@ -1334,7 +891,8 @@ namespace ortc
       }
 
       // ... other steps here ...
-      if (!stepBogusDoSomething()) goto not_ready;
+      if (!stepDevicePromise()) goto not_ready;
+      if (!stepSetupDevice()) goto not_ready;
       // ... other steps here ...
 
       goto ready;
@@ -1352,23 +910,51 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool MediaStreamTrack::stepBogusDoSomething()
+    bool MediaStreamTrack::stepDevicePromise()
     {
-      if ( /* step already done */ false ) {
-        ZS_LOG_TRACE(log("already completed do something"))
+      if (mDeviceResourceLifetimeHolderPromise) {
+        ZS_LOG_TRACE(log("already setup device promise"))
+          return true;
+      }
+
+      mDeviceResourceLifetimeHolderPromise = UseMediaEngine::setupDevice(mThisWeak.lock());
+
+      mDeviceResourceLifetimeHolderPromise->thenWeak(mThisWeak.lock());
+
+      return true;
+    }
+
+    //-------------------------------------------------------------------------
+    bool MediaStreamTrack::stepSetupDevice()
+    {
+      if (mDeviceResource) {
+        ZS_LOG_TRACE(log("already setup device resource"))
         return true;
       }
 
-      if ( /* cannot do step yet */ false) {
-        ZS_LOG_DEBUG(log("waiting for XYZ to complete before continuing"))
+      if (!mDeviceResourceLifetimeHolderPromise->isSettled()) {
+        ZS_LOG_TRACE(log("waiting for setup device promise to be set up"))
         return false;
       }
 
-      ZS_LOG_DEBUG(log("doing step XYZ"))
+      if (mDeviceResourceLifetimeHolderPromise->isRejected()) {
+        ZS_LOG_WARNING(Debug, log("media engine rejected device setup"))
+        cancel();
+        return false;
+      }
 
-      // ....
-#define TODO 1
-#define TODO 2
+      mDeviceResource = ZS_DYNAMIC_PTR_CAST(UseDeviceResource, mDeviceResourceLifetimeHolderPromise->value());
+
+      if (!mDeviceResource) {
+        ZS_LOG_WARNING(Detail, log("failed to initialize device resource"))
+        cancel();
+        return false;
+      }
+
+      if (mVideoRendererCallback)
+        mDeviceResource->setVideoRenderCallback(mVideoRendererCallback);
+
+      ZS_LOG_DEBUG(log("media device is setup") + ZS_PARAM("device", mDeviceResource->getID()))
 
       return true;
     }
@@ -1383,13 +969,20 @@ namespace ortc
 
       if (!mGracefulShutdownReference) mGracefulShutdownReference = mThisWeak.lock();
 
+      if (!mCloseDevicePromise) {
+        if (mDeviceResource) {
+          mCloseDevicePromise = mDeviceResource->shutdown();
+          mCloseDevicePromise->thenWeak(mGracefulShutdownReference);
+        }
+      }
+
       if (mGracefulShutdownReference) {
-#define TODO_OBJECT_IS_BEING_KEPT_ALIVE_UNTIL_SESSION_IS_SHUTDOWN 1
-#define TODO_OBJECT_IS_BEING_KEPT_ALIVE_UNTIL_SESSION_IS_SHUTDOWN 2
-
-        // grace shutdown process done here
-
-        return;
+        if (mCloseDevicePromise) {
+          if (!mCloseDevicePromise->isSettled()) {
+            ZS_LOG_DEBUG(log("waiting for close device promise"))
+            return;
+          }
+        }
       }
 
       //.......................................................................
@@ -1403,6 +996,11 @@ namespace ortc
         mStatsTimer->cancel();
         mStatsTimer.reset();
       }
+
+      mDeviceResourceLifetimeHolderPromise.reset();
+
+      mDeviceResource.reset();
+      mCloseDevicePromise.reset();
 
       // make sure to cleanup any final reference to self
       mGracefulShutdownReference.reset();
@@ -1440,106 +1038,6 @@ namespace ortc
       mLastErrorReason = reason;
 
       ZS_LOG_WARNING(Detail, debug("error set") + ZS_PARAM("error", mLastError) + ZS_PARAM("reason", mLastErrorReason))
-    }
-
-    //-------------------------------------------------------------------------
-    FLOAT MediaStreamTrack::calculateSizeDistance(
-                                                  ConstrainLongRange width,
-                                                  ConstrainLongRange height,
-                                                  webrtc::VideoCaptureCapability capability
-                                                  )
-    {
-      if (width.mMin.hasValue() && width.mMin.value() > capability.width)
-        return FLT_MAX;
-      if (width.mMax.hasValue() && width.mMax.value() < capability.width)
-        return FLT_MAX;
-      if (width.mExact.hasValue() && width.mExact.value() != capability.width)
-        return FLT_MAX;
-      FLOAT withDistance = 0.0F;
-      if (width.mIdeal.hasValue() && width.mIdeal.value() != capability.width) {
-        withDistance = (FLOAT)(abs((int)(capability.width - width.mIdeal.value()))) / (FLOAT)width.mIdeal.value();
-      }
-
-      if (height.mMin.hasValue() && height.mMin.value() > capability.height)
-        return FLT_MAX;
-      if (height.mMax.hasValue() && height.mMax.value() < capability.height)
-        return FLT_MAX;
-      if (height.mExact.hasValue() && height.mExact.value() != capability.height)
-        return FLT_MAX;
-      FLOAT heightDistance = 0.0F;
-      if (height.mIdeal.hasValue() && height.mIdeal.value() != capability.height) {
-        heightDistance = (FLOAT)(abs((int)(capability.height - height.mIdeal.value()))) / (FLOAT)height.mIdeal.value();
-      }
-
-      
-      return withDistance + heightDistance;
-    }
-    
-    //-------------------------------------------------------------------------
-    FLOAT MediaStreamTrack::calculateFrameRateDistance(
-                                                       ConstrainDoubleRange frameRate,
-                                                       webrtc::VideoCaptureCapability capability
-                                                       )
-    {
-      if (frameRate.mMin.hasValue() && frameRate.mMin.value() > (DOUBLE)capability.maxFPS)
-        return FLT_MAX;
-      if (frameRate.mMax.hasValue() && frameRate.mMax.value() < (DOUBLE)capability.maxFPS)
-        return FLT_MAX;
-      if (frameRate.mExact.hasValue() && fabs(frameRate.mExact.value() - (DOUBLE)capability.maxFPS) > 0.01F)
-        return FLT_MAX;
-      FLOAT frameRateDistance = 0.0F;
-      if (frameRate.mIdeal.hasValue() && fabs(frameRate.mExact.value() - (DOUBLE)capability.maxFPS) > 0.01F) {
-        frameRateDistance = (FLOAT)(abs((int)(capability.maxFPS - frameRate.mIdeal.value()))) / (FLOAT)frameRate.mIdeal.value();
-      }
-      
-      return frameRateDistance;
-    }
-    
-    //-------------------------------------------------------------------------
-    FLOAT MediaStreamTrack::calculateAspectRatioDistance(
-                                                         ConstrainDoubleRange aspectRatio,
-                                                         webrtc::VideoCaptureCapability capability
-                                                         )
-    {
-      DOUBLE capabilityAspectRatio = (DOUBLE)capability.width / (DOUBLE)capability.height;
-      
-      if (aspectRatio.mMin.hasValue() && aspectRatio.mMin.value() > capabilityAspectRatio)
-        return FLT_MAX;
-      if (aspectRatio.mMax.hasValue() && aspectRatio.mMax.value() < capabilityAspectRatio)
-        return FLT_MAX;
-      if (aspectRatio.mExact.hasValue() && fabs(aspectRatio.mExact.value() - capabilityAspectRatio) > 0.001F)
-        return FLT_MAX;
-      FLOAT aspectRatioDistance = 0.0F;
-      if (aspectRatio.mIdeal.hasValue() && fabs(aspectRatio.mIdeal.value() - capabilityAspectRatio) > 0.001F) {
-        aspectRatioDistance = (capabilityAspectRatio - aspectRatio.mIdeal.value()) / aspectRatio.mIdeal.value();
-      }
-      
-      return aspectRatioDistance;
-    }
-    
-    //-------------------------------------------------------------------------
-    FLOAT MediaStreamTrack::calculateFormatDistance(webrtc::VideoCaptureCapability capability)
-    {
-      switch (capability.rawType) {
-        case webrtc::kVideoI420:
-        case webrtc::kVideoYV12:
-        case webrtc::kVideoYUY2:
-        case webrtc::kVideoUYVY:
-        case webrtc::kVideoIYUV:
-        case webrtc::kVideoARGB:
-        case webrtc::kVideoRGB24:
-        case webrtc::kVideoRGB565:
-        case webrtc::kVideoARGB4444:
-        case webrtc::kVideoARGB1555:
-        case webrtc::kVideoNV12:
-        case webrtc::kVideoNV21:
-        case webrtc::kVideoBGRA:
-          return 0.0F;
-        case webrtc::kVideoMJPEG:
-          return 1.0F;
-        default:
-          return FLT_MAX;
-      }
     }
 
     //-------------------------------------------------------------------------

@@ -36,6 +36,7 @@
 
 #include <ortc/IRTPSender.h>
 #include <ortc/IDTLSTransport.h>
+#include <ortc/IDTMFSender.h>
 #include <ortc/IICETransport.h>
 #include <ortc/IStatsReport.h>
 
@@ -128,6 +129,7 @@ namespace ortc
                                   bool selfDestruct
                                   ) = 0;
 
+      virtual void notifyDTMFSenderToneChanged(const char *tone) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -138,13 +140,17 @@ namespace ortc
     #pragma mark IRTPSenderForDTMFSender
     #pragma mark
 
-    interaction IRTPSenderForDTMFSender
+    interaction IRTPSenderForDTMFSender : public IDTMFSender
     {
       ZS_DECLARE_TYPEDEF_PTR(IRTPSenderForDTMFSender, ForDTMFSender)
 
       static ElementPtr toDebug(ForDTMFSenderPtr transport);
 
       virtual PUID getID() const = 0;
+
+      virtual IDTMFSenderSubscriptionPtr subscribe(IDTMFSenderDelegatePtr delegate) override { return subscribeDTMF(delegate); }
+
+      virtual IDTMFSenderSubscriptionPtr subscribeDTMF(IDTMFSenderDelegatePtr delegate) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -198,6 +204,7 @@ namespace ortc
                       public IRTPSenderForMediaStreamTrack,
                       public ISecureTransportDelegate,
                       public IWakeDelegate,
+                      public IDTMFSenderDelegate,
                       public IRTPSenderAsyncDelegate
     {
     protected:
@@ -255,6 +262,16 @@ namespace ortc
         bool handle(RTCPPacketPtr packet);
 
         void requestStats(PromiseWithStatsReportPtr promise, const StatsTypeSet &stats);
+
+        void insertDTMF(
+                        const char *tones,
+                        Milliseconds duration,
+                        Milliseconds interToneGap
+                        );
+
+        String toneBuffer() const;
+        Milliseconds duration() const;
+        Milliseconds interToneGap() const;
 
         ElementPtr toDebug() const;
       };
@@ -376,6 +393,8 @@ namespace ortc
                                   bool selfDestruct
                                   ) override;
 
+      virtual void notifyDTMFSenderToneChanged(const char *tone) override;
+
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark RTPSender => IRTPSenderForMediaStreamTrack
@@ -394,6 +413,24 @@ namespace ortc
 
       // (duplicate) virtual PUID getID() const = 0;
 
+      virtual IDTMFSenderSubscriptionPtr subscribeDTMF(IDTMFSenderDelegatePtr delegate) override;
+
+      virtual bool canInsertDTMF() const override;
+
+      virtual void insertDTMF(
+                              const char *tones,
+                              Milliseconds duration = Milliseconds(70),
+                              Milliseconds interToneGap = Milliseconds(70)
+                              ) throw (
+                                        InvalidStateError,
+                                        InvalidCharacterError
+                                        ) override;
+
+      virtual IRTPSenderPtr sender() const override;
+
+      virtual String toneBuffer() const override;
+      virtual Milliseconds duration() const override;
+      virtual Milliseconds interToneGap() const override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -411,6 +448,16 @@ namespace ortc
       #pragma mark
 
       virtual void onWake() override;
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark RTPSender => IDTMFSenderDelegate
+      #pragma mark
+
+      virtual void onDTMFSenderToneChanged(
+                                           IDTMFSenderPtr sender,
+                                           String tone
+                                           ) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -455,6 +502,8 @@ namespace ortc
 
       void notifyChannelsOfTransportState();
 
+      ChannelHolderPtr getDTMFChannelHolder() const;
+
     protected:
       //-----------------------------------------------------------------------
       #pragma mark
@@ -467,6 +516,8 @@ namespace ortc
 
       IRTPSenderDelegateSubscriptions mSubscriptions;
       IRTPSenderSubscriptionPtr mDefaultSubscription;
+
+      IDTMFSenderDelegateSubscriptions mDTMFSubscriptions;
 
       States mCurrentState {State_Pending};
 

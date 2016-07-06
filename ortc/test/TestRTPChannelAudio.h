@@ -104,9 +104,9 @@ namespace ortc
         #pragma mark FakeMediaStreamTrack => IMediaStreamTrackForRTPReceiverChannelAudio
         #pragma mark
 
-        virtual webrtc::AudioDeviceModule* getAudioDeviceModule() override;
+        //virtual webrtc::AudioDeviceModule* getAudioDeviceModule() override;
 
-        virtual void start() override;
+        //virtual void start() override;
         virtual void stop();
 
 

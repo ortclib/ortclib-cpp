@@ -706,7 +706,7 @@ namespace ortc
 
         // (handled by base) virtual PUID getID() const = 0;
 
-        virtual void renderVideoFrame(const webrtc::VideoFrame& videoFrame) override;
+        //virtual void renderVideoFrame(const webrtc::VideoFrame& videoFrame) override;
 
         //---------------------------------------------------------------------
         #pragma mark
