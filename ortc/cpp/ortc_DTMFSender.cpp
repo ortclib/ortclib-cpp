@@ -511,6 +511,7 @@ namespace ortc
       }
 
       mRTPSenderSubscription = sender->subscribe(mThisWeak.lock());
+        return true;
     }
 
     //-------------------------------------------------------------------------

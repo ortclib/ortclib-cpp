@@ -284,7 +284,7 @@
 
 #define EventWriteOrtcIceTransportInternalGathererStateChangedEventFired(xStr_Method, xPUID, xPUID_IceGathererObjectID, xStr_State)
 #define EventWriteOrtcIceTransportInternalGathererAddLocalCandidateEventFired(xStr_Method, xPUID, xPUID_IceGathererObjectID, xStr_InterfaceType, xStr_Foundation, xDWORD_Priority, xDWORD_UnfreezePriority, xStr_Protocol, xStr_IP, xWORD_Port, xStr_CandidateType, xStr_TcpType, xStr_RelatedAddress, xWORD_RelatedPort)
-#define EventWriteOrtcIceTransportInternalGathererAddLocalCandidateCompleteEventFired(xStr_Method, xPUID, xPUID_IceGathererObjectID, WORD xWORD_Component)
+#define EventWriteOrtcIceTransportInternalGathererAddLocalCandidateCompleteEventFired(xStr_Method, xPUID, xPUID_IceGathererObjectID, xWORD_Component)
 #define EventWriteOrtcIceTransportInternalGathererRemoveLocalCandidateEventFired(xStr_Method, xPUID, xPUID_IceGathererObjectID, xStr_InterfaceType, xStr_Foundation, xDWORD_Priority, xDWORD_UnfreezePriority, xStr_Protocol, xStr_IP, xWORD_Port, xStr_CandidateType, xStr_TcpType, xStr_RelatedAddress, xWORD_RelatedPort)
 
 #define EventWriteOrtcIceTransportInternalStunRequesterCreate(xStr_Method, xPUID, xPUID_StunRequesterObjectID)

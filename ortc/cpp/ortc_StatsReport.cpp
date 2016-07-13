@@ -100,14 +100,14 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    static void reportInt32(const char *reportID, double timestamp, const char *statName, int32 value)
+    static void reportInt32(const char *reportID, double timestamp, const char *statName, int32_t value)
     {
       EventWriteOrtcStatsReportInt32(reportID, timestamp, statName, value);
       ZS_LOG_INSANE(slog("report uint32") + ZS_PARAM("report id", reportID) + ZS_PARAM("stat name", statName) + ZS_PARAM("timestamp", timestamp) + ZS_PARAM("value", value));
     }
 
     //-------------------------------------------------------------------------
-    static void reportInt64(const char *reportID, double timestamp, const char *statName, int64 value)
+    static void reportInt64(const char *reportID, double timestamp, const char *statName, int64_t value)
     {
       EventWriteOrtcStatsReportInt64(reportID, timestamp, statName, value);
       ZS_LOG_INSANE(slog("report uint64") + ZS_PARAM("report id", reportID) + ZS_PARAM("stat name", statName) + ZS_PARAM("timestamp", timestamp) + ZS_PARAM("value", value));
@@ -817,7 +817,7 @@ namespace ortc
     Stats::eventTrace(timestamp);
 
     if (mSSRC.hasValue()) {
-      internal::reportInt64(mID, timestamp, "ssrc", SafeInt<int64>(mSSRC.value()));
+      internal::reportInt64(mID, timestamp, "ssrc", SafeInt<int64_t>(mSSRC.value()));
     }
     internal::reportString(mID, timestamp, "associatedStatId", mAssociatedStatID);
     internal::reportBool(mID, timestamp, "isRemote", mIsRemote);
@@ -825,10 +825,10 @@ namespace ortc
     internal::reportString(mID, timestamp, "mediaTrackId", mMediaTrackID);
     internal::reportString(mID, timestamp, "transportId", mTransportID);
     internal::reportString(mID, timestamp, "codecId", mCodecID);
-    internal::reportInt32(mID, timestamp, "firCount", SafeInt<int32>(mFIRCount));
-    internal::reportInt32(mID, timestamp, "pliCount", SafeInt<int32>(mPLICount));
-    internal::reportInt32(mID, timestamp, "nackCount", SafeInt<int32>(mNACKCount));
-    internal::reportInt32(mID, timestamp, "sliCount", SafeInt<int32>(mSLICount));
+    internal::reportInt32(mID, timestamp, "firCount", SafeInt<int32_t>(mFIRCount));
+    internal::reportInt32(mID, timestamp, "pliCount", SafeInt<int32_t>(mPLICount));
+    internal::reportInt32(mID, timestamp, "nackCount", SafeInt<int32_t>(mNACKCount));
+    internal::reportInt32(mID, timestamp, "sliCount", SafeInt<int32_t>(mSLICount));
   }
 
   //---------------------------------------------------------------------------
@@ -929,12 +929,12 @@ namespace ortc
     Stats::eventTrace(timestamp);
 
     if (mPayloadType.hasValue()) {
-      internal::reportInt32(mID, timestamp, "payloadType", SafeInt<int32>(mPayloadType.value()));
+      internal::reportInt32(mID, timestamp, "payloadType", SafeInt<int32_t>(mPayloadType.value()));
     }
     internal::reportString(mID, timestamp, "codec", mCodec);
-    internal::reportInt32(mID, timestamp, "clockRate", SafeInt<int32>(mClockRate));
+    internal::reportInt32(mID, timestamp, "clockRate", SafeInt<int32_t>(mClockRate));
     if (mChannels.hasValue()) {
-      internal::reportInt32(mID, timestamp, "channels", SafeInt<int32>(mChannels.value()));
+      internal::reportInt32(mID, timestamp, "channels", SafeInt<int32_t>(mChannels.value()));
     }
     internal::reportString(mID, timestamp, "parameters", mParameters);
   }
@@ -1041,17 +1041,17 @@ namespace ortc
   {
     RTPStreamStats::eventTrace(timestamp);
 
-    internal::reportInt32(mID, timestamp, "packetsReceived", SafeInt<int32>(mPacketsReceived));
-    internal::reportInt64(mID, timestamp, "bytesReceived", SafeInt<int64>(mBytesReceived));
-    internal::reportInt32(mID, timestamp, "packetsLost", SafeInt<int32>(mPacketsLost));
+    internal::reportInt32(mID, timestamp, "packetsReceived", SafeInt<int32_t>(mPacketsReceived));
+    internal::reportInt64(mID, timestamp, "bytesReceived", SafeInt<int64_t>(mBytesReceived));
+    internal::reportInt32(mID, timestamp, "packetsLost", SafeInt<int32_t>(mPacketsLost));
     internal::reportFloat(mID, timestamp, "jitter", static_cast<float>(mJitter));
     internal::reportFloat(mID, timestamp, "fractionLost", static_cast<float>(mFractionLost));
-    internal::reportInt64(mID, timestamp, "endToEndDelay", SafeInt<int64>(mEndToEndDelay.count()));
+    internal::reportInt64(mID, timestamp, "endToEndDelay", SafeInt<int64_t>(mEndToEndDelay.count()));
 #ifndef ORTC_EXCLUDE_WEBRTC_COMPATIBILITY_STATS
-    internal::reportInt64(mID, timestamp, "winrtEndToEndDelayMs", SafeInt<int64>(mEndToEndDelay.count()));
-    internal::reportInt32(mID, timestamp, "googFirsReceived", SafeInt<int32>(mFIRCount));
-    internal::reportInt32(mID, timestamp, "googPlisReceived", SafeInt<int32>(mPLICount));
-    internal::reportInt32(mID, timestamp, "googNacksReceived", SafeInt<int32>(mNACKCount));
+    internal::reportInt64(mID, timestamp, "winrtEndToEndDelayMs", SafeInt<int64_t>(mEndToEndDelay.count()));
+    internal::reportInt32(mID, timestamp, "googFirsReceived", SafeInt<int32_t>(mFIRCount));
+    internal::reportInt32(mID, timestamp, "googPlisReceived", SafeInt<int32_t>(mPLICount));
+    internal::reportInt32(mID, timestamp, "googNacksReceived", SafeInt<int32_t>(mNACKCount));
 #endif //ndef ORTC_EXCLUDE_WEBRTC_COMPATIBILITY_STATS
   }
 
@@ -1146,15 +1146,15 @@ namespace ortc
   {
     RTPStreamStats::eventTrace(timestamp);
 
-    internal::reportInt32(mID, timestamp, "packetsSent", SafeInt<int32>(mPacketsSent));
-    internal::reportInt64(mID, timestamp, "bytesSent", SafeInt<int64>(mBytesSent));
+    internal::reportInt32(mID, timestamp, "packetsSent", SafeInt<int32_t>(mPacketsSent));
+    internal::reportInt64(mID, timestamp, "bytesSent", SafeInt<int64_t>(mBytesSent));
     internal::reportFloat(mID, timestamp, "targetBitrate", static_cast<float>(mTargetBitrate));
     internal::reportFloat(mID, timestamp, "roundTripTime", static_cast<float>(mRoundTripTime));
 #ifndef ORTC_EXCLUDE_WEBRTC_COMPATIBILITY_STATS
     internal::reportFloat(mID, timestamp, "googRtt", static_cast<float>(mRoundTripTime));
-    internal::reportInt32(mID, timestamp, "googFirsSent", SafeInt<int32>(mFIRCount));
-    internal::reportInt32(mID, timestamp, "googPlisSent", SafeInt<int32>(mPLICount));
-    internal::reportInt32(mID, timestamp, "googNacksSent", SafeInt<int32>(mNACKCount));
+    internal::reportInt32(mID, timestamp, "googFirsSent", SafeInt<int32_t>(mFIRCount));
+    internal::reportInt32(mID, timestamp, "googPlisSent", SafeInt<int32_t>(mPLICount));
+    internal::reportInt32(mID, timestamp, "googNacksSent", SafeInt<int32_t>(mNACKCount));
 #endif //ORTC_EXCLUDE_WEBRTC_COMPATIBILITY_STATS
   }
 
@@ -1240,8 +1240,8 @@ namespace ortc
   {
     Stats::eventTrace(timestamp);
 
-    internal::reportInt32(mID, timestamp, "dataChannelsOpen", SafeInt<int32>(mDataChannelsOpened));
-    internal::reportInt32(mID, timestamp, "dataChannelsClosed", SafeInt<int32>(mDataChannelsClosed));
+    internal::reportInt32(mID, timestamp, "dataChannelsOpen", SafeInt<int32_t>(mDataChannelsOpened));
+    internal::reportInt32(mID, timestamp, "dataChannelsClosed", SafeInt<int32_t>(mDataChannelsClosed));
   }
 
 
@@ -1356,7 +1356,7 @@ namespace ortc
     Stats::eventTrace(timestamp);
 
     internal::reportString(mID, timestamp, "streamId", mStreamID);
-    internal::reportInt32(mID, timestamp, "tracks", SafeInt<int32>(mTrackIDs.size()));
+    internal::reportInt32(mID, timestamp, "tracks", SafeInt<int32_t>(mTrackIDs.size()));
     unsigned long index = 0;
     for (auto iter = mTrackIDs.begin(); iter != mTrackIDs.end(); ++iter, ++index) {
       auto &trackID = (*iter);
@@ -1542,20 +1542,20 @@ namespace ortc
 
     internal::reportString(mID, timestamp, "trackId", mTrackID);
     internal::reportBool(mID, timestamp, "remoteSource", mRemoteSource);
-    internal::reportInt32(mID, timestamp, "ssrcs", SafeInt<int32>(mSSRCIDs.size()));
+    internal::reportInt32(mID, timestamp, "ssrcs", SafeInt<int32_t>(mSSRCIDs.size()));
     unsigned long index = 0;
     for (auto iter = mSSRCIDs.begin(); iter != mSSRCIDs.end(); ++iter, ++index) {
       auto &ssrcID = (*iter);
-      internal::reportInt64(mID, timestamp, (String("ssrcId") + string(index)).c_str(), SafeInt<int64>(ssrcID));
+      internal::reportInt64(mID, timestamp, (String("ssrcId") + string(index)).c_str(), SafeInt<int64_t>(ssrcID));
     }
-    internal::reportInt32(mID, timestamp, "frameWidth", SafeInt<int32>(mFrameWidth));
-    internal::reportInt32(mID, timestamp, "frameHeight", SafeInt<int32>(mFrameHeight));
+    internal::reportInt32(mID, timestamp, "frameWidth", SafeInt<int32_t>(mFrameWidth));
+    internal::reportInt32(mID, timestamp, "frameHeight", SafeInt<int32_t>(mFrameHeight));
     internal::reportFloat(mID, timestamp, "framesPerSecond", static_cast<float>(mFramesPerSecond));
-    internal::reportInt32(mID, timestamp, "framesSent", SafeInt<int32>(mFramesSent));
-    internal::reportInt32(mID, timestamp, "framesReceived", SafeInt<int32>(mFramesReceived));
-    internal::reportInt32(mID, timestamp, "framesDecoded", SafeInt<int32>(mFramesDecoded));
-    internal::reportInt32(mID, timestamp, "framesDropped", SafeInt<int32>(mFramesDropped));
-    internal::reportInt32(mID, timestamp, "framesCorrupted", SafeInt<int32>(mFramesCorrupted));
+    internal::reportInt32(mID, timestamp, "framesSent", SafeInt<int32_t>(mFramesSent));
+    internal::reportInt32(mID, timestamp, "framesReceived", SafeInt<int32_t>(mFramesReceived));
+    internal::reportInt32(mID, timestamp, "framesDecoded", SafeInt<int32_t>(mFramesDecoded));
+    internal::reportInt32(mID, timestamp, "framesDropped", SafeInt<int32_t>(mFramesDropped));
+    internal::reportInt32(mID, timestamp, "framesCorrupted", SafeInt<int32_t>(mFramesCorrupted));
     internal::reportFloat(mID, timestamp, "audioLevel", static_cast<float>(mAudioLevel));
     internal::reportFloat(mID, timestamp, "echoReturnLoss", static_cast<float>(mEchoReturnLoss));
     internal::reportFloat(mID, timestamp, "echoReturnLossEnhancement", static_cast<float>(mEchoReturnLossEnhancement));
@@ -1564,12 +1564,12 @@ namespace ortc
     if (mRemoteSource) {
       internal::reportFloat(mID, timestamp, "googFrameHeightReceived", static_cast<float>(mFrameWidth));
       internal::reportFloat(mID, timestamp, "googFrameWidthReceived", static_cast<float>(mFrameHeight));
-      internal::reportInt32(mID, timestamp, "googFrameRateReceived", SafeInt<int32>(mFramesPerSecond));
+      internal::reportInt32(mID, timestamp, "googFrameRateReceived", SafeInt<int32_t>(mFramesPerSecond));
       internal::reportFloat(mID, timestamp, "audioOutputLevel", static_cast<float>(mAudioLevel));
     } else {
       internal::reportFloat(mID, timestamp, "googFrameWidthSent", static_cast<float>(mFrameWidth));
       internal::reportFloat(mID, timestamp, "googFrameHeightSent", static_cast<float>(mFrameHeight));
-      internal::reportInt32(mID, timestamp, "googFrameRateSent", SafeInt<int32>(mFramesPerSecond));
+      internal::reportInt32(mID, timestamp, "googFrameRateSent", SafeInt<int32_t>(mFramesPerSecond));
       internal::reportFloat(mID, timestamp, "audioInputLevel", static_cast<float>(mAudioLevel));
     }
 #endif //ORTC_EXCLUDE_WEBRTC_COMPATIBILITY_STATS
@@ -1698,12 +1698,12 @@ namespace ortc
 
     internal::reportString(mID, timestamp, "label", mLabel);
     internal::reportString(mID, timestamp, "protocol", mProtocol);
-    internal::reportInt32(mID, timestamp, "dataChannelId", SafeInt<int32>(mDataChannelID));
+    internal::reportInt32(mID, timestamp, "dataChannelId", SafeInt<int32_t>(mDataChannelID));
     internal::reportString(mID, timestamp, "state", IDataChannelTypes::toString(mState));
-    internal::reportInt32(mID, timestamp, "messagesSent", SafeInt<int32>(mMessagesSent));
-    internal::reportInt64(mID, timestamp, "bytesSent", SafeInt<int64>(mBytesSent));
-    internal::reportInt32(mID, timestamp, "messagesReceived", SafeInt<int32>(mMessagesReceived));
-    internal::reportInt64(mID, timestamp, "bytesReceived", SafeInt<int64>(mBytesReceived));
+    internal::reportInt32(mID, timestamp, "messagesSent", SafeInt<int32_t>(mMessagesSent));
+    internal::reportInt64(mID, timestamp, "bytesSent", SafeInt<int64_t>(mBytesSent));
+    internal::reportInt32(mID, timestamp, "messagesReceived", SafeInt<int32_t>(mMessagesReceived));
+    internal::reportInt64(mID, timestamp, "bytesReceived", SafeInt<int64_t>(mBytesReceived));
   }
 
   //---------------------------------------------------------------------------
@@ -1793,8 +1793,8 @@ namespace ortc
   {
     Stats::eventTrace(timestamp);
 
-    internal::reportInt64(mID, timestamp, "bytesSent", SafeInt<int64>(mBytesSent));
-    internal::reportInt64(mID, timestamp, "bytesSent", SafeInt<int64>(mBytesReceived));
+    internal::reportInt64(mID, timestamp, "bytesSent", SafeInt<int64_t>(mBytesSent));
+    internal::reportInt64(mID, timestamp, "bytesSent", SafeInt<int64_t>(mBytesReceived));
     internal::reportString(mID, timestamp, "rtcpGathererStatsId", mRTCPGathererStatsID);
   }
 
@@ -1896,8 +1896,8 @@ namespace ortc
   {
     Stats::eventTrace(timestamp);
 
-    internal::reportInt64(mID, timestamp, "bytesSent", SafeInt<int64>(mBytesSent));
-    internal::reportInt64(mID, timestamp, "bytesSent", SafeInt<int64>(mBytesReceived));
+    internal::reportInt64(mID, timestamp, "bytesSent", SafeInt<int64_t>(mBytesSent));
+    internal::reportInt64(mID, timestamp, "bytesSent", SafeInt<int64_t>(mBytesReceived));
     internal::reportString(mID, timestamp, "rtcpTransportStatsId", mRTCPTransportStatsID);
     internal::reportBool(mID, timestamp, "activeConnection", mActiveConnection);
     internal::reportString(mID, timestamp, "selectedCandidatePairId", mSelectedCandidatePairID);
@@ -2185,10 +2185,10 @@ namespace ortc
 
     internal::reportString(mID, timestamp, "relatedId", mRelatedID);
     internal::reportString(mID, timestamp, "ipAddress", mIPAddress);
-    internal::reportInt32(mID, timestamp, "portNumber", SafeInt<int32>(mPortNumber));
+    internal::reportInt32(mID, timestamp, "portNumber", SafeInt<int32_t>(mPortNumber));
     internal::reportString(mID, timestamp, "transport", mTransport);
     internal::reportString(mID, timestamp, "candidateType", IICETypes::toString(mCandidateType));
-    internal::reportInt64(mID, timestamp, "priority", SafeInt<int64>(mPriority));
+    internal::reportInt64(mID, timestamp, "priority", SafeInt<int64_t>(mPriority));
     internal::reportString(mID, timestamp, "addressSourceUrl", mAddressSourceURL);
   }
 
@@ -2343,12 +2343,12 @@ namespace ortc
     internal::reportString(mID, timestamp, "localCandidateId", mLocalCandidateID);
     internal::reportString(mID, timestamp, "remoteCandidateId", mRemoteCandidateID);
     internal::reportString(mID, timestamp, "state", IStatsReportTypes::toString(mState));
-    internal::reportInt64(mID, timestamp, "priority", static_cast<int64>(mPriority));
+    internal::reportInt64(mID, timestamp, "priority", static_cast<int64_t>(mPriority));
     internal::reportBool(mID, timestamp, "nominated", mNominated);
     internal::reportBool(mID, timestamp, "writable", mWritable);
     internal::reportBool(mID, timestamp, "readable", mReadable);
-    internal::reportInt64(mID, timestamp, "bytesSent", SafeInt<int64>(mBytesSent));
-    internal::reportInt64(mID, timestamp, "bytesReceived", SafeInt<int64>(mBytesReceived));
+    internal::reportInt64(mID, timestamp, "bytesSent", SafeInt<int64_t>(mBytesSent));
+    internal::reportInt64(mID, timestamp, "bytesReceived", SafeInt<int64_t>(mBytesReceived));
     internal::reportFloat(mID, timestamp, "roundTripTime", static_cast<float>(mRoundTripTime));
     internal::reportFloat(mID, timestamp, "availableOutgoingBitrate", static_cast<float>(mAvailableOutgoingBitrate));
     internal::reportFloat(mID, timestamp, "availableIncomingBitrate", static_cast<float>(mAvailableIncomingBitrate));
