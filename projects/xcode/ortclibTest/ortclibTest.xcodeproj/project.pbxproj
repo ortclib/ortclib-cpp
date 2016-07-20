@@ -22,6 +22,9 @@
 		00AA4CB81B3895840073E17B /* TestDTLS.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00AA4CB71B3895840073E17B /* TestDTLS.cpp */; };
 		00AEDD341B9F21180050A0E6 /* TestSCTP.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00AEDD331B9F21180050A0E6 /* TestSCTP.cpp */; };
 		00E5324B1C4958D200677881 /* TestRTPChannel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00E5324A1C4958D200677881 /* TestRTPChannel.cpp */; };
+		52C90F8A1D3F615400F1455E /* libboringssl_asm.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 52C90F891D3F615400F1455E /* libboringssl_asm.a */; };
+		52C90F921D3F624600F1455E /* libvpx_intrinsics_avx.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 52C90F911D3F624600F1455E /* libvpx_intrinsics_avx.a */; };
+		52C90F941D3F6B0000F1455E /* libcongestion_controller.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 52C90F931D3F6B0000F1455E /* libcongestion_controller.a */; };
 		9489179A1BC471250011DA02 /* libaudio_coding_module.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9499DADC1BC407D9000EA8E9 /* libaudio_coding_module.a */; };
 		9489179B1BC471250011DA02 /* libaudio_conference_mixer.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9499DADD1BC407D9000EA8E9 /* libaudio_conference_mixer.a */; };
 		9489179C1BC471250011DA02 /* libaudio_decoder_interface.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9499DADE1BC407D9000EA8E9 /* libaudio_decoder_interface.a */; };
@@ -203,6 +206,9 @@
 		00AEDD681B9F572B0050A0E6 /* TestSCTP.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TestSCTP.h; sourceTree = "<group>"; };
 		00E5324A1C4958D200677881 /* TestRTPChannel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TestRTPChannel.cpp; sourceTree = "<group>"; };
 		00E532521C4959F100677881 /* TestRTPChannel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = TestRTPChannel.h; sourceTree = "<group>"; };
+		52C90F891D3F615400F1455E /* libboringssl_asm.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libboringssl_asm.a; path = ../../../../webrtc/out_mac/Debug/libboringssl_asm.a; sourceTree = "<group>"; };
+		52C90F911D3F624600F1455E /* libvpx_intrinsics_avx.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libvpx_intrinsics_avx.a; path = ../../../../webrtc/out_mac/Debug/libvpx_intrinsics_avx.a; sourceTree = "<group>"; };
+		52C90F931D3F6B0000F1455E /* libcongestion_controller.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcongestion_controller.a; path = ../../../../webrtc/out_mac/Debug/libcongestion_controller.a; sourceTree = "<group>"; };
 		9451F2E91BC55721008CB8D7 /* webrtcWrapper_mac.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = webrtcWrapper_mac.xcodeproj; path = ../../../../../ios/projects/xcode/webrtcWrappers/webrtcWrapper_mac/webrtcWrapper_mac.xcodeproj; sourceTree = "<group>"; };
 		9499DADC1BC407D9000EA8E9 /* libaudio_coding_module.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libaudio_coding_module.a; path = ../../../../webrtc/out_mac/Debug/libaudio_coding_module.a; sourceTree = "<group>"; };
 		9499DADD1BC407D9000EA8E9 /* libaudio_conference_mixer.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libaudio_conference_mixer.a; path = ../../../../webrtc/out_mac/Debug/libaudio_conference_mixer.a; sourceTree = "<group>"; };
@@ -315,6 +321,7 @@
 				948917A71BC471250011DA02 /* libcommon_video.a in Frameworks */,
 				948917A81BC471250011DA02 /* libfield_trial_default.a in Frameworks */,
 				948917A91BC471250011DA02 /* libg711.a in Frameworks */,
+				52C90F8A1D3F615400F1455E /* libboringssl_asm.a in Frameworks */,
 				948917AA1BC471250011DA02 /* libg722.a in Frameworks */,
 				948917AB1BC471250011DA02 /* libilbc.a in Frameworks */,
 				948917AC1BC471250011DA02 /* libisac.a in Frameworks */,
@@ -328,6 +335,7 @@
 				948917B31BC471250011DA02 /* libpaced_sender.a in Frameworks */,
 				948917B41BC471250011DA02 /* libpcm16b.a in Frameworks */,
 				948917B51BC471250011DA02 /* libprotobuf_lite.a in Frameworks */,
+				52C90F941D3F6B0000F1455E /* libcongestion_controller.a in Frameworks */,
 				948917B61BC471250011DA02 /* libred.a in Frameworks */,
 				948917B71BC471250011DA02 /* libremote_bitrate_estimator.a in Frameworks */,
 				948917B81BC471250011DA02 /* librtc_base_approved.a in Frameworks */,
@@ -351,6 +359,7 @@
 				948917C91BC471250011DA02 /* libvpx_intrinsics_ssse3.a in Frameworks */,
 				948917CB1BC471250011DA02 /* libwebrtc_common.a in Frameworks */,
 				948917CC1BC471250011DA02 /* libwebrtc_h264.a in Frameworks */,
+				52C90F921D3F624600F1455E /* libvpx_intrinsics_avx.a in Frameworks */,
 				948917CD1BC471250011DA02 /* libwebrtc_i420.a in Frameworks */,
 				948917CE1BC471250011DA02 /* libwebrtc_opus.a in Frameworks */,
 				948917CF1BC471250011DA02 /* libwebrtc_utility.a in Frameworks */,
@@ -472,6 +481,9 @@
 		0056EED71B13B7990035B351 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				52C90F931D3F6B0000F1455E /* libcongestion_controller.a */,
+				52C90F911D3F624600F1455E /* libvpx_intrinsics_avx.a */,
+				52C90F891D3F615400F1455E /* libboringssl_asm.a */,
 				9499DADC1BC407D9000EA8E9 /* libaudio_coding_module.a */,
 				9499DADD1BC407D9000EA8E9 /* libaudio_conference_mixer.a */,
 				9499DADE1BC407D9000EA8E9 /* libaudio_decoder_interface.a */,

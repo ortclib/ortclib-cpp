@@ -47,6 +47,7 @@
 		00D8BFAA18479BF80001A335 /* ortc_ICETransport.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00D8BFA818479BF80001A335 /* ortc_ICETransport.cpp */; settings = {COMPILER_FLAGS = "-Wno-undefined-bool-conversion"; }; };
 		00D8BFEF1848DF100001A335 /* ortc_Helper.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00D8BFEE1848DF100001A335 /* ortc_Helper.cpp */; };
 		00F99B951BAA025B00D2E178 /* ortc_RTCPPacket.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 00F99B941BAA025B00D2E178 /* ortc_RTCPPacket.cpp */; };
+		52C90F881D3E898D00F1455E /* ortc_webrtc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 52C90F871D3E898D00F1455E /* ortc_webrtc.cpp */; };
 		E23EBC641834181C00C7332E /* ortc_MediaStreamTrack.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E23EBC611834181C00C7332E /* ortc_MediaStreamTrack.cpp */; };
 /* End PBXBuildFile section */
 
@@ -157,11 +158,10 @@
 		00D8BFEA1848DC5B0001A335 /* IORTC.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = IORTC.h; sourceTree = "<group>"; };
 		00D8BFEB1848DECE0001A335 /* ortc_ORTC.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ortc_ORTC.h; sourceTree = "<group>"; };
 		00D8BFEE1848DF100001A335 /* ortc_Helper.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_Helper.cpp; sourceTree = "<group>"; };
-		00E3EDB21C7401D20059D006 /* ortc_ETWTracing.man */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = ortc_ETWTracing.man; sourceTree = "<group>"; };
-		00E3EDB31C7401D20059D006 /* ortc_ETWTracing.wprp */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = ortc_ETWTracing.wprp; sourceTree = "<group>"; };
 		00EAF8D9182B054C00B8E2CE /* license.txt */ = {isa = PBXFileReference; lastKnownFileType = text; name = license.txt; path = ../../../license.txt; sourceTree = "<group>"; };
 		00F99B941BAA025B00D2E178 /* ortc_RTCPPacket.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_RTCPPacket.cpp; sourceTree = "<group>"; };
 		00F99B981BAA028700D2E178 /* ortc_RTCPPacket.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ortc_RTCPPacket.h; sourceTree = "<group>"; };
+		52C90F871D3E898D00F1455E /* ortc_webrtc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_webrtc.cpp; sourceTree = "<group>"; };
 		E23EBC5B1834180700C7332E /* IMediaStreamTrack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IMediaStreamTrack.h; sourceTree = "<group>"; };
 		E23EBC611834181C00C7332E /* ortc_MediaStreamTrack.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_MediaStreamTrack.cpp; sourceTree = "<group>"; };
 		E23EBC671834183500C7332E /* ortc_MediaStreamTrack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ortc_MediaStreamTrack.h; sourceTree = "<group>"; };
@@ -235,6 +235,7 @@
 		008F562118213754009863AA /* cpp */ = {
 			isa = PBXGroup;
 			children = (
+				52C90F871D3E898D00F1455E /* ortc_webrtc.cpp */,
 				0031990B1AD36B11000511CC /* ifaddrs-android.cc */,
 				008F562818213D70009863AA /* ortc.cpp */,
 				00724A6D184CF42B0049B9EF /* ortc_ORTC.cpp */,
@@ -325,8 +326,6 @@
 				00265E531B3DE73D00D9B45F /* ortc_SRTPTransport.h */,
 				0051D6BB1B8D0300003B4A00 /* ortc_SCTPTransportListener.h */,
 				003443C51C6E23D500B8CB2E /* ortc_Tracing.h */,
-				00E3EDB21C7401D20059D006 /* ortc_ETWTracing.man */,
-				00E3EDB31C7401D20059D006 /* ortc_ETWTracing.wprp */,
 			);
 			path = internal;
 			sourceTree = "<group>";
@@ -428,6 +427,7 @@
 				0064C6BC1AFE75C40089571E /* ortc_ISecureTransport.cpp in Sources */,
 				003C43F21C4DD8C40064D16F /* ortc_RTPReceiverChannelVideo.cpp in Sources */,
 				0064C6A51AFBF13B0089571E /* ortc_SRTPSDESTransport.cpp in Sources */,
+				52C90F881D3E898D00F1455E /* ortc_webrtc.cpp in Sources */,
 				00265E521B3DE72C00D9B45F /* ortc_SRTPTransport.cpp in Sources */,
 				0051D6BA1B8D02E4003B4A00 /* ortc_SCTPTransportListener.cpp in Sources */,
 				00961DDF1B44B47F00EEB0F0 /* ortc_Constraints.cpp in Sources */,
