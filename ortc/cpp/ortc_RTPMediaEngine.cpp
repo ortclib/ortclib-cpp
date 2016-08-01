@@ -1210,7 +1210,7 @@ namespace ortc
     bool RTPMediaEngine::internalIsMediaTracing()
     {
 #ifdef WINRT
-      mTraceLog.IsTracing();
+      return mTraceLog.IsTracing();
 #else
       return false;
 #endif
@@ -1220,7 +1220,7 @@ namespace ortc
     bool RTPMediaEngine::internalSaveMediaTrace(String filename)
     {
 #ifdef WINRT
-      mTraceLog.Save(filename);
+		return mTraceLog.Save(filename);
 #else
       return false;
 #endif
@@ -1230,7 +1230,7 @@ namespace ortc
     bool RTPMediaEngine::internalSaveMediaTrace(String host, int port)
     {
 #ifdef WINRT
-      mTraceLog.Save(host, port);
+		return mTraceLog.Save(host, port);
 #else
       return false;
 #endif
