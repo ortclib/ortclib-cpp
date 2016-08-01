@@ -102,35 +102,45 @@ namespace ortc
     //-------------------------------------------------------------------------
     static void reportInt32(const char *reportID, double timestamp, const char *statName, int32_t value)
     {
+#ifdef WINRT
       EventWriteOrtcStatsReportInt32(reportID, timestamp, statName, value);
+#endif
       ZS_LOG_INSANE(slog("report uint32") + ZS_PARAM("report id", reportID) + ZS_PARAM("stat name", statName) + ZS_PARAM("timestamp", timestamp) + ZS_PARAM("value", value));
     }
 
     //-------------------------------------------------------------------------
     static void reportInt64(const char *reportID, double timestamp, const char *statName, int64_t value)
     {
+#ifdef WINRT
       EventWriteOrtcStatsReportInt64(reportID, timestamp, statName, value);
+#endif
       ZS_LOG_INSANE(slog("report uint64") + ZS_PARAM("report id", reportID) + ZS_PARAM("stat name", statName) + ZS_PARAM("timestamp", timestamp) + ZS_PARAM("value", value));
     }
 
     //-------------------------------------------------------------------------
     static void reportFloat(const char *reportID, double timestamp, const char *statName, float value)
     {
+#ifdef WINRT
       EventWriteOrtcStatsReportFloat(reportID, timestamp, statName, value);
+#endif
       ZS_LOG_INSANE(slog("report float") + ZS_PARAM("report id", reportID) + ZS_PARAM("stat name", statName) + ZS_PARAM("timestamp", timestamp) + ZS_PARAM("value", value));
     }
 
     //-------------------------------------------------------------------------
     static void reportBool(const char *reportID, double timestamp, const char *statName, bool value)
     {
+#ifdef WINRT
       EventWriteOrtcStatsReportBool(reportID, timestamp, statName, value);
+#endif
       ZS_LOG_INSANE(slog("report bool") + ZS_PARAM("report id", reportID) + ZS_PARAM("stat name", statName) + ZS_PARAM("timestamp", timestamp) + ZS_PARAM("value", value));
     }
 
     //-------------------------------------------------------------------------
     static void reportString(const char *reportID, double timestamp, const char *statName, const char *value)
     {
+#ifdef WINRT
       EventWriteOrtcStatsReportString(reportID, timestamp, statName, value);
+#endif
       ZS_LOG_INSANE(slog("report string") + ZS_PARAM("report id", reportID) + ZS_PARAM("stat name", statName) + ZS_PARAM("timestamp", timestamp) + ZS_PARAM("value", value));
     }
 

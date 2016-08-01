@@ -1984,7 +1984,9 @@ namespace ortc
 
       rtc::scoped_ptr<WebRtcTraceCallback> mTraceCallback;
       rtc::scoped_ptr<WebRtcLogSink> mLogSink;
+#ifdef WINRT
       rtc::TraceLog mTraceLog;
+#endif
     };
 
     //-------------------------------------------------------------------------

@@ -303,7 +303,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     void IRTPMediaEngineForORTC::ntpServerTime(const Milliseconds &value)
     {
+#ifdef WINRT
       RTPMediaEngine::ntpServerTime(value);
+#endif
     }
 
     //-------------------------------------------------------------------------
@@ -670,7 +672,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-#ifndef __APPLE__
+#ifdef WINRT
     void RTPMediaEngine::ntpServerTime(const Milliseconds &value)
     {
       rtc::SyncWithNtp(value.count());
@@ -1190,32 +1192,48 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPMediaEngine::internalStartMediaTracing()
     {
+#ifdef WINRT
       mTraceLog.EnableTraceInternalStorage();
       mTraceLog.StartTracing();
+#endif
     }
 
     //-------------------------------------------------------------------------
     void RTPMediaEngine::internalStopMediaTracing()
     {
+#ifdef WINRT
       mTraceLog.StopTracing();
+#endif
     }
 
     //-------------------------------------------------------------------------
     bool RTPMediaEngine::internalIsMediaTracing()
     {
-      return mTraceLog.IsTracing();
+#ifdef WINRT
+      mTraceLog.IsTracing();
+#else
+      return false;
+#endif
     }
 
     //-------------------------------------------------------------------------
     bool RTPMediaEngine::internalSaveMediaTrace(String filename)
     {
-      return mTraceLog.Save(filename);
+#ifdef WINRT
+      mTraceLog.Save(filename);
+#else
+      return false;
+#endif
     }
 
     //-------------------------------------------------------------------------
     bool RTPMediaEngine::internalSaveMediaTrace(String host, int port)
     {
-      return mTraceLog.Save(host, port);
+#ifdef WINRT
+      mTraceLog.Save(host, port);
+#else
+      return false;
+#endif
     }
 
     //-------------------------------------------------------------------------
@@ -1231,8 +1249,10 @@ namespace ortc
                                                unsigned char flags
                                                )
     {
+#ifdef WINRT
       mTraceLog.Add(phase, categoryGroupEnabled, name, id,
         numArgs, argNames, argTypes, argValues, flags);
+#endif
     }
 
     //-------------------------------------------------------------------------

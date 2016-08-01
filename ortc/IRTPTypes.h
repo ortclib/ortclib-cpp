@@ -150,9 +150,11 @@ namespace ortc
       CodecCapability() {};
       CodecCapability(const CodecCapability &source);
       CodecCapability(ElementPtr elem);
-
+#ifdef WINRT
       CodecCapability &operator=(const CodecCapability &op2) = delete;
-
+#else
+      CodecCapability &operator=(const CodecCapability &op2) = default;
+#endif
       ElementPtr createElement(const char *objectName = "codecCapability") const;
 
       ElementPtr toDebug() const;
@@ -483,8 +485,11 @@ namespace ortc
       CodecParameters(const CodecParameters &source);
       CodecParameters(ElementPtr elem);
 
+#ifdef WINRT
       CodecParameters &operator=(const CodecParameters &op2) = delete;
-
+#else
+        CodecParameters &operator=(const CodecParameters &op2) = default;
+#endif
       ElementPtr createElement(const char *objectName) const;
 
       ElementPtr toDebug() const;
