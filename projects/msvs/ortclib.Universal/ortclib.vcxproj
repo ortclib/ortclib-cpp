@@ -320,10 +320,10 @@ echo.
 </Command>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Outputs>$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.h;$(IntermediateOutputPath)ortc_ETWTracing.rc;$(IntermediateOutputPath)ortc_ETWTracing.res;$(IntermediateOutputPath)ortc_ETWTracing.dll;$(OutDir)ortc_ETWTracing.dll;$(OutDir)ortc_ETWTracing.man;$(OutDir)ortc_ETWTracing.wprp;%(Outputs)</Outputs>
+      <Outputs>$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.h;$(ProjectDir)..\..\..\ortc\internal\ortc_ETWStatsReport.h;$(IntermediateOutputPath)ortc_ETWTracing.rc;$(IntermediateOutputPath)ortc_ETWTracing.res;$(IntermediateOutputPath)ortc_ETWTracing.dll;$(IntermediateOutputPath)ortc_ETWStatsReport.rc;$(IntermediateOutputPath)ortc_ETWStatsReport.res;$(IntermediateOutputPath)ortc_ETWStatsReport.dll;$(OutDir)ortc_ETWTracing.dll;$(OutDir)ortc_ETWTracing.man;$(OutDir)ortc_ETWTracing.wprp;$(OutDir)ortc_ETWStatsReport.dll;$(OutDir)ortc_ETWStatsReport.man;$(OutDir)ortc_ETWStatsReport.wprp;%(Outputs)</Outputs>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Inputs>$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.man;$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.wprp;%(Inputs)</Inputs>
+      <Inputs>$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.man;$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.wprp;$(ProjectDir)..\..\..\ortc\internal\ortc_ETWStatsReport.man;$(ProjectDir)..\..\..\ortc\internal\ortc_ETWStatsReport.wprp;%(Inputs)</Inputs>
     </CustomBuildStep>
     <Lib>
       <AdditionalOptions>/IGNORE:4264 %(AdditionalOptions)</AdditionalOptions>
@@ -383,10 +383,10 @@ echo.
 </Command>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Outputs>$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.h;$(IntermediateOutputPath)ortc_ETWTracing.rc;$(IntermediateOutputPath)ortc_ETWTracing.res;$(IntermediateOutputPath)ortc_ETWTracing.dll;$(OutDir)ortc_ETWTracing.dll;$(OutDir)ortc_ETWTracing.man;$(OutDir)ortc_ETWTracing.wprp;%(Outputs)</Outputs>
+      <Outputs>$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.h;$(ProjectDir)..\..\..\ortc\internal\ortc_ETWStatsReport.h;$(IntermediateOutputPath)ortc_ETWTracing.rc;$(IntermediateOutputPath)ortc_ETWTracing.res;$(IntermediateOutputPath)ortc_ETWTracing.dll;$(IntermediateOutputPath)ortc_ETWStatsReport.rc;$(IntermediateOutputPath)ortc_ETWStatsReport.res;$(IntermediateOutputPath)ortc_ETWStatsReport.dll;$(OutDir)ortc_ETWTracing.dll;$(OutDir)ortc_ETWTracing.man;$(OutDir)ortc_ETWTracing.wprp;$(OutDir)ortc_ETWStatsReport.dll;$(OutDir)ortc_ETWStatsReport.man;$(OutDir)ortc_ETWStatsReport.wprp;%(Outputs)</Outputs>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Inputs>$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.man;$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.wprp;%(Inputs)</Inputs>
+      <Inputs>$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.man;$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.wprp;$(ProjectDir)..\..\..\ortc\internal\ortc_ETWStatsReport.man;$(ProjectDir)..\..\..\ortc\internal\ortc_ETWStatsReport.wprp;%(Inputs)</Inputs>
     </CustomBuildStep>
     <Lib>
       <AdditionalOptions>/IGNORE:4264 %(AdditionalOptions)</AdditionalOptions>
@@ -446,10 +446,10 @@ echo.
 </Command>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Outputs>$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.h;$(IntermediateOutputPath)ortc_ETWTracing.rc;$(IntermediateOutputPath)ortc_ETWTracing.res;$(IntermediateOutputPath)ortc_ETWTracing.dll;$(OutDir)ortc_ETWTracing.dll;$(OutDir)ortc_ETWTracing.man;$(OutDir)ortc_ETWTracing.wprp;%(Outputs)</Outputs>
+      <Outputs>$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.h;$(ProjectDir)..\..\..\ortc\internal\ortc_ETWStatsReport.h;$(IntermediateOutputPath)ortc_ETWTracing.rc;$(IntermediateOutputPath)ortc_ETWTracing.res;$(IntermediateOutputPath)ortc_ETWTracing.dll;$(IntermediateOutputPath)ortc_ETWStatsReport.rc;$(IntermediateOutputPath)ortc_ETWStatsReport.res;$(IntermediateOutputPath)ortc_ETWStatsReport.dll;$(OutDir)ortc_ETWTracing.dll;$(OutDir)ortc_ETWTracing.man;$(OutDir)ortc_ETWTracing.wprp;$(OutDir)ortc_ETWStatsReport.dll;$(OutDir)ortc_ETWStatsReport.man;$(OutDir)ortc_ETWStatsReport.wprp;%(Outputs)</Outputs>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Inputs>$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.man;$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.wprp;%(Inputs)</Inputs>
+      <Inputs>$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.man;$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.wprp;$(ProjectDir)..\..\..\ortc\internal\ortc_ETWStatsReport.man;$(ProjectDir)..\..\..\ortc\internal\ortc_ETWStatsReport.wprp;%(Inputs)</Inputs>
     </CustomBuildStep>
     <Lib>
       <AdditionalOptions>/IGNORE:4264 %(AdditionalOptions)</AdditionalOptions>
@@ -509,10 +509,10 @@ echo.
 </Command>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Outputs>$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.h;$(IntermediateOutputPath)ortc_ETWTracing.rc;$(IntermediateOutputPath)ortc_ETWTracing.res;$(IntermediateOutputPath)ortc_ETWTracing.dll;$(OutDir)ortc_ETWTracing.dll;$(OutDir)ortc_ETWTracing.man;$(OutDir)ortc_ETWTracing.wprp;%(Outputs)</Outputs>
+      <Outputs>$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.h;$(ProjectDir)..\..\..\ortc\internal\ortc_ETWStatsReport.h;$(IntermediateOutputPath)ortc_ETWTracing.rc;$(IntermediateOutputPath)ortc_ETWTracing.res;$(IntermediateOutputPath)ortc_ETWTracing.dll;$(IntermediateOutputPath)ortc_ETWStatsReport.rc;$(IntermediateOutputPath)ortc_ETWStatsReport.res;$(IntermediateOutputPath)ortc_ETWStatsReport.dll;$(OutDir)ortc_ETWTracing.dll;$(OutDir)ortc_ETWTracing.man;$(OutDir)ortc_ETWTracing.wprp;$(OutDir)ortc_ETWStatsReport.dll;$(OutDir)ortc_ETWStatsReport.man;$(OutDir)ortc_ETWStatsReport.wprp;%(Outputs)</Outputs>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Inputs>$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.man;$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.wprp;%(Inputs)</Inputs>
+      <Inputs>$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.man;$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.wprp;$(ProjectDir)..\..\..\ortc\internal\ortc_ETWStatsReport.man;$(ProjectDir)..\..\..\ortc\internal\ortc_ETWStatsReport.wprp;%(Inputs)</Inputs>
     </CustomBuildStep>
     <Lib>
       <AdditionalOptions>/IGNORE:4264 %(AdditionalOptions)</AdditionalOptions>
@@ -572,10 +572,10 @@ echo.
 </Command>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Outputs>$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.h;$(IntermediateOutputPath)ortc_ETWTracing.rc;$(IntermediateOutputPath)ortc_ETWTracing.res;$(IntermediateOutputPath)ortc_ETWTracing.dll;$(OutDir)ortc_ETWTracing.dll;$(OutDir)ortc_ETWTracing.man;$(OutDir)ortc_ETWTracing.wprp;%(Outputs)</Outputs>
+      <Outputs>$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.h;$(ProjectDir)..\..\..\ortc\internal\ortc_ETWStatsReport.h;$(IntermediateOutputPath)ortc_ETWTracing.rc;$(IntermediateOutputPath)ortc_ETWTracing.res;$(IntermediateOutputPath)ortc_ETWTracing.dll;$(IntermediateOutputPath)ortc_ETWStatsReport.rc;$(IntermediateOutputPath)ortc_ETWStatsReport.res;$(IntermediateOutputPath)ortc_ETWStatsReport.dll;$(OutDir)ortc_ETWTracing.dll;$(OutDir)ortc_ETWTracing.man;$(OutDir)ortc_ETWTracing.wprp;$(OutDir)ortc_ETWStatsReport.dll;$(OutDir)ortc_ETWStatsReport.man;$(OutDir)ortc_ETWStatsReport.wprp;%(Outputs)</Outputs>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Inputs>$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.man;$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.wprp;%(Inputs)</Inputs>
+      <Inputs>$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.man;$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.wprp;$(ProjectDir)..\..\..\ortc\internal\ortc_ETWStatsReport.man;$(ProjectDir)..\..\..\ortc\internal\ortc_ETWStatsReport.wprp;%(Inputs)</Inputs>
     </CustomBuildStep>
     <Lib>
       <AdditionalOptions>/IGNORE:4264 %(AdditionalOptions)</AdditionalOptions>
@@ -635,10 +635,10 @@ echo.
 </Command>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Outputs>$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.h;$(IntermediateOutputPath)ortc_ETWTracing.rc;$(IntermediateOutputPath)ortc_ETWTracing.res;$(IntermediateOutputPath)ortc_ETWTracing.dll;$(OutDir)ortc_ETWTracing.dll;$(OutDir)ortc_ETWTracing.man;$(OutDir)ortc_ETWTracing.wprp;%(Outputs)</Outputs>
+      <Outputs>$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.h;$(ProjectDir)..\..\..\ortc\internal\ortc_ETWStatsReport.h;$(IntermediateOutputPath)ortc_ETWTracing.rc;$(IntermediateOutputPath)ortc_ETWTracing.res;$(IntermediateOutputPath)ortc_ETWTracing.dll;$(IntermediateOutputPath)ortc_ETWStatsReport.rc;$(IntermediateOutputPath)ortc_ETWStatsReport.res;$(IntermediateOutputPath)ortc_ETWStatsReport.dll;$(OutDir)ortc_ETWTracing.dll;$(OutDir)ortc_ETWTracing.man;$(OutDir)ortc_ETWTracing.wprp;$(OutDir)ortc_ETWStatsReport.dll;$(OutDir)ortc_ETWStatsReport.man;$(OutDir)ortc_ETWStatsReport.wprp;%(Outputs)</Outputs>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Inputs>$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.man;$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.wprp;%(Inputs)</Inputs>
+      <Inputs>$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.man;$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.wprp;$(ProjectDir)..\..\..\ortc\internal\ortc_ETWStatsReport.man;$(ProjectDir)..\..\..\ortc\internal\ortc_ETWStatsReport.wprp;%(Inputs)</Inputs>
     </CustomBuildStep>
     <Lib>
       <AdditionalOptions>/IGNORE:4264 %(AdditionalOptions)</AdditionalOptions>
