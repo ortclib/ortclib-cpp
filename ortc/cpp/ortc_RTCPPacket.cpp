@@ -34,7 +34,7 @@
 #include <ortc/internal/ortc_RTPUtils.h>
 #include <ortc/internal/platform.h>
 
-#include <openpeer/services/IHelper.h>
+#include <ortc/services/IHelper.h>
 
 #include <zsLib/Stringize.h>
 #include <zsLib/Log.h>
@@ -57,10 +57,10 @@ namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_rtp_rtcp_packet) }
 
 namespace ortc
 {
-  ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper)
-//  ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHTTP, UseHTTP)
+  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHelper, UseServicesHelper)
+//  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHTTP, UseHTTP)
 //
-//  typedef openpeer::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
+//  typedef ortc::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
 
   namespace internal
   {

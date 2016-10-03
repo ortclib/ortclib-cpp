@@ -43,7 +43,7 @@
 #include <ortc/IRTPSender.h>
 #include <ortc/IRTPReceiver.h>
 
-#include <openpeer/services/IWakeDelegate.h>
+#include <ortc/services/IWakeDelegate.h>
 
 #include <queue>
 

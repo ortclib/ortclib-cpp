@@ -56,8 +56,8 @@
 #include <ortc/internal/ortc_SRTPTransport.h>
 #include <ortc/internal/ortc_SRTPSDESTransport.h>
 
-#include <openpeer/services/IHelper.h>
-#include <openpeer/services/ISettings.h>
+#include <ortc/services/IHelper.h>
+#include <ortc/services/ISettings.h>
 
 #include <zsLib/XML.h>
 
@@ -65,12 +65,12 @@ namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
 
 namespace ortc
 {
-  ZS_DECLARE_TYPEDEF_PTR(openpeer::services::ISettings, UseServicesSettings)
-  ZS_DECLARE_TYPEDEF_PTR(openpeer::services::ISettingsDelegate, UseServicesSettingsDelegate)
+  ZS_DECLARE_TYPEDEF_PTR(ortc::services::ISettings, UseServicesSettings)
+  ZS_DECLARE_TYPEDEF_PTR(ortc::services::ISettingsDelegate, UseServicesSettingsDelegate)
 
   namespace internal
   {
-    using openpeer::services::IHelper;
+    using ortc::services::IHelper;
 
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
@@ -197,7 +197,7 @@ namespace ortc
       applyDefaultsIfNoDelegatePresent();
 
       // check any required settings here:
-      //UseServicesSettings::verifySettingExists(OPENPEER_COMMON_SETTING_APPLICATION_NAME);
+      //UseServicesSettings::verifySettingExists(ORTC_COMMON_SETTING_APPLICATION_NAME);
 
       UseServicesSettings::verifyRequiredSettings();
     }

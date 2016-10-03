@@ -6,3 +6,7 @@ libs/build
 Generated Files/
 ortc/internal/ortc_ETWTracing.h
 ortc/internal/ortc_ETWStatsReport.h
+*.db
+*.opendb
+.vs/
+ipch/

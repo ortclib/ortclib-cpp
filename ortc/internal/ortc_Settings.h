@@ -34,7 +34,7 @@
 #include <ortc/ISettings.h>
 #include <ortc/internal/types.h>
 
-#include <openpeer/services/ISettings.h>
+#include <ortc/services/ISettings.h>
 
 namespace ortc
 {
@@ -62,7 +62,7 @@ namespace ortc
     #pragma mark
 
     class Settings : public ISettings,
-                     public openpeer::services::ISettingsDelegate,
+                     public ortc::services::ISettingsDelegate,
                      public ISettingsForORTC
     {
     protected:

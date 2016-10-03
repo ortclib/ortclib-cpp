@@ -37,12 +37,12 @@
 
 #include <ortc/internal/ortc_ICEGathererRouter.h>
 
-#include <openpeer/services/IBackOffTimer.h>
-#include <openpeer/services/IDNS.h>
-#include <openpeer/services/IWakeDelegate.h>
-#include <openpeer/services/ISTUNDiscovery.h>
-#include <openpeer/services/ITURNSocket.h>
-#include <openpeer/services/STUNPacket.h>
+#include <ortc/services/IBackOffTimer.h>
+#include <ortc/services/IDNS.h>
+#include <ortc/services/IWakeDelegate.h>
+#include <ortc/services/ISTUNDiscovery.h>
+#include <ortc/services/ITURNSocket.h>
+#include <ortc/services/STUNPacket.h>
 
 #include <zsLib/MessageQueueAssociator.h>
 #include <zsLib/Socket.h>
@@ -277,9 +277,9 @@ namespace ortc
       static PreferenceTypes toPreferenceType(const char *family);
 
       ZS_DECLARE_TYPEDEF_PTR(IICETransportForICEGatherer, UseICETransport)
-      ZS_DECLARE_TYPEDEF_PTR(openpeer::services::ISTUNDiscovery, UseSTUNDiscovery)
-      ZS_DECLARE_TYPEDEF_PTR(openpeer::services::ITURNSocket, UseTURNSocket)
-      ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IBackOffTimer, UseBackOffTimer)
+      ZS_DECLARE_TYPEDEF_PTR(ortc::services::ISTUNDiscovery, UseSTUNDiscovery)
+      ZS_DECLARE_TYPEDEF_PTR(ortc::services::ITURNSocket, UseTURNSocket)
+      ZS_DECLARE_TYPEDEF_PTR(ortc::services::IBackOffTimer, UseBackOffTimer)
       ZS_DECLARE_TYPEDEF_PTR(zsLib::Socket, Socket)
       ZS_DECLARE_TYPEDEF_PTR(IICETypes::Candidate, Candidate)
       ZS_DECLARE_TYPEDEF_PTR(IICETypes::CandidateList, CandidateList)

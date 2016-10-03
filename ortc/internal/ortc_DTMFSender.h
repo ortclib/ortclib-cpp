@@ -35,7 +35,7 @@
 
 #include <ortc/IDTMFSender.h>
 
-#include <openpeer/services/IWakeDelegate.h>
+#include <ortc/services/IWakeDelegate.h>
 
 #include <zsLib/MessageQueueAssociator.h>
 

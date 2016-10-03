@@ -40,7 +40,7 @@
 #include <ortc/IICETransport.h>
 #include <ortc/IStatsReport.h>
 
-#include <openpeer/services/IWakeDelegate.h>
+#include <ortc/services/IWakeDelegate.h>
 #include <zsLib/MessageQueueAssociator.h>
 #include <zsLib/Timer.h>
 

@@ -33,8 +33,8 @@
 
 #include <ortc/adapter/types.h>
 
-#include <openpeer/services/types.h>
-#include <openpeer/services/IFactory.h>
+#include <ortc/services/types.h>
+#include <ortc/services/IFactory.h>
 
 #include <zsLib/Log.h>
 #include <zsLib/MessageQueueAssociator.h>
@@ -52,13 +52,13 @@ namespace ortc
       using zsLib::AutoPUID;
       using zsLib::AutoRecursiveLock;
 
-      using openpeer::services::IFactory;
+      using ortc::services::IFactory;
 
-      using openpeer::services::SharedRecursiveLock;
+      using ortc::services::SharedRecursiveLock;
 
       using zsLib::IPromiseSettledDelegate;
 
-      ZS_DECLARE_USING_PROXY(openpeer::services, IWakeDelegate)
+      ZS_DECLARE_USING_PROXY(ortc::services, IWakeDelegate)
 
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------

@@ -34,7 +34,7 @@
 
 #include <ortc/internal/ortc_RTPTypes.h>
 
-#include <openpeer/services/IHelper.h>
+#include <ortc/services/IHelper.h>
 
 //
 //#include <zsLib/Log.h>
@@ -49,7 +49,7 @@ namespace ortc
 {
   namespace adapter
   {
-    ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper);
+    ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHelper, UseServicesHelper);
 
     ZS_DECLARE_TYPEDEF_PTR(ortc::internal::RTPTypesHelper, UseRTPTypesHelper);
 

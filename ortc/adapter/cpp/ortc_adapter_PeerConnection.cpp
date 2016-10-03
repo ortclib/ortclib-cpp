@@ -42,8 +42,8 @@
 #include <ortc/adapter/IMediaStream.h>
 #include <ortc/adapter/IHelper.h>
 
-#include <openpeer/services/IHelper.h>
-#include <openpeer/services/IHTTP.h>
+#include <ortc/services/IHelper.h>
+#include <ortc/services/IHTTP.h>
 
 #include <zsLib/Log.h>
 #include <zsLib/XML.h>
@@ -58,8 +58,8 @@ namespace ortc
 {
   namespace adapter
   {
-    ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper);
-    ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHTTP, UseHTTP);
+    ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHelper, UseServicesHelper);
+    ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHTTP, UseHTTP);
     ZS_DECLARE_TYPEDEF_PTR(adapter::IHelper, UseAdapterHelper);
     ZS_DECLARE_TYPEDEF_PTR(ortc::internal::RTPTypesHelper, UseRTPTypesHelper);
 

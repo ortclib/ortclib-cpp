@@ -33,7 +33,7 @@
 #include <ortc/adapter/adapter.h>
 #include <ortc/adapter/internal/ortc_adapter_adapter.h>
 
-//#include <openpeer/services/IHelper.h>
+//#include <ortc/services/IHelper.h>
 //
 //#include <zsLib/Log.h>
 //#include <zsLib/Numeric.h>

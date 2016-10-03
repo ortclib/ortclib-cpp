@@ -39,7 +39,7 @@
 #include <ortc/IRTPTypes.h>
 #include <ortc/IMediaStreamTrack.h>
 
-#include <openpeer/services/IWakeDelegate.h>
+#include <ortc/services/IWakeDelegate.h>
 #include <zsLib/MessageQueueAssociator.h>
 #include <zsLib/Timer.h>
 #include <zsLib/Event.h>

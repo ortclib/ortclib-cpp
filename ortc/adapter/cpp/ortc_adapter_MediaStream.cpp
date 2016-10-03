@@ -36,7 +36,7 @@
 
 #include <ortc/internal/ortc_ORTC.h>
 
-#include <openpeer/services/IHelper.h>
+#include <ortc/services/IHelper.h>
 
 #include <zsLib/Log.h>
 #include <zsLib/XML.h>
@@ -49,7 +49,7 @@ namespace ortc
   {
     namespace internal
     {
-      ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper);
+      ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHelper, UseServicesHelper);
       ZS_DECLARE_TYPEDEF_PTR(ortc::internal::IORTCForInternal, UseORTC);
 
       ZS_DECLARE_USING_PTR(ortc::internal, MediaStreamTrack);

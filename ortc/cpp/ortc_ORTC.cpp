@@ -33,9 +33,9 @@
 #include <ortc/internal/ortc_Tracing.h>
 #include <ortc/internal/ortc_RTPMediaEngine.h>
 
-#include <openpeer/services/IHelper.h>
-#include <openpeer/services/ILogger.h>
-#include <openpeer/services/IMessageQueueManager.h>
+#include <ortc/services/IHelper.h>
+#include <ortc/services/ILogger.h>
+#include <ortc/services/IMessageQueueManager.h>
 
 #include <zsLib/Log.h>
 #include <zsLib/XML.h>
@@ -44,12 +44,12 @@ namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
 
 namespace ortc
 {
-  ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper);
-  ZS_DECLARE_TYPEDEF_PTR(openpeer::services::ILogger, UseServicesLogger);
+  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHelper, UseServicesHelper);
+  ZS_DECLARE_TYPEDEF_PTR(ortc::services::ILogger, UseServicesLogger);
 
   namespace internal
   {
-    ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IMessageQueueManager, UseMessageQueueManager)
+    ZS_DECLARE_TYPEDEF_PTR(ortc::services::IMessageQueueManager, UseMessageQueueManager)
 
     void initSubsystems();
 

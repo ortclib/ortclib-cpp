@@ -32,7 +32,7 @@
 
 #include <ortc/internal/ortc_Helper.h>
 
-#include <openpeer/services/IHelper.h>
+#include <ortc/services/IHelper.h>
 
 #include <zsLib/Log.h>
 #include <zsLib/Numeric.h>
@@ -52,7 +52,7 @@ namespace ortc
 {
   namespace internal
   {
-    typedef openpeer::services::IHelper UseServicesHelper;
+    typedef ortc::services::IHelper UseServicesHelper;
 
     using zsLib::Log;
     using zsLib::Numeric;

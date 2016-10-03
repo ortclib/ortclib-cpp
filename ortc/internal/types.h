@@ -32,8 +32,8 @@
 #pragma once
 
 #include <ortc/types.h>
-#include <openpeer/services/types.h>
-#include <openpeer/services/IFactory.h>
+#include <ortc/services/types.h>
+#include <ortc/services/IFactory.h>
 
 #include <zsLib/WeightedMovingAverage.h>
 
@@ -76,24 +76,24 @@ namespace ortc
 
     ZS_DECLARE_TYPEDEF_PTR(zsLib::AutoRecursiveLock, AutoRecursiveLock)
 
-    using openpeer::services::SharedRecursiveLock;
+    using ortc::services::SharedRecursiveLock;
 
-    ZS_DECLARE_USING_PTR(openpeer::services, IDNS)
-    ZS_DECLARE_USING_PTR(openpeer::services, IDNSQuery)
-    ZS_DECLARE_USING_PTR(openpeer::services, IBackOffTimer)
-    ZS_DECLARE_USING_PTR(openpeer::services, IBackOffTimerPattern)
-    ZS_DECLARE_USING_PTR(openpeer::services, STUNPacket)
-    ZS_DECLARE_USING_PTR(openpeer::services, ISTUNRequester)
+    ZS_DECLARE_USING_PTR(ortc::services, IDNS)
+    ZS_DECLARE_USING_PTR(ortc::services, IDNSQuery)
+    ZS_DECLARE_USING_PTR(ortc::services, IBackOffTimer)
+    ZS_DECLARE_USING_PTR(ortc::services, IBackOffTimerPattern)
+    ZS_DECLARE_USING_PTR(ortc::services, STUNPacket)
+    ZS_DECLARE_USING_PTR(ortc::services, ISTUNRequester)
     ZS_DECLARE_USING_PTR(zsLib, IPromiseSettledDelegate)
 
-    ZS_DECLARE_USING_PROXY(openpeer::services, IBackOffTimerDelegate)
-    ZS_DECLARE_USING_PROXY(openpeer::services, IDNSDelegate)
-    ZS_DECLARE_USING_PROXY(openpeer::services, IWakeDelegate)
-    ZS_DECLARE_USING_PROXY(openpeer::services, ISTUNDiscoveryDelegate)
-    ZS_DECLARE_USING_PROXY(openpeer::services, ITURNSocketDelegate)
+    ZS_DECLARE_USING_PROXY(ortc::services, IBackOffTimerDelegate)
+    ZS_DECLARE_USING_PROXY(ortc::services, IDNSDelegate)
+    ZS_DECLARE_USING_PROXY(ortc::services, IWakeDelegate)
+    ZS_DECLARE_USING_PROXY(ortc::services, ISTUNDiscoveryDelegate)
+    ZS_DECLARE_USING_PROXY(ortc::services, ITURNSocketDelegate)
     ZS_DECLARE_USING_PROXY(zsLib, IPromiseDelegate)
 
-    using openpeer::services::IFactory;
+    using ortc::services::IFactory;
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------

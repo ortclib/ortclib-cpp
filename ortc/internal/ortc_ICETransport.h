@@ -38,9 +38,9 @@
 #include <ortc/IICETransport.h>
 #include <ortc/IICEGatherer.h>
 
-#include <openpeer/services/ISTUNRequester.h>
-#include <openpeer/services/IWakeDelegate.h>
-#include <openpeer/services/STUNPacket.h>
+#include <ortc/services/ISTUNRequester.h>
+#include <ortc/services/IWakeDelegate.h>
+#include <ortc/services/STUNPacket.h>
 
 #include <zsLib/Timer.h>
 
@@ -263,7 +263,7 @@ namespace ortc
                          public zsLib::ITimerDelegate,
                          public zsLib::IPromiseSettledDelegate,
                          public IICEGathererDelegate,
-                         public openpeer::services::ISTUNRequesterDelegate
+                         public ortc::services::ISTUNRequesterDelegate
     {
     protected:
       struct make_private {};
@@ -281,7 +281,7 @@ namespace ortc
       ZS_DECLARE_STRUCT_PTR(Route)
       ZS_DECLARE_STRUCT_PTR(ReasonNoMoreRelationship)
 
-      ZS_DECLARE_TYPEDEF_PTR(openpeer::services::ISTUNRequester, ISTUNRequester)
+      ZS_DECLARE_TYPEDEF_PTR(ortc::services::ISTUNRequester, ISTUNRequester)
       ZS_DECLARE_TYPEDEF_PTR(IICEGathererForICETransport, UseICEGatherer)
       ZS_DECLARE_TYPEDEF_PTR(IICETransportControllerForICETransport, UseICETransportController)
       ZS_DECLARE_TYPEDEF_PTR(IICETypes::Candidate, Candidate)
@@ -934,7 +934,7 @@ ZS_DECLARE_PROXY_BEGIN(ortc::internal::IICETransportAsyncDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IStatsProvider::PromiseWithStatsReportPtr, PromiseWithStatsReportPtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IICETypes::CandidatePtr, CandidatePtr)
 ZS_DECLARE_PROXY_TYPEDEF(zsLib::IPAddress, IPAddress)
-ZS_DECLARE_PROXY_TYPEDEF(openpeer::services::STUNPacketPtr, STUNPacketPtr)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::services::STUNPacketPtr, STUNPacketPtr)
 ZS_DECLARE_PROXY_METHOD_1(onResolveStatsPromise, PromiseWithStatsReportPtr)
 ZS_DECLARE_PROXY_METHOD_3(onNotifyPacketRetried, CandidatePtr, IPAddress, STUNPacketPtr)
 ZS_DECLARE_PROXY_METHOD_0(onWarmRoutesChanged)

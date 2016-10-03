@@ -36,7 +36,7 @@
 
 #include <ortc/internal/ortc_Helper.h>
 
-#include <openpeer/services/IHelper.h>
+#include <ortc/services/IHelper.h>
 
 #include <zsLib/Log.h>
 #include <zsLib/Numeric.h>
@@ -60,11 +60,11 @@ namespace ortc
     using zsLib::Numeric;
 
     ZS_DECLARE_TYPEDEF_PTR(ortc::internal::Helper, UseHelper);
-    ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper);
+    ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHelper, UseServicesHelper);
 
     ZS_DECLARE_TYPEDEF_PTR(ortc::adapter::IHelper, UseAdapterHelper);
 
-    typedef openpeer::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
+    typedef ortc::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
 
     namespace internal
     {

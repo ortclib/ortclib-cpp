@@ -41,7 +41,7 @@
 #include <ortc/IMediaStreamTrack.h>
 #include <ortc/IStatsProvider.h>
 
-#include <openpeer/services/IWakeDelegate.h>
+#include <ortc/services/IWakeDelegate.h>
 #include <zsLib/MessageQueueAssociator.h>
 #include <zsLib/Timer.h>
 

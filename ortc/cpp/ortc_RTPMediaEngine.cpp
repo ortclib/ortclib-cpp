@@ -44,9 +44,9 @@
 
 #include <ortc/IStatsReport.h>
 
-#include <openpeer/services/ISettings.h>
-#include <openpeer/services/IHelper.h>
-#include <openpeer/services/IHTTP.h>
+#include <ortc/services/ISettings.h>
+#include <ortc/services/IHelper.h>
+#include <ortc/services/IHTTP.h>
 
 #include <zsLib/Singleton.h>
 #include <zsLib/Log.h>
@@ -66,8 +66,8 @@
 #include <webrtc/voice_engine/include/voe_network.h>
 #include <webrtc/voice_engine/include/voe_hardware.h>
 #include <webrtc/system_wrappers/include/cpu_info.h>
-#include <webrtc/webrtc/base/scoped_ptr.h>
-#include <webrtc/webrtc/voice_engine/include/voe_audio_processing.h>
+#include <webrtc/base/scoped_ptr.h>
+#include <webrtc/voice_engine/include/voe_audio_processing.h>
 #include <webrtc/modules/video_capture/video_capture_factory.h>
 #ifdef WINRT
 #include <third_party/h264_winrt/h264_winrt_factory.h>
@@ -83,11 +83,11 @@ namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_rtpmediaengine) }
 
 namespace ortc
 {
-  ZS_DECLARE_TYPEDEF_PTR(openpeer::services::ISettings, UseSettings);
-  ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper);
-  ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHTTP, UseHTTP);
+  ZS_DECLARE_TYPEDEF_PTR(ortc::services::ISettings, UseSettings);
+  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHelper, UseServicesHelper);
+  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHTTP, UseHTTP);
 
-  typedef openpeer::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
+  typedef ortc::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
 
   namespace internal
   {
@@ -202,7 +202,7 @@ namespace ortc
         static SingletonLazySharedPtr<RTPMediaEngineSingleton> singleton(create());
         RTPMediaEngineSingletonPtr result = singleton.singleton();
 
-        static zsLib::SingletonManager::Register registerSingleton("openpeer::ortc::RTPMediaEngineSingleton", result);
+        static zsLib::SingletonManager::Register registerSingleton("ortc::ortc::RTPMediaEngineSingleton", result);
 
         if (!result) {
           ZS_LOG_WARNING(Detail, slog("singleton gone"))
@@ -3583,7 +3583,7 @@ namespace ortc
         }
       }
       if (config.rtp.ssrc == 0) {
-        uint32_t ssrc = SafeInt<uint32>(openpeer::services::IHelper::random(1, 0xFFFFFFFF));
+        uint32_t ssrc = SafeInt<uint32>(ortc::services::IHelper::random(1, 0xFFFFFFFF));
         webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetLocalSSRC(mChannel, ssrc);
         config.rtp.ssrc = ssrc;
       }
@@ -4708,7 +4708,7 @@ namespace ortc
             }
           }
           if (ssrc == 0)
-            ssrc = SafeInt<uint32>(openpeer::services::IHelper::random(1, 0xFFFFFFFF));
+            ssrc = SafeInt<uint32>(ortc::services::IHelper::random(1, 0xFFFFFFFF));
           config.rtp.ssrcs.push_back(ssrc);
           if (encodingParamIter->mRTX.hasValue()) {
             IRTPTypes::RTXParameters rtx = encodingParamIter->mRTX;
@@ -4730,7 +4730,7 @@ namespace ortc
         }
       }
       if (encoderConfig.streams.size() == 0) {
-        config.rtp.ssrcs.push_back(SafeInt<uint32>(openpeer::services::IHelper::random(1, 0xFFFFFFFF)));
+        config.rtp.ssrcs.push_back(SafeInt<uint32>(ortc::services::IHelper::random(1, 0xFFFFFFFF)));
         webrtc::VideoStream stream;
         stream.width = sourceWidth;
         stream.height = sourceHeight;

@@ -34,7 +34,7 @@
 #include <zsLib/Proxy.h>
 #include <zsLib/IPAddress.h>
 #include <zsLib/Promise.h>
-#include <openpeer/services/types.h>
+#include <ortc/services/types.h>
 #include <zsLib/String.h>
 
 namespace ortc
@@ -92,10 +92,10 @@ namespace ortc
     static ErrorAnyPtr create(WORD errorCode, const char *reason, const char *name = NULL) { return make_shared<ErrorAny>(errorCode, reason, name); }
   };
 
-  using openpeer::services::SharedRecursiveLock;
-  using openpeer::services::LockedValue;
+  using ortc::services::SharedRecursiveLock;
+  using ortc::services::LockedValue;
 
-  ZS_DECLARE_USING_PTR(openpeer::services, SecureByteBlock)
+  ZS_DECLARE_USING_PTR(ortc::services, SecureByteBlock)
 
   namespace JSON = zsLib::JSON;
   using JSON::Element;

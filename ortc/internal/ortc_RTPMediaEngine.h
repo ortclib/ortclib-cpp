@@ -41,7 +41,7 @@
 #include <ortc/IMediaStreamTrack.h>
 #include <ortc/IStatsProvider.h>
 
-#include <openpeer/services/IWakeDelegate.h>
+#include <ortc/services/IWakeDelegate.h>
 #include <zsLib/MessageQueueAssociator.h>
 #include <zsLib/Timer.h>
 
@@ -2034,7 +2034,7 @@ ZS_DECLARE_PROXY_METHOD_1(onSetupDevice, SetupDevicePtr)
 ZS_DECLARE_PROXY_END()
 
 ZS_DECLARE_PROXY_BEGIN(ortc::internal::IRTPMediaEngineHandlePacketAsyncDelegate)
-ZS_DECLARE_PROXY_TYPEDEF(openpeer::services::SecureByteBlockPtr, SecureByteBlockPtr)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::services::SecureByteBlockPtr, SecureByteBlockPtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::IRTPMediaEngineHandlePacketAsyncDelegate::VideoFramePtr, VideoFramePtr)
 ZS_DECLARE_PROXY_METHOD_2(onHandleRTPPacket, DWORD, SecureByteBlockPtr)
 ZS_DECLARE_PROXY_METHOD_1(onHandleRTCPPacket, SecureByteBlockPtr)

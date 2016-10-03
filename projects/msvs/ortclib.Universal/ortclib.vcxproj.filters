@@ -1,0 +1,446 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="ortc">
+      <UniqueIdentifier>{ae57abe9-58f8-401a-ad6e-2241795507a7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ortc\adapter">
+      <UniqueIdentifier>{2e774ba6-44fc-4020-9a26-0f96e3398e0f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ortc\cpp">
+      <UniqueIdentifier>{544c7c08-9825-4f8e-b96d-ccf897094482}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ortc\internal">
+      <UniqueIdentifier>{9fab85cd-8b23-45ce-b594-984fbe916930}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ortc\adapter\cpp">
+      <UniqueIdentifier>{4f00dd85-55d1-409f-89ad-f7e96d2be2a9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ortc\adapter\internal">
+      <UniqueIdentifier>{a46272cc-d4bc-45f1-9353-82cc226e179e}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\ortc\IConstraints.h">
+      <Filter>ortc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\IDataChannel.h">
+      <Filter>ortc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\IDataChannelTypes.h">
+      <Filter>ortc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\IDataTransport.h">
+      <Filter>ortc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\IDTLSTransport.h">
+      <Filter>ortc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\IDTMFSender.h">
+      <Filter>ortc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\IHelper.h">
+      <Filter>ortc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\IICEGatherer.h">
+      <Filter>ortc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\IICETransport.h">
+      <Filter>ortc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\IICETransportController.h">
+      <Filter>ortc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\IICETypes.h">
+      <Filter>ortc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\IIdentity.h">
+      <Filter>ortc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\IMediaDevices.h">
+      <Filter>ortc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\IMediaStreamTrack.h">
+      <Filter>ortc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\IORTC.h">
+      <Filter>ortc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\IRTPListener.h">
+      <Filter>ortc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\IRTPReceiver.h">
+      <Filter>ortc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\IRTPSender.h">
+      <Filter>ortc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\IRTPTypes.h">
+      <Filter>ortc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\ISCTPTransport.h">
+      <Filter>ortc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\ISettings.h">
+      <Filter>ortc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\ISRTPSDESTransport.h">
+      <Filter>ortc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\IStatsProvider.h">
+      <Filter>ortc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\IStatsReport.h">
+      <Filter>ortc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\ortc.h">
+      <Filter>ortc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\types.h">
+      <Filter>ortc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\ICapabilities.h">
+      <Filter>ortc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\ICertificate.h">
+      <Filter>ortc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_Certificate.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_DataChannel.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_DTLSTransport.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_DTMFSender.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_Helper.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_ICEGatherer.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_ICEGathererRouter.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_ICETransport.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_ICETransportController.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_Identity.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_ISecureTransport.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_ISRTPTransport.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_MediaDevices.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_MediaStreamTrack.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_ORTC.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_RTCPPacket.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_RTPListener.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_RTPMediaEngine.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_RTPPacket.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_RTPReceiver.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_RTPReceiverChannel.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_RTPReceiverChannelAudio.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_RTPReceiverChannelMediaBase.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_RTPReceiverChannelVideo.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_RTPSender.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_RTPSenderChannel.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_RTPSenderChannelAudio.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_RTPSenderChannelMediaBase.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_RTPSenderChannelVideo.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_RTPTypes.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_RTPUtils.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_SCTPTransport.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_SCTPTransportListener.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_Settings.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_SRTPSDESTransport.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_SRTPTransport.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_StatsReport.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_Tracing.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\platform.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\types.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ifaddrs-android.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\adapter\IMediaStream.h">
+      <Filter>ortc\adapter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\adapter\IPeerConnection.h">
+      <Filter>ortc\adapter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\adapter\ISessionDescription.h">
+      <Filter>ortc\adapter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\adapter\types.h">
+      <Filter>ortc\adapter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\adapter\adapter.h">
+      <Filter>ortc\adapter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\adapter\IHelper.h">
+      <Filter>ortc\adapter</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\adapter\internal\ortc_adapter_Helper.h">
+      <Filter>ortc\adapter\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\adapter\internal\ortc_adapter_MediaStream.h">
+      <Filter>ortc\adapter\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\adapter\internal\ortc_adapter_PeerConnection.h">
+      <Filter>ortc\adapter\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\adapter\internal\ortc_adapter_SDPParser.h">
+      <Filter>ortc\adapter\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\adapter\internal\ortc_adapter_SessionDescription.h">
+      <Filter>ortc\adapter\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\adapter\internal\types.h">
+      <Filter>ortc\adapter\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\adapter\internal\ortc_adapter_adapter.h">
+      <Filter>ortc\adapter\internal</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\ortc\internal\ortc_ETWStatsReport.man">
+      <Filter>ortc\internal</Filter>
+    </None>
+    <None Include="..\..\..\ortc\internal\ortc_ETWStatsReport.wprp">
+      <Filter>ortc\internal</Filter>
+    </None>
+    <None Include="..\..\..\ortc\internal\ortc_ETWTracing.man">
+      <Filter>ortc\internal</Filter>
+    </None>
+    <None Include="..\..\..\ortc\internal\ortc_ETWTracing.wprp">
+      <Filter>ortc\internal</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\ortc\cpp\ortc.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_Capabilities.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_Certificate.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_Constraints.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_DataChannel.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_DTLSTransport.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_DTMFSender.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_Helper.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_ICEGatherer.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_ICEGathererRouter.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_ICETransport.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_ICETransportController.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_ICETypes.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_Identity.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_ISecureTransport.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_MediaDevices.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_MediaStreamTrack.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_ORTC.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_RTCPPacket.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPListener.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPMediaEngine.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPPacket.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPReceiver.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPReceiverChannel.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPReceiverChannelAudio.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPReceiverChannelMediaBase.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPReceiverChannelVideo.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPSender.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPSenderChannel.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPSenderChannelAudio.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPSenderChannelMediaBase.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPSenderChannelVideo.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPTypes.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPUtils.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_SCTPTransport.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_SCTPTransportListener.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_Settings.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_SRTPSDESTransport.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_SRTPTransport.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_StatsReport.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_webrtc.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\cpp\ifaddrs-android.cc">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\adapter\cpp\ortc_adapter_PeerConnection.cpp">
+      <Filter>ortc\adapter\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\adapter\cpp\ortc_adapter_SDPParser.cpp">
+      <Filter>ortc\adapter\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\adapter\cpp\ortc_adapter_SDPParser_DescriptionToSDP.cpp">
+      <Filter>ortc\adapter\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\adapter\cpp\ortc_adapter_SDPParser_GenerateSDP.cpp">
+      <Filter>ortc\adapter\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\adapter\cpp\ortc_adapter_SDPParser_ParseSDP.cpp">
+      <Filter>ortc\adapter\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\adapter\cpp\ortc_adapter_SDPParser_SDPToDescription.cpp">
+      <Filter>ortc\adapter\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\adapter\cpp\ortc_adapter_SessionDescription.cpp">
+      <Filter>ortc\adapter\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\adapter\cpp\ortc_adapter_adapter.cpp">
+      <Filter>ortc\adapter\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\adapter\cpp\ortc_adapter_Helper.cpp">
+      <Filter>ortc\adapter\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\adapter\cpp\ortc_adapter_MediaStream.cpp">
+      <Filter>ortc\adapter\cpp</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
