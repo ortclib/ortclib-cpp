@@ -38,7 +38,7 @@
 #include <ortc/internal/ortc_ICETransport.h>
 #include <ortc/internal/ortc_ISecureTransport.h>
 
-#include <openpeer/services/IHelper.h>
+#include <ortc/services/IHelper.h>
 
 #include <zsLib/XML.h>
 
@@ -58,7 +58,7 @@ using zsLib::IPromiseSettledDelegate;
 using namespace zsLib::XML;
 
 ZS_DECLARE_TYPEDEF_PTR(ortc::ISettings, UseSettings)
-ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper)
+ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHelper, UseServicesHelper)
 
 namespace ortc
 {
@@ -86,7 +86,7 @@ namespace ortc
 }
 
 ZS_DECLARE_PROXY_BEGIN(ortc::test::dtls::IFakeICETransportAsyncDelegate)
-ZS_DECLARE_PROXY_TYPEDEF(openpeer::services::SecureByteBlockPtr, SecureByteBlockPtr)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::services::SecureByteBlockPtr, SecureByteBlockPtr)
 ZS_DECLARE_PROXY_METHOD_1(onPacketFromLinkedFakedTransport, SecureByteBlockPtr)
 ZS_DECLARE_PROXY_END()
 

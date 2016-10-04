@@ -41,7 +41,7 @@
 #include <ortc/internal/ortc_RTPSenderChannel.h>
 #include <ortc/internal/ortc_MediaStreamTrack.h>
 
-#include <openpeer/services/IHelper.h>
+#include <ortc/services/IHelper.h>
 
 #include <zsLib/Promise.h>
 #include <zsLib/Event.h>

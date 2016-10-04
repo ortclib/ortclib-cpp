@@ -35,7 +35,7 @@
 #include <zsLib/types.h>
 #include <zsLib/helpers.h>
 #include <zsLib/Log.h>
-#include <openpeer/services/ILogger.h>
+#include <ortc/services/ILogger.h>
 
 #include <iostream>
 
@@ -51,7 +51,7 @@ debugostream &getDebugCout()
 #endif //_WIN32
 
 
-typedef openpeer::services::ILogger ILogger;
+typedef ortc::services::ILogger ILogger;
 
 void doSetup();
 void doTestRTPChannel();
@@ -97,8 +97,8 @@ namespace Testing
     TESTING_STDOUT() << "INSTALLING LOGGER...\n\n";
     ILogger::setLogLevel(zsLib::Log::Trace);
     ILogger::setLogLevel("zsLib", zsLib::Log::Trace);
-    ILogger::setLogLevel("openpeer_services", zsLib::Log::Trace);
-    ILogger::setLogLevel("openpeer_services_http", zsLib::Log::Trace);
+    ILogger::setLogLevel("ortc_services", zsLib::Log::Trace);
+    ILogger::setLogLevel("ortc_services_http", zsLib::Log::Trace);
     ILogger::setLogLevel("ortclib", zsLib::Log::Insane);
 
     if (ORTC_TEST_USE_DEBUGGER_LOGGING) {
@@ -149,6 +149,34 @@ namespace Testing
     TESTING_STDOUT() << "REMOVED LOGGER...\n\n";
   }
   
+  class SetupInitializer
+  {
+  public:
+    SetupInitializer()
+    {
+      srand(static_cast<signed int>(time(NULL)));
+    }
+
+    ~SetupInitializer()
+    {
+      output();
+    }
+
+  private:
+    zsLib::SingletonManager::Initializer mInit;
+  };
+
+  static SetupInitializer &setupInitializer()
+  {
+    static SetupInitializer init;
+    return init;
+  }
+
+  void setup()
+  {
+    setupInitializer();
+  }
+
   void output()
   {
     TESTING_STDOUT() << "PASSED:       [" << Testing::getGlobalPassedVar() << "]\n";
@@ -163,6 +191,7 @@ namespace Testing
 
     TESTING_INSTALL_LOGGER()
 
+    setup();
     doSetup();
 
     TESTING_RUN_TEST_FUNC_0(doTestRTPChannel)

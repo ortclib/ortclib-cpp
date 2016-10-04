@@ -40,7 +40,7 @@
 #include <ortc/internal/ortc_RTPSenderChannelVideo.h>
 #include <ortc/internal/ortc_MediaStreamTrack.h>
 
-#include <openpeer/services/IHelper.h>
+#include <ortc/services/IHelper.h>
 
 #include <zsLib/Timer.h>
 #include <zsLib/Log.h>

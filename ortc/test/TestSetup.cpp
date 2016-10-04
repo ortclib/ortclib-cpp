@@ -42,8 +42,8 @@
 #include <ortc/internal/platform.h>
 
 
-#include <openpeer/services/IHelper.h>
-#include <openpeer/services/IMessageQueueManager.h>
+#include <ortc/services/IHelper.h>
+#include <ortc/services/IMessageQueueManager.h>
 
 #include <zsLib/XML.h>
 
@@ -87,10 +87,10 @@ using namespace zsLib::XML;
 
 #define ORTC_TEST_QUEUE_FOR_DELEGATE "org.ortc.test.delegateQueue"
 
-ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper)
+ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHelper, UseServicesHelper)
 ZS_DECLARE_TYPEDEF_PTR(ortc::ISettings, UseSettings)
 ZS_DECLARE_TYPEDEF_PTR(ortc::internal::IORTCForInternal, UseORTC)
-ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IMessageQueueManager, UseMessageQueueManager)
+ZS_DECLARE_TYPEDEF_PTR(ortc::services::IMessageQueueManager, UseMessageQueueManager)
 
 namespace ortc
 {

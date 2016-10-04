@@ -37,7 +37,7 @@
 #include <ortc/internal/ortc_RTCPPacket.h>
 #include <ortc/internal/ortc_Helper.h>
 
-#include <openpeer/services/IHelper.h>
+#include <ortc/services/IHelper.h>
 
 #include <zsLib/XML.h>
 
@@ -60,10 +60,10 @@ using zsLib::AutoPUID;
 using zsLib::AutoRecursiveLock;
 //using namespace zsLib::XML;
 //
-//ZS_DECLARE_USING_PTR(openpeer::services, SecureByteBlock)
+//ZS_DECLARE_USING_PTR(ortc::services, SecureByteBlock)
 //
 //ZS_DECLARE_TYPEDEF_PTR(ortc::ISettings, UseSettings)
-ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper)
+ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHelper, UseServicesHelper)
 ZS_DECLARE_TYPEDEF_PTR(ortc::internal::Helper, UseHelper)
 
 

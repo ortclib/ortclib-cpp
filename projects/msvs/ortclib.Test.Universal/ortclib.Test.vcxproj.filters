@@ -1,0 +1,143 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Common">
+      <UniqueIdentifier>2e14baba-6694-4d3e-a6be-ce7d1f569f30</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Assets">
+      <UniqueIdentifier>8d24b6aa-5229-4fee-9071-cea1f6059a82</UniqueIdentifier>
+      <Extensions>bmp;fbx;gif;jpg;jpeg;tga;tiff;tif;png</Extensions>
+    </Filter>
+    <Filter Include="ortc">
+      <UniqueIdentifier>{ae41313e-c932-4abd-bf5f-658f75d9a595}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ortc\test">
+      <UniqueIdentifier>{aa05897e-b87d-4010-9fde-c9494c66e93d}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ApplicationDefinition Include="UnitTestApp.xaml" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="UnitTestApp.xaml.cpp" />
+    <ClCompile Include="UnitTest.cpp" />
+    <ClCompile Include="pch.cpp" />
+    <ClCompile Include="..\..\..\ortc\test\main.cpp">
+      <Filter>ortc\test</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\test\TestDTLS.cpp">
+      <Filter>ortc\test</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\test\TestICEGatherer.cpp">
+      <Filter>ortc\test</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\test\TestICETransport.cpp">
+      <Filter>ortc\test</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\test\testing.cpp">
+      <Filter>ortc\test</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\test\TestMediaStreamTrack.cpp">
+      <Filter>ortc\test</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\test\TestRTCPPacket.cpp">
+      <Filter>ortc\test</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\test\TestRTPChannel.cpp">
+      <Filter>ortc\test</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\test\TestRTPChannelAudio.cpp">
+      <Filter>ortc\test</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\test\TestRTPChannelVideo.cpp">
+      <Filter>ortc\test</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\test\TestRTPListener.cpp">
+      <Filter>ortc\test</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\test\TestRTPPacket.cpp">
+      <Filter>ortc\test</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\test\TestRTPReceiver.cpp">
+      <Filter>ortc\test</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\test\TestRTPSender.cpp">
+      <Filter>ortc\test</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\test\TestSCTP.cpp">
+      <Filter>ortc\test</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\test\TestSetup.cpp">
+      <Filter>ortc\test</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\test\TestSRTP.cpp">
+      <Filter>ortc\test</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="pch.h" />
+    <ClInclude Include="UnitTestApp.xaml.h" />
+    <ClInclude Include="..\..\..\ortc\test\config.h">
+      <Filter>ortc\test</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\test\testing.h">
+      <Filter>ortc\test</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\test\TestMediaStreamTrack.h">
+      <Filter>ortc\test</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\test\TestRTPChannel.h">
+      <Filter>ortc\test</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\test\TestRTPChannelAudio.h">
+      <Filter>ortc\test</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\test\TestRTPChannelVideo.h">
+      <Filter>ortc\test</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\test\TestRTPListener.h">
+      <Filter>ortc\test</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\test\TestRTPReceiver.h">
+      <Filter>ortc\test</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\test\TestRTPSender.h">
+      <Filter>ortc\test</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\test\TestSCTP.h">
+      <Filter>ortc\test</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="UnitTestApp.rd.xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Assets\LockScreenLogo.scale-200.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\SplashScreen.scale-200.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\Square44x44Logo.scale-200.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\Square44x44Logo.targetsize-24_altform-unplated.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\Square150x150Logo.scale-200.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\StoreLogo.png">
+      <Filter>Assets</Filter>
+    </Image>
+    <Image Include="Assets\Wide310x150Logo.scale-200.png">
+      <Filter>Assets</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <AppxManifest Include="Package.appxmanifest" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ortclib.Test_TemporaryKey.pfx" />
+  </ItemGroup>
+</Project>

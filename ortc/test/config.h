@@ -34,7 +34,7 @@
 #ifndef ORTC_TEST_CONFIG_H_598d68cd208b42966da2df998901c964
 #define ORTC_TEST_CONFIG_H_598d68cd208b42966da2df998901c964
 
-#define ORTC_TEST_FIFO_LOGGING_FILE "/tmp/openpeer.fifo"
+#define ORTC_TEST_FIFO_LOGGING_FILE "/tmp/ortc.fifo"
 
 #define ORTC_TEST_USE_STDOUT_LOGGING     (false)
 #define ORTC_TEST_USE_FIFO_LOGGING       (false)
@@ -66,10 +66,10 @@
 
 #define ORTC_TEST_RELAY_UDP_IPS           1
 
-#define OPENPEER_SERVICE_TEST_TURN_USERNAME        "robin@hookflash.com"
-#define OPENPEER_SERVICE_TEST_TURN_PASSWORD        "DxuitmVR3cNX"
+#define ORTC_SERVICE_TEST_TURN_USERNAME        "ortclib" "@" "hotmail.com"
+#define ORTC_SERVICE_TEST_TURN_PASSWORD        "invalid"
 
-#define OPENPEER_SERVICE_TEST_TURN_SERVER_DOMAIN_VIA_A_RECORD_1   "numb.viagenie.ca"
+#define ORTC_SERVICE_TEST_TURN_SERVER_DOMAIN_VIA_A_RECORD_1   "numb.viagenie.ca"
 
 
 //#define ORTC_TEST_DNS_ZONE "dnstest.hookflash.me"

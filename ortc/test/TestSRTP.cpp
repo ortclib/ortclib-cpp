@@ -41,7 +41,7 @@
 #include <ortc/internal/ortc_ISecureTransport.h>
 #include <ortc/internal/ortc_DTLSTransport.h>
 
-#include <openpeer/services/IHelper.h>
+#include <ortc/services/IHelper.h>
 
 #include <zsLib/XML.h>
 
@@ -68,10 +68,10 @@ using ortc::internal::ISRTPTransportDelegatePtr;
 
 
 ZS_DECLARE_USING_PTR(ortc::internal, ISRTPTransport)
-ZS_DECLARE_USING_PTR(openpeer::services, SecureByteBlock)
+ZS_DECLARE_USING_PTR(ortc::services, SecureByteBlock)
 
 ZS_DECLARE_TYPEDEF_PTR(ortc::ISettings, UseSettings)
-ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper)
+ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHelper, UseServicesHelper)
 ZS_DECLARE_TYPEDEF_PTR(ortc::internal::ISecureTransportForSRTPTransport, UseSecureTransport)
 ZS_DECLARE_TYPEDEF_PTR(ortc::internal::ISRTPTransportForSecureTransport, UseSRTPTransport)
 
@@ -110,7 +110,7 @@ namespace ortc
 }
 
 ZS_DECLARE_PROXY_BEGIN(ortc::test::srtp::IFakeSecureTransportAsyncDelegate)
-ZS_DECLARE_PROXY_TYPEDEF(openpeer::services::SecureByteBlockPtr, SecureByteBlockPtr)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::services::SecureByteBlockPtr, SecureByteBlockPtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IICETypes::Components, Components)
 ZS_DECLARE_PROXY_METHOD_3(onPacketFromLinkedFakedTransport, Components, Components, SecureByteBlockPtr)
 ZS_DECLARE_PROXY_END()

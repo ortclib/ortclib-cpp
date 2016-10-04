@@ -38,7 +38,7 @@
 #include <ortc/internal/ortc_RTPUtils.h>
 #include <ortc/internal/ortc_Helper.h>
 
-#include <openpeer/services/IHelper.h>
+#include <ortc/services/IHelper.h>
 //
 //#include <zsLib/XML.h>
 
@@ -63,7 +63,7 @@ using zsLib::AutoRecursiveLock;
 //
 //
 //ZS_DECLARE_TYPEDEF_PTR(ortc::ISettings, UseSettings)
-ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper)
+ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHelper, UseServicesHelper)
 ZS_DECLARE_TYPEDEF_PTR(ortc::internal::Helper, UseHelper)
 ZS_DECLARE_TYPEDEF_PTR(ortc::internal::RTPUtils, UseRTPUtils)
 

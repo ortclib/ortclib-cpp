@@ -1957,7 +1957,7 @@ namespace ortc
 
           size_t preAllocationSize = mAllocationSize;
 
-          if (!getAllocationSize(version, static_cast<BYTE>(padding), reportSpecific, pt, pos, length - sizeof(DWORD))) return false;
+          if (!getAllocationSize(static_cast<BYTE>(version), static_cast<BYTE>(padding), reportSpecific, pt, pos, static_cast<size_t>(length - sizeof(DWORD)))) return false;
 
           advancePos(pos, remaining, length - sizeof(DWORD));
 

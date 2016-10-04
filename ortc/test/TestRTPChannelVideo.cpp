@@ -61,7 +61,7 @@ using zsLib::AutoRecursiveLock;
 using namespace zsLib::XML;
 
 ZS_DECLARE_TYPEDEF_PTR(ortc::ISettings, UseSettings)
-ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper)
+ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHelper, UseServicesHelper)
 
 namespace ortc
 {

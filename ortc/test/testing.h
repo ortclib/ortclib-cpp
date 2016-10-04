@@ -67,7 +67,7 @@ protected:
     if (c == CharTraits::eof())
       return CharTraits::not_eof(c);
 
-    m_outputBuffer.push_back(c);
+    m_outputBuffer.push_back(static_cast<char>(c));
     if (c == TEXT('\n'))
       sync();
 
@@ -149,6 +149,7 @@ namespace Testing
   void uninstallLogger();
   void passed();
   void failed();
+  void setup();
   void output();
   void runAllTests(void* videoSurface1, void* videoSurface2);
 }

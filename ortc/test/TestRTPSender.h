@@ -45,7 +45,7 @@
 #include <ortc/internal/ortc_DTLSTransport.h>
 #include <ortc/internal/ortc_MediaStreamTrack.h>
 
-#include <openpeer/services/IHelper.h>
+#include <ortc/services/IHelper.h>
 
 #include <zsLib/Promise.h>
 #include <zsLib/Timer.h>
@@ -131,12 +131,12 @@ namespace ortc
 }
 
 ZS_DECLARE_PROXY_BEGIN(ortc::test::rtpsender::IFakeICETransportAsyncDelegate)
-ZS_DECLARE_PROXY_TYPEDEF(openpeer::services::SecureByteBlockPtr, SecureByteBlockPtr)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::services::SecureByteBlockPtr, SecureByteBlockPtr)
 ZS_DECLARE_PROXY_METHOD_1(onPacketFromLinkedFakedTransport, SecureByteBlockPtr)
 ZS_DECLARE_PROXY_END()
 
 ZS_DECLARE_PROXY_BEGIN(ortc::test::rtpsender::IFakeSecureTransportAsyncDelegate)
-//ZS_DECLARE_PROXY_TYPEDEF(openpeer::services::SecureByteBlockPtr, SecureByteBlockPtr)
+//ZS_DECLARE_PROXY_TYPEDEF(ortc::services::SecureByteBlockPtr, SecureByteBlockPtr)
 //ZS_DECLARE_PROXY_METHOD_1(onPacketFromLinkedFakedTransport, SecureByteBlockPtr)
 ZS_DECLARE_PROXY_END()
 

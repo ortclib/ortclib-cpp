@@ -36,7 +36,7 @@
 #include <ortc/IICETransport.h>
 #include <ortc/ISettings.h>
 
-#include <openpeer/services/IHelper.h>
+#include <ortc/services/IHelper.h>
 
 #include <zsLib/XML.h>
 
@@ -54,7 +54,7 @@ using zsLib::AutoRecursiveLock;
 using namespace zsLib::XML;
 
 ZS_DECLARE_TYPEDEF_PTR(ortc::ISettings, UseSettings)
-ZS_DECLARE_TYPEDEF_PTR(openpeer::services::IHelper, UseServicesHelper)
+ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHelper, UseServicesHelper)
 
 namespace ortc
 {
@@ -708,12 +708,12 @@ void doTestICETransport()
             expectationsGatherer1.mCandidatesRelay = ORTC_TEST_RELAY_UDP_IPS;
             expectationsGatherer1.mCandidateGone += expectationsGatherer1.mCandidatesSrflex + expectationsGatherer1.mCandidatesRelay;
 
-            String url = String("turn:") + OPENPEER_SERVICE_TEST_TURN_SERVER_DOMAIN_VIA_A_RECORD_1;
+            String url = String("turn:") + ORTC_SERVICE_TEST_TURN_SERVER_DOMAIN_VIA_A_RECORD_1;
 
             ortc::IICEGatherer::Server server;
             server.mURLs.push_back(url);
-            server.mUserName = OPENPEER_SERVICE_TEST_TURN_USERNAME;
-            server.mCredential = OPENPEER_SERVICE_TEST_TURN_PASSWORD;
+            server.mUserName = ORTC_SERVICE_TEST_TURN_USERNAME;
+            server.mCredential = ORTC_SERVICE_TEST_TURN_PASSWORD;
 
             ortc::IICEGatherer::Options options;
             options.mICEServers.push_back(server);
@@ -775,12 +775,12 @@ void doTestICETransport()
           expectations1.mCandidatesRelay = ORTC_TEST_RELAY_UDP_IPS;
           expectations1.mCandidateGone += expectations1.mCandidatesSrflex + expectations1.mCandidatesRelay;
 
-          String url = String("turn:") + OPENPEER_SERVICE_TEST_TURN_SERVER_DOMAIN_VIA_A_RECORD_1;
+          String url = String("turn:") + ORTC_SERVICE_TEST_TURN_SERVER_DOMAIN_VIA_A_RECORD_1;
 
           ortc::IICEGatherer::Server server;
           server.mURLs.push_back(url);
-          server.mUserName = OPENPEER_SERVICE_TEST_TURN_USERNAME;
-          server.mCredential = OPENPEER_SERVICE_TEST_TURN_PASSWORD;
+          server.mUserName = ORTC_SERVICE_TEST_TURN_USERNAME;
+          server.mCredential = ORTC_SERVICE_TEST_TURN_PASSWORD;
 
           ortc::IICEGatherer::Options options;
           options.mICEServers.push_back(server);
