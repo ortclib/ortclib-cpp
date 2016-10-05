@@ -3565,8 +3565,6 @@ namespace ortc
             if (!relayPort->mTURNSocket) {
               ZS_LOG_DEBUG(log("setting up turn socket") + server.toDebug() + hostPort->toDebug())
 
-              Seconds keepAliveTime;
-
               UseDNS::SRVLookupTypes lookup = (UseDNS::SRVLookupTypes)(UseDNS::SRVLookupType_AutoLookupA | UseDNS::SRVLookupType_FallbackToALookup);
               if (hostPort->mBoundUDPIP.isIPv6()) {
                 lookup = (UseDNS::SRVLookupTypes)(UseDNS::SRVLookupType_AutoLookupAAAA | UseDNS::SRVLookupType_FallbackToAAAALookup);
