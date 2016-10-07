@@ -10,3 +10,4 @@ ortc/internal/ortc_ETWStatsReport.h
 *.opendb
 .vs/
 ipch/
+*.user
