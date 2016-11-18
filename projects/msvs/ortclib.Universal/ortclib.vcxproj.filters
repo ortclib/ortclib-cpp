@@ -219,9 +219,6 @@
     <ClInclude Include="..\..\..\ortc\internal\ortc_StatsReport.h">
       <Filter>ortc\internal</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\ortc\internal\ortc_Tracing.h">
-      <Filter>ortc\internal</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\ortc\internal\platform.h">
       <Filter>ortc\internal</Filter>
     </ClInclude>
@@ -270,6 +267,24 @@
     <ClInclude Include="..\..\..\ortc\adapter\internal\ortc_adapter_adapter.h">
       <Filter>ortc\adapter\internal</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc.stats.events_win.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc.stats.events.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc.events_win.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc.events.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc.events_win_etw.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc.stats.events_win_etw.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\ortc\internal\ortc_ETWStatsReport.man">
@@ -282,6 +297,30 @@
       <Filter>ortc\internal</Filter>
     </None>
     <None Include="..\..\..\ortc\internal\ortc_ETWTracing.wprp">
+      <Filter>ortc\internal</Filter>
+    </None>
+    <None Include="..\..\..\ortc\cpp\ortc.events.json">
+      <Filter>ortc\cpp</Filter>
+    </None>
+    <None Include="..\..\..\ortc\cpp\ortc.stats.events.json">
+      <Filter>ortc\cpp</Filter>
+    </None>
+    <None Include="..\..\..\ortc\internal\ortc.stats.events.jman">
+      <Filter>ortc\internal</Filter>
+    </None>
+    <None Include="..\..\..\ortc\internal\ortc.stats.events_win_etw.man">
+      <Filter>ortc\internal</Filter>
+    </None>
+    <None Include="..\..\..\ortc\internal\ortc.stats.events_win_etw.wprp">
+      <Filter>ortc\internal</Filter>
+    </None>
+    <None Include="..\..\..\ortc\internal\ortc.events_win_etw.man">
+      <Filter>ortc\internal</Filter>
+    </None>
+    <None Include="..\..\..\ortc\internal\ortc.events_win_etw.wprp">
+      <Filter>ortc\internal</Filter>
+    </None>
+    <None Include="..\..\..\ortc\internal\ortc.events.jman">
       <Filter>ortc\internal</Filter>
     </None>
   </ItemGroup>

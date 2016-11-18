@@ -41,7 +41,7 @@
 #include <ortc/internal/ortc_RTCPPacket.h>
 #include <ortc/internal/ortc_RTPTypes.h>
 #include <ortc/internal/ortc_ORTC.h>
-#include <ortc/internal/ortc_Tracing.h>
+#include <ortc/internal/ortc.events.h>
 #include <ortc/internal/platform.h>
 
 #include <ortc/services/ISettings.h>
@@ -175,10 +175,15 @@ namespace ortc
       mTrack(track),
       mParameters(make_shared<Parameters>(params))
     {
-      EventWriteOrtcRtpReceiverChannelCreate(__func__, mID, receiver->getID(), mTrack->getID());
-      ZS_LOG_DETAIL(debug("created"))
+      ZS_EVENTING_3(
+                    x, i, Detail, RtpReceiverChannelCreate, ol, RtpReceiverChannel, Start,
+                    puid, id, mID,
+                    puid, receiverId, receiver->getID(),
+                    puid, trackId, mTrack->getID()
+                    );
+      ZS_LOG_DETAIL(debug("created"));
 
-      ORTC_THROW_INVALID_PARAMETERS_IF(!receiver)
+      ORTC_THROW_INVALID_PARAMETERS_IF(!receiver);
     }
 
     //-------------------------------------------------------------------------
@@ -210,9 +215,14 @@ namespace ortc
         }
       }
       
-      ORTC_THROW_INVALID_PARAMETERS_IF(!found)
+      ORTC_THROW_INVALID_PARAMETERS_IF(!found);
 
-      EventWriteOrtcRtpReceiverChannelCreateMediaChannel(__func__, mID, mMediaBase->getID(), IMediaStreamTrack::toString(kind.value()));
+      ZS_EVENTING_3(
+                    x, i, Detail, RtpReceiverChannelCreateMediaChannel, ol, RtpReceiverChannel, Info,
+                    puid, id, mID,
+                    puid, mediaBaseId, mMediaBase->getID(),
+                    string, kind, IMediaStreamTrack::toString(kind.value())
+                    );
 
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
@@ -226,7 +236,7 @@ namespace ortc
       mThisWeak.reset();
 
       cancel();
-      EventWriteOrtcRtpReceiverChannelDestroy(__func__, mID);
+      ZS_EVENTING_1(x, i, Detail, RtpReceiverChannelDestroy, ol, RtpReceiverChannel, Stop, puid, id, mID);
     }
 
     //-------------------------------------------------------------------------
@@ -298,7 +308,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPReceiverChannel::notifyTransportState(ISecureTransport::States state)
     {
-      EventWriteOrtcRtpReceiverChannelInternalSecureTransportStateChangedEventFired(__func__, mID, ISecureTransportTypes::toString(state));
+      ZS_EVENTING_2(x, i, Detail, RtpReceiverChannelInternalSecureTransportStateChangedEvent, ol, RtpReceiverChannel, InternalEvent, puid, id, mID, string, state, ISecureTransportTypes::toString(state));
+
       // do NOT lock this object here, instead notify self asynchronously
       IRTPReceiverChannelAsyncDelegateProxy::create(mThisWeak.lock())->onSecureTransportState(state);
     }
@@ -320,7 +331,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPReceiverChannel::notifyUpdate(const Parameters &params)
     {
-      EventWriteOrtcRtpReceiverChannelInternalUpdateEventFired(__func__, mID);
+      ZS_EVENTING_1(x, i, Detail, RtpReceiverChannelInternalUpdateEvent, ol, RtpReceiverChannel, InternalEvent, puid, id, mID);
 
       // do NOT lock this object here, instead notify self asynchronously
       IRTPReceiverChannelAsyncDelegateProxy::create(mThisWeak.lock())->onUpdate(make_shared<Parameters>(params));
@@ -329,14 +340,29 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool RTPReceiverChannel::handlePacket(RTPPacketPtr packet)
     {
-      EventWriteOrtcRtpReceiverChannelDeliverIncomingPacketToMediaChannel(__func__, mID, mMediaBase->getID(), zsLib::to_underlying(IICETypes::Component_RTP), SafeInt<unsigned int>(packet->buffer()->SizeInBytes()), packet->buffer()->BytePtr());
+      ZS_EVENTING_5(
+                    x, i, Trace, RtpReceiverChannelDeliverIncomingPacketToMediaChannel, ol, RtpReceiverChannel, Deliver,
+                    puid, id, mID,
+                    puid, mediaBaseId, mMediaBase->getID(),
+                    enum, packetType, zsLib::to_underlying(IICETypes::Component_RTP),
+                    buffer, packet, packet->buffer()->BytePtr(),
+                    size, size, packet->buffer()->SizeInBytes()
+                    );
+
       return mMediaBase->handlePacket(packet);
     }
 
     //-------------------------------------------------------------------------
     bool RTPReceiverChannel::handlePacket(RTCPPacketPtr packet)
     {
-      EventWriteOrtcRtpReceiverChannelDeliverIncomingPacketToMediaChannel(__func__, mID, mMediaBase->getID(), zsLib::to_underlying(IICETypes::Component_RTCP), SafeInt<unsigned int>(packet->buffer()->SizeInBytes()), packet->buffer()->BytePtr());
+      ZS_EVENTING_5(
+                    x, i, Trace, RtpReceiverChannelDeliverIncomingPacketToMediaChannel, ol, RtpReceiverChannel, Deliver,
+                    puid, id, mID,
+                    puid, mediaBaseId, mMediaBase->getID(),
+                    enum, packetType, zsLib::to_underlying(IICETypes::Component_RTCP),
+                    buffer, packet, packet->buffer()->BytePtr(),
+                    size, size, packet->buffer()->SizeInBytes()
+                    );
       return mMediaBase->handlePacket(packet);
     }
 
@@ -371,7 +397,14 @@ namespace ortc
       auto receiver = mReceiver.lock();
       if (!receiver) return false;
 
-      EventWriteOrtcRtpReceiverChannelSendOutgoingPacket(__func__, mID, receiver->getID(), zsLib::to_underlying(IICETypes::Component_RTCP), SafeInt<unsigned int>(packet->buffer()->SizeInBytes()), packet->buffer()->BytePtr());
+      ZS_EVENTING_5(
+                    x, i, Trace, RtpReceiverChannelSendOutgoingPacket, ol, RtpReceiverChannel, Send,
+                    puid, id, mID,
+                    puid, receiverId, receiver->getID(),
+                    enum, packetType, zsLib::to_underlying(IICETypes::Component_RTCP),
+                    buffer, packet, packet->buffer()->BytePtr(),
+                    size, size, packet->buffer()->SizeInBytes()
+                    );
 
       return receiver->sendPacket(packet);
     }

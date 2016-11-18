@@ -57,7 +57,13 @@
     <ClInclude Include="..\..\..\ortc\IMediaDevices.h" />
     <ClInclude Include="..\..\..\ortc\IMediaStreamTrack.h" />
     <ClInclude Include="..\..\..\ortc\internal\ifaddrs-android.h" />
+    <ClInclude Include="..\..\..\ortc\internal\ortc.events.h" />
+    <ClInclude Include="..\..\..\ortc\internal\ortc.events_win.h" />
+    <ClInclude Include="..\..\..\ortc\internal\ortc.events_win_etw.h" />
     <ClInclude Include="..\..\..\ortc\internal\ortc.h" />
+    <ClInclude Include="..\..\..\ortc\internal\ortc.stats.events.h" />
+    <ClInclude Include="..\..\..\ortc\internal\ortc.stats.events_win.h" />
+    <ClInclude Include="..\..\..\ortc\internal\ortc.stats.events_win_etw.h" />
     <ClInclude Include="..\..\..\ortc\internal\ortc_Certificate.h" />
     <ClInclude Include="..\..\..\ortc\internal\ortc_DataChannel.h" />
     <ClInclude Include="..\..\..\ortc\internal\ortc_DTLSTransport.h" />
@@ -95,7 +101,6 @@
     <ClInclude Include="..\..\..\ortc\internal\ortc_SRTPSDESTransport.h" />
     <ClInclude Include="..\..\..\ortc\internal\ortc_SRTPTransport.h" />
     <ClInclude Include="..\..\..\ortc\internal\ortc_StatsReport.h" />
-    <ClInclude Include="..\..\..\ortc\internal\ortc_Tracing.h" />
     <ClInclude Include="..\..\..\ortc\internal\platform.h" />
     <ClInclude Include="..\..\..\ortc\internal\types.h" />
     <ClInclude Include="..\..\..\ortc\IORTC.h" />
@@ -112,6 +117,14 @@
     <ClInclude Include="..\..\..\ortc\types.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\..\..\ortc\cpp\ortc.events.json" />
+    <None Include="..\..\..\ortc\cpp\ortc.stats.events.json" />
+    <None Include="..\..\..\ortc\internal\ortc.events.jman" />
+    <None Include="..\..\..\ortc\internal\ortc.events_win_etw.man" />
+    <None Include="..\..\..\ortc\internal\ortc.events_win_etw.wprp" />
+    <None Include="..\..\..\ortc\internal\ortc.stats.events.jman" />
+    <None Include="..\..\..\ortc\internal\ortc.stats.events_win_etw.man" />
+    <None Include="..\..\..\ortc\internal\ortc.stats.events_win_etw.wprp" />
     <None Include="..\..\..\ortc\internal\ortc_ETWStatsReport.man" />
     <None Include="..\..\..\ortc\internal\ortc_ETWStatsReport.wprp" />
     <None Include="..\..\..\ortc\internal\ortc_ETWTracing.man" />
@@ -294,25 +307,25 @@
     </Link>
     <CustomBuildStep>
       <Command>echo Create manifest header file...
-mc.exe -um -r $(IntermediateOutputPath) -h "$(ProjectDir)..\..\..\ortc\internal" "$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.man"
-mc.exe -um -r $(IntermediateOutputPath) -h "$(ProjectDir)..\..\..\ortc\internal" "$(ProjectDir)..\..\..\ortc\internal\ortc_ETWStatsReport.man"
+mc.exe -um -r $(IntermediateOutputPath) -h "$(ProjectDir)..\..\..\ortc\internal" "$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.man"
+mc.exe -um -r $(IntermediateOutputPath) -h "$(ProjectDir)..\..\..\ortc\internal" "$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.man"
 echo Create resource file...
-rc.exe $(IntermediateOutputPath)ortc_ETWTracing.rc
-rc.exe $(IntermediateOutputPath)ortc_ETWStatsReport.rc
+rc.exe $(IntermediateOutputPath)ortc.events_win_etw.rc
+rc.exe $(IntermediateOutputPath)ortc.stats.events_win_etw.rc
 echo Create manifest resource dll...
-echo If compiling to managed code resource DLL use: csc.exe /out:$(IntermediateOutputPath)ortc_ETWTracing.dll /target:library /win32res:$(IntermediateOutputPath)ortc_ETWTracing.res
-echo If compiling to managed code resource DLL use: csc.exe /out:$(IntermediateOutputPath)ortc_ETWStatsReport.dll /target:library /win32res:$(IntermediateOutputPath)ortc_ETWStatsReport.res
-link -dll -noentry /MACHINE:$(PlatformTarget) -out:$(IntermediateOutputPath)ortc_ETWTracing.dll $(IntermediateOutputPath)ortc_ETWTracing.res
-link -dll -noentry /MACHINE:$(PlatformTarget) -out:$(IntermediateOutputPath)ortc_ETWStatsReport.dll $(IntermediateOutputPath)ortc_ETWStatsReport.res
+echo If compiling to managed code resource DLL use: csc.exe /out:$(IntermediateOutputPath)ortc.events_win_etw.dll /target:library /win32res:$(IntermediateOutputPath)ortc.events_win_etw.res
+echo If compiling to managed code resource DLL use: csc.exe /out:$(IntermediateOutputPath)ortc.stats.events_win_etw.dll /target:library /win32res:$(IntermediateOutputPath)ortc.stats.events_win_etw.res
+link -dll -noentry /MACHINE:$(PlatformTarget) -out:$(IntermediateOutputPath)ortc.events_win_etw.dll $(IntermediateOutputPath)ortc.events_win_etw.res
+link -dll -noentry /MACHINE:$(PlatformTarget) -out:$(IntermediateOutputPath)ortc.stats.events_win_etw.dll $(IntermediateOutputPath)ortc.stats.events_win_etw.res
 echo Copy files to output directory...
-copy $(IntermediateOutputPath)ortc_ETWTracing.dll "$(OutDir)"
-copy $(IntermediateOutputPath)ortc_ETWStatsReport.dll "$(OutDir)"
-copy "$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.man" "$(OutDir)"
-copy "$(ProjectDir)..\..\..\ortc\internal\ortc_ETWStatsReport.man" "$(OutDir)"
-copy "$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.wprp" "$(OutDir)"
-copy "$(ProjectDir)..\..\..\ortc\internal\ortc_ETWStatsReport.wprp" "$(OutDir)"
-icacls "$(OutDir)ortc_ETWTracing.dll" /grant Users:RX
-icacls "$(OutDir)ortc_ETWStatsReport.dll" /grant Users:RX
+copy $(IntermediateOutputPath)ortc.events_win_etw.dll "$(OutDir)"
+copy $(IntermediateOutputPath)ortc.stats.events_win_etw.dll "$(OutDir)"
+copy "$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.man" "$(OutDir)"
+copy "$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.man" "$(OutDir)"
+copy "$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.wprp" "$(OutDir)"
+copy "$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.wprp" "$(OutDir)"
+icacls "$(OutDir)ortc.events_win_etw.dll" /grant Users:RX
+icacls "$(OutDir)ortc.stats.events_win_etw.dll" /grant Users:RX
 echo.
 echo Steps to register manifest file with for Windows Performance Recorder...
 echo.
@@ -322,20 +335,20 @@ echo 2) Change into the output directory, type:
 echo cd "$(OutDir)"
 echo.
 echo 3) To register the manifest, type:
-echo wevtutil.exe im ortc_ETWTracing.man /rf:"$(OutDir)ortc_ETWTracing.dll" /mf:"$(OutDir)ortc_ETWTracing.dll"
-echo wevtutil.exe im ortc_ETWStatsReport.man /rf:"$(OutDir)ortc_ETWStatsReport.dll" /mf:"$(OutDir)ortc_ETWStatsReport.dll"
+echo wevtutil.exe im ortc.events_win_etw.man /rf:"$(OutDir)ortc.events_win_etw.dll" /mf:"$(OutDir)ortc.events_win_etw.dll"
+echo wevtutil.exe im ortc.stats.events_win_etw.man /rf:"$(OutDir)ortc.stats.events_win_etw.dll" /mf:"$(OutDir)ortc.stats.events_win_etw.dll"
 echo.
 echo 4) To unregister the manifest, type:
-echo wevtutil.exe um ortc_ETWTracing.man
-echo wevtutil.exe um ortc_ETWStatsReport.man
+echo wevtutil.exe um ortc.events_win_etw.man
+echo wevtutil.exe um ortc.stats.events_win_etw.man
 echo.
 </Command>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Outputs>$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.h;$(ProjectDir)..\..\..\ortc\internal\ortc_ETWStatsReport.h;$(IntermediateOutputPath)ortc_ETWTracing.rc;$(IntermediateOutputPath)ortc_ETWTracing.res;$(IntermediateOutputPath)ortc_ETWTracing.dll;$(IntermediateOutputPath)ortc_ETWStatsReport.rc;$(IntermediateOutputPath)ortc_ETWStatsReport.res;$(IntermediateOutputPath)ortc_ETWStatsReport.dll;$(OutDir)ortc_ETWTracing.dll;$(OutDir)ortc_ETWTracing.man;$(OutDir)ortc_ETWTracing.wprp;$(OutDir)ortc_ETWStatsReport.dll;$(OutDir)ortc_ETWStatsReport.man;$(OutDir)ortc_ETWStatsReport.wprp;%(Outputs)</Outputs>
+      <Outputs>$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.h;$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.h;$(IntermediateOutputPath)ortc.events_win_etw.rc;$(IntermediateOutputPath)ortc.events_win_etw.res;$(IntermediateOutputPath)ortc.events_win_etw.dll;$(IntermediateOutputPath)ortc.stats.events_win_etw.rc;$(IntermediateOutputPath)ortc.stats.events_win_etw.res;$(IntermediateOutputPath)ortc.stats.events_win_etw.dll;$(OutDir)ortc.events_win_etw.dll;$(OutDir)ortc.events_win_etw.man;$(OutDir)ortc.events_win_etw.wprp;$(OutDir)ortc.stats.events_win_etw.dll;$(OutDir)ortc.stats.events_win_etw.man;$(OutDir)ortc.stats.events_win_etw.wprp;%(Outputs)</Outputs>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Inputs>$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.man;$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.wprp;$(ProjectDir)..\..\..\ortc\internal\ortc_ETWStatsReport.man;$(ProjectDir)..\..\..\ortc\internal\ortc_ETWStatsReport.wprp;%(Inputs)</Inputs>
+      <Inputs>$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.man;$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.wprp;$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.man;$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.wprp;%(Inputs)</Inputs>
     </CustomBuildStep>
     <Lib>
       <AdditionalOptions>/IGNORE:4264 %(AdditionalOptions)</AdditionalOptions>
@@ -357,25 +370,25 @@ echo.
     </Link>
     <CustomBuildStep>
       <Command>echo Create manifest header file...
-mc.exe -um -r $(IntermediateOutputPath) -h "$(ProjectDir)..\..\..\ortc\internal" "$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.man"
-mc.exe -um -r $(IntermediateOutputPath) -h "$(ProjectDir)..\..\..\ortc\internal" "$(ProjectDir)..\..\..\ortc\internal\ortc_ETWStatsReport.man"
+mc.exe -um -r $(IntermediateOutputPath) -h "$(ProjectDir)..\..\..\ortc\internal" "$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.man"
+mc.exe -um -r $(IntermediateOutputPath) -h "$(ProjectDir)..\..\..\ortc\internal" "$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.man"
 echo Create resource file...
-rc.exe $(IntermediateOutputPath)ortc_ETWTracing.rc
-rc.exe $(IntermediateOutputPath)ortc_ETWStatsReport.rc
+rc.exe $(IntermediateOutputPath)ortc.events_win_etw.rc
+rc.exe $(IntermediateOutputPath)ortc.stats.events_win_etw.rc
 echo Create manifest resource dll...
-echo If compiling to managed code resource DLL use: csc.exe /out:$(IntermediateOutputPath)ortc_ETWTracing.dll /target:library /win32res:$(IntermediateOutputPath)ortc_ETWTracing.res
-echo If compiling to managed code resource DLL use: csc.exe /out:$(IntermediateOutputPath)ortc_ETWStatsReport.dll /target:library /win32res:$(IntermediateOutputPath)ortc_ETWStatsReport.res
-link -dll -noentry /MACHINE:$(PlatformTarget) -out:$(IntermediateOutputPath)ortc_ETWTracing.dll $(IntermediateOutputPath)ortc_ETWTracing.res
-link -dll -noentry /MACHINE:$(PlatformTarget) -out:$(IntermediateOutputPath)ortc_ETWStatsReport.dll $(IntermediateOutputPath)ortc_ETWStatsReport.res
+echo If compiling to managed code resource DLL use: csc.exe /out:$(IntermediateOutputPath)ortc.events_win_etw.dll /target:library /win32res:$(IntermediateOutputPath)ortc.events_win_etw.res
+echo If compiling to managed code resource DLL use: csc.exe /out:$(IntermediateOutputPath)ortc.stats.events_win_etw.dll /target:library /win32res:$(IntermediateOutputPath)ortc.stats.events_win_etw.res
+link -dll -noentry /MACHINE:$(PlatformTarget) -out:$(IntermediateOutputPath)ortc.events_win_etw.dll $(IntermediateOutputPath)ortc.events_win_etw.res
+link -dll -noentry /MACHINE:$(PlatformTarget) -out:$(IntermediateOutputPath)ortc.stats.events_win_etw.dll $(IntermediateOutputPath)ortc.stats.events_win_etw.res
 echo Copy files to output directory...
-copy $(IntermediateOutputPath)ortc_ETWTracing.dll "$(OutDir)"
-copy $(IntermediateOutputPath)ortc_ETWStatsReport.dll "$(OutDir)"
-copy "$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.man" "$(OutDir)"
-copy "$(ProjectDir)..\..\..\ortc\internal\ortc_ETWStatsReport.man" "$(OutDir)"
-copy "$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.wprp" "$(OutDir)"
-copy "$(ProjectDir)..\..\..\ortc\internal\ortc_ETWStatsReport.wprp" "$(OutDir)"
-icacls "$(OutDir)ortc_ETWTracing.dll" /grant Users:RX
-icacls "$(OutDir)ortc_ETWStatsReport.dll" /grant Users:RX
+copy $(IntermediateOutputPath)ortc.events_win_etw.dll "$(OutDir)"
+copy $(IntermediateOutputPath)ortc.stats.events_win_etw.dll "$(OutDir)"
+copy "$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.man" "$(OutDir)"
+copy "$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.man" "$(OutDir)"
+copy "$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.wprp" "$(OutDir)"
+copy "$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.wprp" "$(OutDir)"
+icacls "$(OutDir)ortc.events_win_etw.dll" /grant Users:RX
+icacls "$(OutDir)ortc.stats.events_win_etw.dll" /grant Users:RX
 echo.
 echo Steps to register manifest file with for Windows Performance Recorder...
 echo.
@@ -385,20 +398,20 @@ echo 2) Change into the output directory, type:
 echo cd "$(OutDir)"
 echo.
 echo 3) To register the manifest, type:
-echo wevtutil.exe im ortc_ETWTracing.man /rf:"$(OutDir)ortc_ETWTracing.dll" /mf:"$(OutDir)ortc_ETWTracing.dll"
-echo wevtutil.exe im ortc_ETWStatsReport.man /rf:"$(OutDir)ortc_ETWStatsReport.dll" /mf:"$(OutDir)ortc_ETWStatsReport.dll"
+echo wevtutil.exe im ortc.events_win_etw.man /rf:"$(OutDir)ortc.events_win_etw.dll" /mf:"$(OutDir)ortc.events_win_etw.dll"
+echo wevtutil.exe im ortc.stats.events_win_etw.man /rf:"$(OutDir)ortc.stats.events_win_etw.dll" /mf:"$(OutDir)ortc.stats.events_win_etw.dll"
 echo.
 echo 4) To unregister the manifest, type:
-echo wevtutil.exe um ortc_ETWTracing.man
-echo wevtutil.exe um ortc_ETWStatsReport.man
+echo wevtutil.exe um ortc.events_win_etw.man
+echo wevtutil.exe um ortc.stats.events_win_etw.man
 echo.
 </Command>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Outputs>$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.h;$(ProjectDir)..\..\..\ortc\internal\ortc_ETWStatsReport.h;$(IntermediateOutputPath)ortc_ETWTracing.rc;$(IntermediateOutputPath)ortc_ETWTracing.res;$(IntermediateOutputPath)ortc_ETWTracing.dll;$(IntermediateOutputPath)ortc_ETWStatsReport.rc;$(IntermediateOutputPath)ortc_ETWStatsReport.res;$(IntermediateOutputPath)ortc_ETWStatsReport.dll;$(OutDir)ortc_ETWTracing.dll;$(OutDir)ortc_ETWTracing.man;$(OutDir)ortc_ETWTracing.wprp;$(OutDir)ortc_ETWStatsReport.dll;$(OutDir)ortc_ETWStatsReport.man;$(OutDir)ortc_ETWStatsReport.wprp;%(Outputs)</Outputs>
+      <Outputs>$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.h;$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.h;$(IntermediateOutputPath)ortc.events_win_etw.rc;$(IntermediateOutputPath)ortc.events_win_etw.res;$(IntermediateOutputPath)ortc.events_win_etw.dll;$(IntermediateOutputPath)ortc.stats.events_win_etw.rc;$(IntermediateOutputPath)ortc.stats.events_win_etw.res;$(IntermediateOutputPath)ortc.stats.events_win_etw.dll;$(OutDir)ortc.events_win_etw.dll;$(OutDir)ortc.events_win_etw.man;$(OutDir)ortc.events_win_etw.wprp;$(OutDir)ortc.stats.events_win_etw.dll;$(OutDir)ortc.stats.events_win_etw.man;$(OutDir)ortc.stats.events_win_etw.wprp;%(Outputs)</Outputs>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Inputs>$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.man;$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.wprp;$(ProjectDir)..\..\..\ortc\internal\ortc_ETWStatsReport.man;$(ProjectDir)..\..\..\ortc\internal\ortc_ETWStatsReport.wprp;%(Inputs)</Inputs>
+      <Inputs>$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.man;$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.wprp;$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.man;$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.wprp;%(Inputs)</Inputs>
     </CustomBuildStep>
     <Lib>
       <AdditionalOptions>/IGNORE:4264 %(AdditionalOptions)</AdditionalOptions>
@@ -420,25 +433,25 @@ echo.
     </Link>
     <CustomBuildStep>
       <Command>echo Create manifest header file...
-mc.exe -um -r $(IntermediateOutputPath) -h "$(ProjectDir)..\..\..\ortc\internal" "$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.man"
-mc.exe -um -r $(IntermediateOutputPath) -h "$(ProjectDir)..\..\..\ortc\internal" "$(ProjectDir)..\..\..\ortc\internal\ortc_ETWStatsReport.man"
+mc.exe -um -r $(IntermediateOutputPath) -h "$(ProjectDir)..\..\..\ortc\internal" "$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.man"
+mc.exe -um -r $(IntermediateOutputPath) -h "$(ProjectDir)..\..\..\ortc\internal" "$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.man"
 echo Create resource file...
-rc.exe $(IntermediateOutputPath)ortc_ETWTracing.rc
-rc.exe $(IntermediateOutputPath)ortc_ETWStatsReport.rc
+rc.exe $(IntermediateOutputPath)ortc.events_win_etw.rc
+rc.exe $(IntermediateOutputPath)ortc.stats.events_win_etw.rc
 echo Create manifest resource dll...
-echo If compiling to managed code resource DLL use: csc.exe /out:$(IntermediateOutputPath)ortc_ETWTracing.dll /target:library /win32res:$(IntermediateOutputPath)ortc_ETWTracing.res
-echo If compiling to managed code resource DLL use: csc.exe /out:$(IntermediateOutputPath)ortc_ETWStatsReport.dll /target:library /win32res:$(IntermediateOutputPath)ortc_ETWStatsReport.res
-link -dll -noentry /MACHINE:$(PlatformTarget) -out:$(IntermediateOutputPath)ortc_ETWTracing.dll $(IntermediateOutputPath)ortc_ETWTracing.res
-link -dll -noentry /MACHINE:$(PlatformTarget) -out:$(IntermediateOutputPath)ortc_ETWStatsReport.dll $(IntermediateOutputPath)ortc_ETWStatsReport.res
+echo If compiling to managed code resource DLL use: csc.exe /out:$(IntermediateOutputPath)ortc.events_win_etw.dll /target:library /win32res:$(IntermediateOutputPath)ortc.events_win_etw.res
+echo If compiling to managed code resource DLL use: csc.exe /out:$(IntermediateOutputPath)ortc.stats.events_win_etw.dll /target:library /win32res:$(IntermediateOutputPath)ortc.stats.events_win_etw.res
+link -dll -noentry /MACHINE:$(PlatformTarget) -out:$(IntermediateOutputPath)ortc.events_win_etw.dll $(IntermediateOutputPath)ortc.events_win_etw.res
+link -dll -noentry /MACHINE:$(PlatformTarget) -out:$(IntermediateOutputPath)ortc.stats.events_win_etw.dll $(IntermediateOutputPath)ortc.stats.events_win_etw.res
 echo Copy files to output directory...
-copy $(IntermediateOutputPath)ortc_ETWTracing.dll "$(OutDir)"
-copy $(IntermediateOutputPath)ortc_ETWStatsReport.dll "$(OutDir)"
-copy "$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.man" "$(OutDir)"
-copy "$(ProjectDir)..\..\..\ortc\internal\ortc_ETWStatsReport.man" "$(OutDir)"
-copy "$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.wprp" "$(OutDir)"
-copy "$(ProjectDir)..\..\..\ortc\internal\ortc_ETWStatsReport.wprp" "$(OutDir)"
-icacls "$(OutDir)ortc_ETWTracing.dll" /grant Users:RX
-icacls "$(OutDir)ortc_ETWStatsReport.dll" /grant Users:RX
+copy $(IntermediateOutputPath)ortc.events_win_etw.dll "$(OutDir)"
+copy $(IntermediateOutputPath)ortc.stats.events_win_etw.dll "$(OutDir)"
+copy "$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.man" "$(OutDir)"
+copy "$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.man" "$(OutDir)"
+copy "$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.wprp" "$(OutDir)"
+copy "$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.wprp" "$(OutDir)"
+icacls "$(OutDir)ortc.events_win_etw.dll" /grant Users:RX
+icacls "$(OutDir)ortc.stats.events_win_etw.dll" /grant Users:RX
 echo.
 echo Steps to register manifest file with for Windows Performance Recorder...
 echo.
@@ -448,20 +461,20 @@ echo 2) Change into the output directory, type:
 echo cd "$(OutDir)"
 echo.
 echo 3) To register the manifest, type:
-echo wevtutil.exe im ortc_ETWTracing.man /rf:"$(OutDir)ortc_ETWTracing.dll" /mf:"$(OutDir)ortc_ETWTracing.dll"
-echo wevtutil.exe im ortc_ETWStatsReport.man /rf:"$(OutDir)ortc_ETWStatsReport.dll" /mf:"$(OutDir)ortc_ETWStatsReport.dll"
+echo wevtutil.exe im ortc.events_win_etw.man /rf:"$(OutDir)ortc.events_win_etw.dll" /mf:"$(OutDir)ortc.events_win_etw.dll"
+echo wevtutil.exe im ortc.stats.events_win_etw.man /rf:"$(OutDir)ortc.stats.events_win_etw.dll" /mf:"$(OutDir)ortc.stats.events_win_etw.dll"
 echo.
 echo 4) To unregister the manifest, type:
-echo wevtutil.exe um ortc_ETWTracing.man
-echo wevtutil.exe um ortc_ETWStatsReport.man
+echo wevtutil.exe um ortc.events_win_etw.man
+echo wevtutil.exe um ortc.stats.events_win_etw.man
 echo.
 </Command>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Outputs>$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.h;$(ProjectDir)..\..\..\ortc\internal\ortc_ETWStatsReport.h;$(IntermediateOutputPath)ortc_ETWTracing.rc;$(IntermediateOutputPath)ortc_ETWTracing.res;$(IntermediateOutputPath)ortc_ETWTracing.dll;$(IntermediateOutputPath)ortc_ETWStatsReport.rc;$(IntermediateOutputPath)ortc_ETWStatsReport.res;$(IntermediateOutputPath)ortc_ETWStatsReport.dll;$(OutDir)ortc_ETWTracing.dll;$(OutDir)ortc_ETWTracing.man;$(OutDir)ortc_ETWTracing.wprp;$(OutDir)ortc_ETWStatsReport.dll;$(OutDir)ortc_ETWStatsReport.man;$(OutDir)ortc_ETWStatsReport.wprp;%(Outputs)</Outputs>
+      <Outputs>$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.h;$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.h;$(IntermediateOutputPath)ortc.events_win_etw.rc;$(IntermediateOutputPath)ortc.events_win_etw.res;$(IntermediateOutputPath)ortc.events_win_etw.dll;$(IntermediateOutputPath)ortc.stats.events_win_etw.rc;$(IntermediateOutputPath)ortc.stats.events_win_etw.res;$(IntermediateOutputPath)ortc.stats.events_win_etw.dll;$(OutDir)ortc.events_win_etw.dll;$(OutDir)ortc.events_win_etw.man;$(OutDir)ortc.events_win_etw.wprp;$(OutDir)ortc.stats.events_win_etw.dll;$(OutDir)ortc.stats.events_win_etw.man;$(OutDir)ortc.stats.events_win_etw.wprp;%(Outputs)</Outputs>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Inputs>$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.man;$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.wprp;$(ProjectDir)..\..\..\ortc\internal\ortc_ETWStatsReport.man;$(ProjectDir)..\..\..\ortc\internal\ortc_ETWStatsReport.wprp;%(Inputs)</Inputs>
+      <Inputs>$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.man;$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.wprp;$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.man;$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.wprp;%(Inputs)</Inputs>
     </CustomBuildStep>
     <Lib>
       <AdditionalOptions>/IGNORE:4264 %(AdditionalOptions)</AdditionalOptions>
@@ -483,25 +496,25 @@ echo.
     </Link>
     <CustomBuildStep>
       <Command>echo Create manifest header file...
-mc.exe -um -r $(IntermediateOutputPath) -h "$(ProjectDir)..\..\..\ortc\internal" "$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.man"
-mc.exe -um -r $(IntermediateOutputPath) -h "$(ProjectDir)..\..\..\ortc\internal" "$(ProjectDir)..\..\..\ortc\internal\ortc_ETWStatsReport.man"
+mc.exe -um -r $(IntermediateOutputPath) -h "$(ProjectDir)..\..\..\ortc\internal" "$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.man"
+mc.exe -um -r $(IntermediateOutputPath) -h "$(ProjectDir)..\..\..\ortc\internal" "$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.man"
 echo Create resource file...
-rc.exe $(IntermediateOutputPath)ortc_ETWTracing.rc
-rc.exe $(IntermediateOutputPath)ortc_ETWStatsReport.rc
+rc.exe $(IntermediateOutputPath)ortc.events_win_etw.rc
+rc.exe $(IntermediateOutputPath)ortc.stats.events_win_etw.rc
 echo Create manifest resource dll...
-echo If compiling to managed code resource DLL use: csc.exe /out:$(IntermediateOutputPath)ortc_ETWTracing.dll /target:library /win32res:$(IntermediateOutputPath)ortc_ETWTracing.res
-echo If compiling to managed code resource DLL use: csc.exe /out:$(IntermediateOutputPath)ortc_ETWStatsReport.dll /target:library /win32res:$(IntermediateOutputPath)ortc_ETWStatsReport.res
-link -dll -noentry /MACHINE:$(PlatformTarget) -out:$(IntermediateOutputPath)ortc_ETWTracing.dll $(IntermediateOutputPath)ortc_ETWTracing.res
-link -dll -noentry /MACHINE:$(PlatformTarget) -out:$(IntermediateOutputPath)ortc_ETWStatsReport.dll $(IntermediateOutputPath)ortc_ETWStatsReport.res
+echo If compiling to managed code resource DLL use: csc.exe /out:$(IntermediateOutputPath)ortc.events_win_etw.dll /target:library /win32res:$(IntermediateOutputPath)ortc.events_win_etw.res
+echo If compiling to managed code resource DLL use: csc.exe /out:$(IntermediateOutputPath)ortc.stats.events_win_etw.dll /target:library /win32res:$(IntermediateOutputPath)ortc.stats.events_win_etw.res
+link -dll -noentry /MACHINE:$(PlatformTarget) -out:$(IntermediateOutputPath)ortc.events_win_etw.dll $(IntermediateOutputPath)ortc.events_win_etw.res
+link -dll -noentry /MACHINE:$(PlatformTarget) -out:$(IntermediateOutputPath)ortc.stats.events_win_etw.dll $(IntermediateOutputPath)ortc.stats.events_win_etw.res
 echo Copy files to output directory...
-copy $(IntermediateOutputPath)ortc_ETWTracing.dll "$(OutDir)"
-copy $(IntermediateOutputPath)ortc_ETWStatsReport.dll "$(OutDir)"
-copy "$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.man" "$(OutDir)"
-copy "$(ProjectDir)..\..\..\ortc\internal\ortc_ETWStatsReport.man" "$(OutDir)"
-copy "$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.wprp" "$(OutDir)"
-copy "$(ProjectDir)..\..\..\ortc\internal\ortc_ETWStatsReport.wprp" "$(OutDir)"
-icacls "$(OutDir)ortc_ETWTracing.dll" /grant Users:RX
-icacls "$(OutDir)ortc_ETWStatsReport.dll" /grant Users:RX
+copy $(IntermediateOutputPath)ortc.events_win_etw.dll "$(OutDir)"
+copy $(IntermediateOutputPath)ortc.stats.events_win_etw.dll "$(OutDir)"
+copy "$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.man" "$(OutDir)"
+copy "$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.man" "$(OutDir)"
+copy "$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.wprp" "$(OutDir)"
+copy "$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.wprp" "$(OutDir)"
+icacls "$(OutDir)ortc.events_win_etw.dll" /grant Users:RX
+icacls "$(OutDir)ortc.stats.events_win_etw.dll" /grant Users:RX
 echo.
 echo Steps to register manifest file with for Windows Performance Recorder...
 echo.
@@ -511,20 +524,20 @@ echo 2) Change into the output directory, type:
 echo cd "$(OutDir)"
 echo.
 echo 3) To register the manifest, type:
-echo wevtutil.exe im ortc_ETWTracing.man /rf:"$(OutDir)ortc_ETWTracing.dll" /mf:"$(OutDir)ortc_ETWTracing.dll"
-echo wevtutil.exe im ortc_ETWStatsReport.man /rf:"$(OutDir)ortc_ETWStatsReport.dll" /mf:"$(OutDir)ortc_ETWStatsReport.dll"
+echo wevtutil.exe im ortc.events_win_etw.man /rf:"$(OutDir)ortc.events_win_etw.dll" /mf:"$(OutDir)ortc.events_win_etw.dll"
+echo wevtutil.exe im ortc.stats.events_win_etw.man /rf:"$(OutDir)ortc.stats.events_win_etw.dll" /mf:"$(OutDir)ortc.stats.events_win_etw.dll"
 echo.
 echo 4) To unregister the manifest, type:
-echo wevtutil.exe um ortc_ETWTracing.man
-echo wevtutil.exe um ortc_ETWStatsReport.man
+echo wevtutil.exe um ortc.events_win_etw.man
+echo wevtutil.exe um ortc.stats.events_win_etw.man
 echo.
 </Command>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Outputs>$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.h;$(ProjectDir)..\..\..\ortc\internal\ortc_ETWStatsReport.h;$(IntermediateOutputPath)ortc_ETWTracing.rc;$(IntermediateOutputPath)ortc_ETWTracing.res;$(IntermediateOutputPath)ortc_ETWTracing.dll;$(IntermediateOutputPath)ortc_ETWStatsReport.rc;$(IntermediateOutputPath)ortc_ETWStatsReport.res;$(IntermediateOutputPath)ortc_ETWStatsReport.dll;$(OutDir)ortc_ETWTracing.dll;$(OutDir)ortc_ETWTracing.man;$(OutDir)ortc_ETWTracing.wprp;$(OutDir)ortc_ETWStatsReport.dll;$(OutDir)ortc_ETWStatsReport.man;$(OutDir)ortc_ETWStatsReport.wprp;%(Outputs)</Outputs>
+      <Outputs>$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.h;$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.h;$(IntermediateOutputPath)ortc.events_win_etw.rc;$(IntermediateOutputPath)ortc.events_win_etw.res;$(IntermediateOutputPath)ortc.events_win_etw.dll;$(IntermediateOutputPath)ortc.stats.events_win_etw.rc;$(IntermediateOutputPath)ortc.stats.events_win_etw.res;$(IntermediateOutputPath)ortc.stats.events_win_etw.dll;$(OutDir)ortc.events_win_etw.dll;$(OutDir)ortc.events_win_etw.man;$(OutDir)ortc.events_win_etw.wprp;$(OutDir)ortc.stats.events_win_etw.dll;$(OutDir)ortc.stats.events_win_etw.man;$(OutDir)ortc.stats.events_win_etw.wprp;%(Outputs)</Outputs>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Inputs>$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.man;$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.wprp;$(ProjectDir)..\..\..\ortc\internal\ortc_ETWStatsReport.man;$(ProjectDir)..\..\..\ortc\internal\ortc_ETWStatsReport.wprp;%(Inputs)</Inputs>
+      <Inputs>$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.man;$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.wprp;$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.man;$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.wprp;%(Inputs)</Inputs>
     </CustomBuildStep>
     <Lib>
       <AdditionalOptions>/IGNORE:4264 %(AdditionalOptions)</AdditionalOptions>
@@ -546,25 +559,25 @@ echo.
     </Link>
     <CustomBuildStep>
       <Command>echo Create manifest header file...
-mc.exe -um -r $(IntermediateOutputPath) -h "$(ProjectDir)..\..\..\ortc\internal" "$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.man"
-mc.exe -um -r $(IntermediateOutputPath) -h "$(ProjectDir)..\..\..\ortc\internal" "$(ProjectDir)..\..\..\ortc\internal\ortc_ETWStatsReport.man"
+mc.exe -um -r $(IntermediateOutputPath) -h "$(ProjectDir)..\..\..\ortc\internal" "$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.man"
+mc.exe -um -r $(IntermediateOutputPath) -h "$(ProjectDir)..\..\..\ortc\internal" "$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.man"
 echo Create resource file...
-rc.exe $(IntermediateOutputPath)ortc_ETWTracing.rc
-rc.exe $(IntermediateOutputPath)ortc_ETWStatsReport.rc
+rc.exe $(IntermediateOutputPath)ortc.events_win_etw.rc
+rc.exe $(IntermediateOutputPath)ortc.stats.events_win_etw.rc
 echo Create manifest resource dll...
-echo If compiling to managed code resource DLL use: csc.exe /out:$(IntermediateOutputPath)ortc_ETWTracing.dll /target:library /win32res:$(IntermediateOutputPath)ortc_ETWTracing.res
-echo If compiling to managed code resource DLL use: csc.exe /out:$(IntermediateOutputPath)ortc_ETWStatsReport.dll /target:library /win32res:$(IntermediateOutputPath)ortc_ETWStatsReport.res
-link -dll -noentry /MACHINE:$(PlatformTarget) -out:$(IntermediateOutputPath)ortc_ETWTracing.dll $(IntermediateOutputPath)ortc_ETWTracing.res
-link -dll -noentry /MACHINE:$(PlatformTarget) -out:$(IntermediateOutputPath)ortc_ETWStatsReport.dll $(IntermediateOutputPath)ortc_ETWStatsReport.res
+echo If compiling to managed code resource DLL use: csc.exe /out:$(IntermediateOutputPath)ortc.events_win_etw.dll /target:library /win32res:$(IntermediateOutputPath)ortc.events_win_etw.res
+echo If compiling to managed code resource DLL use: csc.exe /out:$(IntermediateOutputPath)ortc.stats.events_win_etw.dll /target:library /win32res:$(IntermediateOutputPath)ortc.stats.events_win_etw.res
+link -dll -noentry /MACHINE:$(PlatformTarget) -out:$(IntermediateOutputPath)ortc.events_win_etw.dll $(IntermediateOutputPath)ortc.events_win_etw.res
+link -dll -noentry /MACHINE:$(PlatformTarget) -out:$(IntermediateOutputPath)ortc.stats.events_win_etw.dll $(IntermediateOutputPath)ortc.stats.events_win_etw.res
 echo Copy files to output directory...
-copy $(IntermediateOutputPath)ortc_ETWTracing.dll "$(OutDir)"
-copy $(IntermediateOutputPath)ortc_ETWStatsReport.dll "$(OutDir)"
-copy "$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.man" "$(OutDir)"
-copy "$(ProjectDir)..\..\..\ortc\internal\ortc_ETWStatsReport.man" "$(OutDir)"
-copy "$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.wprp" "$(OutDir)"
-copy "$(ProjectDir)..\..\..\ortc\internal\ortc_ETWStatsReport.wprp" "$(OutDir)"
-icacls "$(OutDir)ortc_ETWTracing.dll" /grant Users:RX
-icacls "$(OutDir)ortc_ETWStatsReport.dll" /grant Users:RX
+copy $(IntermediateOutputPath)ortc.events_win_etw.dll "$(OutDir)"
+copy $(IntermediateOutputPath)ortc.stats.events_win_etw.dll "$(OutDir)"
+copy "$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.man" "$(OutDir)"
+copy "$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.man" "$(OutDir)"
+copy "$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.wprp" "$(OutDir)"
+copy "$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.wprp" "$(OutDir)"
+icacls "$(OutDir)ortc.events_win_etw.dll" /grant Users:RX
+icacls "$(OutDir)ortc.stats.events_win_etw.dll" /grant Users:RX
 echo.
 echo Steps to register manifest file with for Windows Performance Recorder...
 echo.
@@ -574,20 +587,20 @@ echo 2) Change into the output directory, type:
 echo cd "$(OutDir)"
 echo.
 echo 3) To register the manifest, type:
-echo wevtutil.exe im ortc_ETWTracing.man /rf:"$(OutDir)ortc_ETWTracing.dll" /mf:"$(OutDir)ortc_ETWTracing.dll"
-echo wevtutil.exe im ortc_ETWStatsReport.man /rf:"$(OutDir)ortc_ETWStatsReport.dll" /mf:"$(OutDir)ortc_ETWStatsReport.dll"
+echo wevtutil.exe im ortc.events_win_etw.man /rf:"$(OutDir)ortc.events_win_etw.dll" /mf:"$(OutDir)ortc.events_win_etw.dll"
+echo wevtutil.exe im ortc.stats.events_win_etw.man /rf:"$(OutDir)ortc.stats.events_win_etw.dll" /mf:"$(OutDir)ortc.stats.events_win_etw.dll"
 echo.
 echo 4) To unregister the manifest, type:
-echo wevtutil.exe um ortc_ETWTracing.man
-echo wevtutil.exe um ortc_ETWStatsReport.man
+echo wevtutil.exe um ortc.events_win_etw.man
+echo wevtutil.exe um ortc.stats.events_win_etw.man
 echo.
 </Command>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Outputs>$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.h;$(ProjectDir)..\..\..\ortc\internal\ortc_ETWStatsReport.h;$(IntermediateOutputPath)ortc_ETWTracing.rc;$(IntermediateOutputPath)ortc_ETWTracing.res;$(IntermediateOutputPath)ortc_ETWTracing.dll;$(IntermediateOutputPath)ortc_ETWStatsReport.rc;$(IntermediateOutputPath)ortc_ETWStatsReport.res;$(IntermediateOutputPath)ortc_ETWStatsReport.dll;$(OutDir)ortc_ETWTracing.dll;$(OutDir)ortc_ETWTracing.man;$(OutDir)ortc_ETWTracing.wprp;$(OutDir)ortc_ETWStatsReport.dll;$(OutDir)ortc_ETWStatsReport.man;$(OutDir)ortc_ETWStatsReport.wprp;%(Outputs)</Outputs>
+      <Outputs>$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.h;$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.h;$(IntermediateOutputPath)ortc.events_win_etw.rc;$(IntermediateOutputPath)ortc.events_win_etw.res;$(IntermediateOutputPath)ortc.events_win_etw.dll;$(IntermediateOutputPath)ortc.stats.events_win_etw.rc;$(IntermediateOutputPath)ortc.stats.events_win_etw.res;$(IntermediateOutputPath)ortc.stats.events_win_etw.dll;$(OutDir)ortc.events_win_etw.dll;$(OutDir)ortc.events_win_etw.man;$(OutDir)ortc.events_win_etw.wprp;$(OutDir)ortc.stats.events_win_etw.dll;$(OutDir)ortc.stats.events_win_etw.man;$(OutDir)ortc.stats.events_win_etw.wprp;%(Outputs)</Outputs>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Inputs>$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.man;$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.wprp;$(ProjectDir)..\..\..\ortc\internal\ortc_ETWStatsReport.man;$(ProjectDir)..\..\..\ortc\internal\ortc_ETWStatsReport.wprp;%(Inputs)</Inputs>
+      <Inputs>$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.man;$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.wprp;$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.man;$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.wprp;%(Inputs)</Inputs>
     </CustomBuildStep>
     <Lib>
       <AdditionalOptions>/IGNORE:4264 %(AdditionalOptions)</AdditionalOptions>
@@ -609,25 +622,25 @@ echo.
     </Link>
     <CustomBuildStep>
       <Command>echo Create manifest header file...
-mc.exe -um -r $(IntermediateOutputPath) -h "$(ProjectDir)..\..\..\ortc\internal" "$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.man"
-mc.exe -um -r $(IntermediateOutputPath) -h "$(ProjectDir)..\..\..\ortc\internal" "$(ProjectDir)..\..\..\ortc\internal\ortc_ETWStatsReport.man"
+mc.exe -um -r $(IntermediateOutputPath) -h "$(ProjectDir)..\..\..\ortc\internal" "$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.man"
+mc.exe -um -r $(IntermediateOutputPath) -h "$(ProjectDir)..\..\..\ortc\internal" "$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.man"
 echo Create resource file...
-rc.exe $(IntermediateOutputPath)ortc_ETWTracing.rc
-rc.exe $(IntermediateOutputPath)ortc_ETWStatsReport.rc
+rc.exe $(IntermediateOutputPath)ortc.events_win_etw.rc
+rc.exe $(IntermediateOutputPath)ortc.stats.events_win_etw.rc
 echo Create manifest resource dll...
-echo If compiling to managed code resource DLL use: csc.exe /out:$(IntermediateOutputPath)ortc_ETWTracing.dll /target:library /win32res:$(IntermediateOutputPath)ortc_ETWTracing.res
-echo If compiling to managed code resource DLL use: csc.exe /out:$(IntermediateOutputPath)ortc_ETWStatsReport.dll /target:library /win32res:$(IntermediateOutputPath)ortc_ETWStatsReport.res
-link -dll -noentry /MACHINE:$(PlatformTarget) -out:$(IntermediateOutputPath)ortc_ETWTracing.dll $(IntermediateOutputPath)ortc_ETWTracing.res
-link -dll -noentry /MACHINE:$(PlatformTarget) -out:$(IntermediateOutputPath)ortc_ETWStatsReport.dll $(IntermediateOutputPath)ortc_ETWStatsReport.res
+echo If compiling to managed code resource DLL use: csc.exe /out:$(IntermediateOutputPath)ortc.events_win_etw.dll /target:library /win32res:$(IntermediateOutputPath)ortc.events_win_etw.res
+echo If compiling to managed code resource DLL use: csc.exe /out:$(IntermediateOutputPath)ortc.stats.events_win_etw.dll /target:library /win32res:$(IntermediateOutputPath)ortc.stats.events_win_etw.res
+link -dll -noentry /MACHINE:$(PlatformTarget) -out:$(IntermediateOutputPath)ortc.events_win_etw.dll $(IntermediateOutputPath)ortc.events_win_etw.res
+link -dll -noentry /MACHINE:$(PlatformTarget) -out:$(IntermediateOutputPath)ortc.stats.events_win_etw.dll $(IntermediateOutputPath)ortc.stats.events_win_etw.res
 echo Copy files to output directory...
-copy $(IntermediateOutputPath)ortc_ETWTracing.dll "$(OutDir)"
-copy $(IntermediateOutputPath)ortc_ETWStatsReport.dll "$(OutDir)"
-copy "$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.man" "$(OutDir)"
-copy "$(ProjectDir)..\..\..\ortc\internal\ortc_ETWStatsReport.man" "$(OutDir)"
-copy "$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.wprp" "$(OutDir)"
-copy "$(ProjectDir)..\..\..\ortc\internal\ortc_ETWStatsReport.wprp" "$(OutDir)"
-icacls "$(OutDir)ortc_ETWTracing.dll" /grant Users:RX
-icacls "$(OutDir)ortc_ETWStatsReport.dll" /grant Users:RX
+copy $(IntermediateOutputPath)ortc.events_win_etw.dll "$(OutDir)"
+copy $(IntermediateOutputPath)ortc.stats.events_win_etw.dll "$(OutDir)"
+copy "$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.man" "$(OutDir)"
+copy "$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.man" "$(OutDir)"
+copy "$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.wprp" "$(OutDir)"
+copy "$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.wprp" "$(OutDir)"
+icacls "$(OutDir)ortc.events_win_etw.dll" /grant Users:RX
+icacls "$(OutDir)ortc.stats.events_win_etw.dll" /grant Users:RX
 echo.
 echo Steps to register manifest file with for Windows Performance Recorder...
 echo.
@@ -637,20 +650,20 @@ echo 2) Change into the output directory, type:
 echo cd "$(OutDir)"
 echo.
 echo 3) To register the manifest, type:
-echo wevtutil.exe im ortc_ETWTracing.man /rf:"$(OutDir)ortc_ETWTracing.dll" /mf:"$(OutDir)ortc_ETWTracing.dll"
-echo wevtutil.exe im ortc_ETWStatsReport.man /rf:"$(OutDir)ortc_ETWStatsReport.dll" /mf:"$(OutDir)ortc_ETWStatsReport.dll"
+echo wevtutil.exe im ortc.events_win_etw.man /rf:"$(OutDir)ortc.events_win_etw.dll" /mf:"$(OutDir)ortc.events_win_etw.dll"
+echo wevtutil.exe im ortc.stats.events_win_etw.man /rf:"$(OutDir)ortc.stats.events_win_etw.dll" /mf:"$(OutDir)ortc.stats.events_win_etw.dll"
 echo.
 echo 4) To unregister the manifest, type:
-echo wevtutil.exe um ortc_ETWTracing.man
-echo wevtutil.exe um ortc_ETWStatsReport.man
+echo wevtutil.exe um ortc.events_win_etw.man
+echo wevtutil.exe um ortc.stats.events_win_etw.man
 echo.
 </Command>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Outputs>$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.h;$(ProjectDir)..\..\..\ortc\internal\ortc_ETWStatsReport.h;$(IntermediateOutputPath)ortc_ETWTracing.rc;$(IntermediateOutputPath)ortc_ETWTracing.res;$(IntermediateOutputPath)ortc_ETWTracing.dll;$(IntermediateOutputPath)ortc_ETWStatsReport.rc;$(IntermediateOutputPath)ortc_ETWStatsReport.res;$(IntermediateOutputPath)ortc_ETWStatsReport.dll;$(OutDir)ortc_ETWTracing.dll;$(OutDir)ortc_ETWTracing.man;$(OutDir)ortc_ETWTracing.wprp;$(OutDir)ortc_ETWStatsReport.dll;$(OutDir)ortc_ETWStatsReport.man;$(OutDir)ortc_ETWStatsReport.wprp;%(Outputs)</Outputs>
+      <Outputs>$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.h;$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.h;$(IntermediateOutputPath)ortc.events_win_etw.rc;$(IntermediateOutputPath)ortc.events_win_etw.res;$(IntermediateOutputPath)ortc.events_win_etw.dll;$(IntermediateOutputPath)ortc.stats.events_win_etw.rc;$(IntermediateOutputPath)ortc.stats.events_win_etw.res;$(IntermediateOutputPath)ortc.stats.events_win_etw.dll;$(OutDir)ortc.events_win_etw.dll;$(OutDir)ortc.events_win_etw.man;$(OutDir)ortc.events_win_etw.wprp;$(OutDir)ortc.stats.events_win_etw.dll;$(OutDir)ortc.stats.events_win_etw.man;$(OutDir)ortc.stats.events_win_etw.wprp;%(Outputs)</Outputs>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Inputs>$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.man;$(ProjectDir)..\..\..\ortc\internal\ortc_ETWTracing.wprp;$(ProjectDir)..\..\..\ortc\internal\ortc_ETWStatsReport.man;$(ProjectDir)..\..\..\ortc\internal\ortc_ETWStatsReport.wprp;%(Inputs)</Inputs>
+      <Inputs>$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.man;$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.wprp;$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.man;$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.wprp;%(Inputs)</Inputs>
     </CustomBuildStep>
     <Lib>
       <AdditionalOptions>/IGNORE:4264 %(AdditionalOptions)</AdditionalOptions>

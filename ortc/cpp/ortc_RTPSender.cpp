@@ -41,7 +41,7 @@
 #include <ortc/internal/ortc_RTPTypes.h>
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/ortc_StatsReport.h>
-#include <ortc/internal/ortc_Tracing.h>
+#include <ortc/internal/ortc.events.h>
 #include <ortc/internal/platform.h>
 
 #include <ortc/IRTPReceiver.h>
@@ -317,14 +317,14 @@ namespace ortc
 
       UseSecureTransport::getSendingTransport(transport, rtcpTransport, mSendRTPOverTransport, mSendRTCPOverTransport, mRTPTransport, mRTCPTransport);
 
-      EventWriteOrtcRtpSenderCreate(
-                                    __func__,
-                                    mID,
-                                    ((bool)mTrack) ? mTrack->getID() : 0,
-                                    ((bool)mListener) ? mListener->getID() : 0,
-                                    ((bool)mRTPTransport) ? mRTPTransport->getID() : 0,
-                                    ((bool)mRTCPTransport) ? mRTPTransport->getID() : 0
-                                    );
+      ZS_EVENTING_5(
+                    x, i, Detail, RtpSenderCreate, ol, RtpSender, Start,
+                    puid, id, mID,
+                    puid, trackId, ((bool)mTrack) ? mTrack->getID() : 0,
+                    puid, listenerId, ((bool)mListener) ? mListener->getID() : 0,
+                    puid, rtpTransportId, ((bool)mRTPTransport) ? mRTPTransport->getID() : 0,
+                    puid, rtcpTransportId, ((bool)mRTCPTransport) ? mRTCPTransport->getID() : 0
+                    );
     }
 
     //-------------------------------------------------------------------------
@@ -345,7 +345,7 @@ namespace ortc
       mThisWeak.reset();
 
       cancel();
-      EventWriteOrtcRtpSenderDestroy(__func__, mID);
+      ZS_EVENTING_1(x, i, Detail, RtpSenderDestroy, ol, RtpSender, Stop, puid, id, mID);
     }
 
     //-------------------------------------------------------------------------
@@ -571,7 +571,13 @@ namespace ortc
 
       UseSecureTransport::getSendingTransport(transport, rtcpTransport, mSendRTPOverTransport, mSendRTCPOverTransport, mRTPTransport, mRTCPTransport);
 
-      EventWriteOrtcRtpSenderSetTransport(__func__, mID, ((bool)mListener) ? mListener->getID() : 0, ((bool)mRTPTransport) ? mRTPTransport->getID() : 0, ((bool)mRTCPTransport) ? mRTCPTransport->getID() : 0);
+      ZS_EVENTING_4(
+                    x, i, Detail, RtpSenderSetTransport, ol, RtpSender, Stop,
+                    puid, id, mID,
+                    puid, listenerId, ((bool)mListener) ? mListener->getID() : 0,
+                    puid, rtpTransportId, ((bool)mRTPTransport) ? mRTPTransport->getID() : 0,
+                    puid, rtcpTransportId, ((bool)mRTCPTransport) ? mRTCPTransport->getID() : 0
+                    );
 
       if (mRTCPTransportSubscription) {
         mRTCPTransportSubscription->cancel();
@@ -590,7 +596,12 @@ namespace ortc
 
       Kinds kind = (track ? track->kind() : IMediaStreamTrackTypes::Kind_Audio);
 
-      EventWriteOrtcRtpSenderSetTrack(__func__, mID, ((bool)track) ? track->getID() : 0, ((bool)track) ? IMediaStreamTrackTypes::toString(kind) : NULL);
+      ZS_EVENTING_3(
+                    x, i, Detail, RtpSenderSetTrack, ol, RtpSender, SetTrack,
+                    puid, id, mID,
+                    puid, trackId, ((bool)track) ? track->getID() : 0,
+                    string, kind, ((bool)track) ? IMediaStreamTrackTypes::toString(kind) : NULL
+                    );
 
       {
         AutoRecursiveLock lock(*this);
@@ -616,7 +627,12 @@ namespace ortc
           }
           for (auto iter = mChannels->begin(); iter != mChannels->end(); ++iter) {
             auto &channel = (*iter).second;
-            EventWriteOrtcRtpSenderDetachTrackSenderChannel(__func__, mID, mTrack->getID(), channel->getID());
+            ZS_EVENTING_3(
+                          x, i, Detail, RtpSenderDetachTrackSenderChannel, ol, RtpSender, Info,
+                          puid, id, mID,
+                          puid, trackId, mTrack->getID(),
+                          puid, channelId, channel->getID()
+                          );
             mTrack->notifyDetachSenderChannel(RTPSenderChannel::convert(channel->mChannel));
           }
         }
@@ -626,7 +642,12 @@ namespace ortc
         if (mTrack) {
           for (auto iter = mChannels->begin(); iter != mChannels->end(); ++iter) {
             auto &channel = (*iter).second;
-            EventWriteOrtcRtpSenderAttachTrackSenderChannel(__func__, mID, mTrack->getID(), channel->getID());
+            ZS_EVENTING_3(
+                          x, i, Detail, RtpSenderAttachTrackSenderChannel, ol, RtpSender, Info,
+                          puid, id, mID,
+                          puid, trackId, mTrack->getID(),
+                          puid, channelId, channel->getID()
+                          );
             mTrack->notifyAttachSenderChannel(RTPSenderChannel::convert(channel->mChannel));
           }
         }
@@ -649,7 +670,7 @@ namespace ortc
 
       PromisePtr promise = Promise::create(IORTCForInternal::queueDelegate());
 
-      EventWriteOrtcRtpSenderSend(__func__, mID);
+      ZS_EVENTING_1(x, i, Detail, RtpSenderSend, ol, RtpSender, Info, puid, id, mID);
 
       ZS_LOG_DEBUG(log("send called") + parameters.toDebug())
 
@@ -781,7 +802,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPSender::stop()
     {
-      EventWriteOrtcRtpSenderStop(__func__, mID);
+      ZS_EVENTING_1(x, i, Detail, RtpSenderStop, ol, RtpSender, Close, puid, id, mID);
 
       ZS_LOG_DEBUG(log("stop called"))
 
@@ -803,7 +824,14 @@ namespace ortc
                                  RTCPPacketPtr packet
                                  )
     {
-      EventWriteOrtcRtpSenderIncomingPacket(__func__, mID, zsLib::to_underlying(viaTransport), zsLib::to_underlying(IICETypes::Component_RTCP), SafeInt<unsigned int>(packet->buffer()->SizeInBytes()), packet->buffer()->BytePtr());
+      ZS_EVENTING_5(
+                    x, i, Trace, RtpSenderIncomingPacket, ol, RtpSender, Receive,
+                    puid, id, mID,
+                    enum, viaTransport, zsLib::to_underlying(viaTransport),
+                    enum, packetType, zsLib::to_underlying(IICETypes::Component_RTCP),
+                    buffer, packet, packet->buffer()->BytePtr(),
+                    size, size, packet->buffer()->SizeInBytes()
+                    );
 
       ZS_LOG_TRACE(log("received packet") + ZS_PARAM("via", IICETypes::toString(viaTransport)) + packet->toDebug())
 
@@ -819,7 +847,14 @@ namespace ortc
       {
         auto channel = (*iter).second;
 
-        EventWriteOrtcRtpSenderDeliverIncomingPacketToChannel(__func__, mID, channel->getID(), zsLib::to_underlying(viaTransport), zsLib::to_underlying(IICETypes::Component_RTCP), SafeInt<unsigned int>(packet->buffer()->SizeInBytes()), packet->buffer()->BytePtr());
+        ZS_EVENTING_5(
+                      x, i, Trace, RtpSenderDeliverIncomingPacketToChannel, ol, RtpSender, Deliver,
+                      puid, id, mID,
+                      enum, viaTransport, zsLib::to_underlying(viaTransport),
+                      enum, packetType, zsLib::to_underlying(IICETypes::Component_RTCP),
+                      buffer, packet, packet->buffer()->BytePtr(),
+                      size, size, packet->buffer()->SizeInBytes()
+                      );
 
         auto channelResult = channel->handle(packet);
         result = result || channelResult;
@@ -857,9 +892,16 @@ namespace ortc
         return false;
       }
 
-      ZS_LOG_TRACE(log("sending rtp packet over secure transport") + ZS_PARAM("size", packet->size()))
+      ZS_LOG_TRACE(log("sending rtp packet over secure transport") + ZS_PARAM("size", packet->size()));
 
-      EventWriteOrtcRtpSenderSendOutgoingPacket(__func__, mID, zsLib::to_underlying(mSendRTPOverTransport), zsLib::to_underlying(IICETypes::Component_RTP), SafeInt<unsigned int>(packet->buffer()->SizeInBytes()), packet->buffer()->BytePtr());
+      ZS_EVENTING_5(
+                    x, i, Trace, RtpSenderSendOutgoingPacket, ol, RtpSender, Send,
+                    puid, id, mID,
+                    enum, sendOverTransport, zsLib::to_underlying(mSendRTPOverTransport),
+                    enum, packetType, zsLib::to_underlying(IICETypes::Component_RTP),
+                    buffer, packet, packet->buffer()->BytePtr(),
+                    size, size, packet->buffer()->SizeInBytes()
+                    );
 
       return rtpTransport->sendPacket(mSendRTPOverTransport, IICETypes::Component_RTP, packet->ptr(), packet->size());
     }
@@ -885,9 +927,16 @@ namespace ortc
         return false;
       }
 
-      ZS_LOG_TRACE(log("sending rtcp packet over secure transport") + ZS_PARAM("size", packet->size()))
+      ZS_LOG_TRACE(log("sending rtcp packet over secure transport") + ZS_PARAM("size", packet->size()));
 
-      EventWriteOrtcRtpSenderSendOutgoingPacket(__func__, mID, zsLib::to_underlying(mSendRTCPOverTransport), zsLib::to_underlying(IICETypes::Component_RTCP), SafeInt<unsigned int>(packet->buffer()->SizeInBytes()), packet->buffer()->BytePtr());
+      ZS_EVENTING_5(
+                    x, i, Trace, RtpSenderSendOutgoingPacket, ol, RtpSender, Send,
+                    puid, id, mID,
+                    enum, sendOverTransport, zsLib::to_underlying(mSendRTPOverTransport),
+                    enum, packetType, zsLib::to_underlying(IICETypes::Component_RTCP),
+                    buffer, packet, packet->buffer()->BytePtr(),
+                    size, size, packet->buffer()->SizeInBytes()
+                    );
 
       return rtcpTransport->sendPacket(mSendRTCPOverTransport, IICETypes::Component_RTCP, packet->ptr(), packet->size());
     }
@@ -917,7 +966,13 @@ namespace ortc
         mConflicts.push_back(ssrc);
       }
 
-      EventWriteOrtcRtpSenderSsrcConflictEventFired(__func__, mID, ((bool)channel) ? channel->getID() : 0, ssrc, selfDestruct);
+      ZS_EVENTING_4(
+                    x, w, Debug, RtpSenderSsrcConflictEvent, ol, RtpSender, Event,
+                    puid, id, mID,
+                    puid, channelId, ((bool)channel) ? channel->getID() : 0,
+                    dword, ssrc, ssrc,
+                    bool, selfDestruct, selfDestruct
+                    );
 
       mSubscriptions.delegate()->onRTPSenderSSRCConflict(mThisWeak.lock(), ssrc);
 
@@ -1140,9 +1195,14 @@ namespace ortc
                                                   ISecureTransport::States state
                                                   )
     {
-      EventWriteOrtcRtpSenderInternalSecureTransportStateChangedEventFired(__func__, mID, transport->getID(), ISecureTransportTypes::toString(state));
+      ZS_EVENTING_3(
+                    x, i, Debug, RtpSenderInternalSecureTransportStateChangedEvent, ol, RtpSender, InternalEvent,
+                    puid, id, mID,
+                    puid, secureTransportId, transport->getID(),
+                    string, state, ISecureTransportTypes::toString(state)
+                    );
 
-      ZS_LOG_DEBUG(log("on secure transport state changed") + ZS_PARAM("secure transport", transport->getID()) + ZS_PARAM("state", ISecureTransportTypes::toString(state)))
+      ZS_LOG_DEBUG(log("on secure transport state changed") + ZS_PARAM("secure transport", transport->getID()) + ZS_PARAM("state", ISecureTransportTypes::toString(state)));
 
       AutoRecursiveLock lock(*this);
       notifyChannelsOfTransportState();
@@ -1159,7 +1219,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPSender::onWake()
     {
-      EventWriteOrtcRtpSenderInternalWakeEventFired(__func__, mID);
+      ZS_EVENTING_1(x, i, Debug, RtpSenderInternalWakeEvent, ol, RtpSender, InternalEvent, puid, id, mID);
 
       ZS_LOG_DEBUG(log("wake"))
 
@@ -1198,9 +1258,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPSender::onDestroyChannel(UseChannelPtr channel)
     {
-      EventWriteOrtcRtpSenderInternalDestroyChannelEventFired(__func__, mID, channel->getID());
+      ZS_EVENTING_2(x, i, Debug, RtpSenderInternalDestroyChannelEvent, ol, RtpSender, InternalEvent, puid, id, mID, puid, channelId, channel->getID());
 
-      ZS_LOG_TRACE(log("on destroy channel") + ZS_PARAM("channel", channel->getID()))
+      ZS_LOG_TRACE(log("on destroy channel") + ZS_PARAM("channel", channel->getID()));
 
       AutoRecursiveLock lock(*this);
 
@@ -1220,7 +1280,12 @@ namespace ortc
         existingChannel->notify(ISecureTransportTypes::State_Closed);
 
         if (mTrack) {
-          EventWriteOrtcRtpSenderDetachTrackSenderChannel(__func__, mID, mTrack->getID(), existingChannel->getID());
+          ZS_EVENTING_3(
+                        x, i, Detail, RtpSenderDetachTrackSenderChannel, ol, RtpSender, Info,
+                        puid, id, mID,
+                        puid, trackId, mTrack->getID(),
+                        puid, channelId, existingChannel->getID()
+                        );
           mTrack->notifyDetachSenderChannel(RTPSenderChannel::convert(existingChannel->mChannel));
         }
 
@@ -1242,7 +1307,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPSender::notifyChannelGone()
     {
-      EventWriteOrtcRtpSenderInternalChannelGoneEventFired(__func__, mID);
+      ZS_EVENTING_1(x, i, Debug, RtpSenderInternalChannelGoneEvent, ol, RtpSender, InternalEvent, puid, id, mID);
       // nothing to do
     }
 
@@ -1352,7 +1417,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPSender::cancel()
     {
-      EventWriteOrtcRtpSenderCancel(__func__, mID);
+      ZS_EVENTING_1(x, i, Debug, RtpSenderCancel, ol, RtpSender, Cancel, puid, id, mID);
 
       //.......................................................................
       // try to gracefully shutdown
@@ -1404,7 +1469,7 @@ namespace ortc
       ZS_LOG_DETAIL(debug("state changed") + ZS_PARAM("new state", toString(state)) + ZS_PARAM("old state", toString(mCurrentState)))
 
       mCurrentState = state;
-      EventWriteOrtcRtpSenderStateChangedEventFired(__func__, mID, toString(state));
+      ZS_EVENTING_2(x, i, Debug, RtpSenderStateChangedEvent, ol, RtpSender, StateEvent, puid, id, mID, string, state, toString(state));
 
 //      RTPSenderPtr pThis = mThisWeak.lock();
 //      if (pThis) {
@@ -1427,7 +1492,12 @@ namespace ortc
 
       mLastError = errorCode;
       mLastErrorReason = reason;
-      EventWriteOrtcRtpSenderErrorEventFired(__func__, mID, errorCode, reason);
+      ZS_EVENTING_3(
+                    x, e, Debug, RtpSenderErrorEvent, ol, RtpSender, ErrorEvent,
+                    puid, id, mID,
+                    word, errorCode, errorCode,
+                    string, state, reason
+                    );
 
       ZS_LOG_WARNING(Detail, debug("error set") + ZS_PARAM("error", mLastError) + ZS_PARAM("reason", mLastErrorReason))
     }
@@ -1440,10 +1510,20 @@ namespace ortc
       channel->mChannel = UseChannel::create(mThisWeak.lock(), MediaStreamTrack::convert(mTrack), *newParams);
       channel->notify(mLastReportedTransportStateToChannels);
       if (mTrack) {
-        EventWriteOrtcRtpSenderAttachTrackSenderChannel(__func__, mID, mTrack->getID(), channel->getID());
+        ZS_EVENTING_3(
+                      x, i, Detail, RtpSenderAttachTrackSenderChannel, ol, RtpSender, Info,
+                      puid, id, mID,
+                      puid, trackId, mTrack->getID(),
+                      puid, channelId, channel->getID()
+                      );
+
         mTrack->notifyAttachSenderChannel(RTPSenderChannel::convert(channel->mChannel));
       }
-      EventWriteOrtcRtpSenderAddChannel(__func__, mID, channel->getID());
+      ZS_EVENTING_2(
+                    x, i, Debug, RtpSenderAddChannel, ol, RtpSender, Info,
+                    puid, id, mID,
+                    puid, channelId, channel->getID()
+                    );
       return channel;
     }
 
@@ -1453,18 +1533,31 @@ namespace ortc
                                   ParametersPtr newParams
                                   )
     {
-      EventWriteOrtcRtpSenderUpdateChannel(__func__, mID, channel->getID());
+      ZS_EVENTING_2(
+                    x, i, Debug, RtpSenderUpdateChannel, ol, RtpSender, Info,
+                    puid, id, mID,
+                    puid, channelId, channel->getID()
+                    );
       channel->update(*newParams);
     }
 
     //-------------------------------------------------------------------------
     void RTPSender::removeChannel(ChannelHolderPtr channel)
     {
-      EventWriteOrtcRtpSenderRemoveChannel(__func__, mID, channel->getID());
+      ZS_EVENTING_2(
+                    x, i, Debug, RtpSenderRemoveChannel, ol, RtpSender, Info,
+                    puid, id, mID,
+                    puid, channelId, channel->getID()
+                    );
 
       channel->notify(ISecureTransport::State_Closed);
       if (mTrack) {
-        EventWriteOrtcRtpSenderDetachTrackSenderChannel(__func__, mID, mTrack->getID(), channel->getID());
+        ZS_EVENTING_3(
+                      x, i, Detail, RtpSenderDetachTrackSenderChannel, ol, RtpSender, Info,
+                      puid, id, mID,
+                      puid, trackId, mTrack->getID(),
+                      puid, channelId, channel->getID()
+                      );
         mTrack->notifyDetachSenderChannel(RTPSenderChannel::convert(channel->mChannel));
       }
     }

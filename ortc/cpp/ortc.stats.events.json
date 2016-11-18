@@ -1,0 +1,85 @@
+{
+  "provider": {
+    "id": "12ceb95f-6bcf-4083-90f1-b757c405c461",
+    "name": "OrtcLibStatsReport",
+    "symbol": "OrtcLibStatsReport",
+    "description": "ORTC Lib (stats) library",
+    "resourceName": "ortc.stats.events",
+    "aliases": {
+      "alias": [
+        {
+          "in": "i",
+          "out": "Info"
+        },
+        {
+          "in": "w",
+          "out": "Warning"
+        },
+        {
+          "in": "e",
+          "out": "Error"
+        },
+        {
+          "in": "f",
+          "out": "Fatal"
+        }
+      ]
+    },
+    "typedefs": {
+      "typedef": [
+        {
+          "name": "boolean",
+          "type": "bool"
+        },
+        {
+          "name": "puid",
+          "type": "ulong"
+        },
+        {
+          "name": "size_t",
+          "type": "uint64"
+        },
+        {
+          "name": "this",
+          "type": "pointer"
+        },
+        {
+          "name": "socket",
+          "type": "uint64"
+        },
+        {
+          "name": "enum",
+          "type": "uint64"
+        },
+        {
+          "name": "duration",
+          "type": "longlong"
+        },
+        {
+          "name": "buffer",
+          "type": "binary"
+        }
+      ]
+    },
+    "sources": {
+      "source": [
+        "ortc/cpp/ortc_StatsReport.cpp",
+        "ortc/cpp/ortc_ORTC.cpp"
+      ]
+    },
+    "channels": {
+      "channel": [
+        {
+          "id": "ols",
+          "name": "OrtcLibStats",
+          "type": "Debug"
+        }
+      ]
+    },
+    "tasks": {
+      "task": {
+        "name": "Stats"
+      }
+    }
+  }
+}

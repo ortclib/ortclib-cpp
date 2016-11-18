@@ -42,7 +42,7 @@
 #include <ortc/internal/ortc_RTCPPacket.h>
 #include <ortc/internal/ortc_RTPTypes.h>
 #include <ortc/internal/ortc_ORTC.h>
-#include <ortc/internal/ortc_Tracing.h>
+#include <ortc/internal/ortc.events.h>
 #include <ortc/internal/platform.h>
 
 #include <ortc/services/ISettings.h>
@@ -182,7 +182,12 @@ namespace ortc
 
       setupTagging();
 
-      EventWriteOrtcRtpSenderChannelCreate(__func__, mID, sender->getID(), ((bool)track) ? track->getID() : 0);
+      ZS_EVENTING_3(
+                    x, i, Detail, RtpSenderChannelCreate, ol, RtpSender, Start,
+                    puid, id, mID,
+                    puid, senderId, sender->getID(),
+                    puid, trackId, ((bool)track) ? track->getID() : 0
+                    );
     }
 
     //-------------------------------------------------------------------------
@@ -214,9 +219,14 @@ namespace ortc
         }
       }
 
-      ORTC_THROW_INVALID_PARAMETERS_IF(!found)
+      ORTC_THROW_INVALID_PARAMETERS_IF(!found);
 
-      EventWriteOrtcRtpSenderChannelCreateMediaChannel(__func__, mID, mMediaBase->getID(), IMediaStreamTrack::toString(kind.value()));
+      ZS_EVENTING_3(
+                    x, i, Detail, RtpSenderChannelCreateMediaChannel, ol, RtpSender, Info,
+                    puid, id, mID,
+                    puid, mediaBaseId, mMediaBase->getID(),
+                    string, kind, IMediaStreamTrack::toString(kind.value())
+                    );
 
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
@@ -230,7 +240,7 @@ namespace ortc
       mThisWeak.reset();
 
       cancel();
-      EventWriteOrtcRtpSenderChannelDestroy(__func__, mID);
+      ZS_EVENTING_1(x, i, Detail, RtpSenderChannelDestroy, ol, RtpSender, Stop, puid, id, mID);
     }
 
     //-------------------------------------------------------------------------
@@ -301,14 +311,24 @@ namespace ortc
     void RTPSenderChannel::notifyTrackChanged(MediaStreamTrackPtr inTrack)
     {
       UseMediaStreamTrackPtr track = inTrack;
-      EventWriteOrtcRtpSenderChannelChangeTrack(__func__, mID, mMediaBase->getID(), ((bool)track) ? track->getID() : 0);
+      ZS_EVENTING_3(
+                    x, i, Debug, RtpSenderChannelChangeTrack, ol, RtpSenderChannel, InternalEvent,
+                    puid, id, mID,
+                    puid, mediaBaseId, mMediaBase->getID(),
+                    puid, trackId, ((bool)track) ? track->getID() : 0
+                    );
       IRTPSenderChannelAsyncDelegateProxy::create(mThisWeak.lock())->onTrackChanged(track);
     }
 
     //-------------------------------------------------------------------------
     void RTPSenderChannel::notifyTransportState(ISecureTransportTypes::States state)
     {
-      EventWriteOrtcRtpSenderChannelInternalSecureTransportStateChangedEventFired(__func__, mID, ISecureTransportTypes::toString(state));
+      ZS_EVENTING_2(
+                    x, i, Debug, RtpSenderChannelInternalSecureTransportStateChangedEvent, ol, RtpSenderChannel, InternalEvent,
+                    puid, id, mID,
+                    string, state, ISecureTransportTypes::toString(state)
+                    );
+
       // do NOT lock this object here, instead notify self asynchronously
       IRTPSenderChannelAsyncDelegateProxy::create(mThisWeak.lock())->onSecureTransportState(state);
     }
@@ -323,7 +343,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPSenderChannel::notifyUpdate(const Parameters &params)
     {
-      EventWriteOrtcRtpSenderChannelInternalUpdateEventFired(__func__, mID);
+      ZS_EVENTING_1(x, i, Debug, RtpSenderChannelInternalUpdateEvent, ol, RtpSenderChannel, InternalEvent, puid, id, mID);
 
       // do NOT lock this object here, instead notify self asynchronously
       IRTPSenderChannelAsyncDelegateProxy::create(mThisWeak.lock())->onUpdate(make_shared<Parameters>(params));
@@ -347,7 +367,14 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool RTPSenderChannel::handlePacket(RTCPPacketPtr packet)
     {
-      EventWriteOrtcRtpSenderChannelDeliverIncomingPacketToMediaChannel(__func__, mID, mMediaBase->getID(), zsLib::to_underlying(IICETypes::Component_RTCP), SafeInt<unsigned int>(packet->buffer()->SizeInBytes()), packet->buffer()->BytePtr());
+      ZS_EVENTING_5(
+                    x, i, Trace, RtpSenderChannelDeliverIncomingPacketToMediaChannel, ol, RtpSenderChannel, Deliver,
+                    puid, id, mID,
+                    puid, mediaBaseId, mMediaBase->getID(),
+                    enum, packetType, zsLib::to_underlying(IICETypes::Component_RTCP),
+                    buffer, packet, packet->buffer()->BytePtr(),
+                    size, size, packet->buffer()->SizeInBytes()
+                    );
 
       if (mIsTagging)
       {
@@ -488,7 +515,14 @@ namespace ortc
         }
       }
 
-      EventWriteOrtcRtpSenderChannelSendOutgoingPacket(__func__, mID, sender->getID(), zsLib::to_underlying(IICETypes::Component_RTP), SafeInt<unsigned int>(packet->buffer()->SizeInBytes()), packet->buffer()->BytePtr());
+      ZS_EVENTING_5(
+                    x, i, Trace, RtpSenderChannelSendOutgoingPacket, ol, RtpSenderChannel, Send,
+                    puid, id, mID,
+                    puid, senderId, sender->getID(),
+                    enum, packetType, zsLib::to_underlying(IICETypes::Component_RTP),
+                    buffer, packet, packet->buffer()->BytePtr(),
+                    size, size, packet->buffer()->SizeInBytes()
+                    );
 
       return sender->sendPacket(packet);
     }
@@ -499,7 +533,14 @@ namespace ortc
       auto sender = mSender.lock();
       if (!sender) return false;
 
-      EventWriteOrtcRtpSenderChannelSendOutgoingPacket(__func__, mID, sender->getID(), zsLib::to_underlying(IICETypes::Component_RTCP), SafeInt<unsigned int>(packet->buffer()->SizeInBytes()), packet->buffer()->BytePtr());
+      ZS_EVENTING_5(
+                    x, i, Trace, RtpSenderChannelSendOutgoingPacket, ol, RtpSenderChannel, Send,
+                    puid, id, mID,
+                    puid, senderId, sender->getID(),
+                    enum, packetType, zsLib::to_underlying(IICETypes::Component_RTCP),
+                    buffer, packet, packet->buffer()->BytePtr(),
+                    size, size, packet->buffer()->SizeInBytes()
+                    );
 
       if ((mIsTagging) &&
           (mTagSDES))

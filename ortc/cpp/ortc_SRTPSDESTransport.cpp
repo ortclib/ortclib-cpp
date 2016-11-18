@@ -35,7 +35,6 @@
 #include <ortc/internal/ortc_SRTPTransport.h>
 #include <ortc/internal/ortc_Helper.h>
 #include <ortc/internal/ortc_ORTC.h>
-#include <ortc/internal/ortc_Tracing.h>
 #include <ortc/internal/platform.h>
 
 #include <ortc/services/IHelper.h>

@@ -33,7 +33,7 @@
 #include <ortc/internal/ortc_SCTPTransport.h>
 #include <ortc/internal/ortc_Helper.h>
 #include <ortc/internal/ortc_ORTC.h>
-#include <ortc/internal/ortc_Tracing.h>
+#include <ortc/internal/ortc.events.h>
 #include <ortc/internal/platform.h>
 
 #include <ortc/services/ISettings.h>
@@ -249,7 +249,14 @@ namespace ortc
       mIncoming(ORTC_SCTP_INVALID_DATA_CHANNEL_SESSION_ID != sessionID),
       mSessionID(ORTC_SCTP_INVALID_DATA_CHANNEL_SESSION_ID == sessionID ? (params->mID.hasValue() ? params->mID.value() : ORTC_SCTP_INVALID_DATA_CHANNEL_SESSION_ID) : sessionID)
     {
-      EventWriteOrtcDataChannelCreate(__func__, mID, ((bool)transport) ? transport->getID() : 0, ((bool)mParameters) ? UseServicesHelper::toString(mParameters->createElement("params")) : String(), mIncoming, mSessionID);
+      ZS_EVENTING_5(
+                    x, i, Detail, DataChannelCreate, ol, DataChannel, Start,
+                    puid, id, mID,
+                    puid, dataTransportId, ((bool)transport) ? transport->getID() : 0,
+                    string, parameters, ((bool)mParameters) ? UseServicesHelper::toString(mParameters->createElement("params")) : String(),
+                    bool, incoming, mIncoming,
+                    word, sessionId, mSessionID
+                    );
       ZS_LOG_DETAIL(debug("created"))
 
       mBinaryType = "blob";
@@ -280,7 +287,7 @@ namespace ortc
 
       cancel();
 
-      EventWriteOrtcDataChannelDestroy(__func__, mID);
+      ZS_EVENTING_1(x, i, Detail, DataChannelDestroy, ol, DataChannel, Stop, puid, id, mID);
     }
 
     //-------------------------------------------------------------------------
@@ -434,7 +441,15 @@ namespace ortc
     {
       AutoRecursiveLock lock(*this);
 
-      EventWriteOrtcDataChannelBufferedAmountLowThresholdChanged(__func__, mID, value, mBufferedAmountLowThreshold, mOutgoingBufferFillSize, mBufferedAmountLowThresholdFired);
+      ZS_EVENTING_5(
+                    x, i, Trace, DataChannelBufferedAmountLowThresholdChanged, ol, DataChannel, Event,
+                    puid, id, mID,
+                    size_t, value, value,
+                    size_t, previousBufferedAmountLowThreshold, mBufferedAmountLowThreshold,
+                    size_t, outgoingBufferFillSize, mOutgoingBufferFillSize,
+                    bool, bufferedAmountLowThresholdFired, mBufferedAmountLowThresholdFired
+                    );
+
       mBufferedAmountLowThreshold = value;
 
       if (mOutgoingBufferFillSize > mBufferedAmountLowThreshold) {
@@ -459,7 +474,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     void DataChannel::close()
     {
-      EventWriteOrtcDataChannelClose(__func__, mID);
+      ZS_EVENTING_1(x, i, Trace, DataChannelClose, ol, DataChannel, Close, puid, id, mID);
+
       ZS_LOG_DEBUG(log("close called"))
       AutoRecursiveLock lock(*this);
       cancel();
@@ -468,7 +484,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     void DataChannel::send(const String &data)
     {
-      EventWriteOrtcDataChannelSendString(__func__, mID, data);
+      ZS_EVENTING_2(x, i, Trace, DataChannelSendString, ol, DataChannel, Send, puid, id, mID, string, data, data);
 
       AutoRecursiveLock lock(*this);
       if (data.isEmpty()) {
@@ -481,7 +497,13 @@ namespace ortc
     //-------------------------------------------------------------------------
     void DataChannel::send(const SecureByteBlock &data)
     {
-      EventWriteOrtcDataChannelSendBinary(__func__, mID, SafeInt<unsigned int>(data.SizeInBytes()), data.BytePtr());
+      ZS_EVENTING_3(
+                    x, i, Trace, DataChannelSendBinary, ol, DataChannel, Send,
+                    puid, id, mID,
+                    buffer, buffer, data.BytePtr(),
+                    size, size, data.SizeInBytes()
+                    );
+
       AutoRecursiveLock lock(*this);
       send(SCTP_PPID_BINARY_LAST, data.BytePtr(), data.SizeInBytes());
     }
@@ -492,7 +514,12 @@ namespace ortc
                            size_t bufferSizeInBytes
                            )
     {
-      EventWriteOrtcDataChannelSendBinary(__func__, mID, SafeInt<unsigned int>(bufferSizeInBytes), buffer);
+      ZS_EVENTING_3(
+                    x, i, Trace, DataChannelSendBinary, ol, DataChannel, Send,
+                    puid, id, mID,
+                    buffer, buffer, buffer,
+                    size, size, bufferSizeInBytes
+                    );
       ORTC_THROW_INVALID_PARAMETERS_IF((NULL == buffer) && (0 != bufferSizeInBytes))
 
       AutoRecursiveLock lock(*this);
@@ -542,7 +569,17 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool DataChannel::handleSCTPPacket(SCTPPacketIncomingPtr packet)
     {
-      EventWriteOrtcDataChannelSCTPTransportReceivedIncomingPacket(__func__, mID, zsLib::to_underlying(packet->mType), packet->mSessionID, packet->mSequenceNumber, packet->mTimestamp, packet->mFlags, ((bool)packet->mBuffer) ? SafeInt<unsigned int>(packet->mBuffer->SizeInBytes()) : 0, ((bool)packet->mBuffer) ? packet->mBuffer->BytePtr() : NULL);
+      ZS_EVENTING_8(
+                    x, i, Trace, DataChannelSCTPTransportReceivedIncomingPacket, ol, DataChannel, Receive,
+                    puid, id, mID,
+                    enum, protocolPayloadIdentifier, zsLib::to_underlying(packet->mType),
+                    word, sessionId, packet->mSessionID,
+                    word, sequenceNumber, packet->mSequenceNumber,
+                    dword, timestamp, packet->mTimestamp,
+                    int, flags, packet->mFlags,
+                    buffer, packet, ((bool)packet->mBuffer) ? packet->mBuffer->BytePtr() : NULL,
+                    size, size, ((bool)packet->mBuffer) ? SafeInt<unsigned int>(packet->mBuffer->SizeInBytes()) : 0
+                    );
 
       // scope: obtain whatever data is required inside lock to process SCTP packet
       {
@@ -620,16 +657,17 @@ namespace ortc
     //-------------------------------------------------------------------------
     void DataChannel::requestShutdown()
     {
-      EventWriteOrtcDataChannelSCTPTransportRequestShutdown(__func__, mID);
-      ZS_LOG_TRACE(log("request shutdown"))
+      ZS_EVENTING_1(x, i, Trace, DataChannelSCTPTransportRequestShutdown, ol, DataChannel, Close, puid, id, mID);
+      ZS_LOG_TRACE(log("request shutdown"));
       IDataChannelAsyncDelegateProxy::create(mThisWeak.lock())->onRequestShutdown();
     }
 
     //-------------------------------------------------------------------------
     void DataChannel::notifyClosed()
     {
-      EventWriteOrtcDataChannelSCTPTransportRequestNotifyClosed(__func__, mID);
-      ZS_LOG_TRACE(log("notify closed"))
+      ZS_EVENTING_1(x, i, Trace, DataChannelSCTPTransportRequestNotifyClosed, ol, DataChannel, InternalEvent, puid, id, mID);
+
+      ZS_LOG_TRACE(log("notify closed"));
       IDataChannelAsyncDelegateProxy::create(mThisWeak.lock())->onNotifiedClosed();
     }
 
@@ -644,7 +682,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     void DataChannel::onSCTPTransportStateChanged()
     {
-      EventWriteOrtcDataChannelSCTPTransportStateChanged(__func__, mID);
+      ZS_EVENTING_1(x, i, Trace, DataChannelSCTPTransportStateChanged, ol, DataChannel, InternalEvent, puid, id, mID);
 
       ZS_LOG_TRACE(log("on sctp transport state changed"))
       AutoRecursiveLock lock(*this);
@@ -715,9 +753,14 @@ namespace ortc
       if (mSendReady) {
         if (mSendReady->isRejected()) {
           RejectReasonPtr reason = mSendReady->reason<RejectReason>();
-          ZS_THROW_INVALID_ASSUMPTION_IF(!reason)
+          ZS_THROW_INVALID_ASSUMPTION_IF(!reason);
 
-          EventWriteOrtcDataChannelSCTPTransportSendReadyFailure(__func__, mID, reason->mError, reason->mErrorReason);
+          ZS_EVENTING_3(
+                        x, e, Trace, DataChannelSCTPTransportSendReadyFailure, ol, DataChannel, InternalEvent,
+                        puid, id, mID,
+                        word, error, reason->mError,
+                        string, reason, reason->mErrorReason
+                        );
 
           ZS_LOG_ERROR(Debug, log("cannot send data") + ZS_PARAM("error", reason->mError) + ZS_PARAM("reason", reason->mErrorReason))
           setError(reason->mError, reason->mErrorReason);
@@ -726,7 +769,8 @@ namespace ortc
         }
       }
 
-      EventWriteOrtcDataChannelSCTPTransportSendReady(__func__, mID);
+      ZS_EVENTING_1(x, i, Trace, DataChannelSCTPTransportSendReady, ol, DataChannel, InternalEvent, puid, id, mID);
+
       stepSendData(); // only the send promise exists so attempt to send data
     }
 
@@ -836,7 +880,7 @@ namespace ortc
         return;
       }
 
-      EventWriteOrtcDataChannelStep(__func__, mID);
+      ZS_EVENTING_1(x, i, Debug, DataChannelStep, ol, DataChannel, Step, puid, id, mID);
 
       // ... other steps here ...
       if (!stepSCTPTransport()) goto not_ready;
@@ -865,7 +909,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool DataChannel::stepSCTPTransport()
     {
-      EventWriteOrtcDataChannelStep(__func__, mID);
+      ZS_EVENTING_1(x, i, Debug, DataChannelStep, ol, DataChannel, Step, puid, id, mID);
 
       auto transport = mDataTransport.lock();
       if (!transport) {
@@ -893,7 +937,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool DataChannel::stepIssueConnect()
     {
-      EventWriteOrtcDataChannelStep(__func__, mID);
+      ZS_EVENTING_1(x, i, Debug, DataChannelStep, ol, DataChannel, Step, puid, id, mID);
 
       if (mParameters) {
         if (mParameters->mNegotiated) {
@@ -923,7 +967,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool DataChannel::stepWaitConnectAck()
     {
-      EventWriteOrtcDataChannelStep(__func__, mID);
+      ZS_EVENTING_1(x, i, Debug, DataChannelStep, ol, DataChannel, Step, puid, id, mID);
 
       if (mParameters) {
         if (mParameters->mNegotiated) {
@@ -949,7 +993,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool DataChannel::stepOpen()
     {
-      EventWriteOrtcDataChannelStep(__func__, mID);
+      ZS_EVENTING_1(x, i, Debug, DataChannelStep, ol, DataChannel, Step, puid, id, mID);
 
       setState(State_Open);
       return true;
@@ -958,7 +1002,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool DataChannel::stepSendData(bool onlyControlPackets)
     {
-      EventWriteOrtcDataChannelStep(__func__, mID);
+      ZS_EVENTING_1(x, i, Debug, DataChannelStep, ol, DataChannel, Step, puid, id, mID);
 
       if (mSendReady) {
         if (!mSendReady->isResolved()) {
@@ -1000,7 +1044,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool DataChannel::stepDeliveryIncomingPacket()
     {
-      EventWriteOrtcDataChannelStep(__func__, mID);
+      ZS_EVENTING_1(x, i, Debug, DataChannelStep, ol, DataChannel, Step, puid, id, mID);
 
       if (mSubscriptions.size() < 1) {
         ZS_LOG_TRACE(log("waiting for subscribers"))
@@ -1030,7 +1074,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     void DataChannel::cancel()
     {
-      EventWriteOrtcDataChannelCancel(__func__, mID);
+      ZS_EVENTING_1(x, i, Debug, DataChannelCancel, ol, DataChannel, Cancel, puid, id, mID);
 
       //.......................................................................
       // try to gracefully shutdown
@@ -1088,7 +1132,7 @@ namespace ortc
       ZS_LOG_DETAIL(debug("state changed") + ZS_PARAM("new state", toString(state)) + ZS_PARAM("old state", toString(mCurrentState)))
 
       mCurrentState = state;
-      EventWriteOrtcDataChannelStateChangedEventFired(__func__, mID, toString(state));
+      ZS_EVENTING_2(x, i, Debug, DataChannelStateChangedEvent, ol, DataChannel, StateEvent, puid, id, mID, string, state, toString(state));
 
       DataChannelPtr pThis = mThisWeak.lock();
       if (pThis) {
@@ -1112,9 +1156,14 @@ namespace ortc
       mLastError = errorCode;
       mLastErrorReason = reason;
 
-      EventWriteOrtcDataChannelErrorEventFired(__func__, mID, mLastError, mLastErrorReason);
+      ZS_EVENTING_3(
+                    x, e, Debug, DataChannelErrorEvent, ol, DataChannel, StateEvent,
+                    puid, id, mID,
+                    word, error, mLastError,
+                    string, reason, mLastErrorReason
+                    );
 
-      ZS_LOG_WARNING(Detail, debug("error set") + ZS_PARAM("error", mLastError) + ZS_PARAM("reason", mLastErrorReason))
+      ZS_LOG_WARNING(Detail, debug("error set") + ZS_PARAM("error", mLastError) + ZS_PARAM("reason", mLastErrorReason));
 
       DataChannelPtr pThis = mThisWeak.lock();
       if (pThis) {
@@ -1236,7 +1285,18 @@ namespace ortc
         temp.Put((const BYTE *)(openPacket.mProtocol.c_str()), openPacket.mProtocol.length());
       }
 
-      EventWriteOrtcDataChannelSendControlOpen(__func__, mID, openPacket.mMessageType, openPacket.mChannelType, openPacket.mPriority, openPacket.mReliabilityParameter, openPacket.mLabelLength, openPacket.mProtocolLength, openPacket.mLabel, openPacket.mProtocol);
+      ZS_EVENTING_9(
+                    x, i, Debug, DataChannelSendControlOpen, ol, DataChannel, Send,
+                    puid, id, mID,
+                    byte, messageType, openPacket.mMessageType,
+                    byte, channelType, openPacket.mChannelType,
+                    word, priority, openPacket.mPriority,
+                    dword, reliabilityParameter, openPacket.mReliabilityParameter,
+                    word, labelLength, openPacket.mLabelLength,
+                    word, protocolLength, openPacket.mProtocolLength,
+                    string, label, openPacket.mLabel,
+                    string, protocol, openPacket.mProtocol
+                    );
 
       ZS_LOG_TRACE(log("sending open control packet") + ZS_PARAM("open message type", internal::toString(static_cast<DataChannelOpenMessageChannelTypes>(openPacket.mChannelType))) + mParameters->toDebug())
 
@@ -1259,7 +1319,11 @@ namespace ortc
     {
       AckPacket ackPacket;
 
-      EventWriteOrtcDataChannelSendControlAck(__func__, mID, ackPacket.mMessageType);
+      ZS_EVENTING_2(
+                    x, i, Debug, DataChannelSendControlAck, ol, DataChannel, Send,
+                    puid, id, mID,
+                    byte, messageType, ackPacket.mMessageType
+                    );
 
       ByteQueue temp;
       temp.Put(ackPacket.mMessageType);
@@ -1300,7 +1364,18 @@ namespace ortc
         return false;
       }
 
-      EventWriteOrtcDataChannelSCTPTransportDeliverOutgoingPacket(__func__, mID, zsLib::to_underlying(packet->mType), packet->mSessionID, packet->mOrdered, packet->mMaxPacketLifetime.count(), packet->mMaxRetransmits.hasValue(), packet->mMaxRetransmits.value(), ((bool)packet) ? SafeInt<unsigned int>(packet->mBuffer->SizeInBytes()) : 0, ((bool)packet->mBuffer) ? packet->mBuffer->BytePtr() : NULL);
+      ZS_EVENTING_9(
+                    x, i, Trace, DataChannelSCTPTransportDeliverOutgoingPacket, ol, DataChannel, Send,
+                    puid, id, mID,
+                    enum, packetType, zsLib::to_underlying(packet->mType),
+                    word, sessionId, packet->mSessionID,
+                    bool, ordered, packet->mOrdered,
+                    duration, maxPacketLifetime, packet->mMaxPacketLifetime.count(),
+                    bool, hasMaxRetransmits, packet->mMaxRetransmits.hasValue(),
+                    ulong, maxRetransmits, packet->mMaxRetransmits.value(),
+                    buffer, packet, ((bool)packet->mBuffer) ? packet->mBuffer->BytePtr() : NULL,
+                    size, size, ((bool)packet) ? packet->mBuffer->SizeInBytes() : 0
+                    );
 
       mSendReady = transport->sendDataNow(packet);
 
@@ -1339,7 +1414,19 @@ namespace ortc
         openPacket.mLabel = UseServicesHelper::convertToString(tempLabel);
         openPacket.mProtocol = UseServicesHelper::convertToString(tempProtocol);
 
-        EventWriteOrtcDataChannelReceivedControlOpen(__func__, mID, mIncoming, openPacket.mMessageType, openPacket.mChannelType, openPacket.mPriority, openPacket.mReliabilityParameter, openPacket.mLabelLength, openPacket.mProtocolLength, openPacket.mLabel, openPacket.mProtocol);
+        ZS_EVENTING_10(
+                       x, i, Debug, DataChannelReceivedControlOpen, ol, DataChannel, Receive,
+                       puid, id, mID,
+                       bool, incoming, mIncoming,
+                       byte, messageType, openPacket.mMessageType,
+                       byte, channelType, openPacket.mChannelType,
+                       word, priority, openPacket.mPriority,
+                       dword, reliabilityParameter, openPacket.mReliabilityParameter,
+                       word, labelLength, openPacket.mLabelLength,
+                       word, protocolLength, openPacket.mProtocolLength,
+                       string, label, openPacket.mLabel,
+                       string, protocol, openPacket.mProtocol
+                       );
 
         if (mIncoming) {
 
@@ -1411,7 +1498,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool DataChannel::handleAckPacket(SecureByteBlock &buffer)
     {
-      EventWriteOrtcDataChannelReceivedControlAck(__func__, mID, zsLib::to_underlying(ControlMessageType_DataChannelAck));
+      ZS_EVENTING_2(
+                    x, i, Debug, DataChannelReceivedControlAck, ol, DataChannel, Receive,
+                    puid, id, mID,
+                    enum, messageType, zsLib::to_underlying(ControlMessageType_DataChannelAck)
+                    );
 
       if (mIncoming) {
         ZS_LOG_WARNING(Detail, log("received unexpected data channel ack on incoming channel"))
@@ -1474,7 +1565,18 @@ namespace ortc
         }
       }
 
-      EventWriteOrtcDataChannelMessageFiredEvent(__func__, mID, zsLib::to_underlying(packet.mType), packet.mSessionID, packet.mSequenceNumber, packet.mTimestamp, packet.mFlags, ((bool)packet.mBuffer) ? SafeInt<unsigned int>(packet.mBuffer->SizeInBytes()) : 0, ((bool)packet.mBuffer) ? packet.mBuffer->BytePtr() : NULL);
+      ZS_EVENTING_8(
+                    x, i, Trace, DataChannelMessage, ol, DataChannel, Event,
+                    puid, id, mID,
+                    enum, payloadProtocolIdentifier, zsLib::to_underlying(packet.mType),
+                    word, sessionId, packet.mSessionID,
+                    word, sequeneceNumber, packet.mSequenceNumber,
+                    dword, timestamp, packet.mTimestamp,
+                    int, flags, packet.mFlags,
+                    buffer, packet, ((bool)packet.mBuffer) ? packet.mBuffer->BytePtr() : NULL,
+                    size, size, ((bool)packet.mBuffer) ? SafeInt<unsigned int>(packet.mBuffer->SizeInBytes()) : 0
+                    );
+
 
       mSubscriptions.delegate()->onDataChannelMessage(mThisWeak.lock(), data);
     }
@@ -1485,7 +1587,18 @@ namespace ortc
       if (!packet) return;
       if (!packet->mBuffer) return;
 
-      EventWriteOrtcDataChannelOutgoingBufferPacket(__func__, mID, zsLib::to_underlying(packet->mType), packet->mSessionID, packet->mOrdered, packet->mMaxPacketLifetime.count(), packet->mMaxRetransmits.hasValue(), packet->mMaxRetransmits.value(), SafeInt<unsigned int>(packet->mBuffer->SizeInBytes()), packet->mBuffer->BytePtr());
+      ZS_EVENTING_9(
+                    x, i, Trace, DataChannelOutgoingBufferPacket, ol, DataChannel, Buffer,
+                    puid, id, mID,
+                    enum, payloadProtocolIdentifier, zsLib::to_underlying(packet->mType),
+                    word, sessionId, packet->mSessionID,
+                    bool, ordered, packet->mOrdered,
+                    duration, maxPacketLifetime, packet->mMaxPacketLifetime.count(),
+                    bool, hasMaxRetransmits, packet->mMaxRetransmits.hasValue(),
+                    ulong, maxRetransmits, packet->mMaxRetransmits.value(), 
+                    buffer, packet, packet->mBuffer->BytePtr(),
+                    size, size, packet->mBuffer->SizeInBytes()
+                    );
 
       auto previousFillSize = mOutgoingBufferFillSize;
       mOutgoingBufferFillSize += packet->mBuffer->SizeInBytes();
@@ -1504,7 +1617,18 @@ namespace ortc
       if (!packet) return;
       if (!packet->mBuffer) return;
 
-      EventWriteOrtcDataChannelOutgoingBufferPacketDelivered(__func__, mID, zsLib::to_underlying(packet->mType), packet->mSessionID, packet->mOrdered, packet->mMaxPacketLifetime.count(), packet->mMaxRetransmits.hasValue(), packet->mMaxRetransmits.value(), SafeInt<unsigned int>(packet->mBuffer->SizeInBytes()), packet->mBuffer->BytePtr());
+      ZS_EVENTING_9(
+                    x, i, Trace, DataChannelOutgoingBufferPacketDelivered, ol, DataChannel, Deliver,
+                    puid, id, mID,
+                    enum, payloadProtocolIdentifier, zsLib::to_underlying(packet->mType),
+                    word, sessionId, packet->mSessionID,
+                    bool, ordered, packet->mOrdered,
+                    duration, maxPacketLifetime, packet->mMaxPacketLifetime.count(),
+                    bool, hasMaxRetransmits, packet->mMaxRetransmits.hasValue(),
+                    ulong, maxRetransmits, packet->mMaxRetransmits.value(),
+                    buffer, packet, packet->mBuffer->BytePtr(),
+                    size, size, packet->mBuffer->SizeInBytes()
+                    );
 
       size_t packetSize = packet->mBuffer->SizeInBytes();
 

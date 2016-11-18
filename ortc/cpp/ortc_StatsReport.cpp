@@ -32,7 +32,7 @@
 #include <ortc/internal/ortc_StatsReport.h>
 #include <ortc/internal/ortc_Helper.h>
 #include <ortc/internal/ortc_ORTC.h>
-#include <ortc/internal/ortc_Tracing.h>
+#include <ortc/internal/ortc.stats.events.h>
 #include <ortc/internal/platform.h>
 
 #include <ortc/services/ISettings.h>
@@ -89,6 +89,7 @@ namespace ortc
       return Log::Params(message, objectEl);
     }
 
+    //-------------------------------------------------------------------------
     static double getTimestamp(const Time &originalTimestamp)
     {
       // Time since 1970-01-01T00:00:00Z in milliseconds.
@@ -102,35 +103,72 @@ namespace ortc
     //-------------------------------------------------------------------------
     static void reportInt32(const char *reportID, double timestamp, const char *statName, int32 value)
     {
-      EventWriteOrtcStatsReportInt32(reportID, timestamp, statName, value);
+      ZS_EVENTING_4(
+                    x, i, Debug, StatsReportInt32, ols, Stats, Info,
+                    string, stat_group_name, reportID,
+                    double, timestamp, timestamp,
+                    string, stat_name, statName,
+                    int32, stat_value, value
+                    );
+      ZS_EVENTING_ASSIGN_VALUE(StatsReportInt32, 101);
       ZS_LOG_INSANE(slog("report uint32") + ZS_PARAM("report id", reportID) + ZS_PARAM("stat name", statName) + ZS_PARAM("timestamp", timestamp) + ZS_PARAM("value", value));
     }
 
     //-------------------------------------------------------------------------
     static void reportInt64(const char *reportID, double timestamp, const char *statName, int64 value)
     {
-      EventWriteOrtcStatsReportInt64(reportID, timestamp, statName, value);
+      ZS_EVENTING_4(
+                    x, i, Debug, StatsReportInt64, ols, Stats, Info,
+                    string, stat_group_name, reportID,
+                    double, timestamp, timestamp,
+                    string, stat_name, statName,
+                    int64, stat_value, value
+                    );
+      ZS_EVENTING_ASSIGN_VALUE(StatsReportInt64, 102);
+
       ZS_LOG_INSANE(slog("report uint64") + ZS_PARAM("report id", reportID) + ZS_PARAM("stat name", statName) + ZS_PARAM("timestamp", timestamp) + ZS_PARAM("value", value));
     }
 
     //-------------------------------------------------------------------------
     static void reportFloat(const char *reportID, double timestamp, const char *statName, float value)
     {
-      EventWriteOrtcStatsReportFloat(reportID, timestamp, statName, value);
+      ZS_EVENTING_4(
+                    x, i, Debug, StatsReportFloat, ols, Stats, Info,
+                    string, stat_group_name, reportID,
+                    double, timestamp, timestamp,
+                    string, stat_name, statName,
+                    float, stat_value, value
+                    );
+      ZS_EVENTING_ASSIGN_VALUE(StatsReportFloat, 103);
+
       ZS_LOG_INSANE(slog("report float") + ZS_PARAM("report id", reportID) + ZS_PARAM("stat name", statName) + ZS_PARAM("timestamp", timestamp) + ZS_PARAM("value", value));
     }
 
     //-------------------------------------------------------------------------
     static void reportBool(const char *reportID, double timestamp, const char *statName, bool value)
     {
-      EventWriteOrtcStatsReportBool(reportID, timestamp, statName, value);
+      ZS_EVENTING_4(
+                    x, i, Debug, StatsReportBool, ols, Stats, Info,
+                    string, stat_group_name, reportID,
+                    double, timestamp, timestamp,
+                    string, stat_name, statName,
+                    bool, stat_value, value
+                    );
+      ZS_EVENTING_ASSIGN_VALUE(StatsReportBool, 105);
       ZS_LOG_INSANE(slog("report bool") + ZS_PARAM("report id", reportID) + ZS_PARAM("stat name", statName) + ZS_PARAM("timestamp", timestamp) + ZS_PARAM("value", value));
     }
 
     //-------------------------------------------------------------------------
     static void reportString(const char *reportID, double timestamp, const char *statName, const char *value)
     {
-      EventWriteOrtcStatsReportString(reportID, timestamp, statName, value);
+      ZS_EVENTING_4(
+                    x, i, Debug, StatsReportString, ols, Stats, Info,
+                    string, stat_group_name, reportID,
+                    double, timestamp, timestamp,
+                    string, stat_name, statName,
+                    string, stat_value, value
+                    );
+      ZS_EVENTING_ASSIGN_VALUE(StatsReportString, 104);
       ZS_LOG_INSANE(slog("report string") + ZS_PARAM("report id", reportID) + ZS_PARAM("stat name", statName) + ZS_PARAM("timestamp", timestamp) + ZS_PARAM("value", value));
     }
 

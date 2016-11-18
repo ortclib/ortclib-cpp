@@ -35,7 +35,7 @@
 #include <ortc/internal/ortc_ICETransportController.h>
 #include <ortc/internal/ortc_Helper.h>
 #include <ortc/internal/ortc_ORTC.h>
-#include <ortc/internal/ortc_Tracing.h>
+#include <ortc/internal/ortc.events.h>
 #include <ortc/internal/platform.h>
 
 #include <ortc/services/IHelper.h>
@@ -208,19 +208,20 @@ namespace ortc
       auto resolverBuffer = UseServicesHelper::random(sizeof(mConflictResolver));
       memcpy(&mConflictResolver, resolverBuffer->BytePtr(), resolverBuffer->SizeInBytes());
 
-      EventWriteOrtcIceTransportCreate(
-                                       __func__, mID,
-                                       ((bool)gatherer) ? gatherer->getID() : 0,
-                                       ((bool)mGathererRouter) ? mGathererRouter->getID() : 0,
-                                       mNoPacketsReceivedRecheckTime.count(),
-                                       mExpireRouteTime.count(),
-                                       mTestLowerPreferenceCandidatePairs,
-                                       mBlacklistConsent,
-                                       mKeepWarmTimeBase.count(),
-                                       mKeepWarmTimeRandomizedAddTime.count(),
-                                       mMaxBufferedPackets,
-                                       mConflictResolver
-                                       );
+      ZS_EVENTING_11(
+                     x, i, Detail, IceTransportCreate, ol, IceTransport, Start,
+                     puid, id, mID,
+                     puid, iceGathererId, ((bool)gatherer) ? gatherer->getID() : 0,
+                     puid, iceGathererRouterId, ((bool)mGathererRouter) ? mGathererRouter->getID() : 0,
+                     duration, noPacketsReceivedRecheckTime, mNoPacketsReceivedRecheckTime.count(),
+                     duration, expireRouteTime, mExpireRouteTime.count(),
+                     bool, testLowerPreferenceCandidatePairs, mTestLowerPreferenceCandidatePairs,
+                     bool, blacklistConsent, mBlacklistConsent,
+                     duration, keepWarmTimeBase, mKeepWarmTimeBase.count(),
+                     duration, keepWarmTimeRandomizedAddTime, mKeepWarmTimeRandomizedAddTime.count(),
+                     size_t, maxBufferedPackets, mMaxBufferedPackets,
+                     QWORD, conflictResolver, mConflictResolver
+                     );
     }
 
     //-------------------------------------------------------------------------
@@ -252,7 +253,7 @@ namespace ortc
       ZS_LOG_BASIC(log("destroyed"))
       mThisWeak.reset();
       cancel();
-      EventWriteOrtcIceTransportDestroy(__func__, mID);
+      ZS_EVENTING_1(x, i, Detail, IceTransportDestroy, ol, IceTransport, Stop, puid, id, mID);
     }
 
     //-------------------------------------------------------------------------
@@ -493,18 +494,18 @@ namespace ortc
       mRemoteParametersHash = remoteParameters.hash();
       mRemoteParameters = remoteParameters;
 
-      EventWriteOrtcIceTransportStart(
-                                      __func__,
-                                      mID,
-                                      ((bool)inGatherer) ? inGatherer->getID() : 0,
-                                      remoteParameters.mUseUnfreezePriority,
-                                      remoteParameters.mUsernameFragment,
-                                      remoteParameters.mPassword,
-                                      remoteParameters.mICELite,
-                                      mRemoteParametersHash,
-                                      oldParamHash,
-                                      hadRemoteUsernameFragment
-                                      );
+      ZS_EVENTING_9(
+                    x, i, Detail, IceTransportStart, ol, IceTransport, Start,
+                    puid, id, mID,
+                    puid, iceGathererId, ((bool)inGatherer) ? inGatherer->getID() : 0,
+                    bool, remoteUseUnfreezePriority, remoteParameters.mUseUnfreezePriority,
+                    string, remoteUsernameFragement, remoteParameters.mUsernameFragment,
+                    string, remotePassword, remoteParameters.mPassword,
+                    bool, remoteIceList, remoteParameters.mICELite,
+                    string, remoteParametersHash, mRemoteParametersHash,
+                    string, oldRemoteParametersHash, oldParamHash,
+                    bool, hadRemoteUsernameFragment, hadRemoteUsernameFragment
+                    );
 
       if (oldParamHash.hasData()) {
         ZS_LOG_DETAIL(log("remote ufrag has changed thus must flush out all remote candidates"))
@@ -605,7 +606,11 @@ namespace ortc
 
         secureTransport = mSecureTransport.lock();
 
-        EventWriteOrtcIceTransportCreateAssociatedTransport(__func__, mID, pThis->mID);
+        ZS_EVENTING_2(
+                      x, i, Detail, IceTransportCreateAssociatedTransport, ol, IceTransport, CreateAssociated,
+                      puid, id, mID,
+                      puid, associatedGathererId, pThis->mID
+                      );
       }
 
       pThis->init();
@@ -632,24 +637,24 @@ namespace ortc
 
           ORTC_THROW_INVALID_PARAMETERS_IF(mComponent != tempCandidate->mComponent);
 
-          EventWriteOrtcIceTransportAddRemoteCandidate(
-                                                       __func__,
-                                                       mID,
-                                                       hash,
-                                                       tempCandidate->mInterfaceType,
-                                                       tempCandidate->mFoundation,
-                                                       tempCandidate->mComponent,
-                                                       tempCandidate->mPriority,
-                                                       tempCandidate->mUnfreezePriority,
-                                                       IICETypes::toString(tempCandidate->mProtocol),
-                                                       tempCandidate->mIP,
-                                                       tempCandidate->mPort,
-                                                       IICETypes::toString(tempCandidate->mCandidateType),
-                                                       IICETypes::toString(tempCandidate->mTCPType),
-                                                       tempCandidate->mRelatedAddress,
-                                                       tempCandidate->mRelatedPort,
-                                                       found != mRemoteCandidates.end()
-                                                       );
+          ZS_EVENTING_15(
+                         x, i, Detail, IceTransportAddRemoteCandidate, ol, IceTransport, AddCandidate,
+                         puid, id, mID,
+                         string, hash, hash,
+                         string, interfaceType, tempCandidate->mInterfaceType,
+                         string, foundation, tempCandidate->mFoundation,
+                         enum, component, tempCandidate->mComponent,
+                         dword, priority, tempCandidate->mPriority,
+                         dword, unfreezePriority, tempCandidate->mUnfreezePriority,
+                         string, protocol, IICETypes::toString(tempCandidate->mProtocol),
+                         string, ip, tempCandidate->mIP,
+                         word, port, tempCandidate->mPort,
+                         string, candidateType, IICETypes::toString(tempCandidate->mCandidateType),
+                         string, tcpType, IICETypes::toString(tempCandidate->mTCPType),
+                         string, relatedAddress, tempCandidate->mRelatedAddress,
+                         word, relatedPort, tempCandidate->mRelatedPort,
+                         bool, previouslyAddress, found != mRemoteCandidates.end()
+                         );
 
           if (found != mRemoteCandidates.end()) {
             if (mRemoteCandidatesComplete) {
@@ -670,7 +675,12 @@ namespace ortc
 
         const CandidateComplete *tempCandidateComplete = dynamic_cast<const IICETypes::CandidateComplete *>(&remoteCandidate);
         if (tempCandidateComplete) {
-          EventWriteOrtcIceTransportAddRemoteCandidateComplete(__func__, mID, tempCandidateComplete->mComponent);
+          ZS_EVENTING_2(
+                        x, i, Detail, IceTransportAddRemoteCandidateComplete, ol, IceTransport, AddCandidate,
+                        puid, id, mID,
+                        enum, component, tempCandidateComplete->mComponent
+                        );
+
           ORTC_THROW_INVALID_PARAMETERS_IF(tempCandidateComplete->mComponent != mComponent);
           if (!mRemoteCandidatesComplete) {
             ZS_LOG_DEBUG(log("end of remote candidates indicated"))
@@ -732,24 +742,24 @@ namespace ortc
 
         ZS_LOG_DEBUG(log("removing remote candidate") + candidate->toDebug())
 
-        EventWriteOrtcIceTransportRemoveRemoteCandidate(
-                                                        __func__,
-                                                        mID,
-                                                        hash,
-                                                        candidate->mInterfaceType,
-                                                        candidate->mFoundation,
-                                                        candidate->mComponent,
-                                                        candidate->mPriority,
-                                                        candidate->mUnfreezePriority,
-                                                        IICETypes::toString(candidate->mProtocol),
-                                                        candidate->mIP,
-                                                        candidate->mPort,
-                                                        IICETypes::toString(candidate->mCandidateType),
-                                                        IICETypes::toString(candidate->mTCPType),
-                                                        candidate->mRelatedAddress,
-                                                        candidate->mRelatedPort,
-                                                        true
-                                                        );
+        ZS_EVENTING_15(
+                       x, i, Detail, IceTransportRemoveRemoteCandidate, ol, IceTransport, RemoveCandidate,
+                       puid, id, mID,
+                       string, hash, hash,
+                       string, interfaceType, candidate->mInterfaceType,
+                       string, foundation, candidate->mFoundation,
+                       enum, component, candidate->mComponent,
+                       dword, priority, candidate->mPriority,
+                       dword, unfreezePriority, candidate->mUnfreezePriority,
+                       string, protocol, IICETypes::toString(candidate->mProtocol),
+                       string, ip, candidate->mIP,
+                       word, port, candidate->mPort,
+                       string, candidateType, IICETypes::toString(candidate->mCandidateType),
+                       string, tcpType, IICETypes::toString(candidate->mTCPType),
+                       string, relatedAddress, candidate->mRelatedAddress,
+                       word, relatedPort, candidate->mRelatedPort,
+                       bool, previouslyAddress, found != mRemoteCandidates.end()
+                       );
 
         mRemoteCandidates.erase(current);
         changed = true;
@@ -761,24 +771,24 @@ namespace ortc
 
         auto found = mRemoteCandidates.find(hash);
 
-        EventWriteOrtcIceTransportAddRemoteCandidate(
-                                                     __func__,
-                                                     mID,
-                                                     hash,
-                                                     candidate->mInterfaceType,
-                                                     candidate->mFoundation,
-                                                     candidate->mComponent,
-                                                     candidate->mPriority,
-                                                     candidate->mUnfreezePriority,
-                                                     IICETypes::toString(candidate->mProtocol),
-                                                     candidate->mIP,
-                                                     candidate->mPort,
-                                                     IICETypes::toString(candidate->mCandidateType),
-                                                     IICETypes::toString(candidate->mTCPType),
-                                                     candidate->mRelatedAddress,
-                                                     candidate->mRelatedPort,
-                                                     found != mRemoteCandidates.end()
-                                                     );
+        ZS_EVENTING_15(
+                       x, i, Detail, IceTransportAddRemoteCandidate, ol, IceTransport, AddCandidate,
+                       puid, id, mID,
+                       string, hash, hash,
+                       string, interfaceType, candidate->mInterfaceType,
+                       string, foundation, candidate->mFoundation,
+                       enum, component, candidate->mComponent,
+                       dword, priority, candidate->mPriority,
+                       dword, unfreezePriority, candidate->mUnfreezePriority,
+                       string, protocol, IICETypes::toString(candidate->mProtocol),
+                       string, ip, candidate->mIP,
+                       word, port, candidate->mPort,
+                       string, candidateType, IICETypes::toString(candidate->mCandidateType),
+                       string, tcpType, IICETypes::toString(candidate->mTCPType),
+                       string, relatedAddress, candidate->mRelatedAddress,
+                       word, relatedPort, candidate->mRelatedPort,
+                       bool, previouslyAddress, found != mRemoteCandidates.end()
+                       );
 
         if (found != mRemoteCandidates.end()) {
           ZS_LOG_TRACE(log("already have remote candidate") + candidate->toDebug())
@@ -816,24 +826,24 @@ namespace ortc
 
           ORTC_THROW_INVALID_PARAMETERS_IF(tempCandidate->mComponent != mComponent);
 
-          EventWriteOrtcIceTransportRemoveRemoteCandidate(
-                                                          __func__,
-                                                          mID,
-                                                          hash,
-                                                          tempCandidate->mInterfaceType,
-                                                          tempCandidate->mFoundation,
-                                                          tempCandidate->mComponent,
-                                                          tempCandidate->mPriority,
-                                                          tempCandidate->mUnfreezePriority,
-                                                          IICETypes::toString(tempCandidate->mProtocol),
-                                                          tempCandidate->mIP,
-                                                          tempCandidate->mPort,
-                                                          IICETypes::toString(tempCandidate->mCandidateType),
-                                                          IICETypes::toString(tempCandidate->mTCPType),
-                                                          tempCandidate->mRelatedAddress,
-                                                          tempCandidate->mRelatedPort,
-                                                          found != mRemoteCandidates.end()
-                                                          );
+          ZS_EVENTING_15(
+                         x, i, Detail, IceTransportRemoveRemoteCandidate, ol, IceTransport, RemoveCandidate,
+                         puid, id, mID,
+                         string, hash, hash,
+                         string, interfaceType, tempCandidate->mInterfaceType,
+                         string, foundation, tempCandidate->mFoundation,
+                         enum, component, tempCandidate->mComponent,
+                         dword, priority, tempCandidate->mPriority,
+                         dword, unfreezePriority, tempCandidate->mUnfreezePriority,
+                         string, protocol, IICETypes::toString(tempCandidate->mProtocol),
+                         string, ip, tempCandidate->mIP,
+                         word, port, tempCandidate->mPort,
+                         string, candidateType, IICETypes::toString(tempCandidate->mCandidateType),
+                         string, tcpType, IICETypes::toString(tempCandidate->mTCPType),
+                         string, relatedAddress, tempCandidate->mRelatedAddress,
+                         word, relatedPort, tempCandidate->mRelatedPort,
+                         bool, previouslyAddress, found != mRemoteCandidates.end()
+                         );
 
           if (found == mRemoteCandidates.end()) {
             ZS_LOG_WARNING(Detail, log("told to remove candidate that is already removed") + tempCandidate->toDebug())
@@ -848,7 +858,12 @@ namespace ortc
 
         const CandidateComplete *tempCandidateComplete = dynamic_cast<const IICETypes::CandidateComplete *>(&remoteCandidate);
         if (tempCandidateComplete) {
-          EventWriteOrtcIceTransportRemoveRemoteCandidateComplete(__func__, mID, tempCandidateComplete->mComponent);
+          ZS_EVENTING_2(
+                        x, i, Detail, IceTransportRemoveRemoteCandidateComplete, ol, IceTransport, RemoveCandidate,
+                        puid, id, mID,
+                        enum, component, tempCandidateComplete->mComponent
+                        );
+
           ORTC_THROW_INVALID_PARAMETERS_IF(tempCandidateComplete->mComponent != mComponent);
           if (mRemoteCandidatesComplete) {
             ZS_LOG_DEBUG(log("end of remote candidates no longer indicated"))
@@ -887,7 +902,14 @@ namespace ortc
 
       auto found = mLegalRoutes.find(hash);
       if (found == mLegalRoutes.end()) {
-        EventWriteOrtcIceTransportKeepWarm(__func__, mID, "not found", hash, keepWarm);
+        ZS_EVENTING_4(
+                      x, i, Detail, IceTransportKeepWarm, ol, IceTransport, Warm,
+                      puid, id, mID,
+                      string, reason, "not found",
+                      string, candidatePairHash, hash,
+                      bool, keepWarm, keepWarm
+                      );
+
         ZS_LOG_DETAIL(log("did not find any route to keep warm") + candidatePair.toDebug() + ZS_PARAMIZE(hash))
         return;
       }
@@ -895,13 +917,27 @@ namespace ortc
       auto route = (*found).second;
 
       if (route->isBlacklisted()) {
-        EventWriteOrtcIceTransportKeepWarm(__func__, mID, "blacklisted", hash, keepWarm);
+        ZS_EVENTING_4(
+                      x, i, Detail, IceTransportKeepWarm, ol, IceTransport, Warm,
+                      puid, id, mID,
+                      string, reason, "blacklisted",
+                      string, candidatePairHash, hash,
+                      bool, keepWarm, keepWarm
+                      );
+
         route->trace(__func__, "keepp warm blacklisted");
         ZS_LOG_WARNING(Detail, log("cannot keep warm as route is blacklisted") + route->toDebug())
         return;
       }
 
-      EventWriteOrtcIceTransportKeepWarm(__func__, mID, "found", hash, keepWarm);
+      ZS_EVENTING_4(
+                    x, i, Detail, IceTransportKeepWarm, ol, IceTransport, Warm,
+                    puid, id, mID,
+                    string, reason, "found",
+                    string, candidatePairHash, hash,
+                    bool, keepWarm, keepWarm
+                    );
+
       route->trace(__func__, "keep warm");
 
       ZS_LOG_DETAIL(log("route found for keep warm") + route->toDebug() + ZS_PARAMIZE(keepWarm) + ZS_PARAMIZE(hash))
@@ -931,7 +967,11 @@ namespace ortc
                                     STUNPacketPtr packet
                                     )
     {
-      EventWriteOrtcIceTransportReceivedStunPacketFromGatherer(__func__, mID, routerRoute->mID);
+      ZS_EVENTING_2(
+                    x, i, Trace, IceTransportReceivedStunPacketFromGatherer, ol, IceTransport, Receive,
+                    puid, id, mID,
+                    puid, routerRouteId, routerRoute->mID
+                    );
       routerRoute->trace(__func__, "received stun packet");
       packet->trace(__func__);
 
@@ -1089,7 +1129,13 @@ namespace ortc
                                     size_t bufferSizeInBytes
                                     )
     {
-      EventWriteOrtcIceTransportReceivedPacketFromGatherer(__func__, mID, routerRoute->mID, SafeInt<unsigned int>(bufferSizeInBytes), buffer);
+      ZS_EVENTING_4(
+                    x, i, Trace, IceTransportReceivedPacketFromGatherer, ol, IceTransport, Receive,
+                    puid, id, mID,
+                    puid, routerRouteId, routerRoute->mID,
+                    buffer, packet, buffer,
+                    size, size, bufferSizeInBytes
+                    );
 
       UseSecureTransportPtr transport;
 
@@ -1128,14 +1174,27 @@ namespace ortc
 
         if (mMustBufferPackets) {
           // packets must be buffered
-          ZS_LOG_TRACE(log("buffering packet for secure transport") + ZS_PARAM("buffer length", bufferSizeInBytes))
-          EventWriteOrtcIceTransportBufferingIncomingPacket(__func__, mID, SafeInt<unsigned int>(bufferSizeInBytes), buffer);
+          ZS_LOG_TRACE(log("buffering packet for secure transport") + ZS_PARAM("buffer length", bufferSizeInBytes));
+          ZS_EVENTING_4(
+                        x, i, Trace, IceTransportBufferingIncomingPacket, ol, IceTransport, Buffer,
+                        puid, id, mID,
+                        puid, routerRouteId, routerRoute->mID,
+                        buffer, packet, buffer,
+                        size, size, bufferSizeInBytes
+                        );
+
           mBufferedPackets.push(make_shared<SecureByteBlock>(buffer, bufferSizeInBytes));
           while (mBufferedPackets.size() > mMaxBufferedPackets) {
             auto &poppedBuffer = mBufferedPackets.front();
-            (void)poppedBuffer;
-            EventWriteOrtcIceTransportDisposingBufferedIncomingPacket(__func__, mID, SafeInt<unsigned int>(poppedBuffer->SizeInBytes()), poppedBuffer->BytePtr());
-            ZS_LOG_TRACE(log("too many packets in buffered packet list (dropping packet") + ZS_PARAM("max packets", mMaxBufferedPackets) + ZS_PARAM("total packets", mBufferedPackets.size()))
+            ZS_EVENTING_4(
+                          x, i, Debug, IceTransportDisposingBufferedIncomingPacket, ol, IceTransport, Dispose,
+                          puid, id, mID,
+                          puid, routerRouteId, routerRoute->mID,
+                          buffer, packet, poppedBuffer->BytePtr(),
+                          size, size, poppedBuffer->SizeInBytes()
+                          );
+
+            ZS_LOG_TRACE(log("too many packets in buffered packet list (dropping packet") + ZS_PARAM("max packets", mMaxBufferedPackets) + ZS_PARAM("total packets", mBufferedPackets.size()));
             mBufferedPackets.pop();
           }
           return;
@@ -1146,7 +1205,14 @@ namespace ortc
 
     forward_attached_secure_transport:
       {
-        EventWriteOrtcIceTransportDeliveringIncomingPacketToSecureTransport(__func__, mID, transport->getID(), SafeInt<unsigned int>(bufferSizeInBytes), buffer);
+        ZS_EVENTING_4(
+                      x, i, Trace, IceTransportDeliveringIncomingPacketToSecureTransport, ol, IceTransport, Deliver,
+                      puid, id, mID,
+                      puid, secureTransportId, transport->getID(),
+                      buffer, packet, buffer,
+                      size, size, bufferSizeInBytes
+                      );
+
         bool handled = transport->handleReceivedPacket(mComponent, buffer, bufferSizeInBytes);
 
         if (!handled) goto forward_old_transport;
@@ -1164,7 +1230,13 @@ namespace ortc
           }
         }
 
-        EventWriteOrtcIceTransportDeliveringIncomingPacketToSecureTransport(__func__, mID, transport->getID(), SafeInt<unsigned int>(bufferSizeInBytes), buffer);
+        ZS_EVENTING_4(
+                      x, i, Trace, IceTransportDeliveringIncomingPacketToSecureTransport, ol, IceTransport, Deliver,
+                      puid, id, mID,
+                      puid, secureTransportId, transport->getID(),
+                      buffer, packet, buffer,
+                      size, size, bufferSizeInBytes
+                      );
         bool handled = transport->handleReceivedPacket(mComponent, buffer, bufferSizeInBytes);
         if (!handled) {
           AutoRecursiveLock lock(*this);
@@ -1199,7 +1271,12 @@ namespace ortc
     {
       UseICETransportControllerPtr controller = inController;
 
-      EventWriteOrtcIceTransportInternalControllerAttachedEventFired(__func__, mID, controller->getID());
+      ZS_EVENTING_2(
+                    x, i, Detail, IceTransportInternalControllerAttachedEvent, ol, IceTransport, InternalEvent,
+                    puid, id, mID,
+                    puid, iceTransportControllerId, controller->getID()
+                    );
+
       AutoRecursiveLock lock(*this);
 
       mTransportController = controller;
@@ -1224,7 +1301,11 @@ namespace ortc
         }
       }
 
-      EventWriteOrtcIceTransportInternalControllerDetachedEventFired(__func__, mID, controller.getID());
+      ZS_EVENTING_2(
+                    x, i, Detail, IceTransportInternalControllerDetachedEvent, ol, IceTransport, InternalEvent,
+                    puid, id, mID,
+                    puid, iceTransportControllerId, controller.getID()
+                    );
 
       mTransportController.reset();
 
@@ -1277,7 +1358,12 @@ namespace ortc
 
         route->mDependentPromises.push_back(promise);
 
-        EventWriteOrtcIceTransportInstallFoundationDependencyFreezePromise(__func__, mID, localFoundation, remoteFoundation);
+        ZS_EVENTING_3(
+                      x, i, Detail, IceTransportInstallFoundationDependencyFreezePromise, ol, IceTransport, InternalEvent,
+                      puid, id, mID,
+                      string, localFoundation, localFoundation,
+                      string, remoteFoundation, remoteFoundation
+                      );
         return true;
       }
 
@@ -1300,7 +1386,12 @@ namespace ortc
       race->then(promise);
       race->background();
 
-      EventWriteOrtcIceTransportInstallFoundationDependencyFreezePromise(__func__, mID, localFoundation, remoteFoundation);
+      ZS_EVENTING_3(
+                    x, i, Detail, IceTransportInstallFoundationDependencyFreezePromise, ol, IceTransport, InternalEvent,
+                    puid, id, mID,
+                    string, localFoundation, localFoundation,
+                    string, remoteFoundation, remoteFoundation
+                    );
 
       ZS_LOG_DEBUG(log("installed dependency race promises") + ZS_PARAM("total", promises.size()) + ZS_PARAMIZE(localFoundation) + ZS_PARAMIZE(remoteFoundation))
       return true;
@@ -1320,7 +1411,11 @@ namespace ortc
                                       UseSecureTransportPtr transport
                                       )
     {
-      EventWriteOrtcIceTransportInternalSecureTransportAttachedEventFired(__func__, mID, secureTransportID);
+      ZS_EVENTING_2(
+                    x, i, Detail, IceTransportInternalSecureTransportAttachedEvent, ol, IceTransport, InternalEvent,
+                    puid, id, mID,
+                    puid, secureTransportId, secureTransportID
+                    );
 
       ZS_LOG_DETAIL(log("notify attached") + ZS_PARAM("secure transport id", secureTransportID))
 
@@ -1340,7 +1435,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     void ICETransport::notifyDetached(PUID secureTransportID)
     {
-      EventWriteOrtcIceTransportInternalSecureTransportDetachedEventFired(__func__, mID, secureTransportID);
+      ZS_EVENTING_2(
+                    x, i, Detail, IceTransportInternalSecureTransportDetachedEvent, ol, IceTransport, InternalEvent,
+                    puid, id, mID,
+                    puid, secureTransportId, secureTransportID
+                    );
 
       IICETransportAsyncDelegateProxy::create(mThisWeak.lock())->onNotifyDetached(secureTransportID);
     }
@@ -1377,7 +1476,12 @@ namespace ortc
                                   size_t bufferSizeInBytes
                                   )
     {
-      EventWriteOrtcIceTransportSecureTransportSendPacket(__func__, mID, SafeInt<unsigned int>(bufferSizeInBytes), buffer);
+      ZS_EVENTING_3(
+                    x, i, Trace, IceTransportSecureTransportSendPacket, ol, IceTransport, Send,
+                    puid, id, mID,
+                    buffer, packet, buffer,
+                    size, size, bufferSizeInBytes
+                    );
 
       UseICEGathererPtr gatherer;
       RouterRoutePtr routerRoute;
@@ -1394,7 +1498,14 @@ namespace ortc
         routerRoute = mActiveRoute->mGathererRoute;
       }
 
-      EventWriteOrtcIceTransportForwardSecureTransportPacketToGatherer(__func__, mID, gatherer->getID(), SafeInt<unsigned int>(bufferSizeInBytes), buffer);
+      ZS_EVENTING_4(
+                    x, i, Trace, IceTransportForwardSecureTransportPacketToGatherer, ol, IceTransport, Send,
+                    puid, id, mID,
+                    puid, iceGathererId, gatherer->getID(),
+                    buffer, packet, buffer,
+                    size, size, bufferSizeInBytes
+                    );
+
       routerRoute->trace(__func__, "gatherer to use this route to send secure packet");
       return gatherer->sendPacket(*this, routerRoute, buffer, bufferSizeInBytes);
     }
@@ -1439,7 +1550,11 @@ namespace ortc
         }
       }
 
-      EventWriteOrtcIceTransportRetryReceivedStunPacketFromGatherer(__func__, mID, routerRoute->mID);
+      ZS_EVENTING_2(
+                    x, i, Trace, IceTransportRetryReceivedStunPacketFromGatherer, ol, IceTransport, Receive,
+                    puid, id, mID,
+                    puid, routerRouteId, routerRoute->mID
+                    );
       routerRoute->trace(__func__, "retry received stun packet");
       stunPacket->trace(__func__);
 
@@ -1452,9 +1567,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     void ICETransport::onWarmRoutesChanged()
     {
-      EventWriteOrtcIceTransportInternalWarmRoutesChangedEventFired(__func__, mID);
+      ZS_EVENTING_1(x, i, Debug, OrtcIceTransportInternalWarmRoutesChangedEvent, ol, IceTransport, InternalEvent, puid, id, mID);
 
-      ZS_LOG_DEBUG(log("warm routes changed event fired"))
+      ZS_LOG_DEBUG(log("warm routes changed event fired"));
 
       AutoRecursiveLock lock(*this);
       mWarmRoutesChanged = -1;  // by setting negative this route will be considered handled (unless set positive again)
@@ -1465,7 +1580,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     void ICETransport::onNotifyAttached(PUID secureTransportID)
     {
-      ZS_LOG_DETAIL(log("on notify attached") + ZS_PARAM("secure transport id", secureTransportID))
+      ZS_LOG_DETAIL(log("on notify attached") + ZS_PARAM("secure transport id", secureTransportID));
 
       onDeliverPendingPackets();
     }
@@ -1491,9 +1606,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     void ICETransport::onDeliverPendingPackets()
     {
-      EventWriteOrtcIceTransportInternalDeliveryPendingPacketsEventFired(__func__, mID);
+      ZS_EVENTING_1(x, i, Debug, IceTransportInternalDeliveryPendingPacketsEvent, ol, IceTransport, InternalEvent, puid, id, mID);
 
-      ZS_LOG_TRACE(log("attempting to deliver pending packets"))
+      ZS_LOG_TRACE(log("attempting to deliver pending packets"));
 
       UseSecureTransportPtr transport;
       UseSecureTransportPtr oldTransport;
@@ -1520,7 +1635,13 @@ namespace ortc
         packets.pop();
 
         {
-          EventWriteOrtcIceTransportDeliveringBufferedIncomingPacketToSecureTransport(__func__, mID, transport->getID(), SafeInt<unsigned int>(deliverPacket->SizeInBytes()), deliverPacket->BytePtr());
+          ZS_EVENTING_4(
+                        x, i, Trace, IceTransportDeliveringBufferedIncomingPacketToSecureTransport, ol, IceTransport, Deliver,
+                        puid, id, mID,
+                        puid, secureTransportId, transport->getID(), 
+                        buffer, packet, deliverPacket->BytePtr(),
+                        size, size, deliverPacket->SizeInBytes()
+                        );
           bool handled = transport->handleReceivedPacket(mComponent, deliverPacket->BytePtr(), deliverPacket->SizeInBytes());
 
           if (!handled) goto forward_old_transport;
@@ -1539,7 +1660,14 @@ namespace ortc
             goto deliver_next;
           }
 
-          EventWriteOrtcIceTransportDeliveringBufferedIncomingPacketToSecureTransport(__func__, mID, oldTransport->getID(), SafeInt<unsigned int>(deliverPacket->SizeInBytes()), deliverPacket->BytePtr());
+          ZS_EVENTING_4(
+                        x, i, Trace, IceTransportDeliveringBufferedIncomingPacketToSecureTransport, ol, IceTransport, Deliver,
+                        puid, id, mID,
+                        puid, secureTransportId, oldTransport->getID(),
+                        buffer, packet, deliverPacket->BytePtr(),
+                        size, size, deliverPacket->SizeInBytes()
+                        );
+
           bool handled = oldTransport->handleReceivedPacket(mComponent, deliverPacket->BytePtr(), deliverPacket->SizeInBytes());
           if (!handled) {
             AutoRecursiveLock lock(*this);
@@ -1581,7 +1709,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     void ICETransport::onWake()
     {
-      EventWriteOrtcIceTransportInternalWakeEventFired(__func__, mID);
+      ZS_EVENTING_1(x, i, Trace, IceTransportInternalWakeEvent, ol, IceTransport, InternalEvent, puid, id, mID);
 
       ZS_LOG_DEBUG(log("wake"))
 
@@ -1601,24 +1729,45 @@ namespace ortc
     //-------------------------------------------------------------------------
     void ICETransport::onTimer(TimerPtr timer)
     {
-      EventWriteOrtcIceTransportInternalTimerEventFired(__func__, mID, timer->getID(), NULL);
+      ZS_EVENTING_3(
+                    x, i, Trace, IceTransportInternalTimerEvent, ol, IceTransport, InternalEvent,
+                    puid, id, mID,
+                    puid, timerId, timer->getID(),
+                    string, timerType, NULL
+                    );
 
       ZS_LOG_TRACE(log("timer fired") + ZS_PARAM("timer id", timer->getID()))
 
       AutoRecursiveLock lock(*this);
 
       if (timer == mExpireRouteTimer) {
-        EventWriteOrtcIceTransportInternalTimerEventFired(__func__, mID, timer->getID(), "expire route timer");
+        ZS_EVENTING_3(
+                      x, i, Trace, IceTransportInternalTimerEvent, ol, IceTransport, InternalEvent,
+                      puid, id, mID,
+                      puid, timerId, timer->getID(),
+                      string, timerType, "expire route timer"
+                      );
+
         handleExpireRouteTimer();
         return;
       }
       if (timer == mLastReceivedPacketTimer) {
-        EventWriteOrtcIceTransportInternalTimerEventFired(__func__, mID, timer->getID(), "last received packet timer");
+        ZS_EVENTING_3(
+                      x, i, Trace, IceTransportInternalTimerEvent, ol, IceTransport, InternalEvent,
+                      puid, id, mID,
+                      puid, timerId, timer->getID(),
+                      string, timerType, "last received packet timer"
+                      );
         handleLastReceivedPacket();
         return;
       }
       if (timer == mActivationTimer) {
-        EventWriteOrtcIceTransportInternalTimerEventFired(__func__, mID, timer->getID(), "activation timer");
+        ZS_EVENTING_3(
+                      x, i, Trace, IceTransportInternalTimerEvent, ol, IceTransport, InternalEvent,
+                      puid, id, mID,
+                      puid, timerId, timer->getID(),
+                      string, timerType, "activation timer"
+                      );
         handleActivationTimer();
         return;
       }
@@ -1628,7 +1777,12 @@ namespace ortc
         auto found = mNextKeepWarmTimers.find(timer);
         if (found == mNextKeepWarmTimers.end()) goto not_a_keep_warm_timer;
 
-        EventWriteOrtcIceTransportInternalTimerEventFired(__func__, mID, timer->getID(), "next keep warm timer");
+        ZS_EVENTING_3(
+                      x, i, Trace, IceTransportInternalTimerEvent, ol, IceTransport, InternalEvent,
+                      puid, id, mID,
+                      puid, timerId, timer->getID(),
+                      string, timerType, "next keep warm timer"
+                      );
 
         RoutePtr route = (*found).second;
         mNextKeepWarmTimers.erase(found);
@@ -1638,8 +1792,14 @@ namespace ortc
 
     not_a_keep_warm_timer:
       {
-        EventWriteOrtcIceTransportInternalTimerEventFired(__func__, mID, timer->getID(), "obsolete timer");
-        ZS_LOG_WARNING(Trace, log("notified about an obsolete timer") + ZS_PARAM("timer id", timer->getID()))
+        ZS_EVENTING_3(
+                      x, i, Trace, IceTransportInternalTimerEvent, ol, IceTransport, InternalEvent,
+                      puid, id, mID,
+                      puid, timerId, timer->getID(),
+                      string, timerType, "obsolete timer"
+                      );
+
+        ZS_LOG_WARNING(Trace, log("notified about an obsolete timer") + ZS_PARAM("timer id", timer->getID()));
       }
     }
 
@@ -1664,7 +1824,12 @@ namespace ortc
 
       RoutePtr route = (*found).second;
 
-      EventWriteOrtcIceTransportInternalUnfrozenPromiseEventFired(__func__, mID, route->mID);
+      ZS_EVENTING_2(
+                    x, i, Trace, IceTransportInternalUnfrozenPromiseEvent, ol, IceTransport, InternalEvent,
+                    puid, id, mID,
+                    puid, routeId, route->mID
+                    );
+
       route->trace(__func__, "unfrozen promise settled");
 
       mFrozen.erase(found);
@@ -1706,7 +1871,12 @@ namespace ortc
                                                 IICEGatherer::States state
                                                 )
     {
-      EventWriteOrtcIceTransportInternalGathererStateChangedEventFired(__func__, mID, gatherer->getID(), IICEGatherer::toString(state));
+      ZS_EVENTING_3(
+                    x, i, Detail, IceTransportInternalGathererStateChangedEvent, ol, IceTransport, InternalEvent,
+                    puid, id, mID,
+                    puid, iceGathererId, gatherer->getID(),
+                    string, state, IICEGatherer::toString(state)
+                    );
 
       AutoRecursiveLock lock(*this);
       ZS_LOG_TRACE(log("ice gatherer state changed") + ZS_PARAM("gather id", gatherer->getID()) + ZS_PARAM("state", IICEGatherer::toString(state)))
@@ -1722,22 +1892,22 @@ namespace ortc
       CandidatePtr candidate(make_shared<Candidate>(*inCandidate));
       UseICEGathererPtr gatherer = ICEGatherer::convert(inGatherer);
 
-      EventWriteOrtcIceTransportInternalGathererAddLocalCandidateEventFired(
-                                                                            __func__,
-                                                                            mID,
-                                                                            gatherer->getID(),
-                                                                            candidate->mInterfaceType,
-                                                                            candidate->mFoundation,
-                                                                            candidate->mPriority,
-                                                                            candidate->mUnfreezePriority,
-                                                                            IICETypes::toString(candidate->mProtocol),
-                                                                            candidate->mIP,
-                                                                            candidate->mPort,
-                                                                            IICETypes::toString(candidate->mCandidateType),
-                                                                            IICETypes::toString(candidate->mTCPType),
-                                                                            candidate->mRelatedAddress,
-                                                                            candidate->mPort
-                                                                            );
+      ZS_EVENTING_13(
+                     x, i, Detail, IceTransportInternalGathererAddLocalCandidateEvent, ol, IceTransport, AddCandidate,
+                     puid, id, mID,
+                     puid, iceGathererId, gatherer->getID(),
+                     string, interfaceType, candidate->mInterfaceType,
+                     string, foundation, candidate->mFoundation,
+                     dword, priority,candidate->mPriority,
+                     dword, unfreezePriority, candidate->mUnfreezePriority,
+                     string, protocol, IICETypes::toString(candidate->mProtocol),
+                     string, ip, candidate->mIP,
+                     word, port, candidate->mPort,
+                     string, candidateType, IICETypes::toString(candidate->mCandidateType),
+                     string, tcpCandidateType, IICETypes::toString(candidate->mTCPType),
+                     string, relatedAddress, candidate->mRelatedAddress,
+                     word, relatedPort, candidate->mRelatedPort
+                     );
 
       AutoRecursiveLock lock(*this);
 
@@ -1787,7 +1957,12 @@ namespace ortc
     {
       UseICEGathererPtr gatherer = ICEGatherer::convert(inGatherer);
 
-      EventWriteOrtcIceTransportInternalGathererAddLocalCandidateCompleteEventFired(__func__, mID, gatherer->getID(), candidate->mComponent);
+      ZS_EVENTING_3(
+                    x, i, Detail, IceTransportInternalGathererAddLocalCandidateCompleteEvent, ol, IceTransport, AddCandidate,
+                    puid, id, mID,
+                    puid, iceGathererId, gatherer->getID(),
+                    enum, component, candidate->mComponent
+                    );
 
       ZS_THROW_INVALID_ASSUMPTION_IF(candidate->mComponent != mComponent);
 
@@ -1820,22 +1995,22 @@ namespace ortc
       CandidatePtr candidate(make_shared<Candidate>(*inCandidate));
       UseICEGathererPtr gatherer = ICEGatherer::convert(inGatherer);
 
-      EventWriteOrtcIceTransportInternalGathererRemoveLocalCandidateEventFired(
-                                                                               __func__,
-                                                                               mID,
-                                                                               gatherer->getID(),
-                                                                               candidate->mInterfaceType,
-                                                                               candidate->mFoundation,
-                                                                               candidate->mPriority,
-                                                                               candidate->mUnfreezePriority,
-                                                                               IICETypes::toString(candidate->mProtocol),
-                                                                               candidate->mIP,
-                                                                               candidate->mPort,
-                                                                               IICETypes::toString(candidate->mCandidateType),
-                                                                               IICETypes::toString(candidate->mTCPType),
-                                                                               candidate->mRelatedAddress,
-                                                                               candidate->mPort
-                                                                               );
+      ZS_EVENTING_13(
+                     x, i, Detail, IceTransportInternalGathererRemoveLocalCandidateEvent, ol, IceTransport, RemoveCandidate,
+                     puid, id, mID,
+                     puid, iceGathererId, gatherer->getID(),
+                     string, interfaceType, candidate->mInterfaceType,
+                     string, foundation, candidate->mFoundation,
+                     dword, priority, candidate->mPriority,
+                     dword, unfreezePriority, candidate->mUnfreezePriority,
+                     string, protocol, IICETypes::toString(candidate->mProtocol),
+                     string, ip, candidate->mIP,
+                     word, port, candidate->mPort,
+                     string, candidateType, IICETypes::toString(candidate->mCandidateType),
+                     string, tcpCandidateType, IICETypes::toString(candidate->mTCPType),
+                     string, relatedAddress, candidate->mRelatedAddress,
+                     word, relatedPort, candidate->mRelatedPort
+                     );
 
       AutoRecursiveLock lock(*this);
 
@@ -1893,9 +2068,16 @@ namespace ortc
                                                  SecureByteBlockPtr packet
                                                  )
     {
-      EventWriteOrtcIceTransportInternalStunRequesterSendPacket(__func__, mID, requester->getID(), destination.string(), SafeInt<unsigned int>(packet->SizeInBytes()), packet->BytePtr());
+      ZS_EVENTING_5(
+                    x, i, Trace, IceTransportInternalStunRequesterSendPacket, ol, IceTransport, Send,
+                    puid, id, mID,
+                    puid, stunRequesterId, requester->getID(),
+                    string, destinationIp, destination.string(),
+                    buffer, packet, packet->BytePtr(),
+                    size, size, packet->SizeInBytes()
+                    );
 
-      ZS_THROW_INVALID_ARGUMENT_IF(!packet)
+      ZS_THROW_INVALID_ARGUMENT_IF(!packet);
 
       RouterRoutePtr routerRoute;
       UseICEGathererPtr gatherer;
@@ -1957,7 +2139,12 @@ namespace ortc
                                                    STUNPacketPtr response
                                                    )
     {
-      EventWriteOrtcIceTransportInternalStunRequesterReceivedResponse(__func__, mID, requester->getID(), fromIPAddress.string());
+      ZS_EVENTING_3(
+                    x, i, Trace, IceTransportInternalStunRequesterReceivedResponse, ol, IceTransport, Receive,
+                    puid, id, mID,
+                    puid, stunReuqesterId, requester->getID(),
+                    string, fromIpAddress, fromIPAddress.string()
+                    );
       response->trace(__func__);
 
       AutoRecursiveLock lock(*this);
@@ -1990,7 +2177,13 @@ namespace ortc
       {
         auto ip = route->mCandidatePair->mRemote->ip();
         if (fromIPAddress != ip) {
-          EventWriteOrtcIceTransportInternalStunRequesterReceivedResponseMismatch(__func__, mID, requester->getID(), fromIPAddress.string(), ip.string());
+          ZS_EVENTING_4(
+                        x, w, Trace, IceTransportInternalStunRequesterReceivedResponseMismatch, ol, IceTransport, Receive,
+                        puid, id, mID,
+                        puid, stunReuqesterId, requester->getID(),
+                        string, fromIpAddress, fromIPAddress.string(),
+                        string, ip, ip.string()
+                        );
 
           ZS_LOG_WARNING(Detail, log("response ip does not match sent ip") + ZS_PARAM("from ip", fromIPAddress.string()) + ZS_PARAM("sent ip", ip.string()))
           mOutgoingChecks[requester] = route; // put it back since it's not valid
@@ -2019,7 +2212,13 @@ namespace ortc
           }
 
           if (changed) {
-            EventWriteOrtcIceTransportInternalRoleConflictDetectedEventFired(__func__, mID, IICETypes::toString(mOptions.mRole), "conflict error reported from report party");
+            ZS_EVENTING_3(
+                          x, w, Trace, IceTransportInternalRoleConflictDetectedEvent, ol, IceTransport, InternalEvent,
+                          puid, id, mID,
+                          string, role, IICETypes::toString(mOptions.mRole),
+                          string, reason, "conflict error reported from report party"
+                          );
+
             mOptionsHash = mOptions.hash();
             pruneAllCandidatePairs(true);
             wakeUp();
@@ -2089,7 +2288,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     void ICETransport::onSTUNRequesterTimedOut(ISTUNRequesterPtr requester)
     {
-      EventWriteOrtcIceTransportInternalStunRequesterTimedOut(__func__, mID, requester->getID());
+      ZS_EVENTING_2(
+                    x, i, Trace, IceTransportInternalStunRequesterTimedOut, ol, IceTransport, Receive,
+                    puid, id, mID,
+                    puid, stunRequesterId, requester->getID()
+                    );
 
       AutoRecursiveLock lock(*this);
 
@@ -2276,7 +2479,7 @@ namespace ortc
         return;
       }
 
-      EventWriteOrtcIceTransportStep(__func__, mID);
+      ZS_EVENTING_1(x, i, Debug, IceTransportStep, ol, IceTransport, Step, puid, id, mID);
 
       if (!stepCalculateLegalPairs()) goto done;
       if (!stepPendingActivation()) goto done;
@@ -2299,7 +2502,7 @@ namespace ortc
     {
       typedef std::map<Hash, CandidatePairPtr> CandidatePairMap;
 
-      EventWriteOrtcIceTransportStep(__func__, mID);
+      ZS_EVENTING_1(x, i, Debug, IceTransportStep, ol, IceTransport, Step, puid, id, mID);
 
       if (mComputedPairsHash.hasData()) {
         ZS_LOG_TRACE(log("already computed legal pairs"))
@@ -2441,7 +2644,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool ICETransport::stepPendingActivation()
     {
-      EventWriteOrtcIceTransportStep(__func__, mID);
+      ZS_EVENTING_1(x, i, Debug, IceTransportStep, ol, IceTransport, Step, puid, id, mID);
 
       if (0 == mRouteStateTracker->count(Route::State_New)) {
         ZS_LOG_TRACE(log("no routes pending activation"))
@@ -2482,7 +2685,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool ICETransport::stepActivationTimer()
     {
-      EventWriteOrtcIceTransportStep(__func__, mID);
+      ZS_EVENTING_1(x, i, Debug, IceTransportStep, ol, IceTransport, Step, puid, id, mID);
 
       auto now = zsLib::now();
 
@@ -2540,7 +2743,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool ICETransport::stepPickRoute()
     {
-      EventWriteOrtcIceTransportStep(__func__, mID);
+      ZS_EVENTING_1(x, i, Debug, IceTransportStep, ol, IceTransport, Step, puid, id, mID);
 
       if (mRemoteParameters.mUsernameFragment.isEmpty()) {
         ZS_LOG_TRACE(log("cannot pick a route as no remote username is set"))
@@ -2621,7 +2824,12 @@ namespace ortc
         }
 
         mActiveRoute = chosenRoute;
-        EventWriteOrtcIceTransportCandidatePairChangedEventFired(__func__, mID, mActiveRoute->mID);
+        ZS_EVENTING_2(
+                      x, i, Debug, IceTransportCandidatePairChangedEvent, ol, IceTransport, Event,
+                      puid, id, mID,
+                      puid, activeRouteId, mActiveRoute->mID
+                      );
+
         mActiveRoute->trace(__func__, reason);
         ZS_LOG_DETAIL(log("new route chosen") + mActiveRoute->toDebug())
         mSubscriptions.delegate()->onICETransportCandidatePairChanged(mThisWeak.lock(), cloneCandidatePair(mActiveRoute));
@@ -2635,7 +2843,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool ICETransport::stepUseCandidate()
     {
-      EventWriteOrtcIceTransportStep(__func__, mID);
+      ZS_EVENTING_1(x, i, Debug, IceTransportStep, ol, IceTransport, Step, puid, id, mID);
 
       if (mRemoteParameters.mUsernameFragment.isEmpty()) {
         ZS_LOG_TRACE(log("cannot use candidate as remote username is not set"))
@@ -2691,7 +2899,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool ICETransport::stepDewarmRoutes()
     {
-      EventWriteOrtcIceTransportStep(__func__, mID);
+      ZS_EVENTING_1(x, i, Debug, IceTransportStep, ol, IceTransport, Step, puid, id, mID);
 
       if (mRemoteParameters.mUsernameFragment.isEmpty()) {
         ZS_LOG_TRACE(log("cannot dewarm as remote username is not set"))
@@ -2741,7 +2949,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool ICETransport::stepKeepWarmRoutes()
     {
-      EventWriteOrtcIceTransportStep(__func__, mID);
+      ZS_EVENTING_1(x, i, Debug, IceTransportStep, ol, IceTransport, Step, puid, id, mID);
 
       if (mRemoteParameters.mUsernameFragment.isEmpty()) {
         ZS_LOG_TRACE(log("cannot warm routes as remote username is not set"))
@@ -2801,7 +3009,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool ICETransport::stepExpireRouteTimer()
     {
-      EventWriteOrtcIceTransportStep(__func__, mID);
+      ZS_EVENTING_1(x, i, Debug, IceTransportStep, ol, IceTransport, Step, puid, id, mID);
 
       if (mRemoteParameters.mUsernameFragment.isEmpty()) {
         ZS_LOG_TRACE(log("cannot expire routes as remote username is not set"))
@@ -2839,7 +3047,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool ICETransport::stepLastReceivedPacketTimer()
     {
-      EventWriteOrtcIceTransportStep(__func__, mID);
+      ZS_EVENTING_1(x, i, Debug, IceTransportStep, ol, IceTransport, Step, puid, id, mID);
 
       if (mRemoteParameters.mUsernameFragment.isEmpty()) {
         ZS_LOG_TRACE(log("cannot have last packet received timer as remote username is not set"))
@@ -2894,7 +3102,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool ICETransport::stepSetCurrentState()
     {
-      EventWriteOrtcIceTransportStep(__func__, mID);
+      ZS_EVENTING_1(x, i, Debug, IceTransportStep, ol, IceTransport, Step, puid, id, mID);
 
       if ((mRemoteCandidates.size() < 1) &&
           (!mRemoteCandidatesComplete)) {
@@ -2957,7 +3165,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool ICETransport::stepSetNeedsMoreCandidates()
     {
-      EventWriteOrtcIceTransportStep(__func__, mID);
+      ZS_EVENTING_1(x, i, Debug, IceTransportStep, ol, IceTransport, Step, puid, id, mID);
 
       mNeedsMoreCandidates = getNeedsMoreCandidates();
       return true;
@@ -2999,7 +3207,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     void ICETransport::cancel()
     {
-      EventWriteOrtcIceTransportCancel(__func__, mID);
+      ZS_EVENTING_1(x, i, Debug, IceTransportCancel, ol, IceTransport, Cancel, puid, id, mID);
 
       //.......................................................................
       // start the shutdown process
@@ -3107,7 +3315,7 @@ namespace ortc
       ZS_LOG_DETAIL(debug("state changed") + ZS_PARAM("new state", IICETransport::toString(state)) + ZS_PARAM("old state", IICETransport::toString(mCurrentState)))
 
       mCurrentState = state;
-      EventWriteOrtcIceTransportStateChangedEventFired(__func__, mID, IICETransport::toString(state));
+      ZS_EVENTING_2(x, i, Debug, IceTransportStateChangedEvent, ol, IceTransport, StateEvent, puid, id, mID, string, state, IICETransport::toString(state));
 
       ICETransportPtr pThis = mThisWeak.lock();
       if (pThis) {
@@ -3140,7 +3348,12 @@ namespace ortc
 
       mLastError = errorCode;
       mLastErrorReason = reason;
-      EventWriteOrtcIceTransportErrorEventFired(__func__, mID, errorCode, reason);
+      ZS_EVENTING_3(
+                    x, e, Debug, IceTransportErrorEvent, ol, IceTransport, ErrorEvent,
+                    puid, id, mID,
+                    word, errorCode, errorCode,
+                    string, reason, reason
+                    );
 
       ZS_LOG_WARNING(Detail, debug("error set") + ZS_PARAM("error", mLastError) + ZS_PARAM("reason", mLastErrorReason))
     }
@@ -4031,8 +4244,13 @@ namespace ortc
       }
 
       if (oldActiveRoute != mActiveRoute) {
-        ZS_LOG_DETAIL(log("new route chosen") + mActiveRoute->toDebug())
-        EventWriteOrtcIceTransportCandidatePairChangedEventFired(__func__, mID, mActiveRoute->mID);
+        ZS_LOG_DETAIL(log("new route chosen") + mActiveRoute->toDebug());
+        ZS_EVENTING_2(
+                      x, i, Debug, IceTransportCandidatePairChangedEvent, ol, IceTransport, Event,
+                      puid, id, mID,
+                      puid, activeRouteId, mActiveRoute->mID
+                      );
+
         mSubscriptions.delegate()->onICETransportCandidatePairChanged(mThisWeak.lock(), cloneCandidatePair(mActiveRoute));
 
         wakeUp();
@@ -4091,7 +4309,14 @@ namespace ortc
         RouteMap routes;
         routes[route->mCandidatePairHash] = route;
 
-        EventWriteOrtcIceTransportInstallFoundation(__func__, mID, route->mCandidatePair->mLocal->mFoundation, route->mCandidatePair->mRemote->mFoundation, routes.size());
+        ZS_EVENTING_4(
+                      x, i, Debug, IceTransportInstallFoundation, ol, IceTransport, Info,
+                      puid, id, mID,
+                      string, localFoundation, route->mCandidatePair->mLocal->mFoundation,
+                      string, remoteFoundation, route->mCandidatePair->mRemote->mFoundation,
+                      size_t, totalRoutes, routes.size()
+                      );
+
         route->trace(__func__, "installed foundation");
 
         mFoundationRoutes[foundation] = routes;
@@ -4106,7 +4331,14 @@ namespace ortc
 
         routes[route->mCandidatePairHash] = route;
 
-        EventWriteOrtcIceTransportInstallFoundation(__func__, mID, route->mCandidatePair->mLocal->mFoundation, route->mCandidatePair->mRemote->mFoundation, routes.size());
+        ZS_EVENTING_4(
+                      x, i, Debug, IceTransportInstallFoundation, ol, IceTransport, Info,
+                      puid, id, mID,
+                      string, localFoundation, route->mCandidatePair->mLocal->mFoundation,
+                      string, remoteFoundation, route->mCandidatePair->mRemote->mFoundation,
+                      size_t, totalRoutes, routes.size()
+                      );
+
         route->trace(__func__, "installed foundation");
       }
     }
@@ -4137,7 +4369,13 @@ namespace ortc
 
       routes.erase(foundRoute);
 
-      EventWriteOrtcIceTransportRemoveFoundation(__func__, mID, route->mCandidatePair->mLocal->mFoundation, route->mCandidatePair->mRemote->mFoundation, routes.size());
+      ZS_EVENTING_4(
+                    x, i, Debug, IceTransportRemoveFoundation, ol, IceTransport, Info,
+                    puid, id, mID,
+                    string, localFoundation, route->mCandidatePair->mLocal->mFoundation,
+                    string, remoteFoundation, route->mCandidatePair->mRemote->mFoundation,
+                    size_t, totalRoutes, routes.size()
+                    );
 
       if (routes.size() > 0) return;
 
@@ -4374,7 +4612,12 @@ namespace ortc
 
       auto remoteIP = route->mCandidatePair->mRemote->ip();
       auto result = ISTUNRequester::create(UseServicesHelper::getServicePoolQueue(), mThisWeak.lock(), remoteIP, stunPacket, STUNPacket::RFC_5245_ICE, pattern);
-      EventWriteOrtcIceTransportInternalStunRequesterCreate(__func__, mID, ((bool)result) ? result->getID() : 0);
+      ZS_EVENTING_2(
+                    x, i, Debug, IceTransportInternalStunRequesterCreate, ol, IceTransport, Info,
+                    puid, id, mID,
+                    puid, stunRequesterId, ((bool)result) ? result->getID() : 0
+                    );
+
       route->trace(__func__, "create binding request");
       return result;
     }
@@ -4450,7 +4693,13 @@ namespace ortc
       }
 
       SecureByteBlockPtr packetized = packet->packetize(STUNPacket::RFC_5245_ICE);
-      EventWriteOrtcIceTransportSendStunPacket(__func__, mID, mGatherer->getID(), SafeInt<unsigned int>(packetized->SizeInBytes()), packetized->BytePtr());
+      ZS_EVENTING_4(
+                    x, i, Trace, IceTransportSendStunPacket, ol, IceTransport, Send,
+                    puid, id, mID,
+                    puid, iceGathererId, mGatherer->getID(),
+                    buffer, packet, packetized->BytePtr(),
+                    size, size, packetized->SizeInBytes()
+                    );
       packet->trace(__func__);
       mGatherer->sendPacket(*this, routerRoute, packetized->BytePtr(), packetized->SizeInBytes());
     }
@@ -4497,11 +4746,16 @@ namespace ortc
 
     switch_roles:
       {
-        ZS_LOG_WARNING(Detail, log("ice role conflict detected (switching roles)") + mOptions.toDebug() + packet->toDebug() + ZS_PARAM("conflict resolver", mConflictResolver))
+        ZS_LOG_WARNING(Detail, log("ice role conflict detected (switching roles)") + mOptions.toDebug() + packet->toDebug() + ZS_PARAM("conflict resolver", mConflictResolver));
 
         mOptions.mRole = (IICETypes::Role_Controlling == mOptions.mRole ? IICETypes::Role_Controlled : IICETypes::Role_Controlling);
 
-        EventWriteOrtcIceTransportInternalRoleConflictDetectedEventFired(__func__, mID, IICETypes::toString(mOptions.mRole), "conflict with remote party role (thus will switch role)");
+        ZS_EVENTING_3(
+                      x, w, Trace, IceTransportInternalRoleConflictDetectedEvent, ol, IceTransport, InternalEvent,
+                      puid, id, mID,
+                      string, role, IICETypes::toString(mOptions.mRole),
+                      string, reason, "conflict with remote party role (thus will switch role)"
+                      );
 
         mOptionsHash = mOptions.hash();
         pruneAllCandidatePairs(true);
@@ -4644,7 +4898,12 @@ namespace ortc
           return;
         }
 
-        EventWriteOrtcIceTransportDeliveringIncomingStunPacketToSecureTransport(__func__, mID, transport->getID());
+        ZS_EVENTING_2(
+                      x, i, Trace, IceTransportDeliveringIncomingStunPacketToSecureTransport, ol, IceTransport, Deliver,
+                      puid, id, mID,
+                      puid, secureTransportId, transport->getID()
+                      );
+
         packet->trace(__func__);
         transport->handleReceivedSTUNPacket(mComponent, packet);
       }
@@ -4795,50 +5054,50 @@ namespace ortc
     //-------------------------------------------------------------------------
     void ICETransport::Route::trace(const char *function, const char *message) const
     {
-      EventWriteOrtcIceTransportRouteTrace(
-                                           __func__,
-                                           function,
-                                           message,
-                                           mID,
-                                           ((bool)mTracker) ? mTracker->mOuterObjectID : 0,
-                                           mCandidatePairHash,
-                                           mCandidatePair->mLocal->mInterfaceType,
-                                           mCandidatePair->mLocal->mFoundation,
-                                           mCandidatePair->mLocal->mPriority,
-                                           mCandidatePair->mLocal->mUnfreezePriority,
-                                           IICETypes::toString(mCandidatePair->mLocal->mProtocol),
-                                           mCandidatePair->mLocal->mIP,
-                                           mCandidatePair->mLocal->mPort,
-                                           IICETypes::toString(mCandidatePair->mLocal->mCandidateType),
-                                           IICETypes::toString(mCandidatePair->mLocal->mTCPType),
-                                           mCandidatePair->mLocal->mRelatedAddress,
-                                           mCandidatePair->mLocal->mRelatedPort,
-                                           mCandidatePair->mRemote->mInterfaceType,
-                                           mCandidatePair->mRemote->mFoundation,
-                                           mCandidatePair->mRemote->mPriority,
-                                           mCandidatePair->mRemote->mUnfreezePriority,
-                                           IICETypes::toString(mCandidatePair->mRemote->mProtocol),
-                                           mCandidatePair->mRemote->mIP,
-                                           mCandidatePair->mRemote->mPort,
-                                           IICETypes::toString(mCandidatePair->mRemote->mCandidateType),
-                                           IICETypes::toString(mCandidatePair->mRemote->mTCPType),
-                                           mCandidatePair->mRemote->mRelatedAddress,
-                                           mCandidatePair->mRemote->mRelatedPort,
-                                           ((bool)mGathererRoute) ? mGathererRoute->mID : 0,
-                                           mPendingPriority,
-                                           zsLib::timeSinceEpoch<Milliseconds>(mLastReceivedCheck).count(),
-                                           zsLib::timeSinceEpoch<Milliseconds>(mLastSentCheck).count(),
-                                           zsLib::timeSinceEpoch<Milliseconds>(mLastReceivedMedia).count(),
-                                           zsLib::timeSinceEpoch<Milliseconds>(mLastReceivedResponse).count(),
-                                           mPrune,
-                                           mKeepWarm,
-                                           ((bool)mOutgoingCheck) ? mOutgoingCheck->getID() : 0,
-                                           ((bool)mNextKeepWarm) ? mNextKeepWarm->getID() : 0,
-                                           (bool)mFrozenPromise,
-                                           mDependentPromises.size(),
-                                           zsLib::timeSinceEpoch<Milliseconds>(mLastReceivedCheck).count(),
-                                           mLastRoundTripMeasurement.count()
-                                           );
+      ZS_EVENTING_COMPACT_41(
+                             x, i, Trace, IceTransportRouteTrace, ol, IceTransport, Info,
+                             puid/routeId, mID,
+                             string/callingMethod, function,
+                             string/message, message,
+                             puid/outerObjectId, ((bool)mTracker) ? mTracker->mOuterObjectID : 0,
+                             string/localCandidatePairHash, mCandidatePairHash,
+                             string/localInterfaceType, mCandidatePair->mLocal->mInterfaceType,
+                             string/localFoundation, mCandidatePair->mLocal->mFoundation,
+                             dword/localPriority, mCandidatePair->mLocal->mPriority,
+                             dword/localUnfreezePriority, mCandidatePair->mLocal->mUnfreezePriority,
+                             string/localProtocol, IICETypes::toString(mCandidatePair->mLocal->mProtocol),
+                             string/localIp, mCandidatePair->mLocal->mIP,
+                             word/localPort, mCandidatePair->mLocal->mPort,
+                             string/localCandidateType, IICETypes::toString(mCandidatePair->mLocal->mCandidateType),
+                             string/localTcpTypes, IICETypes::toString(mCandidatePair->mLocal->mTCPType),
+                             string/localRelatedAddress, mCandidatePair->mLocal->mRelatedAddress,
+                             word/localRelatedPort, mCandidatePair->mLocal->mRelatedPort,
+                             string/remoteInterfaceType, mCandidatePair->mRemote->mInterfaceType,
+                             string/remoteFoundation, mCandidatePair->mRemote->mFoundation,
+                             dword/remotePriority, mCandidatePair->mRemote->mPriority,
+                             dword/remoteUnfreezePriority, mCandidatePair->mRemote->mUnfreezePriority,
+                             string/remoteProtocol, IICETypes::toString(mCandidatePair->mRemote->mProtocol),
+                             string/remoteIp, mCandidatePair->mRemote->mIP,
+                             word/remotePort, mCandidatePair->mRemote->mPort,
+                             string/remoteCandidateType, IICETypes::toString(mCandidatePair->mRemote->mCandidateType),
+                             string/remoteTcpType, IICETypes::toString(mCandidatePair->mRemote->mTCPType),
+                             string/remoteRelatedAddress, mCandidatePair->mRemote->mRelatedAddress,
+                             word/remoteRelatedPort, mCandidatePair->mRemote->mRelatedPort,
+                             puid/gathererRouteId, ((bool)mGathererRoute) ? mGathererRoute->mID : 0,
+                             qword/pendingPriority, mPendingPriority,
+                             duration/lastReceivedCheck, zsLib::timeSinceEpoch<Milliseconds>(mLastReceivedCheck).count(),
+                             duration/lastSentCheck, zsLib::timeSinceEpoch<Milliseconds>(mLastSentCheck).count(),
+                             duration/lastReceivedMedia, zsLib::timeSinceEpoch<Milliseconds>(mLastReceivedMedia).count(),
+                             duration/lastReceivedResponse, zsLib::timeSinceEpoch<Milliseconds>(mLastReceivedResponse).count(),
+                             bool/prune, mPrune,
+                             bool/keepWarm, mKeepWarm,
+                             puid/outgoingCheckStunRequeter, ((bool)mOutgoingCheck) ? mOutgoingCheck->getID() : 0,
+                             puid/nextKeepWarmStunRequester, ((bool)mNextKeepWarm) ? mNextKeepWarm->getID() : 0,
+                             bool/frozenPromise, (bool)mFrozenPromise,
+                             size_t/totalDependentPromises, mDependentPromises.size(),
+                             duration/lastRecievedCheck, zsLib::timeSinceEpoch<Milliseconds>(mLastReceivedCheck).count(),
+                             duration/lastRoundTripMeasurement, mLastRoundTripMeasurement.count()
+                             );
     }
 
     //-------------------------------------------------------------------------
@@ -4891,14 +5150,24 @@ namespace ortc
     void ICETransport::RouteStateTracker::inState(States state)
     {
       ++(mStates[state]);
-      EventWriteOrtcIceTransportRouteStateTrackerStateCountChange(__func__, mOuterObjectID, Route::toString(state), mStates[state]);
+      ZS_EVENTING_3(
+                    x, i, Trace, IceTransportRouteStateTrackerStateCountChange, ol, IceTransport, Info,
+                    puid, transportObjectId, mOuterObjectID,
+                    string, state, Route::toString(state),
+                    size_t, value, mStates[state]
+                    );
     }
 
     //-------------------------------------------------------------------------
     void ICETransport::RouteStateTracker::outState(States state)
     {
       --(mStates[state]);
-      EventWriteOrtcIceTransportRouteStateTrackerStateCountChange(__func__, mOuterObjectID, Route::toString(state), mStates[state]);
+      ZS_EVENTING_3(
+                    x, i, Trace, IceTransportRouteStateTrackerStateCountChange, ol, IceTransport, Info,
+                    puid, transportObjectId, mOuterObjectID,
+                    string, state, Route::toString(state),
+                    size_t, value, mStates[state]
+                    );
     }
 
     //-------------------------------------------------------------------------

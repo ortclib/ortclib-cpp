@@ -30,7 +30,8 @@
  */
 
 #include <ortc/internal/ortc_ORTC.h>
-#include <ortc/internal/ortc_Tracing.h>
+#include <ortc/internal/ortc.events.h>
+#include <ortc/internal/ortc.stats.events.h>
 #include <ortc/internal/ortc_RTPMediaEngine.h>
 
 #include <ortc/services/IHelper.h>
@@ -115,9 +116,17 @@ namespace ortc
     ORTC::ORTC(const make_private &) :
       SharedRecursiveLock(SharedRecursiveLock::create())
     {
-      EventRegisterOrtcLib();
-      EventRegisterOrtcLibStatsReport();
-      EventWriteOrtcCreate(__func__, mID);
+      ZS_EVENTING_EXCLUSIVE(OrtcLib);
+      ZS_EVENTING_REGISTER(OrtcLib);
+      ZS_EVENTING_EXCLUSIVE(x);
+
+      ZS_EVENTING_EXCLUSIVE(OrtcLibStatsReport);
+      ZS_EVENTING_REGISTER(OrtcLibStatsReport);
+      ZS_EVENTING_EXCLUSIVE(x);
+
+      ZS_EVENTING_EXCLUSIVE(OrtcLib);
+      ZS_EVENTING_0(x, i, Detail, OrtcCreate, ol, Ortc, Start);
+      ZS_EVENTING_EXCLUSIVE(x);
 
       initSubsystems();
       UseServicesHelper::setup();
@@ -129,12 +138,24 @@ namespace ortc
     ORTC::~ORTC()
     {
       mThisWeak.reset();
-      ZS_LOG_DETAIL(log("destroyed"))
+      ZS_LOG_DETAIL(log("destroyed"));
 
-      EventWriteOrtcDestroy(__func__, mID);
-      EventWriteOrtcStatsReportCommand("stop");
-      EventUnregisterOrtcLibStatsReport();
-      EventUnregisterOrtcLib();
+      ZS_EVENTING_EXCLUSIVE(OrtcLib);
+      ZS_EVENTING_0(x, i, Detail, OrtcDestroy, ol, Ortc, Stop);
+      ZS_EVENTING_EXCLUSIVE(x);
+
+      ZS_EVENTING_EXCLUSIVE(OrtcLibStatsReport);
+      ZS_EVENTING_1(x, i, Detail, OrtcStatsReportCommand, ols, Stats, Start, string, command_name, "stop");
+      ZS_EVENTING_ASSIGN_VALUE(OrtcStatsReportCommand, 106);
+      ZS_EVENTING_EXCLUSIVE(x);
+
+      ZS_EVENTING_EXCLUSIVE(OrtcLib);
+      ZS_EVENTING_UNREGISTER(OrtcLib);
+      ZS_EVENTING_EXCLUSIVE(x);
+
+      ZS_EVENTING_EXCLUSIVE(OrtcLibStatsReport);
+      ZS_EVENTING_UNREGISTER(OrtcLibStatsReport);
+      ZS_EVENTING_EXCLUSIVE(x);
     }
 
     //-------------------------------------------------------------------------

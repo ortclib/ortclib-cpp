@@ -32,6 +32,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ortclib.services.Test", "..
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "idnkit", "..\..\..\idnkit\projects\msvc\idnkit.Universal\idnkit.vcxproj", "{B236BF5A-561D-4720-BABF-F6119ADF5793}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zsLib.Eventing", "..\..\..\zsLib-eventing\projects\msvc\zsLib.Eventing.Universal\zsLib.Eventing.vcxproj", "{A19B7D13-A6EE-43BB-A913-AEB34F91BF98}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|ARM = Debug|ARM
@@ -168,6 +170,18 @@ Global
 		{B236BF5A-561D-4720-BABF-F6119ADF5793}.Release|x64.Build.0 = Release|x64
 		{B236BF5A-561D-4720-BABF-F6119ADF5793}.Release|x86.ActiveCfg = Release|Win32
 		{B236BF5A-561D-4720-BABF-F6119ADF5793}.Release|x86.Build.0 = Release|Win32
+		{A19B7D13-A6EE-43BB-A913-AEB34F91BF98}.Debug|ARM.ActiveCfg = Debug|ARM
+		{A19B7D13-A6EE-43BB-A913-AEB34F91BF98}.Debug|ARM.Build.0 = Debug|ARM
+		{A19B7D13-A6EE-43BB-A913-AEB34F91BF98}.Debug|x64.ActiveCfg = Debug|x64
+		{A19B7D13-A6EE-43BB-A913-AEB34F91BF98}.Debug|x64.Build.0 = Debug|x64
+		{A19B7D13-A6EE-43BB-A913-AEB34F91BF98}.Debug|x86.ActiveCfg = Debug|Win32
+		{A19B7D13-A6EE-43BB-A913-AEB34F91BF98}.Debug|x86.Build.0 = Debug|Win32
+		{A19B7D13-A6EE-43BB-A913-AEB34F91BF98}.Release|ARM.ActiveCfg = Release|ARM
+		{A19B7D13-A6EE-43BB-A913-AEB34F91BF98}.Release|ARM.Build.0 = Release|ARM
+		{A19B7D13-A6EE-43BB-A913-AEB34F91BF98}.Release|x64.ActiveCfg = Release|x64
+		{A19B7D13-A6EE-43BB-A913-AEB34F91BF98}.Release|x64.Build.0 = Release|x64
+		{A19B7D13-A6EE-43BB-A913-AEB34F91BF98}.Release|x86.ActiveCfg = Release|Win32
+		{A19B7D13-A6EE-43BB-A913-AEB34F91BF98}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

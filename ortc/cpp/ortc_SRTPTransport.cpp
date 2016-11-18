@@ -34,7 +34,7 @@
 #include <ortc/internal/ortc_Helper.h>
 #include <ortc/internal/ortc_RTPUtils.h>
 #include <ortc/internal/ortc_ORTC.h>
-#include <ortc/internal/ortc_Tracing.h>
+#include <ortc/internal/ortc.events.h>
 #include <ortc/internal/platform.h>
 
 #include <ortc/services/ISettings.h>
@@ -387,7 +387,11 @@ namespace ortc
       mSecureTransport(secureTransport),
       mSRTPInit(SRTPInit::singleton())
     {
-      EventWriteOrtcSrtpTransportCreate(__func__, mID, ((bool)secureTransport) ? secureTransport->getID() : 0);
+      ZS_EVENTING_2(
+                    x, i, Detail, SrtpTransportCreate, ol, SrtpTransport, Start,
+                    puid, id, mID,
+                    puid, secureTransportId, ((bool)secureTransport) ? secureTransport->getID() : 0
+                    );
 
       ZS_LOG_DETAIL(debug("created"))
 
@@ -499,16 +503,16 @@ namespace ortc
             mMaterial[loop].mKeys[keyingMaterial->mMKIValue] = keyingMaterial;
           }
 
-          EventWriteOrtcSrtpTransportInstallKeyingMaterial(
-                                                           __func__,
-                                                           mID,
-                                                           toString(static_cast<Directions>(loop)),
-                                                           keyingMaterial->mOriginalValues.mKeyMethod,
-                                                           keyingMaterial->mOriginalValues.mKeySalt,
-                                                           keyingMaterial->mOriginalValues.mLifetime,
-                                                           keyingMaterial->mOriginalValues.mMKIValue,
-                                                           keyingMaterial->mOriginalValues.mMKILength
-                                                           );
+          ZS_EVENTING_7(
+                        x, i, Detail, OrtcSrtpTransportInstallKeyingMaterial, ol, SrtpTransport, Initialization,
+                        puid, id, mID,
+                        string, direction, toString(static_cast<Directions>(loop)),
+                        string, keyMethod, keyingMaterial->mOriginalValues.mKeyMethod,
+                        string, keySalt, keyingMaterial->mOriginalValues.mKeySalt,
+                        string, lifeTime, keyingMaterial->mOriginalValues.mLifetime,
+                        string, mkiValue, keyingMaterial->mOriginalValues.mMKIValue,
+                        word, mkiLength, keyingMaterial->mOriginalValues.mMKILength
+                        );
 
           mMaterial[loop].mKeyList.push_back(keyingMaterial); // when encrypting order matters so need all keys in a list
 
@@ -542,7 +546,7 @@ namespace ortc
       mThisWeak.reset();
 
       cancel();
-      EventWriteOrtcSrtpTransportDestroy(__func__, mID);
+      ZS_EVENTING_1(x, i, Detail, SrtpTransportDestroy, ol, SrtpTransport, Stop, puid, id, mID);
     }
 
     //-------------------------------------------------------------------------
@@ -636,7 +640,14 @@ namespace ortc
       SecureByteBlockPtr decryptedBuffer;
       IICETypes::Components component = (RTPUtils::isRTCPPacketType(buffer, bufferLengthInBytes) ? IICETypes::Component_RTCP : IICETypes::Component_RTP);
 
-      EventWriteOrtcSrtpTransportReceivedIncomingEncryptedPacket(__func__, mID, zsLib::to_underlying(viaTransport), zsLib::to_underlying(component), SafeInt<unsigned int>(bufferLengthInBytes), buffer);
+      ZS_EVENTING_5(
+                    x, i, Trace, SrtpTransportReceivedIncomingEncryptedPacket, ol, SrtpTransport, Receive,
+                    puid, id, mID,
+                    enum, viaTransport, zsLib::to_underlying(viaTransport),
+                    enum, packetType, zsLib::to_underlying(component),
+                    buffer, packet, buffer,
+                    size, size, bufferLengthInBytes
+                    );
 
       size_t popSize = 0;
       enum UsedKeys {
@@ -823,14 +834,22 @@ namespace ortc
         }
       }
 
-      ASSERT(((bool)decryptedBuffer))
-      ASSERT(out_len > 0)
+      ASSERT(((bool)decryptedBuffer));
+      ASSERT(out_len > 0);
 
-      ASSERT(out_len <= SafeInt<decltype(out_len)>(decryptedBuffer->SizeInBytes()))
+      ASSERT(out_len <= SafeInt<decltype(out_len)>(decryptedBuffer->SizeInBytes()));
 
-      ZS_LOG_INSANE(log("forwarding packet to secure transport") + ZS_PARAM("via", IICETypes::toString(viaTransport)) + ZS_PARAM("component", IICETypes::toString(component)) + ZS_PARAM("buffer length in bytes", decryptedBuffer->SizeInBytes()))
+      ZS_LOG_INSANE(log("forwarding packet to secure transport") + ZS_PARAM("via", IICETypes::toString(viaTransport)) + ZS_PARAM("component", IICETypes::toString(component)) + ZS_PARAM("buffer length in bytes", decryptedBuffer->SizeInBytes()));
 
-      EventWriteOrtcSrtpTransportDeliverIncomingDecryptedPacket(__func__, mID, transport->getID(), zsLib::to_underlying(viaTransport), zsLib::to_underlying(component), SafeInt<size_t>(out_len), decryptedBuffer->BytePtr());
+      ZS_EVENTING_6(
+                    x, i, Trace, SrtpTransportDeliverIncomingDecryptedPacket, ol, SrtpTransport, Deliver,
+                    puid, id, mID,
+                    puid, secureTransportId, transport->getID(),
+                    enum, viaTransport, zsLib::to_underlying(viaTransport),
+                    enum, packetType, zsLib::to_underlying(component),
+                    buffer, packet, decryptedBuffer->BytePtr(),
+                    size, size, out_len
+                    );
       return transport->handleReceivedDecryptedPacket(viaTransport, component, decryptedBuffer->BytePtr(), SafeInt<size_t>(out_len));
     }
 
@@ -842,7 +861,14 @@ namespace ortc
                                    size_t bufferLengthInBytes
                                    )
     {
-      EventWriteOrtcSrtpTransportSendOutgoingPacketAndEncrypt(__func__, mID, zsLib::to_underlying(sendOverICETransport), zsLib::to_underlying(packetType), SafeInt<unsigned int>(bufferLengthInBytes), buffer);
+      ZS_EVENTING_5(
+                    x, i, Trace, SrtpTransportSendOutgoingPacketAndEncrypt, ol, SrtpTransport, Send,
+                    puid, id, mID,
+                    enum, viaTransport, zsLib::to_underlying(sendOverICETransport),
+                    enum, packetType, zsLib::to_underlying(packetType),
+                    buffer, packet, buffer,
+                    size, size, bufferLengthInBytes
+                    );
 
       UseSecureTransportPtr transport;
       KeyingMaterialPtr keyingMaterial;
@@ -937,13 +963,21 @@ namespace ortc
       }
 
 
-      ASSERT(((bool)transport))
-      ASSERT(((bool)encryptedBuffer))
+      ASSERT(((bool)transport));
+      ASSERT(((bool)encryptedBuffer));
 
-      ASSERT(out_len <= SafeInt<decltype(out_len)>(encryptedBuffer->SizeInBytes()))
+      ASSERT(out_len <= SafeInt<decltype(out_len)>(encryptedBuffer->SizeInBytes()));
 
       // do NOT call this method from within a lock
-      EventWriteOrtcSrtpTransportSendOutgoingEncryptedPacketViaSecureTransport(__func__, mID, transport->getID(), zsLib::to_underlying(sendOverICETransport), zsLib::to_underlying(packetType), SafeInt<unsigned int>(bufferLengthInBytes), buffer);
+      ZS_EVENTING_6(
+                    x, i, Trace, SrtpTransportSendOutgoingEncryptedPacketViaSecureTransport, ol, SrtpTransport, Send,
+                    puid, id, mID,
+                    puid, secureTransportId, transport->getID(),
+                    enum, viaTransport, zsLib::to_underlying(sendOverICETransport),
+                    enum, packetType, zsLib::to_underlying(packetType),
+                    buffer, packet, buffer,
+                    size, size, bufferLengthInBytes
+                    );
       return transport->sendEncryptedPacket(sendOverICETransport, packetType, encryptedBuffer->BytePtr(), encryptedBuffer->SizeInBytes());
     }
 

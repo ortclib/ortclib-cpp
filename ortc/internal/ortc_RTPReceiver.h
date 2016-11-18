@@ -792,7 +792,7 @@ namespace ortc
       Time mLastSwitchedCurrentChannel;
       Milliseconds mLockAfterSwitchTime {};
 
-      Milliseconds mAmbigousPayloadMappingMinDifference {};
+      Milliseconds mAmbiguousPayloadMappingMinDifference {};
     };
 
     //-------------------------------------------------------------------------

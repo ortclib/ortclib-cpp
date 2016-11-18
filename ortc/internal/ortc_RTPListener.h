@@ -661,9 +661,9 @@ namespace ortc
 
       UnhandledEventMap mUnhandledEvents;
       TimerPtr mUnhanldedEventsTimer;
-      Seconds mUnhanldedEventsExpires {};
+      Seconds mUnhandledEventsExpires {};
 
-      Milliseconds mAmbigousPayloadMappingMinDifference {};
+      Milliseconds mAmbiguousPayloadMappingMinDifference {};
     };
 
     //-------------------------------------------------------------------------

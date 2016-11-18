@@ -39,7 +39,7 @@
 #include <ortc/internal/ortc_RTCPPacket.h>
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/ortc_StatsReport.h>
-#include <ortc/internal/ortc_Tracing.h>
+#include <ortc/internal/ortc.events.h>
 #include <ortc/internal/platform.h>
 
 #include <ortc/IStatsReport.h>
@@ -491,8 +491,8 @@ namespace ortc
       mTraceCallback(new WebRtcTraceCallback()),
       mLogSink(new WebRtcLogSink())
     {
-      EventWriteOrtcRtpMediaEngineCreate(__func__, mID);
-      ZS_LOG_DETAIL(debug("created"))
+      ZS_EVENTING_1(x, i, Detail, RtpMediaEngineCreate, ol, RtpMediaEngine, Start, puid, id, mID);
+      ZS_LOG_DETAIL(debug("created"));
     }
 
     //-------------------------------------------------------------------------
@@ -523,11 +523,11 @@ namespace ortc
       webrtc::Trace::SetTraceCallback(nullptr);
       webrtc::Trace::ReturnTrace();
 
-      ZS_LOG_DETAIL(log("destroyed"))
+      ZS_LOG_DETAIL(log("destroyed"));
       mThisWeak.reset();
 
       cancel();
-      EventWriteOrtcRtpMediaEngineDestroy(__func__, mID);
+      ZS_EVENTING_1(x, i, Detail, RtpMediaEngineDestroy, ol, RtpMediaEngine, Stop, puid, id, mID);
     }
 
     //-------------------------------------------------------------------------

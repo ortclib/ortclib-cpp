@@ -1,0 +1,225 @@
+{
+  "provider": {
+    "id": "2bc80581-9143-4013-8ff6-223d3479b14e",
+    "name": "OrtcLib",
+    "symbol": "OrtcLib",
+    "description": "ORTC Lib library",
+    "resourceName": "ortc.events",
+    "aliases": {
+      "alias": [
+        {
+          "in": "i",
+          "out": "Info"
+        },
+        {
+          "in": "w",
+          "out": "Warning"
+        },
+        {
+          "in": "e",
+          "out": "Error"
+        },
+        {
+          "in": "f",
+          "out": "Fatal"
+        }
+      ]
+    },
+    "typedefs": {
+      "typedef": [
+        {
+          "name": "boolean",
+          "type": "bool"
+        },
+        {
+          "name": "puid",
+          "type": "ulong"
+        },
+        {
+          "name": "size_t",
+          "type": "uint64"
+        },
+        {
+          "name": "this",
+          "type": "pointer"
+        },
+        {
+          "name": "socket",
+          "type": "uint64"
+        },
+        {
+          "name": "enum",
+          "type": "uint64"
+        },
+        {
+          "name": "duration",
+          "type": "longlong"
+        },
+        {
+          "name": "buffer",
+          "type": "binary"
+        }
+      ]
+    },
+    "sources": {
+      "source": [
+        "ortc/cpp/ortc_Certificate.cpp",
+        "ortc/cpp/ortc_DataChannel.cpp",
+        "ortc/cpp/ortc_DTLSTransport.cpp",
+        "ortc/cpp/ortc_ICEGatherer.cpp",
+        "ortc/cpp/ortc_ICEGathererRouter.cpp",
+        "ortc/cpp/ortc_ICETransport.cpp",
+        "ortc/cpp/ortc_ICETransportController.cpp",
+        "ortc/cpp/ortc_ORTC.cpp",
+        "ortc/cpp/ortc_RTPListener.cpp",
+        "ortc/cpp/ortc_RTPMediaEngine.cpp",
+        "ortc/cpp/ortc_RTPReceiver.cpp",
+        "ortc/cpp/ortc_RTPReceiverChannel.cpp",
+        "ortc/cpp/ortc_RTPSender.cpp",
+        "ortc/cpp/ortc_RTPSenderChannel.cpp",
+        "ortc/cpp/ortc_SCTPTransport.cpp",
+        "ortc/cpp/ortc_SCTPTransportListener.cpp",
+        "ortc/cpp/ortc_SRTPTransport.cpp"
+      ]
+    },
+    "channels": {
+      "channel": [
+        {
+          "id": "ol",
+          "name": "OrtcLib",
+          "type": "Debug"
+        }
+      ]
+    },
+    "tasks": {
+      "task": [
+        {
+          "name": "Ortc"
+        },
+        {
+          "name": "Certificate"
+        },
+        {
+          "name": "DataChannel"
+        },
+        {
+          "name": "DtlsTransport"
+        },
+        {
+          "name": "IceGatherer",
+          "opCodes": {
+            "opCode": [
+              { "name": "CreateAssociated" },
+              { "name": "Gather" },
+              { "name": "HostSocketBind" },
+              { "name": "HostSocketClose" },
+              { "name": "Found" }
+            ]
+          }
+        },
+        {
+          "name": "IceGathererRouter"
+        },
+        {
+          "name": "IceTransport",
+          "opCodes": {
+            "opCode": [
+              { "name": "CreateAssociated" },
+              { "name": "AddCandidate" },
+              { "name": "RemoveCandidate" },
+              { "name": "SetCandidates" },
+              { "name": "Warm" }
+            ]
+          }
+        },
+        {
+          "name": "IceTransportController"
+        },
+        {
+          "name": "RtpListener"
+        },
+        {
+          "name": "RtpMediaEngine"
+        },
+        {
+          "name": "RtpReceiver",
+          "opCodes": {
+            "opCode": [
+              { "name": "SetTransport" }
+            ]
+          }
+        },
+        {
+          "name": "RtpReceiverChannel"
+        },
+        {
+          "name": "RtpSender",
+          "opCodes": {
+            "opCode": [
+              { "name": "SetTransport" },
+              { "name": "SetTrack" }
+            ]
+          }
+        },
+        {
+          "name": "RtpSenderChannel"
+        },
+        {
+          "name": "SctpInit"
+        },
+        {
+          "name": "SctpTransport"
+        },
+        {
+          "name": "SctpTransportListener",
+          "opCodes": {
+            "opCode": [
+              { "name": "SetTransport" },
+              { "name": "Listen" }
+            ]
+          }
+        },
+        {
+          "name": "SrtpTransport"
+        }
+      ]
+    },
+    "opCodes": {
+      "opCode": [
+        {
+          "name": "Initialization"
+        },
+        {
+          "name": "Cancel"
+        },
+        {
+          "name": "Close"
+        },
+        {
+          "name": "Step"
+        },
+        {
+          "name": "Buffer"
+        },
+        {
+          "name": "Dispose"
+        },
+        {
+          "name": "Deliver"
+        },
+        {
+          "name": "Event"
+        },
+        {
+          "name": "StateEvent"
+        },
+        {
+          "name": "ErrorEvent"
+        },
+        {
+          "name": "InternalEvent"
+        }
+      ]
+    }
+  }
+}

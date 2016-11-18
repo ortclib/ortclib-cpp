@@ -32,7 +32,7 @@
 #include <ortc/internal/ortc_Certificate.h>
 #include <ortc/internal/ortc_Helper.h>
 #include <ortc/internal/ortc_ORTC.h>
-#include <ortc/internal/ortc_Tracing.h>
+#include <ortc/internal/ortc.events.h>
 #include <ortc/internal/platform.h>
 
 #include <ortc/services/ISettings.h>
@@ -453,8 +453,20 @@ namespace ortc
         ORTC_THROW_NOT_SUPPORTED_ERROR_IF(!foundHashAlgorithm)
       }
 
-      EventWriteOrtcCertificateCreate(__func__, mID, toStringAlgorithm(mKeygenAlgorithm), mName, mNamedCurve, mKeyLength, mRandomBits, mPublicExponentLength, mLifetime.count(), mNotBeforeWindow.count(), zsLib::timeSinceEpoch<Seconds>(mExpires).count());
-      ZS_LOG_DETAIL(debug("created"))
+      ZS_EVENTING_10(
+                     x, i, Detail, CertificateCreate, ol, Certificate, Start,
+                     puid, id, mID,
+                     string, keygenAlgorithm, toStringAlgorithm(mKeygenAlgorithm),
+                     string, name, mName,
+                     string, namedCurve, mNamedCurve,
+                     size_t, keyLength, mKeyLength,
+                     size_t, randomBits, mRandomBits,
+                     string, publicExponentLength, mPublicExponentLength,
+                     duration, lifetime, mLifetime.count(),
+                     duration, notBeforeWindow, mNotBeforeWindow.count(),
+                     duration, expires, zsLib::timeSinceEpoch<Seconds>(mExpires).count()
+                     );
+      ZS_LOG_DETAIL(debug("created"));
 
       ORTC_THROW_INVALID_PARAMETERS_IF(!((bool)mKeygenAlgorithm))  // we do not understand any algorithm at this time
     }
@@ -477,11 +489,11 @@ namespace ortc
     {
       if (isNoop()) return;
 
-      ZS_LOG_DETAIL(log("destroyed"))
+      ZS_LOG_DETAIL(log("destroyed"));
       mThisWeak.reset();
 
       cancel();
-      EventWriteOrtcCertificateDestroy(__func__, mID);
+      ZS_EVENTING_1(x, i, Detail, CertificateDestroy, ol, Certificate, Stop, puid, id, mID);
     }
 
     //-------------------------------------------------------------------------
@@ -569,12 +581,17 @@ namespace ortc
           }
           fingerprint.mValue += output.substr(pos, 2);
         }
-        EventWriteOrtcCertificateFingerprint(__func__, mID, fingerprint.mAlgorithm, fingerprint.mValue);
+        ZS_EVENTING_3(
+                      x, i, Debug, CertificateFingerprint, ol, Certificate, Info,
+                      puid, id, mID,
+                      string, algorithm, fingerprint.mAlgorithm,
+                      string, value, fingerprint.mValue
+                      );
 
-		result->mAlgorithm = fingerprint.mAlgorithm;
-		result->mValue = fingerprint.mValue;
-		
-		return result;
+		    result->mAlgorithm = fingerprint.mAlgorithm;
+		    result->mValue = fingerprint.mValue;
+
+		    return result;
       }
 
       return result;
@@ -729,10 +746,18 @@ namespace ortc
         if (promise) {
           if ((pThis) &&
               (certificate)) {
-            EventWriteOrtcCertificateGeneratedEventFired(__func__, mID, true);
+            ZS_EVENTING_2(
+                          x, i, Debug, CertificateGeneratedEvent, ol, Certificate, Event,
+                          puid, id, mID,
+                          bool, success, true
+                          );
             promise->resolve(pThis);
           } else {
-            EventWriteOrtcCertificateGeneratedEventFired(__func__, mID, false);
+            ZS_EVENTING_2(
+                          x, i, Debug, CertificateGeneratedEvent, ol, Certificate, Event,
+                          puid, id, mID,
+                          bool, success, false
+                          );
             promise->reject();
           }
         }

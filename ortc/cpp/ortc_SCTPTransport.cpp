@@ -36,7 +36,7 @@
 #include <ortc/internal/ortc_ICETransport.h>
 #include <ortc/internal/ortc_Helper.h>
 #include <ortc/internal/ortc_ORTC.h>
-#include <ortc/internal/ortc_Tracing.h>
+#include <ortc/internal/ortc.events.h>
 #include <ortc/internal/platform.h>
 
 #include <ortc/services/ISettings.h>
@@ -302,7 +302,7 @@ namespace ortc
       //-----------------------------------------------------------------------
       SCTPInit(const make_private &)
       {
-        EventWriteOrtcSctpInitCreate(__func__, mID);
+        ZS_EVENTING_1(x, i, Detail, SctpInitCreate, ol, SctpInit, Start, puid, id, mID);
         ZS_LOG_BASIC(log("created"))
       }
 
@@ -362,7 +362,7 @@ namespace ortc
         mThisWeak.reset();
         ZS_LOG_BASIC(log("destroyed"))
         cancel();
-        EventWriteOrtcSctpInitDestroy(__func__, mID);
+        ZS_EVENTING_1(x, i, Detail, SctpInitDestroy, ol, SctpInit, Stop, puid, id, mID);
       }
 
       //-----------------------------------------------------------------------
@@ -550,7 +550,7 @@ namespace ortc
       //-----------------------------------------------------------------------
       void cancel()
       {
-        EventWriteOrtcSctpInitCancel(__func__, mID);
+        ZS_EVENTING_1(x, i, Detail, SctpInitCancel, ol, SctpInit, Cancel, puid, id, mID);
 
         ZS_LOG_DEBUG(log("cancel called"))
 
@@ -679,11 +679,19 @@ namespace ortc
       mLocalPort(localPort),
       mRemotePort(remotePort)
     {
-      ORTC_THROW_INVALID_PARAMETERS_IF(!secureTransport)
+      ORTC_THROW_INVALID_PARAMETERS_IF(!secureTransport);
 
-      EventWriteOrtcSctpTransportCreate(__func__, mID, ((bool)listener) ? listener->getID() : 0, mMaxSessionsPerPort, mIncoming, mLocalPort, mRemotePort);
+      ZS_EVENTING_6(
+                    x, i, Detail, SctpTransportCreate, ol, SctpTransport, Start,
+                    puid, id, mID,
+                    puid, listenerId, ((bool)listener) ? listener->getID() : 0,
+                    size_t, maxSessionsPerPort, mMaxSessionsPerPort,
+                    bool, incoming, mIncoming,
+                    word, localPort, mLocalPort,
+                    word, remotePort, mRemotePort
+                    );
 
-      ZS_LOG_DETAIL(debug("created"))
+      ZS_LOG_DETAIL(debug("created"));
 
       ORTC_THROW_INVALID_STATE_IF(!mSCTPInit)
     }
@@ -717,7 +725,7 @@ namespace ortc
 
       delete mThisSocket;
       mThisSocket = NULL;
-      EventWriteOrtcSctpTransportDestroy(__func__, mID);
+      ZS_EVENTING_1(x, i, Detail, SctpTransportDestroy, ol, SctpTransport, Stop, puid, id, mID);
     }
 
     //-------------------------------------------------------------------------
@@ -880,17 +888,17 @@ namespace ortc
     //-------------------------------------------------------------------------
     void SCTPTransport::start(const Capabilities &remoteCapabilities)
     {
-      EventWriteOrtcSctpTransportStart(
-                                       __func__,
-                                       mID,
-                                       remoteCapabilities.mMaxMessageSize,
-                                       remoteCapabilities.mMinPort,
-                                       remoteCapabilities.mMaxPort,
-                                       remoteCapabilities.mMaxUsablePorts,
-                                       remoteCapabilities.mMaxSessionsPerPort
-                                       );
-      
-      ZS_LOG_DEBUG(log("start called") + remoteCapabilities.toDebug())
+      ZS_EVENTING_6(
+                    x, i, Detail, SctpTransportStart, ol, SctpTransport, Start,
+                    puid, id, mID,
+                    size_t, maxMessageSize, remoteCapabilities.mMaxMessageSize,
+                    word, minPort, remoteCapabilities.mMinPort,
+                    word, maxPort, remoteCapabilities.mMaxPort,
+                    word, maxUsablePorts, remoteCapabilities.mMaxUsablePorts,
+                    word, maxSessionsPerPort, remoteCapabilities.mMaxSessionsPerPort
+                    );
+
+      ZS_LOG_DEBUG(log("start called") + remoteCapabilities.toDebug());
 
       AutoRecursiveLock lock(*this);
       if ((isShuttingDown()) ||
@@ -909,7 +917,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     void SCTPTransport::stop()
     {
-      EventWriteOrtcSctpTransportStop(__func__, mID);
+      ZS_EVENTING_1(x, i, Detail, SctpTransportStop, ol, SctpTransport, Stop, puid, id, mID);
       ZS_LOG_DEBUG(log("stop called"))
 
       AutoRecursiveLock lock(*this);
@@ -1003,7 +1011,12 @@ namespace ortc
 
           ioSessionID = sessionID;
           ioDataChannel = existingDataChannel;
-          EventWriteOrtcSctpTransportRegisterNewDataChannel(__func__, mID, ((bool)ioDataChannel) ? ioDataChannel->getID() : 0, ioSessionID);
+          ZS_EVENTING_3(
+                        x, i, Detail, SctpTransportRegisterNewDataChannel, ol, SctpTransport, Info,
+                        puid, id, mID,
+                        puid, dataChannelId, ((bool)ioDataChannel) ? ioDataChannel->getID() : 0,
+                        word, sessionId, ioSessionID
+                        );
           return;
         }
 
@@ -1016,7 +1029,12 @@ namespace ortc
         ioDataChannel = dataChannel;
         mSessions[sessionID] = dataChannel;
 
-        EventWriteOrtcSctpTransportRegisterNewDataChannel(__func__, mID, ((bool)ioDataChannel) ? ioDataChannel->getID() : 0, ioSessionID);
+        ZS_EVENTING_3(
+                      x, i, Detail, SctpTransportRegisterNewDataChannel, ol, SctpTransport, Info,
+                      puid, id, mID,
+                      puid, dataChannelId, ((bool)ioDataChannel) ? ioDataChannel->getID() : 0,
+                      word, sessionId, ioSessionID
+                      );
 
         ZS_LOG_TRACE(log("registered new data channel to session ID") + ZS_PARAM("session id", sessionID))
         return;
@@ -1048,7 +1066,12 @@ namespace ortc
       ioSessionID = sessionID;
       mSessions[sessionID] = dataChannel;
 
-      EventWriteOrtcSctpTransportRegisterNewDataChannel(__func__, mID, ((bool)ioDataChannel) ? ioDataChannel->getID() : 0, ioSessionID);
+      ZS_EVENTING_3(
+                    x, i, Detail, SctpTransportRegisterNewDataChannel, ol, SctpTransport, Info,
+                    puid, id, mID,
+                    puid, dataChannelId, ((bool)ioDataChannel) ? ioDataChannel->getID() : 0,
+                    word, sessionId, ioSessionID
+                    );
     }
 
     //-------------------------------------------------------------------------
@@ -1108,16 +1131,31 @@ namespace ortc
 
       mAnnouncedIncomingDataChannels[dataChannel->getID()] = dataChannel;
 
-      ZS_LOG_DEBUG(log("notify delegates of incoming data channel") + ZS_PARAM("data channel", dataChannel->getID()))
+      ZS_LOG_DEBUG(log("notify delegates of incoming data channel") + ZS_PARAM("data channel", dataChannel->getID()));
 
-      EventWriteOrtcSctpTransportDataChannelEventFired(__func__, mID, dataChannel->getID());
+      ZS_EVENTING_2(
+                    x, i, Detail, SctpTransportDataChannelEvent, ol, SctpTransport, Event,
+                    puid, id, mID,
+                    puid, dataChannelId, dataChannel->getID()
+                    );
+
       mSubscriptions.delegate()->onSCTPTransportDataChannel(mThisWeak.lock(), DataChannel::convert(dataChannel));
     }
 
     //-------------------------------------------------------------------------
     PromisePtr SCTPTransport::sendDataNow(SCTPPacketOutgoingPtr packet)
     {
-      EventWriteOrtcSctpTransportSendOutgoingPacket(__func__, mID, packet->mSessionID, packet->mOrdered, packet->mMaxPacketLifetime.count(), packet->mMaxRetransmits.hasValue(), packet->mMaxRetransmits.value(), ((bool)packet->mBuffer) ? SafeInt<unsigned int>(packet->mBuffer->SizeInBytes()) : 0, ((bool)packet->mBuffer) ? packet->mBuffer->BytePtr() : NULL);
+      ZS_EVENTING_8(
+                    x, i, Trace, SctpTransportSendOutgoingPacket, ol, SctpTransport, Send,
+                    puid, id, mID,
+                    word, sessionId, packet->mSessionID,
+                    bool, ordered, packet->mOrdered,
+                    duration, maxPacketLifetimeInMilliseconds, packet->mMaxPacketLifetime.count(),
+                    bool, hasMaxRetransmits, packet->mMaxRetransmits.hasValue(),
+                    ulong, maxRetransmits, packet->mMaxRetransmits.value(),
+                    buffer, data, ((bool)packet->mBuffer) ? packet->mBuffer->BytePtr() : NULL,
+                    size, size, ((bool)packet->mBuffer) ? SafeInt<unsigned int>(packet->mBuffer->SizeInBytes()) : 0
+                    );
 
       ZS_DECLARE_TYPEDEF_PTR(ISCTPTransportForDataChannel::RejectReason, RejectReason)
       {
@@ -1169,7 +1207,12 @@ namespace ortc
                                         WORD sessionID
                                         )
     {
-      EventWriteOrtcSctpTransportShutdownDataChannel(__func__, mID, dataChannel->getID(), sessionID);
+      ZS_EVENTING_3(
+                    x, i, Detail, SctpTransportShutdownDataChannel, ol, SctpTransport, Info,
+                    puid, id, mID,
+                    puid, dataChannelId, dataChannel->getID(),
+                    word, sessionId, sessionID
+                    );
 
       AutoRecursiveLock lock(*this);
 
@@ -1269,7 +1312,12 @@ namespace ortc
                                          size_t bufferLengthInBytes
                                          )
     {
-      EventWriteOrtcSctpTransportReceivedIncomingDataPacket(__func__, mID, SafeInt<unsigned int>(bufferLengthInBytes), buffer);
+      ZS_EVENTING_3(
+                    x, i, Trace, SctpTransportReceivedIncomingDataPacket, ol, SctpTransport, Receive,
+                    puid, id, mID,
+                    buffer, data, buffer,
+                    size, size, bufferLengthInBytes
+                    );
 
       if (bufferLengthInBytes < sizeof(DWORD)) {
         ZS_LOG_WARNING(Trace, log("packet length is too small to be an SCTP packet"))
@@ -1296,7 +1344,13 @@ namespace ortc
 
       queue_packet:
         {
-          EventWriteOrtcSctpTransportBufferIncomingDataPacket(__func__, mID, SafeInt<unsigned int>(bufferLengthInBytes), buffer);
+          ZS_EVENTING_3(
+                        x, i, Trace, SctpTransportBufferIncomingDataPacket, ol, SctpTransport, Buffer,
+                        puid, id, mID,
+                        buffer, data, buffer,
+                        size, size, bufferLengthInBytes
+                        );
+
           mPendingIncomingBuffers.push(make_shared<SecureByteBlock>(buffer, bufferLengthInBytes));
           return true;
         }
@@ -1308,7 +1362,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     void SCTPTransport::notifyShutdown()
     {
-      EventWriteOrtcSctpTransportInternalShutdownEventFired(__func__, mID);
+      ZS_EVENTING_1(x, i, Detail, SctpTransportInternalShutdownEvent, ol, SctpTransport, InternalEvent, puid, id, mID);
+
       ISCTPTransportAsyncDelegateProxy::create(mThisWeak.lock())->onNotifiedToShutdown();
     }
 
@@ -1338,7 +1393,14 @@ namespace ortc
         return false;
       }
 
-      EventWriteOrtcSctpTransportSendOutgoingDataPacket(__func__, mID, transport->getID(), SafeInt<unsigned int>(bufferLengthInBytes), buffer);
+      ZS_EVENTING_4(
+                    x, i, Detail, SctpTransportSendOutgoingDataPacket, ol, SctpTransport, Send,
+                    puid, id, mID,
+                    puid, secureTransportId, transport->getID(),
+                    buffer, data, buffer,
+                    size, size, bufferLengthInBytes
+                    );
+
       return transport->sendDataPacket(buffer, bufferLengthInBytes);
     }
 
@@ -1354,7 +1416,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     void SCTPTransport::onWake()
     {
-      EventWriteOrtcSctpTransportInternalWakeEventFired(__func__, mID);
+      ZS_EVENTING_1(x, i, Detail, SctpTransportInternalWakeEvent, ol, SctpTransport, InternalEvent, puid, id, mID);
       ZS_LOG_DEBUG(log("wake"))
 
       AutoRecursiveLock lock(*this);
@@ -1388,7 +1450,16 @@ namespace ortc
     //-------------------------------------------------------------------------
     void SCTPTransport::onIncomingPacket(SCTPPacketIncomingPtr packet)
     {
-      EventWriteOrtcSctpTransportReceivedIncomingPacket(__func__, mID, packet->mSessionID, packet->mSequenceNumber, packet->mTimestamp, packet->mFlags, ((bool)packet->mBuffer) ? SafeInt<unsigned int>(packet->mBuffer->SizeInBytes()) : 0, ((bool)packet->mBuffer) ? packet->mBuffer->BytePtr() : NULL);
+      ZS_EVENTING_7(
+                    x, i, Trace, SctpTransportReceivedIncomingPacket, ol, SctpTransport, Receive,
+                    puid, id, mID,
+                    word, sessionId, packet->mSessionID,
+                    word, sequenceNumber, packet->mSequenceNumber,
+                    dword, timestamp, packet->mTimestamp,
+                    int, flags, packet->mFlags,
+                    buffer, data, ((bool)packet->mBuffer) ? packet->mBuffer->BytePtr() : NULL,
+                    size, size, ((bool)packet->mBuffer) ? SafeInt<unsigned int>(packet->mBuffer->SizeInBytes()) : 0
+                    );
 
       ZS_LOG_TRACE(log("on incoming packet") + packet->toDebug())
 
@@ -1459,11 +1530,21 @@ namespace ortc
     forward_to_data_channel:
       {
         if (!dataChannel) {
-          ZS_LOG_WARNING(Detail, log("data channel is not known (likely already closed)") + packet->toDebug())
+          ZS_LOG_WARNING(Detail, log("data channel is not known (likely already closed)") + packet->toDebug());
           return;
         }
-        EventWriteOrtcSctpTransportDeliverIncomingPacket(__func__, mID, dataChannel->getID(), packet->mSessionID, packet->mSequenceNumber, packet->mTimestamp, packet->mFlags, ((bool)packet->mBuffer) ? SafeInt<unsigned int>(packet->mBuffer->SizeInBytes()) : 0, ((bool)packet->mBuffer) ? packet->mBuffer->BytePtr() : NULL);
-        ZS_LOG_TRACE(log("forwarding to data channel") + ZS_PARAM("data channel", dataChannel->getID()) + packet->toDebug())
+        ZS_EVENTING_8(
+                      x, i, Trace, SctpTransportDeliverIncomingPacket, ol, SctpTransport, Deliver,
+                      puid, id, mID,
+                      puid, dataChannelId, dataChannel->getID(),
+                      word, sessionId, packet->mSessionID,
+                      word, sequenceNumber, packet->mSequenceNumber,
+                      dword, timestamp, packet->mTimestamp,
+                      int, flags, packet->mFlags,
+                      buffer, data, ((bool)packet->mBuffer) ? packet->mBuffer->BytePtr() : NULL,
+                      size, size, ((bool)packet->mBuffer) ? SafeInt<unsigned int>(packet->mBuffer->SizeInBytes()) : 0          
+                      );
+        ZS_LOG_TRACE(log("forwarding to data channel") + ZS_PARAM("data channel", dataChannel->getID()) + packet->toDebug());
         dataChannel->handleSCTPPacket(packet);
       }
     }
@@ -1491,7 +1572,13 @@ namespace ortc
                                                       ISecureTransportTypes::States state
                                                       )
     {
-      EventWriteOrtcSctpTransportInternalSecureTransportStateChangedEventFired(__func__, mID, transport->getID(), ISecureTransportTypes::toString(state));
+      ZS_EVENTING_3(
+                    x, i, Trace, SctpTransportInternalSecureTransportStateChangedEvent, ol, SctpTransport, InternalEvent,
+                    puid, id, mID,
+                    puid, secureTransportId, transport->getID(),
+                    string, state, ISecureTransportTypes::toString(state)
+                    );
+
       ZS_LOG_DEBUG(log("secure transport state changed") + ZS_PARAM("secure transport id", transport->getID()) + ZS_PARAM("state", ISecureTransportTypes::toString(state)))
 
       AutoRecursiveLock lock(*this);
@@ -1615,7 +1702,7 @@ namespace ortc
         return;
       }
 
-      EventWriteOrtcSctpTransportStep(__func__, mID);
+      ZS_EVENTING_1(x, i, Debug, SctpTransportStep, ol, SctpTransport, Step, puid, id, mID);
 
       // ... other steps here ...
       if (!stepStartCalled()) goto not_ready;
@@ -1644,7 +1731,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool SCTPTransport::stepStartCalled()
     {
-      EventWriteOrtcSctpTransportStep(__func__, mID);
+      ZS_EVENTING_1(x, i, Debug, SctpTransportStep, ol, SctpTransport, Step, puid, id, mID);
 
       if (!mCapabilities) {
         ZS_LOG_TRACE(log("waiting for start to be called"))
@@ -1661,7 +1748,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool SCTPTransport::stepSecureTransport()
     {
-      EventWriteOrtcSctpTransportStep(__func__, mID);
+      ZS_EVENTING_1(x, i, Debug, SctpTransportStep, ol, SctpTransport, Step, puid, id, mID);
 
       auto secureTransport = mSecureTransport.lock();
       if (!secureTransport) {
@@ -1741,7 +1828,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool SCTPTransport::stepOpen()
     {
-      EventWriteOrtcSctpTransportStep(__func__, mID);
+      ZS_EVENTING_1(x, i, Debug, SctpTransportStep, ol, SctpTransport, Step, puid, id, mID);
 
       ZS_LOG_TRACE(log("open connect socket"))
       if (!openConnectSCTPSocket()) {
@@ -1755,7 +1842,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool SCTPTransport::stepDeliverIncomingPackets()
     {
-      EventWriteOrtcSctpTransportStep(__func__, mID);
+      ZS_EVENTING_1(x, i, Debug, SctpTransportStep, ol, SctpTransport, Step, puid, id, mID);
 
       ORTC_THROW_INVALID_STATE_IF(!mSocket)
 
@@ -1772,7 +1859,12 @@ namespace ortc
       while (pending.size() > 0) {
         SecureByteBlockPtr buffer = pending.front();
         handleDataPacket(buffer->BytePtr(), buffer->SizeInBytes());
-        EventWriteOrtcSctpTransportDisposeBufferedIncomingDataPacket(__func__, mID, SafeInt<unsigned int>(buffer->SizeInBytes()), buffer->BytePtr());
+        ZS_EVENTING_3(
+                      x, i, Trace, SctpTransportDisposeBufferedIncomingDataPacket, ol, SctpTransport, Dispose,
+                      puid, id, mID,
+                      buffer, data, buffer->BytePtr(),
+                      size, size, buffer->SizeInBytes()
+                      );
         pending.pop();
       }
 
@@ -1782,7 +1874,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool SCTPTransport::stepConnected()
     {
-      EventWriteOrtcSctpTransportStep(__func__, mID);
+      ZS_EVENTING_1(x, i, Debug, SctpTransportStep, ol, SctpTransport, Step, puid, id, mID);
 
       if (!mConnected) {
         ZS_LOG_TRACE(log("waiting to be connected"))
@@ -1796,7 +1888,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool SCTPTransport::stepResetStream()
     {
-      EventWriteOrtcSctpTransportStep(__func__, mID);
+      ZS_EVENTING_1(x, i, Debug, SctpTransportStep, ol, SctpTransport, Step, puid, id, mID);
 
       if (mAttemptResetLater) {
         ZS_LOG_TRACE(log("waiting for previous reset in progress to complete"))
@@ -1858,7 +1950,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     void SCTPTransport::cancel()
     {
-      EventWriteOrtcSctpTransportCancel(__func__, mID);
+      ZS_EVENTING_1(x, i, Detail, SctpTransportCancel, ol, SctpTransport, Cancel, puid, id, mID);
 
       //.......................................................................
       // try to gracefully shutdown
@@ -2015,7 +2107,7 @@ namespace ortc
       ZS_LOG_DETAIL(debug("state changed") + ZS_PARAM("new state", toString(state)) + ZS_PARAM("old state", toString(mCurrentState)))
 
       mCurrentState = state;
-      EventWriteOrtcSctpTransportStateChangedEventFired(__func__, mID, toString(state));
+      ZS_EVENTING_2(x, i, Detail, SctpTransportStateChangedEvent, ol, SctpTransport, StateEvent, puid, id, mID, string, state, toString(state));
       mDataChannelSubscriptions.delegate()->onSCTPTransportStateChanged();
 
       auto newState = toState(mCurrentState);
@@ -2044,7 +2136,12 @@ namespace ortc
 
       mLastError = errorCode;
       mLastErrorReason = reason;
-      EventWriteOrtcSctpTransportErrorEventFired(__func__, mID, errorCode, reason);
+      ZS_EVENTING_3(
+                    x, i, Detail, SctpTransportErrorEvent, ol, SctpTransport, StateEvent,
+                    puid, id, mID,
+                    word, errorCode, errorCode,
+                    string, reason, reason
+                    );
 
       ZS_LOG_WARNING(Detail, debug("error set") + ZS_PARAM("error", mLastError) + ZS_PARAM("reason", mLastErrorReason))
     }
