@@ -4,8 +4,8 @@ libs/build
 [dD]ebug/
 [Rr]elease/
 Generated Files/
-ortc/internal/ortc_ETWTracing.h
-ortc/internal/ortc_ETWStatsReport.h
+ortc/internal/ortc.events_win_etw.h
+ortc/internal/ortc.stats.events_win_etw.h
 *.db
 *.opendb
 .vs/
