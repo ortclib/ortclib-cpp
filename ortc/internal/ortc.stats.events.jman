@@ -6,6 +6,7 @@
   "symbol" : "OrtcLibStatsReport",
   "description" : "ORTC Lib (stats) library",
   "resourceName" : "ortc.stats.events",
+  "uniqueHash" : "fcd4dad17fbb450227b1010c90aa3d7e5070c966e28678c8134cfbbc384541d5",
   "typedefs" : {
    "typedef" : [
     {

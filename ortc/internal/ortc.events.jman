@@ -6,6 +6,7 @@
   "symbol" : "OrtcLib",
   "description" : "ORTC Lib library",
   "resourceName" : "ortc.events",
+  "uniqueHash" : "fa670f64550077ef249a0ad76a2d5ff519ed3d978715a0ccdbf10f2fc9042742",
   "typedefs" : {
    "typedef" : [
     {

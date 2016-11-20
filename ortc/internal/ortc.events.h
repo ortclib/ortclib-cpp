@@ -50,7 +50,7 @@ namespace zsLib {
       return gHandle;
     }
 
-#define ZS_INTERNAL_REGISTER_EVENTING_OrtcLib() ZS_EVENTING_REGISTER_EVENT_WRITER(zsLib::eventing::getEventHandleOrtcLib(), "2bc80581-9143-4013-8ff6-223d3479b14e", "OrtcLib")
+#define ZS_INTERNAL_REGISTER_EVENTING_OrtcLib() ZS_EVENTING_REGISTER_EVENT_WRITER(zsLib::eventing::getEventHandleOrtcLib(), "2bc80581-9143-4013-8ff6-223d3479b14e", "OrtcLib", "fa670f64550077ef249a0ad76a2d5ff519ed3d978715a0ccdbf10f2fc9042742")
 #define ZS_INTERNAL_UNREGISTER_EVENTING_OrtcLib() ZS_EVENTING_UNREGISTER_EVENT_WRITER(zsLib::eventing::getEventHandleOrtcLib())
 
 
