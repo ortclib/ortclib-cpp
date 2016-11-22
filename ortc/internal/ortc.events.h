@@ -2531,15 +2531,11 @@ namespace zsLib {
 
 #define ZS_INTERNAL_EVENTING_EVENT_OrtcCreate(xSubsystem) \
   if (ZS_EVENTING_IS_LOGGING(Detail)) { \
-    BYTE xxOutputBuffer[0]; \
-    BYTE *xxPOutputBuffer = &(xxOutputBuffer[0]); \
     ZS_EVENTING_WRITE_EVENT(zsLib::eventing::getEventHandleOrtcLib(), Informational, Detail, (ZS_GET_SUBSYSTEM()).getName(), __func__, __LINE__, 1184, &(xxOutputBuffer[0]), 0); \
   }
 
 #define ZS_INTERNAL_EVENTING_EVENT_OrtcDestroy(xSubsystem) \
   if (ZS_EVENTING_IS_LOGGING(Detail)) { \
-    BYTE xxOutputBuffer[0]; \
-    BYTE *xxPOutputBuffer = &(xxOutputBuffer[0]); \
     ZS_EVENTING_WRITE_EVENT(zsLib::eventing::getEventHandleOrtcLib(), Informational, Detail, (ZS_GET_SUBSYSTEM()).getName(), __func__, __LINE__, 1185, &(xxOutputBuffer[0]), 0); \
   }
 
@@ -3296,15 +3292,13 @@ namespace zsLib {
 
 #define ZS_INTERNAL_EVENTING_EVENT_RtpReceiverReportRtcpFeedback(xSubsystem, xValue1, xValue2) \
   if (ZS_EVENTING_IS_LOGGING(Detail)) { \
-    BYTE xxOutputBuffer[0]; \
-    BYTE *xxPOutputBuffer = &(xxOutputBuffer[0]); \
     BYTE *xxIndirectBuffer[2]; \
     BYTE **xxPIndirectBuffer = &(xxIndirectBuffer[0]); \
     size_t xxIndirectSize[2]; \
     size_t *xxPIndirectSize = &(xxIndirectSize[0]); \
     zsLib::eventing::eventWriteBuffer(xxPIndirectBuffer, (xValue1), xxPIndirectSize); \
     zsLib::eventing::eventWriteBuffer(xxPIndirectBuffer, (xValue2), xxPIndirectSize); \
-    ZS_EVENTING_WRITE_EVENT_WITH_BUFFERS(zsLib::eventing::getEventHandleOrtcLib(), Informational, Detail, (ZS_GET_SUBSYSTEM()).getName(), __func__, __LINE__, 1247, &(xxOutputBuffer[0]), 0, &(xxIndirectBuffer[0]), &(xxIndirectSize[0]), 2); \
+    ZS_EVENTING_WRITE_EVENT_WITH_BUFFERS(zsLib::eventing::getEventHandleOrtcLib(), Informational, Detail, (ZS_GET_SUBSYSTEM()).getName(), __func__, __LINE__, 1247, NULL, 0, &(xxIndirectBuffer[0]), &(xxIndirectSize[0]), 2); \
   }
 
 #define ZS_INTERNAL_EVENTING_EVENT_RtpReceiverSendOutgoingPacket(xSubsystem, xValue1, xValue2, xValue3, xValue4, xValue5) \
