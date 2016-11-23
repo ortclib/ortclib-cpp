@@ -1,0 +1,1035 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		009D19931DE52DEA00D139FF /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 009D19921DE52DEA00D139FF /* main.m */; };
+		009D19961DE52DEA00D139FF /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 009D19951DE52DEA00D139FF /* AppDelegate.m */; };
+		009D19991DE52DEA00D139FF /* ViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 009D19981DE52DEA00D139FF /* ViewController.m */; };
+		009D199C1DE52DEA00D139FF /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 009D199A1DE52DEA00D139FF /* Main.storyboard */; };
+		009D199E1DE52DEA00D139FF /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 009D199D1DE52DEA00D139FF /* Assets.xcassets */; };
+		009D19A11DE52DEA00D139FF /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 009D199F1DE52DEA00D139FF /* LaunchScreen.storyboard */; };
+		009D19AC1DE52DEA00D139FF /* ortclib_Test_iosTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 009D19AB1DE52DEA00D139FF /* ortclib_Test_iosTests.m */; };
+		009D19B71DE52DEA00D139FF /* ortclib_Test_iosUITests.m in Sources */ = {isa = PBXBuildFile; fileRef = 009D19B61DE52DEA00D139FF /* ortclib_Test_iosUITests.m */; };
+		009D1A681DE52F7400D139FF /* libcryptopp-ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 009D19DB1DE52E8200D139FF /* libcryptopp-ios.a */; };
+		009D1A691DE52F7400D139FF /* libidnkit-ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 009D19DE1DE52E8200D139FF /* libidnkit-ios.a */; };
+		009D1A6A1DE52F7400D139FF /* libortclib-ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 009D19E11DE52E8200D139FF /* libortclib-ios.a */; };
+		009D1A6B1DE52F7400D139FF /* libortclib.services-ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 009D19E41DE52E8200D139FF /* libortclib.services-ios.a */; };
+		009D1A6C1DE52F7400D139FF /* libudns-ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 009D19E71DE52E8200D139FF /* libudns-ios.a */; };
+		009D1A6D1DE52F7400D139FF /* libzsLib-eventing-ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 009D19EA1DE52E8200D139FF /* libzsLib-eventing-ios.a */; };
+		009D1A6E1DE52F7400D139FF /* libzsLib-ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 009D19ED1DE52E8200D139FF /* libzsLib-ios.a */; };
+		009D1A6F1DE52F9200D139FF /* libcryptopp-ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 009D19DB1DE52E8200D139FF /* libcryptopp-ios.a */; };
+		009D1A701DE52F9200D139FF /* libidnkit-ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 009D19DE1DE52E8200D139FF /* libidnkit-ios.a */; };
+		009D1A711DE52F9200D139FF /* libortclib-ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 009D19E11DE52E8200D139FF /* libortclib-ios.a */; };
+		009D1A721DE52F9200D139FF /* libortclib.services-ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 009D19E41DE52E8200D139FF /* libortclib.services-ios.a */; };
+		009D1A731DE52F9200D139FF /* libudns-ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 009D19E71DE52E8200D139FF /* libudns-ios.a */; };
+		009D1A741DE52F9200D139FF /* libzsLib-eventing-ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 009D19EA1DE52E8200D139FF /* libzsLib-eventing-ios.a */; };
+		009D1A751DE52F9200D139FF /* libzsLib-ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 009D19ED1DE52E8200D139FF /* libzsLib-ios.a */; };
+		009D1A761DE52FA000D139FF /* libcryptopp-ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 009D19DB1DE52E8200D139FF /* libcryptopp-ios.a */; };
+		009D1A771DE52FA000D139FF /* libidnkit-ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 009D19DE1DE52E8200D139FF /* libidnkit-ios.a */; };
+		009D1A781DE52FA000D139FF /* libortclib-ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 009D19E11DE52E8200D139FF /* libortclib-ios.a */; };
+		009D1A791DE52FA000D139FF /* libortclib.services-ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 009D19E41DE52E8200D139FF /* libortclib.services-ios.a */; };
+		009D1A7A1DE52FA000D139FF /* libudns-ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 009D19E71DE52E8200D139FF /* libudns-ios.a */; };
+		009D1A7B1DE52FA000D139FF /* libzsLib-eventing-ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 009D19EA1DE52E8200D139FF /* libzsLib-eventing-ios.a */; };
+		009D1A7C1DE52FA000D139FF /* libzsLib-ios.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 009D19ED1DE52E8200D139FF /* libzsLib-ios.a */; };
+		009D1A9C1DE52FBF00D139FF /* TestDTLS.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D1A801DE52FBF00D139FF /* TestDTLS.cpp */; };
+		009D1A9D1DE52FBF00D139FF /* TestDTLS.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D1A801DE52FBF00D139FF /* TestDTLS.cpp */; };
+		009D1A9E1DE52FBF00D139FF /* TestDTLS.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D1A801DE52FBF00D139FF /* TestDTLS.cpp */; };
+		009D1A9F1DE52FBF00D139FF /* TestICEGatherer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D1A811DE52FBF00D139FF /* TestICEGatherer.cpp */; };
+		009D1AA01DE52FBF00D139FF /* TestICEGatherer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D1A811DE52FBF00D139FF /* TestICEGatherer.cpp */; };
+		009D1AA11DE52FBF00D139FF /* TestICEGatherer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D1A811DE52FBF00D139FF /* TestICEGatherer.cpp */; };
+		009D1AA21DE52FBF00D139FF /* TestICETransport.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D1A821DE52FBF00D139FF /* TestICETransport.cpp */; };
+		009D1AA31DE52FBF00D139FF /* TestICETransport.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D1A821DE52FBF00D139FF /* TestICETransport.cpp */; };
+		009D1AA41DE52FBF00D139FF /* TestICETransport.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D1A821DE52FBF00D139FF /* TestICETransport.cpp */; };
+		009D1AA51DE52FBF00D139FF /* testing.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D1A831DE52FBF00D139FF /* testing.cpp */; };
+		009D1AA61DE52FBF00D139FF /* testing.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D1A831DE52FBF00D139FF /* testing.cpp */; };
+		009D1AA71DE52FBF00D139FF /* testing.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D1A831DE52FBF00D139FF /* testing.cpp */; };
+		009D1AA81DE52FBF00D139FF /* TestMediaStreamTrack.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D1A851DE52FBF00D139FF /* TestMediaStreamTrack.cpp */; };
+		009D1AA91DE52FBF00D139FF /* TestMediaStreamTrack.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D1A851DE52FBF00D139FF /* TestMediaStreamTrack.cpp */; };
+		009D1AAA1DE52FBF00D139FF /* TestMediaStreamTrack.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D1A851DE52FBF00D139FF /* TestMediaStreamTrack.cpp */; };
+		009D1AAB1DE52FBF00D139FF /* TestRTCPPacket.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D1A871DE52FBF00D139FF /* TestRTCPPacket.cpp */; };
+		009D1AAC1DE52FBF00D139FF /* TestRTCPPacket.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D1A871DE52FBF00D139FF /* TestRTCPPacket.cpp */; };
+		009D1AAD1DE52FBF00D139FF /* TestRTCPPacket.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D1A871DE52FBF00D139FF /* TestRTCPPacket.cpp */; };
+		009D1AAE1DE52FBF00D139FF /* TestRTPChannel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D1A881DE52FBF00D139FF /* TestRTPChannel.cpp */; };
+		009D1AAF1DE52FBF00D139FF /* TestRTPChannel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D1A881DE52FBF00D139FF /* TestRTPChannel.cpp */; };
+		009D1AB01DE52FBF00D139FF /* TestRTPChannel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D1A881DE52FBF00D139FF /* TestRTPChannel.cpp */; };
+		009D1AB11DE52FBF00D139FF /* TestRTPChannelAudio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D1A8A1DE52FBF00D139FF /* TestRTPChannelAudio.cpp */; };
+		009D1AB21DE52FBF00D139FF /* TestRTPChannelAudio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D1A8A1DE52FBF00D139FF /* TestRTPChannelAudio.cpp */; };
+		009D1AB31DE52FBF00D139FF /* TestRTPChannelAudio.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D1A8A1DE52FBF00D139FF /* TestRTPChannelAudio.cpp */; };
+		009D1AB41DE52FBF00D139FF /* TestRTPChannelVideo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D1A8C1DE52FBF00D139FF /* TestRTPChannelVideo.cpp */; };
+		009D1AB51DE52FBF00D139FF /* TestRTPChannelVideo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D1A8C1DE52FBF00D139FF /* TestRTPChannelVideo.cpp */; };
+		009D1AB61DE52FBF00D139FF /* TestRTPChannelVideo.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D1A8C1DE52FBF00D139FF /* TestRTPChannelVideo.cpp */; };
+		009D1AB71DE52FBF00D139FF /* TestRTPListener.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D1A8E1DE52FBF00D139FF /* TestRTPListener.cpp */; };
+		009D1AB81DE52FBF00D139FF /* TestRTPListener.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D1A8E1DE52FBF00D139FF /* TestRTPListener.cpp */; };
+		009D1AB91DE52FBF00D139FF /* TestRTPListener.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D1A8E1DE52FBF00D139FF /* TestRTPListener.cpp */; };
+		009D1ABA1DE52FBF00D139FF /* TestRTPPacket.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D1A901DE52FBF00D139FF /* TestRTPPacket.cpp */; };
+		009D1ABB1DE52FBF00D139FF /* TestRTPPacket.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D1A901DE52FBF00D139FF /* TestRTPPacket.cpp */; };
+		009D1ABC1DE52FBF00D139FF /* TestRTPPacket.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D1A901DE52FBF00D139FF /* TestRTPPacket.cpp */; };
+		009D1ABD1DE52FC000D139FF /* TestRTPReceiver.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D1A911DE52FBF00D139FF /* TestRTPReceiver.cpp */; };
+		009D1ABE1DE52FC000D139FF /* TestRTPReceiver.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D1A911DE52FBF00D139FF /* TestRTPReceiver.cpp */; };
+		009D1ABF1DE52FC000D139FF /* TestRTPReceiver.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D1A911DE52FBF00D139FF /* TestRTPReceiver.cpp */; };
+		009D1AC01DE52FC000D139FF /* TestRTPSender.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D1A931DE52FBF00D139FF /* TestRTPSender.cpp */; };
+		009D1AC11DE52FC000D139FF /* TestRTPSender.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D1A931DE52FBF00D139FF /* TestRTPSender.cpp */; };
+		009D1AC21DE52FC000D139FF /* TestRTPSender.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D1A931DE52FBF00D139FF /* TestRTPSender.cpp */; };
+		009D1AC31DE52FC000D139FF /* TestSCTP.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D1A951DE52FBF00D139FF /* TestSCTP.cpp */; };
+		009D1AC41DE52FC000D139FF /* TestSCTP.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D1A951DE52FBF00D139FF /* TestSCTP.cpp */; };
+		009D1AC51DE52FC000D139FF /* TestSCTP.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D1A951DE52FBF00D139FF /* TestSCTP.cpp */; };
+		009D1AC61DE52FC000D139FF /* TestSetup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D1A971DE52FBF00D139FF /* TestSetup.cpp */; };
+		009D1AC71DE52FC000D139FF /* TestSetup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D1A971DE52FBF00D139FF /* TestSetup.cpp */; };
+		009D1AC81DE52FC000D139FF /* TestSetup.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D1A971DE52FBF00D139FF /* TestSetup.cpp */; };
+		009D1AC91DE52FC000D139FF /* TestSRTP.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D1A981DE52FBF00D139FF /* TestSRTP.cpp */; };
+		009D1ACA1DE52FC000D139FF /* TestSRTP.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D1A981DE52FBF00D139FF /* TestSRTP.cpp */; };
+		009D1ACB1DE52FC000D139FF /* TestSRTP.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D1A981DE52FBF00D139FF /* TestSRTP.cpp */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		009D19A81DE52DEA00D139FF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 009D19861DE52DEA00D139FF /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 009D198D1DE52DEA00D139FF;
+			remoteInfo = "ortclib.Test-ios";
+		};
+		009D19B31DE52DEA00D139FF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 009D19861DE52DEA00D139FF /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 009D198D1DE52DEA00D139FF;
+			remoteInfo = "ortclib.Test-ios";
+		};
+		009D19DA1DE52E8200D139FF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 009D19D31DE52E8200D139FF /* cryptopp-ios.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 009BBA0A1D974F4400B6B633;
+			remoteInfo = "cryptopp-ios";
+		};
+		009D19DD1DE52E8200D139FF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 009D19CA1DE52E8200D139FF /* idnkit-ios.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 0001A45F1DA1DD5F00D807DA;
+			remoteInfo = "idnkit-ios";
+		};
+		009D19E01DE52E8200D139FF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 009D19C41DE52E8200D139FF /* ortclib-ios.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 0064F8031DE51EB900EE8962;
+			remoteInfo = "ortclib-ios";
+		};
+		009D19E31DE52E8200D139FF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 009D19C71DE52E8200D139FF /* ortclib.services-ios.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 008A13851DA1A13600D1664A;
+			remoteInfo = "ortclib.services-ios";
+		};
+		009D19E61DE52E8200D139FF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 009D19CD1DE52E8200D139FF /* udns-ios.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 0022EA3D1D989A1F002FCECF;
+			remoteInfo = "udns-ios";
+		};
+		009D19E91DE52E8200D139FF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 009D19D01DE52E8200D139FF /* zsLib-eventing-ios.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 008698371DE3F458009D669C;
+			remoteInfo = "zsLib-eventing-ios";
+		};
+		009D19EC1DE52E8200D139FF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 009D19D61DE52E8200D139FF /* zsLib-ios.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 0067EE151D9C5B4E003BE1AC;
+			remoteInfo = "zsLib-ios";
+		};
+		009D1A5A1DE52F5900D139FF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 009D19C41DE52E8200D139FF /* ortclib-ios.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 0064F8021DE51EB900EE8962;
+			remoteInfo = "ortclib-ios";
+		};
+		009D1A5C1DE52F5900D139FF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 009D19C71DE52E8200D139FF /* ortclib.services-ios.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 008A13841DA1A13600D1664A;
+			remoteInfo = "ortclib.services-ios";
+		};
+		009D1A5E1DE52F5900D139FF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 009D19CA1DE52E8200D139FF /* idnkit-ios.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 0001A45E1DA1DD5F00D807DA;
+			remoteInfo = "idnkit-ios";
+		};
+		009D1A601DE52F5900D139FF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 009D19CD1DE52E8200D139FF /* udns-ios.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 0022EA3C1D989A1F002FCECF;
+			remoteInfo = "udns-ios";
+		};
+		009D1A621DE52F5900D139FF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 009D19D01DE52E8200D139FF /* zsLib-eventing-ios.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 008698361DE3F458009D669C;
+			remoteInfo = "zsLib-eventing-ios";
+		};
+		009D1A641DE52F5900D139FF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 009D19D31DE52E8200D139FF /* cryptopp-ios.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 009BBA091D974F4400B6B633;
+			remoteInfo = "cryptopp-ios";
+		};
+		009D1A661DE52F5900D139FF /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 009D19D61DE52E8200D139FF /* zsLib-ios.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 0067EE141D9C5B4E003BE1AC;
+			remoteInfo = "zsLib-ios";
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		009D198E1DE52DEA00D139FF /* ortclib.Test-ios.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "ortclib.Test-ios.app"; sourceTree = BUILT_PRODUCTS_DIR; };
+		009D19921DE52DEA00D139FF /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		009D19941DE52DEA00D139FF /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
+		009D19951DE52DEA00D139FF /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
+		009D19971DE52DEA00D139FF /* ViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ViewController.h; sourceTree = "<group>"; };
+		009D19981DE52DEA00D139FF /* ViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ViewController.m; sourceTree = "<group>"; };
+		009D199B1DE52DEA00D139FF /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
+		009D199D1DE52DEA00D139FF /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		009D19A01DE52DEA00D139FF /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
+		009D19A21DE52DEA00D139FF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		009D19A71DE52DEA00D139FF /* ortclib.Test-iosTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "ortclib.Test-iosTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		009D19AB1DE52DEA00D139FF /* ortclib_Test_iosTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ortclib_Test_iosTests.m; sourceTree = "<group>"; };
+		009D19AD1DE52DEA00D139FF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		009D19B21DE52DEA00D139FF /* ortclib.Test-iosUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "ortclib.Test-iosUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
+		009D19B61DE52DEA00D139FF /* ortclib_Test_iosUITests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = ortclib_Test_iosUITests.m; sourceTree = "<group>"; };
+		009D19B81DE52DEA00D139FF /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		009D19C41DE52E8200D139FF /* ortclib-ios.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "ortclib-ios.xcodeproj"; path = "../ortclib-ios/ortclib-ios.xcodeproj"; sourceTree = "<group>"; };
+		009D19C71DE52E8200D139FF /* ortclib.services-ios.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "ortclib.services-ios.xcodeproj"; path = "/Users/robin/Repos/ortclib/ortclib-sdk/ortc/xplatform/ortclib-cpp/projects/xcode/../../../ortclib-services-cpp/projects/xcode/ortclib.services-ios/ortclib.services-ios.xcodeproj"; sourceTree = "<absolute>"; };
+		009D19CA1DE52E8200D139FF /* idnkit-ios.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "idnkit-ios.xcodeproj"; path = "/Users/robin/Repos/ortclib/ortclib-sdk/ortc/xplatform/ortclib-cpp/projects/xcode/../../../idnkit/projects/xcode/idnkit-ios/idnkit-ios.xcodeproj"; sourceTree = "<absolute>"; };
+		009D19CD1DE52E8200D139FF /* udns-ios.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "udns-ios.xcodeproj"; path = "/Users/robin/Repos/ortclib/ortclib-sdk/ortc/xplatform/ortclib-cpp/projects/xcode/../../../udns/projects/xcode/udns-ios/udns-ios.xcodeproj"; sourceTree = "<absolute>"; };
+		009D19D01DE52E8200D139FF /* zsLib-eventing-ios.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "zsLib-eventing-ios.xcodeproj"; path = "/Users/robin/Repos/ortclib/ortclib-sdk/ortc/xplatform/ortclib-cpp/projects/xcode/../../../zsLib-eventing/projects/xcode/zsLib-eventing-ios/zsLib-eventing-ios.xcodeproj"; sourceTree = "<absolute>"; };
+		009D19D31DE52E8200D139FF /* cryptopp-ios.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "cryptopp-ios.xcodeproj"; path = "/Users/robin/Repos/ortclib/ortclib-sdk/ortc/xplatform/ortclib-cpp/projects/xcode/../../../cryptopp/projects/xcode/cryptopp-ios/cryptopp-ios.xcodeproj"; sourceTree = "<absolute>"; };
+		009D19D61DE52E8200D139FF /* zsLib-ios.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = "zsLib-ios.xcodeproj"; path = "/Users/robin/Repos/ortclib/ortclib-sdk/ortc/xplatform/ortclib-cpp/projects/xcode/../../../zsLib/projects/xcode/zsLib-ios/zsLib-ios.xcodeproj"; sourceTree = "<absolute>"; };
+		009D1A7E1DE52FBF00D139FF /* config.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = config.h; sourceTree = "<group>"; };
+		009D1A7F1DE52FBF00D139FF /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		009D1A801DE52FBF00D139FF /* TestDTLS.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TestDTLS.cpp; sourceTree = "<group>"; };
+		009D1A811DE52FBF00D139FF /* TestICEGatherer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TestICEGatherer.cpp; sourceTree = "<group>"; };
+		009D1A821DE52FBF00D139FF /* TestICETransport.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TestICETransport.cpp; sourceTree = "<group>"; };
+		009D1A831DE52FBF00D139FF /* testing.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = testing.cpp; sourceTree = "<group>"; };
+		009D1A841DE52FBF00D139FF /* testing.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = testing.h; sourceTree = "<group>"; };
+		009D1A851DE52FBF00D139FF /* TestMediaStreamTrack.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TestMediaStreamTrack.cpp; sourceTree = "<group>"; };
+		009D1A861DE52FBF00D139FF /* TestMediaStreamTrack.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestMediaStreamTrack.h; sourceTree = "<group>"; };
+		009D1A871DE52FBF00D139FF /* TestRTCPPacket.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TestRTCPPacket.cpp; sourceTree = "<group>"; };
+		009D1A881DE52FBF00D139FF /* TestRTPChannel.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TestRTPChannel.cpp; sourceTree = "<group>"; };
+		009D1A891DE52FBF00D139FF /* TestRTPChannel.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestRTPChannel.h; sourceTree = "<group>"; };
+		009D1A8A1DE52FBF00D139FF /* TestRTPChannelAudio.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TestRTPChannelAudio.cpp; sourceTree = "<group>"; };
+		009D1A8B1DE52FBF00D139FF /* TestRTPChannelAudio.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestRTPChannelAudio.h; sourceTree = "<group>"; };
+		009D1A8C1DE52FBF00D139FF /* TestRTPChannelVideo.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TestRTPChannelVideo.cpp; sourceTree = "<group>"; };
+		009D1A8D1DE52FBF00D139FF /* TestRTPChannelVideo.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestRTPChannelVideo.h; sourceTree = "<group>"; };
+		009D1A8E1DE52FBF00D139FF /* TestRTPListener.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TestRTPListener.cpp; sourceTree = "<group>"; };
+		009D1A8F1DE52FBF00D139FF /* TestRTPListener.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestRTPListener.h; sourceTree = "<group>"; };
+		009D1A901DE52FBF00D139FF /* TestRTPPacket.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TestRTPPacket.cpp; sourceTree = "<group>"; };
+		009D1A911DE52FBF00D139FF /* TestRTPReceiver.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TestRTPReceiver.cpp; sourceTree = "<group>"; };
+		009D1A921DE52FBF00D139FF /* TestRTPReceiver.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestRTPReceiver.h; sourceTree = "<group>"; };
+		009D1A931DE52FBF00D139FF /* TestRTPSender.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TestRTPSender.cpp; sourceTree = "<group>"; };
+		009D1A941DE52FBF00D139FF /* TestRTPSender.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestRTPSender.h; sourceTree = "<group>"; };
+		009D1A951DE52FBF00D139FF /* TestSCTP.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TestSCTP.cpp; sourceTree = "<group>"; };
+		009D1A961DE52FBF00D139FF /* TestSCTP.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = TestSCTP.h; sourceTree = "<group>"; };
+		009D1A971DE52FBF00D139FF /* TestSetup.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TestSetup.cpp; sourceTree = "<group>"; };
+		009D1A981DE52FBF00D139FF /* TestSRTP.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TestSRTP.cpp; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		009D198B1DE52DEA00D139FF /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				009D1A681DE52F7400D139FF /* libcryptopp-ios.a in Frameworks */,
+				009D1A691DE52F7400D139FF /* libidnkit-ios.a in Frameworks */,
+				009D1A6A1DE52F7400D139FF /* libortclib-ios.a in Frameworks */,
+				009D1A6B1DE52F7400D139FF /* libortclib.services-ios.a in Frameworks */,
+				009D1A6C1DE52F7400D139FF /* libudns-ios.a in Frameworks */,
+				009D1A6D1DE52F7400D139FF /* libzsLib-eventing-ios.a in Frameworks */,
+				009D1A6E1DE52F7400D139FF /* libzsLib-ios.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		009D19A41DE52DEA00D139FF /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				009D1A6F1DE52F9200D139FF /* libcryptopp-ios.a in Frameworks */,
+				009D1A701DE52F9200D139FF /* libidnkit-ios.a in Frameworks */,
+				009D1A711DE52F9200D139FF /* libortclib-ios.a in Frameworks */,
+				009D1A721DE52F9200D139FF /* libortclib.services-ios.a in Frameworks */,
+				009D1A731DE52F9200D139FF /* libudns-ios.a in Frameworks */,
+				009D1A741DE52F9200D139FF /* libzsLib-eventing-ios.a in Frameworks */,
+				009D1A751DE52F9200D139FF /* libzsLib-ios.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		009D19AF1DE52DEA00D139FF /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				009D1A761DE52FA000D139FF /* libcryptopp-ios.a in Frameworks */,
+				009D1A771DE52FA000D139FF /* libidnkit-ios.a in Frameworks */,
+				009D1A781DE52FA000D139FF /* libortclib-ios.a in Frameworks */,
+				009D1A791DE52FA000D139FF /* libortclib.services-ios.a in Frameworks */,
+				009D1A7A1DE52FA000D139FF /* libudns-ios.a in Frameworks */,
+				009D1A7B1DE52FA000D139FF /* libzsLib-eventing-ios.a in Frameworks */,
+				009D1A7C1DE52FA000D139FF /* libzsLib-ios.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		009D19851DE52DEA00D139FF = {
+			isa = PBXGroup;
+			children = (
+				009D19C41DE52E8200D139FF /* ortclib-ios.xcodeproj */,
+				009D19C71DE52E8200D139FF /* ortclib.services-ios.xcodeproj */,
+				009D19CA1DE52E8200D139FF /* idnkit-ios.xcodeproj */,
+				009D19CD1DE52E8200D139FF /* udns-ios.xcodeproj */,
+				009D19D01DE52E8200D139FF /* zsLib-eventing-ios.xcodeproj */,
+				009D19D31DE52E8200D139FF /* cryptopp-ios.xcodeproj */,
+				009D19D61DE52E8200D139FF /* zsLib-ios.xcodeproj */,
+				009D1A7D1DE52FBF00D139FF /* test */,
+				009D19901DE52DEA00D139FF /* ortclib.Test-ios */,
+				009D19AA1DE52DEA00D139FF /* ortclib.Test-iosTests */,
+				009D19B51DE52DEA00D139FF /* ortclib.Test-iosUITests */,
+				009D198F1DE52DEA00D139FF /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		009D198F1DE52DEA00D139FF /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				009D198E1DE52DEA00D139FF /* ortclib.Test-ios.app */,
+				009D19A71DE52DEA00D139FF /* ortclib.Test-iosTests.xctest */,
+				009D19B21DE52DEA00D139FF /* ortclib.Test-iosUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		009D19901DE52DEA00D139FF /* ortclib.Test-ios */ = {
+			isa = PBXGroup;
+			children = (
+				009D19941DE52DEA00D139FF /* AppDelegate.h */,
+				009D19951DE52DEA00D139FF /* AppDelegate.m */,
+				009D19971DE52DEA00D139FF /* ViewController.h */,
+				009D19981DE52DEA00D139FF /* ViewController.m */,
+				009D199A1DE52DEA00D139FF /* Main.storyboard */,
+				009D199D1DE52DEA00D139FF /* Assets.xcassets */,
+				009D199F1DE52DEA00D139FF /* LaunchScreen.storyboard */,
+				009D19A21DE52DEA00D139FF /* Info.plist */,
+				009D19911DE52DEA00D139FF /* Supporting Files */,
+			);
+			path = "ortclib.Test-ios";
+			sourceTree = "<group>";
+		};
+		009D19911DE52DEA00D139FF /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				009D19921DE52DEA00D139FF /* main.m */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		009D19AA1DE52DEA00D139FF /* ortclib.Test-iosTests */ = {
+			isa = PBXGroup;
+			children = (
+				009D19AB1DE52DEA00D139FF /* ortclib_Test_iosTests.m */,
+				009D19AD1DE52DEA00D139FF /* Info.plist */,
+			);
+			path = "ortclib.Test-iosTests";
+			sourceTree = "<group>";
+		};
+		009D19B51DE52DEA00D139FF /* ortclib.Test-iosUITests */ = {
+			isa = PBXGroup;
+			children = (
+				009D19B61DE52DEA00D139FF /* ortclib_Test_iosUITests.m */,
+				009D19B81DE52DEA00D139FF /* Info.plist */,
+			);
+			path = "ortclib.Test-iosUITests";
+			sourceTree = "<group>";
+		};
+		009D19C51DE52E8200D139FF /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				009D19E11DE52E8200D139FF /* libortclib-ios.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		009D19C81DE52E8200D139FF /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				009D19E41DE52E8200D139FF /* libortclib.services-ios.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		009D19CB1DE52E8200D139FF /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				009D19DE1DE52E8200D139FF /* libidnkit-ios.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		009D19CE1DE52E8200D139FF /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				009D19E71DE52E8200D139FF /* libudns-ios.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		009D19D11DE52E8200D139FF /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				009D19EA1DE52E8200D139FF /* libzsLib-eventing-ios.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		009D19D41DE52E8200D139FF /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				009D19DB1DE52E8200D139FF /* libcryptopp-ios.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		009D19D71DE52E8200D139FF /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				009D19ED1DE52E8200D139FF /* libzsLib-ios.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		009D1A7D1DE52FBF00D139FF /* test */ = {
+			isa = PBXGroup;
+			children = (
+				009D1A7E1DE52FBF00D139FF /* config.h */,
+				009D1A7F1DE52FBF00D139FF /* main.cpp */,
+				009D1A801DE52FBF00D139FF /* TestDTLS.cpp */,
+				009D1A811DE52FBF00D139FF /* TestICEGatherer.cpp */,
+				009D1A821DE52FBF00D139FF /* TestICETransport.cpp */,
+				009D1A831DE52FBF00D139FF /* testing.cpp */,
+				009D1A841DE52FBF00D139FF /* testing.h */,
+				009D1A851DE52FBF00D139FF /* TestMediaStreamTrack.cpp */,
+				009D1A861DE52FBF00D139FF /* TestMediaStreamTrack.h */,
+				009D1A871DE52FBF00D139FF /* TestRTCPPacket.cpp */,
+				009D1A881DE52FBF00D139FF /* TestRTPChannel.cpp */,
+				009D1A891DE52FBF00D139FF /* TestRTPChannel.h */,
+				009D1A8A1DE52FBF00D139FF /* TestRTPChannelAudio.cpp */,
+				009D1A8B1DE52FBF00D139FF /* TestRTPChannelAudio.h */,
+				009D1A8C1DE52FBF00D139FF /* TestRTPChannelVideo.cpp */,
+				009D1A8D1DE52FBF00D139FF /* TestRTPChannelVideo.h */,
+				009D1A8E1DE52FBF00D139FF /* TestRTPListener.cpp */,
+				009D1A8F1DE52FBF00D139FF /* TestRTPListener.h */,
+				009D1A901DE52FBF00D139FF /* TestRTPPacket.cpp */,
+				009D1A911DE52FBF00D139FF /* TestRTPReceiver.cpp */,
+				009D1A921DE52FBF00D139FF /* TestRTPReceiver.h */,
+				009D1A931DE52FBF00D139FF /* TestRTPSender.cpp */,
+				009D1A941DE52FBF00D139FF /* TestRTPSender.h */,
+				009D1A951DE52FBF00D139FF /* TestSCTP.cpp */,
+				009D1A961DE52FBF00D139FF /* TestSCTP.h */,
+				009D1A971DE52FBF00D139FF /* TestSetup.cpp */,
+				009D1A981DE52FBF00D139FF /* TestSRTP.cpp */,
+			);
+			name = test;
+			path = ../../../ortc/test;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		009D198D1DE52DEA00D139FF /* ortclib.Test-ios */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 009D19BB1DE52DEA00D139FF /* Build configuration list for PBXNativeTarget "ortclib.Test-ios" */;
+			buildPhases = (
+				009D198A1DE52DEA00D139FF /* Sources */,
+				009D198B1DE52DEA00D139FF /* Frameworks */,
+				009D198C1DE52DEA00D139FF /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				009D1A5B1DE52F5900D139FF /* PBXTargetDependency */,
+				009D1A5D1DE52F5900D139FF /* PBXTargetDependency */,
+				009D1A5F1DE52F5900D139FF /* PBXTargetDependency */,
+				009D1A611DE52F5900D139FF /* PBXTargetDependency */,
+				009D1A631DE52F5900D139FF /* PBXTargetDependency */,
+				009D1A651DE52F5900D139FF /* PBXTargetDependency */,
+				009D1A671DE52F5900D139FF /* PBXTargetDependency */,
+			);
+			name = "ortclib.Test-ios";
+			productName = "ortclib.Test-ios";
+			productReference = 009D198E1DE52DEA00D139FF /* ortclib.Test-ios.app */;
+			productType = "com.apple.product-type.application";
+		};
+		009D19A61DE52DEA00D139FF /* ortclib.Test-iosTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 009D19BE1DE52DEA00D139FF /* Build configuration list for PBXNativeTarget "ortclib.Test-iosTests" */;
+			buildPhases = (
+				009D19A31DE52DEA00D139FF /* Sources */,
+				009D19A41DE52DEA00D139FF /* Frameworks */,
+				009D19A51DE52DEA00D139FF /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				009D19A91DE52DEA00D139FF /* PBXTargetDependency */,
+			);
+			name = "ortclib.Test-iosTests";
+			productName = "ortclib.Test-iosTests";
+			productReference = 009D19A71DE52DEA00D139FF /* ortclib.Test-iosTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		009D19B11DE52DEA00D139FF /* ortclib.Test-iosUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 009D19C11DE52DEA00D139FF /* Build configuration list for PBXNativeTarget "ortclib.Test-iosUITests" */;
+			buildPhases = (
+				009D19AE1DE52DEA00D139FF /* Sources */,
+				009D19AF1DE52DEA00D139FF /* Frameworks */,
+				009D19B01DE52DEA00D139FF /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				009D19B41DE52DEA00D139FF /* PBXTargetDependency */,
+			);
+			name = "ortclib.Test-iosUITests";
+			productName = "ortclib.Test-iosUITests";
+			productReference = 009D19B21DE52DEA00D139FF /* ortclib.Test-iosUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		009D19861DE52DEA00D139FF /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0810;
+				ORGANIZATIONNAME = "Open Peer Foundation";
+				TargetAttributes = {
+					009D198D1DE52DEA00D139FF = {
+						CreatedOnToolsVersion = 8.1;
+						ProvisioningStyle = Automatic;
+					};
+					009D19A61DE52DEA00D139FF = {
+						CreatedOnToolsVersion = 8.1;
+						ProvisioningStyle = Automatic;
+						TestTargetID = 009D198D1DE52DEA00D139FF;
+					};
+					009D19B11DE52DEA00D139FF = {
+						CreatedOnToolsVersion = 8.1;
+						ProvisioningStyle = Automatic;
+						TestTargetID = 009D198D1DE52DEA00D139FF;
+					};
+				};
+			};
+			buildConfigurationList = 009D19891DE52DEA00D139FF /* Build configuration list for PBXProject "ortclib.Test-ios" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 009D19851DE52DEA00D139FF;
+			productRefGroup = 009D198F1DE52DEA00D139FF /* Products */;
+			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = 009D19D41DE52E8200D139FF /* Products */;
+					ProjectRef = 009D19D31DE52E8200D139FF /* cryptopp-ios.xcodeproj */;
+				},
+				{
+					ProductGroup = 009D19CB1DE52E8200D139FF /* Products */;
+					ProjectRef = 009D19CA1DE52E8200D139FF /* idnkit-ios.xcodeproj */;
+				},
+				{
+					ProductGroup = 009D19C51DE52E8200D139FF /* Products */;
+					ProjectRef = 009D19C41DE52E8200D139FF /* ortclib-ios.xcodeproj */;
+				},
+				{
+					ProductGroup = 009D19C81DE52E8200D139FF /* Products */;
+					ProjectRef = 009D19C71DE52E8200D139FF /* ortclib.services-ios.xcodeproj */;
+				},
+				{
+					ProductGroup = 009D19CE1DE52E8200D139FF /* Products */;
+					ProjectRef = 009D19CD1DE52E8200D139FF /* udns-ios.xcodeproj */;
+				},
+				{
+					ProductGroup = 009D19D11DE52E8200D139FF /* Products */;
+					ProjectRef = 009D19D01DE52E8200D139FF /* zsLib-eventing-ios.xcodeproj */;
+				},
+				{
+					ProductGroup = 009D19D71DE52E8200D139FF /* Products */;
+					ProjectRef = 009D19D61DE52E8200D139FF /* zsLib-ios.xcodeproj */;
+				},
+			);
+			projectRoot = "";
+			targets = (
+				009D198D1DE52DEA00D139FF /* ortclib.Test-ios */,
+				009D19A61DE52DEA00D139FF /* ortclib.Test-iosTests */,
+				009D19B11DE52DEA00D139FF /* ortclib.Test-iosUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		009D19DB1DE52E8200D139FF /* libcryptopp-ios.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = "libcryptopp-ios.a";
+			remoteRef = 009D19DA1DE52E8200D139FF /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		009D19DE1DE52E8200D139FF /* libidnkit-ios.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = "libidnkit-ios.a";
+			remoteRef = 009D19DD1DE52E8200D139FF /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		009D19E11DE52E8200D139FF /* libortclib-ios.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = "libortclib-ios.a";
+			remoteRef = 009D19E01DE52E8200D139FF /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		009D19E41DE52E8200D139FF /* libortclib.services-ios.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = "libortclib.services-ios.a";
+			remoteRef = 009D19E31DE52E8200D139FF /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		009D19E71DE52E8200D139FF /* libudns-ios.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = "libudns-ios.a";
+			remoteRef = 009D19E61DE52E8200D139FF /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		009D19EA1DE52E8200D139FF /* libzsLib-eventing-ios.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = "libzsLib-eventing-ios.a";
+			remoteRef = 009D19E91DE52E8200D139FF /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		009D19ED1DE52E8200D139FF /* libzsLib-ios.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = "libzsLib-ios.a";
+			remoteRef = 009D19EC1DE52E8200D139FF /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
+
+/* Begin PBXResourcesBuildPhase section */
+		009D198C1DE52DEA00D139FF /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				009D19A11DE52DEA00D139FF /* LaunchScreen.storyboard in Resources */,
+				009D199E1DE52DEA00D139FF /* Assets.xcassets in Resources */,
+				009D199C1DE52DEA00D139FF /* Main.storyboard in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		009D19A51DE52DEA00D139FF /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		009D19B01DE52DEA00D139FF /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		009D198A1DE52DEA00D139FF /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				009D1AA21DE52FBF00D139FF /* TestICETransport.cpp in Sources */,
+				009D1AA81DE52FBF00D139FF /* TestMediaStreamTrack.cpp in Sources */,
+				009D1AC91DE52FC000D139FF /* TestSRTP.cpp in Sources */,
+				009D1A9C1DE52FBF00D139FF /* TestDTLS.cpp in Sources */,
+				009D1AA51DE52FBF00D139FF /* testing.cpp in Sources */,
+				009D1A9F1DE52FBF00D139FF /* TestICEGatherer.cpp in Sources */,
+				009D1AB11DE52FBF00D139FF /* TestRTPChannelAudio.cpp in Sources */,
+				009D1AB41DE52FBF00D139FF /* TestRTPChannelVideo.cpp in Sources */,
+				009D19991DE52DEA00D139FF /* ViewController.m in Sources */,
+				009D1AAB1DE52FBF00D139FF /* TestRTCPPacket.cpp in Sources */,
+				009D19961DE52DEA00D139FF /* AppDelegate.m in Sources */,
+				009D1AB71DE52FBF00D139FF /* TestRTPListener.cpp in Sources */,
+				009D1AC01DE52FC000D139FF /* TestRTPSender.cpp in Sources */,
+				009D1AAE1DE52FBF00D139FF /* TestRTPChannel.cpp in Sources */,
+				009D1ABA1DE52FBF00D139FF /* TestRTPPacket.cpp in Sources */,
+				009D1AC31DE52FC000D139FF /* TestSCTP.cpp in Sources */,
+				009D1AC61DE52FC000D139FF /* TestSetup.cpp in Sources */,
+				009D19931DE52DEA00D139FF /* main.m in Sources */,
+				009D1ABD1DE52FC000D139FF /* TestRTPReceiver.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		009D19A31DE52DEA00D139FF /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				009D1A9D1DE52FBF00D139FF /* TestDTLS.cpp in Sources */,
+				009D1AC71DE52FC000D139FF /* TestSetup.cpp in Sources */,
+				009D1AA91DE52FBF00D139FF /* TestMediaStreamTrack.cpp in Sources */,
+				009D1AB21DE52FBF00D139FF /* TestRTPChannelAudio.cpp in Sources */,
+				009D1AA61DE52FBF00D139FF /* testing.cpp in Sources */,
+				009D1ACA1DE52FC000D139FF /* TestSRTP.cpp in Sources */,
+				009D1AC11DE52FC000D139FF /* TestRTPSender.cpp in Sources */,
+				009D1AB51DE52FBF00D139FF /* TestRTPChannelVideo.cpp in Sources */,
+				009D1AC41DE52FC000D139FF /* TestSCTP.cpp in Sources */,
+				009D1AAC1DE52FBF00D139FF /* TestRTCPPacket.cpp in Sources */,
+				009D1AAF1DE52FBF00D139FF /* TestRTPChannel.cpp in Sources */,
+				009D1AB81DE52FBF00D139FF /* TestRTPListener.cpp in Sources */,
+				009D1ABE1DE52FC000D139FF /* TestRTPReceiver.cpp in Sources */,
+				009D19AC1DE52DEA00D139FF /* ortclib_Test_iosTests.m in Sources */,
+				009D1AA31DE52FBF00D139FF /* TestICETransport.cpp in Sources */,
+				009D1AA01DE52FBF00D139FF /* TestICEGatherer.cpp in Sources */,
+				009D1ABB1DE52FBF00D139FF /* TestRTPPacket.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		009D19AE1DE52DEA00D139FF /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				009D1A9E1DE52FBF00D139FF /* TestDTLS.cpp in Sources */,
+				009D1AC81DE52FC000D139FF /* TestSetup.cpp in Sources */,
+				009D1AAA1DE52FBF00D139FF /* TestMediaStreamTrack.cpp in Sources */,
+				009D1AB31DE52FBF00D139FF /* TestRTPChannelAudio.cpp in Sources */,
+				009D1AA71DE52FBF00D139FF /* testing.cpp in Sources */,
+				009D1ACB1DE52FC000D139FF /* TestSRTP.cpp in Sources */,
+				009D1AC21DE52FC000D139FF /* TestRTPSender.cpp in Sources */,
+				009D1AB61DE52FBF00D139FF /* TestRTPChannelVideo.cpp in Sources */,
+				009D1AC51DE52FC000D139FF /* TestSCTP.cpp in Sources */,
+				009D1AAD1DE52FBF00D139FF /* TestRTCPPacket.cpp in Sources */,
+				009D1AB01DE52FBF00D139FF /* TestRTPChannel.cpp in Sources */,
+				009D1AB91DE52FBF00D139FF /* TestRTPListener.cpp in Sources */,
+				009D1ABF1DE52FC000D139FF /* TestRTPReceiver.cpp in Sources */,
+				009D19B71DE52DEA00D139FF /* ortclib_Test_iosUITests.m in Sources */,
+				009D1AA41DE52FBF00D139FF /* TestICETransport.cpp in Sources */,
+				009D1AA11DE52FBF00D139FF /* TestICEGatherer.cpp in Sources */,
+				009D1ABC1DE52FBF00D139FF /* TestRTPPacket.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		009D19A91DE52DEA00D139FF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 009D198D1DE52DEA00D139FF /* ortclib.Test-ios */;
+			targetProxy = 009D19A81DE52DEA00D139FF /* PBXContainerItemProxy */;
+		};
+		009D19B41DE52DEA00D139FF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 009D198D1DE52DEA00D139FF /* ortclib.Test-ios */;
+			targetProxy = 009D19B31DE52DEA00D139FF /* PBXContainerItemProxy */;
+		};
+		009D1A5B1DE52F5900D139FF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "ortclib-ios";
+			targetProxy = 009D1A5A1DE52F5900D139FF /* PBXContainerItemProxy */;
+		};
+		009D1A5D1DE52F5900D139FF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "ortclib.services-ios";
+			targetProxy = 009D1A5C1DE52F5900D139FF /* PBXContainerItemProxy */;
+		};
+		009D1A5F1DE52F5900D139FF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "idnkit-ios";
+			targetProxy = 009D1A5E1DE52F5900D139FF /* PBXContainerItemProxy */;
+		};
+		009D1A611DE52F5900D139FF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "udns-ios";
+			targetProxy = 009D1A601DE52F5900D139FF /* PBXContainerItemProxy */;
+		};
+		009D1A631DE52F5900D139FF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "zsLib-eventing-ios";
+			targetProxy = 009D1A621DE52F5900D139FF /* PBXContainerItemProxy */;
+		};
+		009D1A651DE52F5900D139FF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "cryptopp-ios";
+			targetProxy = 009D1A641DE52F5900D139FF /* PBXContainerItemProxy */;
+		};
+		009D1A671DE52F5900D139FF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = "zsLib-ios";
+			targetProxy = 009D1A661DE52F5900D139FF /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		009D199A1DE52DEA00D139FF /* Main.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				009D199B1DE52DEA00D139FF /* Base */,
+			);
+			name = Main.storyboard;
+			sourceTree = "<group>";
+		};
+		009D199F1DE52DEA00D139FF /* LaunchScreen.storyboard */ = {
+			isa = PBXVariantGroup;
+			children = (
+				009D19A01DE52DEA00D139FF /* Base */,
+			);
+			name = LaunchScreen.storyboard;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
+
+/* Begin XCBuildConfiguration section */
+		009D19B91DE52DEA00D139FF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVES = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.1;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+		009D19BA1DE52DEA00D139FF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_CXX_LANGUAGE_STANDARD = "c++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_SUSPICIOUS_MOVES = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"NDEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 10.1;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		009D19BC1DE52DEA00D139FF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INFOPLIST_FILE = "ortclib.Test-ios/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.ortc.ortclib-Test-ios";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		009D19BD1DE52DEA00D139FF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				INFOPLIST_FILE = "ortclib.Test-ios/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.ortc.ortclib-Test-ios";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+		009D19BF1DE52DEA00D139FF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				INFOPLIST_FILE = "ortclib.Test-iosTests/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.ortc.ortclib-Test-iosTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ortclib.Test-ios.app/ortclib.Test-ios";
+			};
+			name = Debug;
+		};
+		009D19C01DE52DEA00D139FF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				INFOPLIST_FILE = "ortclib.Test-iosTests/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.ortc.ortclib-Test-iosTests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ortclib.Test-ios.app/ortclib.Test-ios";
+			};
+			name = Release;
+		};
+		009D19C21DE52DEA00D139FF /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				INFOPLIST_FILE = "ortclib.Test-iosUITests/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.ortc.ortclib-Test-iosUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_TARGET_NAME = "ortclib.Test-ios";
+			};
+			name = Debug;
+		};
+		009D19C31DE52DEA00D139FF /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_INLINES_ARE_PRIVATE_EXTERN = NO;
+				INFOPLIST_FILE = "ortclib.Test-iosUITests/Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				PRODUCT_BUNDLE_IDENTIFIER = "org.ortc.ortclib-Test-iosUITests";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				TEST_TARGET_NAME = "ortclib.Test-ios";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		009D19891DE52DEA00D139FF /* Build configuration list for PBXProject "ortclib.Test-ios" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				009D19B91DE52DEA00D139FF /* Debug */,
+				009D19BA1DE52DEA00D139FF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		009D19BB1DE52DEA00D139FF /* Build configuration list for PBXNativeTarget "ortclib.Test-ios" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				009D19BC1DE52DEA00D139FF /* Debug */,
+				009D19BD1DE52DEA00D139FF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
+		009D19BE1DE52DEA00D139FF /* Build configuration list for PBXNativeTarget "ortclib.Test-iosTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				009D19BF1DE52DEA00D139FF /* Debug */,
+				009D19C01DE52DEA00D139FF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
+		009D19C11DE52DEA00D139FF /* Build configuration list for PBXNativeTarget "ortclib.Test-iosUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				009D19C21DE52DEA00D139FF /* Debug */,
+				009D19C31DE52DEA00D139FF /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 009D19861DE52DEA00D139FF /* Project object */;
+}

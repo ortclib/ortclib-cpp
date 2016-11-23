@@ -1160,7 +1160,7 @@ namespace ortc
                                         UseMediaStreamTrackPtr track
                                         );
 
-        virtual void lifetimeHolderGone();
+        virtual void lifetimeHolderGone() override;
 
       protected:
         void init();
@@ -1347,14 +1347,14 @@ namespace ortc
 
         virtual ~ChannelResource();
 
-        virtual void lifetimeHolderGone();
+        virtual void lifetimeHolderGone() override;
 
         //---------------------------------------------------------------------
         #pragma mark
         #pragma mark RTPMediaEngine::ChannelResource => IRTPMediaEngineChannelResource
         #pragma mark
 
-        virtual PUID getID() const { return mID; }
+        virtual PUID getID() const override { return mID; }
         virtual PromisePtr shutdown();
         virtual void notifyTransportState(ISecureTransportTypes::States state);
         virtual void notifyUpdate(ParametersPtr params);

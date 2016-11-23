@@ -200,7 +200,7 @@ namespace ortc
 
       static RTPStreamStatsPtr convert(AnyPtr any);
 
-      virtual ElementPtr createElement(const char *objectName) const;
+      virtual ElementPtr createElement(const char *objectName) const override;
 
       virtual ElementPtr toDebug() const override;
       virtual String hash() const override;
@@ -208,7 +208,7 @@ namespace ortc
       RTPStreamStats &operator=(const RTPStreamStats &op2) = delete;
 
     protected:
-      virtual void eventTrace(double timestamp) const;
+      virtual void eventTrace(double timestamp) const override;
     };
 
     //-------------------------------------------------------------------------
@@ -235,7 +235,7 @@ namespace ortc
 
       static CodecPtr convert(AnyPtr any);
 
-      virtual ElementPtr createElement(const char *objectName = "codec") const;
+      virtual ElementPtr createElement(const char *objectName = "codec") const override;
 
       virtual ElementPtr toDebug() const override;
       virtual String hash() const override;
@@ -243,7 +243,7 @@ namespace ortc
       Codec &operator=(const Codec &op2) = delete;
 
     protected:
-      virtual void eventTrace(double timestamp) const;
+      virtual void eventTrace(double timestamp) const override;
     };
 
     //-------------------------------------------------------------------------
@@ -271,7 +271,7 @@ namespace ortc
 
       static InboundRTPStreamStatsPtr convert(AnyPtr any);
 
-      virtual ElementPtr createElement(const char *objectName = "inboundrtp") const;
+      virtual ElementPtr createElement(const char *objectName = "inboundrtp") const override;
 
       virtual ElementPtr toDebug() const override;
       virtual String hash() const override;
@@ -279,7 +279,7 @@ namespace ortc
       InboundRTPStreamStats &operator=(const InboundRTPStreamStats &op2) = delete;
 
     protected:
-      virtual void eventTrace(double timestamp) const;
+      virtual void eventTrace(double timestamp) const override;
     };
 
     //-------------------------------------------------------------------------
@@ -305,7 +305,7 @@ namespace ortc
 
       static OutboundRTPStreamStatsPtr convert(AnyPtr any);
 
-      virtual ElementPtr createElement(const char *objectName = "outboundrtp") const;
+      virtual ElementPtr createElement(const char *objectName = "outboundrtp") const override;
 
       virtual ElementPtr toDebug() const override;
       virtual String hash() const override;
@@ -313,7 +313,7 @@ namespace ortc
       OutboundRTPStreamStats &operator=(const OutboundRTPStreamStats &op2) = delete;
 
     protected:
-      virtual void eventTrace(double timestamp) const;
+      virtual void eventTrace(double timestamp) const override;
     };
 
     //-------------------------------------------------------------------------
@@ -337,7 +337,7 @@ namespace ortc
 
       static SCTPTransportStatsPtr convert(AnyPtr any);
 
-      virtual ElementPtr createElement(const char *objectName = "sctptransport") const;
+      virtual ElementPtr createElement(const char *objectName = "sctptransport") const override;
 
       virtual ElementPtr toDebug() const override;
       virtual String hash() const override;
@@ -345,7 +345,7 @@ namespace ortc
       SCTPTransportStats &operator=(const SCTPTransportStats &op2) = delete;
 
     protected:
-      virtual void eventTrace(double timestamp) const;
+      virtual void eventTrace(double timestamp) const override;
     };
 
     //-------------------------------------------------------------------------
@@ -369,7 +369,7 @@ namespace ortc
 
       static MediaStreamStatsPtr convert(AnyPtr any);
 
-      virtual ElementPtr createElement(const char *objectName = "stream") const;
+      virtual ElementPtr createElement(const char *objectName = "stream") const override;
 
       virtual ElementPtr toDebug() const override;
       virtual String hash() const override;
@@ -377,7 +377,7 @@ namespace ortc
       MediaStreamStats &operator=(const MediaStreamStats &op2) = delete;
 
     protected:
-      virtual void eventTrace(double timestamp) const;
+      virtual void eventTrace(double timestamp) const override;
     };
 
     //-------------------------------------------------------------------------
@@ -413,7 +413,7 @@ namespace ortc
 
       static MediaStreamTrackStatsPtr convert(AnyPtr any);
 
-      virtual ElementPtr createElement(const char *objectName = "track") const;
+      virtual ElementPtr createElement(const char *objectName = "track") const override;
 
       virtual ElementPtr toDebug() const override;
       virtual String hash() const override;
@@ -421,7 +421,7 @@ namespace ortc
       MediaStreamTrackStats &operator=(const MediaStreamStats &op2) = delete;
 
     protected:
-      virtual void eventTrace(double timestamp) const;
+      virtual void eventTrace(double timestamp) const override;
     };
 
     //-------------------------------------------------------------------------
@@ -451,7 +451,7 @@ namespace ortc
 
       static DataChannelStatsPtr convert(AnyPtr any);
 
-      virtual ElementPtr createElement(const char *objectName = "datachannel") const;
+      virtual ElementPtr createElement(const char *objectName = "datachannel") const override;
 
       virtual ElementPtr toDebug() const override;
       virtual String hash() const override;
@@ -459,7 +459,7 @@ namespace ortc
       DataChannelStats &operator=(const DataChannelStats &op2) = delete;
 
     protected:
-      virtual void eventTrace(double timestamp) const;
+      virtual void eventTrace(double timestamp) const override;
     };
 
     //-------------------------------------------------------------------------
@@ -484,7 +484,7 @@ namespace ortc
 
       static ICEGathererStatsPtr convert(AnyPtr any);
 
-      virtual ElementPtr createElement(const char *objectName = "icegatherer") const;
+      virtual ElementPtr createElement(const char *objectName = "icegatherer") const override;
 
       virtual ElementPtr toDebug() const override;
       virtual String hash() const override;
@@ -492,7 +492,7 @@ namespace ortc
       ICEGathererStats &operator=(const ICEGathererStats &op2) = delete;
 
     protected:
-      virtual void eventTrace(double timestamp) const;
+      virtual void eventTrace(double timestamp) const override;
     };
 
 
@@ -520,7 +520,7 @@ namespace ortc
 
       static ICETransportStatsPtr convert(AnyPtr any);
 
-      virtual ElementPtr createElement(const char *objectName = "icetransport") const;
+      virtual ElementPtr createElement(const char *objectName = "icetransport") const override;
 
       virtual ElementPtr toDebug() const override;
       virtual String hash() const override;
@@ -528,7 +528,7 @@ namespace ortc
       ICETransportStats &operator=(const ICETransportStats &op2) = delete;
 
     protected:
-      virtual void eventTrace(double timestamp) const;
+      virtual void eventTrace(double timestamp) const override;
     };
 
     //-------------------------------------------------------------------------
@@ -552,7 +552,7 @@ namespace ortc
 
       static DTLSTransportStatsPtr convert(AnyPtr any);
 
-      virtual ElementPtr createElement(const char *objectName = "dtlstransport") const;
+      virtual ElementPtr createElement(const char *objectName = "dtlstransport") const override;
 
       virtual ElementPtr toDebug() const override;
       virtual String hash() const override;
@@ -560,7 +560,7 @@ namespace ortc
       DTLSTransportStats &operator=(const DTLSTransportStats &op2) = delete;
 
     protected:
-      virtual void eventTrace(double timestamp) const;
+      virtual void eventTrace(double timestamp) const override;
     };
 
     //-------------------------------------------------------------------------
@@ -581,7 +581,7 @@ namespace ortc
 
       static SRTPTransportStatsPtr convert(AnyPtr any);
 
-      virtual ElementPtr createElement(const char *objectName = "srtptransport") const;
+      virtual ElementPtr createElement(const char *objectName = "srtptransport") const override;
 
       virtual ElementPtr toDebug() const override;
       virtual String hash() const override;
@@ -589,7 +589,7 @@ namespace ortc
       SRTPTransportStats &operator=(const SRTPTransportStats &op2) = delete;
 
     protected:
-      virtual void eventTrace(double timestamp) const;
+      virtual void eventTrace(double timestamp) const override;
     };
 
     //-------------------------------------------------------------------------
@@ -618,7 +618,7 @@ namespace ortc
 
       static ICECandidateAttributesPtr convert(AnyPtr any);
 
-      virtual ElementPtr createElement(const char *objectName = "dtlstransport") const;
+      virtual ElementPtr createElement(const char *objectName = "dtlstransport") const override;
 
       virtual ElementPtr toDebug() const override;
       virtual String hash() const override;
@@ -626,7 +626,7 @@ namespace ortc
       ICECandidateAttributes &operator=(const ICECandidateAttributes &op2) = delete;
 
     protected:
-      virtual void eventTrace(double timestamp) const;
+      virtual void eventTrace(double timestamp) const override;
     };
 
     //-------------------------------------------------------------------------
@@ -661,7 +661,7 @@ namespace ortc
 
       static ICECandidatePairStatsPtr convert(AnyPtr any);
 
-      virtual ElementPtr createElement(const char *objectName = "candidatepair") const;
+      virtual ElementPtr createElement(const char *objectName = "candidatepair") const override;
 
       virtual ElementPtr toDebug() const override;
       virtual String hash() const override;
@@ -669,7 +669,7 @@ namespace ortc
       ICECandidatePairStats &operator=(const ICECandidatePairStats &op2) = delete;
 
     protected:
-      virtual void eventTrace(double timestamp) const;
+      virtual void eventTrace(double timestamp) const override;
     };
 
     //-------------------------------------------------------------------------
@@ -695,7 +695,7 @@ namespace ortc
 
       static CertificateStatsPtr convert(AnyPtr any);
 
-      virtual ElementPtr createElement(const char *objectName = "certificate") const;
+      virtual ElementPtr createElement(const char *objectName = "certificate") const override;
 
       virtual ElementPtr toDebug() const override;
       virtual String hash() const override;
@@ -703,7 +703,7 @@ namespace ortc
       CertificateStats &operator=(const CertificateStats &op2) = delete;
 
     protected:
-      virtual void eventTrace(double timestamp) const;
+      virtual void eventTrace(double timestamp) const override;
     };
 
   };

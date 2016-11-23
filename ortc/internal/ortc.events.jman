@@ -6,7 +6,7 @@
   "symbol" : "OrtcLib",
   "description" : "ORTC Lib library",
   "resourceName" : "ortc.events",
-  "uniqueHash" : "fa670f64550077ef249a0ad76a2d5ff519ed3d978715a0ccdbf10f2fc9042742",
+  "uniqueHash" : "6369c86446dbbf50048f8c69bb6ba0974211934322b0bc5df4262f303fe976a8",
   "typedefs" : {
    "typedef" : [
     {
@@ -278,7 +278,7 @@
     {
      "name" : "CertificateCreate",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "Certificate",
@@ -288,7 +288,7 @@
     {
      "name" : "CertificateDestroy",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "Certificate",
@@ -298,7 +298,7 @@
     {
      "name" : "CertificateFingerprint",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "Certificate",
@@ -308,7 +308,7 @@
     {
      "name" : "CertificateGeneratedEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "Certificate",
@@ -318,7 +318,7 @@
     {
      "name" : "DataChannelBufferedAmountLowThresholdChanged",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "DataChannel",
@@ -328,7 +328,7 @@
     {
      "name" : "DataChannelCancel",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "DataChannel",
@@ -338,7 +338,7 @@
     {
      "name" : "DataChannelClose",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "DataChannel",
@@ -348,7 +348,7 @@
     {
      "name" : "DataChannelCreate",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "DataChannel",
@@ -358,7 +358,7 @@
     {
      "name" : "DataChannelDestroy",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "DataChannel",
@@ -378,7 +378,7 @@
     {
      "name" : "DataChannelMessage",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "DataChannel",
@@ -388,7 +388,7 @@
     {
      "name" : "DataChannelOutgoingBufferPacket",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "DataChannel",
@@ -398,7 +398,7 @@
     {
      "name" : "DataChannelOutgoingBufferPacketDelivered",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "DataChannel",
@@ -408,7 +408,7 @@
     {
      "name" : "DataChannelReceivedControlAck",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "DataChannel",
@@ -418,7 +418,7 @@
     {
      "name" : "DataChannelReceivedControlOpen",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "DataChannel",
@@ -428,7 +428,7 @@
     {
      "name" : "DataChannelSCTPTransportDeliverOutgoingPacket",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "DataChannel",
@@ -438,7 +438,7 @@
     {
      "name" : "DataChannelSCTPTransportReceivedIncomingPacket",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "DataChannel",
@@ -448,7 +448,7 @@
     {
      "name" : "DataChannelSCTPTransportRequestNotifyClosed",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "DataChannel",
@@ -458,7 +458,7 @@
     {
      "name" : "DataChannelSCTPTransportRequestShutdown",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "DataChannel",
@@ -468,7 +468,7 @@
     {
      "name" : "DataChannelSCTPTransportSendReady",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "DataChannel",
@@ -488,7 +488,7 @@
     {
      "name" : "DataChannelSCTPTransportStateChanged",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "DataChannel",
@@ -498,7 +498,7 @@
     {
      "name" : "DataChannelSendBinary",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "DataChannel",
@@ -508,7 +508,7 @@
     {
      "name" : "DataChannelSendControlAck",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "DataChannel",
@@ -518,7 +518,7 @@
     {
      "name" : "DataChannelSendControlOpen",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "DataChannel",
@@ -528,7 +528,7 @@
     {
      "name" : "DataChannelSendString",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "DataChannel",
@@ -538,7 +538,7 @@
     {
      "name" : "DataChannelStateChangedEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "DataChannel",
@@ -548,7 +548,7 @@
     {
      "name" : "DataChannelStep",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "DataChannel",
@@ -558,7 +558,7 @@
     {
      "name" : "DtlsTransportCancel",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "DtlsTransport",
@@ -568,7 +568,7 @@
     {
      "name" : "DtlsTransportCreate",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "DtlsTransport",
@@ -578,7 +578,7 @@
     {
      "name" : "DtlsTransportDestroy",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "DtlsTransport",
@@ -598,7 +598,7 @@
     {
      "name" : "DtlsTransportForwardDataPacketToIceTransport",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "DtlsTransport",
@@ -608,7 +608,7 @@
     {
      "name" : "DtlsTransportForwardingEncryptedPacketToSrtpTransport",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "DtlsTransport",
@@ -618,7 +618,7 @@
     {
      "name" : "DtlsTransportForwardingPacketToDataTransport",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "DtlsTransport",
@@ -628,7 +628,7 @@
     {
      "name" : "DtlsTransportForwardingPacketToRtpListener",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "DtlsTransport",
@@ -638,7 +638,7 @@
     {
      "name" : "DtlsTransportInitialization",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "DtlsTransport",
@@ -648,7 +648,7 @@
     {
      "name" : "DtlsTransportInitializationInstallCipher",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "DtlsTransport",
@@ -658,7 +658,7 @@
     {
      "name" : "DtlsTransportInitializationInstallFingerprint",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "DtlsTransport",
@@ -668,7 +668,7 @@
     {
      "name" : "DtlsTransportInternalIceStateChangeEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "DtlsTransport",
@@ -678,7 +678,7 @@
     {
      "name" : "DtlsTransportInternalSrtpTransportLifetimeRemainingEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "DtlsTransport",
@@ -688,7 +688,7 @@
     {
      "name" : "DtlsTransportInternalTimerEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "DtlsTransport",
@@ -698,7 +698,7 @@
     {
      "name" : "DtlsTransportReceivedPacket",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "DtlsTransport",
@@ -708,7 +708,7 @@
     {
      "name" : "DtlsTransportReceivedStunPacket",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "DtlsTransport",
@@ -718,7 +718,7 @@
     {
      "name" : "DtlsTransportRoleSet",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "DtlsTransport",
@@ -728,7 +728,7 @@
     {
      "name" : "DtlsTransportSendDataPacket",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "DtlsTransport",
@@ -738,7 +738,7 @@
     {
      "name" : "DtlsTransportSendEncryptedRtpPacket",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "DtlsTransport",
@@ -748,7 +748,7 @@
     {
      "name" : "DtlsTransportSendRtpPacket",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "DtlsTransport",
@@ -758,7 +758,7 @@
     {
      "name" : "DtlsTransportSrtpKeyingMaterialSetup",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "DtlsTransport",
@@ -768,7 +768,7 @@
     {
      "name" : "DtlsTransportStart",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "DtlsTransport",
@@ -778,7 +778,7 @@
     {
      "name" : "DtlsTransportStateChangedEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "DtlsTransport",
@@ -788,7 +788,7 @@
     {
      "name" : "DtlsTransportStep",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "DtlsTransport",
@@ -798,7 +798,7 @@
     {
      "name" : "DtlsTransportStop",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "DtlsTransport",
@@ -808,7 +808,7 @@
     {
      "name" : "IceGathererAddCandidateEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -818,7 +818,7 @@
     {
      "name" : "IceGathererBufferIceTransportIncomingPacket",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -828,7 +828,7 @@
     {
      "name" : "IceGathererBufferIceTransportIncomingStunPacket",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -838,7 +838,7 @@
     {
      "name" : "IceGathererCancel",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -848,7 +848,7 @@
     {
      "name" : "IceGathererCreate",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -858,7 +858,7 @@
     {
      "name" : "IceGathererCreatedAssociateGatherer",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -868,7 +868,7 @@
     {
      "name" : "IceGathererDeliverIceTransportIncomingPacket",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -878,7 +878,7 @@
     {
      "name" : "IceGathererDeliverIceTransportIncomingStunPacket",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -888,7 +888,7 @@
     {
      "name" : "IceGathererDestroy",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -898,7 +898,7 @@
     {
      "name" : "IceGathererDisposeBufferedIceTransportIncomingPacket",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -908,7 +908,7 @@
     {
      "name" : "IceGathererDisposeBufferedIceTransportIncomingStunPacket",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -938,7 +938,7 @@
     {
      "name" : "IceGathererFilterCandidateEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -948,7 +948,7 @@
     {
      "name" : "IceGathererGather",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -958,7 +958,7 @@
     {
      "name" : "IceGathererHostPortBind",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -978,7 +978,7 @@
     {
      "name" : "IceGathererHostPortClose",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -988,7 +988,7 @@
     {
      "name" : "IceGathererHostPortDestroy",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -998,7 +998,7 @@
     {
      "name" : "IceGathererInitializeInstallInterfaceNameMapping",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -1008,7 +1008,7 @@
     {
      "name" : "IceGathererInitializeInstallPreference",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -1018,7 +1018,7 @@
     {
      "name" : "IceGathererInstallIceTransport",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -1028,7 +1028,7 @@
     {
      "name" : "IceGathererInstallQuickRoute",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -1038,7 +1038,7 @@
     {
      "name" : "IceGathererInternalBackOffTimerStateChangedEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -1048,7 +1048,7 @@
     {
      "name" : "IceGathererInternalDnsLoookupCompleteEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -1068,7 +1068,7 @@
     {
      "name" : "IceGathererInternalHostSocketReadReadyEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -1078,7 +1078,7 @@
     {
      "name" : "IceGathererInternalHostSocketWriteReadyEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -1088,7 +1088,7 @@
     {
      "name" : "IceGathererInternalIceTransportStateChangedEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -1098,7 +1098,7 @@
     {
      "name" : "IceGathererInternalLikelyReflexiveActivityEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -1108,7 +1108,7 @@
     {
      "name" : "IceGathererInternalStunDiscoveryCompleteEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -1118,7 +1118,7 @@
     {
      "name" : "IceGathererInternalStunDiscoverySendPacket",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -1138,7 +1138,7 @@
     {
      "name" : "IceGathererInternalTcpSocketReadReadyEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -1148,7 +1148,7 @@
     {
      "name" : "IceGathererInternalTcpSocketWriteReadyEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -1158,7 +1158,7 @@
     {
      "name" : "IceGathererInternalTimerEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -1168,7 +1168,7 @@
     {
      "name" : "IceGathererInternalTurnSocketStateChangeEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -1178,7 +1178,7 @@
     {
      "name" : "IceGathererInternalWakeEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -1188,7 +1188,7 @@
     {
      "name" : "IceGathererPendingResolveHostIP",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -1198,7 +1198,7 @@
     {
      "name" : "IceGathererReflexivePortCreate",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -1208,7 +1208,7 @@
     {
      "name" : "IceGathererReflexivePortDestroy",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -1218,7 +1218,7 @@
     {
      "name" : "IceGathererReflexivePortFoundMapped",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -1228,7 +1228,7 @@
     {
      "name" : "IceGathererRelayPortCreate",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -1238,7 +1238,7 @@
     {
      "name" : "IceGathererRelayPortDestroy",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -1248,7 +1248,7 @@
     {
      "name" : "IceGathererRelayPortFoundIP",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -1258,7 +1258,7 @@
     {
      "name" : "IceGathererRemoveCandidateEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -1268,7 +1268,7 @@
     {
      "name" : "IceGathererRemoveIceTransport",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -1278,7 +1278,7 @@
     {
      "name" : "IceGathererRemoveQuickRoute",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -1288,7 +1288,7 @@
     {
      "name" : "IceGathererRemovetAllIceTransportRelatedRoutes",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -1298,7 +1298,7 @@
     {
      "name" : "IceGathererResolveFoundHostIP",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -1308,7 +1308,7 @@
     {
      "name" : "IceGathererResolveHostIP",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -1318,7 +1318,7 @@
     {
      "name" : "IceGathererRouteTrace",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -1328,7 +1328,7 @@
     {
      "name" : "IceGathererRouterCancel",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "IceGathererRouter",
@@ -1338,7 +1338,7 @@
     {
      "name" : "IceGathererRouterCreate",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "IceGathererRouter",
@@ -1348,7 +1348,7 @@
     {
      "name" : "IceGathererRouterDestroy",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "IceGathererRouter",
@@ -1358,7 +1358,7 @@
     {
      "name" : "IceGathererRouterInternalEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "IceGathererRouter",
@@ -1368,7 +1368,7 @@
     {
      "name" : "IceGathererRouterRouteTrace",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "IceGathererRouter",
@@ -1378,7 +1378,7 @@
     {
      "name" : "IceGathererSearchQuickRoute",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -1388,7 +1388,7 @@
     {
      "name" : "IceGathererSendIceTransportPacket",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -1408,7 +1408,7 @@
     {
      "name" : "IceGathererSendIceTransportPacketViaTcp",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -1418,7 +1418,7 @@
     {
      "name" : "IceGathererSendIceTransportPacketViaTurn",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -1428,7 +1428,7 @@
     {
      "name" : "IceGathererSendIceTransportPacketViaUdp",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -1438,7 +1438,7 @@
     {
      "name" : "IceGathererStateChangedEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -1448,7 +1448,7 @@
     {
      "name" : "IceGathererStep",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -1458,7 +1458,7 @@
     {
      "name" : "IceGathererTcpPortCreate",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -1468,7 +1468,7 @@
     {
      "name" : "IceGathererTcpPortDestroy",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -1478,7 +1478,7 @@
     {
      "name" : "IceGathererTcpSocketPacketReceivedFrom",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -1488,7 +1488,7 @@
     {
      "name" : "IceGathererTcpSocketSentOutgoing",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -1498,7 +1498,7 @@
     {
      "name" : "IceGathererTurnSocketReceivedPacket",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -1508,7 +1508,7 @@
     {
      "name" : "IceGathererTurnSocketSendPacket",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -1518,7 +1518,7 @@
     {
      "name" : "IceGathererUdpSocketPacketForwardingToTurnSocket",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -1528,7 +1528,7 @@
     {
      "name" : "IceGathererUdpSocketPacketReceivedFrom",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -1538,7 +1538,7 @@
     {
      "name" : "IceGathererUdpSocketPacketSentTo",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -1548,7 +1548,7 @@
     {
      "name" : "IceTransportAddRemoteCandidate",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "IceTransport",
@@ -1558,7 +1558,7 @@
     {
      "name" : "IceTransportAddRemoteCandidateComplete",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "IceTransport",
@@ -1568,7 +1568,7 @@
     {
      "name" : "IceTransportBufferingIncomingPacket",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "IceTransport",
@@ -1578,7 +1578,7 @@
     {
      "name" : "IceTransportCancel",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "IceTransport",
@@ -1588,7 +1588,7 @@
     {
      "name" : "IceTransportCandidatePairChangedEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "IceTransport",
@@ -1598,7 +1598,7 @@
     {
      "name" : "IceTransportControllerCancel",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "IceTransportController",
@@ -1608,7 +1608,7 @@
     {
      "name" : "IceTransportControllerCreate",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "IceTransportController",
@@ -1618,7 +1618,7 @@
     {
      "name" : "IceTransportControllerDestroy",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "IceTransportController",
@@ -1628,7 +1628,7 @@
     {
      "name" : "IceTransportControllerInternalTransportAttachedEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "IceTransportController",
@@ -1638,7 +1638,7 @@
     {
      "name" : "IceTransportControllerInternalTransportDetachedEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "IceTransportController",
@@ -1648,7 +1648,7 @@
     {
      "name" : "IceTransportControllerInternalWakeEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "IceTransportController",
@@ -1658,7 +1658,7 @@
     {
      "name" : "IceTransportControllerNoNeedToWaitUntilUnfrozen",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "IceTransportController",
@@ -1668,7 +1668,7 @@
     {
      "name" : "IceTransportControllerStep",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "IceTransportController",
@@ -1678,7 +1678,7 @@
     {
      "name" : "IceTransportControllerWaitUntilUnfrozen",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "IceTransportController",
@@ -1688,7 +1688,7 @@
     {
      "name" : "IceTransportCreate",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "IceTransport",
@@ -1698,7 +1698,7 @@
     {
      "name" : "IceTransportCreateAssociatedTransport",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "IceTransport",
@@ -1708,7 +1708,7 @@
     {
      "name" : "IceTransportDeliveringBufferedIncomingPacketToSecureTransport",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "IceTransport",
@@ -1718,7 +1718,7 @@
     {
      "name" : "IceTransportDeliveringIncomingPacketToSecureTransport",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "IceTransport",
@@ -1728,7 +1728,7 @@
     {
      "name" : "IceTransportDeliveringIncomingStunPacketToSecureTransport",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "IceTransport",
@@ -1738,7 +1738,7 @@
     {
      "name" : "IceTransportDestroy",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "IceTransport",
@@ -1748,7 +1748,7 @@
     {
      "name" : "IceTransportDisposingBufferedIncomingPacket",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "IceTransport",
@@ -1768,7 +1768,7 @@
     {
      "name" : "IceTransportForwardSecureTransportPacketToGatherer",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "IceTransport",
@@ -1778,7 +1778,7 @@
     {
      "name" : "IceTransportInstallFoundation",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "IceTransport",
@@ -1788,7 +1788,7 @@
     {
      "name" : "IceTransportInstallFoundationDependencyFreezePromise",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "IceTransport",
@@ -1798,7 +1798,7 @@
     {
      "name" : "IceTransportInternalControllerAttachedEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "IceTransport",
@@ -1808,7 +1808,7 @@
     {
      "name" : "IceTransportInternalControllerDetachedEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "IceTransport",
@@ -1818,7 +1818,7 @@
     {
      "name" : "IceTransportInternalDeliveryPendingPacketsEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "IceTransport",
@@ -1828,7 +1828,7 @@
     {
      "name" : "IceTransportInternalGathererAddLocalCandidateCompleteEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "IceTransport",
@@ -1838,7 +1838,7 @@
     {
      "name" : "IceTransportInternalGathererAddLocalCandidateEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "IceTransport",
@@ -1848,7 +1848,7 @@
     {
      "name" : "IceTransportInternalGathererRemoveLocalCandidateEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "IceTransport",
@@ -1858,7 +1858,7 @@
     {
      "name" : "IceTransportInternalGathererStateChangedEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "IceTransport",
@@ -1878,7 +1878,7 @@
     {
      "name" : "IceTransportInternalSecureTransportAttachedEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "IceTransport",
@@ -1888,7 +1888,7 @@
     {
      "name" : "IceTransportInternalSecureTransportDetachedEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "IceTransport",
@@ -1898,7 +1898,7 @@
     {
      "name" : "IceTransportInternalStunRequesterCreate",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "IceTransport",
@@ -1908,7 +1908,7 @@
     {
      "name" : "IceTransportInternalStunRequesterReceivedResponse",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "IceTransport",
@@ -1928,7 +1928,7 @@
     {
      "name" : "IceTransportInternalStunRequesterSendPacket",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "IceTransport",
@@ -1938,7 +1938,7 @@
     {
      "name" : "IceTransportInternalStunRequesterTimedOut",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "IceTransport",
@@ -1948,7 +1948,7 @@
     {
      "name" : "IceTransportInternalTimerEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "IceTransport",
@@ -1958,7 +1958,7 @@
     {
      "name" : "IceTransportInternalUnfrozenPromiseEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "IceTransport",
@@ -1968,7 +1968,7 @@
     {
      "name" : "IceTransportInternalWakeEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "IceTransport",
@@ -1978,7 +1978,7 @@
     {
      "name" : "IceTransportKeepWarm",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "IceTransport",
@@ -1988,7 +1988,7 @@
     {
      "name" : "IceTransportReceivedPacketFromGatherer",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "IceTransport",
@@ -1998,7 +1998,7 @@
     {
      "name" : "IceTransportReceivedStunPacketFromGatherer",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "IceTransport",
@@ -2008,7 +2008,7 @@
     {
      "name" : "IceTransportRemoveFoundation",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "IceTransport",
@@ -2018,7 +2018,7 @@
     {
      "name" : "IceTransportRemoveRemoteCandidate",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "IceTransport",
@@ -2028,7 +2028,7 @@
     {
      "name" : "IceTransportRemoveRemoteCandidateComplete",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "IceTransport",
@@ -2038,7 +2038,7 @@
     {
      "name" : "IceTransportRetryReceivedStunPacketFromGatherer",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "IceTransport",
@@ -2048,7 +2048,7 @@
     {
      "name" : "IceTransportRouteStateTrackerStateCountChange",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "IceTransport",
@@ -2058,7 +2058,7 @@
     {
      "name" : "IceTransportRouteTrace",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "IceTransport",
@@ -2068,7 +2068,7 @@
     {
      "name" : "IceTransportSecureTransportSendPacket",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "IceTransport",
@@ -2078,7 +2078,7 @@
     {
      "name" : "IceTransportSendStunPacket",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "IceTransport",
@@ -2088,7 +2088,7 @@
     {
      "name" : "IceTransportStart",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "IceTransport",
@@ -2098,7 +2098,7 @@
     {
      "name" : "IceTransportStateChangedEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "IceTransport",
@@ -2108,7 +2108,7 @@
     {
      "name" : "IceTransportStep",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "IceTransport",
@@ -2118,7 +2118,7 @@
     {
      "name" : "OrtcCreate",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "Ortc",
@@ -2127,7 +2127,7 @@
     {
      "name" : "OrtcDestroy",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "Ortc",
@@ -2136,7 +2136,7 @@
     {
      "name" : "OrtcIceGathererHostPortCreate",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "IceGatherer",
@@ -2146,7 +2146,7 @@
     {
      "name" : "OrtcIceTransportInternalWarmRoutesChangedEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "IceTransport",
@@ -2156,7 +2156,7 @@
     {
      "name" : "OrtcSrtpTransportInstallKeyingMaterial",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "SrtpTransport",
@@ -2166,7 +2166,7 @@
     {
      "name" : "RtpListenerBufferIncomingPacket",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "RtpListener",
@@ -2176,7 +2176,7 @@
     {
      "name" : "RtpListenerCancel",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "RtpListener",
@@ -2186,7 +2186,7 @@
     {
      "name" : "RtpListenerCreate",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "RtpListener",
@@ -2196,7 +2196,7 @@
     {
      "name" : "RtpListenerDestroy",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "RtpListener",
@@ -2206,7 +2206,7 @@
     {
      "name" : "RtpListenerDisposeBufferedIncomingPacket",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "RtpListener",
@@ -2226,7 +2226,7 @@
     {
      "name" : "RtpListenerFindMapping",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "RtpListener",
@@ -2236,7 +2236,7 @@
     {
      "name" : "RtpListenerForwardIncomingPacket",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "RtpListener",
@@ -2246,7 +2246,7 @@
     {
      "name" : "RtpListenerFoundMappingByMuxID",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "RtpListener",
@@ -2256,7 +2256,7 @@
     {
      "name" : "RtpListenerFoundMappingByPayloadType",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "RtpListener",
@@ -2266,7 +2266,7 @@
     {
      "name" : "RtpListenerFoundMappingBySsrc",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "RtpListener",
@@ -2276,7 +2276,7 @@
     {
      "name" : "RtpListenerInternalTimerEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "RtpListener",
@@ -2286,7 +2286,7 @@
     {
      "name" : "RtpListenerInternalWakeEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "RtpListener",
@@ -2296,7 +2296,7 @@
     {
      "name" : "RtpListenerReceivedIncomingPacket",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "RtpListener",
@@ -2306,7 +2306,7 @@
     {
      "name" : "RtpListenerRegisterHeaderExtension",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "RtpListener",
@@ -2316,7 +2316,7 @@
     {
      "name" : "RtpListenerRegisterReceiver",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "RtpListener",
@@ -2326,7 +2326,7 @@
     {
      "name" : "RtpListenerSsrcTableEntryAdded",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "RtpListener",
@@ -2336,7 +2336,7 @@
     {
      "name" : "RtpListenerSsrcTableEntryRemoved",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "RtpListener",
@@ -2346,7 +2346,7 @@
     {
      "name" : "RtpListenerSsrcTableEntryUpdated",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "RtpListener",
@@ -2356,7 +2356,7 @@
     {
      "name" : "RtpListenerStateChangedEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "RtpListener",
@@ -2366,7 +2366,7 @@
     {
      "name" : "RtpListenerStep",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "RtpListener",
@@ -2376,7 +2376,7 @@
     {
      "name" : "RtpListenerUnhandledEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "RtpListener",
@@ -2386,7 +2386,7 @@
     {
      "name" : "RtpListenerUnregisterHeaderExtension",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "RtpListener",
@@ -2396,7 +2396,7 @@
     {
      "name" : "RtpListenerUnregisterReceiver",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "RtpListener",
@@ -2406,7 +2406,7 @@
     {
      "name" : "RtpListenerUnregisterSender",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "RtpListener",
@@ -2416,7 +2416,7 @@
     {
      "name" : "RtpMediaEngineCreate",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "RtpMediaEngine",
@@ -2426,7 +2426,7 @@
     {
      "name" : "RtpMediaEngineDestroy",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "RtpMediaEngine",
@@ -2436,7 +2436,7 @@
     {
      "name" : "RtpReceivedIncomingPacket",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "RtpReceiver",
@@ -2446,7 +2446,7 @@
     {
      "name" : "RtpReceiverAddChannel",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "RtpReceiver",
@@ -2456,7 +2456,7 @@
     {
      "name" : "RtpReceiverAddContributingSource",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "RtpReceiver",
@@ -2466,7 +2466,7 @@
     {
      "name" : "RtpReceiverCancel",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "RtpReceiver",
@@ -2476,7 +2476,7 @@
     {
      "name" : "RtpReceiverChannelCreate",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "RtpReceiverChannel",
@@ -2486,7 +2486,7 @@
     {
      "name" : "RtpReceiverChannelCreateMediaChannel",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "RtpReceiverChannel",
@@ -2496,7 +2496,7 @@
     {
      "name" : "RtpReceiverChannelDeliverIncomingPacketToMediaChannel",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "RtpReceiverChannel",
@@ -2506,7 +2506,7 @@
     {
      "name" : "RtpReceiverChannelDestroy",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "RtpReceiverChannel",
@@ -2516,7 +2516,7 @@
     {
      "name" : "RtpReceiverChannelInternalSecureTransportStateChangedEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "RtpReceiverChannel",
@@ -2526,7 +2526,7 @@
     {
      "name" : "RtpReceiverChannelInternalUpdateEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "RtpReceiverChannel",
@@ -2536,7 +2536,7 @@
     {
      "name" : "RtpReceiverChannelSendOutgoingPacket",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "RtpReceiverChannel",
@@ -2546,7 +2546,7 @@
     {
      "name" : "RtpReceiverCloseChannel",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "RtpReceiver",
@@ -2556,7 +2556,7 @@
     {
      "name" : "RtpReceiverCreate",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "RtpReceiver",
@@ -2566,7 +2566,7 @@
     {
      "name" : "RtpReceiverCreateChannel",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "RtpReceiver",
@@ -2576,7 +2576,7 @@
     {
      "name" : "RtpReceiverDeliverIncomingPacketToChannel",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "RtpReceiver",
@@ -2586,7 +2586,7 @@
     {
      "name" : "RtpReceiverDestroy",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "RtpReceiver",
@@ -2606,7 +2606,7 @@
     {
      "name" : "RtpReceiverFindMapping",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "RtpReceiver",
@@ -2616,7 +2616,7 @@
     {
      "name" : "RtpReceiverFoundMappingByPayloadType",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "RtpReceiver",
@@ -2626,7 +2626,7 @@
     {
      "name" : "RtpReceiverFoundMappingByRid",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "RtpReceiver",
@@ -2636,7 +2636,7 @@
     {
      "name" : "RtpReceiverFoundMappingBySsrc",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "RtpReceiver",
@@ -2646,7 +2646,7 @@
     {
      "name" : "RtpReceiverInternalChannelGoneEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "RtpReceiver",
@@ -2656,7 +2656,7 @@
     {
      "name" : "RtpReceiverInternalSecureTransportStateChangedEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "RtpReceiver",
@@ -2666,7 +2666,7 @@
     {
      "name" : "RtpReceiverInternalTimerEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "RtpReceiver",
@@ -2676,7 +2676,7 @@
     {
      "name" : "RtpReceiverInternalWakeEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "RtpReceiver",
@@ -2686,7 +2686,7 @@
     {
      "name" : "RtpReceiverReceive",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "RtpReceiver",
@@ -2696,7 +2696,7 @@
     {
      "name" : "RtpReceiverRegisterHeaderExtension",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "RtpReceiver",
@@ -2706,7 +2706,7 @@
     {
      "name" : "RtpReceiverRemoveChannel",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "RtpReceiver",
@@ -2716,7 +2716,7 @@
     {
      "name" : "RtpReceiverRemoveContributingSource",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "RtpReceiver",
@@ -2726,7 +2726,7 @@
     {
      "name" : "RtpReceiverReportCodec",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "RtpReceiver",
@@ -2736,7 +2736,7 @@
     {
      "name" : "RtpReceiverReportHeaderExtension",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "RtpReceiver",
@@ -2746,7 +2746,7 @@
     {
      "name" : "RtpReceiverReportRtcpFeedback",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "RtpReceiver",
@@ -2756,7 +2756,7 @@
     {
      "name" : "RtpReceiverSendOutgoingPacket",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "RtpReceiver",
@@ -2766,7 +2766,7 @@
     {
      "name" : "RtpReceiverSetTransport",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "RtpReceiver",
@@ -2776,7 +2776,7 @@
     {
      "name" : "RtpReceiverSsrcTableEntryAdded",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "RtpReceiver",
@@ -2786,7 +2786,7 @@
     {
      "name" : "RtpReceiverSsrcTableEntryRemoved",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "RtpReceiver",
@@ -2796,7 +2796,7 @@
     {
      "name" : "RtpReceiverSsrcTableEntryUpdated",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "RtpReceiver",
@@ -2806,7 +2806,7 @@
     {
      "name" : "RtpReceiverStateChangedEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "RtpReceiver",
@@ -2816,7 +2816,7 @@
     {
      "name" : "RtpReceiverStep",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "RtpReceiver",
@@ -2826,7 +2826,7 @@
     {
      "name" : "RtpReceiverStop",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "RtpReceiver",
@@ -2836,7 +2836,7 @@
     {
      "name" : "RtpReceiverTrackActiveChannelChangedEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "RtpReceiver",
@@ -2846,7 +2846,7 @@
     {
      "name" : "RtpReceiverUnhandledEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "RtpReceiver",
@@ -2856,7 +2856,7 @@
     {
      "name" : "RtpReceiverUpdateChannel",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "RtpReceiver",
@@ -2866,7 +2866,7 @@
     {
      "name" : "RtpReceiverUpdateContributingSource",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "RtpReceiver",
@@ -2876,7 +2876,7 @@
     {
      "name" : "RtpSenderAddChannel",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "RtpSender",
@@ -2886,7 +2886,7 @@
     {
      "name" : "RtpSenderAttachTrackSenderChannel",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "RtpSender",
@@ -2896,7 +2896,7 @@
     {
      "name" : "RtpSenderCancel",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "RtpSender",
@@ -2906,7 +2906,7 @@
     {
      "name" : "RtpSenderChannelChangeTrack",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "RtpSenderChannel",
@@ -2916,7 +2916,7 @@
     {
      "name" : "RtpSenderChannelCreate",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "RtpSender",
@@ -2926,7 +2926,7 @@
     {
      "name" : "RtpSenderChannelCreateMediaChannel",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "RtpSender",
@@ -2936,7 +2936,7 @@
     {
      "name" : "RtpSenderChannelDeliverIncomingPacketToMediaChannel",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "RtpSenderChannel",
@@ -2946,7 +2946,7 @@
     {
      "name" : "RtpSenderChannelDestroy",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "RtpSender",
@@ -2956,7 +2956,7 @@
     {
      "name" : "RtpSenderChannelInternalSecureTransportStateChangedEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "RtpSenderChannel",
@@ -2966,7 +2966,7 @@
     {
      "name" : "RtpSenderChannelInternalUpdateEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "RtpSenderChannel",
@@ -2976,7 +2976,7 @@
     {
      "name" : "RtpSenderChannelSendOutgoingPacket",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "RtpSenderChannel",
@@ -2986,7 +2986,7 @@
     {
      "name" : "RtpSenderCreate",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "RtpSender",
@@ -2996,7 +2996,7 @@
     {
      "name" : "RtpSenderDeliverIncomingPacketToChannel",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "RtpSender",
@@ -3006,7 +3006,7 @@
     {
      "name" : "RtpSenderDestroy",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "RtpSender",
@@ -3016,7 +3016,7 @@
     {
      "name" : "RtpSenderDetachTrackSenderChannel",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "RtpSender",
@@ -3036,7 +3036,7 @@
     {
      "name" : "RtpSenderIncomingPacket",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "RtpSender",
@@ -3046,7 +3046,7 @@
     {
      "name" : "RtpSenderInternalChannelGoneEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "RtpSender",
@@ -3056,7 +3056,7 @@
     {
      "name" : "RtpSenderInternalDestroyChannelEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "RtpSender",
@@ -3066,7 +3066,7 @@
     {
      "name" : "RtpSenderInternalSecureTransportStateChangedEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "RtpSender",
@@ -3076,7 +3076,7 @@
     {
      "name" : "RtpSenderInternalWakeEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "RtpSender",
@@ -3086,7 +3086,7 @@
     {
      "name" : "RtpSenderRemoveChannel",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "RtpSender",
@@ -3096,7 +3096,7 @@
     {
      "name" : "RtpSenderSend",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "RtpSender",
@@ -3106,7 +3106,7 @@
     {
      "name" : "RtpSenderSendOutgoingPacket",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "RtpSender",
@@ -3116,7 +3116,7 @@
     {
      "name" : "RtpSenderSetTrack",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "RtpSender",
@@ -3126,7 +3126,7 @@
     {
      "name" : "RtpSenderSetTransport",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "RtpSender",
@@ -3146,7 +3146,7 @@
     {
      "name" : "RtpSenderStateChangedEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "RtpSender",
@@ -3156,7 +3156,7 @@
     {
      "name" : "RtpSenderStop",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "RtpSender",
@@ -3166,7 +3166,7 @@
     {
      "name" : "RtpSenderUpdateChannel",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "RtpSender",
@@ -3176,7 +3176,7 @@
     {
      "name" : "SctpInitCancel",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "SctpInit",
@@ -3186,7 +3186,7 @@
     {
      "name" : "SctpInitCreate",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "SctpInit",
@@ -3196,7 +3196,7 @@
     {
      "name" : "SctpInitDestroy",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "SctpInit",
@@ -3206,7 +3206,7 @@
     {
      "name" : "SctpTransportBufferIncomingDataPacket",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "SctpTransport",
@@ -3216,7 +3216,7 @@
     {
      "name" : "SctpTransportCancel",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "SctpTransport",
@@ -3226,7 +3226,7 @@
     {
      "name" : "SctpTransportCreate",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "SctpTransport",
@@ -3236,7 +3236,7 @@
     {
      "name" : "SctpTransportDataChannelEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "SctpTransport",
@@ -3246,7 +3246,7 @@
     {
      "name" : "SctpTransportDeliverIncomingPacket",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "SctpTransport",
@@ -3256,7 +3256,7 @@
     {
      "name" : "SctpTransportDestroy",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "SctpTransport",
@@ -3266,7 +3266,7 @@
     {
      "name" : "SctpTransportDisposeBufferedIncomingDataPacket",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "SctpTransport",
@@ -3276,7 +3276,7 @@
     {
      "name" : "SctpTransportErrorEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "SctpTransport",
@@ -3286,7 +3286,7 @@
     {
      "name" : "SctpTransportInternalSecureTransportStateChangedEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "SctpTransport",
@@ -3296,7 +3296,7 @@
     {
      "name" : "SctpTransportInternalShutdownEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "SctpTransport",
@@ -3306,7 +3306,7 @@
     {
      "name" : "SctpTransportInternalWakeEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "SctpTransport",
@@ -3316,7 +3316,7 @@
     {
      "name" : "SctpTransportListenerCancel",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "SctpTransportListener",
@@ -3326,7 +3326,7 @@
     {
      "name" : "SctpTransportListenerCreate",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "SctpTransportListener",
@@ -3336,7 +3336,7 @@
     {
      "name" : "SctpTransportListenerDeliverIncomingDataPacket",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "SctpTransportListener",
@@ -3346,7 +3346,7 @@
     {
      "name" : "SctpTransportListenerDestroy",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "SctpTransportListener",
@@ -3356,7 +3356,7 @@
     {
      "name" : "SctpTransportListenerListen",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "SctpTransportListener",
@@ -3366,7 +3366,7 @@
     {
      "name" : "SctpTransportListenerReceivedIncomingDataPacket",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "SctpTransportListener",
@@ -3376,7 +3376,7 @@
     {
      "name" : "SctpTransportListenerRegisterNewTransport",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "SctpTransportListener",
@@ -3386,7 +3386,7 @@
     {
      "name" : "SctpTransportListenerSctpTransportCreatedEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "SctpTransportListener",
@@ -3396,7 +3396,7 @@
     {
      "name" : "SctpTransportListenerSctpTransportEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "SctpTransportListener",
@@ -3406,7 +3406,7 @@
     {
      "name" : "SctpTransportListenerSctpTransportShutdownEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "SctpTransportListener",
@@ -3416,7 +3416,7 @@
     {
      "name" : "SctpTransportListenerStep",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "SctpTransportListener",
@@ -3426,7 +3426,7 @@
     {
      "name" : "SctpTransportReceivedIncomingDataPacket",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "SctpTransport",
@@ -3436,7 +3436,7 @@
     {
      "name" : "SctpTransportReceivedIncomingPacket",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "SctpTransport",
@@ -3446,7 +3446,7 @@
     {
      "name" : "SctpTransportRegisterNewDataChannel",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "SctpTransport",
@@ -3456,7 +3456,7 @@
     {
      "name" : "SctpTransportSendOutgoingDataPacket",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "SctpTransport",
@@ -3466,7 +3466,7 @@
     {
      "name" : "SctpTransportSendOutgoingPacket",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "SctpTransport",
@@ -3476,7 +3476,7 @@
     {
      "name" : "SctpTransportShutdownDataChannel",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "SctpTransport",
@@ -3486,7 +3486,7 @@
     {
      "name" : "SctpTransportStart",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "SctpTransport",
@@ -3496,7 +3496,7 @@
     {
      "name" : "SctpTransportStateChangedEvent",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "SctpTransport",
@@ -3506,7 +3506,7 @@
     {
      "name" : "SctpTransportStep",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "SctpTransport",
@@ -3516,7 +3516,7 @@
     {
      "name" : "SctpTransportStop",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "SctpTransport",
@@ -3526,7 +3526,7 @@
     {
      "name" : "SrtpTransportCreate",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "SrtpTransport",
@@ -3536,7 +3536,7 @@
     {
      "name" : "SrtpTransportDeliverIncomingDecryptedPacket",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "SrtpTransport",
@@ -3546,7 +3546,7 @@
     {
      "name" : "SrtpTransportDestroy",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Detail",
      "channel" : "ol",
      "task" : "SrtpTransport",
@@ -3556,7 +3556,7 @@
     {
      "name" : "SrtpTransportReceivedIncomingEncryptedPacket",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "SrtpTransport",
@@ -3566,7 +3566,7 @@
     {
      "name" : "SrtpTransportSendOutgoingEncryptedPacketViaSecureTransport",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "SrtpTransport",
@@ -3576,7 +3576,7 @@
     {
      "name" : "SrtpTransportSendOutgoingPacketAndEncrypt",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Trace",
      "channel" : "ol",
      "task" : "SrtpTransport",
@@ -3586,7 +3586,7 @@
     {
      "name" : "cRtpListenerRegisterSender",
      "subsytem" : "x",
-     "severity" : "Info",
+     "severity" : "Informational",
      "level" : "Debug",
      "channel" : "ol",
      "task" : "RtpListener",

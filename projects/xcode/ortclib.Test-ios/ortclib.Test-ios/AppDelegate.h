@@ -1,19 +1,17 @@
 //
 //  AppDelegate.h
-//  hfmediatest_ios
+//  ortclib.Test-ios
 //
-//  Created by Vladimir Morosev on 9/12/12.
-//
+//  Created by Robin Raymond on 2016-11-22.
+//  Copyright © 2016 Open Peer Foundation. All rights reserved.
 //
 
 #import <UIKit/UIKit.h>
-
-@class ViewController;
 
 @interface AppDelegate : UIResponder <UIApplicationDelegate>
 
 @property (strong, nonatomic) UIWindow *window;
 
-@property (strong, nonatomic) ViewController *viewController;
 
 @end
+
