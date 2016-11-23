@@ -63,8 +63,8 @@
     },
     "sources": {
       "source": [
-        "ortc/cpp/ortc_StatsReport.cpp",
-        "ortc/cpp/ortc_ORTC.cpp"
+        "ortc_StatsReport.cpp",
+        "ortc_ORTC.cpp"
       ]
     },
     "channels": {
