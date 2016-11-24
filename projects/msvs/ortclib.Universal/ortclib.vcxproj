@@ -257,37 +257,43 @@
   <PropertyGroup />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <GenerateManifest>false</GenerateManifest>
-    <CustomBuildBeforeTargets>PreBuildEvent</CustomBuildBeforeTargets>
+    <CustomBuildBeforeTargets>
+    </CustomBuildBeforeTargets>
     <IntDir>$(SolutionDir)Build\Intermediate\$(PlatformTarget)\$(Configuration)\$(MSBuildProjectName)\</IntDir>
     <OutDir>$(SolutionDir)Build\Output\$(PlatformTarget)\$(Configuration)\$(MSBuildProjectName)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <GenerateManifest>false</GenerateManifest>
-    <CustomBuildBeforeTargets>PreBuildEvent</CustomBuildBeforeTargets>
+    <CustomBuildBeforeTargets>
+    </CustomBuildBeforeTargets>
     <IntDir>$(SolutionDir)Build\Intermediate\$(PlatformTarget)\$(Configuration)\$(MSBuildProjectName)\</IntDir>
     <OutDir>$(SolutionDir)Build\Output\$(PlatformTarget)\$(Configuration)\$(MSBuildProjectName)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
     <GenerateManifest>false</GenerateManifest>
-    <CustomBuildBeforeTargets>PreBuildEvent</CustomBuildBeforeTargets>
+    <CustomBuildBeforeTargets>
+    </CustomBuildBeforeTargets>
     <IntDir>$(SolutionDir)Build\Intermediate\$(PlatformTarget)\$(Configuration)\$(MSBuildProjectName)\</IntDir>
     <OutDir>$(SolutionDir)Build\Output\$(PlatformTarget)\$(Configuration)\$(MSBuildProjectName)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
     <GenerateManifest>false</GenerateManifest>
-    <CustomBuildBeforeTargets>PreBuildEvent</CustomBuildBeforeTargets>
+    <CustomBuildBeforeTargets>
+    </CustomBuildBeforeTargets>
     <IntDir>$(SolutionDir)Build\Intermediate\$(PlatformTarget)\$(Configuration)\$(MSBuildProjectName)\</IntDir>
     <OutDir>$(SolutionDir)Build\Output\$(PlatformTarget)\$(Configuration)\$(MSBuildProjectName)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <GenerateManifest>false</GenerateManifest>
-    <CustomBuildBeforeTargets>PreBuildEvent</CustomBuildBeforeTargets>
+    <CustomBuildBeforeTargets>
+    </CustomBuildBeforeTargets>
     <IntDir>$(SolutionDir)Build\Intermediate\$(PlatformTarget)\$(Configuration)\$(MSBuildProjectName)\</IntDir>
     <OutDir>$(SolutionDir)Build\Output\$(PlatformTarget)\$(Configuration)\$(MSBuildProjectName)\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <GenerateManifest>false</GenerateManifest>
-    <CustomBuildBeforeTargets>PreBuildEvent</CustomBuildBeforeTargets>
+    <CustomBuildBeforeTargets>
+    </CustomBuildBeforeTargets>
     <IntDir>$(SolutionDir)Build\Intermediate\$(PlatformTarget)\$(Configuration)\$(MSBuildProjectName)\</IntDir>
     <OutDir>$(SolutionDir)Build\Output\$(PlatformTarget)\$(Configuration)\$(MSBuildProjectName)\</OutDir>
   </PropertyGroup>
@@ -306,49 +312,16 @@
       <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
     </Link>
     <CustomBuildStep>
-      <Command>echo Create manifest header file...
-mc.exe -um -r $(IntermediateOutputPath) -h "$(ProjectDir)..\..\..\ortc\internal" "$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.man"
-mc.exe -um -r $(IntermediateOutputPath) -h "$(ProjectDir)..\..\..\ortc\internal" "$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.man"
-echo Create resource file...
-rc.exe $(IntermediateOutputPath)ortc.events_win_etw.rc
-rc.exe $(IntermediateOutputPath)ortc.stats.events_win_etw.rc
-echo Create manifest resource dll...
-echo If compiling to managed code resource DLL use: csc.exe /out:$(IntermediateOutputPath)ortc.events_win_etw.dll /target:library /win32res:$(IntermediateOutputPath)ortc.events_win_etw.res
-echo If compiling to managed code resource DLL use: csc.exe /out:$(IntermediateOutputPath)ortc.stats.events_win_etw.dll /target:library /win32res:$(IntermediateOutputPath)ortc.stats.events_win_etw.res
-link -dll -noentry /MACHINE:$(PlatformTarget) -out:$(IntermediateOutputPath)ortc.events_win_etw.dll $(IntermediateOutputPath)ortc.events_win_etw.res
-link -dll -noentry /MACHINE:$(PlatformTarget) -out:$(IntermediateOutputPath)ortc.stats.events_win_etw.dll $(IntermediateOutputPath)ortc.stats.events_win_etw.res
-echo Copy files to output directory...
-copy $(IntermediateOutputPath)ortc.events_win_etw.dll "$(OutDir)"
-copy $(IntermediateOutputPath)ortc.stats.events_win_etw.dll "$(OutDir)"
-copy "$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.man" "$(OutDir)"
-copy "$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.man" "$(OutDir)"
-copy "$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.wprp" "$(OutDir)"
-copy "$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.wprp" "$(OutDir)"
-icacls "$(OutDir)ortc.events_win_etw.dll" /grant Users:RX
-icacls "$(OutDir)ortc.stats.events_win_etw.dll" /grant Users:RX
-echo.
-echo Steps to register manifest file with for Windows Performance Recorder...
-echo.
-echo. 1) Run a command prompt as administrator
-echo.
-echo 2) Change into the output directory, type:
-echo cd "$(OutDir)"
-echo.
-echo 3) To register the manifest, type:
-echo wevtutil.exe im ortc.events_win_etw.man /rf:"$(OutDir)ortc.events_win_etw.dll" /mf:"$(OutDir)ortc.events_win_etw.dll"
-echo wevtutil.exe im ortc.stats.events_win_etw.man /rf:"$(OutDir)ortc.stats.events_win_etw.dll" /mf:"$(OutDir)ortc.stats.events_win_etw.dll"
-echo.
-echo 4) To unregister the manifest, type:
-echo wevtutil.exe um ortc.events_win_etw.man
-echo wevtutil.exe um ortc.stats.events_win_etw.man
-echo.
-</Command>
+      <Command>
+      </Command>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Outputs>$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.h;$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.h;$(IntermediateOutputPath)ortc.events_win_etw.rc;$(IntermediateOutputPath)ortc.events_win_etw.res;$(IntermediateOutputPath)ortc.events_win_etw.dll;$(IntermediateOutputPath)ortc.stats.events_win_etw.rc;$(IntermediateOutputPath)ortc.stats.events_win_etw.res;$(IntermediateOutputPath)ortc.stats.events_win_etw.dll;$(OutDir)ortc.events_win_etw.dll;$(OutDir)ortc.events_win_etw.man;$(OutDir)ortc.events_win_etw.wprp;$(OutDir)ortc.stats.events_win_etw.dll;$(OutDir)ortc.stats.events_win_etw.man;$(OutDir)ortc.stats.events_win_etw.wprp;%(Outputs)</Outputs>
+      <Outputs>
+      </Outputs>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Inputs>$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.man;$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.wprp;$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.man;$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.wprp;%(Inputs)</Inputs>
+      <Inputs>
+      </Inputs>
     </CustomBuildStep>
     <Lib>
       <AdditionalOptions>/IGNORE:4264 %(AdditionalOptions)</AdditionalOptions>
@@ -369,49 +342,16 @@ echo.
       <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
     </Link>
     <CustomBuildStep>
-      <Command>echo Create manifest header file...
-mc.exe -um -r $(IntermediateOutputPath) -h "$(ProjectDir)..\..\..\ortc\internal" "$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.man"
-mc.exe -um -r $(IntermediateOutputPath) -h "$(ProjectDir)..\..\..\ortc\internal" "$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.man"
-echo Create resource file...
-rc.exe $(IntermediateOutputPath)ortc.events_win_etw.rc
-rc.exe $(IntermediateOutputPath)ortc.stats.events_win_etw.rc
-echo Create manifest resource dll...
-echo If compiling to managed code resource DLL use: csc.exe /out:$(IntermediateOutputPath)ortc.events_win_etw.dll /target:library /win32res:$(IntermediateOutputPath)ortc.events_win_etw.res
-echo If compiling to managed code resource DLL use: csc.exe /out:$(IntermediateOutputPath)ortc.stats.events_win_etw.dll /target:library /win32res:$(IntermediateOutputPath)ortc.stats.events_win_etw.res
-link -dll -noentry /MACHINE:$(PlatformTarget) -out:$(IntermediateOutputPath)ortc.events_win_etw.dll $(IntermediateOutputPath)ortc.events_win_etw.res
-link -dll -noentry /MACHINE:$(PlatformTarget) -out:$(IntermediateOutputPath)ortc.stats.events_win_etw.dll $(IntermediateOutputPath)ortc.stats.events_win_etw.res
-echo Copy files to output directory...
-copy $(IntermediateOutputPath)ortc.events_win_etw.dll "$(OutDir)"
-copy $(IntermediateOutputPath)ortc.stats.events_win_etw.dll "$(OutDir)"
-copy "$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.man" "$(OutDir)"
-copy "$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.man" "$(OutDir)"
-copy "$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.wprp" "$(OutDir)"
-copy "$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.wprp" "$(OutDir)"
-icacls "$(OutDir)ortc.events_win_etw.dll" /grant Users:RX
-icacls "$(OutDir)ortc.stats.events_win_etw.dll" /grant Users:RX
-echo.
-echo Steps to register manifest file with for Windows Performance Recorder...
-echo.
-echo. 1) Run a command prompt as administrator
-echo.
-echo 2) Change into the output directory, type:
-echo cd "$(OutDir)"
-echo.
-echo 3) To register the manifest, type:
-echo wevtutil.exe im ortc.events_win_etw.man /rf:"$(OutDir)ortc.events_win_etw.dll" /mf:"$(OutDir)ortc.events_win_etw.dll"
-echo wevtutil.exe im ortc.stats.events_win_etw.man /rf:"$(OutDir)ortc.stats.events_win_etw.dll" /mf:"$(OutDir)ortc.stats.events_win_etw.dll"
-echo.
-echo 4) To unregister the manifest, type:
-echo wevtutil.exe um ortc.events_win_etw.man
-echo wevtutil.exe um ortc.stats.events_win_etw.man
-echo.
-</Command>
+      <Command>
+      </Command>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Outputs>$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.h;$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.h;$(IntermediateOutputPath)ortc.events_win_etw.rc;$(IntermediateOutputPath)ortc.events_win_etw.res;$(IntermediateOutputPath)ortc.events_win_etw.dll;$(IntermediateOutputPath)ortc.stats.events_win_etw.rc;$(IntermediateOutputPath)ortc.stats.events_win_etw.res;$(IntermediateOutputPath)ortc.stats.events_win_etw.dll;$(OutDir)ortc.events_win_etw.dll;$(OutDir)ortc.events_win_etw.man;$(OutDir)ortc.events_win_etw.wprp;$(OutDir)ortc.stats.events_win_etw.dll;$(OutDir)ortc.stats.events_win_etw.man;$(OutDir)ortc.stats.events_win_etw.wprp;%(Outputs)</Outputs>
+      <Outputs>
+      </Outputs>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Inputs>$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.man;$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.wprp;$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.man;$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.wprp;%(Inputs)</Inputs>
+      <Inputs>
+      </Inputs>
     </CustomBuildStep>
     <Lib>
       <AdditionalOptions>/IGNORE:4264 %(AdditionalOptions)</AdditionalOptions>
@@ -432,49 +372,16 @@ echo.
       <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
     </Link>
     <CustomBuildStep>
-      <Command>echo Create manifest header file...
-mc.exe -um -r $(IntermediateOutputPath) -h "$(ProjectDir)..\..\..\ortc\internal" "$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.man"
-mc.exe -um -r $(IntermediateOutputPath) -h "$(ProjectDir)..\..\..\ortc\internal" "$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.man"
-echo Create resource file...
-rc.exe $(IntermediateOutputPath)ortc.events_win_etw.rc
-rc.exe $(IntermediateOutputPath)ortc.stats.events_win_etw.rc
-echo Create manifest resource dll...
-echo If compiling to managed code resource DLL use: csc.exe /out:$(IntermediateOutputPath)ortc.events_win_etw.dll /target:library /win32res:$(IntermediateOutputPath)ortc.events_win_etw.res
-echo If compiling to managed code resource DLL use: csc.exe /out:$(IntermediateOutputPath)ortc.stats.events_win_etw.dll /target:library /win32res:$(IntermediateOutputPath)ortc.stats.events_win_etw.res
-link -dll -noentry /MACHINE:$(PlatformTarget) -out:$(IntermediateOutputPath)ortc.events_win_etw.dll $(IntermediateOutputPath)ortc.events_win_etw.res
-link -dll -noentry /MACHINE:$(PlatformTarget) -out:$(IntermediateOutputPath)ortc.stats.events_win_etw.dll $(IntermediateOutputPath)ortc.stats.events_win_etw.res
-echo Copy files to output directory...
-copy $(IntermediateOutputPath)ortc.events_win_etw.dll "$(OutDir)"
-copy $(IntermediateOutputPath)ortc.stats.events_win_etw.dll "$(OutDir)"
-copy "$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.man" "$(OutDir)"
-copy "$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.man" "$(OutDir)"
-copy "$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.wprp" "$(OutDir)"
-copy "$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.wprp" "$(OutDir)"
-icacls "$(OutDir)ortc.events_win_etw.dll" /grant Users:RX
-icacls "$(OutDir)ortc.stats.events_win_etw.dll" /grant Users:RX
-echo.
-echo Steps to register manifest file with for Windows Performance Recorder...
-echo.
-echo. 1) Run a command prompt as administrator
-echo.
-echo 2) Change into the output directory, type:
-echo cd "$(OutDir)"
-echo.
-echo 3) To register the manifest, type:
-echo wevtutil.exe im ortc.events_win_etw.man /rf:"$(OutDir)ortc.events_win_etw.dll" /mf:"$(OutDir)ortc.events_win_etw.dll"
-echo wevtutil.exe im ortc.stats.events_win_etw.man /rf:"$(OutDir)ortc.stats.events_win_etw.dll" /mf:"$(OutDir)ortc.stats.events_win_etw.dll"
-echo.
-echo 4) To unregister the manifest, type:
-echo wevtutil.exe um ortc.events_win_etw.man
-echo wevtutil.exe um ortc.stats.events_win_etw.man
-echo.
-</Command>
+      <Command>
+      </Command>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Outputs>$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.h;$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.h;$(IntermediateOutputPath)ortc.events_win_etw.rc;$(IntermediateOutputPath)ortc.events_win_etw.res;$(IntermediateOutputPath)ortc.events_win_etw.dll;$(IntermediateOutputPath)ortc.stats.events_win_etw.rc;$(IntermediateOutputPath)ortc.stats.events_win_etw.res;$(IntermediateOutputPath)ortc.stats.events_win_etw.dll;$(OutDir)ortc.events_win_etw.dll;$(OutDir)ortc.events_win_etw.man;$(OutDir)ortc.events_win_etw.wprp;$(OutDir)ortc.stats.events_win_etw.dll;$(OutDir)ortc.stats.events_win_etw.man;$(OutDir)ortc.stats.events_win_etw.wprp;%(Outputs)</Outputs>
+      <Outputs>
+      </Outputs>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Inputs>$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.man;$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.wprp;$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.man;$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.wprp;%(Inputs)</Inputs>
+      <Inputs>
+      </Inputs>
     </CustomBuildStep>
     <Lib>
       <AdditionalOptions>/IGNORE:4264 %(AdditionalOptions)</AdditionalOptions>
@@ -495,49 +402,16 @@ echo.
       <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
     </Link>
     <CustomBuildStep>
-      <Command>echo Create manifest header file...
-mc.exe -um -r $(IntermediateOutputPath) -h "$(ProjectDir)..\..\..\ortc\internal" "$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.man"
-mc.exe -um -r $(IntermediateOutputPath) -h "$(ProjectDir)..\..\..\ortc\internal" "$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.man"
-echo Create resource file...
-rc.exe $(IntermediateOutputPath)ortc.events_win_etw.rc
-rc.exe $(IntermediateOutputPath)ortc.stats.events_win_etw.rc
-echo Create manifest resource dll...
-echo If compiling to managed code resource DLL use: csc.exe /out:$(IntermediateOutputPath)ortc.events_win_etw.dll /target:library /win32res:$(IntermediateOutputPath)ortc.events_win_etw.res
-echo If compiling to managed code resource DLL use: csc.exe /out:$(IntermediateOutputPath)ortc.stats.events_win_etw.dll /target:library /win32res:$(IntermediateOutputPath)ortc.stats.events_win_etw.res
-link -dll -noentry /MACHINE:$(PlatformTarget) -out:$(IntermediateOutputPath)ortc.events_win_etw.dll $(IntermediateOutputPath)ortc.events_win_etw.res
-link -dll -noentry /MACHINE:$(PlatformTarget) -out:$(IntermediateOutputPath)ortc.stats.events_win_etw.dll $(IntermediateOutputPath)ortc.stats.events_win_etw.res
-echo Copy files to output directory...
-copy $(IntermediateOutputPath)ortc.events_win_etw.dll "$(OutDir)"
-copy $(IntermediateOutputPath)ortc.stats.events_win_etw.dll "$(OutDir)"
-copy "$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.man" "$(OutDir)"
-copy "$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.man" "$(OutDir)"
-copy "$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.wprp" "$(OutDir)"
-copy "$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.wprp" "$(OutDir)"
-icacls "$(OutDir)ortc.events_win_etw.dll" /grant Users:RX
-icacls "$(OutDir)ortc.stats.events_win_etw.dll" /grant Users:RX
-echo.
-echo Steps to register manifest file with for Windows Performance Recorder...
-echo.
-echo. 1) Run a command prompt as administrator
-echo.
-echo 2) Change into the output directory, type:
-echo cd "$(OutDir)"
-echo.
-echo 3) To register the manifest, type:
-echo wevtutil.exe im ortc.events_win_etw.man /rf:"$(OutDir)ortc.events_win_etw.dll" /mf:"$(OutDir)ortc.events_win_etw.dll"
-echo wevtutil.exe im ortc.stats.events_win_etw.man /rf:"$(OutDir)ortc.stats.events_win_etw.dll" /mf:"$(OutDir)ortc.stats.events_win_etw.dll"
-echo.
-echo 4) To unregister the manifest, type:
-echo wevtutil.exe um ortc.events_win_etw.man
-echo wevtutil.exe um ortc.stats.events_win_etw.man
-echo.
-</Command>
+      <Command>
+      </Command>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Outputs>$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.h;$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.h;$(IntermediateOutputPath)ortc.events_win_etw.rc;$(IntermediateOutputPath)ortc.events_win_etw.res;$(IntermediateOutputPath)ortc.events_win_etw.dll;$(IntermediateOutputPath)ortc.stats.events_win_etw.rc;$(IntermediateOutputPath)ortc.stats.events_win_etw.res;$(IntermediateOutputPath)ortc.stats.events_win_etw.dll;$(OutDir)ortc.events_win_etw.dll;$(OutDir)ortc.events_win_etw.man;$(OutDir)ortc.events_win_etw.wprp;$(OutDir)ortc.stats.events_win_etw.dll;$(OutDir)ortc.stats.events_win_etw.man;$(OutDir)ortc.stats.events_win_etw.wprp;%(Outputs)</Outputs>
+      <Outputs>
+      </Outputs>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Inputs>$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.man;$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.wprp;$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.man;$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.wprp;%(Inputs)</Inputs>
+      <Inputs>
+      </Inputs>
     </CustomBuildStep>
     <Lib>
       <AdditionalOptions>/IGNORE:4264 %(AdditionalOptions)</AdditionalOptions>
@@ -558,49 +432,16 @@ echo.
       <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
     </Link>
     <CustomBuildStep>
-      <Command>echo Create manifest header file...
-mc.exe -um -r $(IntermediateOutputPath) -h "$(ProjectDir)..\..\..\ortc\internal" "$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.man"
-mc.exe -um -r $(IntermediateOutputPath) -h "$(ProjectDir)..\..\..\ortc\internal" "$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.man"
-echo Create resource file...
-rc.exe $(IntermediateOutputPath)ortc.events_win_etw.rc
-rc.exe $(IntermediateOutputPath)ortc.stats.events_win_etw.rc
-echo Create manifest resource dll...
-echo If compiling to managed code resource DLL use: csc.exe /out:$(IntermediateOutputPath)ortc.events_win_etw.dll /target:library /win32res:$(IntermediateOutputPath)ortc.events_win_etw.res
-echo If compiling to managed code resource DLL use: csc.exe /out:$(IntermediateOutputPath)ortc.stats.events_win_etw.dll /target:library /win32res:$(IntermediateOutputPath)ortc.stats.events_win_etw.res
-link -dll -noentry /MACHINE:$(PlatformTarget) -out:$(IntermediateOutputPath)ortc.events_win_etw.dll $(IntermediateOutputPath)ortc.events_win_etw.res
-link -dll -noentry /MACHINE:$(PlatformTarget) -out:$(IntermediateOutputPath)ortc.stats.events_win_etw.dll $(IntermediateOutputPath)ortc.stats.events_win_etw.res
-echo Copy files to output directory...
-copy $(IntermediateOutputPath)ortc.events_win_etw.dll "$(OutDir)"
-copy $(IntermediateOutputPath)ortc.stats.events_win_etw.dll "$(OutDir)"
-copy "$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.man" "$(OutDir)"
-copy "$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.man" "$(OutDir)"
-copy "$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.wprp" "$(OutDir)"
-copy "$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.wprp" "$(OutDir)"
-icacls "$(OutDir)ortc.events_win_etw.dll" /grant Users:RX
-icacls "$(OutDir)ortc.stats.events_win_etw.dll" /grant Users:RX
-echo.
-echo Steps to register manifest file with for Windows Performance Recorder...
-echo.
-echo. 1) Run a command prompt as administrator
-echo.
-echo 2) Change into the output directory, type:
-echo cd "$(OutDir)"
-echo.
-echo 3) To register the manifest, type:
-echo wevtutil.exe im ortc.events_win_etw.man /rf:"$(OutDir)ortc.events_win_etw.dll" /mf:"$(OutDir)ortc.events_win_etw.dll"
-echo wevtutil.exe im ortc.stats.events_win_etw.man /rf:"$(OutDir)ortc.stats.events_win_etw.dll" /mf:"$(OutDir)ortc.stats.events_win_etw.dll"
-echo.
-echo 4) To unregister the manifest, type:
-echo wevtutil.exe um ortc.events_win_etw.man
-echo wevtutil.exe um ortc.stats.events_win_etw.man
-echo.
-</Command>
+      <Command>
+      </Command>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Outputs>$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.h;$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.h;$(IntermediateOutputPath)ortc.events_win_etw.rc;$(IntermediateOutputPath)ortc.events_win_etw.res;$(IntermediateOutputPath)ortc.events_win_etw.dll;$(IntermediateOutputPath)ortc.stats.events_win_etw.rc;$(IntermediateOutputPath)ortc.stats.events_win_etw.res;$(IntermediateOutputPath)ortc.stats.events_win_etw.dll;$(OutDir)ortc.events_win_etw.dll;$(OutDir)ortc.events_win_etw.man;$(OutDir)ortc.events_win_etw.wprp;$(OutDir)ortc.stats.events_win_etw.dll;$(OutDir)ortc.stats.events_win_etw.man;$(OutDir)ortc.stats.events_win_etw.wprp;%(Outputs)</Outputs>
+      <Outputs>
+      </Outputs>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Inputs>$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.man;$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.wprp;$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.man;$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.wprp;%(Inputs)</Inputs>
+      <Inputs>
+      </Inputs>
     </CustomBuildStep>
     <Lib>
       <AdditionalOptions>/IGNORE:4264 %(AdditionalOptions)</AdditionalOptions>
@@ -621,49 +462,16 @@ echo.
       <GenerateWindowsMetadata>false</GenerateWindowsMetadata>
     </Link>
     <CustomBuildStep>
-      <Command>echo Create manifest header file...
-mc.exe -um -r $(IntermediateOutputPath) -h "$(ProjectDir)..\..\..\ortc\internal" "$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.man"
-mc.exe -um -r $(IntermediateOutputPath) -h "$(ProjectDir)..\..\..\ortc\internal" "$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.man"
-echo Create resource file...
-rc.exe $(IntermediateOutputPath)ortc.events_win_etw.rc
-rc.exe $(IntermediateOutputPath)ortc.stats.events_win_etw.rc
-echo Create manifest resource dll...
-echo If compiling to managed code resource DLL use: csc.exe /out:$(IntermediateOutputPath)ortc.events_win_etw.dll /target:library /win32res:$(IntermediateOutputPath)ortc.events_win_etw.res
-echo If compiling to managed code resource DLL use: csc.exe /out:$(IntermediateOutputPath)ortc.stats.events_win_etw.dll /target:library /win32res:$(IntermediateOutputPath)ortc.stats.events_win_etw.res
-link -dll -noentry /MACHINE:$(PlatformTarget) -out:$(IntermediateOutputPath)ortc.events_win_etw.dll $(IntermediateOutputPath)ortc.events_win_etw.res
-link -dll -noentry /MACHINE:$(PlatformTarget) -out:$(IntermediateOutputPath)ortc.stats.events_win_etw.dll $(IntermediateOutputPath)ortc.stats.events_win_etw.res
-echo Copy files to output directory...
-copy $(IntermediateOutputPath)ortc.events_win_etw.dll "$(OutDir)"
-copy $(IntermediateOutputPath)ortc.stats.events_win_etw.dll "$(OutDir)"
-copy "$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.man" "$(OutDir)"
-copy "$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.man" "$(OutDir)"
-copy "$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.wprp" "$(OutDir)"
-copy "$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.wprp" "$(OutDir)"
-icacls "$(OutDir)ortc.events_win_etw.dll" /grant Users:RX
-icacls "$(OutDir)ortc.stats.events_win_etw.dll" /grant Users:RX
-echo.
-echo Steps to register manifest file with for Windows Performance Recorder...
-echo.
-echo. 1) Run a command prompt as administrator
-echo.
-echo 2) Change into the output directory, type:
-echo cd "$(OutDir)"
-echo.
-echo 3) To register the manifest, type:
-echo wevtutil.exe im ortc.events_win_etw.man /rf:"$(OutDir)ortc.events_win_etw.dll" /mf:"$(OutDir)ortc.events_win_etw.dll"
-echo wevtutil.exe im ortc.stats.events_win_etw.man /rf:"$(OutDir)ortc.stats.events_win_etw.dll" /mf:"$(OutDir)ortc.stats.events_win_etw.dll"
-echo.
-echo 4) To unregister the manifest, type:
-echo wevtutil.exe um ortc.events_win_etw.man
-echo wevtutil.exe um ortc.stats.events_win_etw.man
-echo.
-</Command>
+      <Command>
+      </Command>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Outputs>$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.h;$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.h;$(IntermediateOutputPath)ortc.events_win_etw.rc;$(IntermediateOutputPath)ortc.events_win_etw.res;$(IntermediateOutputPath)ortc.events_win_etw.dll;$(IntermediateOutputPath)ortc.stats.events_win_etw.rc;$(IntermediateOutputPath)ortc.stats.events_win_etw.res;$(IntermediateOutputPath)ortc.stats.events_win_etw.dll;$(OutDir)ortc.events_win_etw.dll;$(OutDir)ortc.events_win_etw.man;$(OutDir)ortc.events_win_etw.wprp;$(OutDir)ortc.stats.events_win_etw.dll;$(OutDir)ortc.stats.events_win_etw.man;$(OutDir)ortc.stats.events_win_etw.wprp;%(Outputs)</Outputs>
+      <Outputs>
+      </Outputs>
     </CustomBuildStep>
     <CustomBuildStep>
-      <Inputs>$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.man;$(ProjectDir)..\..\..\ortc\internal\ortc.events_win_etw.wprp;$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.man;$(ProjectDir)..\..\..\ortc\internal\ortc.stats.events_win_etw.wprp;%(Inputs)</Inputs>
+      <Inputs>
+      </Inputs>
     </CustomBuildStep>
     <Lib>
       <AdditionalOptions>/IGNORE:4264 %(AdditionalOptions)</AdditionalOptions>
