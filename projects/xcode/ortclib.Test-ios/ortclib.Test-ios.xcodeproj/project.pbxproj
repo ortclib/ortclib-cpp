@@ -1012,6 +1012,7 @@
 				009D19BD1DE52DEA00D139FF /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		009D19BE1DE52DEA00D139FF /* Build configuration list for PBXNativeTarget "ortclib.Test-iosTests" */ = {
 			isa = XCConfigurationList;
@@ -1020,6 +1021,7 @@
 				009D19C01DE52DEA00D139FF /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		009D19C11DE52DEA00D139FF /* Build configuration list for PBXNativeTarget "ortclib.Test-iosUITests" */ = {
 			isa = XCConfigurationList;
@@ -1028,6 +1030,7 @@
 				009D19C31DE52DEA00D139FF /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

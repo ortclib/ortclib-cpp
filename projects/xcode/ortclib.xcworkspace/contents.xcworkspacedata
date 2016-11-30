@@ -44,9 +44,6 @@
       location = "group:../../../zsLib/projects/xcode/zsLib-Test-osx/zsLib-Test-osx.xcodeproj">
    </FileRef>
    <FileRef
-      location = "group:../../../zsLib-eventing/projects/xcode/zsLib.Eventing.Compiler.Tool-osx.Tool/zsLib.Eventing.Compiler.Tool.xcodeproj">
-   </FileRef>
-   <FileRef
       location = "group:../../../zsLib-eventing/projects/xcode/zsLib-eventing-tool-ios/zsLib-eventing-tool-ios.xcodeproj">
    </FileRef>
    <FileRef
@@ -69,5 +66,8 @@
    </FileRef>
    <FileRef
       location = "group:../../../zsLib/projects/xcode/zsLib-osx/zsLib-osx.xcodeproj">
+   </FileRef>
+   <FileRef
+      location = "group:../../../zsLib-eventing/projects/xcode/zsLib.Eventing.Compiler.Tool-osx.Tool/zsLib.Eventing.Compiler.Tool.xcodeproj">
    </FileRef>
 </Workspace>

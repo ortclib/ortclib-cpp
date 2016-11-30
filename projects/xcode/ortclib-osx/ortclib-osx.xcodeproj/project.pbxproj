@@ -54,7 +54,6 @@
 		009D180C1DE5285800D139FF /* ortc_RTPUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D175F1DE5285700D139FF /* ortc_RTPUtils.cpp */; };
 		009D180D1DE5285800D139FF /* ortc_SCTPTransport.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D17601DE5285700D139FF /* ortc_SCTPTransport.cpp */; };
 		009D180E1DE5285800D139FF /* ortc_SCTPTransportListener.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D17611DE5285700D139FF /* ortc_SCTPTransportListener.cpp */; };
-		009D180F1DE5285800D139FF /* ortc_Settings.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D17621DE5285700D139FF /* ortc_Settings.cpp */; };
 		009D18101DE5285800D139FF /* ortc_SRTPSDESTransport.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D17631DE5285700D139FF /* ortc_SRTPSDESTransport.cpp */; };
 		009D18111DE5285800D139FF /* ortc_SRTPTransport.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D17641DE5285700D139FF /* ortc_SRTPTransport.cpp */; };
 		009D18121DE5285800D139FF /* ortc_StatsReport.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D17651DE5285700D139FF /* ortc_StatsReport.cpp */; };
@@ -125,7 +124,6 @@
 		009D175F1DE5285700D139FF /* ortc_RTPUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_RTPUtils.cpp; sourceTree = "<group>"; };
 		009D17601DE5285700D139FF /* ortc_SCTPTransport.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_SCTPTransport.cpp; sourceTree = "<group>"; };
 		009D17611DE5285700D139FF /* ortc_SCTPTransportListener.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_SCTPTransportListener.cpp; sourceTree = "<group>"; };
-		009D17621DE5285700D139FF /* ortc_Settings.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_Settings.cpp; sourceTree = "<group>"; };
 		009D17631DE5285700D139FF /* ortc_SRTPSDESTransport.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_SRTPSDESTransport.cpp; sourceTree = "<group>"; };
 		009D17641DE5285700D139FF /* ortc_SRTPTransport.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_SRTPTransport.cpp; sourceTree = "<group>"; };
 		009D17651DE5285700D139FF /* ortc_StatsReport.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_StatsReport.cpp; sourceTree = "<group>"; };
@@ -191,7 +189,6 @@
 		009D17A21DE5285700D139FF /* ortc_RTPUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ortc_RTPUtils.h; sourceTree = "<group>"; };
 		009D17A31DE5285700D139FF /* ortc_SCTPTransport.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ortc_SCTPTransport.h; sourceTree = "<group>"; };
 		009D17A41DE5285700D139FF /* ortc_SCTPTransportListener.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ortc_SCTPTransportListener.h; sourceTree = "<group>"; };
-		009D17A51DE5285700D139FF /* ortc_Settings.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ortc_Settings.h; sourceTree = "<group>"; };
 		009D17A61DE5285700D139FF /* ortc_SRTPSDESTransport.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ortc_SRTPSDESTransport.h; sourceTree = "<group>"; };
 		009D17A71DE5285700D139FF /* ortc_SRTPTransport.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ortc_SRTPTransport.h; sourceTree = "<group>"; };
 		009D17A81DE5285700D139FF /* ortc_StatsReport.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ortc_StatsReport.h; sourceTree = "<group>"; };
@@ -203,7 +200,6 @@
 		009D17AE1DE5285700D139FF /* IRTPSender.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IRTPSender.h; sourceTree = "<group>"; };
 		009D17AF1DE5285700D139FF /* IRTPTypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IRTPTypes.h; sourceTree = "<group>"; };
 		009D17B01DE5285700D139FF /* ISCTPTransport.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ISCTPTransport.h; sourceTree = "<group>"; };
-		009D17B11DE5285700D139FF /* ISettings.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ISettings.h; sourceTree = "<group>"; };
 		009D17B21DE5285700D139FF /* ISRTPSDESTransport.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ISRTPSDESTransport.h; sourceTree = "<group>"; };
 		009D17B31DE5285700D139FF /* IStatsProvider.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IStatsProvider.h; sourceTree = "<group>"; };
 		009D17B41DE5285700D139FF /* IStatsReport.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IStatsReport.h; sourceTree = "<group>"; };
@@ -266,7 +262,6 @@
 				009D17AE1DE5285700D139FF /* IRTPSender.h */,
 				009D17AF1DE5285700D139FF /* IRTPTypes.h */,
 				009D17B01DE5285700D139FF /* ISCTPTransport.h */,
-				009D17B11DE5285700D139FF /* ISettings.h */,
 				009D17B21DE5285700D139FF /* ISRTPSDESTransport.h */,
 				009D17B31DE5285700D139FF /* IStatsProvider.h */,
 				009D17B41DE5285700D139FF /* IStatsReport.h */,
@@ -365,7 +360,6 @@
 				009D175F1DE5285700D139FF /* ortc_RTPUtils.cpp */,
 				009D17601DE5285700D139FF /* ortc_SCTPTransport.cpp */,
 				009D17611DE5285700D139FF /* ortc_SCTPTransportListener.cpp */,
-				009D17621DE5285700D139FF /* ortc_Settings.cpp */,
 				009D17631DE5285700D139FF /* ortc_SRTPSDESTransport.cpp */,
 				009D17641DE5285700D139FF /* ortc_SRTPTransport.cpp */,
 				009D17651DE5285700D139FF /* ortc_StatsReport.cpp */,
@@ -422,7 +416,6 @@
 				009D17A21DE5285700D139FF /* ortc_RTPUtils.h */,
 				009D17A31DE5285700D139FF /* ortc_SCTPTransport.h */,
 				009D17A41DE5285700D139FF /* ortc_SCTPTransportListener.h */,
-				009D17A51DE5285700D139FF /* ortc_Settings.h */,
 				009D17A61DE5285700D139FF /* ortc_SRTPSDESTransport.h */,
 				009D17A71DE5285700D139FF /* ortc_SRTPTransport.h */,
 				009D17A81DE5285700D139FF /* ortc_StatsReport.h */,
@@ -529,7 +522,6 @@
 				009D17EE1DE5285800D139FF /* ortc_Constraints.cpp in Sources */,
 				009D180B1DE5285800D139FF /* ortc_RTPTypes.cpp in Sources */,
 				009D180C1DE5285800D139FF /* ortc_RTPUtils.cpp in Sources */,
-				009D180F1DE5285800D139FF /* ortc_Settings.cpp in Sources */,
 				009D18051DE5285800D139FF /* ortc_RTPReceiverChannelVideo.cpp in Sources */,
 				009D17DD1DE5285700D139FF /* ortc_adapter_SessionDescription.cpp in Sources */,
 				009D17EC1DE5285800D139FF /* ortc_Capabilities.cpp in Sources */,
@@ -602,6 +594,7 @@
 					../../../..,
 					"../../../../ortclib-services-cpp",
 					../../../../zsLib,
+					"../../../../zsLib-eventing",
 					../../../../../../webrtc/xplatform/boringssl/include,
 					../../../../../../webrtc/xplatform/libsrtp/srtp/include,
 					../../../../../../webrtc/xplatform/libsrtp/srtp/crypto/include,
@@ -655,6 +648,7 @@
 					../../../..,
 					"../../../../ortclib-services-cpp",
 					../../../../zsLib,
+					"../../../../zsLib-eventing",
 					../../../../../../webrtc/xplatform/boringssl/include,
 					../../../../../../webrtc/xplatform/libsrtp/srtp/include,
 					../../../../../../webrtc/xplatform/libsrtp/srtp/crypto/include,
@@ -703,6 +697,7 @@
 				009D171E1DE5283100D139FF /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

@@ -54,7 +54,6 @@
 		009D16601DE5210300D139FF /* ortc_RTPUtils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D15C01DE5210200D139FF /* ortc_RTPUtils.cpp */; };
 		009D16611DE5210300D139FF /* ortc_SCTPTransport.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D15C11DE5210200D139FF /* ortc_SCTPTransport.cpp */; };
 		009D16621DE5210300D139FF /* ortc_SCTPTransportListener.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D15C21DE5210200D139FF /* ortc_SCTPTransportListener.cpp */; };
-		009D16631DE5210300D139FF /* ortc_Settings.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D15C31DE5210200D139FF /* ortc_Settings.cpp */; };
 		009D16641DE5210300D139FF /* ortc_SRTPSDESTransport.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D15C41DE5210200D139FF /* ortc_SRTPSDESTransport.cpp */; };
 		009D16651DE5210300D139FF /* ortc_SRTPTransport.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D15C51DE5210200D139FF /* ortc_SRTPTransport.cpp */; };
 		009D16661DE5210300D139FF /* ortc_StatsReport.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D15C61DE5210200D139FF /* ortc_StatsReport.cpp */; };
@@ -139,7 +138,6 @@
 		009D15C01DE5210200D139FF /* ortc_RTPUtils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_RTPUtils.cpp; sourceTree = "<group>"; };
 		009D15C11DE5210200D139FF /* ortc_SCTPTransport.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_SCTPTransport.cpp; sourceTree = "<group>"; };
 		009D15C21DE5210200D139FF /* ortc_SCTPTransportListener.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_SCTPTransportListener.cpp; sourceTree = "<group>"; };
-		009D15C31DE5210200D139FF /* ortc_Settings.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_Settings.cpp; sourceTree = "<group>"; };
 		009D15C41DE5210200D139FF /* ortc_SRTPSDESTransport.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_SRTPSDESTransport.cpp; sourceTree = "<group>"; };
 		009D15C51DE5210200D139FF /* ortc_SRTPTransport.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_SRTPTransport.cpp; sourceTree = "<group>"; };
 		009D15C61DE5210200D139FF /* ortc_StatsReport.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ortc_StatsReport.cpp; sourceTree = "<group>"; };
@@ -205,7 +203,6 @@
 		009D16031DE5210200D139FF /* ortc_RTPUtils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ortc_RTPUtils.h; sourceTree = "<group>"; };
 		009D16041DE5210200D139FF /* ortc_SCTPTransport.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ortc_SCTPTransport.h; sourceTree = "<group>"; };
 		009D16051DE5210200D139FF /* ortc_SCTPTransportListener.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ortc_SCTPTransportListener.h; sourceTree = "<group>"; };
-		009D16061DE5210200D139FF /* ortc_Settings.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ortc_Settings.h; sourceTree = "<group>"; };
 		009D16071DE5210200D139FF /* ortc_SRTPSDESTransport.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ortc_SRTPSDESTransport.h; sourceTree = "<group>"; };
 		009D16081DE5210200D139FF /* ortc_SRTPTransport.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ortc_SRTPTransport.h; sourceTree = "<group>"; };
 		009D16091DE5210200D139FF /* ortc_StatsReport.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ortc_StatsReport.h; sourceTree = "<group>"; };
@@ -217,7 +214,6 @@
 		009D160F1DE5210200D139FF /* IRTPSender.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IRTPSender.h; sourceTree = "<group>"; };
 		009D16101DE5210200D139FF /* IRTPTypes.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IRTPTypes.h; sourceTree = "<group>"; };
 		009D16111DE5210200D139FF /* ISCTPTransport.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ISCTPTransport.h; sourceTree = "<group>"; };
-		009D16121DE5210200D139FF /* ISettings.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ISettings.h; sourceTree = "<group>"; };
 		009D16131DE5210200D139FF /* ISRTPSDESTransport.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ISRTPSDESTransport.h; sourceTree = "<group>"; };
 		009D16141DE5210200D139FF /* IStatsProvider.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IStatsProvider.h; sourceTree = "<group>"; };
 		009D16151DE5210200D139FF /* IStatsReport.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IStatsReport.h; sourceTree = "<group>"; };
@@ -259,6 +255,7 @@
 			children = (
 				009D15811DE5210200D139FF /* adapter */,
 				009D159B1DE5210200D139FF /* cpp */,
+				009D15D81DE5210200D139FF /* internal */,
 				009D15C81DE5210200D139FF /* ICapabilities.h */,
 				009D15C91DE5210200D139FF /* ICertificate.h */,
 				009D15CA1DE5210200D139FF /* IConstraints.h */,
@@ -275,14 +272,12 @@
 				009D15D51DE5210200D139FF /* IIdentity.h */,
 				009D15D61DE5210200D139FF /* IMediaDevices.h */,
 				009D15D71DE5210200D139FF /* IMediaStreamTrack.h */,
-				009D15D81DE5210200D139FF /* internal */,
 				009D160C1DE5210200D139FF /* IORTC.h */,
 				009D160D1DE5210200D139FF /* IRTPListener.h */,
 				009D160E1DE5210200D139FF /* IRTPReceiver.h */,
 				009D160F1DE5210200D139FF /* IRTPSender.h */,
 				009D16101DE5210200D139FF /* IRTPTypes.h */,
 				009D16111DE5210200D139FF /* ISCTPTransport.h */,
-				009D16121DE5210200D139FF /* ISettings.h */,
 				009D16131DE5210200D139FF /* ISRTPSDESTransport.h */,
 				009D16141DE5210200D139FF /* IStatsProvider.h */,
 				009D16151DE5210200D139FF /* IStatsReport.h */,
@@ -381,7 +376,6 @@
 				009D15C01DE5210200D139FF /* ortc_RTPUtils.cpp */,
 				009D15C11DE5210200D139FF /* ortc_SCTPTransport.cpp */,
 				009D15C21DE5210200D139FF /* ortc_SCTPTransportListener.cpp */,
-				009D15C31DE5210200D139FF /* ortc_Settings.cpp */,
 				009D15C41DE5210200D139FF /* ortc_SRTPSDESTransport.cpp */,
 				009D15C51DE5210200D139FF /* ortc_SRTPTransport.cpp */,
 				009D15C61DE5210200D139FF /* ortc_StatsReport.cpp */,
@@ -438,7 +432,6 @@
 				009D16031DE5210200D139FF /* ortc_RTPUtils.h */,
 				009D16041DE5210200D139FF /* ortc_SCTPTransport.h */,
 				009D16051DE5210200D139FF /* ortc_SCTPTransportListener.h */,
-				009D16061DE5210200D139FF /* ortc_Settings.h */,
 				009D16071DE5210200D139FF /* ortc_SRTPSDESTransport.h */,
 				009D16081DE5210200D139FF /* ortc_SRTPTransport.h */,
 				009D16091DE5210200D139FF /* ortc_StatsReport.h */,
@@ -535,7 +528,6 @@
 				009D16421DE5210300D139FF /* ortc_Constraints.cpp in Sources */,
 				009D165F1DE5210300D139FF /* ortc_RTPTypes.cpp in Sources */,
 				009D16601DE5210300D139FF /* ortc_RTPUtils.cpp in Sources */,
-				009D16631DE5210300D139FF /* ortc_Settings.cpp in Sources */,
 				009D16591DE5210300D139FF /* ortc_RTPReceiverChannelVideo.cpp in Sources */,
 				009D163D1DE5210300D139FF /* ortc_adapter_SessionDescription.cpp in Sources */,
 				009D16401DE5210300D139FF /* ortc_Capabilities.cpp in Sources */,
@@ -608,6 +600,7 @@
 					../../../..,
 					"../../../../ortclib-services-cpp",
 					../../../../zsLib,
+					"../../../../zsLib-eventing",
 					../../../../../../webrtc/xplatform/boringssl/include,
 					../../../../../../webrtc/xplatform/libsrtp/srtp/include,
 					../../../../../../webrtc/xplatform/libsrtp/srtp/crypto/include,
@@ -665,6 +658,7 @@
 					../../../..,
 					"../../../../ortclib-services-cpp",
 					../../../../zsLib,
+					"../../../../zsLib-eventing",
 					../../../../../../webrtc/xplatform/boringssl/include,
 					../../../../../../webrtc/xplatform/libsrtp/srtp/include,
 					../../../../../../webrtc/xplatform/libsrtp/srtp/crypto/include,
