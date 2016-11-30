@@ -31,11 +31,14 @@
 
 #include <ortc/internal/types.h>
 #include <ortc/internal/platform.h>
-#include <ortc/internal/ortc_Helper.h>
+
+#include <ortc/IHelper.h>
 
 #include <ortc/IConstraints.h>
 
-#include <ortc/services/IHelper.h>
+#include <ortc/IHelper.h>
+
+#include <zsLib/eventing/IHasher.h>
 
 #include <zsLib/Numeric.h>
 #include <zsLib/Stringize.h>
@@ -49,13 +52,9 @@ namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
 
 namespace ortc
 {
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::ISettings, UseSettings)
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHelper, UseServicesHelper)
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHTTP, UseHTTP)
+  ZS_DECLARE_USING_PTR(zsLib::eventing, IHasher);
 
-  typedef ortc::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
-
-  ZS_DECLARE_TYPEDEF_PTR(ortc::internal::Helper, UseHelper)
+  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHTTP, UseHTTP);
 
   using zsLib::Numeric;
   using zsLib::Log;
@@ -89,8 +88,8 @@ namespace ortc
   {
     if (!elem) return;
 
-    UseHelper::getElementValue(elem, "ortc::IConstraints::ConstrainBooleanParameters", "exact", mExact);
-    UseHelper::getElementValue(elem, "ortc::IConstraints::ConstrainBooleanParameters", "ideal", mIdeal);
+    IHelper::getElementValue(elem, "ortc::IConstraints::ConstrainBooleanParameters", "exact", mExact);
+    IHelper::getElementValue(elem, "ortc::IConstraints::ConstrainBooleanParameters", "ideal", mIdeal);
   }
 
   //---------------------------------------------------------------------------
@@ -98,8 +97,8 @@ namespace ortc
   {
     ElementPtr elem = Element::create(objectName);
 
-    UseHelper::adoptElementValue(elem, "exact", mExact);
-    UseHelper::adoptElementValue(elem, "ideal", mIdeal);
+    IHelper::adoptElementValue(elem, "exact", mExact);
+    IHelper::adoptElementValue(elem, "ideal", mIdeal);
 
     if (!elem->hasChildren()) return ElementPtr();
     return elem;
@@ -110,8 +109,8 @@ namespace ortc
   {
     ElementPtr resultEl = Element::create("ortc::IConstraints::ConstrainBooleanParameters");
 
-    UseServicesHelper::debugAppend(resultEl, "exact", mExact);
-    UseServicesHelper::debugAppend(resultEl, "ideal", mIdeal);
+    IHelper::debugAppend(resultEl, "exact", mExact);
+    IHelper::debugAppend(resultEl, "ideal", mIdeal);
 
     return resultEl;
   }
@@ -119,15 +118,15 @@ namespace ortc
   //---------------------------------------------------------------------------
   String IConstraints::ConstrainBooleanParameters::hash() const
   {
-    SHA1Hasher hasher;
+    auto hasher = IHasher::sha1();
 
-    hasher.update("ortc::IConstraints::ConstrainBooleanParameters:");
+    hasher->update("ortc::IConstraints::ConstrainBooleanParameters:");
 
-    hasher.update(mExact);
-    hasher.update(":");
-    hasher.update(mIdeal);
+    hasher->update(mExact);
+    hasher->update(":");
+    hasher->update(mIdeal);
 
-    return hasher.final();
+    return hasher->finalizeAsString();
   }
 
 
@@ -151,7 +150,7 @@ namespace ortc
     }
 
     {
-      String str = UseServicesHelper::getElementText(elem);
+      String str = IHelper::getElementText(elem);
       if (str.hasData()) {
         try {
           mValue = Numeric<decltype(mValue.mType)>(str);
@@ -170,7 +169,7 @@ namespace ortc
     }
 
     if (!mValue.hasValue()) return ElementPtr();
-    return UseServicesHelper::createElementWithNumber(objectName, string(mValue.value()));
+    return IHelper::createElementWithNumber(objectName, string(mValue.value()));
   }
   
   //---------------------------------------------------------------------------
@@ -178,8 +177,8 @@ namespace ortc
   {
     ElementPtr resultEl = Element::create("ortc::IConstraints::ConstrainBoolean");
 
-    UseServicesHelper::debugAppend(resultEl, "value", mValue.hasValue() ? ((mValue.value()) ? "true" : "false") : "");
-    UseServicesHelper::debugAppend(resultEl, mParameters.hasValue() ? mParameters.value().toDebug() : ElementPtr());
+    IHelper::debugAppend(resultEl, "value", mValue.hasValue() ? ((mValue.value()) ? "true" : "false") : "");
+    IHelper::debugAppend(resultEl, mParameters.hasValue() ? mParameters.value().toDebug() : ElementPtr());
 
     return resultEl;
   }
@@ -187,15 +186,15 @@ namespace ortc
   //---------------------------------------------------------------------------
   String IConstraints::ConstrainBoolean::hash() const
   {
-    SHA1Hasher hasher;
+    auto hasher = IHasher::sha1();
 
-    hasher.update("ortc::IConstraints::ConstrainBoolean:");
+    hasher->update("ortc::IConstraints::ConstrainBoolean:");
 
-    hasher.update(mValue);
-    hasher.update(":");
-    hasher.update(mParameters.hasValue() ? mParameters.value().hash() : String());
+    hasher->update(mValue);
+    hasher->update(":");
+    hasher->update(mParameters.hasValue() ? mParameters.value().hash() : String());
 
-    return hasher.final();
+    return hasher->finalizeAsString();
   }
 
 
@@ -213,10 +212,10 @@ namespace ortc
   {
     if (!elem) return;
 
-    UseHelper::getElementValue(elem, "ortc::IConstraints::ConstrainLongRange", "min", mMin);
-    UseHelper::getElementValue(elem, "ortc::IConstraints::ConstrainLongRange", "max", mMax);
-    UseHelper::getElementValue(elem, "ortc::IConstraints::ConstrainLongRange", "exact", mExact);
-    UseHelper::getElementValue(elem, "ortc::IConstraints::ConstrainLongRange", "ideal", mIdeal);
+    IHelper::getElementValue(elem, "ortc::IConstraints::ConstrainLongRange", "min", mMin);
+    IHelper::getElementValue(elem, "ortc::IConstraints::ConstrainLongRange", "max", mMax);
+    IHelper::getElementValue(elem, "ortc::IConstraints::ConstrainLongRange", "exact", mExact);
+    IHelper::getElementValue(elem, "ortc::IConstraints::ConstrainLongRange", "ideal", mIdeal);
   }
 
   //---------------------------------------------------------------------------
@@ -224,10 +223,10 @@ namespace ortc
   {
     ElementPtr elem = Element::create(objectName);
 
-    UseHelper::adoptElementValue(elem, "min", mMin);
-    UseHelper::adoptElementValue(elem, "max", mMax);
-    UseHelper::adoptElementValue(elem, "exact", mExact);
-    UseHelper::adoptElementValue(elem, "ideal", mIdeal);
+    IHelper::adoptElementValue(elem, "min", mMin);
+    IHelper::adoptElementValue(elem, "max", mMax);
+    IHelper::adoptElementValue(elem, "exact", mExact);
+    IHelper::adoptElementValue(elem, "ideal", mIdeal);
 
     if (!elem->hasChildren()) return ElementPtr();
     return elem;
@@ -238,10 +237,10 @@ namespace ortc
   {
     ElementPtr resultEl = Element::create("ortc::IConstraints::ConstrainLongRange");
 
-    UseServicesHelper::debugAppend(resultEl, "min", mMin);
-    UseServicesHelper::debugAppend(resultEl, "max", mMax);
-    UseServicesHelper::debugAppend(resultEl, "ideal", mIdeal);
-    UseServicesHelper::debugAppend(resultEl, "exact", mExact);
+    IHelper::debugAppend(resultEl, "min", mMin);
+    IHelper::debugAppend(resultEl, "max", mMax);
+    IHelper::debugAppend(resultEl, "ideal", mIdeal);
+    IHelper::debugAppend(resultEl, "exact", mExact);
 
     return resultEl;
   }
@@ -249,19 +248,19 @@ namespace ortc
   //---------------------------------------------------------------------------
   String IConstraints::ConstrainLongRange::hash() const
   {
-    SHA1Hasher hasher;
+    auto hasher = IHasher::sha1();
 
-    hasher.update("ortc::IConstraints::ConstrainLongRange:");
+    hasher->update("ortc::IConstraints::ConstrainLongRange:");
 
-    hasher.update(mMin);
-    hasher.update(":");
-    hasher.update(mMax);
-    hasher.update(":");
-    hasher.update(mExact);
-    hasher.update(":");
-    hasher.update(mIdeal);
+    hasher->update(mMin);
+    hasher->update(":");
+    hasher->update(mMax);
+    hasher->update(":");
+    hasher->update(mExact);
+    hasher->update(":");
+    hasher->update(mIdeal);
 
-    return hasher.final();
+    return hasher->finalizeAsString();
   }
 
 
@@ -285,7 +284,7 @@ namespace ortc
     }
 
     {
-      String str = UseServicesHelper::getElementText(elem);
+      String str = IHelper::getElementText(elem);
       if (str.hasData()) {
         try {
           mValue = Numeric<decltype(mValue.mType)>(str);
@@ -304,7 +303,7 @@ namespace ortc
     }
 
     if (!mValue.hasValue()) return ElementPtr();
-    return UseServicesHelper::createElementWithNumber(objectName, string(mValue.value()));
+    return IHelper::createElementWithNumber(objectName, string(mValue.value()));
   }
 
   //---------------------------------------------------------------------------
@@ -312,8 +311,8 @@ namespace ortc
   {
     ElementPtr resultEl = Element::create("ortc::IConstraints::ConstrainLong");
 
-    UseServicesHelper::debugAppend(resultEl, "value", mValue);
-    UseServicesHelper::debugAppend(resultEl, mRange.hasValue() ? mRange.value().toDebug() : ElementPtr());
+    IHelper::debugAppend(resultEl, "value", mValue);
+    IHelper::debugAppend(resultEl, mRange.hasValue() ? mRange.value().toDebug() : ElementPtr());
 
     return resultEl;
   }
@@ -321,15 +320,15 @@ namespace ortc
   //---------------------------------------------------------------------------
   String IConstraints::ConstrainLong::hash() const
   {
-    SHA1Hasher hasher;
+    auto hasher = IHasher::sha1();
 
-    hasher.update("ortc::IConstraints::ConstrainLong:");
+    hasher->update("ortc::IConstraints::ConstrainLong:");
 
-    hasher.update(mValue);
-    hasher.update(":");
-    hasher.update(mRange.hasValue() ? mRange.value().hash() : String());
+    hasher->update(mValue);
+    hasher->update(":");
+    hasher->update(mRange.hasValue() ? mRange.value().hash() : String());
 
-    return hasher.final();
+    return hasher->finalizeAsString();
   }
 
 
@@ -348,10 +347,10 @@ namespace ortc
   {
     if (!elem) return;
 
-    UseHelper::getElementValue(elem, "ortc::IConstraints::ConstrainDoubleRange", "min", mMin);
-    UseHelper::getElementValue(elem, "ortc::IConstraints::ConstrainDoubleRange", "max", mMax);
-    UseHelper::getElementValue(elem, "ortc::IConstraints::ConstrainDoubleRange", "exact", mExact);
-    UseHelper::getElementValue(elem, "ortc::IConstraints::ConstrainDoubleRange", "ideal", mIdeal);
+    IHelper::getElementValue(elem, "ortc::IConstraints::ConstrainDoubleRange", "min", mMin);
+    IHelper::getElementValue(elem, "ortc::IConstraints::ConstrainDoubleRange", "max", mMax);
+    IHelper::getElementValue(elem, "ortc::IConstraints::ConstrainDoubleRange", "exact", mExact);
+    IHelper::getElementValue(elem, "ortc::IConstraints::ConstrainDoubleRange", "ideal", mIdeal);
   }
 
   //---------------------------------------------------------------------------
@@ -359,10 +358,10 @@ namespace ortc
   {
     ElementPtr elem = Element::create(objectName);
 
-    UseHelper::adoptElementValue(elem, "min", mMin);
-    UseHelper::adoptElementValue(elem, "max", mMax);
-    UseHelper::adoptElementValue(elem, "exact", mExact);
-    UseHelper::adoptElementValue(elem, "ideal", mIdeal);
+    IHelper::adoptElementValue(elem, "min", mMin);
+    IHelper::adoptElementValue(elem, "max", mMax);
+    IHelper::adoptElementValue(elem, "exact", mExact);
+    IHelper::adoptElementValue(elem, "ideal", mIdeal);
 
     if (!elem->hasChildren()) return ElementPtr();
     return elem;
@@ -373,10 +372,10 @@ namespace ortc
   {
     ElementPtr resultEl = Element::create("ortc::IConstraints::ConstrainDoubleRange");
 
-    UseServicesHelper::debugAppend(resultEl, "min", mMin);
-    UseServicesHelper::debugAppend(resultEl, "max", mMax);
-    UseServicesHelper::debugAppend(resultEl, "ideal", mIdeal);
-    UseServicesHelper::debugAppend(resultEl, "exact", mExact);
+    IHelper::debugAppend(resultEl, "min", mMin);
+    IHelper::debugAppend(resultEl, "max", mMax);
+    IHelper::debugAppend(resultEl, "ideal", mIdeal);
+    IHelper::debugAppend(resultEl, "exact", mExact);
 
     return resultEl;
   }
@@ -384,19 +383,19 @@ namespace ortc
   //---------------------------------------------------------------------------
   String IConstraints::ConstrainDoubleRange::hash() const
   {
-    SHA1Hasher hasher;
+    auto hasher = IHasher::sha1();
 
-    hasher.update("ortc::IConstraints::ConstrainDoubleRange:");
+    hasher->update("ortc::IConstraints::ConstrainDoubleRange:");
 
-    hasher.update(mMin);
-    hasher.update(":");
-    hasher.update(mMax);
-    hasher.update(":");
-    hasher.update(mExact);
-    hasher.update(":");
-    hasher.update(mIdeal);
+    hasher->update(mMin);
+    hasher->update(":");
+    hasher->update(mMax);
+    hasher->update(":");
+    hasher->update(mExact);
+    hasher->update(":");
+    hasher->update(mIdeal);
     
-    return hasher.final();
+    return hasher->finalizeAsString();
   }
 
 
@@ -420,7 +419,7 @@ namespace ortc
     }
 
     {
-      String str = UseServicesHelper::getElementText(elem);
+      String str = IHelper::getElementText(elem);
       if (str.hasData()) {
         try {
           mValue = Numeric<decltype(mValue.mType)>(str);
@@ -439,7 +438,7 @@ namespace ortc
     }
 
     if (!mValue.hasValue()) return ElementPtr();
-    return UseServicesHelper::createElementWithNumber(objectName, string(mValue.value()));
+    return IHelper::createElementWithNumber(objectName, string(mValue.value()));
   }
 
   //---------------------------------------------------------------------------
@@ -447,8 +446,8 @@ namespace ortc
   {
     ElementPtr resultEl = Element::create("ortc::IConstraints::ConstrainDouble");
 
-    UseServicesHelper::debugAppend(resultEl, "value", mValue);
-    UseServicesHelper::debugAppend(resultEl, mRange.hasValue() ? mRange.value().toDebug() : ElementPtr());
+    IHelper::debugAppend(resultEl, "value", mValue);
+    IHelper::debugAppend(resultEl, mRange.hasValue() ? mRange.value().toDebug() : ElementPtr());
 
     return resultEl;
   }
@@ -456,15 +455,15 @@ namespace ortc
   //---------------------------------------------------------------------------
   String IConstraints::ConstrainDouble::hash() const
   {
-    SHA1Hasher hasher;
+    auto hasher = IHasher::sha1();
 
-    hasher.update("ortc::IConstraints::ConstrainDouble:");
+    hasher->update("ortc::IConstraints::ConstrainDouble:");
 
-    hasher.update(mValue);
-    hasher.update(":");
-    hasher.update(mRange.hasValue() ? mRange.value().hash() : String());
+    hasher->update(mValue);
+    hasher->update(":");
+    hasher->update(mRange.hasValue() ? mRange.value().hash() : String());
 
-    return hasher.final();
+    return hasher->finalizeAsString();
   }
 
 
@@ -488,7 +487,7 @@ namespace ortc
       // treat as list...
       ElementPtr subEl = elem->findFirstChildElement(objectValueName);
       while (subEl) {
-        String str = UseServicesHelper::getElementTextAndDecode(subEl);
+        String str = IHelper::getElementTextAndDecode(subEl);
 
         if (str.hasData()) {
           if (!mValues.hasValue()) {
@@ -504,7 +503,7 @@ namespace ortc
     }
 
     {
-      String str = UseServicesHelper::getElementTextAndDecode(elem);
+      String str = IHelper::getElementTextAndDecode(elem);
       if (str.hasData()) {
         mValue = str;
       }
@@ -522,7 +521,7 @@ namespace ortc
 
       for (auto iter = mValues.value().begin(); iter != mValues.value().end(); ++iter) {
         auto value = (*iter);
-        outerEl->adoptAsLastChild(UseServicesHelper::createElementWithTextAndJSONEncode(objectValueName, value));
+        outerEl->adoptAsLastChild(IHelper::createElementWithTextAndJSONEncode(objectValueName, value));
       }
 
       if (outerEl->hasChildren()) return ElementPtr();
@@ -530,7 +529,7 @@ namespace ortc
     }
 
     if (!mValue.hasValue()) return ElementPtr();
-    return UseServicesHelper::createElementWithNumber(objectName, mValue.value());
+    return IHelper::createElementWithNumber(objectName, mValue.value());
   }
   
   //---------------------------------------------------------------------------
@@ -538,15 +537,15 @@ namespace ortc
   {
     ElementPtr resultEl = Element::create("ortc::IConstraints::StringOrStringList");
 
-    UseServicesHelper::debugAppend(resultEl, "value", mValue);
+    IHelper::debugAppend(resultEl, "value", mValue);
 
     if (mValues.hasValue()) {
       ElementPtr valuesEl = Element::create("values");
       for (auto iter = mValues.value().begin(); iter != mValues.value().end(); ++iter) {
         auto str = (*iter);
-        UseServicesHelper::debugAppend(valuesEl, "value", str);
+        IHelper::debugAppend(valuesEl, "value", str);
       }
-      UseServicesHelper::debugAppend(valuesEl, valuesEl);
+      IHelper::debugAppend(valuesEl, valuesEl);
     }
 
     return resultEl;
@@ -555,22 +554,22 @@ namespace ortc
   //---------------------------------------------------------------------------
   String IConstraints::StringOrStringList::hash() const
   {
-    SHA1Hasher hasher;
+    auto hasher = IHasher::sha1();
 
-    hasher.update("ortc::IConstraints::StringOrStringList:");
+    hasher->update("ortc::IConstraints::StringOrStringList:");
 
-    hasher.update(mValue);
-    hasher.update(":");
+    hasher->update(mValue);
+    hasher->update(":");
 
     if (mValues.hasValue()) {
       for (auto iter = mValues.value().begin(); iter != mValues.value().end(); ++iter) {
         auto str = (*iter);
-        hasher.update(":");
-        hasher.update(str);
+        hasher->update(":");
+        hasher->update(str);
       }
     }
 
-    return hasher.final();
+    return hasher->finalizeAsString();
   }
 
 
@@ -618,8 +617,8 @@ namespace ortc
   {
     ElementPtr resultEl = Element::create("ortc::IConstraints::ConstrainStringParameters");
 
-    UseServicesHelper::debugAppend(resultEl, "exact", mExact.hasValue() ? mExact.value().toDebug()  : ElementPtr());
-    UseServicesHelper::debugAppend(resultEl, "ideal", mIdeal.hasValue() ? mIdeal.value().toDebug()  : ElementPtr());
+    IHelper::debugAppend(resultEl, "exact", mExact.hasValue() ? mExact.value().toDebug()  : ElementPtr());
+    IHelper::debugAppend(resultEl, "ideal", mIdeal.hasValue() ? mIdeal.value().toDebug()  : ElementPtr());
 
     return resultEl;
   }
@@ -627,15 +626,15 @@ namespace ortc
   //---------------------------------------------------------------------------
   String IConstraints::ConstrainStringParameters::hash() const
   {
-    SHA1Hasher hasher;
+    auto hasher = IHasher::sha1();
 
-    hasher.update("ortc::IConstraints::ConstrainStringParameters:");
+    hasher->update("ortc::IConstraints::ConstrainStringParameters:");
 
-    hasher.update(mExact.hasValue() ? mExact.value().hash() : String());
-    hasher.update(":");
-    hasher.update(mIdeal.hasValue() ? mIdeal.value().hash() : String());
+    hasher->update(mExact.hasValue() ? mExact.value().hash() : String());
+    hasher->update(":");
+    hasher->update(mIdeal.hasValue() ? mIdeal.value().hash() : String());
 
-    return hasher.final();
+    return hasher->finalizeAsString();
   }
 
 
@@ -691,8 +690,8 @@ namespace ortc
   {
     ElementPtr resultEl = Element::create("ortc::IConstraints::ConstraintString");
 
-    UseServicesHelper::debugAppend(resultEl, mValue.hasValue() ? mValue.value().toDebug() : ElementPtr());
-    UseServicesHelper::debugAppend(resultEl, mParameters.hasValue() ? mParameters.value().toDebug() : ElementPtr());
+    IHelper::debugAppend(resultEl, mValue.hasValue() ? mValue.value().toDebug() : ElementPtr());
+    IHelper::debugAppend(resultEl, mParameters.hasValue() ? mParameters.value().toDebug() : ElementPtr());
 
     return resultEl;
   }
@@ -700,15 +699,15 @@ namespace ortc
   //---------------------------------------------------------------------------
   String IConstraints::ConstrainString::hash() const
   {
-    SHA1Hasher hasher;
+    auto hasher = IHasher::sha1();
 
-    hasher.update("ortc::IConstraints::ConstraintString:");
+    hasher->update("ortc::IConstraints::ConstraintString:");
 
-    hasher.update(mValue.hasValue() ? mValue.value().hash() : String());
-    hasher.update(":");
-    hasher.update(mParameters.hasValue() ? mParameters.value().hash() : String());
+    hasher->update(mValue.hasValue() ? mValue.value().hash() : String());
+    hasher->update(":");
+    hasher->update(mParameters.hasValue() ? mParameters.value().hash() : String());
 
-    return hasher.final();
+    return hasher->finalizeAsString();
   }
 
 }

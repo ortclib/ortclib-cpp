@@ -49,7 +49,7 @@
         },
         {
           "name": "enum",
-          "type": "uint64"
+          "type": "int64"
         },
         {
           "name": "duration",

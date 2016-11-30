@@ -52,22 +52,6 @@ namespace ortc
     ZS_DECLARE_INTERACTION_PTR(ISRTPSDESTransportForSettings)
     ZS_DECLARE_INTERACTION_PROXY(ISRTPSDESTransportAsyncDelegate)
 
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISRTPSDESTransportForSettings
-    #pragma mark
-
-    interaction ISRTPSDESTransportForSettings
-    {
-      ZS_DECLARE_TYPEDEF_PTR(ISRTPSDESTransportForSettings, ForSettings)
-
-      static void applyDefaults();
-
-      virtual ~ISRTPSDESTransportForSettings() {}
-    };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -101,7 +85,6 @@ namespace ortc
                               public ISecureTransportForICETransport,
                               public ISecureTransportForSRTPTransport,
                               public ISecureTransportForRTPListener,
-                              public ISRTPSDESTransportForSettings,
                               public ISRTPSDESTransportAsyncDelegate,
                               public ISRTPTransportDelegate,
                               public IICETransportDelegate
@@ -117,7 +100,6 @@ namespace ortc
       friend interaction ISecureTransportForICETransport;
       friend interaction ISecureTransportForSRTPTransport;
       friend interaction ISecureTransportForRTPListener;
-      friend interaction ISRTPSDESTransportForSettings;
 
       ZS_DECLARE_TYPEDEF_PTR(IICETransportForSecureTransport, UseICETransport)
       ZS_DECLARE_TYPEDEF_PTR(ISRTPTransportForSecureTransport, UseSRTPTransport)

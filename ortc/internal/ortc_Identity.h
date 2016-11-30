@@ -35,36 +35,15 @@
 
 #include <ortc/IIdentity.h>
 
-#include <ortc/services/IWakeDelegate.h>
-
 #include <zsLib/MessageQueueAssociator.h>
-#include <zsLib/Timer.h>
+#include <zsLib/ITimer.h>
 
 //#define ORTC_SETTING_SRTP_TRANSPORT_WARN_OF_KEY_LIFETIME_EXHAUGSTION_WHEN_REACH_PERCENTAGE_USSED "ortc/srtp/warm-key-lifetime-exhaustion-when-reach-percentage-used"
 
 namespace ortc
 {
   namespace internal
-  {
-    ZS_DECLARE_INTERACTION_PTR(IIdentityForSettings)
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IIdentityForSettings
-    #pragma mark
-
-    interaction IIdentityForSettings
-    {
-      ZS_DECLARE_TYPEDEF_PTR(IIdentityForSettings, ForSettings)
-
-      static void applyDefaults();
-
-      virtual ~IIdentityForSettings() {}
-    };
-    
+  {    
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -77,7 +56,6 @@ namespace ortc
                      public MessageQueueAssociator,
                      public SharedRecursiveLock,
                      public IIdentity,
-                     public IIdentityForSettings,
                      public IWakeDelegate,
                      public zsLib::ITimerDelegate
     {
@@ -87,7 +65,6 @@ namespace ortc
     public:
       friend interaction IIdentity;
       friend interaction IIdentityFactory;
-      friend interaction IIdentityForSettings;
 
     public:
       Identity(
@@ -109,7 +86,6 @@ namespace ortc
       virtual ~Identity();
 
       static IdentityPtr convert(IIdentityPtr object);
-      static IdentityPtr convert(ForSettingsPtr object);
 
     protected:
 
@@ -148,7 +124,7 @@ namespace ortc
       #pragma mark Identity => ITimerDelegate
       #pragma mark
 
-      virtual void onTimer(TimerPtr timer) override;
+      virtual void onTimer(ITimerPtr timer) override;
 
       //-----------------------------------------------------------------------
       #pragma mark

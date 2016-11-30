@@ -73,7 +73,7 @@ namespace ortc
     void ICEGathererRouter::init()
     {
       AutoRecursiveLock lock(*this);
-      mTimer = Timer::create(mThisWeak.lock(), Seconds(30));
+      mTimer = ITimer::create(mThisWeak.lock(), Seconds(30));
     }
 
     //-------------------------------------------------------------------------
@@ -135,7 +135,7 @@ namespace ortc
                         string, event, "found",
                         string, candidateHash, hash,
                         string, localCandidateIp, ((bool)localCandidate) ? localCandidate->mIP : String(),
-                        word, localCandidatePort, ((bool)localCandidate) ? localCandidate->mPort : 0,
+                        word, localCandidatePort, ((bool)localCandidate) ? localCandidate->mPort : static_cast<WORD>(0),
                         string, remoteIp, remoteIP.string()
                         );
 
@@ -151,7 +151,7 @@ namespace ortc
                       string, event, "gone",
                       string, candidateHash, hash,
                       string, localCandidateIp, ((bool)localCandidate) ? localCandidate->mIP : String(),
-                      word, localCandidatePort, ((bool)localCandidate) ? localCandidate->mPort : 0,
+                      word, localCandidatePort, ((bool)localCandidate) ? localCandidate->mPort : static_cast<WORD>(0),
                       string, remoteIp, remoteIP.string()
                       );
 
@@ -167,7 +167,7 @@ namespace ortc
                       string, event, "not found",
                       string, candidateHash, hash,
                       string, localCandidateIp, ((bool)localCandidate) ? localCandidate->mIP : String(),
-                      word, localCandidatePort, ((bool)localCandidate) ? localCandidate->mPort : 0,
+                      word, localCandidatePort, ((bool)localCandidate) ? localCandidate->mPort : static_cast<WORD>(0),
                       string, remoteIp, remoteIP.string()
                       );
 
@@ -186,7 +186,7 @@ namespace ortc
                     string, event, "created",
                     string, candidateHash, hash,
                     string, localCandidateIp, ((bool)localCandidate) ? localCandidate->mIP : String(),
-                    word, localCandidatePort, ((bool)localCandidate) ? localCandidate->mPort : 0,
+                    word, localCandidatePort, ((bool)localCandidate) ? localCandidate->mPort : static_cast<WORD>(0),
                     string, remoteIp, remoteIP.string()
                     );
       route->trace(__func__, "created");
@@ -207,7 +207,7 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void ICEGathererRouter::onTimer(TimerPtr timer)
+    void ICEGathererRouter::onTimer(ITimerPtr timer)
     {
       ZS_LOG_DEBUG(log("on timer"));
 

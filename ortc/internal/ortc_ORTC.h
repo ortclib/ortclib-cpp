@@ -108,6 +108,9 @@ namespace ortc
       virtual PUID getID() const {return mID;}
 
       virtual void setup(IMessageQueuePtr defaultDelegateMessageQueue);
+#ifdef WINRT
+      virtual void setup(Windows::UI::Core::CoreDispatcher ^dispatcher);
+#endif //WINRT
 
       virtual Milliseconds ntpServerTime() const;
       virtual void ntpServerTime(const Milliseconds &value);

@@ -34,7 +34,7 @@
 
 #include <ortc/internal/ortc_RTPTypes.h>
 
-#include <ortc/services/IHelper.h>
+#include <ortc/IHelper.h>
 
 //
 //#include <zsLib/Log.h>
@@ -49,8 +49,6 @@ namespace ortc
 {
   namespace adapter
   {
-    ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHelper, UseServicesHelper);
-
     ZS_DECLARE_TYPEDEF_PTR(ortc::internal::RTPTypesHelper, UseRTPTypesHelper);
 
     namespace internal
@@ -79,7 +77,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     IRTPTypes::SSRCType IHelper::getRandomSSRC()
     {
-      auto random = UseServicesHelper::random(sizeof(IRTPTypes::SSRCType));
+      auto random = IHelper::random(sizeof(IRTPTypes::SSRCType));
       IRTPTypes::SSRCType tempSSRC{};
       memcpy(&tempSSRC, random->BytePtr(), random->SizeInBytes());
       return tempSSRC;

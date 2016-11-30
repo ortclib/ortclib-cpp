@@ -36,7 +36,7 @@
 
 #include <ortc/internal/ortc_Helper.h>
 
-#include <ortc/services/IHelper.h>
+#include <ortc/adapter/IHelper.h>
 
 #include <zsLib/Log.h>
 #include <zsLib/Numeric.h>
@@ -58,13 +58,6 @@ namespace ortc
   {
     using zsLib::Stringize;
     using zsLib::Numeric;
-
-    ZS_DECLARE_TYPEDEF_PTR(ortc::internal::Helper, UseHelper);
-    ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHelper, UseServicesHelper);
-
-    ZS_DECLARE_TYPEDEF_PTR(ortc::adapter::IHelper, UseAdapterHelper);
-
-    typedef ortc::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
 
     namespace internal
     {
@@ -437,18 +430,18 @@ namespace ortc
                 for (auto iterKeyParam = crypto.mKeyParams.begin(); iterKeyParam != crypto.mKeyParams.end(); ++iterKeyParam) {
                   auto &keyParam = (*iterKeyParam);
 
-                  UseServicesHelper::SplitMap splitsMKI;
+                  IHelper::SplitMap splitsMKI;
                   splitsMKI[0] = keyParam.mMKIValue;
                   splitsMKI[1] = (0 != keyParam.mMKILength ? string(keyParam.mMKILength) : String());
-                  UseServicesHelper::splitPruneEmpty(splitsMKI);
+                  IHelper::splitPruneEmpty(splitsMKI);
 
-                  UseServicesHelper::SplitMap splits;
+                  IHelper::SplitMap splits;
                   splits[0] = keyParam.mKeySalt;
                   splits[1] = keyParam.mLifetime;
-                  splits[2] = UseServicesHelper::combine(splitsMKI, ":");
-                  UseServicesHelper::splitPruneEmpty(splits);
+                  splits[2] = IHelper::combine(splitsMKI, ":");
+                  IHelper::splitPruneEmpty(splits);
 
-                  cryptoLine->mKeyParams.push_back(ISDPTypes::KeyValuePair(keyParam.mKeyMethod, UseServicesHelper::combine(splits,"|")));
+                  cryptoLine->mKeyParams.push_back(ISDPTypes::KeyValuePair(keyParam.mKeyMethod, IHelper::combine(splits,"|")));
                 }
                 cryptoLine->mSessionParams = crypto.mSessionParams;
                 mline.mACryptoLines.push_back(cryptoLine);

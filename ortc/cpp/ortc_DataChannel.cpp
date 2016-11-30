@@ -36,10 +36,11 @@
 #include <ortc/internal/ortc.events.h>
 #include <ortc/internal/platform.h>
 
-#include <ortc/services/ISettings.h>
 #include <ortc/services/IHelper.h>
 #include <ortc/services/IHTTP.h>
 
+#include <zsLib/eventing/IHasher.h>
+#include <zsLib/ISettings.h>
 #include <zsLib/Numeric.h>
 #include <zsLib/SafeInt.h>
 #include <zsLib/Stringize.h>
@@ -62,24 +63,21 @@ namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_sctp_datachannel) }
 
 namespace ortc
 {
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::ISettings, UseSettings)
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHelper, UseServicesHelper)
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHTTP, UseHTTP)
+  ZS_DECLARE_USING_PTR(zsLib::eventing, IHasher);
+  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHTTP, UseHTTP);
 
-  typedef ortc::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
   typedef CryptoPP::ByteQueue ByteQueue;
 
-  ZS_DECLARE_INTERACTION_TEAR_AWAY(IDataChannel, internal::DataChannel::TearAwayData)
-
-  ZS_DECLARE_TYPEDEF_PTR(ortc::internal::Helper, UseHelper)
+  ZS_DECLARE_INTERACTION_TEAR_AWAY(IDataChannel, internal::DataChannel::TearAwayData);
 
   using zsLib::Numeric;
   using zsLib::Log;
 
   namespace internal
   {
-    ZS_DECLARE_STRUCT_PTR(DataChannelHelper)
-    ZS_DECLARE_TYPEDEF_PTR(DataChannelHelper, UseDataHelper)
+    ZS_DECLARE_STRUCT_PTR(DataChannelHelper);
+    ZS_DECLARE_TYPEDEF_PTR(DataChannelHelper, UseDataHelper);
+    ZS_DECLARE_CLASS_PTR(DataChannelSettingsDefaults);
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -158,6 +156,53 @@ namespace ortc
 
     typedef data_channel::OpenPacket OpenPacket;
     typedef data_channel::AckPacket AckPacket;
+
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark DataChannelSettingsDefaults
+    #pragma mark
+
+    class DataChannelSettingsDefaults : public ISettingsApplyDefaultsDelegate
+    {
+    public:
+      //-----------------------------------------------------------------------
+      ~DataChannelSettingsDefaults()
+      {
+        ISettings::removeDefaults(*this);
+      }
+
+      //-----------------------------------------------------------------------
+      static DataChannelSettingsDefaultsPtr singleton()
+      {
+        static SingletonLazySharedPtr<DataChannelSettingsDefaults> singleton(create());
+        return singleton.singleton();
+      }
+
+      //-----------------------------------------------------------------------
+      static DataChannelSettingsDefaultsPtr create()
+      {
+        auto pThis(make_shared<DataChannelSettingsDefaults>());
+        ISettings::installDefaults(pThis);
+        return pThis;
+      }
+
+      //-----------------------------------------------------------------------
+      virtual void notifySettingsApplyDefaults() override
+      {
+      }
+      
+    };
+
+    //-------------------------------------------------------------------------
+    void installDataChannelSettingsDefaults()
+    {
+      DataChannelSettingsDefaults::singleton();
+    }
+
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -186,20 +231,6 @@ namespace ortc
         return ControlMessageType_Unknown;
       }
     };
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IDataChannelForSettings
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    void IDataChannelForSettings::applyDefaults()
-    {
-//      UseSettings::setUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE, 5*1024);
-    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -253,7 +284,7 @@ namespace ortc
                     x, i, Detail, DataChannelCreate, ol, DataChannel, Start,
                     puid, id, mID,
                     puid, dataTransportId, ((bool)transport) ? transport->getID() : 0,
-                    string, parameters, ((bool)mParameters) ? UseServicesHelper::toString(mParameters->createElement("params")) : String(),
+                    string, parameters, ((bool)mParameters) ? IHelper::toString(mParameters->createElement("params")) : String(),
                     bool, incoming, mIncoming,
                     word, sessionId, mSessionID
                     );
@@ -295,12 +326,6 @@ namespace ortc
     {
       IDataChannelPtr original = IDataChannelTearAway::original(object);
       return ZS_DYNAMIC_PTR_CAST(DataChannel, original);
-    }
-
-    //-------------------------------------------------------------------------
-    DataChannelPtr DataChannel::convert(ForSettingsPtr object)
-    {
-      return ZS_DYNAMIC_PTR_CAST(DataChannel, object);
     }
 
     //-------------------------------------------------------------------------
@@ -578,7 +603,7 @@ namespace ortc
                     dword, timestamp, packet->mTimestamp,
                     int, flags, packet->mFlags,
                     buffer, packet, ((bool)packet->mBuffer) ? packet->mBuffer->BytePtr() : NULL,
-                    size, size, ((bool)packet->mBuffer) ? SafeInt<unsigned int>(packet->mBuffer->SizeInBytes()) : 0
+                    size, size, ((bool)packet->mBuffer) ? packet->mBuffer->SizeInBytes() : static_cast<size_t>(0)
                     );
 
       // scope: obtain whatever data is required inside lock to process SCTP packet
@@ -621,7 +646,7 @@ namespace ortc
               }
               default: {
                 if (ZS_IS_LOGGING(Detail)) {
-                  String base64 = UseServicesHelper::convertToBase64(*packet->mBuffer);
+                  String base64 = IHelper::convertToBase64(*packet->mBuffer);
                   ZS_LOG_WARNING(Detail, log("control message type was not understood") + ZS_PARAM("wire in", base64))
                 }
               }
@@ -796,7 +821,7 @@ namespace ortc
     Log::Params DataChannel::log(const char *message) const
     {
       ElementPtr objectEl = Element::create("ortc::DataChannel");
-      UseServicesHelper::debugAppend(objectEl, "id", mID);
+      IHelper::debugAppend(objectEl, "id", mID);
       return Log::Params(message, objectEl);
     }
 
@@ -813,39 +838,39 @@ namespace ortc
 
       ElementPtr resultEl = Element::create("ortc::DataChannel");
 
-      UseServicesHelper::debugAppend(resultEl, "id", mID);
+      IHelper::debugAppend(resultEl, "id", mID);
 
-      UseServicesHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
+      IHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
 
-      UseServicesHelper::debugAppend(resultEl, "subscribers", mSubscriptions.size());
-      UseServicesHelper::debugAppend(resultEl, "default subscription", (bool)mDefaultSubscription);
+      IHelper::debugAppend(resultEl, "subscribers", mSubscriptions.size());
+      IHelper::debugAppend(resultEl, "default subscription", (bool)mDefaultSubscription);
 
       auto dataTransport = mDataTransport.lock();
-      UseServicesHelper::debugAppend(resultEl, "data transport", dataTransport ? dataTransport->getID() : 0);
-      UseServicesHelper::debugAppend(resultEl, "data transport subscription", (bool)mDataTransportSubscription);
+      IHelper::debugAppend(resultEl, "data transport", dataTransport ? dataTransport->getID() : 0);
+      IHelper::debugAppend(resultEl, "data transport subscription", (bool)mDataTransportSubscription);
 
-      UseServicesHelper::debugAppend(resultEl, "state", toString(mCurrentState));
+      IHelper::debugAppend(resultEl, "state", toString(mCurrentState));
 
-      UseServicesHelper::debugAppend(resultEl, "incoming", mIncoming);
-      UseServicesHelper::debugAppend(resultEl, "issued open", mIssuedOpen);
-      UseServicesHelper::debugAppend(resultEl, "session id", ORTC_SCTP_INVALID_DATA_CHANNEL_SESSION_ID != mSessionID ? string(mSessionID) : String());
+      IHelper::debugAppend(resultEl, "incoming", mIncoming);
+      IHelper::debugAppend(resultEl, "issued open", mIssuedOpen);
+      IHelper::debugAppend(resultEl, "session id", ORTC_SCTP_INVALID_DATA_CHANNEL_SESSION_ID != mSessionID ? string(mSessionID) : String());
 
-      UseServicesHelper::debugAppend(resultEl, "requested sctp shutdown", mRequestedSCTPShutdown);
-      UseServicesHelper::debugAppend(resultEl, "notified closed", mNotifiedClosed);
+      IHelper::debugAppend(resultEl, "requested sctp shutdown", mRequestedSCTPShutdown);
+      IHelper::debugAppend(resultEl, "notified closed", mNotifiedClosed);
 
-      UseServicesHelper::debugAppend(resultEl, "error", mLastError);
-      UseServicesHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
+      IHelper::debugAppend(resultEl, "error", mLastError);
+      IHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
 
-      UseServicesHelper::debugAppend(resultEl, "binary type", mBinaryType);
-      UseServicesHelper::debugAppend(resultEl, "parameters", mParameters ? mParameters->toDebug() : ElementPtr());
+      IHelper::debugAppend(resultEl, "binary type", mBinaryType);
+      IHelper::debugAppend(resultEl, "parameters", mParameters ? mParameters->toDebug() : ElementPtr());
 
-      UseServicesHelper::debugAppend(resultEl, "incoming data", mIncomingData.size());
-      UseServicesHelper::debugAppend(resultEl, "outgoing data", mOutgoingData.size());
-      UseServicesHelper::debugAppend(resultEl, "outgoing buffer fill size", mOutgoingBufferFillSize);
-      UseServicesHelper::debugAppend(resultEl, "buffered amount low threshold", mBufferedAmountLowThreshold);
-      UseServicesHelper::debugAppend(resultEl, "buffered amount low threshold fired", mBufferedAmountLowThresholdFired);
+      IHelper::debugAppend(resultEl, "incoming data", mIncomingData.size());
+      IHelper::debugAppend(resultEl, "outgoing data", mOutgoingData.size());
+      IHelper::debugAppend(resultEl, "outgoing buffer fill size", mOutgoingBufferFillSize);
+      IHelper::debugAppend(resultEl, "buffered amount low threshold", mBufferedAmountLowThreshold);
+      IHelper::debugAppend(resultEl, "buffered amount low threshold fired", mBufferedAmountLowThresholdFired);
 
-      UseServicesHelper::debugAppend(resultEl, "send ready", (bool)mSendReady);
+      IHelper::debugAppend(resultEl, "send ready", (bool)mSendReady);
 
       return resultEl;
     }
@@ -1204,7 +1229,7 @@ namespace ortc
 
       SCTPPacketOutgoingPtr packet(make_shared<SCTPPacketOutgoing>());
       packet->mType = ppid;
-      if (NULL != buffer) packet->mBuffer = UseServicesHelper::convertToBuffer(buffer, bufferSizeInBytes);
+      if (NULL != buffer) packet->mBuffer = IHelper::convertToBuffer(buffer, bufferSizeInBytes);
 
       // scope: check if buffering
       {
@@ -1411,8 +1436,8 @@ namespace ortc
         if (temp.Get(tempLabel.BytePtr(), tempLabel.SizeInBytes()) != tempLabel.SizeInBytes()) return false;
         if (temp.Get(tempProtocol.BytePtr(), tempProtocol.SizeInBytes()) != tempProtocol.SizeInBytes()) return false;
 
-        openPacket.mLabel = UseServicesHelper::convertToString(tempLabel);
-        openPacket.mProtocol = UseServicesHelper::convertToString(tempProtocol);
+        openPacket.mLabel = IHelper::convertToString(tempLabel);
+        openPacket.mProtocol = IHelper::convertToString(tempProtocol);
 
         ZS_EVENTING_10(
                        x, i, Debug, DataChannelReceivedControlOpen, ol, DataChannel, Receive,
@@ -1545,7 +1570,7 @@ namespace ortc
           }
           ZS_LOG_TRACE(log("forwarding data binary packet") + ZS_PARAM("buffer size", data->mBinary->SizeInBytes()))
           if (ZS_IS_LOGGING(Insane)) {
-            String base64 = UseServicesHelper::convertToBase64(*(data->mBinary));
+            String base64 = IHelper::convertToBase64(*(data->mBinary));
             ZS_LOG_BASIC(log("forwarding data binary packet") + ZS_PARAM("wire in", base64))
           }
           break;
@@ -1555,7 +1580,7 @@ namespace ortc
         case SCTP_PPID_STRING_LAST:
         {
           if (packet.mBuffer) {
-            data->mText = UseServicesHelper::convertToString(*(packet.mBuffer));
+            data->mText = IHelper::convertToString(*(packet.mBuffer));
           }
           ZS_LOG_TRACE(log("forwarding data text packet") + ZS_PARAM("text size", data->mText.length()))
           if (ZS_IS_LOGGING(Insane)) {
@@ -1746,13 +1771,13 @@ namespace ortc
   {
     if (!elem) return;
 
-    UseHelper::getElementValue(elem, "ortc::IDataChannelTypes::Parameters", "label", mLabel);
-    UseHelper::getElementValue(elem, "ortc::IDataChannelTypes::Parameters", "ordered", mOrdered);
-    UseHelper::getElementValue(elem, "ortc::IDataChannelTypes::Parameters", "maxPacketLifetime", mMaxPacketLifetime);
-    UseHelper::getElementValue(elem, "ortc::IDataChannelTypes::Parameters", "maxRetransmits", mMaxRetransmits);
-    UseHelper::getElementValue(elem, "ortc::IDataChannelTypes::Parameters", "protocol", mProtocol);
-    UseHelper::getElementValue(elem, "ortc::IDataChannelTypes::Parameters", "negotiated", mNegotiated);
-    UseHelper::getElementValue(elem, "ortc::IDataChannelTypes::Parameters", "id", mID);
+    IHelper::getElementValue(elem, "ortc::IDataChannelTypes::Parameters", "label", mLabel);
+    IHelper::getElementValue(elem, "ortc::IDataChannelTypes::Parameters", "ordered", mOrdered);
+    IHelper::getElementValue(elem, "ortc::IDataChannelTypes::Parameters", "maxPacketLifetime", mMaxPacketLifetime);
+    IHelper::getElementValue(elem, "ortc::IDataChannelTypes::Parameters", "maxRetransmits", mMaxRetransmits);
+    IHelper::getElementValue(elem, "ortc::IDataChannelTypes::Parameters", "protocol", mProtocol);
+    IHelper::getElementValue(elem, "ortc::IDataChannelTypes::Parameters", "negotiated", mNegotiated);
+    IHelper::getElementValue(elem, "ortc::IDataChannelTypes::Parameters", "id", mID);
   }
 
   //---------------------------------------------------------------------------
@@ -1760,13 +1785,13 @@ namespace ortc
   {
     ElementPtr elem = Element::create(objectName);
 
-    UseHelper::adoptElementValue(elem, "label", mLabel, false);
-    UseHelper::adoptElementValue(elem, "ordered", mOrdered);
-    UseHelper::adoptElementValue(elem, "maxPacketLifetime", mMaxPacketLifetime);
-    UseHelper::adoptElementValue(elem, "maxRetransmits", mMaxRetransmits);
-    UseHelper::adoptElementValue(elem, "protocol", mProtocol, false);
-    UseHelper::adoptElementValue(elem, "negotiated", mNegotiated);
-    UseHelper::adoptElementValue(elem, "id", mID);
+    IHelper::adoptElementValue(elem, "label", mLabel, false);
+    IHelper::adoptElementValue(elem, "ordered", mOrdered);
+    IHelper::adoptElementValue(elem, "maxPacketLifetime", mMaxPacketLifetime);
+    IHelper::adoptElementValue(elem, "maxRetransmits", mMaxRetransmits);
+    IHelper::adoptElementValue(elem, "protocol", mProtocol, false);
+    IHelper::adoptElementValue(elem, "negotiated", mNegotiated);
+    IHelper::adoptElementValue(elem, "id", mID);
 
     if (!elem->hasChildren()) return ElementPtr();
 
@@ -1782,24 +1807,24 @@ namespace ortc
   //---------------------------------------------------------------------------
   String IDataChannelTypes::Parameters::hash() const
   {
-    SHA1Hasher hasher;
+    auto hasher = IHasher::sha1();
 
-    hasher.update("IDataChannelTypes:Parameters:");
-    hasher.update(mLabel);
-    hasher.update(":");
-    hasher.update(mOrdered);
-    hasher.update(":");
-    hasher.update(mMaxPacketLifetime);
-    hasher.update(":");
-    hasher.update(mMaxRetransmits);
-    hasher.update(":");
-    hasher.update(mProtocol);
-    hasher.update(":");
-    hasher.update(mNegotiated);
-    hasher.update(":");
-    hasher.update(mID);
+    hasher->update("IDataChannelTypes:Parameters:");
+    hasher->update(mLabel);
+    hasher->update(":");
+    hasher->update(mOrdered);
+    hasher->update(":");
+    hasher->update(mMaxPacketLifetime);
+    hasher->update(":");
+    hasher->update(mMaxRetransmits);
+    hasher->update(":");
+    hasher->update(mProtocol);
+    hasher->update(":");
+    hasher->update(mNegotiated);
+    hasher->update(":");
+    hasher->update(mID);
 
-    return hasher.final();
+    return hasher->finalizeAsString();
   }
 
   //---------------------------------------------------------------------------

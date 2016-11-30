@@ -33,8 +33,11 @@
 
 #include <ortc/types.h>
 #include <ortc/services/types.h>
-#include <ortc/services/IFactory.h>
 
+#include <zsLib/eventing/types.h>
+
+#include <zsLib/IFactory.h>
+#include <zsLib/IWakeDelegate.h>
 #include <zsLib/WeightedMovingAverage.h>
 
 namespace ortc
@@ -42,6 +45,7 @@ namespace ortc
   namespace internal
   {
     using std::make_shared;
+    using zsLib::IFactory;
 
     using zsLib::UINT;
     using zsLib::PTRNUMBER;
@@ -61,39 +65,41 @@ namespace ortc
     using zsLib::WeightedMovingAverageDouble;
     using zsLib::WeightedMovingAverageUsingTotalDouble;
 
-    ZS_DECLARE_USING_PTR(zsLib, IMessageQueue)
-    ZS_DECLARE_USING_PTR(zsLib, IMessageQueueNotify)
-    ZS_DECLARE_USING_PTR(zsLib, IMessageQueueThread)
-    ZS_DECLARE_USING_PTR(zsLib, IMessageQueueMessage)
+    ZS_DECLARE_USING_PTR(zsLib, IMessageQueue);
+    ZS_DECLARE_USING_PTR(zsLib, IMessageQueueNotify);
+    ZS_DECLARE_USING_PTR(zsLib, IMessageQueueThread);
+    ZS_DECLARE_USING_PTR(zsLib, IMessageQueueMessage);
 
-    ZS_DECLARE_USING_PTR(zsLib, MessageQueue)
-    ZS_DECLARE_USING_PTR(zsLib, MessageQueueThread)
-    ZS_DECLARE_USING_PTR(zsLib, Timer)
-    ZS_DECLARE_USING_PTR(zsLib, Socket)
-    ZS_DECLARE_USING_PTR(zsLib, Promise)
+    ZS_DECLARE_USING_PTR(zsLib, IMessageQueue);
+    ZS_DECLARE_USING_PTR(zsLib, IMessageQueueThread);
+    ZS_DECLARE_USING_PTR(zsLib, ISettings);
+    ZS_DECLARE_USING_PTR(zsLib, ISettingsApplyDefaultsDelegate);
+    ZS_DECLARE_USING_PTR(zsLib, ITimer);
+    ZS_DECLARE_USING_PTR(zsLib, Socket);
+    ZS_DECLARE_USING_PTR(zsLib, Promise);
+    ZS_DECLARE_USING_PROXY(zsLib, IWakeDelegate);
 
-    ZS_DECLARE_USING_PTR(zsLib, ISingletonManagerDelegate)
+    ZS_DECLARE_USING_PTR(zsLib, ISingletonManagerDelegate);
 
-    ZS_DECLARE_TYPEDEF_PTR(zsLib::AutoRecursiveLock, AutoRecursiveLock)
+    ZS_DECLARE_TYPEDEF_PTR(zsLib::AutoRecursiveLock, AutoRecursiveLock);
+
+    ZS_DECLARE_USING_PTR(zsLib::eventing, IHasher);
 
     using ortc::services::SharedRecursiveLock;
 
-    ZS_DECLARE_USING_PTR(ortc::services, IDNS)
-    ZS_DECLARE_USING_PTR(ortc::services, IDNSQuery)
-    ZS_DECLARE_USING_PTR(ortc::services, IBackOffTimer)
-    ZS_DECLARE_USING_PTR(ortc::services, IBackOffTimerPattern)
-    ZS_DECLARE_USING_PTR(ortc::services, STUNPacket)
-    ZS_DECLARE_USING_PTR(ortc::services, ISTUNRequester)
-    ZS_DECLARE_USING_PTR(zsLib, IPromiseSettledDelegate)
+    ZS_DECLARE_USING_PTR(ortc::services, IDNS);
+    ZS_DECLARE_USING_PTR(ortc::services, IDNSQuery);
+    ZS_DECLARE_USING_PTR(ortc::services, IBackOffTimer);
+    ZS_DECLARE_USING_PTR(ortc::services, IBackOffTimerPattern);
+    ZS_DECLARE_USING_PTR(ortc::services, STUNPacket);
+    ZS_DECLARE_USING_PTR(ortc::services, ISTUNRequester);
+    ZS_DECLARE_USING_PTR(zsLib, IPromiseSettledDelegate);
 
-    ZS_DECLARE_USING_PROXY(ortc::services, IBackOffTimerDelegate)
-    ZS_DECLARE_USING_PROXY(ortc::services, IDNSDelegate)
-    ZS_DECLARE_USING_PROXY(ortc::services, IWakeDelegate)
-    ZS_DECLARE_USING_PROXY(ortc::services, ISTUNDiscoveryDelegate)
-    ZS_DECLARE_USING_PROXY(ortc::services, ITURNSocketDelegate)
-    ZS_DECLARE_USING_PROXY(zsLib, IPromiseDelegate)
-
-    using ortc::services::IFactory;
+    ZS_DECLARE_USING_PROXY(ortc::services, IBackOffTimerDelegate);
+    ZS_DECLARE_USING_PROXY(ortc::services, IDNSDelegate);
+    ZS_DECLARE_USING_PROXY(ortc::services, ISTUNDiscoveryDelegate);
+    ZS_DECLARE_USING_PROXY(ortc::services, ITURNSocketDelegate);
+    ZS_DECLARE_USING_PROXY(zsLib, IPromiseDelegate);
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -103,50 +109,48 @@ namespace ortc
     #pragma mark (forwards)
     #pragma mark
 
-    ZS_DECLARE_CLASS_PTR(RTPPacket)
-    ZS_DECLARE_CLASS_PTR(RTCPPacket)
+    ZS_DECLARE_CLASS_PTR(RTPPacket);
+    ZS_DECLARE_CLASS_PTR(RTCPPacket);
 
-    ZS_DECLARE_INTERACTION_PTR(IDataTransportForSecureTransport)
-    ZS_DECLARE_INTERACTION_PTR(ISecureTransport)
-    ZS_DECLARE_INTERACTION_PTR(ISecureTransportForRTPSender)
-    ZS_DECLARE_INTERACTION_PTR(ISecureTransportForSRTPTransport)
-    ZS_DECLARE_INTERACTION_PTR(ISecureTransportForICETransport)
-    ZS_DECLARE_INTERACTION_PTR(ISecureTransportForRTPListener)
-    ZS_DECLARE_INTERACTION_PTR(ISRTPTransport)
+    ZS_DECLARE_INTERACTION_PTR(IDataTransportForSecureTransport);
+    ZS_DECLARE_INTERACTION_PTR(ISecureTransport);
+    ZS_DECLARE_INTERACTION_PTR(ISecureTransportForRTPSender);
+    ZS_DECLARE_INTERACTION_PTR(ISecureTransportForSRTPTransport);
+    ZS_DECLARE_INTERACTION_PTR(ISecureTransportForICETransport);
+    ZS_DECLARE_INTERACTION_PTR(ISecureTransportForRTPListener);
+    ZS_DECLARE_INTERACTION_PTR(ISRTPTransport);
 
-    ZS_DECLARE_CLASS_PTR(ORTC)
-    ZS_DECLARE_CLASS_PTR(Settings)
-    ZS_DECLARE_CLASS_PTR(Certificate)
-    ZS_DECLARE_CLASS_PTR(DataChannel)
-    ZS_DECLARE_CLASS_PTR(DTMFSender)
-    ZS_DECLARE_CLASS_PTR(DTLSTransport)
-    ZS_DECLARE_CLASS_PTR(ICEGatherer)
-    ZS_DECLARE_CLASS_PTR(ICEGathererRouter)
-    ZS_DECLARE_CLASS_PTR(ICETransport)
-    ZS_DECLARE_CLASS_PTR(ICETransportController)
-    ZS_DECLARE_CLASS_PTR(Identity)
-    ZS_DECLARE_CLASS_PTR(MediaDevices)
-    ZS_DECLARE_CLASS_PTR(MediaStreamTrack)
-    ZS_DECLARE_CLASS_PTR(RTPListener)
-    ZS_DECLARE_CLASS_PTR(RTPMediaEngine)
-    ZS_DECLARE_CLASS_PTR(RTPReceiver)
-    ZS_DECLARE_CLASS_PTR(RTPReceiverChannel)
-    ZS_DECLARE_CLASS_PTR(RTPReceiverChannelAudio)
-    ZS_DECLARE_CLASS_PTR(RTPReceiverChannelVideo)
-    ZS_DECLARE_CLASS_PTR(RTPSender)
-    ZS_DECLARE_CLASS_PTR(RTPSenderChannel)
-    ZS_DECLARE_CLASS_PTR(RTPSenderChannelAudio)
-    ZS_DECLARE_CLASS_PTR(RTPSenderChannelVideo)
-    ZS_DECLARE_CLASS_PTR(StatsReport)
-    ZS_DECLARE_CLASS_PTR(SCTPTransport)
-    ZS_DECLARE_CLASS_PTR(SRTPSDESTransport)
-    ZS_DECLARE_CLASS_PTR(SRTPTransport)
+    ZS_DECLARE_CLASS_PTR(ORTC);
+    ZS_DECLARE_CLASS_PTR(Certificate);
+    ZS_DECLARE_CLASS_PTR(DataChannel);
+    ZS_DECLARE_CLASS_PTR(DTMFSender);
+    ZS_DECLARE_CLASS_PTR(DTLSTransport);
+    ZS_DECLARE_CLASS_PTR(ICEGatherer);
+    ZS_DECLARE_CLASS_PTR(ICEGathererRouter);
+    ZS_DECLARE_CLASS_PTR(ICETransport);
+    ZS_DECLARE_CLASS_PTR(ICETransportController);
+    ZS_DECLARE_CLASS_PTR(Identity);
+    ZS_DECLARE_CLASS_PTR(MediaDevices);
+    ZS_DECLARE_CLASS_PTR(MediaStreamTrack);
+    ZS_DECLARE_CLASS_PTR(RTPListener);
+    ZS_DECLARE_CLASS_PTR(RTPMediaEngine);
+    ZS_DECLARE_CLASS_PTR(RTPReceiver);
+    ZS_DECLARE_CLASS_PTR(RTPReceiverChannel);
+    ZS_DECLARE_CLASS_PTR(RTPReceiverChannelAudio);
+    ZS_DECLARE_CLASS_PTR(RTPReceiverChannelVideo);
+    ZS_DECLARE_CLASS_PTR(RTPSender);
+    ZS_DECLARE_CLASS_PTR(RTPSenderChannel);
+    ZS_DECLARE_CLASS_PTR(RTPSenderChannelAudio);
+    ZS_DECLARE_CLASS_PTR(RTPSenderChannelVideo);
+    ZS_DECLARE_CLASS_PTR(StatsReport);
+    ZS_DECLARE_CLASS_PTR(SCTPTransport);
+    ZS_DECLARE_CLASS_PTR(SRTPSDESTransport);
+    ZS_DECLARE_CLASS_PTR(SRTPTransport);
 
+    ZS_DECLARE_INTERACTION_PROXY(ISecureTransportDelegate);
+    ZS_DECLARE_INTERACTION_PROXY(ISRTPTransportDelegate);
 
-    ZS_DECLARE_INTERACTION_PROXY(ISecureTransportDelegate)
-    ZS_DECLARE_INTERACTION_PROXY(ISRTPTransportDelegate)
-
-    ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(ISRTPTransportSubscription, ISRTPTransportDelegate)
-    ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(ISecureTransportSubscription, ISecureTransportDelegate)
+    ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(ISRTPTransportSubscription, ISRTPTransportDelegate);
+    ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(ISecureTransportSubscription, ISecureTransportDelegate);
   }
 }

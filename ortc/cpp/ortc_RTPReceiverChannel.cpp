@@ -44,10 +44,10 @@
 #include <ortc/internal/ortc.events.h>
 #include <ortc/internal/platform.h>
 
-#include <ortc/services/ISettings.h>
-#include <ortc/services/IHelper.h>
+#include <ortc/IHelper.h>
 #include <ortc/services/IHTTP.h>
 
+#include <zsLib/ISettings.h>
 #include <zsLib/SafeInt.h>
 #include <zsLib/Stringize.h>
 #include <zsLib/Log.h>
@@ -68,14 +68,13 @@ namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_rtpreceiver) }
 
 namespace ortc
 {
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::ISettings, UseSettings)
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHelper, UseServicesHelper)
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHTTP, UseHTTP)
-
-  typedef ortc::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
+  ZS_DECLARE_USING_PTR(zsLib, ISettings);
+  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHTTP, UseHTTP);
 
   namespace internal
   {
+    ZS_DECLARE_CLASS_PTR(RTPReceiverChannelSettingsDefaults);
+
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -85,18 +84,51 @@ namespace ortc
     #pragma mark
 
 
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IICETransportForSettings
-    #pragma mark
 
     //-------------------------------------------------------------------------
-    void IRTPReceiverChannelForSettings::applyDefaults()
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPReceiverChannelSettingsDefaults
+    #pragma mark
+
+    class RTPReceiverChannelSettingsDefaults : public ISettingsApplyDefaultsDelegate
     {
-//      UseSettings::setUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE, 5*1024);
+    public:
+      //-----------------------------------------------------------------------
+      ~RTPReceiverChannelSettingsDefaults()
+      {
+        ISettings::removeDefaults(*this);
+      }
+
+      //-----------------------------------------------------------------------
+      static RTPReceiverChannelSettingsDefaultsPtr singleton()
+      {
+        static SingletonLazySharedPtr<RTPReceiverChannelSettingsDefaults> singleton(create());
+        return singleton.singleton();
+      }
+
+      //-----------------------------------------------------------------------
+      static RTPReceiverChannelSettingsDefaultsPtr create()
+      {
+        auto pThis(make_shared<RTPReceiverChannelSettingsDefaults>());
+        ISettings::installDefaults(pThis);
+        return pThis;
+      }
+
+      //-----------------------------------------------------------------------
+      virtual void notifySettingsApplyDefaults() override
+      {
+        //      ISettings::setUInt(ORTC_SETTING_RTP_RECEIVER_CHANNEL_, 0);
+      }
+      
+    };
+
+    //-------------------------------------------------------------------------
+    void installRTPReceiverChannelSettingsDefaults()
+    {
+      RTPReceiverChannelSettingsDefaults::singleton();
     }
 
     //-------------------------------------------------------------------------
@@ -237,12 +269,6 @@ namespace ortc
 
       cancel();
       ZS_EVENTING_1(x, i, Detail, RtpReceiverChannelDestroy, ol, RtpReceiverChannel, Stop, puid, id, mID);
-    }
-
-    //-------------------------------------------------------------------------
-    RTPReceiverChannelPtr RTPReceiverChannel::convert(ForSettingsPtr object)
-    {
-      return ZS_DYNAMIC_PTR_CAST(RTPReceiverChannel, object);
     }
 
     //-------------------------------------------------------------------------
@@ -476,7 +502,7 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void RTPReceiverChannel::onTimer(TimerPtr timer)
+    void RTPReceiverChannel::onTimer(ITimerPtr timer)
     {
       ZS_LOG_DEBUG(log("timer") + ZS_PARAM("timer id", timer->getID()))
 
@@ -584,7 +610,7 @@ namespace ortc
     Log::Params RTPReceiverChannel::log(const char *message) const
     {
       ElementPtr objectEl = Element::create("ortc::RTPReceiverChannel");
-      UseServicesHelper::debugAppend(objectEl, "id", mID);
+      IHelper::debugAppend(objectEl, "id", mID);
       return Log::Params(message, objectEl);
     }
 
@@ -601,19 +627,19 @@ namespace ortc
 
       ElementPtr resultEl = Element::create("ortc::RTPReceiverChannel");
 
-      UseServicesHelper::debugAppend(resultEl, "id", mID);
+      IHelper::debugAppend(resultEl, "id", mID);
 
-      UseServicesHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
+      IHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
 
-      UseServicesHelper::debugAppend(resultEl, "state", toString(mCurrentState));
+      IHelper::debugAppend(resultEl, "state", toString(mCurrentState));
 
-      UseServicesHelper::debugAppend(resultEl, "error", mLastError);
-      UseServicesHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
+      IHelper::debugAppend(resultEl, "error", mLastError);
+      IHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
 
-      UseServicesHelper::debugAppend(resultEl, "secure transport state", ISecureTransport::toString(mSecureTransportState));
+      IHelper::debugAppend(resultEl, "secure transport state", ISecureTransport::toString(mSecureTransportState));
 
       auto receiver = mReceiver.lock();
-      UseServicesHelper::debugAppend(resultEl, "receiver", receiver ? receiver->getID() : 0);
+      IHelper::debugAppend(resultEl, "receiver", receiver ? receiver->getID() : 0);
 
       return resultEl;
     }

@@ -44,10 +44,13 @@
 #include <ortc/internal/ortc_StatsReport.h>
 #include <ortc/internal/platform.h>
 
-#include <ortc/services/ISettings.h>
-#include <ortc/services/IHelper.h>
+#include <ortc/IHelper.h>
+
 #include <ortc/services/IHTTP.h>
 
+#include <zsLib/eventing/IHasher.h>
+
+#include <zsLib/ISettings.h>
 #include <zsLib/Numeric.h>
 #include <zsLib/Stringize.h>
 #include <zsLib/Log.h>
@@ -70,13 +73,9 @@ namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_mediastreamtrack) }
 
 namespace ortc
 {
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::ISettings, UseSettings)
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHelper, UseServicesHelper)
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHTTP, UseHTTP)
-
-  ZS_DECLARE_TYPEDEF_PTR(ortc::internal::Helper, UseHelper)
-
-  typedef ortc::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
+  ZS_DECLARE_USING_PTR(zsLib, ISettings);
+  ZS_DECLARE_USING_PTR(zsLib::eventing, IHasher);
+  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHTTP, UseHTTP);
 
   using zsLib::SingletonManager;
   using zsLib::DOUBLE;
@@ -86,6 +85,7 @@ namespace ortc
 
   namespace internal
   {
+    ZS_DECLARE_CLASS_PTR(MediaStreamTrackSettingsDefaults);
     ZS_DECLARE_TYPEDEF_PTR(IStatsReportForInternal, UseStatsReport);
 
     //-------------------------------------------------------------------------
@@ -102,14 +102,47 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IICETransportForSettings
+    #pragma mark MediaStreamTrackSettingsDefaults
     #pragma mark
 
-    //-------------------------------------------------------------------------
-    void IMediaStreamTrackForSettings::applyDefaults()
+    class MediaStreamTrackSettingsDefaults : public ISettingsApplyDefaultsDelegate
     {
-//      UseSettings::setUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE, 5*1024);
+    public:
+      //-----------------------------------------------------------------------
+      ~MediaStreamTrackSettingsDefaults()
+      {
+        ISettings::removeDefaults(*this);
+      }
+
+      //-----------------------------------------------------------------------
+      static MediaStreamTrackSettingsDefaultsPtr singleton()
+      {
+        static SingletonLazySharedPtr<MediaStreamTrackSettingsDefaults> singleton(create());
+        return singleton.singleton();
+      }
+
+      //-----------------------------------------------------------------------
+      static MediaStreamTrackSettingsDefaultsPtr create()
+      {
+        auto pThis(make_shared<MediaStreamTrackSettingsDefaults>());
+        ISettings::installDefaults(pThis);
+        return pThis;
+      }
+
+      //-----------------------------------------------------------------------
+      virtual void notifySettingsApplyDefaults() override
+      {
+        //      ISettings::setUInt(ORTC_SETTING_MEDIA_STREAM_TRACK_, 0);
+      }
+      
+    };
+
+    //-------------------------------------------------------------------------
+    void installMediaStreamTrackSettingsDefaults()
+    {
+      MediaStreamTrackSettingsDefaults::singleton();
     }
+
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -156,7 +189,7 @@ namespace ortc
     {
       AutoRecursiveLock lock(*this);
 
-      mStatsTimer = Timer::create(mThisWeak.lock(), Seconds(1));
+      mStatsTimer = ITimer::create(mThisWeak.lock(), Seconds(1));
 
       mCapabilities = make_shared<Capabilities>();
       mSettings = make_shared<TrackSettings>();
@@ -191,12 +224,6 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     MediaStreamTrackPtr MediaStreamTrack::convert(IMediaStreamTrackPtr object)
-    {
-      return ZS_DYNAMIC_PTR_CAST(MediaStreamTrack, object);
-    }
-
-    //-------------------------------------------------------------------------
-    MediaStreamTrackPtr MediaStreamTrack::convert(ForSettingsPtr object)
     {
       return ZS_DYNAMIC_PTR_CAST(MediaStreamTrack, object);
     }
@@ -709,7 +736,7 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void MediaStreamTrack::onTimer(TimerPtr timer)
+    void MediaStreamTrack::onTimer(ITimerPtr timer)
     {
       ZS_LOG_TRACE(log("timer") + ZS_PARAM("timer id", timer->getID()))
 
@@ -826,7 +853,7 @@ namespace ortc
     Log::Params MediaStreamTrack::log(const char *message) const
     {
       ElementPtr objectEl = Element::create("ortc::MediaStreamTrack");
-      UseServicesHelper::debugAppend(objectEl, "id", mID);
+      IHelper::debugAppend(objectEl, "id", mID);
       return Log::Params(message, objectEl);
     }
 
@@ -850,16 +877,16 @@ namespace ortc
 
       ElementPtr resultEl = Element::create("ortc::MediaStreamTrack");
 
-      UseServicesHelper::debugAppend(resultEl, "id", mID);
+      IHelper::debugAppend(resultEl, "id", mID);
 
-      UseServicesHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
+      IHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
 
-      UseServicesHelper::debugAppend(resultEl, "subscribers", mSubscriptions.size());
+      IHelper::debugAppend(resultEl, "subscribers", mSubscriptions.size());
 
-      UseServicesHelper::debugAppend(resultEl, "state", toString(mCurrentState));
+      IHelper::debugAppend(resultEl, "state", toString(mCurrentState));
 
-      UseServicesHelper::debugAppend(resultEl, "error", mLastError);
-      UseServicesHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
+      IHelper::debugAppend(resultEl, "error", mLastError);
+      IHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
 
       return resultEl;
     }
@@ -1225,8 +1252,8 @@ namespace ortc
       }
     }
 
-    UseHelper::getElementValue(elem, "deviceId", "ortc::IMediaStreamTrackTypes::Capabilities", mDeviceID);
-    UseHelper::getElementValue(elem, "groupId", "ortc::IMediaStreamTrackTypes::Capabilities", mGroupID);
+    IHelper::getElementValue(elem, "deviceId", "ortc::IMediaStreamTrackTypes::Capabilities", mDeviceID);
+    IHelper::getElementValue(elem, "groupId", "ortc::IMediaStreamTrackTypes::Capabilities", mGroupID);
   }
 
   //---------------------------------------------------------------------------
@@ -1271,8 +1298,8 @@ namespace ortc
       elem->adoptAsLastChild(mChannelCount.value().createElement("channelCount"));
     }
 
-    UseHelper::adoptElementValue(elem, "deviceId", mDeviceID, false);
-    UseHelper::adoptElementValue(elem, "groupId", mGroupID, false);
+    IHelper::adoptElementValue(elem, "deviceId", mDeviceID, false);
+    IHelper::adoptElementValue(elem, "groupId", mGroupID, false);
 
     if (!elem->hasChildren()) return ElementPtr();
 
@@ -1309,18 +1336,18 @@ namespace ortc
   {
     ElementPtr resultEl = Element::create("ortc::IMediaStreamTrackTypes::Capabilities");
 
-    UseServicesHelper::debugAppend(resultEl, "width", mWidth.hasValue() ? mWidth.value().toDebug() : ElementPtr());
-    UseServicesHelper::debugAppend(resultEl, "height", mHeight.hasValue() ? mHeight.value().toDebug() : ElementPtr());
-    UseServicesHelper::debugAppend(resultEl, "aspect ratio", mAspectRatio.hasValue() ? mAspectRatio.value().toDebug() : ElementPtr());
-    UseServicesHelper::debugAppend(resultEl, "frame rate", mFrameRate.hasValue() ? mFrameRate.value().toDebug() : ElementPtr());
-    UseServicesHelper::debugAppend(resultEl, "facingMode", mFacingMode.hasValue() ? mFacingMode.value().toDebug() : ElementPtr());
-    UseServicesHelper::debugAppend(resultEl, "volume", mVolume.hasValue() ? mVolume.value().toDebug() : ElementPtr());
-    UseServicesHelper::debugAppend(resultEl, "sample rate", mSampleRate.hasValue() ? mSampleRate.value().toDebug() : ElementPtr());
-    UseServicesHelper::debugAppend(resultEl, "echo cancellation", mEchoCancellation.hasValue() ? mEchoCancellation.value().toDebug() : ElementPtr());
-    UseServicesHelper::debugAppend(resultEl, "latency", mLatency.hasValue() ? mLatency.value().toDebug() : ElementPtr());
-    UseServicesHelper::debugAppend(resultEl, "channel acount", mChannelCount.hasValue() ? mChannelCount.value().toDebug() : ElementPtr());
-    UseServicesHelper::debugAppend(resultEl, "device id", mDeviceID);
-    UseServicesHelper::debugAppend(resultEl, "group id", mGroupID);
+    IHelper::debugAppend(resultEl, "width", mWidth.hasValue() ? mWidth.value().toDebug() : ElementPtr());
+    IHelper::debugAppend(resultEl, "height", mHeight.hasValue() ? mHeight.value().toDebug() : ElementPtr());
+    IHelper::debugAppend(resultEl, "aspect ratio", mAspectRatio.hasValue() ? mAspectRatio.value().toDebug() : ElementPtr());
+    IHelper::debugAppend(resultEl, "frame rate", mFrameRate.hasValue() ? mFrameRate.value().toDebug() : ElementPtr());
+    IHelper::debugAppend(resultEl, "facingMode", mFacingMode.hasValue() ? mFacingMode.value().toDebug() : ElementPtr());
+    IHelper::debugAppend(resultEl, "volume", mVolume.hasValue() ? mVolume.value().toDebug() : ElementPtr());
+    IHelper::debugAppend(resultEl, "sample rate", mSampleRate.hasValue() ? mSampleRate.value().toDebug() : ElementPtr());
+    IHelper::debugAppend(resultEl, "echo cancellation", mEchoCancellation.hasValue() ? mEchoCancellation.value().toDebug() : ElementPtr());
+    IHelper::debugAppend(resultEl, "latency", mLatency.hasValue() ? mLatency.value().toDebug() : ElementPtr());
+    IHelper::debugAppend(resultEl, "channel acount", mChannelCount.hasValue() ? mChannelCount.value().toDebug() : ElementPtr());
+    IHelper::debugAppend(resultEl, "device id", mDeviceID);
+    IHelper::debugAppend(resultEl, "group id", mGroupID);
 
     return resultEl;
   }
@@ -1328,34 +1355,34 @@ namespace ortc
   //---------------------------------------------------------------------------
   String IMediaStreamTrackTypes::Capabilities::hash() const
   {
-    SHA1Hasher hasher;
+    auto hasher = IHasher::sha1();
 
-    hasher.update("ortc::IMediaStreamTrackTypes::Capabilities:");
-    hasher.update(mWidth.hasValue() ? mWidth.value().hash() : String());
-    hasher.update(":");
-    hasher.update(mHeight.hasValue() ? mHeight.value().hash() : String());
-    hasher.update(":");
-    hasher.update(mAspectRatio.hasValue() ? mAspectRatio.value().hash() : String());
-    hasher.update(":");
-    hasher.update(mFrameRate.hasValue() ? mFrameRate.value().hash() : String());
-    hasher.update(":");
-    hasher.update(mFacingMode.hasValue() ? mFacingMode.value().hash() : String());
-    hasher.update(":");
-    hasher.update(mVolume.hasValue() ? mVolume.value().hash() : String());
-    hasher.update(":");
-    hasher.update(mSampleRate.hasValue() ? mSampleRate.value().hash() : String());
-    hasher.update(":");
-    hasher.update(mEchoCancellation.hasValue() ? mEchoCancellation.value().hash()  : String());
-    hasher.update(":");
-    hasher.update(mLatency.hasValue() ? mLatency.value().hash()  : String());
-    hasher.update(":");
-    hasher.update(mChannelCount.hasValue() ? mChannelCount.value().hash() : String());
-    hasher.update(":");
-    hasher.update(mDeviceID);
-    hasher.update(":");
-    hasher.update(mGroupID);
+    hasher->update("ortc::IMediaStreamTrackTypes::Capabilities:");
+    hasher->update(mWidth.hasValue() ? mWidth.value().hash() : String());
+    hasher->update(":");
+    hasher->update(mHeight.hasValue() ? mHeight.value().hash() : String());
+    hasher->update(":");
+    hasher->update(mAspectRatio.hasValue() ? mAspectRatio.value().hash() : String());
+    hasher->update(":");
+    hasher->update(mFrameRate.hasValue() ? mFrameRate.value().hash() : String());
+    hasher->update(":");
+    hasher->update(mFacingMode.hasValue() ? mFacingMode.value().hash() : String());
+    hasher->update(":");
+    hasher->update(mVolume.hasValue() ? mVolume.value().hash() : String());
+    hasher->update(":");
+    hasher->update(mSampleRate.hasValue() ? mSampleRate.value().hash() : String());
+    hasher->update(":");
+    hasher->update(mEchoCancellation.hasValue() ? mEchoCancellation.value().hash()  : String());
+    hasher->update(":");
+    hasher->update(mLatency.hasValue() ? mLatency.value().hash()  : String());
+    hasher->update(":");
+    hasher->update(mChannelCount.hasValue() ? mChannelCount.value().hash() : String());
+    hasher->update(":");
+    hasher->update(mDeviceID);
+    hasher->update(":");
+    hasher->update(mGroupID);
 
-    return hasher.final();
+    return hasher->finalizeAsString();
   }
 
   //---------------------------------------------------------------------------
@@ -1371,20 +1398,20 @@ namespace ortc
   {
     if (!elem) return;
 
-    UseHelper::getElementValue(elem, "ortc::IMediaStreamTrackTypes::Settings", "width", mWidth);
-    UseHelper::getElementValue(elem, "ortc::IMediaStreamTrackTypes::Settings", "height", mHeight);
-    UseHelper::getElementValue(elem, "ortc::IMediaStreamTrackTypes::Settings", "aspectRatio", mAspectRatio);
-    UseHelper::getElementValue(elem, "ortc::IMediaStreamTrackTypes::Settings", "frameRate", mFrameRate);
-    UseHelper::getElementValue(elem, "ortc::IMediaStreamTrackTypes::Settings", "facingMode", mFacingMode);
-    UseHelper::getElementValue(elem, "ortc::IMediaStreamTrackTypes::Settings", "orientation", mOrientation);
-    UseHelper::getElementValue(elem, "ortc::IMediaStreamTrackTypes::Settings", "volume", mVolume);
-    UseHelper::getElementValue(elem, "ortc::IMediaStreamTrackTypes::Settings", "sampleRate", mSampleRate);
-    UseHelper::getElementValue(elem, "ortc::IMediaStreamTrackTypes::Settings", "sampleSize", mSampleSize);
-    UseHelper::getElementValue(elem, "ortc::IMediaStreamTrackTypes::Settings", "echoCancellation", mEchoCancellation);
-    UseHelper::getElementValue(elem, "ortc::IMediaStreamTrackTypes::Settings", "latency", mLatency);
-    UseHelper::getElementValue(elem, "ortc::IMediaStreamTrackTypes::Settings", "channelCount", mChannelCount);
-    UseHelper::getElementValue(elem, "ortc::IMediaStreamTrackTypes::Settings", "deviceId", mDeviceID);
-    UseHelper::getElementValue(elem, "ortc::IMediaStreamTrackTypes::Settings", "groupId", mGroupID);
+    IHelper::getElementValue(elem, "ortc::IMediaStreamTrackTypes::Settings", "width", mWidth);
+    IHelper::getElementValue(elem, "ortc::IMediaStreamTrackTypes::Settings", "height", mHeight);
+    IHelper::getElementValue(elem, "ortc::IMediaStreamTrackTypes::Settings", "aspectRatio", mAspectRatio);
+    IHelper::getElementValue(elem, "ortc::IMediaStreamTrackTypes::Settings", "frameRate", mFrameRate);
+    IHelper::getElementValue(elem, "ortc::IMediaStreamTrackTypes::Settings", "facingMode", mFacingMode);
+    IHelper::getElementValue(elem, "ortc::IMediaStreamTrackTypes::Settings", "orientation", mOrientation);
+    IHelper::getElementValue(elem, "ortc::IMediaStreamTrackTypes::Settings", "volume", mVolume);
+    IHelper::getElementValue(elem, "ortc::IMediaStreamTrackTypes::Settings", "sampleRate", mSampleRate);
+    IHelper::getElementValue(elem, "ortc::IMediaStreamTrackTypes::Settings", "sampleSize", mSampleSize);
+    IHelper::getElementValue(elem, "ortc::IMediaStreamTrackTypes::Settings", "echoCancellation", mEchoCancellation);
+    IHelper::getElementValue(elem, "ortc::IMediaStreamTrackTypes::Settings", "latency", mLatency);
+    IHelper::getElementValue(elem, "ortc::IMediaStreamTrackTypes::Settings", "channelCount", mChannelCount);
+    IHelper::getElementValue(elem, "ortc::IMediaStreamTrackTypes::Settings", "deviceId", mDeviceID);
+    IHelper::getElementValue(elem, "ortc::IMediaStreamTrackTypes::Settings", "groupId", mGroupID);
   }
 
   //---------------------------------------------------------------------------
@@ -1392,20 +1419,20 @@ namespace ortc
   {
     ElementPtr elem = Element::create(objectName);
 
-    UseHelper::adoptElementValue(elem, "width", mWidth);
-    UseHelper::adoptElementValue(elem, "height", mHeight);
-    UseHelper::adoptElementValue(elem, "aspectRatio", mAspectRatio);
-    UseHelper::adoptElementValue(elem, "frameRate", mFrameRate);
-    UseHelper::adoptElementValue(elem, "facingMode", mFacingMode);
-    UseHelper::adoptElementValue(elem, "orientation", mOrientation);
-    UseHelper::adoptElementValue(elem, "volume", mVolume);
-    UseHelper::adoptElementValue(elem, "sampleRate", mSampleRate);
-    UseHelper::adoptElementValue(elem, "sampleSize", mSampleSize);
-    UseHelper::adoptElementValue(elem, "echoCancellation", mEchoCancellation);
-    UseHelper::adoptElementValue(elem, "latency", mLatency);
-    UseHelper::adoptElementValue(elem, "channelCount", mChannelCount);
-    UseHelper::adoptElementValue(elem, "deviceId", mDeviceID);
-    UseHelper::adoptElementValue(elem, "groupId", mGroupID);
+    IHelper::adoptElementValue(elem, "width", mWidth);
+    IHelper::adoptElementValue(elem, "height", mHeight);
+    IHelper::adoptElementValue(elem, "aspectRatio", mAspectRatio);
+    IHelper::adoptElementValue(elem, "frameRate", mFrameRate);
+    IHelper::adoptElementValue(elem, "facingMode", mFacingMode);
+    IHelper::adoptElementValue(elem, "orientation", mOrientation);
+    IHelper::adoptElementValue(elem, "volume", mVolume);
+    IHelper::adoptElementValue(elem, "sampleRate", mSampleRate);
+    IHelper::adoptElementValue(elem, "sampleSize", mSampleSize);
+    IHelper::adoptElementValue(elem, "echoCancellation", mEchoCancellation);
+    IHelper::adoptElementValue(elem, "latency", mLatency);
+    IHelper::adoptElementValue(elem, "channelCount", mChannelCount);
+    IHelper::adoptElementValue(elem, "deviceId", mDeviceID);
+    IHelper::adoptElementValue(elem, "groupId", mGroupID);
 
     if (!elem->hasChildren()) return ElementPtr();
 
@@ -1442,20 +1469,20 @@ namespace ortc
   {
     ElementPtr resultEl = Element::create("ortc::IMediaStreamTrackTypes::Settings");
 
-    UseServicesHelper::debugAppend(resultEl, "width", mWidth);
-    UseServicesHelper::debugAppend(resultEl, "height", mHeight);
-    UseServicesHelper::debugAppend(resultEl, "aspect ratio", mAspectRatio);
-    UseServicesHelper::debugAppend(resultEl, "frame rate", mFrameRate);
-    UseServicesHelper::debugAppend(resultEl, "facing mode", mFacingMode);
-    UseServicesHelper::debugAppend(resultEl, "orientation", mOrientation);
-    UseServicesHelper::debugAppend(resultEl, "volume", mVolume);
-    UseServicesHelper::debugAppend(resultEl, "sample rate", mSampleRate);
-    UseServicesHelper::debugAppend(resultEl, "sample size", mSampleSize);
-    UseServicesHelper::debugAppend(resultEl, "echo cancellation", mEchoCancellation);
-    UseServicesHelper::debugAppend(resultEl, "latency", mLatency);
-    UseServicesHelper::debugAppend(resultEl, "channel count", mChannelCount);
-    UseServicesHelper::debugAppend(resultEl, "device id", mDeviceID);
-    UseServicesHelper::debugAppend(resultEl, "group id", mGroupID);
+    IHelper::debugAppend(resultEl, "width", mWidth);
+    IHelper::debugAppend(resultEl, "height", mHeight);
+    IHelper::debugAppend(resultEl, "aspect ratio", mAspectRatio);
+    IHelper::debugAppend(resultEl, "frame rate", mFrameRate);
+    IHelper::debugAppend(resultEl, "facing mode", mFacingMode);
+    IHelper::debugAppend(resultEl, "orientation", mOrientation);
+    IHelper::debugAppend(resultEl, "volume", mVolume);
+    IHelper::debugAppend(resultEl, "sample rate", mSampleRate);
+    IHelper::debugAppend(resultEl, "sample size", mSampleSize);
+    IHelper::debugAppend(resultEl, "echo cancellation", mEchoCancellation);
+    IHelper::debugAppend(resultEl, "latency", mLatency);
+    IHelper::debugAppend(resultEl, "channel count", mChannelCount);
+    IHelper::debugAppend(resultEl, "device id", mDeviceID);
+    IHelper::debugAppend(resultEl, "group id", mGroupID);
 
     return resultEl;
   }
@@ -1463,39 +1490,39 @@ namespace ortc
   //---------------------------------------------------------------------------
   String IMediaStreamTrackTypes::Settings::hash() const
   {
-    SHA1Hasher hasher;
+    auto hasher = IHasher::sha1();
 
-    hasher.update("ortc::IMediaStreamTrackTypes::Settings:");
+    hasher->update("ortc::IMediaStreamTrackTypes::Settings:");
 
-    hasher.update(mWidth);
-    hasher.update(":");
-    hasher.update(mHeight);
-    hasher.update(":");
-    hasher.update(mAspectRatio);
-    hasher.update(":");
-    hasher.update(mFrameRate);
-    hasher.update(":");
-    hasher.update(mFacingMode, "bogus99255cc407eaf6f82b33a94ab86f588581df9000");
-    hasher.update(":");
-    hasher.update(mOrientation, "bogus99255cc407eaf6f82b33a94ab86f588581df9000");
-    hasher.update(":");
-    hasher.update(mVolume);
-    hasher.update(":");
-    hasher.update(mSampleRate);
-    hasher.update(":");
-    hasher.update(mSampleSize);
-    hasher.update(":");
-    hasher.update(mEchoCancellation);
-    hasher.update(":");
-    hasher.update(mLatency);
-    hasher.update(":");
-    hasher.update(mChannelCount);
-    hasher.update(":");
-    hasher.update(mDeviceID, "bogus99255cc407eaf6f82b33a94ab86f588581df9000");
-    hasher.update(":");
-    hasher.update(mGroupID, "bogus99255cc407eaf6f82b33a94ab86f588581df9000");
+    hasher->update(mWidth);
+    hasher->update(":");
+    hasher->update(mHeight);
+    hasher->update(":");
+    hasher->update(mAspectRatio);
+    hasher->update(":");
+    hasher->update(mFrameRate);
+    hasher->update(":");
+    hasher->update(mFacingMode, "bogus99255cc407eaf6f82b33a94ab86f588581df9000");
+    hasher->update(":");
+    hasher->update(mOrientation, "bogus99255cc407eaf6f82b33a94ab86f588581df9000");
+    hasher->update(":");
+    hasher->update(mVolume);
+    hasher->update(":");
+    hasher->update(mSampleRate);
+    hasher->update(":");
+    hasher->update(mSampleSize);
+    hasher->update(":");
+    hasher->update(mEchoCancellation);
+    hasher->update(":");
+    hasher->update(mLatency);
+    hasher->update(":");
+    hasher->update(mChannelCount);
+    hasher->update(":");
+    hasher->update(mDeviceID, "bogus99255cc407eaf6f82b33a94ab86f588581df9000");
+    hasher->update(":");
+    hasher->update(mGroupID, "bogus99255cc407eaf6f82b33a94ab86f588581df9000");
 
-    return hasher.final();
+    return hasher->finalizeAsString();
   }
 
   //---------------------------------------------------------------------------
@@ -1646,18 +1673,18 @@ namespace ortc
   {
     ElementPtr resultEl = Element::create("ortc::IMediaStreamTrackTypes::ConstraintSet");
 
-    UseServicesHelper::debugAppend(resultEl, "width", mWidth.toDebug());
-    UseServicesHelper::debugAppend(resultEl, "height", mHeight.toDebug());
-    UseServicesHelper::debugAppend(resultEl, "aspect ratio", mAspectRatio.toDebug());
-    UseServicesHelper::debugAppend(resultEl, "frame rate", mFrameRate.toDebug());
-    UseServicesHelper::debugAppend(resultEl, "facingMode", mFacingMode.toDebug());
-    UseServicesHelper::debugAppend(resultEl, "volume", mVolume.toDebug());
-    UseServicesHelper::debugAppend(resultEl, "sample rate", mSampleRate.toDebug());
-    UseServicesHelper::debugAppend(resultEl, "echo cancellation", mEchoCancellation.toDebug());
-    UseServicesHelper::debugAppend(resultEl, "latency", mLatency.toDebug());
-    UseServicesHelper::debugAppend(resultEl, "channel count", mChannelCount.toDebug());
-    UseServicesHelper::debugAppend(resultEl, "device id", mDeviceID.toDebug());
-    UseServicesHelper::debugAppend(resultEl, "group id", mGroupID.toDebug());
+    IHelper::debugAppend(resultEl, "width", mWidth.toDebug());
+    IHelper::debugAppend(resultEl, "height", mHeight.toDebug());
+    IHelper::debugAppend(resultEl, "aspect ratio", mAspectRatio.toDebug());
+    IHelper::debugAppend(resultEl, "frame rate", mFrameRate.toDebug());
+    IHelper::debugAppend(resultEl, "facingMode", mFacingMode.toDebug());
+    IHelper::debugAppend(resultEl, "volume", mVolume.toDebug());
+    IHelper::debugAppend(resultEl, "sample rate", mSampleRate.toDebug());
+    IHelper::debugAppend(resultEl, "echo cancellation", mEchoCancellation.toDebug());
+    IHelper::debugAppend(resultEl, "latency", mLatency.toDebug());
+    IHelper::debugAppend(resultEl, "channel count", mChannelCount.toDebug());
+    IHelper::debugAppend(resultEl, "device id", mDeviceID.toDebug());
+    IHelper::debugAppend(resultEl, "group id", mGroupID.toDebug());
 
     return resultEl;
   }
@@ -1665,35 +1692,35 @@ namespace ortc
   //---------------------------------------------------------------------------
   String IMediaStreamTrackTypes::ConstraintSet::hash() const
   {
-    SHA1Hasher hasher;
+    auto hasher = IHasher::sha1();
 
-    hasher.update("ortc::IMediaStreamTrackTypes::ConstraintSet:");
+    hasher->update("ortc::IMediaStreamTrackTypes::ConstraintSet:");
 
-    hasher.update(mWidth.hash());
-    hasher.update(":");
-    hasher.update(mHeight.hash());
-    hasher.update(":");
-    hasher.update(mAspectRatio.hash());
-    hasher.update(":");
-    hasher.update(mFrameRate.hash());
-    hasher.update(":");
-    hasher.update(mFacingMode.hash());
-    hasher.update(":");
-    hasher.update(mVolume.hash());
-    hasher.update(":");
-    hasher.update(mSampleRate.hash());
-    hasher.update(":");
-    hasher.update(mEchoCancellation.hash());
-    hasher.update(":");
-    hasher.update(mLatency.hash());
-    hasher.update(":");
-    hasher.update(mChannelCount.hash());
-    hasher.update(":");
-    hasher.update(mDeviceID.hash());
-    hasher.update(":");
-    hasher.update(mGroupID.hash());
+    hasher->update(mWidth.hash());
+    hasher->update(":");
+    hasher->update(mHeight.hash());
+    hasher->update(":");
+    hasher->update(mAspectRatio.hash());
+    hasher->update(":");
+    hasher->update(mFrameRate.hash());
+    hasher->update(":");
+    hasher->update(mFacingMode.hash());
+    hasher->update(":");
+    hasher->update(mVolume.hash());
+    hasher->update(":");
+    hasher->update(mSampleRate.hash());
+    hasher->update(":");
+    hasher->update(mEchoCancellation.hash());
+    hasher->update(":");
+    hasher->update(mLatency.hash());
+    hasher->update(":");
+    hasher->update(mChannelCount.hash());
+    hasher->update(":");
+    hasher->update(mDeviceID.hash());
+    hasher->update(":");
+    hasher->update(mGroupID.hash());
 
-    return hasher.final();
+    return hasher->finalizeAsString();
   }
 
   //---------------------------------------------------------------------------
@@ -1781,10 +1808,10 @@ namespace ortc
 
     for (auto iter = mAdvanced.begin(); iter != mAdvanced.end(); ++iter) {
       auto constraintSet = (*iter);
-      UseServicesHelper::debugAppend(advancedSet, constraintSet ? constraintSet->toDebug() : ElementPtr());
+      IHelper::debugAppend(advancedSet, constraintSet ? constraintSet->toDebug() : ElementPtr());
     }
     if (advancedSet->hasChildren()) {
-      UseServicesHelper::debugAppend(resultEl, advancedSet);
+      IHelper::debugAppend(resultEl, advancedSet);
     }
 
     return resultEl;
@@ -1793,17 +1820,17 @@ namespace ortc
   //---------------------------------------------------------------------------
   String IMediaStreamTrackTypes::TrackConstraints::hash() const
   {
-    SHA1Hasher hasher;
+    auto hasher = IHasher::sha1();
 
-    hasher.update("ortc::IMediaStreamTrackTypes::TrackConstraints:");
+    hasher->update("ortc::IMediaStreamTrackTypes::TrackConstraints:");
 
     for (auto iter = mAdvanced.begin(); iter != mAdvanced.end(); ++iter) {
       auto constraintSet = (*iter);
-      hasher.update(constraintSet ? constraintSet->hash() : String());
-      hasher.update(":");
+      hasher->update(constraintSet ? constraintSet->hash() : String());
+      hasher->update(":");
     }
 
-    return hasher.final();
+    return hasher->finalizeAsString();
   }
 
   //---------------------------------------------------------------------------
@@ -1877,8 +1904,8 @@ namespace ortc
   {
     ElementPtr resultEl = Element::create("ortc::IMediaStreamTrackTypes::Constraints");
 
-    UseServicesHelper::debugAppend(resultEl, "video", mVideo ? mVideo->toDebug() : ElementPtr());
-    UseServicesHelper::debugAppend(resultEl, "audio", mAudio ? mAudio->toDebug() : ElementPtr());
+    IHelper::debugAppend(resultEl, "video", mVideo ? mVideo->toDebug() : ElementPtr());
+    IHelper::debugAppend(resultEl, "audio", mAudio ? mAudio->toDebug() : ElementPtr());
 
     return resultEl;
   }
@@ -1886,15 +1913,15 @@ namespace ortc
   //---------------------------------------------------------------------------
   String IMediaStreamTrackTypes::Constraints::hash() const
   {
-    SHA1Hasher hasher;
+    auto hasher = IHasher::sha1();
 
-    hasher.update("ortc::IMediaStreamTrackTypes::Constraints:");
+    hasher->update("ortc::IMediaStreamTrackTypes::Constraints:");
 
-    hasher.update(mVideo ? mVideo->hash() : String());
-    hasher.update(":");
-    hasher.update(mAudio ? mAudio->hash() : String());
+    hasher->update(mVideo ? mVideo->hash() : String());
+    hasher->update(":");
+    hasher->update(mAudio ? mAudio->hash() : String());
 
-    return hasher.final();
+    return hasher->finalizeAsString();
   }
   
 

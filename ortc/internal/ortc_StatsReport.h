@@ -36,10 +36,8 @@
 #include <ortc/IStatsReport.h>
 #include <ortc/IStatsProvider.h>
 
-#include <ortc/services/IWakeDelegate.h>
-
 #include <zsLib/MessageQueueAssociator.h>
-#include <zsLib/Timer.h>
+#include <zsLib/ITimer.h>
 
 //#define ORTC_SETTING_SRTP_TRANSPORT_WARN_OF_KEY_LIFETIME_EXHAUGSTION_WHEN_REACH_PERCENTAGE_USSED "ortc/srtp/warm-key-lifetime-exhaustion-when-reach-percentage-used"
 
@@ -47,25 +45,8 @@ namespace ortc
 {
   namespace internal
   {
-    ZS_DECLARE_INTERACTION_PTR(IStatsReportForSettings)
-    ZS_DECLARE_INTERACTION_PTR(IStatsReportForInternal)
+    ZS_DECLARE_INTERACTION_PTR(IStatsReportForInternal);
 
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IStatsReportForSettings
-    #pragma mark
-
-    interaction IStatsReportForSettings
-    {
-      ZS_DECLARE_TYPEDEF_PTR(IStatsReportForSettings, ForSettings)
-
-      static void applyDefaults();
-
-      virtual ~IStatsReportForSettings() {}
-    };
     
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -109,7 +90,6 @@ namespace ortc
                         public MessageQueueAssociator,
                         public SharedRecursiveLock,
                         public IStatsReport,
-                        public IStatsReportForSettings,
                         public IStatsReportForInternal,
                         public IPromiseSettledDelegate
     {
@@ -119,7 +99,6 @@ namespace ortc
     public:
       friend interaction IStatsReport;
       friend interaction IStatsReportFactory;
-      friend interaction IStatsReportForSettings;
 
       ZS_DECLARE_TYPEDEF_PTR(IStatsReportTypes::Stats, Stats)
 
@@ -153,7 +132,6 @@ namespace ortc
       virtual ~StatsReport();
 
       static StatsReportPtr convert(IStatsReportPtr object);
-      static StatsReportPtr convert(ForSettingsPtr object);
       static StatsReportPtr convert(ForInternalPtr object);
 
     protected:

@@ -36,10 +36,10 @@
 #include <ortc/internal/ortc.events.h>
 #include <ortc/internal/platform.h>
 
-#include <ortc/services/ISettings.h>
-#include <ortc/services/IHelper.h>
+#include <ortc/IHelper.h>
 #include <ortc/services/IHTTP.h>
 
+#include <zsLib/ISettings.h>
 #include <zsLib/SafeInt.h>
 #include <zsLib/Stringize.h>
 #include <zsLib/Log.h>
@@ -59,17 +59,16 @@ namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_sctp_datachannel) }
 
 namespace ortc
 {
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::ISettings, UseSettings)
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHelper, UseServicesHelper)
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHTTP, UseHTTP)
-
-  typedef ortc::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
+  ZS_DECLARE_USING_PTR(zsLib, ISettings);
+  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHTTP, UseHTTP);
 
   namespace internal
   {
+    ZS_DECLARE_CLASS_PTR(SCTPTransportListenerSettingsDefaults);
+
     struct SCTPListenerHelper;
 
-    ZS_DECLARE_TYPEDEF_PTR(SCTPListenerHelper, UseListenerHelper)
+    ZS_DECLARE_TYPEDEF_PTR(SCTPListenerHelper, UseListenerHelper);
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -78,6 +77,60 @@ namespace ortc
     #pragma mark
     #pragma mark (helpers)
     #pragma mark
+
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark SCTPTransportListenerSettingsDefaults
+    #pragma mark
+
+    class SCTPTransportListenerSettingsDefaults : public ISettingsApplyDefaultsDelegate
+    {
+    public:
+      //-----------------------------------------------------------------------
+      ~SCTPTransportListenerSettingsDefaults()
+      {
+        ISettings::removeDefaults(*this);
+      }
+
+      //-----------------------------------------------------------------------
+      static SCTPTransportListenerSettingsDefaultsPtr singleton()
+      {
+        static SingletonLazySharedPtr<SCTPTransportListenerSettingsDefaults> singleton(create());
+        return singleton.singleton();
+      }
+
+      //-----------------------------------------------------------------------
+      static SCTPTransportListenerSettingsDefaultsPtr create()
+      {
+        auto pThis(make_shared<SCTPTransportListenerSettingsDefaults>());
+        ISettings::installDefaults(pThis);
+        return pThis;
+      }
+
+      //-----------------------------------------------------------------------
+      virtual void notifySettingsApplyDefaults() override
+      {
+        //https://tools.ietf.org/html/draft-ietf-rtcweb-data-channel-13#section-6.6
+        ISettings::setUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE, 16 * 1024);
+
+        //only allow 1/4 of the range to be filled
+        ISettings::setUInt(ORTC_SETTING_SCTP_TRANSPORT_LISTENER_MAX_PORTS, (65535 - 5000) / 4);
+        ISettings::setUInt(ORTC_SETTING_SCTP_TRANSPORT_LISTENER_MIN_PORT, 5000);
+        ISettings::setUInt(ORTC_SETTING_SCTP_TRANSPORT_LISTENER_MAX_PORT, 65535);
+        ISettings::setUInt(ORTC_SETTING_SCTP_TRANSPORT_LISTENER_DEFAULT_PORT, 5000);
+      }
+      
+    };
+
+    //-------------------------------------------------------------------------
+    void installSCTPTransportListenerSettingsDefaults()
+    {
+      SCTPTransportListenerSettingsDefaults::singleton();
+    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -197,27 +250,6 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark ISCTPTransportForSettings
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    void ISCTPTransportListenerForSettings::applyDefaults()
-    {
-      //https://tools.ietf.org/html/draft-ietf-rtcweb-data-channel-13#section-6.6
-      UseSettings::setUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE, 16*1024);
-
-      //only allow 1/4 of the range to be filled
-      UseSettings::setUInt(ORTC_SETTING_SCTP_TRANSPORT_LISTENER_MAX_PORTS, (65535-5000)/4);
-      UseSettings::setUInt(ORTC_SETTING_SCTP_TRANSPORT_LISTENER_MIN_PORT, 5000);
-      UseSettings::setUInt(ORTC_SETTING_SCTP_TRANSPORT_LISTENER_MAX_PORT, 65535);
-      UseSettings::setUInt(ORTC_SETTING_SCTP_TRANSPORT_LISTENER_DEFAULT_PORT, 5000);
-    }
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
     #pragma mark ISCTPTransportListenerForSCTPTransport
     #pragma mark
 
@@ -245,10 +277,10 @@ namespace ortc
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
       mSecureTransport(DTLSTransport::convert(secureTransport)),
-      mMaxPorts(SafeInt<decltype(mMaxPorts)>(UseSettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_LISTENER_MAX_PORTS))),
-      mCurrentAllocationPort(SafeInt<decltype(mCurrentAllocationPort)>(UseSettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_LISTENER_DEFAULT_PORT))),
-      mMinAllocationPort(SafeInt<decltype(mMinAllocationPort)>(UseSettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_LISTENER_MIN_PORT))),
-      mMaxAllocationPort(SafeInt<decltype(mMaxAllocationPort)>(UseSettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_LISTENER_MAX_PORT)))
+      mMaxPorts(SafeInt<decltype(mMaxPorts)>(ISettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_LISTENER_MAX_PORTS))),
+      mCurrentAllocationPort(SafeInt<decltype(mCurrentAllocationPort)>(ISettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_LISTENER_DEFAULT_PORT))),
+      mMinAllocationPort(SafeInt<decltype(mMinAllocationPort)>(ISettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_LISTENER_MIN_PORT))),
+      mMaxAllocationPort(SafeInt<decltype(mMaxAllocationPort)>(ISettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_LISTENER_MAX_PORT)))
     {
       ORTC_THROW_INVALID_PARAMETERS_IF(!secureTransport);
 
@@ -321,11 +353,11 @@ namespace ortc
     SCTPTransportListener::CapabilitiesPtr SCTPTransportListener::getCapabilities()
     {
       CapabilitiesPtr result(make_shared<Capabilities>());
-      result->mMaxMessageSize = UseSettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE);
-      result->mMinPort = SafeInt<decltype(result->mMinPort)>(UseSettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_LISTENER_MIN_PORT));
-      result->mMaxPort = SafeInt<decltype(result->mMaxPort)>(UseSettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_LISTENER_MAX_PORT));
-      result->mMaxUsablePorts = SafeInt<decltype(result->mMaxUsablePorts)>(UseSettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_LISTENER_MAX_PORTS));
-      result->mMaxSessionsPerPort = SafeInt<decltype(result->mMaxSessionsPerPort)>(UseSettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_SESSIONS_PER_PORT));
+      result->mMaxMessageSize = ISettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE);
+      result->mMinPort = SafeInt<decltype(result->mMinPort)>(ISettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_LISTENER_MIN_PORT));
+      result->mMaxPort = SafeInt<decltype(result->mMaxPort)>(ISettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_LISTENER_MAX_PORT));
+      result->mMaxUsablePorts = SafeInt<decltype(result->mMaxUsablePorts)>(ISettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_LISTENER_MAX_PORTS));
+      result->mMaxSessionsPerPort = SafeInt<decltype(result->mMaxSessionsPerPort)>(ISettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_SESSIONS_PER_PORT));
       return result;
     }
 
@@ -697,7 +729,7 @@ namespace ortc
     Log::Params SCTPTransportListener::log(const char *message) const
     {
       ElementPtr objectEl = Element::create("ortc::SCTPTransportListener");
-      UseServicesHelper::debugAppend(objectEl, "id", mID);
+      IHelper::debugAppend(objectEl, "id", mID);
       return Log::Params(message, objectEl);
     }
 
@@ -721,32 +753,32 @@ namespace ortc
 
       ElementPtr resultEl = Element::create("ortc::SCTPTransportListener");
 
-      UseServicesHelper::debugAppend(resultEl, "id", mID);
+      IHelper::debugAppend(resultEl, "id", mID);
 
-      UseServicesHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
+      IHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
 
-      UseServicesHelper::debugAppend(resultEl, "subscribers", mSubscriptions.size());
+      IHelper::debugAppend(resultEl, "subscribers", mSubscriptions.size());
 
-      UseServicesHelper::debugAppend(resultEl, "shutdown", mShutdown);
+      IHelper::debugAppend(resultEl, "shutdown", mShutdown);
 
       auto secureTransport = mSecureTransport.lock();
-      UseServicesHelper::debugAppend(resultEl, "secure transport", secureTransport ? secureTransport->getID() : 0);
+      IHelper::debugAppend(resultEl, "secure transport", secureTransport ? secureTransport->getID() : 0);
 
-      UseServicesHelper::debugAppend(resultEl, "transports", mTransports.size());
-      UseServicesHelper::debugAppend(resultEl, "pending transports", mPendingTransports.size());
-      UseServicesHelper::debugAppend(resultEl, "announced transports", mAnnouncedTransports.size());
+      IHelper::debugAppend(resultEl, "transports", mTransports.size());
+      IHelper::debugAppend(resultEl, "pending transports", mPendingTransports.size());
+      IHelper::debugAppend(resultEl, "announced transports", mAnnouncedTransports.size());
 
-      UseServicesHelper::debugAppend(resultEl, "allocated local ports", mAllocatedLocalPorts.size());
-      UseServicesHelper::debugAppend(resultEl, "allocated remote ports", mAllocatedRemotePorts.size());
+      IHelper::debugAppend(resultEl, "allocated local ports", mAllocatedLocalPorts.size());
+      IHelper::debugAppend(resultEl, "allocated remote ports", mAllocatedRemotePorts.size());
 
-      UseServicesHelper::debugAppend(resultEl, "max ports", mMaxPorts);
+      IHelper::debugAppend(resultEl, "max ports", mMaxPorts);
 
-      UseServicesHelper::debugAppend(resultEl, "current allocate port", mCurrentAllocationPort);
-      UseServicesHelper::debugAppend(resultEl, "min allocation port", mMinAllocationPort);
-      UseServicesHelper::debugAppend(resultEl, "max allocation port", mMaxAllocationPort);
-      UseServicesHelper::debugAppend(resultEl, "next allocation increment", mNextAllocationIncremement);
+      IHelper::debugAppend(resultEl, "current allocate port", mCurrentAllocationPort);
+      IHelper::debugAppend(resultEl, "min allocation port", mMinAllocationPort);
+      IHelper::debugAppend(resultEl, "max allocation port", mMaxAllocationPort);
+      IHelper::debugAppend(resultEl, "next allocation increment", mNextAllocationIncremement);
 
-      UseServicesHelper::debugAppend(resultEl, "remote capabilities", mRemoteCapabilities ? mRemoteCapabilities->toDebug() : ElementPtr());
+      IHelper::debugAppend(resultEl, "remote capabilities", mRemoteCapabilities ? mRemoteCapabilities->toDebug() : ElementPtr());
 
       return resultEl;
     }

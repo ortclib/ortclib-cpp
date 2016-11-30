@@ -34,10 +34,13 @@
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/platform.h>
 
-#include <ortc/services/ISettings.h>
-#include <ortc/services/IHelper.h>
+#include <ortc/IHelper.h>
+
 #include <ortc/services/IHTTP.h>
 
+#include <zsLib/eventing/IHasher.h>
+
+#include <zsLib/ISettings.h>
 #include <zsLib/Stringize.h>
 #include <zsLib/Log.h>
 #include <zsLib/XML.h>
@@ -56,14 +59,13 @@ namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_rtpsender) }
 
 namespace ortc
 {
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::ISettings, UseSettings)
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHelper, UseServicesHelper)
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHTTP, UseHTTP)
-
-  typedef ortc::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
+  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHTTP, UseHTTP);
+  ZS_DECLARE_USING_PTR(zsLib, ISettings);
 
   namespace internal
   {
+    ZS_DECLARE_CLASS_PTR(DTMFSenderSettingsDefaults);
+
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -72,20 +74,51 @@ namespace ortc
     #pragma mark (helpers)
     #pragma mark
 
-
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IDTMFSenderForSettings
+    #pragma mark DTMFSenderSettingsDefaults
     #pragma mark
 
-    //-------------------------------------------------------------------------
-    void IDTMFSenderForSettings::applyDefaults()
+    class DTMFSenderSettingsDefaults : public ISettingsApplyDefaultsDelegate
     {
-//      UseSettings::setUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE, 5*1024);
+    public:
+      //-----------------------------------------------------------------------
+      ~DTMFSenderSettingsDefaults()
+      {
+        ISettings::removeDefaults(*this);
+      }
+
+      //-----------------------------------------------------------------------
+      static DTMFSenderSettingsDefaultsPtr singleton()
+      {
+        static SingletonLazySharedPtr<DTMFSenderSettingsDefaults> singleton(create());
+        return singleton.singleton();
+      }
+
+      //-----------------------------------------------------------------------
+      static DTMFSenderSettingsDefaultsPtr create()
+      {
+        auto pThis(make_shared<DTMFSenderSettingsDefaults>());
+        ISettings::installDefaults(pThis);
+        return pThis;
+      }
+
+      //-----------------------------------------------------------------------
+      virtual void notifySettingsApplyDefaults() override
+      {
+      }
+      
+    };
+
+    //-------------------------------------------------------------------------
+    void installDTMFSenderSettingsDefaults()
+    {
+      DTMFSenderSettingsDefaults::singleton();
     }
+
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -148,12 +181,6 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     DTMFSenderPtr DTMFSender::convert(IDTMFSenderPtr object)
-    {
-      return ZS_DYNAMIC_PTR_CAST(DTMFSender, object);
-    }
-
-    //-------------------------------------------------------------------------
-    DTMFSenderPtr DTMFSender::convert(ForSettingsPtr object)
     {
       return ZS_DYNAMIC_PTR_CAST(DTMFSender, object);
     }
@@ -418,7 +445,7 @@ namespace ortc
     Log::Params DTMFSender::log(const char *message) const
     {
       ElementPtr objectEl = Element::create("ortc::DTMFSender");
-      UseServicesHelper::debugAppend(objectEl, "id", mID);
+      IHelper::debugAppend(objectEl, "id", mID);
       return Log::Params(message, objectEl);
     }
 
@@ -437,16 +464,16 @@ namespace ortc
 
       auto rtpSender = mRTPSender.lock();
 
-      UseServicesHelper::debugAppend(resultEl, "id", mID);
+      IHelper::debugAppend(resultEl, "id", mID);
 
-      UseServicesHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
+      IHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
 
-      UseServicesHelper::debugAppend(resultEl, "subscribers", mSubscriptions.size());
-      UseServicesHelper::debugAppend(resultEl, "default subscription", (bool)mDefaultSubscription);
+      IHelper::debugAppend(resultEl, "subscribers", mSubscriptions.size());
+      IHelper::debugAppend(resultEl, "default subscription", (bool)mDefaultSubscription);
 
-      UseServicesHelper::debugAppend(resultEl, "shutdown", mShutdown);
+      IHelper::debugAppend(resultEl, "shutdown", mShutdown);
 
-      UseServicesHelper::debugAppend(resultEl, "data transport", rtpSender ? rtpSender->getID() : 0);
+      IHelper::debugAppend(resultEl, "data transport", rtpSender ? rtpSender->getID() : 0);
 
       return resultEl;
     }
@@ -511,6 +538,7 @@ namespace ortc
       }
 
       mRTPSenderSubscription = sender->subscribe(mThisWeak.lock());
+      return true;
     }
 
     //-------------------------------------------------------------------------

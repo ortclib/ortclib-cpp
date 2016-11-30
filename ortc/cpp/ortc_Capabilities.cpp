@@ -34,8 +34,9 @@
 #include <ortc/internal/ortc_Helper.h>
 
 #include <ortc/ICapabilities.h>
+#include <ortc/IHelper.h>
 
-#include <ortc/services/IHelper.h>
+#include <zsLib/eventing/IHasher.h>
 
 #include <zsLib/Numeric.h>
 #include <zsLib/Stringize.h>
@@ -49,13 +50,9 @@ namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
 
 namespace ortc
 {
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::ISettings, UseSettings)
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHelper, UseServicesHelper)
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHTTP, UseHTTP)
+  ZS_DECLARE_USING_PTR(zsLib::eventing, IHasher);
+  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHTTP, UseHTTP);
 
-  ZS_DECLARE_TYPEDEF_PTR(ortc::internal::Helper, UseHelper)
-
-  typedef ortc::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
 
   using zsLib::Numeric;
   using zsLib::Log;
@@ -85,7 +82,7 @@ namespace ortc
     ElementPtr subEl = elem->findFirstChildElement(objectName);
     while (subEl) {
 
-      String text = UseServicesHelper::getElementText(subEl);
+      String text = IHelper::getElementText(subEl);
 
       try {
         bool value = Numeric<bool>(text);
@@ -109,7 +106,7 @@ namespace ortc
     for (auto iter = begin(); iter != end(); ++iter) {
       auto value = (*iter);
 
-      UseHelper::adoptElementValue(outerEl, objectValueName, value);
+      IHelper::adoptElementValue(outerEl, objectValueName, value);
     }
 
     if (!outerEl->hasChildren()) return ElementPtr();
@@ -124,7 +121,7 @@ namespace ortc
     for (auto iter = begin(); iter != end(); ++iter)
     {
       auto value = (*iter);
-      UseServicesHelper::debugAppend(resultEl, "value", value ? "true" : "false");
+      IHelper::debugAppend(resultEl, "value", value ? "true" : "false");
     }
 
     return resultEl;
@@ -133,17 +130,17 @@ namespace ortc
   //---------------------------------------------------------------------------
   String ICapabilities::CapabilityBoolean::hash() const
   {
-    SHA1Hasher hasher;
+    auto hasher = IHasher::sha1();
 
-    hasher.update("ortc::ICapabilities::CapabilityBoolean:");
+    hasher->update("ortc::ICapabilities::CapabilityBoolean:");
 
     for (auto iter = begin(); iter != end(); ++iter)
     {
       auto value = (*iter);
-      hasher.update(value);
+      hasher->update(value);
     }
 
-    return hasher.final();
+    return hasher->finalizeAsString();
   }
 
   //---------------------------------------------------------------------------
@@ -163,8 +160,8 @@ namespace ortc
     Optional<decltype(mMin)> min;
     Optional<decltype(mMax)> max;
 
-    UseHelper::getElementValue(elem, "ortc::ICapabilities::CapabilityLong", "min", min);
-    UseHelper::getElementValue(elem, "ortc::ICapabilities::CapabilityLong", "max", min);
+    IHelper::getElementValue(elem, "ortc::ICapabilities::CapabilityLong", "min", min);
+    IHelper::getElementValue(elem, "ortc::ICapabilities::CapabilityLong", "max", min);
 
     bool found = false;
 
@@ -178,7 +175,7 @@ namespace ortc
     }
 
     if (!found) {
-      String str = UseServicesHelper::getElementText(elem);
+      String str = IHelper::getElementText(elem);
       try {
         mMin = mMax = Numeric<decltype(mMin)>(str);
       } catch(const Numeric<decltype(mMin)>::ValueOutOfRange &) {
@@ -191,13 +188,13 @@ namespace ortc
   ElementPtr ICapabilities::CapabilityLong::createElement(const char *objectName) const
   {
     if (mMin == mMax) {
-      return UseServicesHelper::createElementWithNumber(objectName, string(mMin));
+      return IHelper::createElementWithNumber(objectName, string(mMin));
     }
 
     ElementPtr elem = Element::create(objectName);
 
-    UseHelper::adoptElementValue(elem, "min", mMin);
-    UseHelper::adoptElementValue(elem, "max", mMax);
+    IHelper::adoptElementValue(elem, "min", mMin);
+    IHelper::adoptElementValue(elem, "max", mMax);
 
     return elem;
   }
@@ -208,10 +205,10 @@ namespace ortc
     ElementPtr resultEl = Element::create("ortc::ICapabilities::CapabilityLong");
 
     if (mMin != mMax) {
-      UseServicesHelper::debugAppend(resultEl, "min", mMin);
-      UseServicesHelper::debugAppend(resultEl, "min", mMax);
+      IHelper::debugAppend(resultEl, "min", mMin);
+      IHelper::debugAppend(resultEl, "min", mMax);
     } else {
-      UseServicesHelper::debugAppend(resultEl, "value", mMin);
+      IHelper::debugAppend(resultEl, "value", mMin);
     }
 
     return resultEl;
@@ -220,15 +217,15 @@ namespace ortc
   //---------------------------------------------------------------------------
   String ICapabilities::CapabilityLong::hash() const
   {
-    SHA1Hasher hasher;
+    auto hasher = IHasher::sha1();
 
-    hasher.update("ortc::ICapabilities::CapabilityLong:");
+    hasher->update("ortc::ICapabilities::CapabilityLong:");
 
-    hasher.update(mMin);
-    hasher.update(":");
-    hasher.update(mMax);
+    hasher->update(mMin);
+    hasher->update(":");
+    hasher->update(mMax);
 
-    return hasher.final();
+    return hasher->finalizeAsString();
   }
 
   //---------------------------------------------------------------------------
@@ -249,8 +246,8 @@ namespace ortc
     Optional<decltype(mMin)> min;
     Optional<decltype(mMax)> max;
 
-    UseHelper::getElementValue(elem, "ortc::ICapabilities::CapabilityDouble", "min", min);
-    UseHelper::getElementValue(elem, "ortc::ICapabilities::CapabilityDouble", "max", max);
+    IHelper::getElementValue(elem, "ortc::ICapabilities::CapabilityDouble", "min", min);
+    IHelper::getElementValue(elem, "ortc::ICapabilities::CapabilityDouble", "max", max);
 
     if (min.hasValue()) {
       mMin = min.value();
@@ -262,7 +259,7 @@ namespace ortc
     }
 
     if (!found) {
-      String str = UseServicesHelper::getElementText(elem);
+      String str = IHelper::getElementText(elem);
       try {
         mMin = mMax = Numeric<decltype(mMin)>(str);
       } catch(const Numeric<decltype(mMin)>::ValueOutOfRange &) {
@@ -275,13 +272,13 @@ namespace ortc
   ElementPtr ICapabilities::CapabilityDouble::createElement(const char *objectName) const
   {
     if (mMin == mMax) {
-      return UseServicesHelper::createElementWithNumber(objectName, string(mMin));
+      return IHelper::createElementWithNumber(objectName, string(mMin));
     }
 
     ElementPtr outerEl = Element::create(objectName);
 
-    outerEl->adoptAsLastChild(UseServicesHelper::createElementWithNumber("min", string(mMin)));
-    outerEl->adoptAsLastChild(UseServicesHelper::createElementWithNumber("max", string(mMax)));
+    outerEl->adoptAsLastChild(IHelper::createElementWithNumber("min", string(mMin)));
+    outerEl->adoptAsLastChild(IHelper::createElementWithNumber("max", string(mMax)));
 
     return outerEl;
   }
@@ -291,10 +288,10 @@ namespace ortc
     ElementPtr resultEl = Element::create("ortc::ICapabilities::CapabilityDouble");
 
     if (mMin != mMax) {
-      UseServicesHelper::debugAppend(resultEl, "min", mMin);
-      UseServicesHelper::debugAppend(resultEl, "min", mMax);
+      IHelper::debugAppend(resultEl, "min", mMin);
+      IHelper::debugAppend(resultEl, "min", mMax);
     } else {
-      UseServicesHelper::debugAppend(resultEl, "value", mMin);
+      IHelper::debugAppend(resultEl, "value", mMin);
     }
 
     return resultEl;
@@ -303,15 +300,15 @@ namespace ortc
   //---------------------------------------------------------------------------
   String ICapabilities::CapabilityDouble::hash() const
   {
-    SHA1Hasher hasher;
+    auto hasher = IHasher::sha1();
 
-    hasher.update("ortc::ICapabilities::CapabilityDouble:");
+    hasher->update("ortc::ICapabilities::CapabilityDouble:");
 
-    hasher.update(mMin);
-    hasher.update(":");
-    hasher.update(mMax);
+    hasher->update(mMin);
+    hasher->update(":");
+    hasher->update(mMax);
 
-    return hasher.final();
+    return hasher->finalizeAsString();
   }
 
 
@@ -335,7 +332,7 @@ namespace ortc
     ElementPtr subEl = elem->findFirstChildElement(objectName);
     while (subEl) {
 
-      String text = UseServicesHelper::getElementTextAndDecode(subEl);
+      String text = IHelper::getElementTextAndDecode(subEl);
       insert(text);
 
       subEl = subEl->findNextSiblingElement(objectName);
@@ -353,7 +350,7 @@ namespace ortc
     for (auto iter = begin(); iter != end(); ++iter) {
       auto value = (*iter);
 
-      auto innerEl = UseServicesHelper::createElementWithTextAndJSONEncode(objectValueName, value);
+      auto innerEl = IHelper::createElementWithTextAndJSONEncode(objectValueName, value);
 
       outerEl->adoptAsLastChild(innerEl);
     }
@@ -371,7 +368,7 @@ namespace ortc
     for (auto iter = begin(); iter != end(); ++iter)
     {
       auto value = (*iter);
-      UseServicesHelper::debugAppend(resultEl, "value", value);
+      IHelper::debugAppend(resultEl, "value", value);
     }
 
     return resultEl;
@@ -380,18 +377,18 @@ namespace ortc
   //---------------------------------------------------------------------------
   String ICapabilities::CapabilityString::hash() const
   {
-    SHA1Hasher hasher;
+    auto hasher = IHasher::sha1();
 
-    hasher.update("ortc::ICapabilities::CapabilityString:");
+    hasher->update("ortc::ICapabilities::CapabilityString:");
 
     for (auto iter = begin(); iter != end(); ++iter)
     {
       auto value = (*iter);
-      hasher.update(":");
-      hasher.update(value);
+      hasher->update(":");
+      hasher->update(value);
     }
 
-    return hasher.final();
+    return hasher->finalizeAsString();
   }
 
 }

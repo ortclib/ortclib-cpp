@@ -39,9 +39,8 @@
 #include <ortc/IRTPTypes.h>
 #include <ortc/IStatsProvider.h>
 
-#include <ortc/services/IWakeDelegate.h>
 #include <zsLib/MessageQueueAssociator.h>
-#include <zsLib/Timer.h>
+#include <zsLib/ITimer.h>
 
 
 //#define ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE "ortc/sctp/max-message-size"

@@ -38,9 +38,8 @@
 #include <ortc/IICETransport.h>
 #include <ortc/internal/ortc_ISecureTransport.h>
 
-#include <ortc/services/IWakeDelegate.h>
 #include <zsLib/MessageQueueAssociator.h>
-#include <zsLib/Timer.h>
+#include <zsLib/ITimer.h>
 #include <zsLib/ProxySubscriptions.h>
 #include <zsLib/TearAway.h>
 

@@ -43,8 +43,6 @@
 #include <ortc/IRTPSender.h>
 #include <ortc/IRTPReceiver.h>
 
-#include <ortc/services/IWakeDelegate.h>
-
 #include <queue>
 
 namespace ortc

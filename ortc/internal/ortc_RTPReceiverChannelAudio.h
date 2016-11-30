@@ -41,12 +41,13 @@
 #include <ortc/IRTPTypes.h>
 #include <ortc/IMediaStreamTrack.h>
 
-#include <ortc/services/IWakeDelegate.h>
 #include <zsLib/MessageQueueAssociator.h>
-#include <zsLib/Timer.h>
+#include <zsLib/ITimer.h>
 #include <zsLib/Event.h>
 
 #include <webrtc/transport.h>
+
+#include <queue>
 
 //#define ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE "ortc/sctp/max-message-size"
 
@@ -56,33 +57,15 @@ namespace ortc
   {
     ZS_DECLARE_USING_PTR(zsLib, Event)
 
-    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelAudioForSettings)
-    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelAudioForRTPReceiverChannel)
-    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelAudioForMediaStreamTrack)
-    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelAudioForRTPMediaEngine)
+    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelAudioForRTPReceiverChannel);
+    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelAudioForMediaStreamTrack);
+    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelAudioForRTPMediaEngine);
 
-    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelForRTPReceiverChannelAudio)
-    ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrackForRTPReceiverChannelAudio)
+    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelForRTPReceiverChannelAudio);
+    ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrackForRTPReceiverChannelAudio);
 
-    ZS_DECLARE_INTERACTION_PROXY(IRTPReceiverChannelAudioAsyncDelegate)
+    ZS_DECLARE_INTERACTION_PROXY(IRTPReceiverChannelAudioAsyncDelegate);
 
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPReceiverChannelAudioForSettings
-    #pragma mark
-
-    interaction IRTPReceiverChannelAudioForSettings
-    {
-      ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverChannelAudioForSettings, ForSettings)
-
-      static void applyDefaults();
-
-      virtual ~IRTPReceiverChannelAudioForSettings() {}
-    };
-    
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -177,7 +160,6 @@ namespace ortc
     class RTPReceiverChannelAudio : public Noop,
                                     public MessageQueueAssociator,
                                     public SharedRecursiveLock,
-                                    public IRTPReceiverChannelAudioForSettings,
                                     public IRTPReceiverChannelAudioForRTPReceiverChannel,
                                     public IRTPReceiverChannelAudioForMediaStreamTrack,
                                     public IRTPReceiverChannelAudioForRTPMediaEngine,
@@ -192,7 +174,6 @@ namespace ortc
     public:
       friend interaction IRTPReceiverChannelAudio;
       friend interaction IRTPReceiverChannelAudioFactory;
-      friend interaction IRTPReceiverChannelAudioForSettings;
       friend interaction IRTPReceiverChannelMediaBaseForRTPReceiverChannel;
       friend interaction IRTPReceiverChannelAudioForRTPReceiverChannel;
       friend interaction IRTPReceiverChannelMediaBaseForMediaStreamTrack;
@@ -254,7 +235,6 @@ namespace ortc
     public:
       virtual ~RTPReceiverChannelAudio();
 
-      static RTPReceiverChannelAudioPtr convert(ForSettingsPtr object);
       static RTPReceiverChannelAudioPtr convert(ForReceiverChannelFromMediaBasePtr object);
       static RTPReceiverChannelAudioPtr convert(ForRTPReceiverChannelPtr object);
       static RTPReceiverChannelAudioPtr convert(ForMediaStreamTrackFromMediaBasePtr object);
@@ -327,7 +307,7 @@ namespace ortc
       #pragma mark RTPReceiverChannelAudio => ITimerDelegate
       #pragma mark
 
-      virtual void onTimer(TimerPtr timer) override;
+      virtual void onTimer(ITimerPtr timer) override;
 
       //-----------------------------------------------------------------------
       #pragma mark

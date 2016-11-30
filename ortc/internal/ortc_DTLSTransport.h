@@ -38,13 +38,14 @@
 #include <ortc/internal/ortc_ISecureTransport.h>
 #include <ortc/internal/ortc_ISRTPTransport.h>
 
-#include <ortc/services/IWakeDelegate.h>
 #include <zsLib/MessageQueueAssociator.h>
-#include <zsLib/Timer.h>
+#include <zsLib/ITimer.h>
 
 #include <cryptopp/queue.h>
 
 #include <openssl/base.h>
+
+#include <queue>
 
 #define ORTC_SETTING_DTLS_TRANSPORT_MAX_PENDING_DTLS_BUFFER "ortc/dtls/max-pending-dtls-buffer"
 #define ORTC_SETTING_DTLS_TRANSPORT_MAX_PENDING_RTP_PACKETS "ortc/dtls/max-pending-rtp-packets"
@@ -374,7 +375,7 @@ namespace ortc
       #pragma mark DTLSTransport => ITimerDelegate
       #pragma mark
 
-      virtual void onTimer(TimerPtr timer) override;
+      virtual void onTimer(ITimerPtr timer) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -452,7 +453,7 @@ namespace ortc
 
       size_t adapterReadPacket(BYTE *buffer, size_t bufferLengthInBytes);
 
-      TimerPtr adapterCreateTimeout(Milliseconds timeout);
+      ITimerPtr adapterCreateTimeout(Milliseconds timeout);
 
     protected:
       //-----------------------------------------------------------------------
@@ -593,7 +594,7 @@ namespace ortc
         ElementPtr toDebug() const;
 
         // Override MessageHandler
-        void onTimer(TimerPtr timer);
+        void onTimer(ITimerPtr timer);
 
       protected:
         void onEvent(int events, int err);
@@ -667,7 +668,7 @@ namespace ortc
         AutoPUID mID;
         DTLSTransportWeakPtr mOuter;
 
-        TimerPtr mTimer;
+        ITimerPtr mTimer;
 
         SSLState state_ {SSL_NONE};
         SSLRole role_ {SSL_CLIENT};

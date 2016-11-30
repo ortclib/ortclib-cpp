@@ -35,7 +35,6 @@
 
 #include <ortc/ICertificate.h>
 
-#include <ortc/services/IWakeDelegate.h>
 #include <zsLib/MessageQueueAssociator.h>
 
 #include <openssl/evp.h>
@@ -64,25 +63,8 @@ namespace ortc
     extern const char DIGEST_SHA_384[];
     extern const char DIGEST_SHA_512[];
 
-    ZS_DECLARE_INTERACTION_PTR(ICertificateForSettings)
-    ZS_DECLARE_INTERACTION_PTR(ICertificateForDTLSTransport)
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ICertificateForSettings
-    #pragma mark
-
-    interaction ICertificateForSettings
-    {
-      ZS_DECLARE_TYPEDEF_PTR(ICertificateForSettings, ForSettings)
-
-      static void applyDefaults();
-
-      virtual ~ICertificateForSettings() {}
-    };
+    ZS_DECLARE_INTERACTION_PTR(ICertificateForSettings);
+    ZS_DECLARE_INTERACTION_PTR(ICertificateForDTLSTransport);
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -129,7 +111,6 @@ namespace ortc
                         public MessageQueueAssociator,
                         public SharedRecursiveLock,
                         public ICertificate,
-                        public ICertificateForSettings,
                         public ICertificateForDTLSTransport,
                         public IWakeDelegate
     {
@@ -139,7 +120,6 @@ namespace ortc
     public:
       friend interaction ICertificate;
       friend interaction ICertificateFactory;
-      friend interaction ICertificateForSettings;
       friend interaction ICertificateForDTLSTransport;
 
       ZS_DECLARE_STRUCT_PTR(PromiseCertificateHolder);
@@ -172,7 +152,6 @@ namespace ortc
       virtual ~Certificate();
 
       static CertificatePtr convert(ICertificatePtr object);
-      static CertificatePtr convert(ForSettingsPtr object);
       static CertificatePtr convert(ForDTLSTransportPtr object);
 
     protected:

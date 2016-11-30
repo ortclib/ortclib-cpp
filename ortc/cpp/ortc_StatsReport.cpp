@@ -35,10 +35,13 @@
 #include <ortc/internal/ortc.stats.events.h>
 #include <ortc/internal/platform.h>
 
-#include <ortc/services/ISettings.h>
-#include <ortc/services/IHelper.h>
+#include <ortc/IHelper.h>
+
 #include <ortc/services/IHTTP.h>
 
+#include <zsLib/eventing/IHasher.h>
+
+#include <zsLib/ISettings.h>
 #include <zsLib/Numeric.h>
 #include <zsLib/Stringize.h>
 #include <zsLib/Log.h>
@@ -61,19 +64,17 @@ namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_stats) }
 
 namespace ortc
 {
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::ISettings, UseSettings)
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHelper, UseServicesHelper)
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHTTP, UseHTTP)
-
-  ZS_DECLARE_TYPEDEF_PTR(ortc::internal::Helper, UseHelper)
+  ZS_DECLARE_USING_PTR(zsLib, ISettings);
+  ZS_DECLARE_USING_PTR(zsLib::eventing, IHasher);
+  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHTTP, UseHTTP);
 
   using zsLib::Log;
   using zsLib::Numeric;
 
-  typedef ortc::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
-
   namespace internal
   {
+    ZS_DECLARE_CLASS_PTR(StatsReportSettingsDefaults);
+
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -172,18 +173,51 @@ namespace ortc
       ZS_LOG_INSANE(slog("report string") + ZS_PARAM("report id", reportID) + ZS_PARAM("stat name", statName) + ZS_PARAM("timestamp", timestamp) + ZS_PARAM("value", value));
     }
 
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IStatsReportForSettings
-    #pragma mark
 
     //-------------------------------------------------------------------------
-    void IStatsReportForSettings::applyDefaults()
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark StatsReportSettingsDefaults
+    #pragma mark
+
+    class StatsReportSettingsDefaults : public ISettingsApplyDefaultsDelegate
     {
-//      UseSettings::setUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE, 5*1024);
+    public:
+      //-----------------------------------------------------------------------
+      ~StatsReportSettingsDefaults()
+      {
+        ISettings::removeDefaults(*this);
+      }
+
+      //-----------------------------------------------------------------------
+      static StatsReportSettingsDefaultsPtr singleton()
+      {
+        static SingletonLazySharedPtr<StatsReportSettingsDefaults> singleton(create());
+        return singleton.singleton();
+      }
+
+      //-----------------------------------------------------------------------
+      static StatsReportSettingsDefaultsPtr create()
+      {
+        auto pThis(make_shared<StatsReportSettingsDefaults>());
+        ISettings::installDefaults(pThis);
+        return pThis;
+      }
+
+      //-----------------------------------------------------------------------
+      virtual void notifySettingsApplyDefaults() override
+      {
+        //      ISettings::setUInt(ORTC_SETTING_STATS_REPORT_, 0);
+      }
+      
+    };
+
+    //-------------------------------------------------------------------------
+    void installStatsReportSettingsDefaults()
+    {
+      StatsReportSettingsDefaults::singleton();
     }
 
     //-------------------------------------------------------------------------
@@ -279,12 +313,6 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     StatsReportPtr StatsReport::convert(IStatsReportPtr object)
-    {
-      return ZS_DYNAMIC_PTR_CAST(StatsReport, object);
-    }
-
-    //-------------------------------------------------------------------------
-    StatsReportPtr StatsReport::convert(ForSettingsPtr object)
     {
       return ZS_DYNAMIC_PTR_CAST(StatsReport, object);
     }
@@ -426,7 +454,7 @@ namespace ortc
     Log::Params StatsReport::log(const char *message) const
     {
       ElementPtr objectEl = Element::create("ortc::StatsReport");
-      UseServicesHelper::debugAppend(objectEl, "id", mID);
+      IHelper::debugAppend(objectEl, "id", mID);
       return Log::Params(message, objectEl);
     }
 
@@ -443,12 +471,12 @@ namespace ortc
 
       ElementPtr resultEl = Element::create("ortc::StatsReport");
 
-      UseServicesHelper::debugAppend(resultEl, "id", mID);
+      IHelper::debugAppend(resultEl, "id", mID);
 
-      UseServicesHelper::debugAppend(resultEl, "resolve promise", (bool)mResolvePromise.lock());
-      UseServicesHelper::debugAppend(resultEl, "pending resolution", mPendingResolution.size());
+      IHelper::debugAppend(resultEl, "resolve promise", (bool)mResolvePromise.lock());
+      IHelper::debugAppend(resultEl, "pending resolution", mPendingResolution.size());
 
-      UseServicesHelper::debugAppend(resultEl, "stat size", mStats.size());
+      IHelper::debugAppend(resultEl, "stat size", mStats.size());
 
       if (mStats.size() > 0) {
         ElementPtr statsEl = Element::create("stats");
@@ -458,12 +486,12 @@ namespace ortc
           auto &statID = (*iter).first;
           auto &stat = (*iter).second;
 
-          UseServicesHelper::debugAppend(statEl, "id", statID);
-          UseServicesHelper::debugAppend(statEl, stat ? stat->toDebug() : ElementPtr());
-          UseServicesHelper::debugAppend(statsEl, statEl);
+          IHelper::debugAppend(statEl, "id", statID);
+          IHelper::debugAppend(statEl, stat ? stat->toDebug() : ElementPtr());
+          IHelper::debugAppend(statsEl, statEl);
         }
 
-        UseServicesHelper::debugAppend(resultEl, statsEl);
+        IHelper::debugAppend(resultEl, statsEl);
       }
 
       return resultEl;
@@ -631,16 +659,16 @@ namespace ortc
   {
     if (!rootEl) return;
 
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::Stats", "timestamp", mTimestamp);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::Stats", "timestamp", mTimestamp);
     {
       String value;
-      UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::Stats", "statsType", value);
+      IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::Stats", "statsType", value);
       mStatsType = IStatsReportTypes::toStatsType(value);
       if (!mStatsType.hasValue()) {
         mStatsTypeOther = value;
       }
     }
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::Stats", "id", mID);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::Stats", "id", mID);
   }
 
   //---------------------------------------------------------------------------
@@ -685,9 +713,9 @@ namespace ortc
   {
     ElementPtr rootEl = Element::create(objectName);
 
-    UseHelper::adoptElementValue(rootEl, "timestamp", mTimestamp);
-    UseHelper::adoptElementValue(rootEl, "statsType", statsType(), false);
-    UseHelper::adoptElementValue(rootEl, "id", mID, false);
+    IHelper::adoptElementValue(rootEl, "timestamp", mTimestamp);
+    IHelper::adoptElementValue(rootEl, "statsType", statsType(), false);
+    IHelper::adoptElementValue(rootEl, "id", mID, false);
 
     if (!rootEl->hasChildren()) return ElementPtr();
 
@@ -703,17 +731,17 @@ namespace ortc
   //---------------------------------------------------------------------------
   String IStatsReportTypes::Stats::hash() const
   {
-    SHA1Hasher hasher;
+    auto hasher = IHasher::sha1();
 
-    hasher.update("IStatsReportTypes:Stats:");
+    hasher->update("IStatsReportTypes:Stats:");
 
-    hasher.update(mTimestamp);
-    hasher.update(":");
-    hasher.update(mStatsType);
-    hasher.update(":");
-    hasher.update(mID);
+    hasher->update(mTimestamp);
+    hasher->update(":");
+    hasher->update(mStatsType);
+    hasher->update(":");
+    hasher->update(mID);
 
-    return hasher.final();
+    return hasher->finalizeAsString();
   }
 
   //---------------------------------------------------------------------------
@@ -761,17 +789,17 @@ namespace ortc
   {
     if (!rootEl) return;
 
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::RTPStreamStats", "ssrc", mSSRC);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::RTPStreamStats", "associatedStatId", mAssociatedStatID);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::RTPStreamStats", "isRemote", mIsRemote);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::RTPStreamStats", "mediaType", mMediaType);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::RTPStreamStats", "mediaTrackId", mMediaTrackID);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::RTPStreamStats", "transportId", mTransportID);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::RTPStreamStats", "codecId", mCodecID);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::RTPStreamStats", "firCount", mFIRCount);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::RTPStreamStats", "pliCount", mPLICount);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::RTPStreamStats", "nackCount", mNACKCount);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::RTPStreamStats", "sliCount", mSLICount);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::RTPStreamStats", "ssrc", mSSRC);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::RTPStreamStats", "associatedStatId", mAssociatedStatID);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::RTPStreamStats", "isRemote", mIsRemote);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::RTPStreamStats", "mediaType", mMediaType);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::RTPStreamStats", "mediaTrackId", mMediaTrackID);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::RTPStreamStats", "transportId", mTransportID);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::RTPStreamStats", "codecId", mCodecID);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::RTPStreamStats", "firCount", mFIRCount);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::RTPStreamStats", "pliCount", mPLICount);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::RTPStreamStats", "nackCount", mNACKCount);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::RTPStreamStats", "sliCount", mSLICount);
   }
 
   //---------------------------------------------------------------------------
@@ -792,17 +820,17 @@ namespace ortc
   {
     ElementPtr rootEl = Stats::createElement(objectName);
 
-    UseHelper::adoptElementValue(rootEl, "ssrc", mSSRC);
-    UseHelper::adoptElementValue(rootEl, "associatedStatId", mAssociatedStatID, false);
-    UseHelper::adoptElementValue(rootEl, "isRemote", mIsRemote);
-    UseHelper::adoptElementValue(rootEl, "mediaType", mMediaType, false);
-    UseHelper::adoptElementValue(rootEl, "mediaTrackId", mMediaTrackID, false);
-    UseHelper::adoptElementValue(rootEl, "transportId", mTransportID, false);
-    UseHelper::adoptElementValue(rootEl, "codecId", mCodecID, false);
-    UseHelper::adoptElementValue(rootEl, "firCount", mFIRCount);
-    UseHelper::adoptElementValue(rootEl, "pliCount", mPLICount);
-    UseHelper::adoptElementValue(rootEl, "nackCount", mNACKCount);
-    UseHelper::adoptElementValue(rootEl, "sliCount", mSLICount);
+    IHelper::adoptElementValue(rootEl, "ssrc", mSSRC);
+    IHelper::adoptElementValue(rootEl, "associatedStatId", mAssociatedStatID, false);
+    IHelper::adoptElementValue(rootEl, "isRemote", mIsRemote);
+    IHelper::adoptElementValue(rootEl, "mediaType", mMediaType, false);
+    IHelper::adoptElementValue(rootEl, "mediaTrackId", mMediaTrackID, false);
+    IHelper::adoptElementValue(rootEl, "transportId", mTransportID, false);
+    IHelper::adoptElementValue(rootEl, "codecId", mCodecID, false);
+    IHelper::adoptElementValue(rootEl, "firCount", mFIRCount);
+    IHelper::adoptElementValue(rootEl, "pliCount", mPLICount);
+    IHelper::adoptElementValue(rootEl, "nackCount", mNACKCount);
+    IHelper::adoptElementValue(rootEl, "sliCount", mSLICount);
 
     if (!rootEl->hasChildren()) return ElementPtr();
 
@@ -818,35 +846,35 @@ namespace ortc
   //---------------------------------------------------------------------------
   String IStatsReportTypes::RTPStreamStats::hash() const
   {
-    SHA1Hasher hasher;
+    auto hasher = IHasher::sha1();
 
-    hasher.update("IStatsReportTypes:RTPStreamStats:");
+    hasher->update("IStatsReportTypes:RTPStreamStats:");
 
-    hasher.update(Stats::hash());
+    hasher->update(Stats::hash());
 
-    hasher.update(mSSRC);
-    hasher.update(":");
-    hasher.update(mAssociatedStatID);
-    hasher.update(":");
-    hasher.update(mIsRemote);
-    hasher.update(":");
-    hasher.update(mMediaType);
-    hasher.update(":");
-    hasher.update(mMediaTrackID);
-    hasher.update(":");
-    hasher.update(mTransportID);
-    hasher.update(":");
-    hasher.update(mCodecID);
-    hasher.update(":");
-    hasher.update(mFIRCount);
-    hasher.update(":");
-    hasher.update(mPLICount);
-    hasher.update(":");
-    hasher.update(mNACKCount);
-    hasher.update(":");
-    hasher.update(mSLICount);
+    hasher->update(mSSRC);
+    hasher->update(":");
+    hasher->update(mAssociatedStatID);
+    hasher->update(":");
+    hasher->update(mIsRemote);
+    hasher->update(":");
+    hasher->update(mMediaType);
+    hasher->update(":");
+    hasher->update(mMediaTrackID);
+    hasher->update(":");
+    hasher->update(mTransportID);
+    hasher->update(":");
+    hasher->update(mCodecID);
+    hasher->update(":");
+    hasher->update(mFIRCount);
+    hasher->update(":");
+    hasher->update(mPLICount);
+    hasher->update(":");
+    hasher->update(mNACKCount);
+    hasher->update(":");
+    hasher->update(mSLICount);
 
-    return hasher.final();
+    return hasher->finalizeAsString();
   }
 
   //---------------------------------------------------------------------------
@@ -896,11 +924,11 @@ namespace ortc
 
     if (!rootEl) return;
 
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::Codec", "payloadType", mPayloadType);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::Codec", "codec", mCodec);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::Codec", "clockRate", mClockRate);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::Codec", "channels", mChannels);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::Codec", "parameters", mParameters);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::Codec", "payloadType", mPayloadType);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::Codec", "codec", mCodec);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::Codec", "clockRate", mClockRate);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::Codec", "channels", mChannels);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::Codec", "parameters", mParameters);
   }
 
   //---------------------------------------------------------------------------
@@ -921,11 +949,11 @@ namespace ortc
   {
     ElementPtr rootEl = Stats::createElement(objectName);
 
-    UseHelper::adoptElementValue(rootEl, "payloadType", mPayloadType);
-    UseHelper::adoptElementValue(rootEl, "codec", mCodec, false);
-    UseHelper::adoptElementValue(rootEl, "clockRate", mClockRate);
-    UseHelper::adoptElementValue(rootEl, "channels", mChannels);
-    UseHelper::adoptElementValue(rootEl, "parameters", mParameters, false);
+    IHelper::adoptElementValue(rootEl, "payloadType", mPayloadType);
+    IHelper::adoptElementValue(rootEl, "codec", mCodec, false);
+    IHelper::adoptElementValue(rootEl, "clockRate", mClockRate);
+    IHelper::adoptElementValue(rootEl, "channels", mChannels);
+    IHelper::adoptElementValue(rootEl, "parameters", mParameters, false);
 
     if (!rootEl->hasChildren()) return ElementPtr();
 
@@ -941,24 +969,24 @@ namespace ortc
   //---------------------------------------------------------------------------
   String IStatsReportTypes::Codec::hash() const
   {
-    SHA1Hasher hasher;
+    auto hasher = IHasher::sha1();
 
-    hasher.update("IStatsReportTypes:Codec:");
+    hasher->update("IStatsReportTypes:Codec:");
 
-    hasher.update(Stats::hash());
+    hasher->update(Stats::hash());
 
-    hasher.update(mPayloadType);
-    hasher.update(":");
-    hasher.update(mCodec);
-    hasher.update(":");
-    hasher.update(mClockRate);
-    hasher.update(":");
-    hasher.update(mChannels);
-    hasher.update(":");
-    hasher.update(mParameters);
-    hasher.update(":");
+    hasher->update(mPayloadType);
+    hasher->update(":");
+    hasher->update(mCodec);
+    hasher->update(":");
+    hasher->update(mClockRate);
+    hasher->update(":");
+    hasher->update(mChannels);
+    hasher->update(":");
+    hasher->update(mParameters);
+    hasher->update(":");
 
-    return hasher.final();
+    return hasher->finalizeAsString();
   }
 
   //---------------------------------------------------------------------------
@@ -1005,12 +1033,12 @@ namespace ortc
 
     if (!rootEl) return;
 
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::InboundRTPStreamStats", "packetsReceived", mPacketsReceived);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::InboundRTPStreamStats", "bytesReceived", mBytesReceived);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::InboundRTPStreamStats", "packetsLost", mPacketsLost);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::InboundRTPStreamStats", "jitter", mJitter);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::InboundRTPStreamStats", "fractionLost", mFractionLost);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::InboundRTPStreamStats", "endToEndDelay", mEndToEndDelay);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::InboundRTPStreamStats", "packetsReceived", mPacketsReceived);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::InboundRTPStreamStats", "bytesReceived", mBytesReceived);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::InboundRTPStreamStats", "packetsLost", mPacketsLost);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::InboundRTPStreamStats", "jitter", mJitter);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::InboundRTPStreamStats", "fractionLost", mFractionLost);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::InboundRTPStreamStats", "endToEndDelay", mEndToEndDelay);
   }
 
   //---------------------------------------------------------------------------
@@ -1031,12 +1059,12 @@ namespace ortc
   {
     ElementPtr rootEl = RTPStreamStats::createElement(objectName);
 
-    UseHelper::adoptElementValue(rootEl, "packetsReceived", mPacketsReceived);
-    UseHelper::adoptElementValue(rootEl, "bytesReceived", mBytesReceived);
-    UseHelper::adoptElementValue(rootEl, "packetsLost", mPacketsLost);
-    UseHelper::adoptElementValue(rootEl, "jitter", mJitter);
-    UseHelper::adoptElementValue(rootEl, "fractionLost", mFractionLost);
-    UseHelper::adoptElementValue(rootEl, "endToEndDelay", mEndToEndDelay);
+    IHelper::adoptElementValue(rootEl, "packetsReceived", mPacketsReceived);
+    IHelper::adoptElementValue(rootEl, "bytesReceived", mBytesReceived);
+    IHelper::adoptElementValue(rootEl, "packetsLost", mPacketsLost);
+    IHelper::adoptElementValue(rootEl, "jitter", mJitter);
+    IHelper::adoptElementValue(rootEl, "fractionLost", mFractionLost);
+    IHelper::adoptElementValue(rootEl, "endToEndDelay", mEndToEndDelay);
 
     if (!rootEl->hasChildren()) return ElementPtr();
 
@@ -1052,26 +1080,26 @@ namespace ortc
   //---------------------------------------------------------------------------
   String IStatsReportTypes::InboundRTPStreamStats::hash() const
   {
-    SHA1Hasher hasher;
+    auto hasher = IHasher::sha1();
 
-    hasher.update("IStatsReportTypes:InboundRTPStreamStats:");
+    hasher->update("IStatsReportTypes:InboundRTPStreamStats:");
 
-    hasher.update(RTPStreamStats::hash());
+    hasher->update(RTPStreamStats::hash());
 
-    hasher.update(mPacketsReceived);
-    hasher.update(":");
-    hasher.update(mBytesReceived);
-    hasher.update(":");
-    hasher.update(mPacketsLost);
-    hasher.update(":");
-    hasher.update(mJitter);
-    hasher.update(":");
-    hasher.update(mFractionLost);
-    hasher.update(":");
-    hasher.update(mEndToEndDelay);
-    hasher.update(":");
+    hasher->update(mPacketsReceived);
+    hasher->update(":");
+    hasher->update(mBytesReceived);
+    hasher->update(":");
+    hasher->update(mPacketsLost);
+    hasher->update(":");
+    hasher->update(mJitter);
+    hasher->update(":");
+    hasher->update(mFractionLost);
+    hasher->update(":");
+    hasher->update(mEndToEndDelay);
+    hasher->update(":");
 
-    return hasher.final();
+    return hasher->finalizeAsString();
   }
 
   //---------------------------------------------------------------------------
@@ -1119,10 +1147,10 @@ namespace ortc
 
     if (!rootEl) return;
 
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::OutboundRTPStreamStats", "packetsSent", mPacketsSent);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::OutboundRTPStreamStats", "bytesSent", mBytesSent);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::OutboundRTPStreamStats", "targetBitrate", mTargetBitrate);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::OutboundRTPStreamStats", "roundTripTime", mRoundTripTime);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::OutboundRTPStreamStats", "packetsSent", mPacketsSent);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::OutboundRTPStreamStats", "bytesSent", mBytesSent);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::OutboundRTPStreamStats", "targetBitrate", mTargetBitrate);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::OutboundRTPStreamStats", "roundTripTime", mRoundTripTime);
   }
 
   //---------------------------------------------------------------------------
@@ -1143,10 +1171,10 @@ namespace ortc
   {
     ElementPtr rootEl = RTPStreamStats::createElement(objectName);
 
-    UseHelper::adoptElementValue(rootEl, "packetsSent", mPacketsSent);
-    UseHelper::adoptElementValue(rootEl, "bytesSent", mBytesSent);
-    UseHelper::adoptElementValue(rootEl, "targetBitrate", mTargetBitrate);
-    UseHelper::adoptElementValue(rootEl, "roundTripTime", mRoundTripTime);
+    IHelper::adoptElementValue(rootEl, "packetsSent", mPacketsSent);
+    IHelper::adoptElementValue(rootEl, "bytesSent", mBytesSent);
+    IHelper::adoptElementValue(rootEl, "targetBitrate", mTargetBitrate);
+    IHelper::adoptElementValue(rootEl, "roundTripTime", mRoundTripTime);
 
     if (!rootEl->hasChildren()) return ElementPtr();
 
@@ -1162,21 +1190,21 @@ namespace ortc
   //---------------------------------------------------------------------------
   String IStatsReportTypes::OutboundRTPStreamStats::hash() const
   {
-    SHA1Hasher hasher;
+    auto hasher = IHasher::sha1();
 
-    hasher.update("IStatsReportTypes:OutboundRTPStreamStats:");
+    hasher->update("IStatsReportTypes:OutboundRTPStreamStats:");
 
-    hasher.update(RTPStreamStats::hash());
+    hasher->update(RTPStreamStats::hash());
 
-    hasher.update(mPacketsSent);
-    hasher.update(":");
-    hasher.update(mBytesSent);
-    hasher.update(":");
-    hasher.update(mTargetBitrate);
-    hasher.update(":");
-    hasher.update(mRoundTripTime);
+    hasher->update(mPacketsSent);
+    hasher->update(":");
+    hasher->update(mBytesSent);
+    hasher->update(":");
+    hasher->update(mTargetBitrate);
+    hasher->update(":");
+    hasher->update(mRoundTripTime);
 
-    return hasher.final();
+    return hasher->finalizeAsString();
   }
 
   //---------------------------------------------------------------------------
@@ -1221,8 +1249,8 @@ namespace ortc
 
     if (!rootEl) return;
 
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::SCTPTransportStats", "dataChannelsOpened", mDataChannelsOpened);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::SCTPTransportStats", "dataChannelsClosed", mDataChannelsClosed);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::SCTPTransportStats", "dataChannelsOpened", mDataChannelsOpened);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::SCTPTransportStats", "dataChannelsClosed", mDataChannelsClosed);
   }
 
   //---------------------------------------------------------------------------
@@ -1243,8 +1271,8 @@ namespace ortc
   {
     ElementPtr rootEl = Stats::createElement(objectName);
 
-    UseHelper::adoptElementValue(rootEl, "dataChannelsOpened", mDataChannelsOpened);
-    UseHelper::adoptElementValue(rootEl, "dataChannelsClosed", mDataChannelsClosed);
+    IHelper::adoptElementValue(rootEl, "dataChannelsOpened", mDataChannelsOpened);
+    IHelper::adoptElementValue(rootEl, "dataChannelsClosed", mDataChannelsClosed);
 
     if (!rootEl->hasChildren()) return ElementPtr();
 
@@ -1260,17 +1288,17 @@ namespace ortc
   //---------------------------------------------------------------------------
   String IStatsReportTypes::SCTPTransportStats::hash() const
   {
-    SHA1Hasher hasher;
+    auto hasher = IHasher::sha1();
 
-    hasher.update("IStatsReportTypes:SCTPTransportStats:");
+    hasher->update("IStatsReportTypes:SCTPTransportStats:");
 
-    hasher.update(Stats::hash());
+    hasher->update(Stats::hash());
 
-    hasher.update(mDataChannelsOpened);
-    hasher.update(":");
-    hasher.update(mDataChannelsClosed);
+    hasher->update(mDataChannelsOpened);
+    hasher->update(":");
+    hasher->update(mDataChannelsClosed);
 
-    return hasher.final();
+    return hasher->finalizeAsString();
   }
 
   //---------------------------------------------------------------------------
@@ -1307,14 +1335,14 @@ namespace ortc
 
     if (!rootEl) return;
 
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::SCTPTransportStats", "dataChannelsOpened", mStreamID);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::SCTPTransportStats", "dataChannelsOpened", mStreamID);
 
     {
       ElementPtr trackIDsEl = rootEl->findFirstChildElement("trackIds");
       if (trackIDsEl) {
         ElementPtr trackIDEl = trackIDsEl->findFirstChildElement("trackId");
         while (trackIDEl) {
-          String value = UseServicesHelper::getElementTextAndDecode(trackIDEl);
+          String value = IHelper::getElementTextAndDecode(trackIDEl);
           trackIDEl = trackIDEl->findNextSiblingElement("trackId");
 
           if (value.isEmpty()) continue;
@@ -1342,13 +1370,13 @@ namespace ortc
   {
     ElementPtr rootEl = Stats::createElement(objectName);
 
-    UseHelper::adoptElementValue(rootEl, "streamId", mStreamID, false);
+    IHelper::adoptElementValue(rootEl, "streamId", mStreamID, false);
 
     if (mTrackIDs.size() > 0) {
       ElementPtr trackIDsEl = Element::create("trackIds");
       for (auto iter = mTrackIDs.begin(); iter != mTrackIDs.end(); ++iter) {
         auto &value = *(iter);
-        UseHelper::adoptElementValue(trackIDsEl, "trackId", value, false);
+        IHelper::adoptElementValue(trackIDsEl, "trackId", value, false);
       }
       if (trackIDsEl->hasChildren()) {
         rootEl->adoptAsLastChild(trackIDsEl);
@@ -1369,23 +1397,23 @@ namespace ortc
   //---------------------------------------------------------------------------
   String IStatsReportTypes::MediaStreamStats::hash() const
   {
-    SHA1Hasher hasher;
+    auto hasher = IHasher::sha1();
 
-    hasher.update("IStatsReportTypes:MediaStreamStats:");
+    hasher->update("IStatsReportTypes:MediaStreamStats:");
 
-    hasher.update(Stats::hash());
+    hasher->update(Stats::hash());
 
-    hasher.update(mStreamID);
-    hasher.update(":tracks:c94ff2e0568fae77366ca8824b1e22852f6933ae");
+    hasher->update(mStreamID);
+    hasher->update(":tracks:c94ff2e0568fae77366ca8824b1e22852f6933ae");
 
     for (auto iter = mTrackIDs.begin(); iter != mTrackIDs.end(); ++iter) {
       auto &value = (*iter);
-      hasher.update(":");
-      hasher.update(value);
+      hasher->update(":");
+      hasher->update(value);
     }
-    hasher.update(":tracks");
+    hasher->update(":tracks");
 
-    return hasher.final();
+    return hasher->finalizeAsString();
   }
 
   //---------------------------------------------------------------------------
@@ -1438,15 +1466,15 @@ namespace ortc
 
     if (!rootEl) return;
 
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::MediaStreamTrackStats", "trackId", mTrackID);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::MediaStreamTrackStats", "remoteSource", mRemoteSource);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::MediaStreamTrackStats", "trackId", mTrackID);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::MediaStreamTrackStats", "remoteSource", mRemoteSource);
 
     {
       ElementPtr trackIDsEl = rootEl->findFirstChildElement("ssrcIds");
       if (trackIDsEl) {
         ElementPtr trackIDEl = trackIDsEl->findFirstChildElement("ssrcId");
         while (trackIDEl) {
-          String value = UseServicesHelper::getElementText(trackIDEl);
+          String value = IHelper::getElementText(trackIDEl);
           trackIDEl = trackIDEl->findNextSiblingElement("ssrcId");
           if (value.isEmpty()) continue;
           try {
@@ -1460,16 +1488,16 @@ namespace ortc
       }
     }
 
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::MediaStreamTrackStats", "frameWidth", mFrameWidth);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::MediaStreamTrackStats", "frameHeight", mFrameHeight);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::MediaStreamTrackStats", "framesPerSecond", mFramesPerSecond);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::MediaStreamTrackStats", "framesSent", mFramesSent);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::MediaStreamTrackStats", "framesReceived", mFramesReceived);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::MediaStreamTrackStats", "framesDecoded", mFramesDecoded);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::MediaStreamTrackStats", "framesCorrupted", mFramesCorrupted);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::MediaStreamTrackStats", "audioLevel", mAudioLevel);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::MediaStreamTrackStats", "echoReturnLoss", mEchoReturnLoss);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::MediaStreamTrackStats", "echoReturnLossEnhancement", mEchoReturnLossEnhancement);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::MediaStreamTrackStats", "frameWidth", mFrameWidth);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::MediaStreamTrackStats", "frameHeight", mFrameHeight);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::MediaStreamTrackStats", "framesPerSecond", mFramesPerSecond);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::MediaStreamTrackStats", "framesSent", mFramesSent);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::MediaStreamTrackStats", "framesReceived", mFramesReceived);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::MediaStreamTrackStats", "framesDecoded", mFramesDecoded);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::MediaStreamTrackStats", "framesCorrupted", mFramesCorrupted);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::MediaStreamTrackStats", "audioLevel", mAudioLevel);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::MediaStreamTrackStats", "echoReturnLoss", mEchoReturnLoss);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::MediaStreamTrackStats", "echoReturnLossEnhancement", mEchoReturnLossEnhancement);
   }
 
   //---------------------------------------------------------------------------
@@ -1490,31 +1518,31 @@ namespace ortc
   {
     ElementPtr rootEl = Stats::createElement(objectName);
 
-    UseHelper::adoptElementValue(rootEl, "trackId", mTrackID, false);
-    UseHelper::adoptElementValue(rootEl, "remoteSource", mRemoteSource);
+    IHelper::adoptElementValue(rootEl, "trackId", mTrackID, false);
+    IHelper::adoptElementValue(rootEl, "remoteSource", mRemoteSource);
 
     if (mSSRCIDs.size() > 0) {
       ElementPtr ssrcIDsEl = Element::create("ssrcIds");
       for (auto iter = mSSRCIDs.begin(); iter != mSSRCIDs.end(); ++iter) {
         auto &value = *(iter);
-        UseHelper::adoptElementValue(ssrcIDsEl, "ssrcId", value);
+        IHelper::adoptElementValue(ssrcIDsEl, "ssrcId", value);
       }
       if (ssrcIDsEl->hasChildren()) {
         rootEl->adoptAsLastChild(ssrcIDsEl);
       }
     }
 
-    UseHelper::adoptElementValue(rootEl, "frameWidth", mFrameWidth);
-    UseHelper::adoptElementValue(rootEl, "frameHeight", mFrameHeight);
-    UseHelper::adoptElementValue(rootEl, "framesPerSecond", mFramesPerSecond);
-    UseHelper::adoptElementValue(rootEl, "framesSent", mFramesSent);
-    UseHelper::adoptElementValue(rootEl, "framesReceived", mFramesReceived);
-    UseHelper::adoptElementValue(rootEl, "framesDecoded", mFramesDecoded);
-    UseHelper::adoptElementValue(rootEl, "framesDropped", mFramesDropped);
-    UseHelper::adoptElementValue(rootEl, "framesCorrupted", mFramesCorrupted);
-    UseHelper::adoptElementValue(rootEl, "audioLevel", mAudioLevel);
-    UseHelper::adoptElementValue(rootEl, "echoReturnLoss", mEchoReturnLoss);
-    UseHelper::adoptElementValue(rootEl, "echoReturnLossEnhancement", mEchoReturnLossEnhancement);
+    IHelper::adoptElementValue(rootEl, "frameWidth", mFrameWidth);
+    IHelper::adoptElementValue(rootEl, "frameHeight", mFrameHeight);
+    IHelper::adoptElementValue(rootEl, "framesPerSecond", mFramesPerSecond);
+    IHelper::adoptElementValue(rootEl, "framesSent", mFramesSent);
+    IHelper::adoptElementValue(rootEl, "framesReceived", mFramesReceived);
+    IHelper::adoptElementValue(rootEl, "framesDecoded", mFramesDecoded);
+    IHelper::adoptElementValue(rootEl, "framesDropped", mFramesDropped);
+    IHelper::adoptElementValue(rootEl, "framesCorrupted", mFramesCorrupted);
+    IHelper::adoptElementValue(rootEl, "audioLevel", mAudioLevel);
+    IHelper::adoptElementValue(rootEl, "echoReturnLoss", mEchoReturnLoss);
+    IHelper::adoptElementValue(rootEl, "echoReturnLossEnhancement", mEchoReturnLossEnhancement);
 
     if (!rootEl->hasChildren()) return ElementPtr();
 
@@ -1530,47 +1558,47 @@ namespace ortc
   //---------------------------------------------------------------------------
   String IStatsReportTypes::MediaStreamTrackStats::hash() const
   {
-    SHA1Hasher hasher;
+    auto hasher = IHasher::sha1();
 
-    hasher.update("IStatsReportTypes:MediaStreamTrackStats:");
+    hasher->update("IStatsReportTypes:MediaStreamTrackStats:");
 
-    hasher.update(Stats::hash());
+    hasher->update(Stats::hash());
 
-    hasher.update(mTrackID);
-    hasher.update(":");
-    hasher.update(mRemoteSource);
+    hasher->update(mTrackID);
+    hasher->update(":");
+    hasher->update(mRemoteSource);
 
-    hasher.update(":ssrcs:4a2f24cc4bfc91dbd040942775fb3818851495c7");
+    hasher->update(":ssrcs:4a2f24cc4bfc91dbd040942775fb3818851495c7");
 
     for (auto iter = mSSRCIDs.begin(); iter != mSSRCIDs.end(); ++iter) {
       auto &value = (*iter);
-      hasher.update(":");
-      hasher.update(value);
+      hasher->update(":");
+      hasher->update(value);
     }
-    hasher.update(":ssrcs:");
-    hasher.update(mFrameWidth);
-    hasher.update(":");
-    hasher.update(mFrameHeight);
-    hasher.update(":");
-    hasher.update(mFramesPerSecond);
-    hasher.update(":");
-    hasher.update(mFramesSent);
-    hasher.update(":");
-    hasher.update(mFramesReceived);
-    hasher.update(":");
-    hasher.update(mFramesDecoded);
-    hasher.update(":");
-    hasher.update(mFramesDropped);
-    hasher.update(":");
-    hasher.update(mFramesCorrupted);
-    hasher.update(":");
-    hasher.update(mAudioLevel);
-    hasher.update(":");
-    hasher.update(mEchoReturnLoss);
-    hasher.update(":");
-    hasher.update(mEchoReturnLossEnhancement);
+    hasher->update(":ssrcs:");
+    hasher->update(mFrameWidth);
+    hasher->update(":");
+    hasher->update(mFrameHeight);
+    hasher->update(":");
+    hasher->update(mFramesPerSecond);
+    hasher->update(":");
+    hasher->update(mFramesSent);
+    hasher->update(":");
+    hasher->update(mFramesReceived);
+    hasher->update(":");
+    hasher->update(mFramesDecoded);
+    hasher->update(":");
+    hasher->update(mFramesDropped);
+    hasher->update(":");
+    hasher->update(mFramesCorrupted);
+    hasher->update(":");
+    hasher->update(mAudioLevel);
+    hasher->update(":");
+    hasher->update(mEchoReturnLoss);
+    hasher->update(":");
+    hasher->update(mEchoReturnLossEnhancement);
 
-    return hasher.final();
+    return hasher->finalizeAsString();
   }
 
   //---------------------------------------------------------------------------
@@ -1644,22 +1672,22 @@ namespace ortc
 
     if (!rootEl) return;
 
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::DataChannelStats", "label", mLabel);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::DataChannelStats", "protocol", mProtocol);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::DataChannelStats", "datachannelId", mDataChannelID);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::DataChannelStats", "label", mLabel);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::DataChannelStats", "protocol", mProtocol);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::DataChannelStats", "datachannelId", mDataChannelID);
 
     {
       String str;
-      UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::DataChannelStats", "state", str);
+      IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::DataChannelStats", "state", str);
       if (str.hasData()) {
         mState = IDataChannelTypes::toState(str);
       }
     }
 
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::DataChannelStats", "messagesSent", mMessagesSent);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::DataChannelStats", "bytesSent", mBytesSent);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::DataChannelStats", "messagesReceived", mMessagesReceived);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::DataChannelStats", "bytesReceived", mBytesReceived);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::DataChannelStats", "messagesSent", mMessagesSent);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::DataChannelStats", "bytesSent", mBytesSent);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::DataChannelStats", "messagesReceived", mMessagesReceived);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::DataChannelStats", "bytesReceived", mBytesReceived);
   }
 
   //---------------------------------------------------------------------------
@@ -1680,14 +1708,14 @@ namespace ortc
   {
     ElementPtr rootEl = Stats::createElement(objectName);
 
-    UseHelper::adoptElementValue(rootEl, "label", mLabel, false);
-    UseHelper::adoptElementValue(rootEl, "protocol", mProtocol, false);
-    UseHelper::adoptElementValue(rootEl, "datachannelId", mDataChannelID);
-    UseHelper::adoptElementValue(rootEl, "state", IDataChannelTypes::toString(mState), false);
-    UseHelper::adoptElementValue(rootEl, "messagesSent", mMessagesSent);
-    UseHelper::adoptElementValue(rootEl, "bytesSent", mBytesSent);
-    UseHelper::adoptElementValue(rootEl, "messagesReceived", mMessagesReceived);
-    UseHelper::adoptElementValue(rootEl, "bytesReceived", mBytesReceived);
+    IHelper::adoptElementValue(rootEl, "label", mLabel, false);
+    IHelper::adoptElementValue(rootEl, "protocol", mProtocol, false);
+    IHelper::adoptElementValue(rootEl, "datachannelId", mDataChannelID);
+    IHelper::adoptElementValue(rootEl, "state", IDataChannelTypes::toString(mState), false);
+    IHelper::adoptElementValue(rootEl, "messagesSent", mMessagesSent);
+    IHelper::adoptElementValue(rootEl, "bytesSent", mBytesSent);
+    IHelper::adoptElementValue(rootEl, "messagesReceived", mMessagesReceived);
+    IHelper::adoptElementValue(rootEl, "bytesReceived", mBytesReceived);
 
     if (!rootEl->hasChildren()) return ElementPtr();
 
@@ -1703,30 +1731,30 @@ namespace ortc
   //---------------------------------------------------------------------------
   String IStatsReportTypes::DataChannelStats::hash() const
   {
-    SHA1Hasher hasher;
+    auto hasher = IHasher::sha1();
 
-    hasher.update("IStatsReportTypes:DataChannelStats:");
+    hasher->update("IStatsReportTypes:DataChannelStats:");
 
-    hasher.update(Stats::hash());
+    hasher->update(Stats::hash());
 
-    hasher.update(mLabel);
-    hasher.update(":");
-    hasher.update(mProtocol);
-    hasher.update(":");
-    hasher.update(mDataChannelID);
-    hasher.update(":");
-    hasher.update(IDataChannelTypes::toString(mState));
-    hasher.update(":");
-    hasher.update(mMessagesSent);
-    hasher.update(":");
-    hasher.update(mBytesSent);
-    hasher.update(":");
-    hasher.update(mMessagesReceived);
-    hasher.update(":");
-    hasher.update(mBytesReceived);
-    hasher.update(":");
+    hasher->update(mLabel);
+    hasher->update(":");
+    hasher->update(mProtocol);
+    hasher->update(":");
+    hasher->update(mDataChannelID);
+    hasher->update(":");
+    hasher->update(IDataChannelTypes::toString(mState));
+    hasher->update(":");
+    hasher->update(mMessagesSent);
+    hasher->update(":");
+    hasher->update(mBytesSent);
+    hasher->update(":");
+    hasher->update(mMessagesReceived);
+    hasher->update(":");
+    hasher->update(mBytesReceived);
+    hasher->update(":");
 
-    return hasher.final();
+    return hasher->finalizeAsString();
   }
 
   //---------------------------------------------------------------------------
@@ -1769,9 +1797,9 @@ namespace ortc
 
     if (!rootEl) return;
 
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICEGathererStats", "bytesSent", mBytesSent);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICEGathererStats", "bytesReceived", mBytesReceived);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICEGathererStats", "rtcpGathererStatsId", mRTCPGathererStatsID);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICEGathererStats", "bytesSent", mBytesSent);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICEGathererStats", "bytesReceived", mBytesReceived);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICEGathererStats", "rtcpGathererStatsId", mRTCPGathererStatsID);
   }
 
   //---------------------------------------------------------------------------
@@ -1792,9 +1820,9 @@ namespace ortc
   {
     ElementPtr rootEl = Stats::createElement(objectName);
 
-    UseHelper::adoptElementValue(rootEl, "bytesSent", mBytesSent);
-    UseHelper::adoptElementValue(rootEl, "bytesReceived", mBytesReceived);
-    UseHelper::adoptElementValue(rootEl, "rtcpGathererStatsId", mRTCPGathererStatsID, false);
+    IHelper::adoptElementValue(rootEl, "bytesSent", mBytesSent);
+    IHelper::adoptElementValue(rootEl, "bytesReceived", mBytesReceived);
+    IHelper::adoptElementValue(rootEl, "rtcpGathererStatsId", mRTCPGathererStatsID, false);
 
     if (!rootEl->hasChildren()) return ElementPtr();
 
@@ -1810,20 +1838,20 @@ namespace ortc
   //---------------------------------------------------------------------------
   String IStatsReportTypes::ICEGathererStats::hash() const
   {
-    SHA1Hasher hasher;
+    auto hasher = IHasher::sha1();
 
-    hasher.update("IStatsReportTypes:ICEGathererStats:");
+    hasher->update("IStatsReportTypes:ICEGathererStats:");
 
-    hasher.update(Stats::hash());
+    hasher->update(Stats::hash());
 
-    hasher.update(mBytesSent);
-    hasher.update(":");
-    hasher.update(mBytesReceived);
-    hasher.update(":");
-    hasher.update(mRTCPGathererStatsID);
-    hasher.update(":");
+    hasher->update(mBytesSent);
+    hasher->update(":");
+    hasher->update(mBytesReceived);
+    hasher->update(":");
+    hasher->update(mRTCPGathererStatsID);
+    hasher->update(":");
 
-    return hasher.final();
+    return hasher->finalizeAsString();
   }
 
   //---------------------------------------------------------------------------
@@ -1864,11 +1892,11 @@ namespace ortc
 
     if (!rootEl) return;
 
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICETransportStats", "bytesSent", mBytesSent);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICETransportStats", "bytesReceived", mBytesReceived);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICETransportStats", "rtcpTransportStatsId", mRTCPTransportStatsID);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICETransportStats", "activeConnection", mActiveConnection);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICETransportStats", "selectedCandidatePairId", mSelectedCandidatePairID);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICETransportStats", "bytesSent", mBytesSent);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICETransportStats", "bytesReceived", mBytesReceived);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICETransportStats", "rtcpTransportStatsId", mRTCPTransportStatsID);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICETransportStats", "activeConnection", mActiveConnection);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICETransportStats", "selectedCandidatePairId", mSelectedCandidatePairID);
   }
 
   //---------------------------------------------------------------------------
@@ -1889,11 +1917,11 @@ namespace ortc
   {
     ElementPtr rootEl = Stats::createElement(objectName);
 
-    UseHelper::adoptElementValue(rootEl, "bytesSent", mBytesSent);
-    UseHelper::adoptElementValue(rootEl, "bytesReceived", mBytesReceived);
-    UseHelper::adoptElementValue(rootEl, "rtcpTransportStatsId", mRTCPTransportStatsID, false);
-    UseHelper::adoptElementValue(rootEl, "activeConnection", mActiveConnection);
-    UseHelper::adoptElementValue(rootEl, "selectedCandidatePairId", mSelectedCandidatePairID, false);
+    IHelper::adoptElementValue(rootEl, "bytesSent", mBytesSent);
+    IHelper::adoptElementValue(rootEl, "bytesReceived", mBytesReceived);
+    IHelper::adoptElementValue(rootEl, "rtcpTransportStatsId", mRTCPTransportStatsID, false);
+    IHelper::adoptElementValue(rootEl, "activeConnection", mActiveConnection);
+    IHelper::adoptElementValue(rootEl, "selectedCandidatePairId", mSelectedCandidatePairID, false);
 
     if (!rootEl->hasChildren()) return ElementPtr();
 
@@ -1909,24 +1937,24 @@ namespace ortc
   //---------------------------------------------------------------------------
   String IStatsReportTypes::ICETransportStats::hash() const
   {
-    SHA1Hasher hasher;
+    auto hasher = IHasher::sha1();
 
-    hasher.update("IStatsReportTypes:ICETransportStats:");
+    hasher->update("IStatsReportTypes:ICETransportStats:");
 
-    hasher.update(Stats::hash());
+    hasher->update(Stats::hash());
 
-    hasher.update(mBytesSent);
-    hasher.update(":");
-    hasher.update(mBytesReceived);
-    hasher.update(":");
-    hasher.update(mRTCPTransportStatsID);
-    hasher.update(":");
-    hasher.update(mActiveConnection);
-    hasher.update(":");
-    hasher.update(mSelectedCandidatePairID);
-    hasher.update(":");
+    hasher->update(mBytesSent);
+    hasher->update(":");
+    hasher->update(mBytesReceived);
+    hasher->update(":");
+    hasher->update(mRTCPTransportStatsID);
+    hasher->update(":");
+    hasher->update(mActiveConnection);
+    hasher->update(":");
+    hasher->update(mSelectedCandidatePairID);
+    hasher->update(":");
 
-    return hasher.final();
+    return hasher->finalizeAsString();
   }
 
   //---------------------------------------------------------------------------
@@ -1966,8 +1994,8 @@ namespace ortc
 
     if (!rootEl) return;
 
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::DTLSTransportStats", "localCertificateId", mLocalCertificateID);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::DTLSTransportStats", "remoteCertificateId", mRemoteCertificateID);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::DTLSTransportStats", "localCertificateId", mLocalCertificateID);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::DTLSTransportStats", "remoteCertificateId", mRemoteCertificateID);
   }
 
   //---------------------------------------------------------------------------
@@ -1988,8 +2016,8 @@ namespace ortc
   {
     ElementPtr rootEl = Stats::createElement(objectName);
 
-    UseHelper::adoptElementValue(rootEl, "localCertificateId", mLocalCertificateID, false);
-    UseHelper::adoptElementValue(rootEl, "remoteCertificateId", mRemoteCertificateID, false);
+    IHelper::adoptElementValue(rootEl, "localCertificateId", mLocalCertificateID, false);
+    IHelper::adoptElementValue(rootEl, "remoteCertificateId", mRemoteCertificateID, false);
 
     if (!rootEl->hasChildren()) return ElementPtr();
 
@@ -2005,18 +2033,18 @@ namespace ortc
   //---------------------------------------------------------------------------
   String IStatsReportTypes::DTLSTransportStats::hash() const
   {
-    SHA1Hasher hasher;
+    auto hasher = IHasher::sha1();
 
-    hasher.update("IStatsReportTypes:DTLSTransportStats:");
+    hasher->update("IStatsReportTypes:DTLSTransportStats:");
 
-    hasher.update(Stats::hash());
+    hasher->update(Stats::hash());
 
-    hasher.update(mLocalCertificateID);
-    hasher.update(":");
-    hasher.update(mRemoteCertificateID);
-    hasher.update(":");
+    hasher->update(mLocalCertificateID);
+    hasher->update(":");
+    hasher->update(mRemoteCertificateID);
+    hasher->update(":");
 
-    return hasher.final();
+    return hasher->finalizeAsString();
   }
 
   //---------------------------------------------------------------------------
@@ -2084,15 +2112,15 @@ namespace ortc
   //---------------------------------------------------------------------------
   String IStatsReportTypes::SRTPTransportStats::hash() const
   {
-    SHA1Hasher hasher;
+    auto hasher = IHasher::sha1();
 
-    hasher.update("IStatsReportTypes:SRTPTransportStats:");
+    hasher->update("IStatsReportTypes:SRTPTransportStats:");
 
-    hasher.update(Stats::hash());
+    hasher->update(Stats::hash());
 
-    hasher.update(":");
+    hasher->update(":");
 
-    return hasher.final();
+    return hasher->finalizeAsString();
   }
 
   //---------------------------------------------------------------------------
@@ -2131,14 +2159,14 @@ namespace ortc
 
     if (!rootEl) return;
 
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidateAttributes", "relatedId", mRelatedID);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidateAttributes", "ipAddress", mIPAddress);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidateAttributes", "portNumber", mPortNumber);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidateAttributes", "transport", mTransport);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidateAttributes", "relatedId", mRelatedID);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidateAttributes", "ipAddress", mIPAddress);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidateAttributes", "portNumber", mPortNumber);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidateAttributes", "transport", mTransport);
 
     {
       String str;
-      UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidateAttributes", "candidateType", str);
+      IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidateAttributes", "candidateType", str);
       if (str.hasData()) {
         try {
           mCandidateType = IICETypes::toCandidateType(str);
@@ -2148,8 +2176,8 @@ namespace ortc
       }
     }
 
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidateAttributes", "priority", mPriority);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidateAttributes", "addressSourceUrl", mAddressSourceURL);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidateAttributes", "priority", mPriority);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidateAttributes", "addressSourceUrl", mAddressSourceURL);
   }
 
   //---------------------------------------------------------------------------
@@ -2170,13 +2198,13 @@ namespace ortc
   {
     ElementPtr rootEl = Stats::createElement(objectName);
 
-    UseHelper::adoptElementValue(rootEl, "relatedId", mRelatedID, false);
-    UseHelper::adoptElementValue(rootEl, "ipAddress", mIPAddress, false);
-    UseHelper::adoptElementValue(rootEl, "portNumber", mPortNumber);
-    UseHelper::adoptElementValue(rootEl, "transport", mTransport, false);
-    UseHelper::adoptElementValue(rootEl, "candidateType", IICETypes::toString(mCandidateType), false);
-    UseHelper::adoptElementValue(rootEl, "priority", mPriority);
-    UseHelper::adoptElementValue(rootEl, "addressSourceUrl", mAddressSourceURL, false);
+    IHelper::adoptElementValue(rootEl, "relatedId", mRelatedID, false);
+    IHelper::adoptElementValue(rootEl, "ipAddress", mIPAddress, false);
+    IHelper::adoptElementValue(rootEl, "portNumber", mPortNumber);
+    IHelper::adoptElementValue(rootEl, "transport", mTransport, false);
+    IHelper::adoptElementValue(rootEl, "candidateType", IICETypes::toString(mCandidateType), false);
+    IHelper::adoptElementValue(rootEl, "priority", mPriority);
+    IHelper::adoptElementValue(rootEl, "addressSourceUrl", mAddressSourceURL, false);
 
     if (!rootEl->hasChildren()) return ElementPtr();
 
@@ -2192,28 +2220,28 @@ namespace ortc
   //---------------------------------------------------------------------------
   String IStatsReportTypes::ICECandidateAttributes::hash() const
   {
-    SHA1Hasher hasher;
+    auto hasher = IHasher::sha1();
 
-    hasher.update("IStatsReportTypes:ICECandidateAttributes:");
+    hasher->update("IStatsReportTypes:ICECandidateAttributes:");
 
-    hasher.update(Stats::hash());
+    hasher->update(Stats::hash());
 
-    hasher.update(mRelatedID);
-    hasher.update(":");
-    hasher.update(mIPAddress);
-    hasher.update(":");
-    hasher.update(mPortNumber);
-    hasher.update(":");
-    hasher.update(mTransport);
-    hasher.update(":");
-    hasher.update(IICETypes::toString(mCandidateType));
-    hasher.update(":");
-    hasher.update(mPriority);
-    hasher.update(":");
-    hasher.update(mAddressSourceURL);
-    hasher.update(":");
+    hasher->update(mRelatedID);
+    hasher->update(":");
+    hasher->update(mIPAddress);
+    hasher->update(":");
+    hasher->update(mPortNumber);
+    hasher->update(":");
+    hasher->update(mTransport);
+    hasher->update(":");
+    hasher->update(IICETypes::toString(mCandidateType));
+    hasher->update(":");
+    hasher->update(mPriority);
+    hasher->update(":");
+    hasher->update(mAddressSourceURL);
+    hasher->update(":");
 
-    return hasher.final();
+    return hasher->finalizeAsString();
   }
 
   //---------------------------------------------------------------------------
@@ -2265,13 +2293,13 @@ namespace ortc
 
     if (!rootEl) return;
 
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidatePairStats", "transportId", mTransportID);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidatePairStats", "localCandidateId", mLocalCandidateID);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidatePairStats", "remoteCandidateId", mRemoteCandidateID);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidatePairStats", "transportId", mTransportID);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidatePairStats", "localCandidateId", mLocalCandidateID);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidatePairStats", "remoteCandidateId", mRemoteCandidateID);
 
     {
       String str;
-      UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidatePairStats", "state", str);
+      IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidatePairStats", "state", str);
       if (str.hasData()) {
         try {
           mState = IStatsReportTypes::toCandidatePairState(str);
@@ -2281,15 +2309,15 @@ namespace ortc
       }
     }
 
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidatePairStats", "priority", mPriority);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidatePairStats", "nominated", mNominated);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidatePairStats", "writable", mWritable);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidatePairStats", "readable", mReadable);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidatePairStats", "bytesSent", mBytesSent);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidatePairStats", "bytesReceived", mBytesReceived);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidatePairStats", "roundTripTime", mRoundTripTime);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidatePairStats", "availableOutgoingBitrate", mAvailableOutgoingBitrate);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidatePairStats", "availableIncomingBitrate", mAvailableIncomingBitrate);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidatePairStats", "priority", mPriority);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidatePairStats", "nominated", mNominated);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidatePairStats", "writable", mWritable);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidatePairStats", "readable", mReadable);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidatePairStats", "bytesSent", mBytesSent);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidatePairStats", "bytesReceived", mBytesReceived);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidatePairStats", "roundTripTime", mRoundTripTime);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidatePairStats", "availableOutgoingBitrate", mAvailableOutgoingBitrate);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::ICECandidatePairStats", "availableIncomingBitrate", mAvailableIncomingBitrate);
   }
 
   //---------------------------------------------------------------------------
@@ -2310,19 +2338,19 @@ namespace ortc
   {
     ElementPtr rootEl = Stats::createElement(objectName);
 
-    UseHelper::adoptElementValue(rootEl, "transportId", mTransportID, false);
-    UseHelper::adoptElementValue(rootEl, "localCandidateId", mLocalCandidateID, false);
-    UseHelper::adoptElementValue(rootEl, "remoteCandidateId", mRemoteCandidateID, false);
-    UseHelper::adoptElementValue(rootEl, "state", IStatsReportTypes::toString(mState), false);
-    UseHelper::adoptElementValue(rootEl, "priority", mPriority);
-    UseHelper::adoptElementValue(rootEl, "nominated", mNominated);
-    UseHelper::adoptElementValue(rootEl, "writable", mWritable);
-    UseHelper::adoptElementValue(rootEl, "readable", mReadable);
-    UseHelper::adoptElementValue(rootEl, "bytesSent", mBytesSent);
-    UseHelper::adoptElementValue(rootEl, "bytesReceived", mBytesReceived);
-    UseHelper::adoptElementValue(rootEl, "roundTripTime", mRoundTripTime);
-    UseHelper::adoptElementValue(rootEl, "availableOutgoingBitrate", mAvailableOutgoingBitrate);
-    UseHelper::adoptElementValue(rootEl, "availableIncomingBitrate", mAvailableIncomingBitrate);
+    IHelper::adoptElementValue(rootEl, "transportId", mTransportID, false);
+    IHelper::adoptElementValue(rootEl, "localCandidateId", mLocalCandidateID, false);
+    IHelper::adoptElementValue(rootEl, "remoteCandidateId", mRemoteCandidateID, false);
+    IHelper::adoptElementValue(rootEl, "state", IStatsReportTypes::toString(mState), false);
+    IHelper::adoptElementValue(rootEl, "priority", mPriority);
+    IHelper::adoptElementValue(rootEl, "nominated", mNominated);
+    IHelper::adoptElementValue(rootEl, "writable", mWritable);
+    IHelper::adoptElementValue(rootEl, "readable", mReadable);
+    IHelper::adoptElementValue(rootEl, "bytesSent", mBytesSent);
+    IHelper::adoptElementValue(rootEl, "bytesReceived", mBytesReceived);
+    IHelper::adoptElementValue(rootEl, "roundTripTime", mRoundTripTime);
+    IHelper::adoptElementValue(rootEl, "availableOutgoingBitrate", mAvailableOutgoingBitrate);
+    IHelper::adoptElementValue(rootEl, "availableIncomingBitrate", mAvailableIncomingBitrate);
 
     if (!rootEl->hasChildren()) return ElementPtr();
 
@@ -2338,38 +2366,38 @@ namespace ortc
   //---------------------------------------------------------------------------
   String IStatsReportTypes::ICECandidatePairStats::hash() const
   {
-    SHA1Hasher hasher;
+    auto hasher = IHasher::sha1();
 
-    hasher.update("IStatsReportTypes:ICECandidatePairStats:");
+    hasher->update("IStatsReportTypes:ICECandidatePairStats:");
 
-    hasher.update(Stats::hash());
+    hasher->update(Stats::hash());
 
-    hasher.update(mTransportID);
-    hasher.update(":");
-    hasher.update(mLocalCandidateID);
-    hasher.update(":");
-    hasher.update(mRemoteCandidateID);
-    hasher.update(":");
-    hasher.update(IStatsReportTypes::toString(mState));
-    hasher.update(":");
-    hasher.update(mPriority);
-    hasher.update(":");
-    hasher.update(mNominated);
-    hasher.update(":");
-    hasher.update(mWritable);
-    hasher.update(":");
-    hasher.update(mReadable);
-    hasher.update(":");
-    hasher.update(mBytesSent);
-    hasher.update(":");
-    hasher.update(mRoundTripTime);
-    hasher.update(":");
-    hasher.update(mAvailableOutgoingBitrate);
-    hasher.update(":");
-    hasher.update(mAvailableIncomingBitrate);
-    hasher.update(":");
+    hasher->update(mTransportID);
+    hasher->update(":");
+    hasher->update(mLocalCandidateID);
+    hasher->update(":");
+    hasher->update(mRemoteCandidateID);
+    hasher->update(":");
+    hasher->update(IStatsReportTypes::toString(mState));
+    hasher->update(":");
+    hasher->update(mPriority);
+    hasher->update(":");
+    hasher->update(mNominated);
+    hasher->update(":");
+    hasher->update(mWritable);
+    hasher->update(":");
+    hasher->update(mReadable);
+    hasher->update(":");
+    hasher->update(mBytesSent);
+    hasher->update(":");
+    hasher->update(mRoundTripTime);
+    hasher->update(":");
+    hasher->update(mAvailableOutgoingBitrate);
+    hasher->update(":");
+    hasher->update(mAvailableIncomingBitrate);
+    hasher->update(":");
 
-    return hasher.final();
+    return hasher->finalizeAsString();
   }
 
   //---------------------------------------------------------------------------
@@ -2418,10 +2446,10 @@ namespace ortc
 
     if (!rootEl) return;
 
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::CertificateStats", "fingerprint", mFingerprint);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::CertificateStats", "fingerprintAlgorithm", mFingerprintAlgorithm);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::CertificateStats", "base64Certificate", mBase64Certificate);
-    UseHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::CertificateStats", "issuerCertificateID", mIssuerCertificateID);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::CertificateStats", "fingerprint", mFingerprint);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::CertificateStats", "fingerprintAlgorithm", mFingerprintAlgorithm);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::CertificateStats", "base64Certificate", mBase64Certificate);
+    IHelper::getElementValue(rootEl, "ortc::IStatsReportTypes::CertificateStats", "issuerCertificateID", mIssuerCertificateID);
   }
 
   //---------------------------------------------------------------------------
@@ -2442,10 +2470,10 @@ namespace ortc
   {
     ElementPtr rootEl = Stats::createElement(objectName);
 
-    UseHelper::adoptElementValue(rootEl, "fingerprint", mFingerprint, false);
-    UseHelper::adoptElementValue(rootEl, "fingerprintAlgorithm", mFingerprintAlgorithm, false);
-    UseHelper::adoptElementValue(rootEl, "base64Certificate", mBase64Certificate, false);
-    UseHelper::adoptElementValue(rootEl, "issuerCertificateID", mIssuerCertificateID, false);
+    IHelper::adoptElementValue(rootEl, "fingerprint", mFingerprint, false);
+    IHelper::adoptElementValue(rootEl, "fingerprintAlgorithm", mFingerprintAlgorithm, false);
+    IHelper::adoptElementValue(rootEl, "base64Certificate", mBase64Certificate, false);
+    IHelper::adoptElementValue(rootEl, "issuerCertificateID", mIssuerCertificateID, false);
 
     if (!rootEl->hasChildren()) return ElementPtr();
 
@@ -2461,22 +2489,22 @@ namespace ortc
   //---------------------------------------------------------------------------
   String IStatsReportTypes::CertificateStats::hash() const
   {
-    SHA1Hasher hasher;
+    auto hasher = IHasher::sha1();
 
-    hasher.update("IStatsReportTypes:CertificateStats:");
+    hasher->update("IStatsReportTypes:CertificateStats:");
 
-    hasher.update(Stats::hash());
+    hasher->update(Stats::hash());
 
-    hasher.update(mFingerprint);
-    hasher.update(":");
-    hasher.update(mFingerprintAlgorithm);
-    hasher.update(":");
-    hasher.update(mBase64Certificate);
-    hasher.update(":");
-    hasher.update(mIssuerCertificateID);
-    hasher.update(":");
+    hasher->update(mFingerprint);
+    hasher->update(":");
+    hasher->update(mFingerprintAlgorithm);
+    hasher->update(":");
+    hasher->update(mBase64Certificate);
+    hasher->update(":");
+    hasher->update(mIssuerCertificateID);
+    hasher->update(":");
 
-    return hasher.final();
+    return hasher->finalizeAsString();
   }
 
   //---------------------------------------------------------------------------

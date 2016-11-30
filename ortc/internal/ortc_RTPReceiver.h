@@ -41,9 +41,8 @@
 #include <ortc/IMediaStreamTrack.h>
 #include <ortc/IStatsProvider.h>
 
-#include <ortc/services/IWakeDelegate.h>
 #include <zsLib/MessageQueueAssociator.h>
-#include <zsLib/Timer.h>
+#include <zsLib/ITimer.h>
 
 #define ORTC_SETTING_RTP_RECEIVER_SSRC_TIMEOUT_IN_SECONDS "ortc/rtp-receiver/ssrc-timeout-in-seconds"
 
@@ -60,7 +59,6 @@ namespace ortc
 {
   namespace internal
   {
-    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverForSettings)
     ZS_DECLARE_INTERACTION_PTR(IRTPReceiverForRTPListener)
     ZS_DECLARE_INTERACTION_PTR(IRTPReceiverForMediaStreamTrack)
 
@@ -73,23 +71,6 @@ namespace ortc
 
     ZS_DECLARE_INTERACTION_PROXY(IRTPReceiverAsyncDelegate)
 
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPReceiverForSettings
-    #pragma mark
-
-    interaction IRTPReceiverForSettings
-    {
-      ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverForSettings, ForSettings)
-
-      static void applyDefaults();
-
-      virtual ~IRTPReceiverForSettings() {}
-    };
-    
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -178,7 +159,6 @@ namespace ortc
                         public MessageQueueAssociator,
                         public SharedRecursiveLock,
                         public IRTPReceiver,
-                        public IRTPReceiverForSettings,
                         public IRTPReceiverForRTPListener,
                         public IRTPReceiverForRTPReceiverChannel,
                         public IRTPReceiverForMediaStreamTrack,
@@ -193,7 +173,6 @@ namespace ortc
     public:
       friend interaction IRTPReceiver;
       friend interaction IRTPReceiverFactory;
-      friend interaction IRTPReceiverForSettings;
       friend interaction IRTPReceiverForRTPListener;
       friend interaction IRTPReceiverForRTPReceiverChannel;
       friend interaction IRTPReceiverForMediaStreamTrack;
@@ -421,7 +400,6 @@ namespace ortc
       virtual ~RTPReceiver();
 
       static RTPReceiverPtr convert(IRTPReceiverPtr object);
-      static RTPReceiverPtr convert(ForSettingsPtr object);
       static RTPReceiverPtr convert(ForRTPListenerPtr object);
       static RTPReceiverPtr convert(ForRTPReceiverChannelPtr object);
       static RTPReceiverPtr convert(ForMediaStreamTrackPtr object);
@@ -531,7 +509,7 @@ namespace ortc
       #pragma mark RTPReceiver => ITimerDelegate
       #pragma mark
 
-      virtual void onTimer(TimerPtr timer) override;
+      virtual void onTimer(ITimerPtr timer) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -775,7 +753,7 @@ namespace ortc
 
       RIDToChannelMap mRIDTable;
 
-      TimerPtr mSSRCTableTimer;
+      ITimerPtr mSSRCTableTimer;
       Seconds mSSRCTableExpires {};
 
       size_t mMaxBufferedRTPPackets {};
@@ -786,7 +764,7 @@ namespace ortc
 
       ContributingSourceMap mContributingSources;
       Seconds mContributingSourcesExpiry {};
-      TimerPtr mContributingSourcesTimer;
+      ITimerPtr mContributingSourcesTimer;
 
       ChannelHolderPtr mCurrentChannel;
       Time mLastSwitchedCurrentChannel;

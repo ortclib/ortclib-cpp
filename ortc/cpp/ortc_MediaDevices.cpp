@@ -35,10 +35,12 @@
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/platform.h>
 
-#include <ortc/services/ISettings.h>
 #include <ortc/services/IHelper.h>
 #include <ortc/services/IHTTP.h>
 
+#include <zsLib/eventing/IHasher.h>
+
+#include <zsLib/ISettings.h>
 #include <zsLib/Numeric.h>
 #include <zsLib/Stringize.h>
 #include <zsLib/Log.h>
@@ -60,13 +62,9 @@ namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_mediadevices) }
 
 namespace ortc
 {
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::ISettings, UseSettings)
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHelper, UseServicesHelper)
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHTTP, UseHTTP)
-
-  ZS_DECLARE_TYPEDEF_PTR(ortc::internal::Helper, UseHelper)
-
-  typedef ortc::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
+  ZS_DECLARE_USING_PTR(zsLib, ISettings);
+  ZS_DECLARE_USING_PTR(zsLib::eventing, IHasher);
+  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHTTP, UseHTTP);
 
   using zsLib::SingletonManager;
 
@@ -75,6 +73,8 @@ namespace ortc
 
   namespace internal
   {
+    ZS_DECLARE_CLASS_PTR(MediaDevicesSettingsDefaults);
+
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -89,14 +89,54 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IICETransportForSettings
+    #pragma mark MediaDevicesSettingsDefaults
     #pragma mark
 
-    //-------------------------------------------------------------------------
-    void IMediaDevicesForSettings::applyDefaults()
+    class MediaDevicesSettingsDefaults : public ISettingsApplyDefaultsDelegate
     {
-//      UseSettings::setUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE, 5*1024);
+    public:
+      //-----------------------------------------------------------------------
+      ~MediaDevicesSettingsDefaults()
+      {
+        ISettings::removeDefaults(*this);
+      }
+
+      //-----------------------------------------------------------------------
+      static MediaDevicesSettingsDefaultsPtr singleton()
+      {
+        static SingletonLazySharedPtr<MediaDevicesSettingsDefaults> singleton(create());
+        return singleton.singleton();
+      }
+
+      //-----------------------------------------------------------------------
+      static MediaDevicesSettingsDefaultsPtr create()
+      {
+        auto pThis(make_shared<MediaDevicesSettingsDefaults>());
+        ISettings::installDefaults(pThis);
+        return pThis;
+      }
+
+      //-----------------------------------------------------------------------
+      virtual void notifySettingsApplyDefaults() override
+      {
+        //      ISettings::setUInt(ORTC_SETTING_MEDIA_DEVICES, 0);
+      }
+      
+    };
+
+    //-------------------------------------------------------------------------
+    void installMediaDevicesSettingsDefaults()
+    {
+      MediaDevicesSettingsDefaults::singleton();
     }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IICETransportForSettings
+    #pragma mark
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -159,7 +199,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     MediaDevicesPtr MediaDevices::singleton()
     {
-      AutoRecursiveLock lock(*UseServicesHelper::getGlobalLock());
+      AutoRecursiveLock lock(*IHelper::getGlobalLock());
       static SingletonLazySharedPtr<MediaDevices> singleton(create());
       MediaDevicesPtr result = singleton.singleton();
 
@@ -174,12 +214,6 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     MediaDevicesPtr MediaDevices::convert(IMediaDevicesPtr object)
-    {
-      return ZS_DYNAMIC_PTR_CAST(MediaDevices, object);
-    }
-
-    //-------------------------------------------------------------------------
-    MediaDevicesPtr MediaDevices::convert(ForSettingsPtr object)
     {
       return ZS_DYNAMIC_PTR_CAST(MediaDevices, object);
     }
@@ -319,7 +353,7 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void MediaDevices::onTimer(TimerPtr timer)
+    void MediaDevices::onTimer(ITimerPtr timer)
     {
       ZS_LOG_DEBUG(log("timer") + ZS_PARAM("timer id", timer->getID()))
 
@@ -465,7 +499,7 @@ namespace ortc
     Log::Params MediaDevices::log(const char *message) const
     {
       ElementPtr objectEl = Element::create("ortc::MediaDevices");
-      UseServicesHelper::debugAppend(objectEl, "id", mID);
+      IHelper::debugAppend(objectEl, "id", mID);
       return Log::Params(message, objectEl);
     }
 
@@ -489,16 +523,16 @@ namespace ortc
 
       ElementPtr resultEl = Element::create("ortc::MediaDevices");
 
-      UseServicesHelper::debugAppend(resultEl, "id", mID);
+      IHelper::debugAppend(resultEl, "id", mID);
 
-      UseServicesHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
+      IHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
 
-      UseServicesHelper::debugAppend(resultEl, "subscribers", mSubscriptions.size());
+      IHelper::debugAppend(resultEl, "subscribers", mSubscriptions.size());
 
-      UseServicesHelper::debugAppend(resultEl, "state", toString(mCurrentState));
+      IHelper::debugAppend(resultEl, "state", toString(mCurrentState));
 
-      UseServicesHelper::debugAppend(resultEl, "error", mLastError);
-      UseServicesHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
+      IHelper::debugAppend(resultEl, "error", mLastError);
+      IHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
 
       return resultEl;
     }
@@ -787,18 +821,18 @@ namespace ortc
   {
     if (!elem) return;
 
-    UseHelper::getElementValue(elem, "ortc::IMediaDevicesTypes::SupportedConstraints", "width", mWidth);
-    UseHelper::getElementValue(elem, "ortc::IMediaDevicesTypes::SupportedConstraints", "height", mHeight);
-    UseHelper::getElementValue(elem, "ortc::IMediaDevicesTypes::SupportedConstraints", "aspectRatio", mAspectRatio);
-    UseHelper::getElementValue(elem, "ortc::IMediaDevicesTypes::SupportedConstraints", "frameRate", mFrameRate);
-    UseHelper::getElementValue(elem, "ortc::IMediaDevicesTypes::SupportedConstraints", "facingMode", mFacingMode);
-    UseHelper::getElementValue(elem, "ortc::IMediaDevicesTypes::SupportedConstraints", "volume", mVolume);
-    UseHelper::getElementValue(elem, "ortc::IMediaDevicesTypes::SupportedConstraints", "sampleRate", mSampleRate);
-    UseHelper::getElementValue(elem, "ortc::IMediaDevicesTypes::SupportedConstraints", "sampleSize", mSampleSize);
-    UseHelper::getElementValue(elem, "ortc::IMediaDevicesTypes::SupportedConstraints", "echoCancellation", mEchoCancellation);
-    UseHelper::getElementValue(elem, "ortc::IMediaDevicesTypes::SupportedConstraints", "latency", mLatency);
-    UseHelper::getElementValue(elem, "ortc::IMediaDevicesTypes::SupportedConstraints", "deviceId", mDeviceID);
-    UseHelper::getElementValue(elem, "ortc::IMediaDevicesTypes::SupportedConstraints", "groupId", mGroupID);
+    IHelper::getElementValue(elem, "ortc::IMediaDevicesTypes::SupportedConstraints", "width", mWidth);
+    IHelper::getElementValue(elem, "ortc::IMediaDevicesTypes::SupportedConstraints", "height", mHeight);
+    IHelper::getElementValue(elem, "ortc::IMediaDevicesTypes::SupportedConstraints", "aspectRatio", mAspectRatio);
+    IHelper::getElementValue(elem, "ortc::IMediaDevicesTypes::SupportedConstraints", "frameRate", mFrameRate);
+    IHelper::getElementValue(elem, "ortc::IMediaDevicesTypes::SupportedConstraints", "facingMode", mFacingMode);
+    IHelper::getElementValue(elem, "ortc::IMediaDevicesTypes::SupportedConstraints", "volume", mVolume);
+    IHelper::getElementValue(elem, "ortc::IMediaDevicesTypes::SupportedConstraints", "sampleRate", mSampleRate);
+    IHelper::getElementValue(elem, "ortc::IMediaDevicesTypes::SupportedConstraints", "sampleSize", mSampleSize);
+    IHelper::getElementValue(elem, "ortc::IMediaDevicesTypes::SupportedConstraints", "echoCancellation", mEchoCancellation);
+    IHelper::getElementValue(elem, "ortc::IMediaDevicesTypes::SupportedConstraints", "latency", mLatency);
+    IHelper::getElementValue(elem, "ortc::IMediaDevicesTypes::SupportedConstraints", "deviceId", mDeviceID);
+    IHelper::getElementValue(elem, "ortc::IMediaDevicesTypes::SupportedConstraints", "groupId", mGroupID);
   }
 
   //---------------------------------------------------------------------------
@@ -806,18 +840,18 @@ namespace ortc
   {
     ElementPtr elem = Element::create(objectName);
 
-    UseHelper::adoptElementValue(elem, "width", mWidth);
-    UseHelper::adoptElementValue(elem, "height", mHeight);
-    UseHelper::adoptElementValue(elem, "aspectRatio", mAspectRatio);
-    UseHelper::adoptElementValue(elem, "frameRate", mFrameRate);
-    UseHelper::adoptElementValue(elem, "facingMode", mFacingMode);
-    UseHelper::adoptElementValue(elem, "volume", mVolume);
-    UseHelper::adoptElementValue(elem, "sampleRate", mSampleRate);
-    UseHelper::adoptElementValue(elem, "sampleSize", mSampleSize);
-    UseHelper::adoptElementValue(elem, "echoCancellation", mEchoCancellation);
-    UseHelper::adoptElementValue(elem, "latency", mLatency);
-    UseHelper::adoptElementValue(elem, "deviceId", mDeviceID);
-    UseHelper::adoptElementValue(elem, "groupId", mGroupID);
+    IHelper::adoptElementValue(elem, "width", mWidth);
+    IHelper::adoptElementValue(elem, "height", mHeight);
+    IHelper::adoptElementValue(elem, "aspectRatio", mAspectRatio);
+    IHelper::adoptElementValue(elem, "frameRate", mFrameRate);
+    IHelper::adoptElementValue(elem, "facingMode", mFacingMode);
+    IHelper::adoptElementValue(elem, "volume", mVolume);
+    IHelper::adoptElementValue(elem, "sampleRate", mSampleRate);
+    IHelper::adoptElementValue(elem, "sampleSize", mSampleSize);
+    IHelper::adoptElementValue(elem, "echoCancellation", mEchoCancellation);
+    IHelper::adoptElementValue(elem, "latency", mLatency);
+    IHelper::adoptElementValue(elem, "deviceId", mDeviceID);
+    IHelper::adoptElementValue(elem, "groupId", mGroupID);
 
     if (!elem->hasChildren()) return ElementPtr();
     
@@ -829,17 +863,17 @@ namespace ortc
   {
     ElementPtr resultEl = Element::create("ortc::IMediaDevicesTypes::SupportedConstraints");
 
-    UseServicesHelper::debugAppend(resultEl, "width", mWidth);
-    UseServicesHelper::debugAppend(resultEl, "height", mHeight);
-    UseServicesHelper::debugAppend(resultEl, "aspect ratio", mAspectRatio);
-    UseServicesHelper::debugAppend(resultEl, "frame rate", mFrameRate);
-    UseServicesHelper::debugAppend(resultEl, "facingMode", mFacingMode);
-    UseServicesHelper::debugAppend(resultEl, "volume", mVolume);
-    UseServicesHelper::debugAppend(resultEl, "sample rate", mSampleRate);
-    UseServicesHelper::debugAppend(resultEl, "echo cancellation", mEchoCancellation);
-    UseServicesHelper::debugAppend(resultEl, "latency", mLatency);
-    UseServicesHelper::debugAppend(resultEl, "device id", mDeviceID);
-    UseServicesHelper::debugAppend(resultEl, "group id", mGroupID);
+    IHelper::debugAppend(resultEl, "width", mWidth);
+    IHelper::debugAppend(resultEl, "height", mHeight);
+    IHelper::debugAppend(resultEl, "aspect ratio", mAspectRatio);
+    IHelper::debugAppend(resultEl, "frame rate", mFrameRate);
+    IHelper::debugAppend(resultEl, "facingMode", mFacingMode);
+    IHelper::debugAppend(resultEl, "volume", mVolume);
+    IHelper::debugAppend(resultEl, "sample rate", mSampleRate);
+    IHelper::debugAppend(resultEl, "echo cancellation", mEchoCancellation);
+    IHelper::debugAppend(resultEl, "latency", mLatency);
+    IHelper::debugAppend(resultEl, "device id", mDeviceID);
+    IHelper::debugAppend(resultEl, "group id", mGroupID);
 
     return resultEl;
   }
@@ -847,32 +881,32 @@ namespace ortc
   //---------------------------------------------------------------------------
   String IMediaDevicesTypes::SupportedConstraints::hash() const
   {
-    SHA1Hasher hasher;
+    auto hasher = IHasher::sha1();;
 
-    hasher.update("ortc::IMediaDevicesTypes::SupportedConstraints:");
-    hasher.update(mWidth);
-    hasher.update(":");
-    hasher.update(mHeight);
-    hasher.update(":");
-    hasher.update(mAspectRatio);
-    hasher.update(":");
-    hasher.update(mFrameRate);
-    hasher.update(":");
-    hasher.update(mFacingMode);
-    hasher.update(":");
-    hasher.update(mVolume);
-    hasher.update(":");
-    hasher.update(mSampleRate);
-    hasher.update(":");
-    hasher.update(mEchoCancellation);
-    hasher.update(":");
-    hasher.update(mLatency);
-    hasher.update(":");
-    hasher.update(mDeviceID);
-    hasher.update(":");
-    hasher.update(mGroupID);
+    hasher->update("ortc::IMediaDevicesTypes::SupportedConstraints:");
+    hasher->update(mWidth);
+    hasher->update(":");
+    hasher->update(mHeight);
+    hasher->update(":");
+    hasher->update(mAspectRatio);
+    hasher->update(":");
+    hasher->update(mFrameRate);
+    hasher->update(":");
+    hasher->update(mFacingMode);
+    hasher->update(":");
+    hasher->update(mVolume);
+    hasher->update(":");
+    hasher->update(mSampleRate);
+    hasher->update(":");
+    hasher->update(mEchoCancellation);
+    hasher->update(":");
+    hasher->update(mLatency);
+    hasher->update(":");
+    hasher->update(mDeviceID);
+    hasher->update(":");
+    hasher->update(mGroupID);
 
-    return hasher.final();
+    return hasher->finalizeAsString();
   }
 
   //---------------------------------------------------------------------------
@@ -890,7 +924,7 @@ namespace ortc
     if (!elem) return;
 
     {
-      String str = UseServicesHelper::getElementText(elem->findFirstChildElement("deviceKind"));
+      String str = IHelper::getElementText(elem->findFirstChildElement("deviceKind"));
       if (str.hasData()) {
         try {
           mKind = IMediaDevicesTypes::toDeviceKind(str);
@@ -900,9 +934,9 @@ namespace ortc
       }
     }
 
-    UseHelper::getElementValue(elem, "ortc::IMediaDevicesTypes::Device", "label", mLabel);
-    UseHelper::getElementValue(elem, "ortc::IMediaDevicesTypes::Device", "deviceId", mDeviceID);
-    UseHelper::getElementValue(elem, "ortc::IMediaDevicesTypes::Device", "groupId", mGroupID);
+    IHelper::getElementValue(elem, "ortc::IMediaDevicesTypes::Device", "label", mLabel);
+    IHelper::getElementValue(elem, "ortc::IMediaDevicesTypes::Device", "deviceId", mDeviceID);
+    IHelper::getElementValue(elem, "ortc::IMediaDevicesTypes::Device", "groupId", mGroupID);
 
     ElementPtr supportedConstraintsEl = elem->findFirstChildElement("supportedConstraints");
     if (supportedConstraintsEl) {
@@ -915,11 +949,11 @@ namespace ortc
   {
     ElementPtr elem = Element::create(objectName);
 
-    UseHelper::adoptElementValue(elem, "deviceKind", IMediaDevicesTypes::toString(mKind), false);
+    IHelper::adoptElementValue(elem, "deviceKind", IMediaDevicesTypes::toString(mKind), false);
 
-    UseHelper::adoptElementValue(elem, "label", mLabel, false);
-    UseHelper::adoptElementValue(elem, "deviceId", mDeviceID, false);
-    UseHelper::adoptElementValue(elem, "groupId", mGroupID, false);
+    IHelper::adoptElementValue(elem, "label", mLabel, false);
+    IHelper::adoptElementValue(elem, "deviceId", mDeviceID, false);
+    IHelper::adoptElementValue(elem, "groupId", mGroupID, false);
 
     elem->adoptAsLastChild(mSupportedConstraints.createElement("supportedConstraints"));
 
@@ -933,11 +967,11 @@ namespace ortc
   {
     ElementPtr resultEl = Element::create("ortc::IMediaDevicesTypes::Device");
 
-    UseServicesHelper::debugAppend(resultEl, "device kind", toString(mKind));
-    UseServicesHelper::debugAppend(resultEl, "label", mLabel);
-    UseServicesHelper::debugAppend(resultEl, "device id", mDeviceID);
-    UseServicesHelper::debugAppend(resultEl, "group id", mGroupID);
-    UseServicesHelper::debugAppend(resultEl, mSupportedConstraints.toDebug());
+    IHelper::debugAppend(resultEl, "device kind", toString(mKind));
+    IHelper::debugAppend(resultEl, "label", mLabel);
+    IHelper::debugAppend(resultEl, "device id", mDeviceID);
+    IHelper::debugAppend(resultEl, "group id", mGroupID);
+    IHelper::debugAppend(resultEl, mSupportedConstraints.toDebug());
 
     return resultEl;
   }
@@ -945,21 +979,21 @@ namespace ortc
   //---------------------------------------------------------------------------
   String IMediaDevicesTypes::Device::hash() const
   {
-    SHA1Hasher hasher;
+    auto hasher = IHasher::sha1();
 
-    hasher.update("ortc::IMediaDevicesTypes::Device:");
+    hasher->update("ortc::IMediaDevicesTypes::Device:");
 
-    hasher.update(toString(mKind));
-    hasher.update(":");
-    hasher.update(mLabel);
-    hasher.update(":");
-    hasher.update(mDeviceID);
-    hasher.update(":");
-    hasher.update(mGroupID);
-    hasher.update(":");
-    hasher.update(mSupportedConstraints.hash());
+    hasher->update(toString(mKind));
+    hasher->update(":");
+    hasher->update(mLabel);
+    hasher->update(":");
+    hasher->update(mDeviceID);
+    hasher->update(":");
+    hasher->update(mGroupID);
+    hasher->update(":");
+    hasher->update(mSupportedConstraints.hash());
 
-    return hasher.final();
+    return hasher->finalizeAsString();
   }
 
   //---------------------------------------------------------------------------
@@ -984,7 +1018,7 @@ namespace ortc
     for (auto iter = begin(); iter != end(); ++iter)
     {
       auto &track = (*iter);
-      UseServicesHelper::debugAppend(resultEl, IMediaStreamTrack::toDebug(track));
+      IHelper::debugAppend(resultEl, IMediaStreamTrack::toDebug(track));
     }
 
     return resultEl;
@@ -993,18 +1027,18 @@ namespace ortc
   //---------------------------------------------------------------------------
   String IMediaDevicesTypes::MediaStreamTrackList::hash() const
   {
-    SHA1Hasher hasher;
+    auto hasher = IHasher::sha1();
 
-    hasher.update("ortc::IMediaDevicesTypes::MediaStreamTrackList:");
+    hasher->update("ortc::IMediaDevicesTypes::MediaStreamTrackList:");
 
     for (auto iter = begin(); iter != end(); ++iter)
     {
       auto &track = (*iter);
-      hasher.update(track ? track->getID() : 0);
-      hasher.update(":");
+      hasher->update(track ? track->getID() : 0);
+      hasher->update(":");
     }
 
-    return hasher.final();
+    return hasher->finalizeAsString();
   }
 
   //---------------------------------------------------------------------------
@@ -1060,7 +1094,7 @@ namespace ortc
     for (auto iter = begin(); iter != end(); ++iter)
     {
       auto &device = (*iter);
-      UseServicesHelper::debugAppend(resultEl, device.toDebug());
+      IHelper::debugAppend(resultEl, device.toDebug());
     }
 
     return resultEl;
@@ -1069,18 +1103,18 @@ namespace ortc
   //---------------------------------------------------------------------------
   String IMediaDevicesTypes::DeviceList::hash() const
   {
-    SHA1Hasher hasher;
+    auto hasher = IHasher::sha1();
 
-    hasher.update("ortc::IMediaDevicesTypes::DeviceList:");
+    hasher->update("ortc::IMediaDevicesTypes::DeviceList:");
 
     for (auto iter = begin(); iter != end(); ++iter)
     {
       auto &device = (*iter);
-      hasher.update(device.hash());
-      hasher.update(":");
+      hasher->update(device.hash());
+      hasher->update(":");
     }
 
-    return hasher.final();
+    return hasher->finalizeAsString();
   }
 
   //---------------------------------------------------------------------------
@@ -1121,4 +1155,4 @@ namespace ortc
     return internal::IMediaDevicesFactory::singleton().subscribe(delegate);
   }
 
-}
+} // namespace ortc

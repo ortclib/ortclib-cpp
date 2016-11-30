@@ -36,8 +36,6 @@
 
 #include <ortc/IDataChannel.h>
 
-#include <ortc/services/IWakeDelegate.h>
-
 #include <zsLib/MessageQueueAssociator.h>
 #include <zsLib/TearAway.h>
 
@@ -50,31 +48,13 @@ namespace ortc
 {
   namespace internal
   {
-    ZS_DECLARE_INTERACTION_PTR(ISCTPTransportForDataChannel)
+    ZS_DECLARE_INTERACTION_PTR(ISCTPTransportForDataChannel);
 
-    ZS_DECLARE_INTERACTION_PTR(IDataChannelForSettings)
-    ZS_DECLARE_INTERACTION_PTR(IDataChannelForSCTPTransport)
-    ZS_DECLARE_INTERACTION_PTR(ISCTPTransportForDataChannelSubscription)
+    ZS_DECLARE_INTERACTION_PTR(IDataChannelForSCTPTransport);
+    ZS_DECLARE_INTERACTION_PTR(ISCTPTransportForDataChannelSubscription);
 
-    ZS_DECLARE_INTERACTION_PROXY(IDataChannelAsyncDelegate)
+    ZS_DECLARE_INTERACTION_PROXY(IDataChannelAsyncDelegate);
 
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IDataChannelForSettings
-    #pragma mark
-
-    interaction IDataChannelForSettings
-    {
-      ZS_DECLARE_TYPEDEF_PTR(IDataChannelForSettings, ForSettings)
-
-      static void applyDefaults();
-
-      virtual ~IDataChannelForSettings() {}
-    };
-    
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -145,7 +125,6 @@ namespace ortc
                         public MessageQueueAssociator,
                         public SharedRecursiveLock,
                         public IDataChannel,
-                        public IDataChannelForSettings,
                         public IDataChannelForSCTPTransport,
                         public ISCTPTransportForDataChannelDelegate,
                         public IDataChannelAsyncDelegate,
@@ -158,7 +137,6 @@ namespace ortc
     public:
       friend interaction IDataChannel;
       friend interaction IDataChannelFactory;
-      friend interaction IDataChannelForSettings;
       friend interaction IDataChannelForSCTPTransport;
 
       ZS_DECLARE_TYPEDEF_PTR(ISCTPTransportForDataChannel, UseDataTransport)
@@ -194,7 +172,6 @@ namespace ortc
       virtual ~DataChannel();
 
       static DataChannelPtr convert(IDataChannelPtr object);
-      static DataChannelPtr convert(ForSettingsPtr object);
       static DataChannelPtr convert(ForDataTransportPtr object);
 
     protected:

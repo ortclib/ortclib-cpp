@@ -32,6 +32,8 @@
 #pragma once
 
 #include <ortc/adapter/types.h>
+
+#include <ortc/IHelper.h>
 #include <ortc/IRTPTypes.h>
 #include <ortc/IMediaStreamTrack.h>
 
@@ -49,7 +51,7 @@ namespace ortc
     #pragma mark IHelper
     #pragma mark
 
-    interaction IHelper
+    interaction IHelper : public ortc::IHelper
     {
       typedef IRTPTypes::SSRCType SSRCType;
       typedef std::queue<SSRCType> SSRCQueue;

@@ -35,10 +35,11 @@
 #include <ortc/internal/ortc.events.h>
 #include <ortc/internal/platform.h>
 
-#include <ortc/services/ISettings.h>
 #include <ortc/services/IHelper.h>
 #include <ortc/services/IHTTP.h>
 
+#include <zsLib/eventing/IHasher.h>
+#include <zsLib/ISettings.h>
 #include <zsLib/Numeric.h>
 #include <zsLib/Stringize.h>
 #include <zsLib/Log.h>
@@ -60,21 +61,20 @@ namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
 
 namespace ortc
 {
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::ISettings, UseSettings)
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHelper, UseServicesHelper)
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHTTP, UseHTTP)
+  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHTTP, UseHTTP);
+  ZS_DECLARE_CLASS_PTR(CertificateSettingsDefaults);
 
-  ZS_DECLARE_TYPEDEF_PTR(ortc::internal::Helper, UseHelper)
+  ZS_DECLARE_USING_PTR(zsLib::XML, Document);
 
-  ZS_DECLARE_USING_PTR(zsLib::XML, Document)
+  ZS_DECLARE_USING_PTR(zsLib::eventing, IHasher);
 
   using CryptoPP::Integer;
   using zsLib::Numeric;
 
-  typedef ortc::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
-
   namespace internal
   {
+    ZS_DECLARE_CLASS_PTR(CertificateSettingsDefaults);
+
     // From RFC 4572.
     const char DIGEST_MD5[]     = "md5";
     const char DIGEST_SHA_1[]   = "sha-1";
@@ -108,7 +108,6 @@ namespace ortc
     {
       return Log::Params(message, "ortc::Certificate");
     }
-
 
     //-------------------------------------------------------------------------
     static String toStringAlgorithm(ElementPtr keygenAlgorithm)
@@ -155,7 +154,7 @@ namespace ortc
         if ('{' == *(algorithmIdentifier.c_str())) {
           // treat as object
           algorithmIdentifier = "{\"keygenAlgorithm\":" + algorithmIdentifier + "}";
-          return UseServicesHelper::toJSON(algorithmIdentifier);
+          return IHelper::toJSON(algorithmIdentifier);
         }
       }
 
@@ -165,8 +164,8 @@ namespace ortc
         String outputKeyName(ORTC_SETTING_CERTIFICATE_MAP_ALGORITHM_IDENTIFIER_OUTPUT);
         outputKeyName += string(index);
 
-        String input = UseSettings::getString(inputKeyName);
-        String output = UseSettings::getString(outputKeyName);
+        String input = ISettings::getString(inputKeyName);
+        String output = ISettings::getString(outputKeyName);
 
         if ((input.isEmpty()) &&
             (output.isEmpty())) {
@@ -177,7 +176,7 @@ namespace ortc
 
         // found result
         output = "{\"keygenAlgorithm\":" + output + "}";
-        return UseServicesHelper::toJSON(output);
+        return IHelper::toJSON(output);
       }
 
     no_algorithm_specified: {}
@@ -191,80 +190,111 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IICETransportForSettings
+    #pragma mark CertificateSettingsDefaults
     #pragma mark
 
-    //-------------------------------------------------------------------------
-    void ICertificateForSettings::applyDefaults()
+    class CertificateSettingsDefaults : public ISettingsApplyDefaultsDelegate
     {
-      // which algorithm to use by default
-      UseSettings::setString(ORTC_SETTING_CERTIFICATE_DEFAULT_KEY_NAME, "RSASSA-PKCS1-v1_5");
-
-      // what named curved to use by default (for eliptical curves only)
-      UseSettings::setString(ORTC_SETTING_CERTIFICATE_DEFAULT_HASH, "SHA-256");
-
-      // what named curved to use by default (for eliptical curves only)
-      UseSettings::setString(ORTC_SETTING_CERTIFICATE_DEFAULT_KEY_NAMED_CURVE, "");
-
-      // Strength of generated keys. Those are RSA.
-      UseSettings::setUInt(ORTC_SETTING_CERTIFICATE_DEFAULT_KEY_LENGTH_IN_BITS, 1024);
-
-      // Random bits for certificate serial number
-      UseSettings::setUInt(ORTC_SETTING_CERTIFICATE_DEFAULT_SERIAL_RANDOM_BITS, 64);
-
-      UseSettings::setString(ORTC_SETTING_CERTIFICATE_DEFAULT_PUBLIC_EXPONENT, "101b");
-
-      // Certificate validity lifetime
-      UseSettings::setUInt(ORTC_SETTING_CERTIFICATE_DEFAULT_LIFETIME_IN_SECONDS, 60 * 60 * 24 * 30);  // 30 days, arbitrarily
-
-      // Certificate validity window.
-      // This is to compensate for slightly incorrect system clocks.
-      UseSettings::setUInt(ORTC_SETTING_CERTIFICATE_DEFAULT_NOT_BEFORE_WINDOW_IN_SECONDS, 60 * 60 * 24);  // 30 days, arbitrarily
-
-      // various mappings to convert from string to JSON encoded version
-      UseSettings::setString(ORTC_SETTING_CERTIFICATE_MAP_ALGORITHM_IDENTIFIER_INPUT "0", "");
-      UseSettings::setString(ORTC_SETTING_CERTIFICATE_MAP_ALGORITHM_IDENTIFIER_OUTPUT "0", "{\"name\":\"RSASSA-PKCS1-v1_5\",\"modulusLength\":1024,\"hash\":\"SHA-256\"}");
-
-      UseSettings::setString(ORTC_SETTING_CERTIFICATE_MAP_ALGORITHM_IDENTIFIER_INPUT "1", "RSASSA-PKCS1-v1_5");
-      UseSettings::setString(ORTC_SETTING_CERTIFICATE_MAP_ALGORITHM_IDENTIFIER_OUTPUT "1", "{\"name\":\"RSASSA-PKCS1-v1_5\",\"modulusLength\":1024,\"hash\":\"SHA-256\"}");
-
-      auto algorithms = getHashAlgorithms();
-
-      size_t index = 2; // NOTE: must be +1 of the last manually set input/output mapping
-      for (size_t loop = 0; NULL != algorithms[loop]; ++loop, ++index) {
-        String inputKeyName(ORTC_SETTING_CERTIFICATE_MAP_ALGORITHM_IDENTIFIER_INPUT);
-        inputKeyName += string(index);
-
-        String inputKeyValue = "RSASSA-PKCS1-v1_5|";
-        inputKeyValue += algorithms[loop];
-
-        UseSettings::setString(inputKeyName, inputKeyValue);
-
-        String outputKeyName(ORTC_SETTING_CERTIFICATE_MAP_ALGORITHM_IDENTIFIER_OUTPUT);
-        outputKeyName += string(index);
-
-        String outputKeyValue("{\"name\":\"RSASSA-PKCS1-v1_5\",\"modulusLength\":1024,\"hash\":\"$HASH$\"}");
-        outputKeyValue.replaceAll("$HASH$", algorithms[loop]);
-
-        UseSettings::setString(outputKeyName, outputKeyValue);
+    public:
+      //-----------------------------------------------------------------------
+      ~CertificateSettingsDefaults()
+      {
+        ISettings::removeDefaults(*this);
       }
 
-      for (size_t loop = 0; NULL != algorithms[loop]; ++loop, ++index) {
-        String inputKeyName(ORTC_SETTING_CERTIFICATE_MAP_ALGORITHM_IDENTIFIER_INPUT);
-        inputKeyName += string(index);
-
-        String inputKeyValue(algorithms[loop]);
-
-        UseSettings::setString(inputKeyName, inputKeyValue);
-
-        String outputKeyName(ORTC_SETTING_CERTIFICATE_MAP_ALGORITHM_IDENTIFIER_OUTPUT);
-        outputKeyName += string(index);
-
-        String outputKeyValue("{\"name\":\"RSASSA-PKCS1-v1_5\",\"modulusLength\":1024,\"hash\":\"$HASH$\"}");
-        outputKeyValue.replaceAll("$HASH$", algorithms[loop]);
-
-        UseSettings::setString(outputKeyName, outputKeyValue);
+      //-----------------------------------------------------------------------
+      static CertificateSettingsDefaultsPtr singleton()
+      {
+        static SingletonLazySharedPtr<CertificateSettingsDefaults> singleton(create());
+        return singleton.singleton();
       }
+
+      //-----------------------------------------------------------------------
+      static CertificateSettingsDefaultsPtr create()
+      {
+        auto pThis(make_shared<CertificateSettingsDefaults>());
+        ISettings::installDefaults(pThis);
+        return pThis;
+      }
+
+      //-----------------------------------------------------------------------
+      virtual void notifySettingsApplyDefaults() override
+      {
+        // which algorithm to use by default
+        ISettings::setString(ORTC_SETTING_CERTIFICATE_DEFAULT_KEY_NAME, "RSASSA-PKCS1-v1_5");
+
+        // what named curved to use by default (for eliptical curves only)
+        ISettings::setString(ORTC_SETTING_CERTIFICATE_DEFAULT_HASH, "SHA-256");
+
+        // what named curved to use by default (for eliptical curves only)
+        ISettings::setString(ORTC_SETTING_CERTIFICATE_DEFAULT_KEY_NAMED_CURVE, "");
+
+        // Strength of generated keys. Those are RSA.
+        ISettings::setUInt(ORTC_SETTING_CERTIFICATE_DEFAULT_KEY_LENGTH_IN_BITS, 1024);
+
+        // Random bits for certificate serial number
+        ISettings::setUInt(ORTC_SETTING_CERTIFICATE_DEFAULT_SERIAL_RANDOM_BITS, 64);
+
+        ISettings::setString(ORTC_SETTING_CERTIFICATE_DEFAULT_PUBLIC_EXPONENT, "101b");
+
+        // Certificate validity lifetime
+        ISettings::setUInt(ORTC_SETTING_CERTIFICATE_DEFAULT_LIFETIME_IN_SECONDS, 60 * 60 * 24 * 30);  // 30 days, arbitrarily
+
+        // Certificate validity window.
+        // This is to compensate for slightly incorrect system clocks.
+        ISettings::setUInt(ORTC_SETTING_CERTIFICATE_DEFAULT_NOT_BEFORE_WINDOW_IN_SECONDS, 60 * 60 * 24);  // 30 days, arbitrarily
+
+        // various mappings to convert from string to JSON encoded version
+        ISettings::setString(ORTC_SETTING_CERTIFICATE_MAP_ALGORITHM_IDENTIFIER_INPUT "0", "");
+        ISettings::setString(ORTC_SETTING_CERTIFICATE_MAP_ALGORITHM_IDENTIFIER_OUTPUT "0", "{\"name\":\"RSASSA-PKCS1-v1_5\",\"modulusLength\":1024,\"hash\":\"SHA-256\"}");
+
+        ISettings::setString(ORTC_SETTING_CERTIFICATE_MAP_ALGORITHM_IDENTIFIER_INPUT "1", "RSASSA-PKCS1-v1_5");
+        ISettings::setString(ORTC_SETTING_CERTIFICATE_MAP_ALGORITHM_IDENTIFIER_OUTPUT "1", "{\"name\":\"RSASSA-PKCS1-v1_5\",\"modulusLength\":1024,\"hash\":\"SHA-256\"}");
+
+        auto algorithms = getHashAlgorithms();
+
+        size_t index = 2; // NOTE: must be +1 of the last manually set input/output mapping
+        for (size_t loop = 0; NULL != algorithms[loop]; ++loop, ++index) {
+          String inputKeyName(ORTC_SETTING_CERTIFICATE_MAP_ALGORITHM_IDENTIFIER_INPUT);
+          inputKeyName += string(index);
+
+          String inputKeyValue = "RSASSA-PKCS1-v1_5|";
+          inputKeyValue += algorithms[loop];
+
+          ISettings::setString(inputKeyName, inputKeyValue);
+
+          String outputKeyName(ORTC_SETTING_CERTIFICATE_MAP_ALGORITHM_IDENTIFIER_OUTPUT);
+          outputKeyName += string(index);
+
+          String outputKeyValue("{\"name\":\"RSASSA-PKCS1-v1_5\",\"modulusLength\":1024,\"hash\":\"$HASH$\"}");
+          outputKeyValue.replaceAll("$HASH$", algorithms[loop]);
+
+          ISettings::setString(outputKeyName, outputKeyValue);
+        }
+
+        for (size_t loop = 0; NULL != algorithms[loop]; ++loop, ++index) {
+          String inputKeyName(ORTC_SETTING_CERTIFICATE_MAP_ALGORITHM_IDENTIFIER_INPUT);
+          inputKeyName += string(index);
+
+          String inputKeyValue(algorithms[loop]);
+
+          ISettings::setString(inputKeyName, inputKeyValue);
+
+          String outputKeyName(ORTC_SETTING_CERTIFICATE_MAP_ALGORITHM_IDENTIFIER_OUTPUT);
+          outputKeyName += string(index);
+
+          String outputKeyValue("{\"name\":\"RSASSA-PKCS1-v1_5\",\"modulusLength\":1024,\"hash\":\"$HASH$\"}");
+          outputKeyValue.replaceAll("$HASH$", algorithms[loop]);
+
+          ISettings::setString(outputKeyName, outputKeyValue);
+        }
+      }
+    };
+
+    //-------------------------------------------------------------------------
+    void installCertificateSettingsDefaults()
+    {
+      CertificateSettingsDefaults::singleton();
     }
 
     //-------------------------------------------------------------------------
@@ -316,40 +346,40 @@ namespace ortc
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
       mKeygenAlgorithm(keygenAlgorithm ? keygenAlgorithm->clone()->toElement() : ElementPtr()),
-      mName(UseSettings::getString(ORTC_SETTING_CERTIFICATE_DEFAULT_KEY_NAME)),
-      mHash(UseSettings::getString(ORTC_SETTING_CERTIFICATE_DEFAULT_HASH)),
-      mNamedCurve(UseSettings::getString(ORTC_SETTING_CERTIFICATE_DEFAULT_KEY_NAMED_CURVE)),
-      mKeyLength(UseSettings::getUInt(ORTC_SETTING_CERTIFICATE_DEFAULT_KEY_LENGTH_IN_BITS)),
-      mRandomBits(UseSettings::getUInt(ORTC_SETTING_CERTIFICATE_DEFAULT_SERIAL_RANDOM_BITS)),
-      mPublicExponentLength(UseSettings::getString(ORTC_SETTING_CERTIFICATE_DEFAULT_PUBLIC_EXPONENT)),
-      mLifetime(Seconds(UseSettings::getUInt(ORTC_SETTING_CERTIFICATE_DEFAULT_LIFETIME_IN_SECONDS))),
-      mNotBeforeWindow(Seconds(UseSettings::getUInt(ORTC_SETTING_CERTIFICATE_DEFAULT_NOT_BEFORE_WINDOW_IN_SECONDS))),
+      mName(ISettings::getString(ORTC_SETTING_CERTIFICATE_DEFAULT_KEY_NAME)),
+      mHash(ISettings::getString(ORTC_SETTING_CERTIFICATE_DEFAULT_HASH)),
+      mNamedCurve(ISettings::getString(ORTC_SETTING_CERTIFICATE_DEFAULT_KEY_NAMED_CURVE)),
+      mKeyLength(ISettings::getUInt(ORTC_SETTING_CERTIFICATE_DEFAULT_KEY_LENGTH_IN_BITS)),
+      mRandomBits(ISettings::getUInt(ORTC_SETTING_CERTIFICATE_DEFAULT_SERIAL_RANDOM_BITS)),
+      mPublicExponentLength(ISettings::getString(ORTC_SETTING_CERTIFICATE_DEFAULT_PUBLIC_EXPONENT)),
+      mLifetime(Seconds(ISettings::getUInt(ORTC_SETTING_CERTIFICATE_DEFAULT_LIFETIME_IN_SECONDS))),
+      mNotBeforeWindow(Seconds(ISettings::getUInt(ORTC_SETTING_CERTIFICATE_DEFAULT_NOT_BEFORE_WINDOW_IN_SECONDS))),
       mExpires(zsLib::now() + mLifetime)
     {
       if (mKeygenAlgorithm) {
         {
           ElementPtr nameEl = mKeygenAlgorithm->findFirstChildElement("name");
           if (nameEl) {
-            mName = UseServicesHelper::getElementTextAndDecode(nameEl);
+            mName = IHelper::getElementTextAndDecode(nameEl);
           }
         }
         {
           ElementPtr hashEl = mKeygenAlgorithm->findFirstChildElement("hash");
           if (hashEl) {
-            mHash = UseServicesHelper::getElementTextAndDecode(hashEl);
+            mHash = IHelper::getElementTextAndDecode(hashEl);
           }
         }
         {
           ElementPtr namedCurveEl = mKeygenAlgorithm->findFirstChildElement("namedCurve");
           if (namedCurveEl) {
-            mNamedCurve = UseServicesHelper::getElementTextAndDecode(namedCurveEl);
+            mNamedCurve = IHelper::getElementTextAndDecode(namedCurveEl);
           }
         }
 
         {
           ElementPtr modulusLengthEl = mKeygenAlgorithm->findFirstChildElement("modulusLength");
           if (modulusLengthEl) {
-            String value = UseServicesHelper::getElementText(modulusLengthEl);
+            String value = IHelper::getElementText(modulusLengthEl);
             try {
               mKeyLength = Numeric<decltype(mKeyLength)>(value);
             } catch(const Numeric<decltype(mKeyLength)>::ValueOutOfRange &) {
@@ -361,7 +391,7 @@ namespace ortc
         {
           ElementPtr saltLengthEl = mKeygenAlgorithm->findFirstChildElement("saltLength");
           if (saltLengthEl) {
-            String value = UseServicesHelper::getElementText(saltLengthEl);
+            String value = IHelper::getElementText(saltLengthEl);
             try {
               mRandomBits = Numeric<decltype(mKeyLength)>(value);
             } catch(const Numeric<decltype(mRandomBits)>::ValueOutOfRange &) {
@@ -377,7 +407,7 @@ namespace ortc
             String finalPublicExponent;
 
             while (publicExponentEl) {
-              finalPublicExponent += UseServicesHelper::getElementText(publicExponentEl);
+              finalPublicExponent += IHelper::getElementText(publicExponentEl);
               publicExponentEl = publicExponentEl->findNextSiblingElement("publicExponent");
               foundMoreThanOne = foundMoreThanOne || ((bool)publicExponentEl);
             }
@@ -400,19 +430,19 @@ namespace ortc
         mKeygenAlgorithm = Element::create("keygenAlgorithm");
 
         if (mName.hasData()) {
-          mKeygenAlgorithm->adoptAsLastChild(UseServicesHelper::createElementWithTextAndJSONEncode("name", mName));
+          mKeygenAlgorithm->adoptAsLastChild(IHelper::createElementWithTextAndJSONEncode("name", mName));
         }
         if (mNamedCurve.hasData()) {
-          mKeygenAlgorithm->adoptAsLastChild(UseServicesHelper::createElementWithTextAndJSONEncode("namedCurve", mNamedCurve));
+          mKeygenAlgorithm->adoptAsLastChild(IHelper::createElementWithTextAndJSONEncode("namedCurve", mNamedCurve));
         }
         if (mHash.hasData()) {
-          mKeygenAlgorithm->adoptAsLastChild(UseServicesHelper::createElementWithTextAndJSONEncode("hash", mHash));
+          mKeygenAlgorithm->adoptAsLastChild(IHelper::createElementWithTextAndJSONEncode("hash", mHash));
         }
         if (0 != mKeyLength) {
-          mKeygenAlgorithm->adoptAsLastChild(UseServicesHelper::createElementWithNumber("modulusLength", string(mKeyLength)));
+          mKeygenAlgorithm->adoptAsLastChild(IHelper::createElementWithNumber("modulusLength", string(mKeyLength)));
         }
         if (0 != mRandomBits) {
-          mKeygenAlgorithm->adoptAsLastChild(UseServicesHelper::createElementWithNumber("saltLength", string(mRandomBits)));
+          mKeygenAlgorithm->adoptAsLastChild(IHelper::createElementWithNumber("saltLength", string(mRandomBits)));
         }
 
         if (mPublicExponentLength.hasData()) {
@@ -426,7 +456,7 @@ namespace ortc
               if (big.GetBit(loop)) {
                 digit = "1";
               }
-              mKeygenAlgorithm->adoptAsLastChild(UseServicesHelper::createElementWithNumber("publicExponent", digit));
+              mKeygenAlgorithm->adoptAsLastChild(IHelper::createElementWithNumber("publicExponent", digit));
             }
           }
         }
@@ -572,7 +602,7 @@ namespace ortc
         Fingerprint fingerprint;
         fingerprint.mAlgorithm = algorithms[loop];
 		
-        String output = UseServicesHelper::convertToHex(*buffer);
+        String output = IHelper::convertToHex(*buffer);
         output.toUpper();
 
         for (String::size_type pos = 0; pos < output.size(); pos += 2) {
@@ -777,7 +807,7 @@ namespace ortc
     Log::Params Certificate::log(const char *message) const
     {
       ElementPtr objectEl = Element::create("ortc::Certificate");
-      UseServicesHelper::debugAppend(objectEl, "id", mID);
+      IHelper::debugAppend(objectEl, "id", mID);
       return Log::Params(message, objectEl);
     }
 
@@ -794,22 +824,22 @@ namespace ortc
 
       ElementPtr resultEl = Element::create("ortc::Certificate");
 
-      UseServicesHelper::debugAppend(resultEl, "id", mID);
+      IHelper::debugAppend(resultEl, "id", mID);
 
-      UseServicesHelper::debugAppend(resultEl, "name", mName);
-      UseServicesHelper::debugAppend(resultEl, "named curve", mNamedCurve);
-      UseServicesHelper::debugAppend(resultEl, "hash", mHash);
-      UseServicesHelper::debugAppend(resultEl, "key length", mKeyLength);
-      UseServicesHelper::debugAppend(resultEl, "random bit", mRandomBits);
-      UseServicesHelper::debugAppend(resultEl, "lifetime", mLifetime);
-      UseServicesHelper::debugAppend(resultEl, "not before window", mNotBeforeWindow);
+      IHelper::debugAppend(resultEl, "name", mName);
+      IHelper::debugAppend(resultEl, "named curve", mNamedCurve);
+      IHelper::debugAppend(resultEl, "hash", mHash);
+      IHelper::debugAppend(resultEl, "key length", mKeyLength);
+      IHelper::debugAppend(resultEl, "random bit", mRandomBits);
+      IHelper::debugAppend(resultEl, "lifetime", mLifetime);
+      IHelper::debugAppend(resultEl, "not before window", mNotBeforeWindow);
 
-      UseServicesHelper::debugAppend(resultEl, "promise", (bool)mPromise);
-      UseServicesHelper::debugAppend(resultEl, "promise weak", (bool)mPromiseWeak.lock());
+      IHelper::debugAppend(resultEl, "promise", (bool)mPromise);
+      IHelper::debugAppend(resultEl, "promise weak", (bool)mPromiseWeak.lock());
 
-      UseServicesHelper::debugAppend(resultEl, "expires", mExpires);
+      IHelper::debugAppend(resultEl, "expires", mExpires);
 
-      UseServicesHelper::debugAppend(resultEl, "certificate", (mCertificate ? true : false));
+      IHelper::debugAppend(resultEl, "certificate", (mCertificate ? true : false));
 
       return resultEl;
     }
@@ -911,7 +941,7 @@ namespace ortc
       BIGNUM* serial_number = NULL;
       X509_NAME* name = NULL;
 
-      zsLib::String commonName = UseServicesHelper::randomString(8);
+      zsLib::String commonName = IHelper::randomString(8);
 
       if ((x509 = X509_new()) == NULL)
         goto error;
@@ -1131,8 +1161,8 @@ namespace ortc
   {
     if (!elem) return;
 
-    UseHelper::getElementValue(elem, "ortc::ICertificateTypes::Fingerprint", "algorithm", mAlgorithm);
-    UseHelper::getElementValue(elem, "ortc::ICertificateTypes::Fingerprint", "value", mValue);
+    IHelper::getElementValue(elem, "ortc::ICertificateTypes::Fingerprint", "algorithm", mAlgorithm);
+    IHelper::getElementValue(elem, "ortc::ICertificateTypes::Fingerprint", "value", mValue);
   }
 
   //---------------------------------------------------------------------------
@@ -1140,8 +1170,8 @@ namespace ortc
   {
     ElementPtr elem = Element::create(objectName);
 
-    UseHelper::adoptElementValue(elem, "algorithm", mAlgorithm, false);
-    UseHelper::adoptElementValue(elem, "value", mValue, false);
+    IHelper::adoptElementValue(elem, "algorithm", mAlgorithm, false);
+    IHelper::adoptElementValue(elem, "value", mValue, false);
 
     if (!elem->hasChildren()) return ElementPtr();
     return elem;
@@ -1152,8 +1182,8 @@ namespace ortc
   {
     ElementPtr resultEl = Element::create("ortc::ICertificateTypes::Fingerprint");
 
-    UseServicesHelper::debugAppend(resultEl, "algorithm", mAlgorithm);
-    UseServicesHelper::debugAppend(resultEl, "value", mValue);
+    IHelper::debugAppend(resultEl, "algorithm", mAlgorithm);
+    IHelper::debugAppend(resultEl, "value", mValue);
 
     return resultEl;
   }
@@ -1161,14 +1191,14 @@ namespace ortc
   //---------------------------------------------------------------------------
   String ICertificateTypes::Fingerprint::hash() const
   {
-    SHA1Hasher hasher;
+    auto hasher = IHasher::sha1();
 
-    hasher.update("ICertificateTypes:Fingerprint:");
-    hasher.update(mAlgorithm);
-    hasher.update(":");
-    hasher.update(mValue);
+    hasher->update("ICertificateTypes:Fingerprint:");
+    hasher->update(mAlgorithm);
+    hasher->update(":");
+    hasher->update(mValue);
 
-    return hasher.final();
+    return hasher->finalizeAsString();
   }
 
   //---------------------------------------------------------------------------

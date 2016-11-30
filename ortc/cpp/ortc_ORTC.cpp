@@ -36,8 +36,8 @@
 
 #include <ortc/services/IHelper.h>
 #include <ortc/services/ILogger.h>
-#include <ortc/services/IMessageQueueManager.h>
 
+#include <zsLib/IMessageQueueManager.h>
 #include <zsLib/Log.h>
 #include <zsLib/XML.h>
 
@@ -50,9 +50,62 @@ namespace ortc
 
   namespace internal
   {
-    ZS_DECLARE_TYPEDEF_PTR(ortc::services::IMessageQueueManager, UseMessageQueueManager)
+    ZS_DECLARE_TYPEDEF_PTR(zsLib::IMessageQueueManager, UseMessageQueueManager)
 
     void initSubsystems();
+    void installCertificateSettingsDefaults();
+    void installDataChannelSettingsDefaults();
+    void installDTMFSenderSettingsDefaults();
+    void installDTLSTransportSettingsDefaults();
+    void installICEGathererSettingsDefaults();
+    void installICETransportSettingsDefaults();
+    void installIdentitySettingsDefaults();
+    void installMediaDevicesSettingsDefaults();
+    void installMediaStreamTrackSettingsDefaults();
+    void installRTPListenerSettingsDefaults();
+    void installRTPMediaEngineSettingsDefaults();
+    void installRTPReceiverSettingsDefaults();
+    void installRTPReceiverChannelAudioSettingsDefaults();
+    void installRTPReceiverChannelSettingsDefaults();
+    void installRTPReceiverChannelVideoSettingsDefaults();
+    void installRTPSenderSettingsDefaults();
+    void installRTPSenderChannelSettingsDefaults();
+    void installRTPSenderChannelAudioSettingsDefaults();
+    void installRTPSenderChannelVideoSettingsDefaults();
+    void installStatsReportSettingsDefaults();
+    void installSCTPTransportSettingsDefaults();
+    void installSCTPTransportListenerSettingsDefaults();
+    void installSRTPTransportSettingsDefaults();
+    void installSRTPSDESTransportSettingsDefaults();
+
+    //-------------------------------------------------------------------------
+    static void installAllDefaults()
+    {
+      installCertificateSettingsDefaults();
+      installDataChannelSettingsDefaults();
+      installDTMFSenderSettingsDefaults();
+      installDTLSTransportSettingsDefaults();
+      installICEGathererSettingsDefaults();
+      installICETransportSettingsDefaults();
+      installIdentitySettingsDefaults();
+      installMediaDevicesSettingsDefaults();
+      installMediaStreamTrackSettingsDefaults();
+      installRTPListenerSettingsDefaults();
+      installRTPMediaEngineSettingsDefaults();
+      installRTPReceiverSettingsDefaults();
+      installRTPReceiverChannelAudioSettingsDefaults();
+      installRTPReceiverChannelSettingsDefaults();
+      installRTPReceiverChannelVideoSettingsDefaults();
+      installRTPSenderSettingsDefaults();
+      installRTPSenderChannelSettingsDefaults();
+      installRTPSenderChannelAudioSettingsDefaults();
+      installRTPSenderChannelVideoSettingsDefaults();
+      installStatsReportSettingsDefaults();
+      installSCTPTransportSettingsDefaults();
+      installSCTPTransportListenerSettingsDefaults();
+      installSRTPTransportSettingsDefaults();
+      installSRTPSDESTransportSettingsDefaults();
+    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -129,8 +182,6 @@ namespace ortc
       ZS_EVENTING_EXCLUSIVE(x);
 
       initSubsystems();
-      UseServicesHelper::setup();
-      zsLib::setup();
       ZS_LOG_DETAIL(log("created"))
     }
 
@@ -193,7 +244,7 @@ namespace ortc
       static SingletonLazySharedPtr<ORTC> singleton(ORTC::create());
       ORTCPtr result = singleton.singleton();
       if (!result) {
-        ZS_LOG_WARNING(Detail, slog("singleton gone"))
+        ZS_LOG_WARNING(Detail, slog("singleton gone"));
       }
       return result;
     }
@@ -201,12 +252,26 @@ namespace ortc
     //-------------------------------------------------------------------------
     void ORTC::setup(IMessageQueuePtr defaultDelegateMessageQueue)
     {
-      AutoRecursiveLock lock(mLock);
+      {
+        AutoRecursiveLock lock(mLock);
 
-      if (defaultDelegateMessageQueue) {
-        mDelegateQueue = defaultDelegateMessageQueue;
+        if (defaultDelegateMessageQueue) {
+          mDelegateQueue = defaultDelegateMessageQueue;
+        }
       }
+
+      UseServicesHelper::setup();
+      installAllDefaults();
     }
+
+#ifdef WINRT
+    //-------------------------------------------------------------------------
+    void ORTC::setup(Windows::UI::Core::CoreDispatcher ^dispatcher)
+    {
+      UseServicesHelper::setup(dispatcher);
+      installAllDefaults();
+    }
+#endif //WINRT
 
     //-------------------------------------------------------------------------
     Milliseconds ORTC::ntpServerTime() const
@@ -370,7 +435,8 @@ namespace ortc
       ElementPtr objectEl = Element::create("ortc::ORTC");
       return Log::Params(message, objectEl);
     }
-  }
+
+  } // namespace internal
 
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
@@ -387,6 +453,16 @@ namespace ortc
     if (!singleton) return;
     singleton->setup(defaultDelegateMessageQueue);
   }
+
+  //---------------------------------------------------------------------------
+#ifdef WINRT
+  void IORTC::setup(Windows::UI::Core::CoreDispatcher ^dispatcher)
+  {
+    auto singleton = internal::ORTC::singleton();
+    if (!singleton) return;
+    singleton->setup(dispatcher);
+  }
+#endif //WINRT
 
   //-------------------------------------------------------------------------
   Milliseconds IORTC::ntpServerTime()

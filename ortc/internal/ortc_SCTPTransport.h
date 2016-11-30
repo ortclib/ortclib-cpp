@@ -39,13 +39,13 @@
 #include <ortc/IICETransport.h>
 #include <ortc/internal/ortc_ISecureTransport.h>
 
-#include <ortc/services/IWakeDelegate.h>
 #include <zsLib/MessageQueueAssociator.h>
-#include <zsLib/Timer.h>
+#include <zsLib/ITimer.h>
 #include <zsLib/ProxySubscriptions.h>
 #include <zsLib/TearAway.h>
 
 #include <usrsctp.h>
+#include <queue>
 
 #define ORTC_SETTING_SCTP_TRANSPORT_MAX_SESSIONS_PER_PORT "ortc/sctp/max-sessions-per-port"
 
@@ -525,7 +525,7 @@ namespace ortc
       #pragma mark SCTPTransport => ITimerDelegate
       #pragma mark
 
-      virtual void onTimer(TimerPtr timer) override;
+      virtual void onTimer(ITimerPtr timer) override;
 
       //-----------------------------------------------------------------------
       #pragma mark

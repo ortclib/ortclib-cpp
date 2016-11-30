@@ -39,10 +39,9 @@
 #include <ortc/IICEGatherer.h>
 
 #include <ortc/services/ISTUNRequester.h>
-#include <ortc/services/IWakeDelegate.h>
 #include <ortc/services/STUNPacket.h>
 
-#include <zsLib/Timer.h>
+#include <zsLib/ITimer.h>
 
 #include <queue>
 
@@ -78,23 +77,6 @@ namespace ortc
 
     ZS_DECLARE_INTERACTION_PTR(IICEGathererForICETransport)
     ZS_DECLARE_INTERACTION_PTR(IICETransportControllerForICETransport)
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IICETransportForSettings
-    #pragma mark
-
-    interaction IICETransportForSettings
-    {
-      ZS_DECLARE_TYPEDEF_PTR(IICETransportForSettings, ForSettings)
-
-      static void applyDefaults();
-
-      virtual ~IICETransportForSettings() {}
-    };
 
 
     //-------------------------------------------------------------------------
@@ -253,7 +235,6 @@ namespace ortc
                          public MessageQueueAssociator,
                          public SharedRecursiveLock,
                          public IICETransport,
-                         public IICETransportForSettings,
                          public IICETransportForICEGatherer,
                          public IICETransportForICETransportContoller,
                          public IICETransportForSecureTransport,
@@ -271,7 +252,6 @@ namespace ortc
     public:
       friend interaction IICETransport;
       friend interaction IICETransportFactory;
-      friend interaction IICETransportForSettings;
       friend interaction IICETransportForICEGatherer;
       friend interaction IICETransportForICETransportContoller;
       friend interaction IICETransportForSecureTransport;
@@ -301,7 +281,7 @@ namespace ortc
 
       typedef std::map<RouteID, RoutePtr> RouteIDMap;
       typedef std::map<ISTUNRequesterPtr, RoutePtr> STUNCheckMap;
-      typedef std::map<TimerPtr, RoutePtr> TimerRouteMap;
+      typedef std::map<ITimerPtr, RoutePtr> TimerRouteMap;
       typedef std::map<PromisePtr, RoutePtr> PromiseRouteMap;
 
       typedef std::list<PromisePtr> PromiseList;
@@ -344,7 +324,6 @@ namespace ortc
 
       static ICETransportPtr convert(IICETransportPtr object);
       static ICETransportPtr convert(IRTCPTransportPtr object);
-      static ICETransportPtr convert(ForSettingsPtr object);
       static ICETransportPtr convert(ForICEGathererPtr object);
       static ICETransportPtr convert(ForTransportContollerPtr object);
       static ICETransportPtr convert(ForSecureTransportPtr object);
@@ -513,7 +492,7 @@ namespace ortc
       #pragma mark ICETransport => ITimerDelegate
       #pragma mark
 
-      virtual void onTimer(TimerPtr timer) override;
+      virtual void onTimer(ITimerPtr timer) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -617,7 +596,7 @@ namespace ortc
         bool mPrune {false};
         bool mKeepWarm {false};
         ISTUNRequesterPtr mOutgoingCheck;
-        TimerPtr mNextKeepWarm;
+        ITimerPtr mNextKeepWarm;
 
         PromisePtr mFrozenPromise;
         PromiseList mDependentPromises;
@@ -865,7 +844,7 @@ namespace ortc
       FoundationRouteMap mFoundationRoutes;
       RouteStateTrackerPtr mRouteStateTracker;
 
-      TimerPtr mActivationTimer;
+      ITimerPtr mActivationTimer;
       bool mNextActivationCausesAllRoutesThatReceivedChecksToActivate {false};
 
       SortedRouteMap mPendingActivation;
@@ -886,11 +865,11 @@ namespace ortc
       Time mLastReceivedUseCandidate;
 
       Time mLastReceivedPacket;
-      TimerPtr mLastReceivedPacketTimer;
+      ITimerPtr mLastReceivedPacketTimer;
       Seconds mNoPacketsReceivedRecheckTime {};
 
       Seconds mExpireRouteTime {};
-      TimerPtr mExpireRouteTimer;
+      ITimerPtr mExpireRouteTimer;
       bool mTestLowerPreferenceCandidatePairs {false};
       bool mBlacklistConsent {false};
 

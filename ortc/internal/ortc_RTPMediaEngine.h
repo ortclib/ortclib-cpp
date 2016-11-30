@@ -41,9 +41,9 @@
 #include <ortc/IMediaStreamTrack.h>
 #include <ortc/IStatsProvider.h>
 
-#include <ortc/services/IWakeDelegate.h>
+#include <zsLib/IWakeDelegate.h>
 #include <zsLib/MessageQueueAssociator.h>
-#include <zsLib/Timer.h>
+#include <zsLib/ITimer.h>
 
 #include "webrtc/base/scoped_ptr.h"
 #include <webrtc/base/logging.h>
@@ -917,7 +917,7 @@ namespace ortc
       #pragma mark RTPMediaEngine => ITimerDelegate
       #pragma mark
 
-      virtual void onTimer(TimerPtr timer) override;
+      virtual void onTimer(ITimerPtr timer) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -1649,7 +1649,7 @@ namespace ortc
         #pragma mark RTPMediaEngine::AudioSenderChannelResource => ITimerDelegate
         #pragma mark
 
-        virtual void onTimer(TimerPtr timer) override;
+        virtual void onTimer(ITimerPtr timer) override;
 
         //---------------------------------------------------------------------
         #pragma mark
@@ -1696,7 +1696,7 @@ namespace ortc
 
         int mDTMFPayloadType {0};
         IDTMFSenderDelegatePtr mDTMFSenderDelegate;
-        TimerPtr mDTMFTimer;
+        ITimerPtr mDTMFTimer;
         String mDTMFTones;
         Milliseconds mDTMFDuration;
         Milliseconds mDTMFInterToneGap;

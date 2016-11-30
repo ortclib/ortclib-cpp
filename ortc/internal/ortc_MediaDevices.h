@@ -35,9 +35,8 @@
 
 #include <ortc/IMediaDevices.h>
 
-#include <ortc/services/IWakeDelegate.h>
 #include <zsLib/MessageQueueAssociator.h>
-#include <zsLib/Timer.h>
+#include <zsLib/ITimer.h>
 #include <zsLib/Singleton.h>
 
 //#define ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE "ortc/sctp/max-message-size"
@@ -46,26 +45,8 @@ namespace ortc
 {
   namespace internal
   {
-    ZS_DECLARE_INTERACTION_PTR(IMediaDevicesForSettings)
+    ZS_DECLARE_INTERACTION_PROXY(IMediaDevicesAsyncDelegate);
 
-    ZS_DECLARE_INTERACTION_PROXY(IMediaDevicesAsyncDelegate)
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaDevicesForSettings
-    #pragma mark
-
-    interaction IMediaDevicesForSettings
-    {
-      ZS_DECLARE_TYPEDEF_PTR(IMediaDevicesForSettings, ForSettings)
-
-      static void applyDefaults();
-
-      virtual ~IMediaDevicesForSettings() {}
-    };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -98,7 +79,6 @@ namespace ortc
                          public MessageQueueAssociator,
                          public SharedRecursiveLock,
                          public IMediaDevices,
-                         public IMediaDevicesForSettings,
                          public IWakeDelegate,
                          public zsLib::ITimerDelegate,
                          public IMediaDevicesAsyncDelegate,
@@ -110,7 +90,6 @@ namespace ortc
     public:
       friend interaction IMediaDevices;
       friend interaction IMediaDevicesFactory;
-      friend interaction IMediaDevicesForSettings;
 
       enum States
       {
@@ -147,7 +126,6 @@ namespace ortc
       virtual ~MediaDevices();
 
       static MediaDevicesPtr convert(IMediaDevicesPtr object);
-      static MediaDevicesPtr convert(ForSettingsPtr object);
 
     protected:
       //-----------------------------------------------------------------------
@@ -177,7 +155,7 @@ namespace ortc
       #pragma mark MediaDevices => ITimerDelegate
       #pragma mark
 
-      virtual void onTimer(TimerPtr timer) override;
+      virtual void onTimer(ITimerPtr timer) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
