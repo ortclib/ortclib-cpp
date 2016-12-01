@@ -284,8 +284,8 @@
     <Xml Include="UnitTestApp.rd.xml" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\..\..\..\windows\projects\msvc\webrtc-utility\webrtc-utility.csproj">
-      <Project>{c0be91db-a313-4d82-a2b9-9f562ae69a10}</Project>
+    <ProjectReference Include="..\..\..\..\..\windows\projects\msvc\Ortc.WebRtc.Builder\Ortc.WebRtc.Builder.csproj">
+      <Project>{147e84f0-5746-4e0c-9e2d-acf8d0f88490}</Project>
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\cryptopp\projects\msvs\cryptopp.Universal\cryptopp.vcxproj">
       <Project>{cc14ffe5-0018-4d8d-bc2c-c93477ce081c}</Project>
