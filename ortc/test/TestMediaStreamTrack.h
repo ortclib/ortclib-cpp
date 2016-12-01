@@ -30,10 +30,6 @@
 */
 
 
-#include <zsLib/MessageQueueThread.h>
-
-#include <ortc/ISettings.h>
-
 #include <ortc/internal/ortc_MediaDevices.h>
 #include <ortc/internal/ortc_RTPReceiver.h>
 #include <ortc/internal/ortc_RTPReceiverChannel.h>
@@ -43,6 +39,8 @@
 
 #include <ortc/services/IHelper.h>
 
+#include <zsLib/IMessageQueueThread.h>
+#include <zsLib/ISettings.h>
 #include <zsLib/Promise.h>
 #include <zsLib/Event.h>
 #include <zsLib/Log.h>
@@ -139,7 +137,7 @@ namespace ortc
       using zsLib::AutoPUID;
       using zsLib::Milliseconds;
 
-      ZS_DECLARE_USING_PTR(zsLib, Timer)
+      ZS_DECLARE_USING_PTR(zsLib, ITimer)
       ZS_DECLARE_USING_PTR(zsLib, Event)
       ZS_DECLARE_USING_PTR(ortc::internal, RTPReceiver)
       ZS_DECLARE_USING_PTR(ortc::internal, RTPReceiverChannel)
@@ -298,7 +296,7 @@ namespace ortc
         #pragma mark FakeReceiverChannel => ITimerDelegate
         #pragma mark
 
-        virtual void onTimer(TimerPtr timer) override;
+        virtual void onTimer(ITimerPtr timer) override;
 
       protected:
         //---------------------------------------------------------------------
@@ -315,7 +313,7 @@ namespace ortc
 
         UseMediaStreamTrackPtr mTrack;
 
-        TimerPtr mTimer;
+        ITimerPtr mTimer;
 
         ULONG mSentVideoFrames;
         ULONG mSentAudioSamples;

@@ -30,12 +30,11 @@
 */
 
 
-#include <zsLib/MessageQueueThread.h>
-
 #include "TestMediaStreamTrack.h"
 
 #include <ortc/internal/ortc_ORTC.h>
 
+#include <zsLib/IMessageQueueThread.h>
 #include <zsLib/XML.h>
 
 #include <cmath>
@@ -62,7 +61,7 @@ using zsLib::IPromiseResolutionDelegate;
 using ortc::IMediaDevices;
 using ortc::internal::IORTCForInternal;
 
-ZS_DECLARE_TYPEDEF_PTR(ortc::ISettings, UseSettings)
+ZS_DECLARE_TYPEDEF_PTR(zsLib::ISettings, UseSettings)
 ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHelper, UseServicesHelper)
 ZS_DECLARE_TYPEDEF_PTR(zsLib::Promise, Promise)
 ZS_DECLARE_TYPEDEF_PTR(ortc::IMediaDevicesTypes::Constraints, Constraints)
@@ -459,7 +458,7 @@ namespace ortc
         AutoRecursiveLock lock(*this);
 
         if (IMediaStreamTrackPtr(MediaStreamTrack::convert(mTrack))->kind() == IMediaStreamTrackTypes::Kinds::Kind_Video)
-          mTimer = Timer::create(mThisWeak.lock(), Milliseconds(30));
+          mTimer = ITimer::create(mThisWeak.lock(), Milliseconds(30));
       }
 
       //-----------------------------------------------------------------------
@@ -538,7 +537,7 @@ namespace ortc
       #pragma mark
 
       //-----------------------------------------------------------------------
-      void FakeReceiverChannel::onTimer(TimerPtr timer)
+      void FakeReceiverChannel::onTimer(ITimerPtr timer)
       {
         mSentVideoFrames++;
 
@@ -1312,9 +1311,9 @@ void doTestMediaStreamTrack(void* videoSurface)
 
   TESTING_SLEEP(1000)
 
-  ortc::ISettings::applyDefaults();
+  UseSettings::applyDefaults();
 
-  zsLib::MessageQueueThreadPtr thread(zsLib::MessageQueueThread::createBasic());
+  auto thread(zsLib::IMessageQueueThread::createBasic());
 
   MediaStreamTrackTesterPtr testObject;
 

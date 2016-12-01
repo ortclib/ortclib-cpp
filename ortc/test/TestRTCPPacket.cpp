@@ -30,15 +30,13 @@
  */
 
 
-#include <zsLib/MessageQueueThread.h>
-
-#include <ortc/ISettings.h>
-
 #include <ortc/internal/ortc_RTCPPacket.h>
 #include <ortc/internal/ortc_Helper.h>
 
 #include <ortc/services/IHelper.h>
 
+#include <zsLib/ISettings.h>
+#include <zsLib/IMessageQueueThread.h>
 #include <zsLib/XML.h>
 
 #include "config.h"
@@ -62,7 +60,7 @@ using zsLib::AutoRecursiveLock;
 //
 //ZS_DECLARE_USING_PTR(ortc::services, SecureByteBlock)
 //
-//ZS_DECLARE_TYPEDEF_PTR(ortc::ISettings, UseSettings)
+ZS_DECLARE_TYPEDEF_PTR(zsLib::ISettings, UseSettings)
 ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHelper, UseServicesHelper)
 ZS_DECLARE_TYPEDEF_PTR(ortc::internal::Helper, UseHelper)
 
@@ -3465,9 +3463,9 @@ void doTestRTCPPacket()
 
   TESTING_SLEEP(1000)
 
-  ortc::ISettings::applyDefaults();
+  UseSettings::applyDefaults();
 
-  zsLib::MessageQueueThreadPtr thread(zsLib::MessageQueueThread::createBasic());
+  auto thread(zsLib::IMessageQueueThread::createBasic());
 
   TesterPtr testObject1;
   TesterPtr testObject2;

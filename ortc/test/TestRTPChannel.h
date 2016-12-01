@@ -30,11 +30,8 @@
  */
 
 
-#include <zsLib/MessageQueueThread.h>
-
 #include <ortc/IDataChannel.h>
 #include <ortc/IRTPReceiver.h>
-#include <ortc/ISettings.h>
 
 #include <ortc/internal/ortc_RTPListener.h>
 #include <ortc/internal/ortc_RTPReceiver.h>
@@ -52,8 +49,10 @@
 
 #include <ortc/services/IHelper.h>
 
+#include <zsLib/ISettings.h>
+#include <zsLib/IMessageQueueThread.h>
 #include <zsLib/Promise.h>
-#include <zsLib/Timer.h>
+#include <zsLib/ITimer.h>
 #include <zsLib/Log.h>
 
 #include "config.h"
@@ -139,7 +138,7 @@ namespace ortc
       using zsLib::AutoPUID;
       using zsLib::Milliseconds;
 
-      ZS_DECLARE_USING_PTR(zsLib, Timer)
+      ZS_DECLARE_USING_PTR(zsLib, ITimer)
       ZS_DECLARE_USING_PTR(ortc::internal, RTPPacket)
       ZS_DECLARE_USING_PTR(ortc::internal, RTCPPacket)
       ZS_DECLARE_USING_PTR(ortc::internal, RTPReceiver)
@@ -231,7 +230,7 @@ namespace ortc
         #pragma mark
 
         //---------------------------------------------------------------------
-        virtual void onTimer(TimerPtr timer) override;
+        virtual void onTimer(ITimerPtr timer) override;
 
         //---------------------------------------------------------------------
         #pragma mark
@@ -288,7 +287,7 @@ namespace ortc
 
         DelayedBufferList mDelayedBuffers;
 
-        TimerPtr mTimer;
+        ITimerPtr mTimer;
       };
 
       //---------------------------------------------------------------------
@@ -625,7 +624,7 @@ namespace ortc
         #pragma mark FakeListener => Timer
         #pragma mark
 
-        virtual void onTimer(TimerPtr timer) override;
+        virtual void onTimer(ITimerPtr timer) override;
 
         //---------------------------------------------------------------------
         #pragma mark
@@ -661,7 +660,7 @@ namespace ortc
         IRTPListenerDelegateSubscriptions mSubscriptions;
         IRTPListenerSubscriptionPtr mDefaultSubscription;
 
-        TimerPtr mCleanBuffersTimer;
+        ITimerPtr mCleanBuffersTimer;
 
         BufferedRTPPacketList mBufferedRTPPackets;
         BufferedRTCPPacketList mBufferedRTCPPackets;

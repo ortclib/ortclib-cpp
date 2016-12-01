@@ -30,12 +30,10 @@
  */
 
 
-#include <zsLib/MessageQueueThread.h>
 
 #include <ortc/internal/ortc_ORTC.h>
 
 #include <ortc/IICEGatherer.h>
-#include <ortc/ISettings.h>
 
 #include <ortc/types.h>
 #include <ortc/internal/types.h>
@@ -43,8 +41,10 @@
 
 
 #include <ortc/services/IHelper.h>
-#include <ortc/services/IMessageQueueManager.h>
 
+#include <zsLib/ISettings.h>
+#include <zsLib/IMessageQueueThread.h>
+#include <zsLib/IMessageQueueManager.h>
 #include <zsLib/XML.h>
 
 #include "config.h"
@@ -88,9 +88,9 @@ using namespace zsLib::XML;
 #define ORTC_TEST_QUEUE_FOR_DELEGATE "org.ortc.test.delegateQueue"
 
 ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHelper, UseServicesHelper)
-ZS_DECLARE_TYPEDEF_PTR(ortc::ISettings, UseSettings)
+ZS_DECLARE_TYPEDEF_PTR(zsLib::ISettings, UseSettings)
 ZS_DECLARE_TYPEDEF_PTR(ortc::internal::IORTCForInternal, UseORTC)
-ZS_DECLARE_TYPEDEF_PTR(ortc::services::IMessageQueueManager, UseMessageQueueManager)
+ZS_DECLARE_TYPEDEF_PTR(zsLib::IMessageQueueManager, UseMessageQueueManager)
 
 namespace ortc
 {
@@ -579,7 +579,7 @@ ZS_DECLARE_USING_PTR(ortc::test::setup, TestSetup)
 void doSetup()
 {
   ortc::internal::IORTCForInternal::overrideQueueDelegate(UseMessageQueueManager::getMessageQueue(ORTC_TEST_QUEUE_FOR_DELEGATE));
-  ortc::ISettings::applyDefaults();
+  UseSettings::applyDefaults();
 
   TestSetup setup;
 }

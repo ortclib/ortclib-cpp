@@ -30,16 +30,15 @@
  */
 
 
-#include <zsLib/MessageQueueThread.h>
-
 #include <ortc/IDTLSTransport.h>
-#include <ortc/ISettings.h>
 
 #include <ortc/internal/ortc_ICETransport.h>
 #include <ortc/internal/ortc_ISecureTransport.h>
 
 #include <ortc/services/IHelper.h>
 
+#include <zsLib/IMessageQueueThread.h>
+#include <zsLib/ISettings.h>
 #include <zsLib/XML.h>
 
 #include "config.h"
@@ -57,7 +56,7 @@ using zsLib::AutoRecursiveLock;
 using zsLib::IPromiseSettledDelegate;
 using namespace zsLib::XML;
 
-ZS_DECLARE_TYPEDEF_PTR(ortc::ISettings, UseSettings)
+ZS_DECLARE_TYPEDEF_PTR(zsLib::ISettings, UseSettings)
 ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHelper, UseServicesHelper)
 
 namespace ortc
@@ -662,9 +661,9 @@ void doTestDTLS()
 
   TESTING_SLEEP(1000)
 
-  ortc::ISettings::applyDefaults();
+  UseSettings::applyDefaults();
 
-  zsLib::MessageQueueThreadPtr thread(zsLib::MessageQueueThread::createBasic());
+  auto thread(zsLib::IMessageQueueThread::createBasic());
 
   FakeICETransportPtr fakeIceObject1;
   FakeICETransportPtr fakeIceObject2;

@@ -30,9 +30,7 @@
  */
 
 
-#include <zsLib/MessageQueueThread.h>
 
-#include <ortc/ISettings.h>
 
 #include <ortc/internal/ortc_RTPReceiverChannel.h>
 #include <ortc/internal/ortc_RTPReceiverChannelAudio.h>
@@ -42,7 +40,9 @@
 
 #include <ortc/services/IHelper.h>
 
-#include <zsLib/Timer.h>
+#include <zsLib/IMessageQueueThread.h>
+#include <zsLib/ISettings.h>
+#include <zsLib/ITimer.h>
 #include <zsLib/Log.h>
 #include <zsLib/Promise.h>
 #include <zsLib/Event.h>
@@ -60,7 +60,7 @@ namespace ortc
       using zsLib::AutoPUID;
       using zsLib::Milliseconds;
       
-      ZS_DECLARE_USING_PTR(zsLib, Timer)
+      ZS_DECLARE_USING_PTR(zsLib, ITimer)
       ZS_DECLARE_USING_PTR(ortc::internal, RTPPacket)
       ZS_DECLARE_USING_PTR(ortc::internal, RTCPPacket)
       

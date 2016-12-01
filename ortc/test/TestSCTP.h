@@ -30,11 +30,9 @@
  */
 
 
-#include <zsLib/MessageQueueThread.h>
 
 #include <ortc/IDataChannel.h>
 #include <ortc/ISCTPTransport.h>
-#include <ortc/ISettings.h>
 
 #include <ortc/internal/ortc_ICETransport.h>
 #include <ortc/internal/ortc_ISecureTransport.h>
@@ -42,8 +40,10 @@
 
 #include <ortc/services/IHelper.h>
 
+#include <zsLib/IMessageQueueThread.h>
+#include <zsLib/ISettings.h>
 #include <zsLib/Promise.h>
-#include <zsLib/Timer.h>
+#include <zsLib/ITimer.h>
 #include <zsLib/Log.h>
 
 #include "config.h"
@@ -107,7 +107,7 @@ namespace ortc
       using zsLib::AutoPUID;
       using zsLib::Milliseconds;
 
-      ZS_DECLARE_USING_PTR(zsLib, Timer)
+      ZS_DECLARE_USING_PTR(zsLib, ITimer)
 
       ZS_DECLARE_CLASS_PTR(FakeICETransport)
       ZS_DECLARE_CLASS_PTR(FakeSecureTransport)
@@ -199,7 +199,7 @@ namespace ortc
         #pragma mark
 
         //---------------------------------------------------------------------
-        virtual void onTimer(TimerPtr timer) override;
+        virtual void onTimer(ITimerPtr timer) override;
 
         //---------------------------------------------------------------------
         #pragma mark
@@ -253,7 +253,7 @@ namespace ortc
 
         DelayedBufferList mDelayedBuffers;
 
-        TimerPtr mTimer;
+        ITimerPtr mTimer;
       };
 
       //---------------------------------------------------------------------
