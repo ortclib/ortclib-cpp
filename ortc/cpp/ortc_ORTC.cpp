@@ -182,7 +182,7 @@ namespace ortc
       ZS_EVENTING_EXCLUSIVE(x);
 
       initSubsystems();
-      ZS_LOG_DETAIL(log("created"))
+      ZS_LOG_DETAIL(log("created"));
     }
 
     //-------------------------------------------------------------------------
