@@ -507,6 +507,18 @@ namespace ortc
   }
 
   //-------------------------------------------------------------------------
+  void IORTC::setDefaultEventingLevel(Log::Level level)
+  {
+    UseServicesLogger::setEventingLevel(level);
+  }
+
+  //-------------------------------------------------------------------------
+  void IORTC::setEventingLevel(const char *componenet, Log::Level level)
+  {
+    UseServicesLogger::setEventingLevel(componenet, level);
+  }
+
+  //-------------------------------------------------------------------------
   void IORTC::startMediaTracing()
   {
     auto singleton = internal::ORTC::singleton();
