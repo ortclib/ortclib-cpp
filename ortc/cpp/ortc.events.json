@@ -107,8 +107,8 @@
         },
         {
           "name": "IceGatherer",
-          "opCodes": {
-            "opCode": [
+          "opcodes": {
+            "opcode": [
               { "name": "CreateAssociated" },
               { "name": "Gather" },
               { "name": "HostSocketBind" },
@@ -122,8 +122,8 @@
         },
         {
           "name": "IceTransport",
-          "opCodes": {
-            "opCode": [
+          "opcodes": {
+            "opcode": [
               { "name": "CreateAssociated" },
               { "name": "AddCandidate" },
               { "name": "RemoveCandidate" },
@@ -143,8 +143,8 @@
         },
         {
           "name": "RtpReceiver",
-          "opCodes": {
-            "opCode": [
+          "opcodes": {
+            "opcode": [
               { "name": "SetTransport" }
             ]
           }
@@ -154,8 +154,8 @@
         },
         {
           "name": "RtpSender",
-          "opCodes": {
-            "opCode": [
+          "opcodes": {
+            "opcode": [
               { "name": "SetTransport" },
               { "name": "SetTrack" }
             ]
@@ -172,8 +172,8 @@
         },
         {
           "name": "SctpTransportListener",
-          "opCodes": {
-            "opCode": [
+          "opcodes": {
+            "opcode": [
               { "name": "SetTransport" },
               { "name": "Listen" }
             ]
@@ -184,8 +184,8 @@
         }
       ]
     },
-    "opCodes": {
-      "opCode": [
+    "opcodes": {
+      "opcode": [
         {
           "name": "Initialization"
         },
