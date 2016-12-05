@@ -438,9 +438,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool MediaStreamTrack::remote() const
     {
-      AutoRecursiveLock lock(*this);
-
-      return mRemote;
+      return mRemote; // no lock needed
     }
 
     //-------------------------------------------------------------------------
@@ -477,7 +475,6 @@ namespace ortc
     IMediaStreamTrackTypes::TrackConstraintsPtr MediaStreamTrack::getConstraints() const
     {
       AutoRecursiveLock lock(*this);
-
       return mConstraints;
     }
 
@@ -485,7 +482,6 @@ namespace ortc
     IMediaStreamTrackTypes::SettingsPtr MediaStreamTrack::getSettings() const
     {
       AutoRecursiveLock lock(*this);
-
       return mSettings;
     }
 

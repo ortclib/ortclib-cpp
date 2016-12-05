@@ -1874,9 +1874,13 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPMediaEngine::DeviceResource::setVideoRenderCallback(IMediaStreamTrackRenderCallbackPtr callback)
     {
+      auto track = mTrack.lock();
+      if (!track) return;
+      auto kind = track->kind();
+
       AutoRecursiveLock lock(*this);
 
-      if (mTrack.lock()->kind() == Kinds::Kind_Video) {
+      if (kind == Kinds::Kind_Video) {
         mVideoRenderCallbackReferenceHolder = callback;
         mVideoRendererCallback = dynamic_cast<webrtc::VideoRenderCallback*>(callback.get());
       }
@@ -1887,13 +1891,17 @@ namespace ortc
     {
       ++mFramesReceived;
 
+      auto track = mTrack.lock();
+      if (!track) return;
+
+      auto settings = track->getSettings();
+
       AutoRecursiveLock lock(*this);
 
       if (mVideoRendererCallback) {
         mVideoRendererCallback->RenderFrame(1, *videoFrame);
       }
 
-      auto settings = mTrack.lock()->getSettings();
       if (NULL == settings) {
         return;
       }
@@ -1928,19 +1936,18 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPMediaEngine::DeviceResource::onUpdateConstraints(PromisePtr promise, TrackConstraintsPtr constraints)
     {
-      AutoRecursiveLock lock(*this);
-
       auto track = mTrack.lock();
-      if (!track) {
-        return;
-      }
+      if (!track) return;
 
       auto settings = track->getSettings();
-      if (NULL == settings) {
-        return;
-      }
+      if (!settings) return;
 
-      if (track->kind() == Kinds::Kind_Audio && track->remote()) {
+      auto kind = track->kind();
+      auto remote = track->remote();
+
+      AutoRecursiveLock lock(*this);
+
+      if (kind == Kinds::Kind_Audio && remote) {
 
         mDeviceID = constraints->mAdvanced.front()->mDeviceID.mValue.value().mValue.value();
 
@@ -1965,19 +1972,18 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPMediaEngine::DeviceResource::onProvideStats(PromiseWithStatsReportPtr promise, IStatsReportTypes::StatsTypeSet stats)
     {
+      auto track = mTrack.lock();
+      if (!track) return;
+
+      auto remote = track->remote();
+      auto id = track->id();
+
+      auto settings = track->getSettings();
+      if (!settings) return;
+
       AutoRecursiveLock lock(*this);
 
       UseStatsReport::StatMap reportStats;
-
-      auto track = mTrack.lock();
-      if (!track) {
-        return;
-      }
-
-      auto settings = track->getSettings();
-      if (NULL == settings) {
-        return;
-      }
 
       if (stats.hasStatType(IStatsReportTypes::StatsTypes::StatsType_Track)) {
 
@@ -1985,15 +1991,14 @@ namespace ortc
 
         decltype(report->mFramesPerSecond) framesPerSecond{};
 
-        if (!track->remote())
+        if (!remote)
           framesPerSecond = mAverageFramesSent.value<decltype(framesPerSecond)>();
         else
           framesPerSecond = mAverageFramesReceived.value<decltype(framesPerSecond)>();
 
-        report->mID = track->id();
-
-        report->mTrackID = track->id();
-        report->mRemoteSource = track->remote();
+        report->mID = id;
+        report->mTrackID = id;
+        report->mRemoteSource = remote;
         report->mFrameWidth = settings->mWidth.hasValue() ? settings->mWidth : 0;
         report->mFrameHeight = settings->mHeight.hasValue() ? settings->mHeight : 0;
         report->mFramesPerSecond = framesPerSecond;
@@ -2010,14 +2015,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPMediaEngine::DeviceResource::onCapturedVideoFrame(VideoFramePtr frame)
     {
-      UseMediaStreamTrackPtr track;
+      UseMediaStreamTrackPtr track = mTrack.lock();
 
       {
         AutoRecursiveLock lock(*this);
 
         if (mVideoRendererCallback) mVideoRendererCallback->RenderFrame(1, *frame);
-
-        track = mTrack.lock();
       }
 
       if (!track) return;
@@ -2037,10 +2040,6 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPMediaEngine::DeviceResource::stepSetup()
     {
-      AutoRecursiveLock lock(*this);
-
-      auto pThis = ZS_DYNAMIC_PTR_CAST(DeviceResource, mThisWeak.lock());
-
       auto track = mTrack.lock();
       if (!track) {
         notifyPromisesReject();
@@ -2048,20 +2047,27 @@ namespace ortc
       }
 
       auto settings = track->getSettings();
-      if (NULL == settings) {
+      if (!settings) {
         notifyPromisesReject();
         return;
       }
 
+      auto kind = track->kind();
+      auto remote = track->remote();
+
+      auto constraints = track->getConstraints();
+      if (!constraints) {
+        notifyPromisesReject();
+        return;
+      }
+
+      AutoRecursiveLock lock(*this);
+
+      auto pThis = ZS_DYNAMIC_PTR_CAST(DeviceResource, mThisWeak.lock());
+
       mTransport = VideoCaptureTransport::create(pThis);
 
-      if (track->kind() == Kinds::Kind_Video && !track->remote()) {
-
-        auto constraints = track->getConstraints();
-        if (NULL == constraints) {
-          notifyPromisesReject();
-          return;
-        }
+      if (kind == Kinds::Kind_Video && !remote) {
 
         mDeviceID = constraints->mAdvanced.front()->mDeviceID.mValue.value().mValue.value();
         mVideoCaptureModule = webrtc::VideoCaptureFactory::Create(0, mDeviceID.c_str());
@@ -2074,9 +2080,7 @@ namespace ortc
         mVideoCaptureModule->RegisterCaptureDataCallback(*mTransport);
 
         webrtc::VideoCaptureModule::DeviceInfo* info = webrtc::VideoCaptureFactory::CreateDeviceInfo(0);
-        if (!info) {
-          return;
-        }
+        if (!info) return;
 
         std::list<VideoCaptureCapabilityWithDistance> capabilityCandidates;
         int32_t numCapabilities = info->NumberOfCapabilities(mDeviceID.c_str());
@@ -2209,13 +2213,7 @@ namespace ortc
           mVideoCaptureModule->DeRegisterCaptureDataCallback();
           return;
         }
-      } else if (track->kind() == Kinds::Kind_Audio && !track->remote()) {
-
-        auto constraints = track->getConstraints();
-        if (NULL == constraints) {
-          notifyPromisesReject();
-          return;
-        }
+      } else if (kind == Kinds::Kind_Audio && !remote) {
 
         mDeviceID = constraints->mAdvanced.front()->mDeviceID.mValue.value().mValue.value();
 
@@ -2249,7 +2247,7 @@ namespace ortc
         std::this_thread::yield();
       }
 
-      AutoRecursiveLock lock(*this);
+      //AutoRecursiveLock lock(*this);
     }
 
     //-------------------------------------------------------------------------
