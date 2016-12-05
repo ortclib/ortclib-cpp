@@ -1895,15 +1895,12 @@ namespace ortc
       if (!track) return;
 
       auto settings = track->getSettings();
+      if (!settings) return;
 
       AutoRecursiveLock lock(*this);
 
       if (mVideoRendererCallback) {
         mVideoRendererCallback->RenderFrame(1, *videoFrame);
-      }
-
-      if (NULL == settings) {
-        return;
       }
 
       if (!settings->mWidth.hasValue() || (settings->mWidth != videoFrame->width()))
@@ -2056,18 +2053,17 @@ namespace ortc
       auto remote = track->remote();
 
       auto constraints = track->getConstraints();
-      if (!constraints) {
-        notifyPromisesReject();
-        return;
-      }
+      auto pThis = ZS_DYNAMIC_PTR_CAST(DeviceResource, mThisWeak.lock());
 
       AutoRecursiveLock lock(*this);
-
-      auto pThis = ZS_DYNAMIC_PTR_CAST(DeviceResource, mThisWeak.lock());
 
       mTransport = VideoCaptureTransport::create(pThis);
 
       if (kind == Kinds::Kind_Video && !remote) {
+        if (!constraints) {
+          notifyPromisesReject();
+          return;
+        }
 
         mDeviceID = constraints->mAdvanced.front()->mDeviceID.mValue.value().mValue.value();
         mVideoCaptureModule = webrtc::VideoCaptureFactory::Create(0, mDeviceID.c_str());
@@ -2214,6 +2210,11 @@ namespace ortc
           return;
         }
       } else if (kind == Kinds::Kind_Audio && !remote) {
+
+        if (!constraints) {
+          notifyPromisesReject();
+          return;
+        }
 
         mDeviceID = constraints->mAdvanced.front()->mDeviceID.mValue.value().mValue.value();
 
