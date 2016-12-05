@@ -38,6 +38,7 @@
 #include <ortc/services/ILogger.h>
 
 #include <zsLib/IMessageQueueManager.h>
+#include <zsLib/ISettings.h>
 #include <zsLib/Log.h>
 #include <zsLib/XML.h>
 
@@ -47,6 +48,7 @@ namespace ortc
 {
   ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHelper, UseServicesHelper);
   ZS_DECLARE_TYPEDEF_PTR(ortc::services::ILogger, UseServicesLogger);
+  ZS_DECLARE_USING_PTR(zsLib, ISettings);
 
   namespace internal
   {
@@ -262,6 +264,7 @@ namespace ortc
 
       UseServicesHelper::setup();
       installAllDefaults();
+      ISettings::applyDefaults();
     }
 
 #ifdef WINRT
