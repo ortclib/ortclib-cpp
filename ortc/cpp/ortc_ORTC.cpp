@@ -273,6 +273,7 @@ namespace ortc
     {
       UseServicesHelper::setup(dispatcher);
       installAllDefaults();
+      ISettings::applyDefaults();
     }
 #endif //WINRT
 
