@@ -63,6 +63,7 @@
     },
     "sources": {
       "source": [
+        "ortc.cpp",
         "ortc_Certificate.cpp",
         "ortc_DataChannel.cpp",
         "ortc_DTLSTransport.cpp",
