@@ -1523,7 +1523,7 @@ namespace ortc
       ZS_EVENTING_3(
                     x, i, Trace, IceGathererInternalTimerEvent, ol, IceGatherer, InternalEvent,
                     puid, id, mID,
-                    string, timerType, NULL,
+                    string, timerType, (const char *)NULL,
                     puid, relatedObjectId, 0
                     );
 
@@ -2991,8 +2991,8 @@ namespace ortc
                             x, i, Trace, IceGathererResolveFoundHostIP, ol, IceGatherer, Info,
                             puid, id, mID,
                             string, hostIp, ip.string(),
-                            string, hostName, NULL,
-                            string, interfaceName, NULL,
+                            string, hostName, (const char *)NULL,
+                            string, interfaceName, (const char *)NULL,
                             ulong, adapterSpecific, 0
                             );
 
@@ -3038,7 +3038,7 @@ namespace ortc
                         x, i, Trace, IceGathererResolveFoundHostIP, ol, IceGatherer, Info,
                         puid, id, mID,
                         string, hostIp, ip.string(),
-                        string, hostName, NULL,
+                        string, hostName, (const char *)NULL,
                         string, interfaceName, ifa->ifa_name,
                         ulong, adapterSpecific, ifa->ifa_flags
                         );
@@ -7078,16 +7078,16 @@ namespace ortc
                        word, hostPort, mHostPort ? mHostPort->mID : static_cast<WORD>(0),
                        word, relayPort, mRelayPort ? mRelayPort->mID : static_cast<WORD>(0),
                        puid, tcpPortId, mTCPPort ? mTCPPort->mID : static_cast<PUID>(0),
-                       string, interfaceType, NULL,
-                       string, foundation, NULL,
+                       string, interfaceType, (const char *)NULL,
+                       string, foundation, (const char *)NULL,
                        dword, priority, static_cast<DWORD>(0),
                        dword, unfreezePriority, static_cast<DWORD>(0),
-                       string, protocol, NULL,
-                       string, ip, NULL,
+                       string, protocol, (const char *)NULL,
+                       string, ip, (const char *)NULL,
                        word, port, static_cast<WORD>(0),
-                       string, candidateType, NULL,
-                       string, tcpType, NULL,
-                       string, relatedAddress, NULL,
+                       string, candidateType, (const char *)NULL,
+                       string, tcpType, (const char *)NULL,
+                       string, relatedAddress, (const char *)NULL,
                        word, relatedPort, static_cast<WORD>(0)
                        );
 

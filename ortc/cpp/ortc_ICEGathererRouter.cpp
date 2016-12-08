@@ -230,7 +230,7 @@ namespace ortc
                         puid, id, mID,
                         string, event, "keep",
                         string, candidateHash, candidateHash,
-                        string, localCandidateIp, NULL,
+                        string, localCandidateIp, (const char *)NULL,
                         word, localCandidatePort, 0,
                         string, remoteIp, remoteIP.string()
                         );
@@ -245,7 +245,7 @@ namespace ortc
                       puid, id, mID,
                       string, event, "prune",
                       string, candidateHash, candidateHash,
-                      string, localCandidateIp, NULL,
+                      string, localCandidateIp, (const char *)NULL,
                       word, localCandidatePort, 0,
                       string, remoteIp, remoteIP.string()
                       );
@@ -393,16 +393,16 @@ namespace ortc
                        puid, routeId, mID,
                        string, callingMethod, function,
                        string, message, message,
-                       string, localInterfaceType, NULL,
-                       string, localFoundation, NULL,
+                       string, localInterfaceType, (const char *)NULL,
+                       string, localFoundation, (const char *)NULL,
                        dword, localPriority, 0,
                        dword, localUnfreezePriority, 0,
-                       string, localProtocol, NULL,
-                       string, localIp, NULL,
+                       string, localProtocol, (const char *)NULL,
+                       string, localIp, (const char *)NULL,
                        word, localPort, 0,
-                       string, localCandidateType, NULL,
-                       string, localTcpType, NULL,
-                       string, localRelatedAddress, NULL,
+                       string, localCandidateType, (const char *)NULL,
+                       string, localTcpType, (const char *)NULL,
+                       string, localRelatedAddress, (const char *)NULL,
                        word, localRelatedPort, 0,
                        string, remoteIp, mRemoteIP.string()
                        );

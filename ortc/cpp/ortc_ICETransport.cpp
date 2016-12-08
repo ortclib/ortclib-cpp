@@ -1764,7 +1764,7 @@ namespace ortc
                     x, i, Trace, IceTransportInternalTimerEvent, ol, IceTransport, InternalEvent,
                     puid, id, mID,
                     puid, timerId, timer->getID(),
-                    string, timerType, NULL
+                    string, timerType, (const char *)NULL
                     );
 
       ZS_LOG_TRACE(log("timer fired") + ZS_PARAM("timer id", timer->getID()))

@@ -1206,7 +1206,7 @@ namespace ortc
                     x, i, Trace, RtpListenerInternalTimerEvent, ol, RtpListener, InternalEvent,
                     puid, id, mID,
                     puid, timerId, timer->getID(),
-                    string, timerType, NULL
+                    string, timerType, (const char *)NULL
                     );
 
       ZS_LOG_DEBUG(log("timer") + ZS_PARAM("timer id", timer->getID()))
