@@ -4361,7 +4361,7 @@ namespace ortc
     {
       if (state == mCurrentState) return;
 
-      ZS_LOG_DEBUG(log("state changed") + ZS_PARAM("new state", toString(state)) + ZS_PARAM("old state", toString(mCurrentState)))
+      ZS_LOG_DEBUG(log("state changed") + ZS_PARAM("new state", toString(state)) + ZS_PARAM("old state", toString(mCurrentState)));
 
       auto oldState = toState(mCurrentState);
       auto newState = toState(state);

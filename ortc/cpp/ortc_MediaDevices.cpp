@@ -203,7 +203,7 @@ namespace ortc
       static SingletonLazySharedPtr<MediaDevices> singleton(create());
       MediaDevicesPtr result = singleton.singleton();
 
-      static SingletonManager::Register registerSingleton("ortc::MediaDevices", result);
+      static SingletonManager::Register registerSingleton("org.ortc.MediaDevices", result);
 
       if (!result) {
         ZS_LOG_WARNING(Detail, slog("singleton gone"))

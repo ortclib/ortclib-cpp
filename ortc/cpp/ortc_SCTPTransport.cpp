@@ -421,7 +421,7 @@ namespace ortc
         static SingletonLazySharedPtr<SCTPInit> singleton(create());
         SCTPInitPtr result = singleton.singleton();
 
-        static zsLib::SingletonManager::Register registerSingleton("ortc::ortc::SCTPInit", result);
+        static zsLib::SingletonManager::Register registerSingleton("org.ortc.SCTPInit", result);
 
         if (!result) {
           ZS_LOG_WARNING(Detail, slog("singleton gone"))

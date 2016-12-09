@@ -322,7 +322,7 @@ namespace ortc
         static SingletonLazySharedPtr<SRTPInit> singleton(create());
         SRTPInitPtr result = singleton.singleton();
 
-        static zsLib::SingletonManager::Register registerSingleton("ortc::ortc::SRTPInit", result);
+        static zsLib::SingletonManager::Register registerSingleton("org.ortc.SRTPInit", result);
 
         if (!result) {
           ZS_LOG_WARNING(Detail, slog("singleton gone"))

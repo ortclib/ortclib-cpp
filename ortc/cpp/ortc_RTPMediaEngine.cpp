@@ -246,7 +246,7 @@ namespace ortc
         static SingletonLazySharedPtr<RTPMediaEngineSingleton> singleton(create());
         RTPMediaEngineSingletonPtr result = singleton.singleton();
 
-        static zsLib::SingletonManager::Register registerSingleton("ortc::ortc::RTPMediaEngineSingleton", result);
+        static zsLib::SingletonManager::Register registerSingleton("org.ortc.RTPMediaEngineSingleton", result);
 
         if (!result) {
           ZS_LOG_WARNING(Detail, slog("singleton gone"))
