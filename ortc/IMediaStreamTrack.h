@@ -35,6 +35,7 @@
 #include <ortc/ICapabilities.h>
 #include <ortc/IConstraints.h>
 #include <ortc/IStatsProvider.h>
+#include <webrtc/video_frame.h>
 
 namespace ortc
 {
@@ -43,11 +44,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
-  #pragma mark IMediaStreamTrackCallback
+  #pragma mark IMediaStreamTrackRenderCallback
   #pragma mark
 
   interaction IMediaStreamTrackRenderCallback
   {
+    virtual int32_t RenderFrame(const uint32_t streamId, const webrtc::VideoFrame& videoFrame) = 0;
     virtual ~IMediaStreamTrackRenderCallback() {}
   };
 

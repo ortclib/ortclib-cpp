@@ -364,14 +364,12 @@ namespace ortc
       }
       delete info;
 
-      webrtc::AudioDeviceModule* audioDevice =
+      rtc::scoped_refptr<webrtc::AudioDeviceModule> audioDevice =
         webrtc::AudioDeviceModuleImpl::Create(1, webrtc::AudioDeviceModule::kWindowsWasapiAudio);
       if (!audioDevice) {
         promise->reject();
         return;
       }
-
-      audioDevice->AddRef();
 
       audioDevice->Init();
 

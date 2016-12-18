@@ -45,7 +45,6 @@
 #include <zsLib/MessageQueueAssociator.h>
 #include <zsLib/Timer.h>
 
-#include "webrtc/base/scoped_ptr.h"
 #include <webrtc/base/logging.h>
 #include <webrtc/system_wrappers/include/trace.h>
 #include <webrtc/base/tracelog.h>
@@ -56,6 +55,7 @@
 #include <webrtc/video/call_stats.h>
 #include <webrtc/modules/congestion_controller/include/congestion_controller.h>
 #include <webrtc/modules/utility/include/process_thread.h>
+#include <webrtc/modules/video_capture/video_capture.h>
 #include <webrtc/voice_engine/include/voe_base.h>
 #include <webrtc/video/vie_remb.h>
 //#define ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE "ortc/sctp/max-message-size"
@@ -1301,7 +1301,7 @@ namespace ortc
         VideoCaptureTransportPtr mTransport;  // keep lifetime of webrtc callback separate from this object
 
         webrtc::VideoCaptureModule* mVideoCaptureModule {NULL};
-        webrtc::VideoRenderCallback* mVideoRendererCallback {NULL};
+        IMediaStreamTrackRenderCallback* mVideoRendererCallback {NULL};
         IMediaStreamTrackRenderCallbackPtr mVideoRenderCallbackReferenceHolder;
 
         std::atomic<ULONG> mFramesSent {};
@@ -1398,13 +1398,13 @@ namespace ortc
         BYTE mCodecPayloadType {0};
         UINT mCurrentTargetBitrate {0};
 
-        rtc::scoped_ptr<webrtc::ProcessThread> mModuleProcessThread;
-        rtc::scoped_ptr<webrtc::ProcessThread> mPacerThread;
+        std::unique_ptr<webrtc::ProcessThread> mModuleProcessThread;
+        std::unique_ptr<webrtc::ProcessThread> mPacerThread;
         webrtc::Clock *mClock;
         webrtc::VieRemb mRemb;
-        rtc::scoped_ptr<webrtc::CallStats> mCallStats;
-        rtc::scoped_ptr<webrtc::CongestionController> mCongestionController;
-        rtc::scoped_ptr<webrtc::BitrateAllocator> mBitrateAllocator;
+        std::unique_ptr<webrtc::CallStats> mCallStats;
+        std::unique_ptr<webrtc::CongestionController> mCongestionController;
+        std::unique_ptr<webrtc::BitrateAllocator> mBitrateAllocator;
 
         bool mShuttingDown {false};
         bool mShutdown {false};
@@ -1425,7 +1425,8 @@ namespace ortc
 
       class AudioReceiverChannelResource : public IRTPMediaEngineAudioReceiverChannelResource,
                                            public ChannelResource,
-                                           public webrtc::BitrateObserver
+                                           public webrtc::CongestionController::Observer,
+                                           public webrtc::BitrateAllocator::LimitObserver
       {
       public:
         friend class RTPMediaEngine;
@@ -1501,10 +1502,17 @@ namespace ortc
 
         //---------------------------------------------------------------------
         #pragma mark
-        #pragma mark RTPMediaEngine::AudioReceiverChannelResource => webrtc::BitrateObserver
+        #pragma mark RTPMediaEngine::AudioReceiverChannelResource => webrtc::CongestionController::Observer
         #pragma mark
 
         virtual void OnNetworkChanged(uint32_t targetBitrateBps, uint8_t fractionLoss, int64_t rttMs) override;
+
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark RTPMediaEngine::AudioReceiverChannelResource => webrtc::BitrateAllocator::LimitObserver
+        #pragma mark
+
+        virtual void OnAllocationLimitsChanged(uint32_t min_send_bitrate_bps, uint32_t max_padding_bitrate_bps) override;
 
       protected:
         //-----------------------------------------------------------------------
@@ -1538,7 +1546,7 @@ namespace ortc
 
         RTPPacketPtr mInitPacket;
 
-        rtc::scoped_ptr<webrtc::AudioReceiveStream> mReceiveStream;
+        webrtc::AudioReceiveStream *mReceiveStream { NULL };
 
         int mDTMFPayloadType{ 0 };
       };
@@ -1554,7 +1562,8 @@ namespace ortc
       class AudioSenderChannelResource : public IRTPMediaEngineAudioSenderChannelResource,
                                          public ChannelResource,
                                          public zsLib::ITimerDelegate,
-                                         public webrtc::BitrateObserver
+                                         public webrtc::CongestionController::Observer,
+                                         public webrtc::BitrateAllocator::LimitObserver
       {
       public:
         friend class RTPMediaEngine;
@@ -1653,10 +1662,17 @@ namespace ortc
 
         //---------------------------------------------------------------------
         #pragma mark
-        #pragma mark RTPMediaEngine::AudioSenderChannelResource => webrtc::BitrateObserver
+        #pragma mark RTPMediaEngine::AudioSenderChannelResource => webrtc::CongestionController::Observer
         #pragma mark
 
         virtual void OnNetworkChanged(uint32_t targetBitrateBps, uint8_t fractionLoss, int64_t rttMs) override;
+
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark RTPMediaEngine::AudioSenderChannelResource => webrtc::BitrateAllocator::LimitObserver
+        #pragma mark
+
+        virtual void OnAllocationLimitsChanged(uint32_t min_send_bitrate_bps, uint32_t max_padding_bitrate_bps) override;
 
       protected:
         //-----------------------------------------------------------------------
@@ -1692,7 +1708,8 @@ namespace ortc
         String mSendCodecPayloadName;
         BYTE mSendCodecPayloadType {0};
 
-        rtc::scoped_ptr<webrtc::AudioSendStream> mSendStream;
+        rtc::TaskQueue mWorkerQueue;
+        webrtc::AudioSendStream *mSendStream { NULL };
 
         int mDTMFPayloadType {0};
         IDTMFSenderDelegatePtr mDTMFSenderDelegate;
@@ -1712,7 +1729,8 @@ namespace ortc
 
       class VideoReceiverChannelResource : public IRTPMediaEngineVideoReceiverChannelResource,
                                            public ChannelResource,
-                                           public webrtc::BitrateObserver
+                                           public webrtc::CongestionController::Observer,
+                                           public webrtc::BitrateAllocator::LimitObserver
       {
       public:
         friend class RTPMediaEngine;
@@ -1720,17 +1738,12 @@ namespace ortc
         ZS_DECLARE_TYPEDEF_PTR(IStatsProviderTypes::PromiseWithStatsReport, PromiseWithStatsReport);
         ZS_DECLARE_TYPEDEF_PTR(IStatsReportTypes::StatsTypeSet, StatsTypeSet)
 
-        class ReceiverVideoRenderer : public webrtc::VideoRenderer
+        class ReceiverVideoRenderer : public rtc::VideoSinkInterface<webrtc::VideoFrame>
         {
         public:
           void setMediaStreamTrack(UseMediaStreamTrackPtr videoTrack);
 
-          virtual void RenderFrame(
-                                   const webrtc::VideoFrame &videoFrame,
-                                   int timeToRenderMs
-                                   ) override;
-
-          virtual bool IsTextureSupported() const override;
+          virtual void OnFrame(const webrtc::VideoFrame& frame) override;
 
         private:
           UseMediaStreamTrackWeakPtr mVideoTrack;
@@ -1812,10 +1825,17 @@ namespace ortc
 
         //---------------------------------------------------------------------
         #pragma mark
-        #pragma mark RTPMediaEngine::VideoReceiverChannelResource => webrtc::BitrateObserver
+        #pragma mark RTPMediaEngine::VideoReceiverChannelResource => webrtc::CongestionController::Observer
         #pragma mark
 
         virtual void OnNetworkChanged(uint32_t targetBitrateBps, uint8_t fractionLoss, int64_t rttMs) override;
+
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark RTPMediaEngine::VideoReceiverChannelResource => webrtc::BitrateAllocator::LimitObserver
+        #pragma mark
+
+        virtual void OnAllocationLimitsChanged(uint32_t min_send_bitrate_bps, uint32_t max_padding_bitrate_bps) override;
 
       protected:
         TransportPtr mTransport;
@@ -1830,7 +1850,7 @@ namespace ortc
         String mReceiveCodecPayloadName;
         BYTE mReceiveCodecPayloadType;
 
-        rtc::scoped_ptr<webrtc::VideoReceiveStream> mReceiveStream;
+        webrtc::VideoReceiveStream *mReceiveStream { NULL };
         ReceiverVideoRenderer mReceiverVideoRenderer;
       };
 
@@ -1843,15 +1863,16 @@ namespace ortc
       #pragma mark
 
       class VideoSenderChannelResource : public IRTPMediaEngineVideoSenderChannelResource,
-                                         public ChannelResource,
-                                         public webrtc::BitrateObserver
+        public ChannelResource,
+        public webrtc::CongestionController::Observer,
+        public webrtc::BitrateAllocator::LimitObserver
       {
       public:
         friend class RTPMediaEngine;
 
         ZS_DECLARE_TYPEDEF_PTR(IStatsProviderTypes::PromiseWithStatsReport, PromiseWithStatsReport);
         ZS_DECLARE_TYPEDEF_PTR(IStatsReportTypes::StatsTypeSet, StatsTypeSet)
-        ZS_DECLARE_TYPEDEF_PTR(webrtc::VideoFrame, VideoFrame);
+          ZS_DECLARE_TYPEDEF_PTR(webrtc::VideoFrame, VideoFrame);
 
         union VideoEncoderSettings {
           webrtc::VideoCodecVP8 mVp8;
@@ -1861,20 +1882,20 @@ namespace ortc
 
       public:
         VideoSenderChannelResource(
-                                   const make_private &,
-                                   IRTPMediaEngineRegistrationPtr registration,
-                                   TransportPtr transport,
-                                   UseMediaStreamTrackPtr track,
-                                   ParametersPtr parameters
-                                   );
+          const make_private &,
+          IRTPMediaEngineRegistrationPtr registration,
+          TransportPtr transport,
+          UseMediaStreamTrackPtr track,
+          ParametersPtr parameters
+        );
         virtual ~VideoSenderChannelResource();
 
         static VideoSenderChannelResourcePtr create(
-                                                    IRTPMediaEngineRegistrationPtr registration,
-                                                    TransportPtr transport,
-                                                    UseMediaStreamTrackPtr track,
-                                                    ParametersPtr parameters
-                                                    );
+          IRTPMediaEngineRegistrationPtr registration,
+          TransportPtr transport,
+          UseMediaStreamTrackPtr track,
+          ParametersPtr parameters
+        );
 
       protected:
         void init();
@@ -1885,9 +1906,9 @@ namespace ortc
         #pragma mark RTPMediaEngine::VideoSenderChannelResource => IRTPMediaEngineChannelResource
         #pragma mark
 
-        virtual PUID getID() const override {return ChannelResource::getID();}
+        virtual PUID getID() const override { return ChannelResource::getID(); }
 
-        virtual PromisePtr shutdown() override {return ChannelResource::shutdown();}
+        virtual PromisePtr shutdown() override { return ChannelResource::shutdown(); }
 
         virtual void notifyTransportState(ISecureTransportTypes::States state) override { return ChannelResource::notifyTransportState(state); }
 
@@ -1933,24 +1954,33 @@ namespace ortc
 
         //---------------------------------------------------------------------
         #pragma mark
-        #pragma mark RTPMediaEngine::VideoSenderChannelResource => webrtc::BitrateObserver
+        #pragma mark RTPMediaEngine::VideoSenderChannelResource => webrtc::CongestionController::Observer
         #pragma mark
 
         virtual void OnNetworkChanged(uint32_t targetBitrateBps, uint8_t fractionLoss, int64_t rttMs) override;
 
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark RTPMediaEngine::VideoSenderChannelResource => webrtc::BitrateAllocator::LimitObserver
+        #pragma mark
+
+        virtual void OnAllocationLimitsChanged(uint32_t min_send_bitrate_bps, uint32_t max_padding_bitrate_bps) override;
+
       protected:
         TransportPtr mTransport;
-        std::atomic<ISecureTransport::States> mTransportState { ISecureTransport::State_Pending };
+        std::atomic<ISecureTransport::States> mTransportState{ ISecureTransport::State_Pending };
 
         UseMediaStreamTrackWeakPtr mTrack;
 
         ParametersPtr mParameters;
 
         String mSendCodecPayloadName;
-        BYTE mSendCodecPayloadType {0};
+        BYTE mSendCodecPayloadType{ 0 };
 
-        rtc::scoped_ptr<webrtc::VideoSendStream> mSendStream;
+        rtc::TaskQueue mWorkerQueue;
+        webrtc::VideoSendStream *mSendStream { NULL };
         VideoEncoderSettings mVideoEncoderSettings;
+        const std::unique_ptr<webrtc::SendDelayStats> mVideoSendDelayStats;
       };
 
     protected:
@@ -1980,10 +2010,10 @@ namespace ortc
       ChannelResourceList mPendingCloseChannelResources;
 
       rtc::scoped_refptr<webrtc::AudioState> mAudioState;
-      rtc::scoped_ptr<webrtc::VoiceEngine, VoiceEngineDeleter> mVoiceEngine;
+      std::unique_ptr<webrtc::VoiceEngine, VoiceEngineDeleter> mVoiceEngine;
 
-      rtc::scoped_ptr<WebRtcTraceCallback> mTraceCallback;
-      rtc::scoped_ptr<WebRtcLogSink> mLogSink;
+      std::unique_ptr<WebRtcTraceCallback> mTraceCallback;
+      std::unique_ptr<WebRtcLogSink> mLogSink;
       rtc::TraceLog mTraceLog;
     };
 

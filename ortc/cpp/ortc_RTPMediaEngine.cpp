@@ -66,7 +66,6 @@
 #include <webrtc/voice_engine/include/voe_network.h>
 #include <webrtc/voice_engine/include/voe_hardware.h>
 #include <webrtc/system_wrappers/include/cpu_info.h>
-#include <webrtc/base/scoped_ptr.h>
 #include <webrtc/voice_engine/include/voe_audio_processing.h>
 #include <webrtc/modules/video_capture/video_capture_factory.h>
 #ifdef WINRT
@@ -1294,7 +1293,7 @@ namespace ortc
         return true;
       }
 
-      mVoiceEngine = rtc::scoped_ptr<webrtc::VoiceEngine, VoiceEngineDeleter>(webrtc::VoiceEngine::Create());
+      mVoiceEngine = std::unique_ptr<webrtc::VoiceEngine, VoiceEngineDeleter>(webrtc::VoiceEngine::Create());
 
       webrtc::VoEBase::GetInterface(mVoiceEngine.get())->Init();
 
@@ -1834,7 +1833,7 @@ namespace ortc
 
       if (mTrack.lock()->kind() == Kinds::Kind_Video) {
         mVideoRenderCallbackReferenceHolder = callback;
-        mVideoRendererCallback = dynamic_cast<webrtc::VideoRenderCallback*>(callback.get());
+        mVideoRendererCallback = dynamic_cast<IMediaStreamTrackRenderCallback*>(callback.get());
       }
     }
 
@@ -2751,7 +2750,7 @@ namespace ortc
         report->mPacketsLost = receiveStreamStats.packets_lost;
         report->mJitter = receiveStreamStats.jitter_ms;
         report->mFractionLost = receiveStreamStats.fraction_lost;
-        report->mEndToEndDelay = Milliseconds(receiveStreamStats.end_to_end_delayMs);
+        report->mEndToEndDelay = Milliseconds(receiveStreamStats.end_to_end_delay_ms);
 
         reportStats[report->mID] = report;
       }
@@ -2842,7 +2841,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTPMediaEngine::AudioReceiverChannelResource => webrtc::BitrateObserver
+    #pragma mark RTPMediaEngine::AudioReceiverChannelResource => webrtc::CongestionController::Observer
     #pragma mark
 
     //-------------------------------------------------------------------------
@@ -2852,21 +2851,27 @@ namespace ortc
 
       mCurrentTargetBitrate = targetBitrateBps;
 
-      uint32_t allocatedBitrateBps = mBitrateAllocator->OnNetworkChanged(
-                                                                         targetBitrateBps,
-                                                                         fractionLoss,
-                                                                         rttMs
-                                                                         );
+      mBitrateAllocator->OnNetworkChanged(
+                                          targetBitrateBps,
+                                          fractionLoss,
+                                          rttMs
+                                          );
+    }
 
-      int padUpToBitrateBps = 0;
-      uint32_t pacerBitrateBps = std::max(targetBitrateBps, allocatedBitrateBps);
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPMediaEngine::AudioReceiverChannelResource => webrtc::BitrateAllocator::LimitObserver
+    #pragma mark
 
-      if (mCongestionController)
-        mCongestionController->UpdatePacerBitrate(
-                                                  targetBitrateBps / 1000,
-                                                  webrtc::PacedSender::kDefaultPaceMultiplier * pacerBitrateBps / 1000,
-                                                  padUpToBitrateBps / 1000
-                                                  );
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::AudioReceiverChannelResource::OnAllocationLimitsChanged(uint32_t min_send_bitrate_bps, uint32_t max_padding_bitrate_bps)
+    {
+      AutoRecursiveLock lock(*this);
+
+      mCongestionController->SetAllocatedSendBitrateLimits(min_send_bitrate_bps, max_padding_bitrate_bps);
     }
 
     //-------------------------------------------------------------------------
@@ -2899,13 +2904,14 @@ namespace ortc
       mModuleProcessThread = webrtc::ProcessThread::Create("AudioReceiverChannelResourceModuleProcessThread");
       mPacerThread = webrtc::ProcessThread::Create("AudioReceiverChannelResourcePacerThread");
 
-      mBitrateAllocator = rtc::scoped_ptr<webrtc::BitrateAllocator>(new webrtc::BitrateAllocator());
-      mCallStats = rtc::scoped_ptr<webrtc::CallStats>(new webrtc::CallStats(mClock));
+      mBitrateAllocator = std::unique_ptr<webrtc::BitrateAllocator>(new webrtc::BitrateAllocator(this));
+      mCallStats = std::unique_ptr<webrtc::CallStats>(new webrtc::CallStats(mClock));
       mCongestionController =
-        rtc::scoped_ptr<webrtc::CongestionController>(new webrtc::CongestionController(
+        std::unique_ptr<webrtc::CongestionController>(new webrtc::CongestionController(
                                                                                        mClock,
                                                                                        this,
-                                                                                       &mRemb
+                                                                                       &mRemb,
+                                                                                       NULL
                                                                                        ));
 
       mCallStats->RegisterStatsObserver(mCongestionController.get());
@@ -2937,7 +2943,6 @@ namespace ortc
             webrtc::VoECodec::GetInterface(voiceEngine)->SetRecPayloadType(mChannel, codec);
             goto set_rtcp_feedback;
           case IRTPTypes::SupportedCodec_RED:
-            webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetREDStatus(mChannel, true, codecIter->mPayloadType);
             break;
         }
         continue;
@@ -3005,7 +3010,6 @@ namespace ortc
         localSSRC = 1;
       webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetLocalSSRC(mChannel, localSSRC);
       config.rtp.local_ssrc = localSSRC;
-      config.receive_transport = mTransport.get();
       config.rtcp_send_transport = mTransport.get();
 
       mModuleProcessThread->Start();
@@ -3015,12 +3019,12 @@ namespace ortc
       mPacerThread->RegisterModule(mCongestionController->GetRemoteBitrateEstimator(true));
       mPacerThread->Start();
 
-      mReceiveStream = rtc::scoped_ptr<webrtc::AudioReceiveStream>(
-        new webrtc::internal::AudioReceiveStream(
-                                                 mCongestionController.get(),
-                                                 config,
-                                                 audioState
-                                                 ));
+      mReceiveStream = new webrtc::internal::AudioReceiveStream(
+                                                                mCongestionController.get(),
+                                                                config,
+                                                                audioState,
+                                                                NULL
+                                                                );
 
       webrtc::VoENetwork::GetInterface(voiceEngine)->RegisterExternalTransport(mChannel, *mTransport);
 
@@ -3068,7 +3072,8 @@ namespace ortc
 
       mCallStats->DeregisterStatsObserver(mCongestionController.get());
 
-      mReceiveStream.reset();
+      if (mReceiveStream)
+        delete dynamic_cast<webrtc::internal::AudioReceiveStream*>(mReceiveStream);
       mCongestionController.reset();
       mCallStats.reset();
       mBitrateAllocator.reset();
@@ -3134,6 +3139,7 @@ namespace ortc
       mTransport(transport),
       mTrack(track),
       mParameters(parameters),
+      mWorkerQueue("audio sender channel worker queue"),
       mDTMFSenderDelegate(IDTMFSenderDelegateProxy::createWeak(dtmfDelegate))
     {
     }
@@ -3400,7 +3406,7 @@ namespace ortc
 
       if (mDenyNonLockedAccess) return;
 
-      auto stream = mSendStream.get();
+      auto stream = dynamic_cast<webrtc::internal::AudioSendStream*>(mSendStream);
       if (NULL == stream) return;
 
       bool result = stream->DeliverRtcp(buffer->BytePtr(), buffer->SizeInBytes());
@@ -3431,7 +3437,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTPMediaEngine::AudioSenderChannelResource => webrtc::BitrateObserver
+    #pragma mark RTPMediaEngine::AudioSenderChannelResource => webrtc::CongestionController::Observer
     #pragma mark
 
     //-------------------------------------------------------------------------
@@ -3441,21 +3447,27 @@ namespace ortc
 
       mCurrentTargetBitrate = targetBitrateBps;
 
-      uint32_t allocatedBitrateBps = mBitrateAllocator->OnNetworkChanged(
-                                                                         targetBitrateBps,
-                                                                         fractionLoss,
-                                                                         rttMs
-                                                                         );
+      mBitrateAllocator->OnNetworkChanged(
+                                          targetBitrateBps,
+                                          fractionLoss,
+                                          rttMs
+                                          );
+    }
 
-      int padUpToBitrateBps = 0;
-      uint32_t pacerBitrateBps = std::max(targetBitrateBps, allocatedBitrateBps);
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPMediaEngine::AudioSenderChannelResource => webrtc::BitrateAllocator::LimitObserver
+    #pragma mark
 
-      if (mCongestionController)
-        mCongestionController->UpdatePacerBitrate(
-                                                  targetBitrateBps / 1000,
-                                                  webrtc::PacedSender::kDefaultPaceMultiplier * pacerBitrateBps / 1000,
-                                                  padUpToBitrateBps / 1000
-                                                  );
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::AudioSenderChannelResource::OnAllocationLimitsChanged(uint32_t min_send_bitrate_bps, uint32_t max_padding_bitrate_bps)
+    {
+      AutoRecursiveLock lock(*this);
+
+      mCongestionController->SetAllocatedSendBitrateLimits(min_send_bitrate_bps, max_padding_bitrate_bps);
     }
 
     //-------------------------------------------------------------------------
@@ -3488,13 +3500,14 @@ namespace ortc
       mModuleProcessThread = webrtc::ProcessThread::Create("AudioSenderChannelResourceModuleProcessThread");
       mPacerThread = webrtc::ProcessThread::Create("AudioSenderChannelResourcePacerThread");
 
-      mBitrateAllocator = rtc::scoped_ptr<webrtc::BitrateAllocator>(new webrtc::BitrateAllocator());
-      mCallStats = rtc::scoped_ptr<webrtc::CallStats>(new webrtc::CallStats(mClock));
+      mBitrateAllocator = std::unique_ptr<webrtc::BitrateAllocator>(new webrtc::BitrateAllocator(this));
+      mCallStats = std::unique_ptr<webrtc::CallStats>(new webrtc::CallStats(mClock));
       mCongestionController =
-        rtc::scoped_ptr<webrtc::CongestionController>(new webrtc::CongestionController(
+        std::unique_ptr<webrtc::CongestionController>(new webrtc::CongestionController(
                                                                                        mClock,
                                                                                        this,
-                                                                                       &mRemb
+                                                                                       &mRemb,
+                                                                                       NULL
                                                                                        ));
 
       mCallStats->RegisterStatsObserver(mCongestionController.get());
@@ -3534,7 +3547,6 @@ namespace ortc
             webrtc::VoECodec::GetInterface(voiceEngine)->SetSendCodec(mChannel, codec);
             goto set_rtcp_feedback;
           case IRTPTypes::SupportedCodec_RED:
-            webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetREDStatus(mChannel, true, codecIter->mPayloadType);
             break;
           case IRTPTypes::SupportedCodec_TelephoneEvent:
             mDTMFPayloadType = codecIter->mPayloadType;
@@ -3616,12 +3628,13 @@ namespace ortc
       mPacerThread->RegisterModule(mCongestionController->GetRemoteBitrateEstimator(true));
       mPacerThread->Start();
 
-      mSendStream = rtc::scoped_ptr<webrtc::AudioSendStream>(
-        new webrtc::internal::AudioSendStream(
-                                              config,
-                                              audioState,
-                                              mCongestionController.get()
-                                              ));
+      mSendStream = new webrtc::internal::AudioSendStream(
+                                                          config,
+                                                          audioState,
+                                                          &mWorkerQueue,
+                                                          mCongestionController.get(),
+                                                          mBitrateAllocator.get()
+                                                          );
 
       webrtc::VoENetwork::GetInterface(voiceEngine)->RegisterExternalTransport(mChannel, *mTransport);
 
@@ -3664,7 +3677,8 @@ namespace ortc
 
       mCallStats->DeregisterStatsObserver(mCongestionController.get());
 
-      mSendStream.reset();
+      if (mSendStream)
+        delete dynamic_cast<webrtc::internal::AudioSendStream*>(mSendStream);
       mCongestionController.reset();
       mCallStats.reset();
       mBitrateAllocator.reset();
@@ -3727,18 +3741,12 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPMediaEngine::VideoReceiverChannelResource::ReceiverVideoRenderer::RenderFrame(const webrtc::VideoFrame &videoFrame, int timeToRenderMs)
+    void RTPMediaEngine::VideoReceiverChannelResource::ReceiverVideoRenderer::OnFrame(const webrtc::VideoFrame& frame)
     {
       auto frameCopy = make_shared<webrtc::VideoFrame>();
-      frameCopy->ShallowCopy(videoFrame);
+      frameCopy->ShallowCopy(frame);
 
       mVideoTrack.lock()->renderVideoFrame(frameCopy);
-    }
-
-    //-------------------------------------------------------------------------
-    bool RTPMediaEngine::VideoReceiverChannelResource::ReceiverVideoRenderer::IsTextureSupported() const
-    {
-      return false;
     }
 
     //-------------------------------------------------------------------------
@@ -3965,7 +3973,7 @@ namespace ortc
 
       if (mDenyNonLockedAccess) return;
 
-      auto stream = mReceiveStream.get();
+      auto stream = dynamic_cast<webrtc::internal::VideoReceiveStream*>(mReceiveStream);
       if (NULL == stream) return;
 
       webrtc::PacketTime time(timestamp, 0);
@@ -3979,7 +3987,7 @@ namespace ortc
 
       if (mDenyNonLockedAccess) return;
 
-      auto stream = mReceiveStream.get();
+      auto stream = dynamic_cast<webrtc::internal::VideoReceiveStream*>(mReceiveStream);
       if (NULL == stream) return;
 
       bool result = stream->DeliverRtcp(buffer->BytePtr(), buffer->SizeInBytes());
@@ -3990,7 +3998,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTPMediaEngine::VideoReceiverChannelResource => webrtc::BitrateObserver
+    #pragma mark RTPMediaEngine::VideoReceiverChannelResource => webrtc::CongestionController::Observer
     #pragma mark
 
     //-------------------------------------------------------------------------
@@ -4000,21 +4008,27 @@ namespace ortc
 
       mCurrentTargetBitrate = targetBitrateBps;
 
-      uint32_t allocatedBitrateBps = mBitrateAllocator->OnNetworkChanged(
-                                                                         targetBitrateBps,
-                                                                         fractionLoss,
-                                                                         rttMs
-                                                                         );
+      mBitrateAllocator->OnNetworkChanged(
+                                          targetBitrateBps,
+                                          fractionLoss,
+                                          rttMs
+                                          );
+    }
 
-      int padUpToBitrateBps = 0;
-      uint32_t pacerBitrateBps = std::max(targetBitrateBps, allocatedBitrateBps);
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPMediaEngine::VideoReceiverChannelResource => webrtc::BitrateAllocator::LimitObserver
+    #pragma mark
 
-      if (mCongestionController)
-        mCongestionController->UpdatePacerBitrate(
-                                                  targetBitrateBps / 1000,
-                                                  webrtc::PacedSender::kDefaultPaceMultiplier * pacerBitrateBps / 1000,
-                                                  padUpToBitrateBps / 1000
-                                                  );
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::VideoReceiverChannelResource::OnAllocationLimitsChanged(uint32_t min_send_bitrate_bps, uint32_t max_padding_bitrate_bps)
+    {
+      AutoRecursiveLock lock(*this);
+
+      mCongestionController->SetAllocatedSendBitrateLimits(min_send_bitrate_bps, max_padding_bitrate_bps);
     }
 
     //-------------------------------------------------------------------------
@@ -4040,13 +4054,14 @@ namespace ortc
 
       mReceiverVideoRenderer.setMediaStreamTrack(track);
 
-      mBitrateAllocator = rtc::scoped_ptr<webrtc::BitrateAllocator>(new webrtc::BitrateAllocator());
-      mCallStats = rtc::scoped_ptr<webrtc::CallStats>(new webrtc::CallStats(mClock));
+      mBitrateAllocator = std::unique_ptr<webrtc::BitrateAllocator>(new webrtc::BitrateAllocator(this));
+      mCallStats = std::unique_ptr<webrtc::CallStats>(new webrtc::CallStats(mClock));
       mCongestionController =
-        rtc::scoped_ptr<webrtc::CongestionController>(new webrtc::CongestionController(
+        std::unique_ptr<webrtc::CongestionController>(new webrtc::CongestionController(
                                                                                        mClock,
                                                                                        this,
-                                                                                       &mRemb
+                                                                                       &mRemb,
+                                                                                       NULL
                                                                                        ));
 
       mCallStats->RegisterStatsObserver(mCongestionController.get());
@@ -4211,16 +4226,15 @@ namespace ortc
       mPacerThread->RegisterModule(mCongestionController->GetRemoteBitrateEstimator(true));
       mPacerThread->Start();
 
-      mReceiveStream = rtc::scoped_ptr<webrtc::VideoReceiveStream>(
-        new webrtc::internal::VideoReceiveStream(
-                                                 numCpuCores,
-                                                 mCongestionController.get(),
-                                                 config,
-                                                 NULL,
-                                                 mModuleProcessThread.get(),
-                                                 mCallStats.get(),
-                                                 &mRemb
-                                                 ));
+      mReceiveStream = new webrtc::internal::VideoReceiveStream(
+                                                                numCpuCores,
+                                                                mCongestionController.get(),
+                                                                config.Copy(),
+                                                                NULL,
+                                                                mModuleProcessThread.get(),
+                                                                mCallStats.get(),
+                                                                &mRemb
+                                                                );
 
       if (mTransportState == ISecureTransport::State_Connected)
         mReceiveStream->Start();
@@ -4254,7 +4268,8 @@ namespace ortc
 
       mCallStats->DeregisterStatsObserver(mCongestionController.get());
 
-      mReceiveStream.reset();
+      if (mReceiveStream)
+        delete dynamic_cast<webrtc::internal::VideoReceiveStream*>(mReceiveStream);
       mCongestionController.reset();
       mCallStats.reset();
       mBitrateAllocator.reset();
@@ -4284,7 +4299,9 @@ namespace ortc
       ChannelResource(priv, registration),
       mTransport(transport),
       mTrack(track),
-      mParameters(parameters)
+      mParameters(parameters),
+      mWorkerQueue("video sender channel worker queue"),
+      mVideoSendDelayStats(new webrtc::SendDelayStats(mClock))
     {
     }
 
@@ -4483,7 +4500,7 @@ namespace ortc
 
       if (mDenyNonLockedAccess) return;
 
-      auto stream = mSendStream.get();
+      auto stream = dynamic_cast<webrtc::internal::VideoSendStream*>(mSendStream);
       if (NULL == stream) return;
 
       bool result = stream->DeliverRtcp(buffer->BytePtr(), buffer->SizeInBytes());
@@ -4496,10 +4513,9 @@ namespace ortc
 
       if (mDenyNonLockedAccess) return;
 
-      auto stream = mSendStream.get();
-      if (NULL == stream) return;
+      if (NULL == mSendStream) return;
 
-      stream->Input()->IncomingCapturedFrame(*videoFrame);
+      mSendStream->Input()->IncomingCapturedFrame(*videoFrame);
     }
 
     //-------------------------------------------------------------------------
@@ -4507,7 +4523,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark RTPMediaEngine::VideoSenderChannelResource => webrtc::BitrateObserver
+    #pragma mark RTPMediaEngine::VideoSenderChannelResource => webrtc::CongestionController::Observer
     #pragma mark
 
     //-------------------------------------------------------------------------
@@ -4517,23 +4533,27 @@ namespace ortc
 
       mCurrentTargetBitrate = targetBitrateBps;
 
-      uint32_t allocatedBitrateBps = mBitrateAllocator->OnNetworkChanged(
-                                                                         targetBitrateBps,
-                                                                         fractionLoss,
-                                                                         rttMs
-                                                                         );
+      mBitrateAllocator->OnNetworkChanged(
+                                          targetBitrateBps,
+                                          fractionLoss,
+                                          rttMs
+                                          );
+    }
 
-      int padUpToBitrateBps = 0;
-      if (mSendStream)
-        padUpToBitrateBps = static_cast<webrtc::internal::VideoSendStream *>(mSendStream.get())->GetPaddingNeededBps();
-      uint32_t pacerBitrateBps = std::max(targetBitrateBps, allocatedBitrateBps);
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPMediaEngine::VideoSenderChannelResource => webrtc::BitrateAllocator::LimitObserver
+    #pragma mark
 
-      if (mCongestionController)
-        mCongestionController->UpdatePacerBitrate(
-                                                  targetBitrateBps / 1000,
-                                                  webrtc::PacedSender::kDefaultPaceMultiplier * pacerBitrateBps / 1000,
-                                                  padUpToBitrateBps / 1000
-                                                  );
+    //-------------------------------------------------------------------------
+    void RTPMediaEngine::VideoSenderChannelResource::OnAllocationLimitsChanged(uint32_t min_send_bitrate_bps, uint32_t max_padding_bitrate_bps)
+    {
+      AutoRecursiveLock lock(*this);
+
+      mCongestionController->SetAllocatedSendBitrateLimits(min_send_bitrate_bps, max_padding_bitrate_bps);
     }
 
     //-------------------------------------------------------------------------
@@ -4557,13 +4577,14 @@ namespace ortc
       mModuleProcessThread = webrtc::ProcessThread::Create("VideoSenderChannelResourceModuleProcessThread");
       mPacerThread = webrtc::ProcessThread::Create("VideoSenderChannelResourcePacerThread");
 
-      mBitrateAllocator = rtc::scoped_ptr<webrtc::BitrateAllocator>(new webrtc::BitrateAllocator());
-      mCallStats = rtc::scoped_ptr<webrtc::CallStats>(new webrtc::CallStats(mClock));
+      mBitrateAllocator = std::unique_ptr<webrtc::BitrateAllocator>(new webrtc::BitrateAllocator(this));
+      mCallStats = std::unique_ptr<webrtc::CallStats>(new webrtc::CallStats(mClock));
       mCongestionController =
-        rtc::scoped_ptr<webrtc::CongestionController>(new webrtc::CongestionController(
+        std::unique_ptr<webrtc::CongestionController>(new webrtc::CongestionController(
                                                                                        mClock,
                                                                                        this,
-                                                                                       &mRemb
+                                                                                       &mRemb,
+                                                                                       NULL
                                                                                        ));
 
       mCallStats->RegisterStatsObserver(mCongestionController.get());
@@ -4764,6 +4785,7 @@ namespace ortc
       config.rtp.c_name = mParameters->mRTCP.mCName;
 
       mCongestionController->SetBweBitrates(totalMinBitrate, totalTargetBitrate, totalMaxBitrate);
+      mVideoSendDelayStats->AddSsrcs(config);
 
       mModuleProcessThread->Start();
       mModuleProcessThread->RegisterModule(mCallStats.get());
@@ -4772,18 +4794,20 @@ namespace ortc
       mPacerThread->RegisterModule(mCongestionController->GetRemoteBitrateEstimator(true));
       mPacerThread->Start();
 
-      mSendStream = rtc::scoped_ptr<webrtc::VideoSendStream>(
-        new webrtc::internal::VideoSendStream(
-                                              numCpuCores,
-                                              mModuleProcessThread.get(),
-                                              mCallStats.get(),
-                                              mCongestionController.get(),
-                                              &mRemb,
-                                              mBitrateAllocator.get(),
-                                              config,
-                                              encoderConfig,
-                                              suspendedSSRCs
-                                              ));
+      mSendStream = new webrtc::internal::VideoSendStream(
+                                                          numCpuCores,
+                                                          mModuleProcessThread.get(),
+                                                          &mWorkerQueue,
+                                                          mCallStats.get(),
+                                                          mCongestionController.get(),
+                                                          mBitrateAllocator.get(),
+                                                          mVideoSendDelayStats.get(),
+                                                          &mRemb,
+                                                          NULL,
+                                                          config.Copy(),
+                                                          encoderConfig.Copy(),
+                                                          suspendedSSRCs
+                                                          );
 
       if (mTransportState == ISecureTransport::State_Connected)
         mSendStream->Start();
@@ -4817,7 +4841,8 @@ namespace ortc
 
       mCallStats->DeregisterStatsObserver(mCongestionController.get());
 
-      mSendStream.reset();
+      if (mSendStream)
+        delete dynamic_cast<webrtc::internal::VideoSendStream*>(mSendStream);
       mCongestionController.reset();
       mCallStats.reset();
       mBitrateAllocator.reset();
