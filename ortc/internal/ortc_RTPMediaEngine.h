@@ -1300,7 +1300,7 @@ namespace ortc
 
         VideoCaptureTransportPtr mTransport;  // keep lifetime of webrtc callback separate from this object
 
-        webrtc::VideoCaptureModule* mVideoCaptureModule {NULL};
+        rtc::scoped_refptr<webrtc::VideoCaptureModule> mVideoCaptureModule;
         IMediaStreamTrackRenderCallback* mVideoRendererCallback {NULL};
         IMediaStreamTrackRenderCallbackPtr mVideoRenderCallbackReferenceHolder;
 
@@ -1405,6 +1405,7 @@ namespace ortc
         std::unique_ptr<webrtc::CallStats> mCallStats;
         std::unique_ptr<webrtc::CongestionController> mCongestionController;
         std::unique_ptr<webrtc::BitrateAllocator> mBitrateAllocator;
+        std::unique_ptr<webrtc::RtcEventLog> mEventLog;
 
         bool mShuttingDown {false};
         bool mShutdown {false};

@@ -61,6 +61,7 @@
 
 #include <webrtc/base/timeutils.h>
 #include <webrtc/base/event_tracer.h>
+#include <webrtc/call/rtc_event_log.h>
 #include <webrtc/voice_engine/include/voe_codec.h>
 #include <webrtc/voice_engine/include/voe_rtp_rtcp.h>
 #include <webrtc/voice_engine/include/voe_network.h>
@@ -2024,8 +2025,6 @@ namespace ortc
           return;
         }
 
-        mVideoCaptureModule->AddRef();
-
         mVideoCaptureModule->RegisterCaptureDataCallback(*mTransport);
 
         webrtc::VideoCaptureModule::DeviceInfo* info = webrtc::VideoCaptureFactory::CreateDeviceInfo(0);
@@ -2471,7 +2470,8 @@ namespace ortc
       BaseResource(priv, registration, registration ? registration->getRTPEngine() : RTPMediaEnginePtr()),
       mHandlePacketQueue(IORTCForInternal::queuePacket()),
       mClock(webrtc::Clock::GetRealTimeClock()),
-      mRemb(mClock)
+      mRemb(mClock),
+      mEventLog(new webrtc::RtcEventLogNullImpl())
     {
     }
 
@@ -2911,7 +2911,7 @@ namespace ortc
                                                                                        mClock,
                                                                                        this,
                                                                                        &mRemb,
-                                                                                       NULL
+                                                                                       mEventLog.get()
                                                                                        ));
 
       mCallStats->RegisterStatsObserver(mCongestionController.get());
@@ -3023,7 +3023,7 @@ namespace ortc
                                                                 mCongestionController.get(),
                                                                 config,
                                                                 audioState,
-                                                                NULL
+                                                                mEventLog.get()
                                                                 );
 
       webrtc::VoENetwork::GetInterface(voiceEngine)->RegisterExternalTransport(mChannel, *mTransport);
@@ -3073,7 +3073,7 @@ namespace ortc
       mCallStats->DeregisterStatsObserver(mCongestionController.get());
 
       if (mReceiveStream)
-        delete dynamic_cast<webrtc::internal::AudioReceiveStream*>(mReceiveStream);
+        delete reinterpret_cast<webrtc::internal::AudioReceiveStream*>(mReceiveStream);
       mCongestionController.reset();
       mCallStats.reset();
       mBitrateAllocator.reset();
@@ -3406,7 +3406,7 @@ namespace ortc
 
       if (mDenyNonLockedAccess) return;
 
-      auto stream = dynamic_cast<webrtc::internal::AudioSendStream*>(mSendStream);
+      auto stream = reinterpret_cast<webrtc::internal::AudioSendStream*>(mSendStream);
       if (NULL == stream) return;
 
       bool result = stream->DeliverRtcp(buffer->BytePtr(), buffer->SizeInBytes());
@@ -3446,6 +3446,13 @@ namespace ortc
       AutoRecursiveLock lock(*this);
 
       mCurrentTargetBitrate = targetBitrateBps;
+
+      if (!mWorkerQueue.IsCurrent()) {
+        mWorkerQueue.PostTask([this, targetBitrateBps, fractionLoss, rttMs] {
+          OnNetworkChanged(targetBitrateBps, fractionLoss, rttMs);
+        });
+        return;
+      }
 
       mBitrateAllocator->OnNetworkChanged(
                                           targetBitrateBps,
@@ -3507,7 +3514,7 @@ namespace ortc
                                                                                        mClock,
                                                                                        this,
                                                                                        &mRemb,
-                                                                                       NULL
+                                                                                       mEventLog.get()
                                                                                        ));
 
       mCallStats->RegisterStatsObserver(mCongestionController.get());
@@ -3678,7 +3685,7 @@ namespace ortc
       mCallStats->DeregisterStatsObserver(mCongestionController.get());
 
       if (mSendStream)
-        delete dynamic_cast<webrtc::internal::AudioSendStream*>(mSendStream);
+        delete reinterpret_cast<webrtc::internal::AudioSendStream*>(mSendStream);
       mCongestionController.reset();
       mCallStats.reset();
       mBitrateAllocator.reset();
@@ -3973,7 +3980,7 @@ namespace ortc
 
       if (mDenyNonLockedAccess) return;
 
-      auto stream = dynamic_cast<webrtc::internal::VideoReceiveStream*>(mReceiveStream);
+      auto stream = reinterpret_cast<webrtc::internal::VideoReceiveStream*>(mReceiveStream);
       if (NULL == stream) return;
 
       webrtc::PacketTime time(timestamp, 0);
@@ -3987,7 +3994,7 @@ namespace ortc
 
       if (mDenyNonLockedAccess) return;
 
-      auto stream = dynamic_cast<webrtc::internal::VideoReceiveStream*>(mReceiveStream);
+      auto stream = reinterpret_cast<webrtc::internal::VideoReceiveStream*>(mReceiveStream);
       if (NULL == stream) return;
 
       bool result = stream->DeliverRtcp(buffer->BytePtr(), buffer->SizeInBytes());
@@ -4061,7 +4068,7 @@ namespace ortc
                                                                                        mClock,
                                                                                        this,
                                                                                        &mRemb,
-                                                                                       NULL
+                                                                                       mEventLog.get()
                                                                                        ));
 
       mCallStats->RegisterStatsObserver(mCongestionController.get());
@@ -4269,7 +4276,7 @@ namespace ortc
       mCallStats->DeregisterStatsObserver(mCongestionController.get());
 
       if (mReceiveStream)
-        delete dynamic_cast<webrtc::internal::VideoReceiveStream*>(mReceiveStream);
+        delete reinterpret_cast<webrtc::internal::VideoReceiveStream*>(mReceiveStream);
       mCongestionController.reset();
       mCallStats.reset();
       mBitrateAllocator.reset();
@@ -4500,7 +4507,7 @@ namespace ortc
 
       if (mDenyNonLockedAccess) return;
 
-      auto stream = dynamic_cast<webrtc::internal::VideoSendStream*>(mSendStream);
+      auto stream = reinterpret_cast<webrtc::internal::VideoSendStream*>(mSendStream);
       if (NULL == stream) return;
 
       bool result = stream->DeliverRtcp(buffer->BytePtr(), buffer->SizeInBytes());
@@ -4532,6 +4539,13 @@ namespace ortc
       AutoRecursiveLock lock(*this);
 
       mCurrentTargetBitrate = targetBitrateBps;
+
+      if (!mWorkerQueue.IsCurrent()) {
+        mWorkerQueue.PostTask([this, targetBitrateBps, fractionLoss, rttMs] {
+          OnNetworkChanged(targetBitrateBps, fractionLoss, rttMs);
+        });
+        return;
+      }
 
       mBitrateAllocator->OnNetworkChanged(
                                           targetBitrateBps,
@@ -4584,7 +4598,7 @@ namespace ortc
                                                                                        mClock,
                                                                                        this,
                                                                                        &mRemb,
-                                                                                       NULL
+                                                                                       mEventLog.get()
                                                                                        ));
 
       mCallStats->RegisterStatsObserver(mCongestionController.get());
@@ -4803,7 +4817,7 @@ namespace ortc
                                                           mBitrateAllocator.get(),
                                                           mVideoSendDelayStats.get(),
                                                           &mRemb,
-                                                          NULL,
+                                                          mEventLog.get(),
                                                           config.Copy(),
                                                           encoderConfig.Copy(),
                                                           suspendedSSRCs
@@ -4842,7 +4856,7 @@ namespace ortc
       mCallStats->DeregisterStatsObserver(mCongestionController.get());
 
       if (mSendStream)
-        delete dynamic_cast<webrtc::internal::VideoSendStream*>(mSendStream);
+        delete reinterpret_cast<webrtc::internal::VideoSendStream*>(mSendStream);
       mCongestionController.reset();
       mCallStats.reset();
       mBitrateAllocator.reset();
