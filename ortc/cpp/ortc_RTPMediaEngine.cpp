@@ -69,6 +69,7 @@
 #include <webrtc/system_wrappers/include/cpu_info.h>
 #include <webrtc/voice_engine/include/voe_audio_processing.h>
 #include <webrtc/modules/video_capture/video_capture_factory.h>
+#include <webrtc/modules/audio_coding/codecs/builtin_audio_decoder_factory.h>
 #ifdef WINRT
 #include <third_party/h264_winrt/h264_winrt_factory.h>
 #endif
@@ -912,6 +913,12 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    rtc::scoped_refptr<webrtc::AudioDecoderFactory> RTPMediaEngine::getAudioDecoderFactory()
+    {
+      return mAudioDecoderFactory;
+    }
+
+    //-------------------------------------------------------------------------
     rtc::scoped_refptr<webrtc::AudioState> RTPMediaEngine::getAudioState()
     {
       return mAudioState;
@@ -931,7 +938,7 @@ namespace ortc
     {
       ZS_LOG_DEBUG(log("wake"))
 
-      AutoRecursiveLock lock(*this);
+      // Do not call step() method within a lock!
       step();
     }
 
@@ -963,29 +970,31 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPMediaEngine::onSetupSenderChannel(SetupSenderChannelPtr setup)
     {
-      AutoRecursiveLock lock(*this);
+      {
+        AutoRecursiveLock lock(*this);
 
-      if (ZS_DYNAMIC_PTR_CAST(IRTPSenderChannelAudioForRTPMediaEngine, setup->mChannel)) {
-        ChannelResourcePtr resource = AudioSenderChannelResource::create(
-                                                                         setup->mRegistration,
-                                                                         setup->mTransport,
-                                                                         setup->mTrack,
-                                                                         setup->mParameters,
-                                                                         setup->mDTMFDelegate
-                                                                         );
-        resource->registerPromise(setup->mPromise);
-        mChannelResources[resource->getID()] = resource;
-        mPendingSetupChannelResources.push_back(resource);
-      } else if (ZS_DYNAMIC_PTR_CAST(IRTPSenderChannelVideoForRTPMediaEngine, setup->mChannel)) {
-        ChannelResourcePtr resource = VideoSenderChannelResource::create(
-                                                                         setup->mRegistration,
-                                                                         setup->mTransport,
-                                                                         setup->mTrack,
-                                                                         setup->mParameters
-                                                                         );
-        resource->registerPromise(setup->mPromise);
-        mChannelResources[resource->getID()] = resource;
-        mPendingSetupChannelResources.push_back(resource);
+        if (ZS_DYNAMIC_PTR_CAST(IRTPSenderChannelAudioForRTPMediaEngine, setup->mChannel)) {
+          ChannelResourcePtr resource = AudioSenderChannelResource::create(
+                                                                           setup->mRegistration,
+                                                                           setup->mTransport,
+                                                                           setup->mTrack,
+                                                                           setup->mParameters,
+                                                                           setup->mDTMFDelegate
+                                                                           );
+          resource->registerPromise(setup->mPromise);
+          mChannelResources[resource->getID()] = resource;
+          mPendingSetupChannelResources.push_back(resource);
+        } else if (ZS_DYNAMIC_PTR_CAST(IRTPSenderChannelVideoForRTPMediaEngine, setup->mChannel)) {
+          ChannelResourcePtr resource = VideoSenderChannelResource::create(
+                                                                           setup->mRegistration,
+                                                                           setup->mTransport,
+                                                                           setup->mTrack,
+                                                                           setup->mParameters
+                                                                           );
+          resource->registerPromise(setup->mPromise);
+          mChannelResources[resource->getID()] = resource;
+          mPendingSetupChannelResources.push_back(resource);
+        }
       }
 
       step();
@@ -994,30 +1003,32 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPMediaEngine::onSetupReceiverChannel(SetupReceiverChannelPtr setup)
     {
-      AutoRecursiveLock lock(*this);
+      {
+        AutoRecursiveLock lock(*this);
 
-      if (ZS_DYNAMIC_PTR_CAST(IRTPReceiverChannelAudioForRTPMediaEngine, setup->mChannel)) {
-        AudioReceiverChannelResourcePtr resource = AudioReceiverChannelResource::create(
-                                                                                        setup->mRegistration,
-                                                                                        setup->mTransport,
-                                                                                        setup->mTrack,
-                                                                                        setup->mParameters,
-                                                                                        setup->mPacket
-                                                                                        );
-        resource->registerPromise(setup->mPromise);
-        mChannelResources[resource->getID()] = resource;
-        mPendingSetupChannelResources.push_back(resource);
-      } else if (ZS_DYNAMIC_PTR_CAST(IRTPReceiverChannelVideoForRTPMediaEngine, setup->mChannel)) {
-        VideoReceiverChannelResourcePtr resource = VideoReceiverChannelResource::create(
-                                                                                        setup->mRegistration,
-                                                                                        setup->mTransport,
-                                                                                        setup->mTrack,
-                                                                                        setup->mParameters,
-                                                                                        setup->mPacket
-                                                                                        );
-        resource->registerPromise(setup->mPromise);
-        mChannelResources[resource->getID()] = resource;
-        mPendingSetupChannelResources.push_back(resource);
+        if (ZS_DYNAMIC_PTR_CAST(IRTPReceiverChannelAudioForRTPMediaEngine, setup->mChannel)) {
+          AudioReceiverChannelResourcePtr resource = AudioReceiverChannelResource::create(
+                                                                                          setup->mRegistration,
+                                                                                          setup->mTransport,
+                                                                                          setup->mTrack,
+                                                                                          setup->mParameters,
+                                                                                          setup->mPacket
+                                                                                          );
+          resource->registerPromise(setup->mPromise);
+          mChannelResources[resource->getID()] = resource;
+          mPendingSetupChannelResources.push_back(resource);
+        } else if (ZS_DYNAMIC_PTR_CAST(IRTPReceiverChannelVideoForRTPMediaEngine, setup->mChannel)) {
+          VideoReceiverChannelResourcePtr resource = VideoReceiverChannelResource::create(
+                                                                                          setup->mRegistration,
+                                                                                          setup->mTransport,
+                                                                                          setup->mTrack,
+                                                                                          setup->mParameters,
+                                                                                          setup->mPacket
+                                                                                          );
+          resource->registerPromise(setup->mPromise);
+          mChannelResources[resource->getID()] = resource;
+          mPendingSetupChannelResources.push_back(resource);
+        }
       }
 
       step();
@@ -1026,16 +1037,18 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPMediaEngine::onSetupDevice(SetupDevicePtr setup)
     {
-      AutoRecursiveLock lock(*this);
-      DeviceResourcePtr resource = DeviceResource::create(
-                                                         setup->mRegistration,
-                                                         setup->mTrack
-                                                         );
+      {
+        AutoRecursiveLock lock(*this);
+        DeviceResourcePtr resource = DeviceResource::create(
+          setup->mRegistration,
+          setup->mTrack
+        );
 
-      resource->registerPromise(setup->mPromise);
+        resource->registerPromise(setup->mPromise);
 
-      mDeviceResources[resource->getID()] = resource;
-      mPendingSetupDeviceResources.push_back(resource);
+        mDeviceResources[resource->getID()] = resource;
+        mPendingSetupDeviceResources.push_back(resource);
+      }
 
       step();
     }
@@ -1051,10 +1064,10 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPMediaEngine::shutdownDeviceResource(DeviceResourcePtr deviceResource)
     {
-      {
-        AutoRecursiveLock lock(*this);
-        mPendingCloseDeviceResources.push_back(deviceResource);
-      }
+      AutoRecursiveLock lock(*this);
+
+      mPendingCloseDeviceResources.push_back(deviceResource);
+
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
 
@@ -1103,10 +1116,10 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPMediaEngine::shutdownChannelResource(ChannelResourcePtr channelResource)
     {
-      {
-        AutoRecursiveLock lock(*this);
-        mPendingCloseChannelResources.push_back(channelResource);
-      }
+      AutoRecursiveLock lock(*this);
+
+      mPendingCloseChannelResources.push_back(channelResource);
+
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
 
@@ -1257,17 +1270,22 @@ namespace ortc
     {
       ZS_LOG_DEBUG(debug("step"))
 
-      if ((isShuttingDown()) ||
+      {
+        AutoRecursiveLock lock(*this);
+
+        if ((isShuttingDown()) ||
           (isShutdown())) {
-        ZS_LOG_DEBUG(debug("step forwarding to cancel"))
-        stepCancel();
-        return;
+          ZS_LOG_DEBUG(debug("step forwarding to cancel"))
+            stepCancel();
+          return;
+        }
       }
 
       // ... other steps here ...
       if (!stepSetup()) goto not_ready;
       if (!stepSetupDevices()) goto not_ready;
       if (!stepSetupChannels()) goto not_ready;
+      if (!stepCloseDevices()) goto not_ready;
       if (!stepCloseChannels()) goto not_ready;
       // ... other steps here ...
 
@@ -1282,6 +1300,7 @@ namespace ortc
     ready:
       {
         ZS_LOG_TRACE(log("ready"))
+        AutoRecursiveLock lock(*this);
         setState(State_Ready);
       }
     }
@@ -1289,6 +1308,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool RTPMediaEngine::stepSetup()
     {
+      AutoRecursiveLock lock(*this);
+
       if (isReady()) {
         ZS_LOG_TRACE(log("already setup"))
         return true;
@@ -1296,7 +1317,9 @@ namespace ortc
 
       mVoiceEngine = std::unique_ptr<webrtc::VoiceEngine, VoiceEngineDeleter>(webrtc::VoiceEngine::Create());
 
-      webrtc::VoEBase::GetInterface(mVoiceEngine.get())->Init();
+      mAudioDecoderFactory = webrtc::CreateBuiltinAudioDecoderFactory();
+
+      webrtc::VoEBase::GetInterface(mVoiceEngine.get())->Init(nullptr, nullptr, mAudioDecoderFactory);
 
       webrtc::AudioState::Config audioStateConfig;
       audioStateConfig.voice_engine = mVoiceEngine.get();
@@ -1335,12 +1358,19 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool RTPMediaEngine::stepSetupDevices()
     {
-      while (mPendingSetupDeviceResources.size() > 0) {
-        auto deviceResource = mPendingSetupDeviceResources.front();
+      DeviceResourceList pendingSetupDeviceResources;
+      {
+        AutoRecursiveLock lock(*this);
+        pendingSetupDeviceResources = mPendingSetupDeviceResources;
+        mPendingSetupDeviceResources.clear();
+      }
+
+      while (pendingSetupDeviceResources.size() > 0) {
+        auto deviceResource = pendingSetupDeviceResources.front();
 
         deviceResource->stepSetup();
 
-        mPendingSetupDeviceResources.pop_front();
+        pendingSetupDeviceResources.pop_front();
       }
 
       return true;
@@ -1349,12 +1379,19 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool RTPMediaEngine::stepCloseDevices()
     {
-      while (mPendingCloseDeviceResources.size() > 0) {
-        auto deviceResource = mPendingCloseDeviceResources.front();
+      DeviceResourceList pendingCloseDeviceResources;
+      {
+        AutoRecursiveLock lock(*this);
+        pendingCloseDeviceResources = mPendingCloseDeviceResources;
+        mPendingSetupDeviceResources.clear();
+      }
+
+      while (pendingCloseDeviceResources.size() > 0) {
+        auto deviceResource = pendingCloseDeviceResources.front();
 
         deviceResource->stepShutdown();
 
-        mPendingCloseDeviceResources.pop_front();
+        pendingCloseDeviceResources.pop_front();
       }
 
       return true;
@@ -1363,12 +1400,19 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool RTPMediaEngine::stepSetupChannels()
     {
-      while (mPendingSetupChannelResources.size() > 0) {
-        auto channelResource = mPendingSetupChannelResources.front();
+      ChannelResourceList pendingSetupChannelResources;
+      {
+        AutoRecursiveLock lock(*this);
+        pendingSetupChannelResources = mPendingSetupChannelResources;
+        mPendingSetupChannelResources.clear();
+      }
+
+      while (pendingSetupChannelResources.size() > 0) {
+        auto channelResource = pendingSetupChannelResources.front();
 
         channelResource->stepSetup();
 
-        mPendingSetupChannelResources.pop_front();
+        pendingSetupChannelResources.pop_front();
       }
 
       return true;
@@ -1377,12 +1421,19 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool RTPMediaEngine::stepCloseChannels()
     {
-      while (mPendingCloseChannelResources.size() > 0) {
-        auto channelResource = mPendingCloseChannelResources.front();
+      ChannelResourceList pendingCloseChannelResources;
+      {
+        AutoRecursiveLock lock(*this);
+        pendingCloseChannelResources = mPendingCloseChannelResources;
+        mPendingCloseChannelResources.clear();
+      }
+
+      while (pendingCloseChannelResources.size() > 0) {
+        auto channelResource = pendingCloseChannelResources.front();
 
         channelResource->stepShutdown();
         
-        mPendingCloseChannelResources.pop_front();
+        pendingCloseChannelResources.pop_front();
       }
 
       return true;
@@ -1448,25 +1499,35 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPMediaEngine::stepCancel()
     {
+      ChannelResourceList pendingCloseChannelResources;
+      ChannelResourceWeakMap channelResources;
       {
-        for (auto iter = mPendingCloseChannelResources.begin(); iter != mPendingCloseChannelResources.end(); ++iter)
-        {
-          auto channelResource = (*iter);
-          channelResource->stepShutdown();
-        }
+        AutoRecursiveLock lock(*this);
+        pendingCloseChannelResources = mPendingCloseChannelResources;
         mPendingCloseChannelResources.clear();
-      }
-
-      {
-        for (auto iter = mChannelResources.begin(); iter != mChannelResources.end(); ++iter)
-        {
-          auto channelResource = (*iter).second.lock();
-          channelResource->stepShutdown();
-        }
-
+        channelResources = mChannelResources;
         mChannelResources.clear();
       }
-      cancel();
+
+      while (pendingCloseChannelResources.size() > 0) {
+        auto channelResource = pendingCloseChannelResources.front();
+
+        channelResource->stepShutdown();
+
+        pendingCloseChannelResources.pop_front();
+      }
+
+      for (auto iter = channelResources.begin(); iter != channelResources.end(); ++iter)
+      {
+        auto channelResource = (*iter).second.lock();
+        if (channelResource)
+          channelResource->stepShutdown();
+      }
+
+      {
+        AutoRecursiveLock lock(*this);
+        cancel();
+      }
     }
 
     //-------------------------------------------------------------------------
@@ -1787,11 +1848,16 @@ namespace ortc
     //-------------------------------------------------------------------------
     PromisePtr RTPMediaEngine::DeviceResource::shutdown()
     {
-      PromisePtr promise = getShutdownPromise();
-      if (isShutdown()) return promise;
-      if (mShuttingDown) return promise;
+      PromisePtr promise;
+      {
+        AutoRecursiveLock lock(*this);
 
-      mShuttingDown = true;
+        promise = getShutdownPromise();
+        if (isShutdown()) return promise;
+        if (mShuttingDown) return promise;
+
+        mShuttingDown = true;
+      }
 
       auto outer = mMediaEngine.lock();
       if (outer) {
@@ -1859,6 +1925,8 @@ namespace ortc
         mVideoRendererCallback->RenderFrame(1, *videoFrame);
       }
 
+#define CHECK_WHY_THIS_IS_SET_HERE_BECAUSE_IT_IS_NOT_SAFE 1
+#define CHECK_WHY_THIS_IS_SET_HERE_BECAUSE_IT_IS_NOT_SAFE 2
       if (!settings->mWidth.hasValue() || (settings->mWidth != videoFrame->width()))
         settings->mWidth = videoFrame->width();
       if (!settings->mHeight.hasValue() || (settings->mHeight != videoFrame->height()))
@@ -1926,7 +1994,10 @@ namespace ortc
     void RTPMediaEngine::DeviceResource::onProvideStats(PromiseWithStatsReportPtr promise, IStatsReportTypes::StatsTypeSet stats)
     {
       auto track = mTrack.lock();
-      if (!track) return;
+      if (!track) {
+        notifyPromisesReject();
+        return;
+      }
 
       auto remote = track->remote();
       auto id = track->id();
@@ -2011,13 +2082,14 @@ namespace ortc
       auto constraints = track->getConstraints();
       auto pThis = ZS_DYNAMIC_PTR_CAST(DeviceResource, mThisWeak.lock());
 
-      AutoRecursiveLock lock(*this);
-
       if (kind == Kinds::Kind_Video && !remote) {
+
         if (!constraints) {
           notifyPromisesReject();
           return;
         }
+
+        AutoRecursiveLock lock(*this);
 
         mDeviceID = constraints->mAdvanced.front()->mDeviceID.mValue.value().mValue.value();
         mVideoCaptureModule = webrtc::VideoCaptureFactory::Create(0, mDeviceID.c_str());
@@ -2025,6 +2097,7 @@ namespace ortc
           return;
         }
 
+        mTransport = VideoCaptureTransport::create(pThis);
         mVideoCaptureModule->RegisterCaptureDataCallback(*mTransport);
 
         webrtc::VideoCaptureModule::DeviceInfo* info = webrtc::VideoCaptureFactory::CreateDeviceInfo(0);
@@ -2168,6 +2241,8 @@ namespace ortc
           return;
         }
 
+        AutoRecursiveLock lock(*this);
+
         mDeviceID = constraints->mAdvanced.front()->mDeviceID.mValue.value().mValue.value();
 
         auto engine = mMediaEngine.lock();
@@ -2199,8 +2274,6 @@ namespace ortc
         // NOTE: very temporary lock so should clear itself out fast
         std::this_thread::yield();
       }
-
-      //AutoRecursiveLock lock(*this);
     }
 
     //-------------------------------------------------------------------------
@@ -2504,11 +2577,16 @@ namespace ortc
     //-------------------------------------------------------------------------
     PromisePtr RTPMediaEngine::ChannelResource::shutdown()
     {
-      PromisePtr promise = getShutdownPromise();
-      if (isShutdown()) return promise;
-      if (mShuttingDown) return promise;
+      PromisePtr promise;
+      {
+        AutoRecursiveLock lock(*this);
 
-      mShuttingDown = true;
+        promise = getShutdownPromise();
+        if (isShutdown()) return promise;
+        if (mShuttingDown) return promise;
+
+        mShuttingDown = true;
+      }
 
       auto outer = mMediaEngine.lock();
       if (outer) {
@@ -2659,8 +2737,6 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPMediaEngine::AudioReceiverChannelResource::onSecureTransportState(ISecureTransport::States state)
     {
-      AutoRecursiveLock lock(*this);
-
       if (state == mTransportState) return;
 
       auto engine = mMediaEngine.lock();
@@ -2669,8 +2745,14 @@ namespace ortc
       auto voiceEngine = engine->getVoiceEngine();
       if (!voiceEngine) return;
 
-      ISecureTransport::States previousState = mTransportState;
-      mTransportState = state;
+      ISecureTransport::States previousState;
+      {
+        AutoRecursiveLock lock(*this);
+
+        previousState = mTransportState;
+        mTransportState = state;
+      }
+
       if (mParameters && (mParameters->mEncodings.size() == 0 ||
         (mParameters->mEncodings.size() > 0 && mParameters->mEncodings.begin()->mActive))) {
         if (state == ISecureTransport::State_Connected) {
@@ -2686,26 +2768,29 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPMediaEngine::AudioReceiverChannelResource::onUpdate(ParametersPtr params)
     {
-      AutoRecursiveLock lock(*this);
-
       auto engine = mMediaEngine.lock();
       if (!engine) return;
 
       auto voiceEngine = engine->getVoiceEngine();
       if (!voiceEngine) return;
 
-      ParametersPtr previousParams = mParameters;
-      mParameters = params;
       bool previousActive = false;
       bool currentActive = false;
-      if (previousParams->mEncodings.size() == 0 ||
-        (previousParams->mEncodings.size() > 0 && previousParams->mEncodings.begin()->mActive)) {
-        previousActive = true;
+      {
+        AutoRecursiveLock lock(*this);
+
+        ParametersPtr previousParams = mParameters;
+        mParameters = params;
+        if (previousParams->mEncodings.size() == 0 ||
+          (previousParams->mEncodings.size() > 0 && previousParams->mEncodings.begin()->mActive)) {
+          previousActive = true;
+        }
+        if (params->mEncodings.size() == 0 ||
+          (params->mEncodings.size() > 0 && params->mEncodings.begin()->mActive)) {
+          currentActive = true;
+        }
       }
-      if (params->mEncodings.size() == 0 ||
-        (params->mEncodings.size() > 0 && params->mEncodings.begin()->mActive)) {
-        currentActive = true;
-      }
+
       if (mTransportState == ISecureTransport::State_Connected) {
         if (!previousActive && currentActive) {
           webrtc::VoEBase::GetInterface(voiceEngine)->StartReceive(mChannel);
@@ -2720,16 +2805,17 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPMediaEngine::AudioReceiverChannelResource::onProvideStats(PromiseWithStatsReportPtr promise, IStatsReportTypes::StatsTypeSet stats)
     {
+      auto track = mTrack.lock();
+      if (!track) {
+        notifyPromisesReject();
+        return;
+      }
+
       AutoRecursiveLock lock(*this);
 
       UseStatsReport::StatMap reportStats;
 
       webrtc::AudioReceiveStream::Stats receiveStreamStats = mReceiveStream->GetStats();
-
-      auto track = mTrack.lock();
-      if (!track) {
-        return;
-      }
 
       if (stats.hasStatType(IStatsReportTypes::StatsTypes::StatsType_InboundRTP)) {
 
@@ -2844,15 +2930,15 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPMediaEngine::AudioReceiverChannelResource::OnNetworkChanged(uint32_t targetBitrateBps, uint8_t fractionLoss, int64_t rttMs)
     {
-      AutoRecursiveLock lock(*this);
-
-      mCurrentTargetBitrate = targetBitrateBps;
-
       mBitrateAllocator->OnNetworkChanged(
                                           targetBitrateBps,
                                           fractionLoss,
                                           rttMs
                                           );
+
+      AutoRecursiveLock lock(*this);
+
+      mCurrentTargetBitrate = targetBitrateBps;
     }
 
     //-------------------------------------------------------------------------
@@ -2882,8 +2968,6 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPMediaEngine::AudioReceiverChannelResource::stepSetup()
     {
-      AutoRecursiveLock lock(*this);
-
       auto engine = mMediaEngine.lock();
       if (!engine) {
         notifyPromisesReject();
@@ -2896,132 +2980,145 @@ namespace ortc
         return;
       }
 
+      auto audioDecoderFactory = engine->getAudioDecoderFactory();
       auto audioState = engine->getAudioState();
 
-      mModuleProcessThread = webrtc::ProcessThread::Create("AudioReceiverChannelResourceModuleProcessThread");
-      mPacerThread = webrtc::ProcessThread::Create("AudioReceiverChannelResourcePacerThread");
-
-      mBitrateAllocator = std::unique_ptr<webrtc::BitrateAllocator>(new webrtc::BitrateAllocator(this));
-      mCallStats = std::unique_ptr<webrtc::CallStats>(new webrtc::CallStats(mClock));
-      mCongestionController =
-        std::unique_ptr<webrtc::CongestionController>(new webrtc::CongestionController(
-                                                                                       mClock,
-                                                                                       this,
-                                                                                       &mRemb,
-                                                                                       mEventLog.get()
-                                                                                       ));
-
-      mCallStats->RegisterStatsObserver(mCongestionController.get());
-
-      mChannel = webrtc::VoEBase::GetInterface(voiceEngine)->CreateChannel();
-
-      bool audioCodecSet = false;
-      webrtc::CodecInst codec;
-      for (auto codecIter = mParameters->mCodecs.begin(); codecIter != mParameters->mCodecs.end(); codecIter++) {
-        auto supportedCodec = IRTPTypes::toSupportedCodec(codecIter->mName);
-        if (IRTPTypes::getCodecKind(supportedCodec) == IRTPTypes::CodecKind_Audio && audioCodecSet)
-          continue;
-        codec = getAudioCodec(voiceEngine, codecIter->mName);
-        codec.pltype = codecIter->mPayloadType;
-        if (codecIter->mPTime != Milliseconds::zero())
-          codec.pacsize = (codec.plfreq / 1000) * codecIter->mPTime.count();
-        if (codecIter->mNumChannels.hasValue())
-          codec.channels = codecIter->mNumChannels;
-        switch (supportedCodec) {
-          case IRTPTypes::SupportedCodec_Opus:
-            codec.rate = 48000;
-            webrtc::VoECodec::GetInterface(voiceEngine)->SetRecPayloadType(mChannel, codec);
-            goto set_rtcp_feedback;
-          case IRTPTypes::SupportedCodec_Isac:
-          case IRTPTypes::SupportedCodec_G722:
-          case IRTPTypes::SupportedCodec_ILBC:
-          case IRTPTypes::SupportedCodec_PCMU:
-          case IRTPTypes::SupportedCodec_PCMA:
-            webrtc::VoECodec::GetInterface(voiceEngine)->SetRecPayloadType(mChannel, codec);
-            goto set_rtcp_feedback;
-          case IRTPTypes::SupportedCodec_RED:
-            break;
-        }
-        continue;
-
-      set_rtcp_feedback:
-        for (auto rtcpFeedbackIter = codecIter->mRTCPFeedback.begin(); rtcpFeedbackIter != codecIter->mRTCPFeedback.end(); rtcpFeedbackIter++) {
-          IRTPTypes::KnownFeedbackTypes feedbackType = IRTPTypes::toKnownFeedbackType(rtcpFeedbackIter->mType);
-          IRTPTypes::KnownFeedbackParameters feedbackParameter = IRTPTypes::toKnownFeedbackParameter(rtcpFeedbackIter->mParameter);
-          if (IRTPTypes::KnownFeedbackType_NACK == feedbackType && IRTPTypes::KnownFeedbackParameter_Unknown == feedbackParameter) {
-            webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetNACKStatus(mChannel, true, 250);
-          }
-        }
-        audioCodecSet = true;
-      }
-
-      mCodecPayloadName = codec.plname;
-      mCodecPayloadType = codec.pltype;
-
       webrtc::AudioReceiveStream::Config config;
-      config.voe_channel_id = mChannel;
+      {
+        AutoRecursiveLock lock(*this);
 
-      for (auto encodingParamIter = mParameters->mEncodings.begin(); encodingParamIter != mParameters->mEncodings.end(); encodingParamIter++) {
+        mModuleProcessThread = webrtc::ProcessThread::Create("AudioReceiverChannelResourceModuleProcessThread");
+        mPacerThread = webrtc::ProcessThread::Create("AudioReceiverChannelResourcePacerThread");
 
-        IRTPTypes::PayloadType codecPayloadType {};
-        if (encodingParamIter->mCodecPayloadType.hasValue())
-          codecPayloadType = encodingParamIter->mCodecPayloadType;
-        else
-          codecPayloadType = codec.pltype;
+        mBitrateAllocator = std::unique_ptr<webrtc::BitrateAllocator>(new webrtc::BitrateAllocator(this));
+        mCallStats = std::unique_ptr<webrtc::CallStats>(new webrtc::CallStats(mClock));
+        mCongestionController =
+          std::unique_ptr<webrtc::CongestionController>(new webrtc::CongestionController(
+                                                                                         mClock,
+                                                                                         this,
+                                                                                         &mRemb,
+                                                                                         mEventLog.get()
+                                                                                         ));
 
-        if (codecPayloadType == codec.pltype) {
-          uint32_t ssrc = 0;
-          if (encodingParamIter->mSSRC.hasValue())
-            ssrc = encodingParamIter->mSSRC;
-          if (encodingParamIter->mFEC.hasValue()) {
-            IRTPTypes::FECParameters fec = encodingParamIter->mFEC;
-            if (fec.mSSRC.hasValue())
-              ssrc = fec.mSSRC;
+        mCallStats->RegisterStatsObserver(mCongestionController.get());
+
+        mChannel = webrtc::VoEBase::GetInterface(voiceEngine)->CreateChannel();
+
+        bool audioCodecSet = false;
+        webrtc::CodecInst codec;
+        for (auto codecIter = mParameters->mCodecs.begin(); codecIter != mParameters->mCodecs.end(); codecIter++) {
+          auto supportedCodec = IRTPTypes::toSupportedCodec(codecIter->mName);
+          if (IRTPTypes::getCodecKind(supportedCodec) == IRTPTypes::CodecKind_Audio && audioCodecSet)
+            continue;
+          codec = getAudioCodec(voiceEngine, codecIter->mName);
+          codec.pltype = codecIter->mPayloadType;
+          if (codecIter->mPTime != Milliseconds::zero())
+            codec.pacsize = (codec.plfreq / 1000) * codecIter->mPTime.count();
+          if (codecIter->mNumChannels.hasValue())
+            codec.channels = codecIter->mNumChannels;
+          switch (supportedCodec) {
+            case IRTPTypes::SupportedCodec_Opus:
+              codec.rate = 48000;
+              webrtc::VoECodec::GetInterface(voiceEngine)->SetRecPayloadType(mChannel, codec);
+              goto set_rtcp_feedback;
+            case IRTPTypes::SupportedCodec_Isac:
+            case IRTPTypes::SupportedCodec_G722:
+            case IRTPTypes::SupportedCodec_ILBC:
+            case IRTPTypes::SupportedCodec_PCMU:
+            case IRTPTypes::SupportedCodec_PCMA:
+              webrtc::VoECodec::GetInterface(voiceEngine)->SetRecPayloadType(mChannel, codec);
+              goto set_rtcp_feedback;
+            case IRTPTypes::SupportedCodec_RED:
+              break;
           }
-          config.rtp.remote_ssrc = ssrc;
+          continue;
+
+        set_rtcp_feedback:
+          for (auto rtcpFeedbackIter = codecIter->mRTCPFeedback.begin(); rtcpFeedbackIter != codecIter->mRTCPFeedback.end(); rtcpFeedbackIter++) {
+            IRTPTypes::KnownFeedbackTypes feedbackType = IRTPTypes::toKnownFeedbackType(rtcpFeedbackIter->mType);
+            IRTPTypes::KnownFeedbackParameters feedbackParameter = IRTPTypes::toKnownFeedbackParameter(rtcpFeedbackIter->mParameter);
+            if (IRTPTypes::KnownFeedbackType_NACK == feedbackType && IRTPTypes::KnownFeedbackParameter_Unknown == feedbackParameter) {
+              webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetNACKStatus(mChannel, true, 250);
+            }
+          }
+          audioCodecSet = true;
         }
-      }
-      if (config.rtp.remote_ssrc == 0) {
-        config.rtp.remote_ssrc = mInitPacket->ssrc();
-        mInitPacket.reset();
-      }
 
-      for (auto headerExtensionIter = mParameters->mHeaderExtensions.begin(); headerExtensionIter != mParameters->mHeaderExtensions.end(); headerExtensionIter++) {
-        IRTPTypes::HeaderExtensionURIs headerExtensionURI = IRTPTypes::toHeaderExtensionURI(headerExtensionIter->mURI);
-        switch (headerExtensionURI) {
-          case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_ClienttoMixerAudioLevelIndication:
-            webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetReceiveAudioLevelIndicationStatus(mChannel, true, headerExtensionIter->mID);
-            config.rtp.extensions.push_back(webrtc::RtpExtension(headerExtensionIter->mURI, headerExtensionIter->mID));
-            break;
-          case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_AbsoluteSendTime:
-            webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetReceiveAbsoluteSenderTimeStatus(mChannel, true, headerExtensionIter->mID);
-            config.rtp.extensions.push_back(webrtc::RtpExtension(headerExtensionIter->mURI, headerExtensionIter->mID));
-            break;
-          default:
-            break;
+        mCodecPayloadName = codec.plname;
+        mCodecPayloadType = codec.pltype;
+
+        config.voe_channel_id = mChannel;
+        config.decoder_factory = audioDecoderFactory;
+
+        for (auto encodingParamIter = mParameters->mEncodings.begin(); encodingParamIter != mParameters->mEncodings.end(); encodingParamIter++) {
+
+          IRTPTypes::PayloadType codecPayloadType{};
+          if (encodingParamIter->mCodecPayloadType.hasValue())
+            codecPayloadType = encodingParamIter->mCodecPayloadType;
+          else
+            codecPayloadType = codec.pltype;
+
+          if (codecPayloadType == codec.pltype) {
+            uint32_t ssrc = 0;
+            if (encodingParamIter->mSSRC.hasValue())
+              ssrc = encodingParamIter->mSSRC;
+            if (encodingParamIter->mFEC.hasValue()) {
+              IRTPTypes::FECParameters fec = encodingParamIter->mFEC;
+              if (fec.mSSRC.hasValue())
+                ssrc = fec.mSSRC;
+            }
+            config.rtp.remote_ssrc = ssrc;
+          }
         }
+        if (config.rtp.remote_ssrc == 0) {
+          config.rtp.remote_ssrc = mInitPacket->ssrc();
+          mInitPacket.reset();
+        }
+
+        for (auto headerExtensionIter = mParameters->mHeaderExtensions.begin(); headerExtensionIter != mParameters->mHeaderExtensions.end(); headerExtensionIter++) {
+          IRTPTypes::HeaderExtensionURIs headerExtensionURI = IRTPTypes::toHeaderExtensionURI(headerExtensionIter->mURI);
+          switch (headerExtensionURI) {
+            case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_ClienttoMixerAudioLevelIndication:
+              webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetReceiveAudioLevelIndicationStatus(mChannel, true, headerExtensionIter->mID);
+              config.rtp.extensions.push_back(webrtc::RtpExtension(headerExtensionIter->mURI, headerExtensionIter->mID));
+              break;
+            case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_AbsoluteSendTime:
+              webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetReceiveAbsoluteSenderTimeStatus(mChannel, true, headerExtensionIter->mID);
+              config.rtp.extensions.push_back(webrtc::RtpExtension(headerExtensionIter->mURI, headerExtensionIter->mID));
+              break;
+            default:
+              break;
+          }
+        }
+
+        uint32_t localSSRC = mParameters->mRTCP.mSSRC;
+        if (localSSRC == 0)
+          localSSRC = 1;
+        webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetLocalSSRC(mChannel, localSSRC);
+        config.rtp.local_ssrc = localSSRC;
+        config.rtcp_send_transport = mTransport.get();
+
+        mModuleProcessThread->Start();
+        mModuleProcessThread->RegisterModule(mCallStats.get());
+        mModuleProcessThread->RegisterModule(mCongestionController.get());
+        mPacerThread->RegisterModule(mCongestionController->pacer());
+        mPacerThread->RegisterModule(mCongestionController->GetRemoteBitrateEstimator(true));
+        mPacerThread->Start();
       }
 
-      uint32_t localSSRC = mParameters->mRTCP.mSSRC;
-      if (localSSRC == 0)
-        localSSRC = 1;
-      webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetLocalSSRC(mChannel, localSSRC);
-      config.rtp.local_ssrc = localSSRC;
-      config.rtcp_send_transport = mTransport.get();
+      webrtc::internal::AudioReceiveStream *receiveStream =
+        new webrtc::internal::AudioReceiveStream(
+                                                 mCongestionController.get(),
+                                                 config,
+                                                 audioState,
+                                                 mEventLog.get()
+                                                 );
 
-      mModuleProcessThread->Start();
-      mModuleProcessThread->RegisterModule(mCallStats.get());
-      mModuleProcessThread->RegisterModule(mCongestionController.get());
-      mPacerThread->RegisterModule(mCongestionController->pacer());
-      mPacerThread->RegisterModule(mCongestionController->GetRemoteBitrateEstimator(true));
-      mPacerThread->Start();
+      {
+        AutoRecursiveLock lock(*this);
 
-      mReceiveStream = new webrtc::internal::AudioReceiveStream(
-                                                                mCongestionController.get(),
-                                                                config,
-                                                                audioState,
-                                                                mEventLog.get()
-                                                                );
+        mReceiveStream = receiveStream;
+      }
 
       webrtc::VoENetwork::GetInterface(voiceEngine)->RegisterExternalTransport(mChannel, *mTransport);
 
@@ -3045,37 +3142,39 @@ namespace ortc
         std::this_thread::yield();
       }
 
-      AutoRecursiveLock lock(*this);
+      {
+        AutoRecursiveLock lock(*this);
 
-      auto outer = mMediaEngine.lock();
+        auto outer = mMediaEngine.lock();
 
-      if (outer) {
-        auto voiceEngine = outer->getVoiceEngine();
-        if (voiceEngine) {
-          if (mTransportState == ISecureTransport::State_Connected) {
-            webrtc::VoEBase::GetInterface(voiceEngine)->StopPlayout(mChannel);
-            webrtc::VoEBase::GetInterface(voiceEngine)->StopReceive(mChannel);
+        if (outer) {
+          auto voiceEngine = outer->getVoiceEngine();
+          if (voiceEngine) {
+            if (mTransportState == ISecureTransport::State_Connected) {
+              webrtc::VoEBase::GetInterface(voiceEngine)->StopPlayout(mChannel);
+              webrtc::VoEBase::GetInterface(voiceEngine)->StopReceive(mChannel);
+            }
+            webrtc::VoENetwork::GetInterface(voiceEngine)->DeRegisterExternalTransport(mChannel);
           }
-          webrtc::VoENetwork::GetInterface(voiceEngine)->DeRegisterExternalTransport(mChannel);
         }
+
+        mPacerThread->Stop();
+        mPacerThread->DeRegisterModule(mCongestionController->pacer());
+        mPacerThread->DeRegisterModule(mCongestionController->GetRemoteBitrateEstimator(true));
+        mModuleProcessThread->DeRegisterModule(mCongestionController.get());
+        mModuleProcessThread->DeRegisterModule(mCallStats.get());
+        mModuleProcessThread->Stop();
+
+        mCallStats->DeregisterStatsObserver(mCongestionController.get());
+
+        if (mReceiveStream)
+          delete reinterpret_cast<webrtc::internal::AudioReceiveStream*>(mReceiveStream);
+        mCongestionController.reset();
+        mCallStats.reset();
+        mBitrateAllocator.reset();
+        mModuleProcessThread.reset();
+        mPacerThread.reset();
       }
-
-      mPacerThread->Stop();
-      mPacerThread->DeRegisterModule(mCongestionController->pacer());
-      mPacerThread->DeRegisterModule(mCongestionController->GetRemoteBitrateEstimator(true));
-      mModuleProcessThread->DeRegisterModule(mCongestionController.get());
-      mModuleProcessThread->DeRegisterModule(mCallStats.get());
-      mModuleProcessThread->Stop();
-
-      mCallStats->DeregisterStatsObserver(mCongestionController.get());
-
-      if (mReceiveStream)
-        delete reinterpret_cast<webrtc::internal::AudioReceiveStream*>(mReceiveStream);
-      mCongestionController.reset();
-      mCallStats.reset();
-      mBitrateAllocator.reset();
-      mModuleProcessThread.reset();
-      mPacerThread.reset();
 
       notifyPromisesShutdown();
     }
@@ -3193,14 +3292,22 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPMediaEngine::AudioSenderChannelResource::onSecureTransportState(ISecureTransport::States state)
     {
+      if (state == mTransportState) return;
+
       auto engine = mMediaEngine.lock();
       if (!engine) return;
 
       auto voiceEngine = engine->getVoiceEngine();
       if (!voiceEngine) return;
 
-      ISecureTransport::States previousState = mTransportState;
-      mTransportState = state;
+      ISecureTransport::States previousState;
+      {
+        AutoRecursiveLock lock(*this);
+
+        previousState = mTransportState;
+        mTransportState = state;
+      }
+
       if (mParameters && (mParameters->mEncodings.size() == 0 ||
         (mParameters->mEncodings.size() > 0 && mParameters->mEncodings.begin()->mActive))) {
         if (state == ISecureTransport::State_Connected) {
@@ -3214,26 +3321,29 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPMediaEngine::AudioSenderChannelResource::onUpdate(ParametersPtr params)
     {
-      AutoRecursiveLock lock(*this);
-
       auto engine = mMediaEngine.lock();
       if (!engine) return;
 
       auto voiceEngine = engine->getVoiceEngine();
       if (!voiceEngine) return;
 
-      ParametersPtr previousParams = mParameters;
-      mParameters = params;
       bool previousActive = false;
       bool currentActive = false;
-      if (previousParams->mEncodings.size() == 0 ||
-        (previousParams->mEncodings.size() > 0 && previousParams->mEncodings.begin()->mActive)) {
-        previousActive = true;
+      {
+        AutoRecursiveLock lock(*this);
+
+        ParametersPtr previousParams = mParameters;
+        mParameters = params;
+        if (previousParams->mEncodings.size() == 0 ||
+          (previousParams->mEncodings.size() > 0 && previousParams->mEncodings.begin()->mActive)) {
+          previousActive = true;
+        }
+        if (params->mEncodings.size() == 0 ||
+          (params->mEncodings.size() > 0 && params->mEncodings.begin()->mActive)) {
+          currentActive = true;
+        }
       }
-      if (params->mEncodings.size() == 0 ||
-        (params->mEncodings.size() > 0 && params->mEncodings.begin()->mActive)) {
-        currentActive = true;
-      }
+
       if (mTransportState == ISecureTransport::State_Connected) {
         if (!previousActive && currentActive) {
           webrtc::VoEBase::GetInterface(voiceEngine)->StartSend(mChannel);
@@ -3246,16 +3356,17 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPMediaEngine::AudioSenderChannelResource::onProvideStats(PromiseWithStatsReportPtr promise, IStatsReportTypes::StatsTypeSet stats)
     {
+      auto track = mTrack.lock();
+      if (!track) {
+        notifyPromisesReject();
+        return;
+      }
+
       AutoRecursiveLock lock(*this);
 
       UseStatsReport::StatMap reportStats;
 
       webrtc::AudioSendStream::Stats sendStreamStats = mSendStream->GetStats();
-
-      auto track = mTrack.lock();
-      if (!track) {
-        return;
-      }
 
       if (stats.hasStatType(IStatsReportTypes::StatsTypes::StatsType_OutboundRTP)) {
 
@@ -3440,10 +3551,6 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPMediaEngine::AudioSenderChannelResource::OnNetworkChanged(uint32_t targetBitrateBps, uint8_t fractionLoss, int64_t rttMs)
     {
-      AutoRecursiveLock lock(*this);
-
-      mCurrentTargetBitrate = targetBitrateBps;
-
       if (!mWorkerQueue.IsCurrent()) {
         mWorkerQueue.PostTask([this, targetBitrateBps, fractionLoss, rttMs] {
           OnNetworkChanged(targetBitrateBps, fractionLoss, rttMs);
@@ -3456,6 +3563,10 @@ namespace ortc
                                           fractionLoss,
                                           rttMs
                                           );
+
+      AutoRecursiveLock lock(*this);
+
+      mCurrentTargetBitrate = targetBitrateBps;
     }
 
     //-------------------------------------------------------------------------
@@ -3485,8 +3596,6 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPMediaEngine::AudioSenderChannelResource::stepSetup()
     {
-      AutoRecursiveLock lock(*this);
-
       auto engine = mMediaEngine.lock();
       if (!engine) {
         notifyPromisesReject();
@@ -3501,144 +3610,155 @@ namespace ortc
 
       auto audioState = engine->getAudioState();
 
-      mModuleProcessThread = webrtc::ProcessThread::Create("AudioSenderChannelResourceModuleProcessThread");
-      mPacerThread = webrtc::ProcessThread::Create("AudioSenderChannelResourcePacerThread");
-
-      mBitrateAllocator = std::unique_ptr<webrtc::BitrateAllocator>(new webrtc::BitrateAllocator(this));
-      mCallStats = std::unique_ptr<webrtc::CallStats>(new webrtc::CallStats(mClock));
-      mCongestionController =
-        std::unique_ptr<webrtc::CongestionController>(new webrtc::CongestionController(
-                                                                                       mClock,
-                                                                                       this,
-                                                                                       &mRemb,
-                                                                                       mEventLog.get()
-                                                                                       ));
-
-      mCallStats->RegisterStatsObserver(mCongestionController.get());
-
-      mChannel = webrtc::VoEBase::GetInterface(voiceEngine)->CreateChannel();
-
-      bool audioCodecSet = false;
-      webrtc::CodecInst codec;
-      for (auto codecIter = mParameters->mCodecs.begin(); codecIter != mParameters->mCodecs.end(); codecIter++) {
-        auto supportedCodec = IRTPTypes::toSupportedCodec(codecIter->mName);
-        if (IRTPTypes::getCodecKind(supportedCodec) == IRTPTypes::CodecKind_Audio && audioCodecSet)
-          continue;
-        codec = getAudioCodec(voiceEngine, codecIter->mName);
-        codec.pltype = codecIter->mPayloadType;
-        if (codecIter->mPTime != Milliseconds::zero())
-          codec.pacsize = (codec.plfreq / 1000) * codecIter->mPTime.count();
-        if (codecIter->mNumChannels.hasValue())
-          codec.channels = codecIter->mNumChannels;
-        switch (supportedCodec) {
-          case IRTPTypes::SupportedCodec_Opus:
-          {
-            codec.rate = 32000 * codec.channels;
-            webrtc::VoECodec::GetInterface(voiceEngine)->SetSendCodec(mChannel, codec);
-            auto parameters = IRTPTypes::OpusCodecParameters::convert(codecIter->mParameters);
-            if (parameters->mUseInbandFEC.hasValue())
-              webrtc::VoECodec::GetInterface(voiceEngine)->SetFECStatus(mChannel, parameters->mUseInbandFEC);
-            if (parameters->mUseDTX.hasValue())
-              webrtc::VoECodec::GetInterface(voiceEngine)->SetOpusDtx(mChannel, parameters->mUseDTX);
-            webrtc::VoECodec::GetInterface(voiceEngine)->SetOpusMaxPlaybackRate(mChannel, 48000);
-            goto set_rtcp_feedback;
-          }
-          case IRTPTypes::SupportedCodec_Isac:
-          case IRTPTypes::SupportedCodec_G722:
-          case IRTPTypes::SupportedCodec_ILBC:
-          case IRTPTypes::SupportedCodec_PCMU:
-          case IRTPTypes::SupportedCodec_PCMA:
-            webrtc::VoECodec::GetInterface(voiceEngine)->SetSendCodec(mChannel, codec);
-            goto set_rtcp_feedback;
-          case IRTPTypes::SupportedCodec_RED:
-            break;
-          case IRTPTypes::SupportedCodec_TelephoneEvent:
-            mDTMFPayloadType = codecIter->mPayloadType;
-            break;
-        }
-        continue;
-
-      set_rtcp_feedback:
-        for (auto rtcpFeedbackIter = codecIter->mRTCPFeedback.begin(); rtcpFeedbackIter != codecIter->mRTCPFeedback.end(); rtcpFeedbackIter++) {
-          IRTPTypes::KnownFeedbackTypes feedbackType = IRTPTypes::toKnownFeedbackType(rtcpFeedbackIter->mType);
-          IRTPTypes::KnownFeedbackParameters feedbackParameter = IRTPTypes::toKnownFeedbackParameter(rtcpFeedbackIter->mParameter);
-          if (IRTPTypes::KnownFeedbackType_NACK == feedbackType && IRTPTypes::KnownFeedbackParameter_Unknown == feedbackParameter) {
-            webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetNACKStatus(mChannel, true, 250);
-          }
-        }
-        audioCodecSet = true;
-      }
-
-      mCodecPayloadName = codec.plname;
-      mCodecPayloadType = codec.pltype;
-
       webrtc::AudioSendStream::Config config(mTransport.get());
-      config.voe_channel_id = mChannel;
-      
-      for (auto encodingParamIter = mParameters->mEncodings.begin(); encodingParamIter != mParameters->mEncodings.end(); encodingParamIter++) {
+      {
+        AutoRecursiveLock lock(*this);
 
-        IRTPTypes::PayloadType codecPayloadType {};
-        if (encodingParamIter->mCodecPayloadType.hasValue())
-          codecPayloadType = encodingParamIter->mCodecPayloadType;
-        else
-          codecPayloadType = codec.pltype;
+        mModuleProcessThread = webrtc::ProcessThread::Create("AudioSenderChannelResourceModuleProcessThread");
+        mPacerThread = webrtc::ProcessThread::Create("AudioSenderChannelResourcePacerThread");
 
-        if (codecPayloadType == codec.pltype) {
-          uint32_t ssrc = 0;
-          if (encodingParamIter->mSSRC.hasValue()) {
-            ssrc = encodingParamIter->mSSRC;
+        mBitrateAllocator = std::unique_ptr<webrtc::BitrateAllocator>(new webrtc::BitrateAllocator(this));
+        mCallStats = std::unique_ptr<webrtc::CallStats>(new webrtc::CallStats(mClock));
+        mCongestionController =
+          std::unique_ptr<webrtc::CongestionController>(new webrtc::CongestionController(
+                                                                                         mClock,
+                                                                                         this,
+                                                                                         &mRemb,
+                                                                                         mEventLog.get()
+                                                                                         ));
+
+        mCallStats->RegisterStatsObserver(mCongestionController.get());
+
+        mChannel = webrtc::VoEBase::GetInterface(voiceEngine)->CreateChannel();
+
+        bool audioCodecSet = false;
+        webrtc::CodecInst codec;
+        for (auto codecIter = mParameters->mCodecs.begin(); codecIter != mParameters->mCodecs.end(); codecIter++) {
+          auto supportedCodec = IRTPTypes::toSupportedCodec(codecIter->mName);
+          if (IRTPTypes::getCodecKind(supportedCodec) == IRTPTypes::CodecKind_Audio && audioCodecSet)
+            continue;
+          codec = getAudioCodec(voiceEngine, codecIter->mName);
+          codec.pltype = codecIter->mPayloadType;
+          if (codecIter->mPTime != Milliseconds::zero())
+            codec.pacsize = (codec.plfreq / 1000) * codecIter->mPTime.count();
+          if (codecIter->mNumChannels.hasValue())
+            codec.channels = codecIter->mNumChannels;
+          switch (supportedCodec) {
+            case IRTPTypes::SupportedCodec_Opus:
+            {
+              codec.rate = 32000 * codec.channels;
+              webrtc::VoECodec::GetInterface(voiceEngine)->SetSendCodec(mChannel, codec);
+              auto parameters = IRTPTypes::OpusCodecParameters::convert(codecIter->mParameters);
+              if (parameters->mUseInbandFEC.hasValue())
+                webrtc::VoECodec::GetInterface(voiceEngine)->SetFECStatus(mChannel, parameters->mUseInbandFEC);
+              if (parameters->mUseDTX.hasValue())
+                webrtc::VoECodec::GetInterface(voiceEngine)->SetOpusDtx(mChannel, parameters->mUseDTX);
+              webrtc::VoECodec::GetInterface(voiceEngine)->SetOpusMaxPlaybackRate(mChannel, 48000);
+              goto set_rtcp_feedback;
+            }
+            case IRTPTypes::SupportedCodec_Isac:
+            case IRTPTypes::SupportedCodec_G722:
+            case IRTPTypes::SupportedCodec_ILBC:
+            case IRTPTypes::SupportedCodec_PCMU:
+            case IRTPTypes::SupportedCodec_PCMA:
+              webrtc::VoECodec::GetInterface(voiceEngine)->SetSendCodec(mChannel, codec);
+              goto set_rtcp_feedback;
+            case IRTPTypes::SupportedCodec_RED:
+              break;
+            case IRTPTypes::SupportedCodec_TelephoneEvent:
+              mDTMFPayloadType = codecIter->mPayloadType;
+              break;
           }
-          if (encodingParamIter->mFEC.hasValue()) {
-            IRTPTypes::FECParameters fec = encodingParamIter->mFEC;
-            if (fec.mSSRC.hasValue()) {
-              ssrc = fec.mSSRC;
+          continue;
+
+        set_rtcp_feedback:
+          for (auto rtcpFeedbackIter = codecIter->mRTCPFeedback.begin(); rtcpFeedbackIter != codecIter->mRTCPFeedback.end(); rtcpFeedbackIter++) {
+            IRTPTypes::KnownFeedbackTypes feedbackType = IRTPTypes::toKnownFeedbackType(rtcpFeedbackIter->mType);
+            IRTPTypes::KnownFeedbackParameters feedbackParameter = IRTPTypes::toKnownFeedbackParameter(rtcpFeedbackIter->mParameter);
+            if (IRTPTypes::KnownFeedbackType_NACK == feedbackType && IRTPTypes::KnownFeedbackParameter_Unknown == feedbackParameter) {
+              webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetNACKStatus(mChannel, true, 250);
             }
           }
+          audioCodecSet = true;
+        }
+
+        mCodecPayloadName = codec.plname;
+        mCodecPayloadType = codec.pltype;
+
+        config.voe_channel_id = mChannel;
+
+        for (auto encodingParamIter = mParameters->mEncodings.begin(); encodingParamIter != mParameters->mEncodings.end(); encodingParamIter++) {
+
+          IRTPTypes::PayloadType codecPayloadType{};
+          if (encodingParamIter->mCodecPayloadType.hasValue())
+            codecPayloadType = encodingParamIter->mCodecPayloadType;
+          else
+            codecPayloadType = codec.pltype;
+
+          if (codecPayloadType == codec.pltype) {
+            uint32_t ssrc = 0;
+            if (encodingParamIter->mSSRC.hasValue()) {
+              ssrc = encodingParamIter->mSSRC;
+            }
+            if (encodingParamIter->mFEC.hasValue()) {
+              IRTPTypes::FECParameters fec = encodingParamIter->mFEC;
+              if (fec.mSSRC.hasValue()) {
+                ssrc = fec.mSSRC;
+              }
+            }
+            webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetLocalSSRC(mChannel, ssrc);
+            config.rtp.ssrc = ssrc;
+          }
+        }
+        if (config.rtp.ssrc == 0) {
+          uint32_t ssrc = SafeInt<uint32>(ortc::services::IHelper::random(1, 0xFFFFFFFF));
           webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetLocalSSRC(mChannel, ssrc);
           config.rtp.ssrc = ssrc;
         }
-      }
-      if (config.rtp.ssrc == 0) {
-        uint32_t ssrc = SafeInt<uint32>(ortc::services::IHelper::random(1, 0xFFFFFFFF));
-        webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetLocalSSRC(mChannel, ssrc);
-        config.rtp.ssrc = ssrc;
-      }
 
-      for (auto headerExtensionIter = mParameters->mHeaderExtensions.begin(); headerExtensionIter != mParameters->mHeaderExtensions.end(); headerExtensionIter++) {
-        IRTPTypes::HeaderExtensionURIs headerExtensionURI = IRTPTypes::toHeaderExtensionURI(headerExtensionIter->mURI);
-        switch (headerExtensionURI) {
-          case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_ClienttoMixerAudioLevelIndication:
-            webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetSendAudioLevelIndicationStatus(mChannel, true, headerExtensionIter->mID);
-            config.rtp.extensions.push_back(webrtc::RtpExtension(headerExtensionIter->mURI, headerExtensionIter->mID));
-            break;
-          case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_AbsoluteSendTime:
-            webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetSendAbsoluteSenderTimeStatus(mChannel, true, headerExtensionIter->mID);
-            config.rtp.extensions.push_back(webrtc::RtpExtension(headerExtensionIter->mURI, headerExtensionIter->mID));
-            break;
-          default:
-            break;
+        for (auto headerExtensionIter = mParameters->mHeaderExtensions.begin(); headerExtensionIter != mParameters->mHeaderExtensions.end(); headerExtensionIter++) {
+          IRTPTypes::HeaderExtensionURIs headerExtensionURI = IRTPTypes::toHeaderExtensionURI(headerExtensionIter->mURI);
+          switch (headerExtensionURI) {
+            case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_ClienttoMixerAudioLevelIndication:
+              webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetSendAudioLevelIndicationStatus(mChannel, true, headerExtensionIter->mID);
+              config.rtp.extensions.push_back(webrtc::RtpExtension(headerExtensionIter->mURI, headerExtensionIter->mID));
+              break;
+            case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_AbsoluteSendTime:
+              webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetSendAbsoluteSenderTimeStatus(mChannel, true, headerExtensionIter->mID);
+              config.rtp.extensions.push_back(webrtc::RtpExtension(headerExtensionIter->mURI, headerExtensionIter->mID));
+              break;
+            default:
+              break;
+          }
         }
+
+        webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetRTCPStatus(mChannel, true);
+        webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetRTCP_CNAME(mChannel, mParameters->mRTCP.mCName);
+
+        mCongestionController->SetBweBitrates(10000, 40000, 100000);
+
+        mModuleProcessThread->Start();
+        mModuleProcessThread->RegisterModule(mCallStats.get());
+        mModuleProcessThread->RegisterModule(mCongestionController.get());
+        mPacerThread->RegisterModule(mCongestionController->pacer());
+        mPacerThread->RegisterModule(mCongestionController->GetRemoteBitrateEstimator(true));
+        mPacerThread->Start();
       }
 
-      webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetRTCPStatus(mChannel, true);
-      webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetRTCP_CNAME(mChannel, mParameters->mRTCP.mCName);
+      webrtc::internal::AudioSendStream *sendStream =
+        new webrtc::internal::AudioSendStream(
+                                              config,
+                                              audioState,
+                                              &mWorkerQueue,
+                                              mCongestionController.get(),
+                                              mBitrateAllocator.get()
+                                              );
 
-      mCongestionController->SetBweBitrates(10000, 40000, 100000);
+      {
+        AutoRecursiveLock lock(*this);
 
-      mModuleProcessThread->Start();
-      mModuleProcessThread->RegisterModule(mCallStats.get());
-      mModuleProcessThread->RegisterModule(mCongestionController.get());
-      mPacerThread->RegisterModule(mCongestionController->pacer());
-      mPacerThread->RegisterModule(mCongestionController->GetRemoteBitrateEstimator(true));
-      mPacerThread->Start();
-
-      mSendStream = new webrtc::internal::AudioSendStream(
-                                                          config,
-                                                          audioState,
-                                                          &mWorkerQueue,
-                                                          mCongestionController.get(),
-                                                          mBitrateAllocator.get()
-                                                          );
+        mSendStream = sendStream;
+      }
 
       webrtc::VoENetwork::GetInterface(voiceEngine)->RegisterExternalTransport(mChannel, *mTransport);
 
@@ -3660,34 +3780,36 @@ namespace ortc
         std::this_thread::yield();
       }
 
-      AutoRecursiveLock lock(*this);
+      {
+        AutoRecursiveLock lock(*this);
 
-      auto engine = mMediaEngine.lock();
-      if (engine) {
-        auto voiceEngine = engine->getVoiceEngine();
-        if (voiceEngine) {
-          if (mTransportState == ISecureTransport::State_Connected)
-            webrtc::VoEBase::GetInterface(voiceEngine)->StopSend(mChannel);
-          webrtc::VoENetwork::GetInterface(voiceEngine)->DeRegisterExternalTransport(mChannel);
+        auto engine = mMediaEngine.lock();
+        if (engine) {
+          auto voiceEngine = engine->getVoiceEngine();
+          if (voiceEngine) {
+            if (mTransportState == ISecureTransport::State_Connected)
+              webrtc::VoEBase::GetInterface(voiceEngine)->StopSend(mChannel);
+            webrtc::VoENetwork::GetInterface(voiceEngine)->DeRegisterExternalTransport(mChannel);
+          }
         }
+
+        mPacerThread->Stop();
+        mPacerThread->DeRegisterModule(mCongestionController->pacer());
+        mPacerThread->DeRegisterModule(mCongestionController->GetRemoteBitrateEstimator(true));
+        mModuleProcessThread->DeRegisterModule(mCongestionController.get());
+        mModuleProcessThread->DeRegisterModule(mCallStats.get());
+        mModuleProcessThread->Stop();
+
+        mCallStats->DeregisterStatsObserver(mCongestionController.get());
+
+        if (mSendStream)
+          delete reinterpret_cast<webrtc::internal::AudioSendStream*>(mSendStream);
+        mCongestionController.reset();
+        mCallStats.reset();
+        mBitrateAllocator.reset();
+        mModuleProcessThread.reset();
+        mPacerThread.reset();
       }
-
-      mPacerThread->Stop();
-      mPacerThread->DeRegisterModule(mCongestionController->pacer());
-      mPacerThread->DeRegisterModule(mCongestionController->GetRemoteBitrateEstimator(true));
-      mModuleProcessThread->DeRegisterModule(mCongestionController.get());
-      mModuleProcessThread->DeRegisterModule(mCallStats.get());
-      mModuleProcessThread->Stop();
-
-      mCallStats->DeregisterStatsObserver(mCongestionController.get());
-
-      if (mSendStream)
-        delete reinterpret_cast<webrtc::internal::AudioSendStream*>(mSendStream);
-      mCongestionController.reset();
-      mCallStats.reset();
-      mBitrateAllocator.reset();
-      mModuleProcessThread.reset();
-      mPacerThread.reset();
 
       notifyPromisesShutdown();
     }
@@ -3830,14 +3952,17 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPMediaEngine::VideoReceiverChannelResource::onSecureTransportState(ISecureTransport::States state)
     {
-      AutoRecursiveLock lock(*this);
-
       if (state == mTransportState) return;
 
-      ISecureTransport::States previousState = mTransportState;
-      mTransportState = state;
-
       if (!mReceiveStream) return;
+
+      ISecureTransport::States previousState;
+      {
+        AutoRecursiveLock lock(*this);
+
+        previousState = mTransportState;
+        mTransportState = state;
+      }
 
       if (mParameters && (mParameters->mEncodings.size() == 0 ||
         (mParameters->mEncodings.size() > 0 && mParameters->mEncodings.begin()->mActive))) {
@@ -3851,29 +3976,32 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPMediaEngine::VideoReceiverChannelResource::onUpdate(ParametersPtr params)
     {
-      AutoRecursiveLock lock(*this);
-
       auto engine = mMediaEngine.lock();
       if (!engine) return;
 
       auto voiceEngine = engine->getVoiceEngine();
       if (!voiceEngine) return;
 
-      ParametersPtr previousParams = mParameters;
-      mParameters = params;
-
       if (!mReceiveStream) return;
 
       bool previousActive = false;
       bool currentActive = false;
-      if (previousParams->mEncodings.size() == 0 ||
-        (previousParams->mEncodings.size() > 0 && previousParams->mEncodings.begin()->mActive)) {
-        previousActive = true;
+      {
+        AutoRecursiveLock lock(*this);
+
+        ParametersPtr previousParams = mParameters;
+        mParameters = params;
+
+        if (previousParams->mEncodings.size() == 0 ||
+          (previousParams->mEncodings.size() > 0 && previousParams->mEncodings.begin()->mActive)) {
+          previousActive = true;
+        }
+        if (params->mEncodings.size() == 0 ||
+          (params->mEncodings.size() > 0 && params->mEncodings.begin()->mActive)) {
+          currentActive = true;
+        }
       }
-      if (params->mEncodings.size() == 0 ||
-        (params->mEncodings.size() > 0 && params->mEncodings.begin()->mActive)) {
-        currentActive = true;
-      }
+
       if (mTransportState == ISecureTransport::State_Connected) {
         if (!previousActive && currentActive)
           mReceiveStream->Start();
@@ -3885,17 +4013,17 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPMediaEngine::VideoReceiverChannelResource::onProvideStats(PromiseWithStatsReportPtr promise, IStatsReportTypes::StatsTypeSet stats)
     {
-      AutoRecursiveLock lock(*this);
-
-      UseStatsReport::StatMap reportStats;
-
-      webrtc::VideoReceiveStream::Stats receiveStreamStats = mReceiveStream->GetStats();
-
       auto track = mTrack.lock();
       if (!track) {
         notifyPromisesReject();
         return;
       }
+
+      AutoRecursiveLock lock(*this);
+
+      UseStatsReport::StatMap reportStats;
+
+      webrtc::VideoReceiveStream::Stats receiveStreamStats = mReceiveStream->GetStats();
 
       if (stats.hasStatType(IStatsReportTypes::StatsTypes::StatsType_InboundRTP)) {
 
@@ -4008,15 +4136,15 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPMediaEngine::VideoReceiverChannelResource::OnNetworkChanged(uint32_t targetBitrateBps, uint8_t fractionLoss, int64_t rttMs)
     {
-      AutoRecursiveLock lock(*this);
-
-      mCurrentTargetBitrate = targetBitrateBps;
-
       mBitrateAllocator->OnNetworkChanged(
                                           targetBitrateBps,
                                           fractionLoss,
                                           rttMs
                                           );
+
+      AutoRecursiveLock lock(*this);
+
+      mCurrentTargetBitrate = targetBitrateBps;
     }
 
     //-------------------------------------------------------------------------
@@ -4046,199 +4174,208 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPMediaEngine::VideoReceiverChannelResource::stepSetup()
     {
-      AutoRecursiveLock lock(*this);
-
       auto track = mTrack.lock();
       if (!track) {
         return;
       }
 
-      mModuleProcessThread = webrtc::ProcessThread::Create("VideoReceiverChannelResourceModuleProcessThread");
-      mPacerThread = webrtc::ProcessThread::Create("VideoReceiverChannelResourcePacerThread");
+      int numCpuCores;
+      webrtc::VideoReceiveStream::Config config(mTransport.get());
+      {
+        AutoRecursiveLock lock(*this);
 
-      mReceiverVideoRenderer.setMediaStreamTrack(track);
+        mModuleProcessThread = webrtc::ProcessThread::Create("VideoReceiverChannelResourceModuleProcessThread");
+        mPacerThread = webrtc::ProcessThread::Create("VideoReceiverChannelResourcePacerThread");
 
-      mBitrateAllocator = std::unique_ptr<webrtc::BitrateAllocator>(new webrtc::BitrateAllocator(this));
-      mCallStats = std::unique_ptr<webrtc::CallStats>(new webrtc::CallStats(mClock));
-      mCongestionController =
-        std::unique_ptr<webrtc::CongestionController>(new webrtc::CongestionController(
-                                                                                       mClock,
-                                                                                       this,
-                                                                                       &mRemb,
-                                                                                       mEventLog.get()
-                                                                                       ));
+        mReceiverVideoRenderer.setMediaStreamTrack(track);
 
-      mCallStats->RegisterStatsObserver(mCongestionController.get());
+        mBitrateAllocator = std::unique_ptr<webrtc::BitrateAllocator>(new webrtc::BitrateAllocator(this));
+        mCallStats = std::unique_ptr<webrtc::CallStats>(new webrtc::CallStats(mClock));
+        mCongestionController =
+          std::unique_ptr<webrtc::CongestionController>(new webrtc::CongestionController(
+                                                                                         mClock,
+                                                                                         this,
+                                                                                         &mRemb,
+                                                                                         mEventLog.get()
+                                                                                         ));
 
-      int numCpuCores = webrtc::CpuInfo::DetectNumberOfCores();
+        mCallStats->RegisterStatsObserver(mCongestionController.get());
 
-      webrtc::Transport* transport = mTransport.get();
-      webrtc::VideoReceiveStream::Config config(transport);
-      webrtc::VideoReceiveStream::Decoder decoder;
-      std::vector<IRTPTypes::PayloadType> rtxPayloadTypes;
+        numCpuCores = webrtc::CpuInfo::DetectNumberOfCores();
 
-      bool videoCodecSet = false;
-      bool rtxCodecSet = false;
-      bool redCodecSet = false;
-      bool fecCodecSet = false;
-      for (auto codecIter = mParameters->mCodecs.begin(); codecIter != mParameters->mCodecs.end(); ++codecIter) {
-        auto supportedCodec = IRTPTypes::toSupportedCodec(codecIter->mName);
-        switch (supportedCodec) {
-          case IRTPTypes::SupportedCodec_VP8:
-          {
-            if (videoCodecSet)
-              continue;
-            webrtc::VideoDecoder* videoDecoder = webrtc::VideoDecoder::Create(webrtc::VideoDecoder::kVp8);
-            decoder.decoder = videoDecoder;
-            decoder.payload_name = IRTPTypes::toString(supportedCodec);
-            decoder.payload_type = codecIter->mPayloadType;
-            goto set_rtcp_feedback;
-          }
-          case IRTPTypes::SupportedCodec_VP9:
-          {
-            if (videoCodecSet)
-              continue;
-            webrtc::VideoDecoder* videoDecoder = webrtc::VideoDecoder::Create(webrtc::VideoDecoder::kVp9);
-            decoder.decoder = videoDecoder;
-            decoder.payload_name = IRTPTypes::toString(supportedCodec);
-            decoder.payload_type = codecIter->mPayloadType;
-            goto set_rtcp_feedback;
-          }
-          case IRTPTypes::SupportedCodec_H264:
-          {
-            if (videoCodecSet)
-              continue;
+        webrtc::VideoReceiveStream::Decoder decoder;
+        std::vector<IRTPTypes::PayloadType> rtxPayloadTypes;
+
+        bool videoCodecSet = false;
+        bool rtxCodecSet = false;
+        bool redCodecSet = false;
+        bool fecCodecSet = false;
+        for (auto codecIter = mParameters->mCodecs.begin(); codecIter != mParameters->mCodecs.end(); ++codecIter) {
+          auto supportedCodec = IRTPTypes::toSupportedCodec(codecIter->mName);
+          switch (supportedCodec) {
+            case IRTPTypes::SupportedCodec_VP8:
+            {
+              if (videoCodecSet)
+                continue;
+              webrtc::VideoDecoder* videoDecoder = webrtc::VideoDecoder::Create(webrtc::VideoDecoder::kVp8);
+              decoder.decoder = videoDecoder;
+              decoder.payload_name = IRTPTypes::toString(supportedCodec);
+              decoder.payload_type = codecIter->mPayloadType;
+              goto set_rtcp_feedback;
+            }
+            case IRTPTypes::SupportedCodec_VP9:
+            {
+              if (videoCodecSet)
+                continue;
+              webrtc::VideoDecoder* videoDecoder = webrtc::VideoDecoder::Create(webrtc::VideoDecoder::kVp9);
+              decoder.decoder = videoDecoder;
+              decoder.payload_name = IRTPTypes::toString(supportedCodec);
+              decoder.payload_type = codecIter->mPayloadType;
+              goto set_rtcp_feedback;
+            }
+            case IRTPTypes::SupportedCodec_H264:
+            {
+              if (videoCodecSet)
+                continue;
 #ifndef WINRT
-            webrtc::VideoDecoder* videoDecoder = webrtc::VideoDecoder::Create(webrtc::VideoDecoder::kH264);
+              webrtc::VideoDecoder* videoDecoder = webrtc::VideoDecoder::Create(webrtc::VideoDecoder::kH264);
 #else
-            std::unique_ptr<cricket::WebRtcVideoDecoderFactory> decoderFactory = std::make_unique<webrtc::H264WinRTDecoderFactory>();
-            webrtc::VideoDecoder* videoDecoder = decoderFactory->CreateVideoDecoder(webrtc::VideoCodecType::kVideoCodecH264);
+              std::unique_ptr<cricket::WebRtcVideoDecoderFactory> decoderFactory = std::make_unique<webrtc::H264WinRTDecoderFactory>();
+              webrtc::VideoDecoder* videoDecoder = decoderFactory->CreateVideoDecoder(webrtc::VideoCodecType::kVideoCodecH264);
 #endif
-            decoder.decoder = videoDecoder;
-            decoder.payload_name = IRTPTypes::toString(supportedCodec);
-            decoder.payload_type = codecIter->mPayloadType;
-            goto set_rtcp_feedback;
-          }
-          case IRTPTypes::SupportedCodec_RTX:
-          {
-            if (rtxCodecSet)
-              continue;
-            rtxPayloadTypes.push_back(codecIter->mPayloadType);
-            rtxCodecSet = true;
-            break;
-          }
-          case IRTPTypes::SupportedCodec_RED:
-          {
-            if (redCodecSet)
-              continue;
-            config.rtp.fec.red_payload_type = codecIter->mPayloadType;
-            redCodecSet = true;
-            break;
-          }
-          case IRTPTypes::SupportedCodec_ULPFEC:
-          {
-            if (fecCodecSet)
-              continue;
-            config.rtp.fec.ulpfec_payload_type = codecIter->mPayloadType;
-            fecCodecSet = true;
-            break;
-          }
-          case IRTPTypes::SupportedCodec_FlexFEC:
-          {
-            break;
-          }
-        }
-        continue;
-
-      set_rtcp_feedback:
-        for (auto rtcpFeedbackIter = codecIter->mRTCPFeedback.begin(); rtcpFeedbackIter != codecIter->mRTCPFeedback.end(); rtcpFeedbackIter++) {
-          IRTPTypes::KnownFeedbackTypes feedbackType = IRTPTypes::toKnownFeedbackType(rtcpFeedbackIter->mType);
-          IRTPTypes::KnownFeedbackParameters feedbackParameter = IRTPTypes::toKnownFeedbackParameter(rtcpFeedbackIter->mParameter);
-          if (IRTPTypes::KnownFeedbackType_NACK == feedbackType && IRTPTypes::KnownFeedbackParameter_Unknown == feedbackParameter) {
-            config.rtp.nack.rtp_history_ms = 1000;
-          } else if (IRTPTypes::KnownFeedbackType_REMB == feedbackType && IRTPTypes::KnownFeedbackParameter_Unknown == feedbackParameter) {
-            config.rtp.remb = true;
-          }
-        }
-        videoCodecSet = true;
-      }
-
-      mCodecPayloadName = decoder.payload_name;
-      mCodecPayloadType = decoder.payload_type;
-
-      for (auto encodingParamIter = mParameters->mEncodings.begin(); encodingParamIter != mParameters->mEncodings.end(); encodingParamIter++) {
-
-        IRTPTypes::PayloadType codecPayloadType {};
-        if (encodingParamIter->mCodecPayloadType.hasValue())
-          codecPayloadType = encodingParamIter->mCodecPayloadType;
-        else
-          codecPayloadType = decoder.payload_type;
-
-        if (codecPayloadType == decoder.payload_type) {
-          uint32_t ssrc = 0;
-          if (encodingParamIter->mSSRC.hasValue())
-            ssrc = encodingParamIter->mSSRC;
-          if (encodingParamIter->mFEC.hasValue()) {
-            IRTPTypes::FECParameters fec = encodingParamIter->mFEC;
-            if (fec.mSSRC.hasValue()) {
-              ssrc = encodingParamIter->mSSRC;
+              decoder.decoder = videoDecoder;
+              decoder.payload_name = IRTPTypes::toString(supportedCodec);
+              decoder.payload_type = codecIter->mPayloadType;
+              goto set_rtcp_feedback;
+            }
+            case IRTPTypes::SupportedCodec_RTX:
+            {
+              if (rtxCodecSet)
+                continue;
+              rtxPayloadTypes.push_back(codecIter->mPayloadType);
+              rtxCodecSet = true;
+              break;
+            }
+            case IRTPTypes::SupportedCodec_RED:
+            {
+              if (redCodecSet)
+                continue;
+              config.rtp.fec.red_payload_type = codecIter->mPayloadType;
+              redCodecSet = true;
+              break;
+            }
+            case IRTPTypes::SupportedCodec_ULPFEC:
+            {
+              if (fecCodecSet)
+                continue;
+              config.rtp.fec.ulpfec_payload_type = codecIter->mPayloadType;
+              fecCodecSet = true;
+              break;
+            }
+            case IRTPTypes::SupportedCodec_FlexFEC:
+            {
+              break;
             }
           }
-          config.rtp.remote_ssrc = ssrc;
-          if (encodingParamIter->mRTX.hasValue()) {
-            IRTPTypes::RTXParameters rtxEncodingParam = encodingParamIter->mRTX;
-            webrtc::VideoReceiveStream::Config::Rtp::Rtx rtx;
-            rtx.payload_type = rtxPayloadTypes.front();
-            if (rtxEncodingParam.mSSRC.hasValue())
-              rtx.ssrc = rtxEncodingParam.mSSRC;
-            config.rtp.rtx[codecPayloadType] = rtx;
+          continue;
+
+        set_rtcp_feedback:
+          for (auto rtcpFeedbackIter = codecIter->mRTCPFeedback.begin(); rtcpFeedbackIter != codecIter->mRTCPFeedback.end(); rtcpFeedbackIter++) {
+            IRTPTypes::KnownFeedbackTypes feedbackType = IRTPTypes::toKnownFeedbackType(rtcpFeedbackIter->mType);
+            IRTPTypes::KnownFeedbackParameters feedbackParameter = IRTPTypes::toKnownFeedbackParameter(rtcpFeedbackIter->mParameter);
+            if (IRTPTypes::KnownFeedbackType_NACK == feedbackType && IRTPTypes::KnownFeedbackParameter_Unknown == feedbackParameter) {
+              config.rtp.nack.rtp_history_ms = 1000;
+            } else if (IRTPTypes::KnownFeedbackType_REMB == feedbackType && IRTPTypes::KnownFeedbackParameter_Unknown == feedbackParameter) {
+              config.rtp.remb = true;
+            }
+          }
+          videoCodecSet = true;
+        }
+
+        mCodecPayloadName = decoder.payload_name;
+        mCodecPayloadType = decoder.payload_type;
+
+        for (auto encodingParamIter = mParameters->mEncodings.begin(); encodingParamIter != mParameters->mEncodings.end(); encodingParamIter++) {
+
+          IRTPTypes::PayloadType codecPayloadType {};
+          if (encodingParamIter->mCodecPayloadType.hasValue())
+            codecPayloadType = encodingParamIter->mCodecPayloadType;
+          else
+            codecPayloadType = decoder.payload_type;
+
+          if (codecPayloadType == decoder.payload_type) {
+            uint32_t ssrc = 0;
+            if (encodingParamIter->mSSRC.hasValue())
+              ssrc = encodingParamIter->mSSRC;
+            if (encodingParamIter->mFEC.hasValue()) {
+              IRTPTypes::FECParameters fec = encodingParamIter->mFEC;
+              if (fec.mSSRC.hasValue()) {
+                ssrc = encodingParamIter->mSSRC;
+              }
+            }
+            config.rtp.remote_ssrc = ssrc;
+            if (encodingParamIter->mRTX.hasValue()) {
+              IRTPTypes::RTXParameters rtxEncodingParam = encodingParamIter->mRTX;
+              webrtc::VideoReceiveStream::Config::Rtp::Rtx rtx;
+              rtx.payload_type = rtxPayloadTypes.front();
+              if (rtxEncodingParam.mSSRC.hasValue())
+                rtx.ssrc = rtxEncodingParam.mSSRC;
+              config.rtp.rtx[codecPayloadType] = rtx;
+            }
           }
         }
-      }
-      if (config.rtp.remote_ssrc == 0) {
-        config.rtp.remote_ssrc = mInitPacket->ssrc();
-        mInitPacket.reset();
-      }
-      uint32_t localSSRC = mParameters->mRTCP.mSSRC;
-      if (localSSRC == 0)
-        localSSRC = 1;
-      config.rtp.local_ssrc = localSSRC;
-
-      for (auto headerExtensionIter = mParameters->mHeaderExtensions.begin(); headerExtensionIter != mParameters->mHeaderExtensions.end(); headerExtensionIter++) {
-        IRTPTypes::HeaderExtensionURIs headerExtensionURI = IRTPTypes::toHeaderExtensionURI(headerExtensionIter->mURI);
-        switch (headerExtensionURI) {
-          case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_TransmissionTimeOffsets:
-          case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_AbsoluteSendTime:
-          case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_3gpp_VideoOrientation:
-          case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_TransportSequenceNumber:
-            config.rtp.extensions.push_back(webrtc::RtpExtension(headerExtensionIter->mURI, headerExtensionIter->mID));
-            break;
-          default:
-            break;
+        if (config.rtp.remote_ssrc == 0) {
+          config.rtp.remote_ssrc = mInitPacket->ssrc();
+          mInitPacket.reset();
         }
+        uint32_t localSSRC = mParameters->mRTCP.mSSRC;
+        if (localSSRC == 0)
+          localSSRC = 1;
+        config.rtp.local_ssrc = localSSRC;
+
+        for (auto headerExtensionIter = mParameters->mHeaderExtensions.begin(); headerExtensionIter != mParameters->mHeaderExtensions.end(); headerExtensionIter++) {
+          IRTPTypes::HeaderExtensionURIs headerExtensionURI = IRTPTypes::toHeaderExtensionURI(headerExtensionIter->mURI);
+          switch (headerExtensionURI) {
+            case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_TransmissionTimeOffsets:
+            case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_AbsoluteSendTime:
+            case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_3gpp_VideoOrientation:
+            case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_TransportSequenceNumber:
+              config.rtp.extensions.push_back(webrtc::RtpExtension(headerExtensionIter->mURI, headerExtensionIter->mID));
+              break;
+            default:
+              break;
+          }
+        }
+
+        if (mParameters->mRTCP.mReducedSize)
+          config.rtp.rtcp_mode = webrtc::RtcpMode::kReducedSize;
+        config.decoders.push_back(decoder);
+        config.renderer = &mReceiverVideoRenderer;
+
+        mModuleProcessThread->Start();
+        mModuleProcessThread->RegisterModule(mCallStats.get());
+        mModuleProcessThread->RegisterModule(mCongestionController.get());
+        mPacerThread->RegisterModule(mCongestionController->pacer());
+        mPacerThread->RegisterModule(mCongestionController->GetRemoteBitrateEstimator(true));
+        mPacerThread->Start();
       }
 
-      if (mParameters->mRTCP.mReducedSize)
-        config.rtp.rtcp_mode = webrtc::RtcpMode::kReducedSize;
-      config.decoders.push_back(decoder);
-      config.renderer = &mReceiverVideoRenderer;
+      webrtc::internal::VideoReceiveStream *receiveStream =
+        new webrtc::internal::VideoReceiveStream(
+                                                 numCpuCores,
+                                                 mCongestionController.get(),
+                                                 config.Copy(),
+                                                 NULL,
+                                                 mModuleProcessThread.get(),
+                                                 mCallStats.get(),
+                                                 &mRemb
+                                                 );
 
-      mModuleProcessThread->Start();
-      mModuleProcessThread->RegisterModule(mCallStats.get());
-      mModuleProcessThread->RegisterModule(mCongestionController.get());
-      mPacerThread->RegisterModule(mCongestionController->pacer());
-      mPacerThread->RegisterModule(mCongestionController->GetRemoteBitrateEstimator(true));
-      mPacerThread->Start();
+      {
+        AutoRecursiveLock lock(*this);
 
-      mReceiveStream = new webrtc::internal::VideoReceiveStream(
-                                                                numCpuCores,
-                                                                mCongestionController.get(),
-                                                                config.Copy(),
-                                                                NULL,
-                                                                mModuleProcessThread.get(),
-                                                                mCallStats.get(),
-                                                                &mRemb
-                                                                );
+        mReceiveStream = receiveStream;
+      }
 
       if (mTransportState == ISecureTransport::State_Connected)
         mReceiveStream->Start();
@@ -4258,27 +4395,29 @@ namespace ortc
         std::this_thread::yield();
       }
 
-      AutoRecursiveLock lock(*this);
+      {
+        AutoRecursiveLock lock(*this);
 
-      if (mReceiveStream && mTransportState == ISecureTransport::State_Connected)
-        mReceiveStream->Stop();
+        if (mReceiveStream && mTransportState == ISecureTransport::State_Connected)
+          mReceiveStream->Stop();
 
-      mPacerThread->Stop();
-      mPacerThread->DeRegisterModule(mCongestionController->pacer());
-      mPacerThread->DeRegisterModule(mCongestionController->GetRemoteBitrateEstimator(true));
-      mModuleProcessThread->DeRegisterModule(mCongestionController.get());
-      mModuleProcessThread->DeRegisterModule(mCallStats.get());
-      mModuleProcessThread->Stop();
+        mPacerThread->Stop();
+        mPacerThread->DeRegisterModule(mCongestionController->pacer());
+        mPacerThread->DeRegisterModule(mCongestionController->GetRemoteBitrateEstimator(true));
+        mModuleProcessThread->DeRegisterModule(mCongestionController.get());
+        mModuleProcessThread->DeRegisterModule(mCallStats.get());
+        mModuleProcessThread->Stop();
 
-      mCallStats->DeregisterStatsObserver(mCongestionController.get());
+        mCallStats->DeregisterStatsObserver(mCongestionController.get());
 
-      if (mReceiveStream)
-        delete reinterpret_cast<webrtc::internal::VideoReceiveStream*>(mReceiveStream);
-      mCongestionController.reset();
-      mCallStats.reset();
-      mBitrateAllocator.reset();
-      mModuleProcessThread.reset();
-      mPacerThread.reset();
+        if (mReceiveStream)
+          delete reinterpret_cast<webrtc::internal::VideoReceiveStream*>(mReceiveStream);
+        mCongestionController.reset();
+        mCallStats.reset();
+        mBitrateAllocator.reset();
+        mModuleProcessThread.reset();
+        mPacerThread.reset();
+      }
 
       notifyPromisesShutdown();
     }
@@ -4359,14 +4498,17 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPMediaEngine::VideoSenderChannelResource::onSecureTransportState(ISecureTransport::States state)
     {
-      AutoRecursiveLock lock(*this);
-
       if (state == mTransportState) return;
 
-      ISecureTransport::States previousState = mTransportState;
-      mTransportState = state;
-      
       if (!mSendStream) return;
+
+      ISecureTransport::States previousState;
+      {
+        AutoRecursiveLock lock(*this);
+
+        previousState = mTransportState;
+        mTransportState = state;
+      }
 
       if (mParameters && (mParameters->mEncodings.size() == 0 ||
         (mParameters->mEncodings.size() > 0 && mParameters->mEncodings.begin()->mActive))) {
@@ -4380,29 +4522,32 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPMediaEngine::VideoSenderChannelResource::onUpdate(ParametersPtr params)
     {
-      AutoRecursiveLock lock(*this);
-
       auto engine = mMediaEngine.lock();
       if (!engine) return;
 
       auto voiceEngine = engine->getVoiceEngine();
       if (!voiceEngine) return;
 
-      ParametersPtr previousParams = mParameters;
-      mParameters = params;
-
       if (!mSendStream) return;
 
       bool previousActive = false;
       bool currentActive = false;
-      if (previousParams->mEncodings.size() == 0 ||
-        (previousParams->mEncodings.size() > 0 && previousParams->mEncodings.begin()->mActive)) {
-        previousActive = true;
+      {
+        AutoRecursiveLock lock(*this);
+
+        ParametersPtr previousParams = mParameters;
+        mParameters = params;
+
+        if (previousParams->mEncodings.size() == 0 ||
+          (previousParams->mEncodings.size() > 0 && previousParams->mEncodings.begin()->mActive)) {
+          previousActive = true;
+        }
+        if (params->mEncodings.size() == 0 ||
+          (params->mEncodings.size() > 0 && params->mEncodings.begin()->mActive)) {
+          currentActive = true;
+        }
       }
-      if (params->mEncodings.size() == 0 ||
-        (params->mEncodings.size() > 0 && params->mEncodings.begin()->mActive)) {
-        currentActive = true;
-      }
+
       if (mTransportState == ISecureTransport::State_Connected) {
         if (!previousActive && currentActive)
           mSendStream->Start();
@@ -4414,16 +4559,17 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPMediaEngine::VideoSenderChannelResource::onProvideStats(PromiseWithStatsReportPtr promise, IStatsReportTypes::StatsTypeSet stats)
     {
+      auto track = mTrack.lock();
+      if (!track) {
+        notifyPromisesReject();
+        return;
+      }
+
       AutoRecursiveLock lock(*this);
 
       UseStatsReport::StatMap reportStats;
 
       webrtc::VideoSendStream::Stats sendStreamStats = mSendStream->GetStats();
-
-      auto track = mTrack.lock();
-      if (!track) {
-        return;
-      }
 
       if (stats.hasStatType(IStatsReportTypes::StatsTypes::StatsType_OutboundRTP)) {
 
@@ -4533,10 +4679,6 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPMediaEngine::VideoSenderChannelResource::OnNetworkChanged(uint32_t targetBitrateBps, uint8_t fractionLoss, int64_t rttMs)
     {
-      AutoRecursiveLock lock(*this);
-
-      mCurrentTargetBitrate = targetBitrateBps;
-
       if (!mWorkerQueue.IsCurrent()) {
         mWorkerQueue.PostTask([this, targetBitrateBps, fractionLoss, rttMs] {
           OnNetworkChanged(targetBitrateBps, fractionLoss, rttMs);
@@ -4549,6 +4691,10 @@ namespace ortc
                                           fractionLoss,
                                           rttMs
                                           );
+
+      AutoRecursiveLock lock(*this);
+
+      mCurrentTargetBitrate = targetBitrateBps;
     }
 
     //-------------------------------------------------------------------------
@@ -4578,247 +4724,256 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPMediaEngine::VideoSenderChannelResource::stepSetup()
     {
-      AutoRecursiveLock lock(*this);
-
       auto track = mTrack.lock();
-      if (!track) {
-        return;
-      }
+      if (!track) return;
 
-      mModuleProcessThread = webrtc::ProcessThread::Create("VideoSenderChannelResourceModuleProcessThread");
-      mPacerThread = webrtc::ProcessThread::Create("VideoSenderChannelResourcePacerThread");
+      auto trackSettings = track->getSettings();
+      if (!trackSettings) return;
 
-      mBitrateAllocator = std::unique_ptr<webrtc::BitrateAllocator>(new webrtc::BitrateAllocator(this));
-      mCallStats = std::unique_ptr<webrtc::CallStats>(new webrtc::CallStats(mClock));
-      mCongestionController =
-        std::unique_ptr<webrtc::CongestionController>(new webrtc::CongestionController(
-                                                                                       mClock,
-                                                                                       this,
-                                                                                       &mRemb,
-                                                                                       mEventLog.get()
-                                                                                       ));
-
-      mCallStats->RegisterStatsObserver(mCongestionController.get());
-
-      int numCpuCores = webrtc::CpuInfo::DetectNumberOfCores();
-
-      size_t sourceWidth = 640;
-      size_t sourceHeight = 480;
-      int sourceMaxFramerate = 15;
-      IMediaStreamTrack::SettingsPtr trackSettings = track->getSettings();
-      if (trackSettings->mWidth.hasValue())
-        sourceWidth = trackSettings->mWidth.value();
-      if (trackSettings->mHeight.hasValue())
-        sourceHeight = trackSettings->mHeight.value();
-      if (trackSettings->mFrameRate.hasValue())
-        sourceMaxFramerate = trackSettings->mFrameRate.value();
-
+      int numCpuCores;
       webrtc::VideoSendStream::Config config(mTransport.get());
       webrtc::VideoEncoderConfig encoderConfig;
       std::map<uint32_t, webrtc::RtpState> suspendedSSRCs;
+      {
+        AutoRecursiveLock lock(*this);
 
-      encoderConfig.min_transmit_bitrate_bps = 0;
-      encoderConfig.content_type = webrtc::VideoEncoderConfig::ContentType::kRealtimeVideo;
+        mModuleProcessThread = webrtc::ProcessThread::Create("VideoSenderChannelResourceModuleProcessThread");
+        mPacerThread = webrtc::ProcessThread::Create("VideoSenderChannelResourcePacerThread");
 
-      bool videoCodecSet = false;
-      bool rtxCodecSet = false;
-      bool redCodecSet = false;
-      bool fecCodecSet = false;
-      for (auto codecIter = mParameters->mCodecs.begin(); codecIter != mParameters->mCodecs.end(); codecIter++) {
-        auto supportedCodec = IRTPTypes::toSupportedCodec(codecIter->mName);
-        switch (supportedCodec) {
-          case IRTPTypes::SupportedCodec_VP8:
-          {
-            if (videoCodecSet)
-              continue;
-            webrtc::VideoEncoder* videoEncoder = webrtc::VideoEncoder::Create(webrtc::VideoEncoder::kVp8);
-            config.encoder_settings.encoder = videoEncoder;
-            config.encoder_settings.payload_name = IRTPTypes::toString(supportedCodec);
-            config.encoder_settings.payload_type = codecIter->mPayloadType;
-            mVideoEncoderSettings.mVp8 = webrtc::VideoEncoder::GetDefaultVp8Settings();
-            mVideoEncoderSettings.mVp8.automaticResizeOn = true;
-            mVideoEncoderSettings.mVp8.denoisingOn = true;
-            mVideoEncoderSettings.mVp8.frameDroppingOn = true;
-            encoderConfig.encoder_specific_settings = &mVideoEncoderSettings.mVp8;
-            goto set_rtcp_feedback;
-          }
-          case IRTPTypes::SupportedCodec_VP9:
-          {
-            if (videoCodecSet)
-              continue;
-            webrtc::VideoEncoder* videoEncoder = webrtc::VideoEncoder::Create(webrtc::VideoEncoder::kVp9);
-            config.encoder_settings.encoder = videoEncoder;
-            config.encoder_settings.payload_name = IRTPTypes::toString(supportedCodec);
-            config.encoder_settings.payload_type = codecIter->mPayloadType;
-            mVideoEncoderSettings.mVp9 = webrtc::VideoEncoder::GetDefaultVp9Settings();
-            mVideoEncoderSettings.mVp9.frameDroppingOn = true;
-            encoderConfig.encoder_specific_settings = &mVideoEncoderSettings.mVp9;
-            goto set_rtcp_feedback;
-          }
-          case IRTPTypes::SupportedCodec_H264:
-          {
-            if (videoCodecSet)
-              continue;
+        mBitrateAllocator = std::unique_ptr<webrtc::BitrateAllocator>(new webrtc::BitrateAllocator(this));
+        mCallStats = std::unique_ptr<webrtc::CallStats>(new webrtc::CallStats(mClock));
+        mCongestionController =
+          std::unique_ptr<webrtc::CongestionController>(new webrtc::CongestionController(
+                                                                                         mClock,
+                                                                                         this,
+                                                                                         &mRemb,
+                                                                                         mEventLog.get()
+                                                                                         ));
+
+        mCallStats->RegisterStatsObserver(mCongestionController.get());
+
+        numCpuCores = webrtc::CpuInfo::DetectNumberOfCores();
+
+        size_t sourceWidth = 640;
+        size_t sourceHeight = 480;
+        int sourceMaxFramerate = 15;
+        if (trackSettings->mWidth.hasValue())
+          sourceWidth = trackSettings->mWidth.value();
+        if (trackSettings->mHeight.hasValue())
+          sourceHeight = trackSettings->mHeight.value();
+        if (trackSettings->mFrameRate.hasValue())
+          sourceMaxFramerate = trackSettings->mFrameRate.value();
+
+        encoderConfig.min_transmit_bitrate_bps = 0;
+        encoderConfig.content_type = webrtc::VideoEncoderConfig::ContentType::kRealtimeVideo;
+
+        bool videoCodecSet = false;
+        bool rtxCodecSet = false;
+        bool redCodecSet = false;
+        bool fecCodecSet = false;
+        for (auto codecIter = mParameters->mCodecs.begin(); codecIter != mParameters->mCodecs.end(); codecIter++) {
+          auto supportedCodec = IRTPTypes::toSupportedCodec(codecIter->mName);
+          switch (supportedCodec) {
+            case IRTPTypes::SupportedCodec_VP8:
+            {
+              if (videoCodecSet)
+                continue;
+              webrtc::VideoEncoder* videoEncoder = webrtc::VideoEncoder::Create(webrtc::VideoEncoder::kVp8);
+              config.encoder_settings.encoder = videoEncoder;
+              config.encoder_settings.payload_name = IRTPTypes::toString(supportedCodec);
+              config.encoder_settings.payload_type = codecIter->mPayloadType;
+              mVideoEncoderSettings.mVp8 = webrtc::VideoEncoder::GetDefaultVp8Settings();
+              mVideoEncoderSettings.mVp8.automaticResizeOn = true;
+              mVideoEncoderSettings.mVp8.denoisingOn = true;
+              mVideoEncoderSettings.mVp8.frameDroppingOn = true;
+              encoderConfig.encoder_specific_settings = &mVideoEncoderSettings.mVp8;
+              goto set_rtcp_feedback;
+            }
+            case IRTPTypes::SupportedCodec_VP9:
+            {
+              if (videoCodecSet)
+                continue;
+              webrtc::VideoEncoder* videoEncoder = webrtc::VideoEncoder::Create(webrtc::VideoEncoder::kVp9);
+              config.encoder_settings.encoder = videoEncoder;
+              config.encoder_settings.payload_name = IRTPTypes::toString(supportedCodec);
+              config.encoder_settings.payload_type = codecIter->mPayloadType;
+              mVideoEncoderSettings.mVp9 = webrtc::VideoEncoder::GetDefaultVp9Settings();
+              mVideoEncoderSettings.mVp9.frameDroppingOn = true;
+              encoderConfig.encoder_specific_settings = &mVideoEncoderSettings.mVp9;
+              goto set_rtcp_feedback;
+            }
+            case IRTPTypes::SupportedCodec_H264:
+            {
+              if (videoCodecSet)
+                continue;
 #ifndef WINRT
-            webrtc::VideoEncoder* videoEncoder = webrtc::VideoEncoder::Create(webrtc::VideoEncoder::kH264);
+              webrtc::VideoEncoder* videoEncoder = webrtc::VideoEncoder::Create(webrtc::VideoEncoder::kH264);
 #else
-            std::unique_ptr<cricket::WebRtcVideoEncoderFactory> encoderFactory = std::make_unique<webrtc::H264WinRTEncoderFactory>();
-            webrtc::VideoEncoder* videoEncoder = encoderFactory->CreateVideoEncoder(webrtc::VideoCodecType::kVideoCodecH264);
+              std::unique_ptr<cricket::WebRtcVideoEncoderFactory> encoderFactory = std::make_unique<webrtc::H264WinRTEncoderFactory>();
+              webrtc::VideoEncoder* videoEncoder = encoderFactory->CreateVideoEncoder(webrtc::VideoCodecType::kVideoCodecH264);
 #endif
-            config.encoder_settings.encoder = videoEncoder;
-            config.encoder_settings.payload_name = IRTPTypes::toString(supportedCodec);
-            config.encoder_settings.payload_type = codecIter->mPayloadType;
-            mVideoEncoderSettings.mH264 = webrtc::VideoEncoder::GetDefaultH264Settings();
-            mVideoEncoderSettings.mH264.frameDroppingOn = true;
-            encoderConfig.encoder_specific_settings = &mVideoEncoderSettings.mH264;
-            goto set_rtcp_feedback;
-          }
-          case IRTPTypes::SupportedCodec_RTX:
-          {
-            if (rtxCodecSet)
-              continue;
-            config.rtp.rtx.payload_type = codecIter->mPayloadType;
-            rtxCodecSet = true;
-            break;
-          }
-          case IRTPTypes::SupportedCodec_RED:
-          {
-            if (redCodecSet)
-              continue;
-            config.rtp.fec.red_payload_type = codecIter->mPayloadType;
-            redCodecSet = true;
-            break;
-          }
-          case IRTPTypes::SupportedCodec_ULPFEC:
-          {
-            if (fecCodecSet)
-              continue;
-            config.rtp.fec.ulpfec_payload_type = codecIter->mPayloadType;
-            fecCodecSet = true;
-            break;
-          }
-          case IRTPTypes::SupportedCodec_FlexFEC:
-          {
-            break;
-          }
-        }
-        continue;
-
-      set_rtcp_feedback:
-        for (auto rtcpFeedbackIter = codecIter->mRTCPFeedback.begin(); rtcpFeedbackIter != codecIter->mRTCPFeedback.end(); rtcpFeedbackIter++) {
-          IRTPTypes::KnownFeedbackTypes feedbackType = IRTPTypes::toKnownFeedbackType(rtcpFeedbackIter->mType);
-          IRTPTypes::KnownFeedbackParameters feedbackParameter = IRTPTypes::toKnownFeedbackParameter(rtcpFeedbackIter->mParameter);
-          if (IRTPTypes::KnownFeedbackType_NACK == feedbackType && IRTPTypes::KnownFeedbackParameter_Unknown == feedbackParameter) {
-            config.rtp.nack.rtp_history_ms = 1000;
-          }
-        }
-        videoCodecSet = true;
-      }
-
-      mCodecPayloadName = config.encoder_settings.payload_name;
-      mCodecPayloadType = config.encoder_settings.payload_type;
-
-      int totalMinBitrate = 0;
-      int totalMaxBitrate = 0;
-      int totalTargetBitrate = 0;
-      for (auto encodingParamIter = mParameters->mEncodings.begin(); encodingParamIter != mParameters->mEncodings.end(); encodingParamIter++) {
-
-        IRTPTypes::PayloadType codecPayloadType {};
-        if (encodingParamIter->mCodecPayloadType.hasValue())
-          codecPayloadType = encodingParamIter->mCodecPayloadType;
-        else
-          codecPayloadType = config.encoder_settings.payload_type;
-
-        if (codecPayloadType == config.encoder_settings.payload_type) {
-          uint32_t ssrc = 0;
-          if (encodingParamIter->mSSRC.hasValue())
-            ssrc = encodingParamIter->mSSRC;
-          if (encodingParamIter->mFEC.hasValue()) {
-            IRTPTypes::FECParameters fec = encodingParamIter->mFEC;
-            if (fec.mSSRC.hasValue()) {
-              ssrc = encodingParamIter->mSSRC;
+              config.encoder_settings.encoder = videoEncoder;
+              config.encoder_settings.payload_name = IRTPTypes::toString(supportedCodec);
+              config.encoder_settings.payload_type = codecIter->mPayloadType;
+              mVideoEncoderSettings.mH264 = webrtc::VideoEncoder::GetDefaultH264Settings();
+              mVideoEncoderSettings.mH264.frameDroppingOn = true;
+              encoderConfig.encoder_specific_settings = &mVideoEncoderSettings.mH264;
+              goto set_rtcp_feedback;
+            }
+            case IRTPTypes::SupportedCodec_RTX:
+            {
+              if (rtxCodecSet)
+                continue;
+              config.rtp.rtx.payload_type = codecIter->mPayloadType;
+              rtxCodecSet = true;
+              break;
+            }
+            case IRTPTypes::SupportedCodec_RED:
+            {
+              if (redCodecSet)
+                continue;
+              config.rtp.fec.red_payload_type = codecIter->mPayloadType;
+              redCodecSet = true;
+              break;
+            }
+            case IRTPTypes::SupportedCodec_ULPFEC:
+            {
+              if (fecCodecSet)
+                continue;
+              config.rtp.fec.ulpfec_payload_type = codecIter->mPayloadType;
+              fecCodecSet = true;
+              break;
+            }
+            case IRTPTypes::SupportedCodec_FlexFEC:
+            {
+              break;
             }
           }
-          if (ssrc == 0)
-            ssrc = SafeInt<uint32>(ortc::services::IHelper::random(1, 0xFFFFFFFF));
-          config.rtp.ssrcs.push_back(ssrc);
-          if (encodingParamIter->mRTX.hasValue()) {
-            IRTPTypes::RTXParameters rtx = encodingParamIter->mRTX;
-            if (rtx.mSSRC.hasValue())
-              config.rtp.rtx.ssrcs.push_back(rtx.mSSRC);
+          continue;
+
+        set_rtcp_feedback:
+          for (auto rtcpFeedbackIter = codecIter->mRTCPFeedback.begin(); rtcpFeedbackIter != codecIter->mRTCPFeedback.end(); rtcpFeedbackIter++) {
+            IRTPTypes::KnownFeedbackTypes feedbackType = IRTPTypes::toKnownFeedbackType(rtcpFeedbackIter->mType);
+            IRTPTypes::KnownFeedbackParameters feedbackParameter = IRTPTypes::toKnownFeedbackParameter(rtcpFeedbackIter->mParameter);
+            if (IRTPTypes::KnownFeedbackType_NACK == feedbackType && IRTPTypes::KnownFeedbackParameter_Unknown == feedbackParameter) {
+              config.rtp.nack.rtp_history_ms = 1000;
+            }
           }
+          videoCodecSet = true;
+        }
+
+        mCodecPayloadName = config.encoder_settings.payload_name;
+        mCodecPayloadType = config.encoder_settings.payload_type;
+
+        int totalMinBitrate = 0;
+        int totalMaxBitrate = 0;
+        int totalTargetBitrate = 0;
+        for (auto encodingParamIter = mParameters->mEncodings.begin(); encodingParamIter != mParameters->mEncodings.end(); encodingParamIter++) {
+
+          IRTPTypes::PayloadType codecPayloadType{};
+          if (encodingParamIter->mCodecPayloadType.hasValue())
+            codecPayloadType = encodingParamIter->mCodecPayloadType;
+          else
+            codecPayloadType = config.encoder_settings.payload_type;
+
+          if (codecPayloadType == config.encoder_settings.payload_type) {
+            uint32_t ssrc = 0;
+            if (encodingParamIter->mSSRC.hasValue())
+              ssrc = encodingParamIter->mSSRC;
+            if (encodingParamIter->mFEC.hasValue()) {
+              IRTPTypes::FECParameters fec = encodingParamIter->mFEC;
+              if (fec.mSSRC.hasValue()) {
+                ssrc = encodingParamIter->mSSRC;
+              }
+            }
+            if (ssrc == 0)
+              ssrc = SafeInt<uint32>(ortc::services::IHelper::random(1, 0xFFFFFFFF));
+            config.rtp.ssrcs.push_back(ssrc);
+            if (encodingParamIter->mRTX.hasValue()) {
+              IRTPTypes::RTXParameters rtx = encodingParamIter->mRTX;
+              if (rtx.mSSRC.hasValue())
+                config.rtp.rtx.ssrcs.push_back(rtx.mSSRC);
+            }
+            webrtc::VideoStream stream;
+            stream.width = encodingParamIter->mResolutionScale.hasValue() ? sourceWidth / encodingParamIter->mResolutionScale : sourceWidth;
+            stream.height = encodingParamIter->mResolutionScale.hasValue() ? sourceHeight / encodingParamIter->mResolutionScale : sourceHeight;
+            stream.max_framerate = encodingParamIter->mFramerateScale.hasValue() ? sourceMaxFramerate / encodingParamIter->mResolutionScale : sourceMaxFramerate;
+            stream.min_bitrate_bps = 30000;
+            stream.max_bitrate_bps = encodingParamIter->mMaxBitrate.hasValue() ? encodingParamIter->mMaxBitrate : 2000000;
+            stream.target_bitrate_bps = stream.max_bitrate_bps / 2;
+            stream.max_qp = 56;
+            encoderConfig.streams.push_back(stream);
+            totalMinBitrate += stream.min_bitrate_bps;
+            totalMaxBitrate += stream.max_bitrate_bps;
+            totalTargetBitrate += stream.target_bitrate_bps;
+          }
+        }
+        if (encoderConfig.streams.size() == 0) {
+          config.rtp.ssrcs.push_back(SafeInt<uint32>(ortc::services::IHelper::random(1, 0xFFFFFFFF)));
           webrtc::VideoStream stream;
-          stream.width = encodingParamIter->mResolutionScale.hasValue() ? sourceWidth / encodingParamIter->mResolutionScale : sourceWidth;
-          stream.height = encodingParamIter->mResolutionScale.hasValue() ? sourceHeight / encodingParamIter->mResolutionScale : sourceHeight;
-          stream.max_framerate = encodingParamIter->mFramerateScale.hasValue() ? sourceMaxFramerate / encodingParamIter->mResolutionScale : sourceMaxFramerate;
+          stream.width = sourceWidth;
+          stream.height = sourceHeight;
+          stream.max_framerate = sourceMaxFramerate;
           stream.min_bitrate_bps = 30000;
-          stream.max_bitrate_bps = encodingParamIter->mMaxBitrate.hasValue() ? encodingParamIter->mMaxBitrate : 2000000;
+          stream.max_bitrate_bps = 2000000;
           stream.target_bitrate_bps = stream.max_bitrate_bps / 2;
           stream.max_qp = 56;
           encoderConfig.streams.push_back(stream);
-          totalMinBitrate += stream.min_bitrate_bps;
-          totalMaxBitrate += stream.max_bitrate_bps;
-          totalTargetBitrate += stream.target_bitrate_bps;
+          totalMinBitrate = stream.min_bitrate_bps;
+          totalMaxBitrate = stream.max_bitrate_bps;
+          totalTargetBitrate = stream.target_bitrate_bps;
         }
-      }
-      if (encoderConfig.streams.size() == 0) {
-        config.rtp.ssrcs.push_back(SafeInt<uint32>(ortc::services::IHelper::random(1, 0xFFFFFFFF)));
-        webrtc::VideoStream stream;
-        stream.width = sourceWidth;
-        stream.height = sourceHeight;
-        stream.max_framerate = sourceMaxFramerate;
-        stream.min_bitrate_bps = 30000;
-        stream.max_bitrate_bps = 2000000;
-        stream.target_bitrate_bps = stream.max_bitrate_bps / 2;
-        stream.max_qp = 56;
-        encoderConfig.streams.push_back(stream);
-        totalMinBitrate = stream.min_bitrate_bps;
-        totalMaxBitrate = stream.max_bitrate_bps;
-        totalTargetBitrate = stream.target_bitrate_bps;
-      }
-      if (encoderConfig.streams.size() > 1)
-        mVideoEncoderSettings.mVp8.automaticResizeOn = false;
+        if (encoderConfig.streams.size() > 1)
+          mVideoEncoderSettings.mVp8.automaticResizeOn = false;
 
-      for (auto headerExtensionIter = mParameters->mHeaderExtensions.begin(); headerExtensionIter != mParameters->mHeaderExtensions.end(); headerExtensionIter++) {
-        IRTPTypes::HeaderExtensionURIs headerExtensionURI = IRTPTypes::toHeaderExtensionURI(headerExtensionIter->mURI);
-        switch (headerExtensionURI) {
-          case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_TransmissionTimeOffsets:
-          case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_AbsoluteSendTime:
-          case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_3gpp_VideoOrientation:
-          case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_TransportSequenceNumber:
-            config.rtp.extensions.push_back(webrtc::RtpExtension(headerExtensionIter->mURI, headerExtensionIter->mID));
-            break;
-          default:
-            break;
+        for (auto headerExtensionIter = mParameters->mHeaderExtensions.begin(); headerExtensionIter != mParameters->mHeaderExtensions.end(); headerExtensionIter++) {
+          IRTPTypes::HeaderExtensionURIs headerExtensionURI = IRTPTypes::toHeaderExtensionURI(headerExtensionIter->mURI);
+          switch (headerExtensionURI) {
+            case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_TransmissionTimeOffsets:
+            case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_AbsoluteSendTime:
+            case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_3gpp_VideoOrientation:
+            case IRTPTypes::HeaderExtensionURIs::HeaderExtensionURI_TransportSequenceNumber:
+              config.rtp.extensions.push_back(webrtc::RtpExtension(headerExtensionIter->mURI, headerExtensionIter->mID));
+              break;
+            default:
+              break;
+          }
         }
+
+        config.rtp.c_name = mParameters->mRTCP.mCName;
+
+        mCongestionController->SetBweBitrates(totalMinBitrate, totalTargetBitrate, totalMaxBitrate);
+        mVideoSendDelayStats->AddSsrcs(config);
+
+        mModuleProcessThread->Start();
+        mModuleProcessThread->RegisterModule(mCallStats.get());
+        mModuleProcessThread->RegisterModule(mCongestionController.get());
+        mPacerThread->RegisterModule(mCongestionController->pacer());
+        mPacerThread->RegisterModule(mCongestionController->GetRemoteBitrateEstimator(true));
+        mPacerThread->Start();
       }
 
-      config.rtp.c_name = mParameters->mRTCP.mCName;
+      webrtc::internal::VideoSendStream *sendStream =
+        new webrtc::internal::VideoSendStream(
+                                              numCpuCores,
+                                              mModuleProcessThread.get(),
+                                              &mWorkerQueue,
+                                              mCallStats.get(),
+                                              mCongestionController.get(),
+                                              mBitrateAllocator.get(),
+                                              mVideoSendDelayStats.get(),
+                                              &mRemb,
+                                              mEventLog.get(),
+                                              config.Copy(),
+                                              encoderConfig.Copy(),
+                                              suspendedSSRCs
+                                              );
 
-      mCongestionController->SetBweBitrates(totalMinBitrate, totalTargetBitrate, totalMaxBitrate);
-      mVideoSendDelayStats->AddSsrcs(config);
+      {
+        AutoRecursiveLock lock(*this);
 
-      mModuleProcessThread->Start();
-      mModuleProcessThread->RegisterModule(mCallStats.get());
-      mModuleProcessThread->RegisterModule(mCongestionController.get());
-      mPacerThread->RegisterModule(mCongestionController->pacer());
-      mPacerThread->RegisterModule(mCongestionController->GetRemoteBitrateEstimator(true));
-      mPacerThread->Start();
-
-      mSendStream = new webrtc::internal::VideoSendStream(
-                                                          numCpuCores,
-                                                          mModuleProcessThread.get(),
-                                                          &mWorkerQueue,
-                                                          mCallStats.get(),
-                                                          mCongestionController.get(),
-                                                          mBitrateAllocator.get(),
-                                                          mVideoSendDelayStats.get(),
-                                                          &mRemb,
-                                                          mEventLog.get(),
-                                                          config.Copy(),
-                                                          encoderConfig.Copy(),
-                                                          suspendedSSRCs
-                                                          );
+        mSendStream = sendStream;
+      }
 
       if (mTransportState == ISecureTransport::State_Connected)
         mSendStream->Start();
@@ -4838,27 +4993,29 @@ namespace ortc
         std::this_thread::yield();
       }
 
-      AutoRecursiveLock lock(*this);
+      {
+        AutoRecursiveLock lock(*this);
 
-      if (mSendStream && mTransportState == ISecureTransport::State_Connected)
-        mSendStream->Stop();
+        if (mSendStream && mTransportState == ISecureTransport::State_Connected)
+          mSendStream->Stop();
 
-      mPacerThread->Stop();
-      mPacerThread->DeRegisterModule(mCongestionController->pacer());
-      mPacerThread->DeRegisterModule(mCongestionController->GetRemoteBitrateEstimator(true));
-      mModuleProcessThread->DeRegisterModule(mCongestionController.get());
-      mModuleProcessThread->DeRegisterModule(mCallStats.get());
-      mModuleProcessThread->Stop();
+        mPacerThread->Stop();
+        mPacerThread->DeRegisterModule(mCongestionController->pacer());
+        mPacerThread->DeRegisterModule(mCongestionController->GetRemoteBitrateEstimator(true));
+        mModuleProcessThread->DeRegisterModule(mCongestionController.get());
+        mModuleProcessThread->DeRegisterModule(mCallStats.get());
+        mModuleProcessThread->Stop();
 
-      mCallStats->DeregisterStatsObserver(mCongestionController.get());
+        mCallStats->DeregisterStatsObserver(mCongestionController.get());
 
-      if (mSendStream)
-        delete reinterpret_cast<webrtc::internal::VideoSendStream*>(mSendStream);
-      mCongestionController.reset();
-      mCallStats.reset();
-      mBitrateAllocator.reset();
-      mModuleProcessThread.reset();
-      mPacerThread.reset();
+        if (mSendStream)
+          delete reinterpret_cast<webrtc::internal::VideoSendStream*>(mSendStream);
+        mCongestionController.reset();
+        mCallStats.reset();
+        mBitrateAllocator.reset();
+        mModuleProcessThread.reset();
+        mPacerThread.reset();
+      }
 
       notifyPromisesShutdown();
     }

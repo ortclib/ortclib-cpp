@@ -580,6 +580,7 @@ namespace ortc
       virtual void notifyResourceGone(IChannelResourceForRTPMediaEngine &resource) = 0;
 
       virtual webrtc::VoiceEngine *getVoiceEngine() = 0;
+      virtual rtc::scoped_refptr<webrtc::AudioDecoderFactory> getAudioDecoderFactory() = 0;
       virtual rtc::scoped_refptr<webrtc::AudioState> getAudioState() = 0;
       virtual const SharedRecursiveLock &getSharedLock() const = 0;
       virtual IMessageQueuePtr getMessageQueue() const = 0;
@@ -899,6 +900,8 @@ namespace ortc
       virtual void notifyResourceGone(IChannelResourceForRTPMediaEngine &resource) override;
 
       // (duplicate) virtual webrtc::VoiceEngine *getVoiceEngine() = 0;
+
+      virtual rtc::scoped_refptr<webrtc::AudioDecoderFactory> getAudioDecoderFactory() override;
 
       virtual rtc::scoped_refptr<webrtc::AudioState> getAudioState() override;
 
@@ -2011,6 +2014,7 @@ namespace ortc
       ChannelResourceList mPendingCloseChannelResources;
 
       rtc::scoped_refptr<webrtc::AudioState> mAudioState;
+      rtc::scoped_refptr<webrtc::AudioDecoderFactory> mAudioDecoderFactory;
       std::unique_ptr<webrtc::VoiceEngine, VoiceEngineDeleter> mVoiceEngine;
 
       std::unique_ptr<WebRtcTraceCallback> mTraceCallback;
