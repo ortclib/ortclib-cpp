@@ -231,6 +231,8 @@ namespace ortc
         {
           ISCTPTransportPtr mSCTPTransport;
 
+		  NegotiationStates mNegotiationState {NegotiationState_First};
+
           ElementPtr toDebug() const;
         };
 
@@ -265,6 +267,11 @@ namespace ortc
 
           ElementPtr toDebug() const;
         };
+
+		struct DataChannelInfo
+		{
+			IDataChannelPtr mDataChannel;
+		};
 
         struct PendingMethod
         {

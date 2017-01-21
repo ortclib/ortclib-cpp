@@ -958,7 +958,7 @@ namespace ortc
         mCandidateType = split[7];
 
         if (split.size() > 8) {
-          for (auto index = 10; index < split.size(); index += 2)
+          for (size_t index = 10; index < split.size(); index += 2)
           {
             ExtensionPair value(split[index], split[index + 1]);
             if (0 == value.first.compareNoCase("raddr")) {

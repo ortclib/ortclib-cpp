@@ -607,11 +607,10 @@ namespace ortc
     ISCTPTransportForSCTPTransportListener::ForListenerPtr ISCTPTransportForSCTPTransportListener::create(
                                                                                                           UseListenerPtr listener,
                                                                                                           UseSecureTransportPtr secureTransport,
-                                                                                                          WORD localPort,
-                                                                                                          WORD remotePort
+                                                                                                          WORD localPort
                                                                                                           )
     {
-      return ISCTPTransportFactory::singleton().create(listener, secureTransport, localPort, remotePort);
+      return ISCTPTransportFactory::singleton().create(listener, secureTransport, localPort);
     }
 
     //-------------------------------------------------------------------------
@@ -796,61 +795,47 @@ namespace ortc
     ISCTPTransportPtr SCTPTransport::create(
                                             ISCTPTransportDelegatePtr delegate,
                                             IDTLSTransportPtr transport,
-                                            WORD inLocalPort,
-                                            WORD inRemotePort
+                                            WORD inLocalPort
                                             ) throw (InvalidParameters, InvalidStateError)
     {
-      ORTC_THROW_INVALID_PARAMETERS_IF(!transport)
+      ORTC_THROW_INVALID_PARAMETERS_IF(!transport);
 
       UseSecureTransportPtr useSecureTransport = DTLSTransport::convert(transport);
-      ASSERT(((bool)useSecureTransport))
+      ASSERT(((bool)useSecureTransport));
 
       auto dataTransport = useSecureTransport->getDataTransport();
-      ORTC_THROW_INVALID_STATE_IF(!dataTransport)
+      ORTC_THROW_INVALID_STATE_IF(!dataTransport);
 
       UseListenerPtr listener = SCTPTransportListener::convert(dataTransport);
-      ORTC_THROW_INVALID_STATE_IF(!listener)
+      ORTC_THROW_INVALID_STATE_IF(!listener);
 
-      SCTPTransportPtr pThis(make_shared<SCTPTransport>(make_private {}, IORTCForInternal::queueORTC(), listener, useSecureTransport));
+      Optional<WORD> allocatedLocalPort {};
+      if (0 == inLocalPort) {
+        allocatedLocalPort = listener->allocateLocalPort();
+        ORTC_THROW_INVALID_STATE_IF(0 == allocatedLocalPort.value());
+        inLocalPort = allocatedLocalPort.value();
+      }
+
+      SCTPTransportPtr pThis(make_shared<SCTPTransport>(make_private{}, IORTCForInternal::queueORTC(), listener, useSecureTransport));
       pThis->mThisWeak = pThis;
       pThis->mThisSocket = new SCTPTransportWeakPtr(pThis);
 
-      ForListenerPtr forListener = pThis;
-
-      WORD localPort = inLocalPort;
-      WORD remotePort = inRemotePort;
-      listener->registerNewTransport(transport, forListener, localPort, remotePort);
-
-      if (!forListener) {
-        ZS_LOG_WARNING(Debug, slog("unable to allocate port") + ZS_PARAM("local port", inLocalPort) + ZS_PARAM("remote port", inRemotePort))
-        ORTC_THROW_INVALID_PARAMETERS("unable to allocate port, local port=" + string(inLocalPort) + ", remote port=" + string(remotePort))
-      }
-
-      ISCTPTransportPtr registeredTransport = SCTPTransport::convert(forListener);
-
-      auto oldThis = pThis;
-      pThis = SCTPTransport::convert(forListener);
+      ISCTPTransportPtr registeredTransport = pThis;
 
       auto tearAway = ISCTPTransportTearAway::create(registeredTransport, make_shared<TearAwayData>());
-      ORTC_THROW_INVALID_STATE_IF(!tearAway)
+      ORTC_THROW_INVALID_STATE_IF(!tearAway);
 
       auto tearAwayData = ISCTPTransportTearAway::data(tearAway);
-      ORTC_THROW_INVALID_STATE_IF(!tearAwayData)
+      ORTC_THROW_INVALID_STATE_IF(!tearAwayData);
 
       tearAwayData->mListener = listener;
-
-      if (delegate) {
-        tearAwayData->mDefaultSubscription = registeredTransport->subscribe(delegate);
-      }
+      tearAwayData->mDelegate = delegate;
 
       AutoRecursiveLock lock(*pThis);
-      pThis->mLocalPort = localPort;
-      pThis->mRemotePort = remotePort;
-      if (pThis->getID() == oldThis->getID()) {
-        pThis->init();
-      } else {
-        oldThis->cancel();
-      }
+      pThis->mTearAway = tearAway;
+      pThis->mLocalPort = inLocalPort;
+      pThis->mAllocatedLocalPort = allocatedLocalPort;
+      pThis->init();
       return tearAway;
     }
 
@@ -880,22 +865,26 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    WORD SCTPTransport::remotePort() const
+    Optional<WORD> SCTPTransport::remotePort() const
     {
       return mRemotePort;
     }
 
     //-------------------------------------------------------------------------
-    void SCTPTransport::start(const Capabilities &remoteCapabilities)
+    void SCTPTransport::start(
+                              const Capabilities &remoteCapabilities,
+                              WORD inRemotePort
+                              ) throw (InvalidStateError, InvalidParameters)
     {
-      ZS_EVENTING_6(
+      ZS_EVENTING_7(
                     x, i, Detail, SctpTransportStart, ol, SctpTransport, Start,
                     puid, id, mID,
                     size_t, maxMessageSize, remoteCapabilities.mMaxMessageSize,
                     word, minPort, remoteCapabilities.mMinPort,
                     word, maxPort, remoteCapabilities.mMaxPort,
                     word, maxUsablePorts, remoteCapabilities.mMaxUsablePorts,
-                    word, maxSessionsPerPort, remoteCapabilities.mMaxSessionsPerPort
+                    word, maxSessionsPerPort, remoteCapabilities.mMaxSessionsPerPort,
+                    word, remotePort, inRemotePort
                     );
 
       ZS_LOG_DEBUG(log("start called") + remoteCapabilities.toDebug());
@@ -903,11 +892,60 @@ namespace ortc
       AutoRecursiveLock lock(*this);
       if ((isShuttingDown()) ||
           (isShutdown())) {
-        ORTC_THROW_INVALID_STATE("already shutting down")
+        ORTC_THROW_INVALID_STATE("already shutting down");
       }
 
       if (mCapabilities) {
-        ORTC_THROW_INVALID_STATE("already started")
+        ORTC_THROW_INVALID_STATE("already started");
+      }
+
+      if (0 != inRemotePort) {
+        mRemotePort = inRemotePort;
+      }
+
+      auto secureTransport = mSecureTransport.lock();
+      ORTC_THROW_INVALID_STATE_IF(!secureTransport);
+
+      auto dataTransport = secureTransport->getDataTransport();
+
+      ForListenerPtr forListener = mThisWeak.lock();
+      auto originalForListener = forListener;
+
+      UseListenerPtr listener = SCTPTransportListener::convert(dataTransport);
+      ORTC_THROW_INVALID_STATE_IF(!listener);
+
+      WORD localPort = mLocalPort;
+      WORD remotePort = mRemotePort.hasValue() ? mRemotePort.value() : 0;
+      listener->registerNewTransport(DTLSTransport::convert(secureTransport), forListener, localPort, mAllocatedLocalPort.hasValue(), remotePort);
+      if (!forListener) {
+        ZS_LOG_WARNING(Debug, slog("unable to allocate port") + ZS_PARAM("local port", mLocalPort) + ZS_PARAM("remote port", mRemotePort));
+        ORTC_THROW_INVALID_PARAMETERS("unable to allocate port, local port=" + string(mLocalPort) + ", remote port=" + string(remotePort));
+      }
+
+      auto usePThis = SCTPTransport::convert(forListener);
+
+      mLocalPort = localPort;
+      mRemotePort = remotePort;
+
+      auto originalTearAwayInterface = mTearAway.lock();
+      auto tearAway = ISCTPTransportTearAway::tearAway(originalTearAwayInterface);
+      if (tearAway) {
+        tearAway->setDelegate(usePThis);
+
+        auto tearAwayData = ISCTPTransportTearAway::data(originalTearAwayInterface);
+        if (tearAwayData) {
+          auto delegate = tearAwayData->mDelegate.lock();
+          if ((!tearAwayData->mDefaultSubscription) &&
+              (delegate)) {
+            tearAwayData->mDefaultSubscription = usePThis->subscribe(delegate);
+            tearAwayData->mDelegate.reset();
+          }
+        }
+      }
+
+      if (forListener != originalForListener) {
+        cancel();
+        return;
       }
 
       mCapabilities = make_shared<Capabilities>(remoteCapabilities);
@@ -1295,11 +1333,10 @@ namespace ortc
     SCTPTransport::ForListenerPtr SCTPTransport::create(
                                                         UseListenerPtr listener,
                                                         UseSecureTransportPtr secureTransport,
-                                                        WORD localPort,
-                                                        WORD remotePort
+                                                        WORD localPort
                                                         )
     {
-      SCTPTransportPtr pThis(make_shared<SCTPTransport>(make_private {}, IORTCForInternal::queueORTC(), listener, secureTransport, localPort, remotePort));
+      SCTPTransportPtr pThis(make_shared<SCTPTransport>(make_private {}, IORTCForInternal::queueORTC(), listener, secureTransport, localPort));
       pThis->mThisWeak = pThis;
       pThis->mThisSocket = new SCTPTransportWeakPtr(pThis);
       pThis->init();
@@ -2092,6 +2129,9 @@ namespace ortc
 
       auto listener = mListener.lock();
       if (listener) {
+        if (mAllocatedLocalPort.hasValue()) {
+          listener->deallocateLocalPort(mAllocatedLocalPort.value());
+        }
         listener->notifyShutdown(*this, mLocalPort, mRemotePort);
       }
 
@@ -2564,24 +2604,22 @@ namespace ortc
     ISCTPTransportFactory::ForListenerPtr ISCTPTransportFactory::create(
                                                                         UseListenerPtr listener,
                                                                         UseSecureTransportPtr secureTransport,
-                                                                        WORD localPort,
-                                                                        WORD remotePort
+                                                                        WORD localPort
                                                                         )
     {
       if (this) {}
-      return internal::SCTPTransport::create(listener, secureTransport, localPort, remotePort);
+      return internal::SCTPTransport::create(listener, secureTransport, localPort);
     }
 
     //-------------------------------------------------------------------------
     ISCTPTransportPtr ISCTPTransportFactory::create(
                                                     ISCTPTransportDelegatePtr delegate,
                                                     IDTLSTransportPtr transport,
-                                                    WORD localPort,
-                                                    WORD remotePort
+                                                    WORD localPort
                                                     )
     {
       if (this) {}
-      return internal::SCTPTransport::create(delegate, transport, localPort, remotePort);
+      return internal::SCTPTransport::create(delegate, transport, localPort);
     }
 
   } // internal namespace
@@ -2692,11 +2730,10 @@ namespace ortc
   ISCTPTransportPtr ISCTPTransport::create(
                                            ISCTPTransportDelegatePtr delegate,
                                            IDTLSTransportPtr transport,
-                                           WORD localPort,
-                                           WORD remotePort
+                                           WORD localPort
                                            ) throw (InvalidParameters, InvalidStateError)
   {
-    return internal::ISCTPTransportFactory::singleton().create(delegate, transport, localPort, remotePort);
+    return internal::ISCTPTransportFactory::singleton().create(delegate, transport, localPort);
   }
 
   //---------------------------------------------------------------------------
