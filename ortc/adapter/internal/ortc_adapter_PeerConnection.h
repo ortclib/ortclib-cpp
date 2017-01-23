@@ -42,6 +42,8 @@
 #include <ortc/IRTPListener.h>
 #include <ortc/IRTPSender.h>
 #include <ortc/IRTPReceiver.h>
+#include <ortc/IDataChannel.h>
+#include <ortc/ISCTPTransport.h>
 
 #include <ortc/services/IWakeDelegate.h>
 
@@ -93,6 +95,7 @@ namespace ortc
                              public IRTPReceiverDelegate,
                              public ISCTPTransportDelegate,
                              public ISCTPTransportListenerDelegate,
+                             public IDataChannelDelegate,
                              public IWakeDelegate,
                              public IPromiseSettledDelegate
       {
@@ -160,6 +163,7 @@ namespace ortc
         ZS_DECLARE_STRUCT_PTR(SCTPMediaLineInfo);
         ZS_DECLARE_STRUCT_PTR(SenderInfo);
         ZS_DECLARE_STRUCT_PTR(ReceiverInfo);
+        ZS_DECLARE_STRUCT_PTR(DataChannelInfo);
         ZS_DECLARE_STRUCT_PTR(PendingMethod);
         ZS_DECLARE_STRUCT_PTR(PendingAddTrack);
         ZS_DECLARE_STRUCT_PTR(PendingAddDataChannel);
@@ -173,6 +177,9 @@ namespace ortc
         ZS_DECLARE_TYPEDEF_PTR(ortc::internal::IStatsReportForInternal, UseStatsReport);
         ZS_DECLARE_TYPEDEF_PTR(IStatsProviderTypes::PromiseWithStatsReportPtr, PromiseWithStatsReportPtr);
         ZS_DECLARE_TYPEDEF_PTR(IStatsProviderTypes::StatsTypeSet, StatsTypeSet);
+        
+        typedef std::map<PUID, DataChannelInfoPtr> DataChannelMap;
+        ZS_DECLARE_PTR(DataChannelMap);
 
         struct TransportInfo
         {
@@ -229,9 +236,12 @@ namespace ortc
 
         struct SCTPMediaLineInfo : public MediaLineInfo
         {
-          ISCTPTransportPtr mSCTPTransport;
+          ISCTPTransportTypes::CapabilitiesPtr mRemoteCapabilities;
 
-		  NegotiationStates mNegotiationState {NegotiationState_First};
+          Optional<WORD> mLocalPort;
+          Optional<WORD> mRemotePort;
+          ISCTPTransportPtr mSCTPTransport;
+          DataChannelMap mDataChannels;
 
           ElementPtr toDebug() const;
         };
@@ -268,10 +278,11 @@ namespace ortc
           ElementPtr toDebug() const;
         };
 
-		struct DataChannelInfo
-		{
-			IDataChannelPtr mDataChannel;
-		};
+        struct DataChannelInfo
+        {
+          IDataChannelPtr mDataChannel;
+          IDataChannelSubscriptionPtr mSubscription;
+        };
 
         struct PendingMethod
         {
@@ -331,6 +342,7 @@ namespace ortc
         typedef std::map<PromiseID, CollectionPromisePair> StatsPromiseMap;
         typedef std::set<SSRCType> SSRCSet;
         typedef std::queue<SSRCType> SSRCQueue;
+        typedef std::set<WORD> PortSet;
 
       public:
         PeerConnection(
@@ -548,7 +560,7 @@ namespace ortc
 
         virtual void onSCTPTransportStateChange(
                                                 ISCTPTransportPtr transport,
-                                                States state
+                                                ISCTPTransportTypes::States state
                                                 ) override;
         virtual void onSCTPTransportDataChannel(
                                                 ISCTPTransportPtr transport,
@@ -561,6 +573,28 @@ namespace ortc
         #pragma mark
 
         virtual void onSCTPTransport(ISCTPTransportPtr transport) override;
+
+        //---------------------------------------------------------------------
+        #pragma mark
+        #pragma mark PeerConnection => ISCTPTransportListenerDelegate
+        #pragma mark
+
+        virtual void onDataChannelStateChange(
+                                              IDataChannelPtr channel,
+                                              IDataChannelTypes::States state
+                                              ) override;
+
+        virtual void onDataChannelError(
+                                        IDataChannelPtr channel,
+                                        ErrorAnyPtr error
+                                        ) override;
+
+        virtual void onDataChannelBufferedAmountLow(IDataChannelPtr channel) override;
+
+        virtual void onDataChannelMessage(
+                                          IDataChannelPtr channel,
+                                          MessageEventDataPtr data
+                                          ) override;
 
         //---------------------------------------------------------------------
         #pragma mark
@@ -611,7 +645,9 @@ namespace ortc
         bool stepCreateOfferOrAnswer();
         bool stepProcessPendingRemoteCandidates();
         bool stepAddTracks();
+        bool stepAddSCTPTransport();
         bool stepFinalizeSenders();
+        bool stepFinalizeDataChannels();
         bool stepFixGathererState();
         bool stepFixTransportState();
 
@@ -632,6 +668,7 @@ namespace ortc
         String registerNewID(size_t length = 3);
         String registerIDUsage(const char *idStr);
         void unregisterID(const char *idStr);
+        WORD registerNewLocalPort();
 
         void flushLocalPending(ISessionDescriptionPtr description);
         void flushRemotePending(ISessionDescriptionPtr description);
@@ -727,6 +764,7 @@ namespace ortc
         TransportList mTransportPool;
 
         IDMap mExistingIDs;
+        PortSet mExistingLocalPorts;
 
         // step certificates
         ICertificateTypes::PromiseWithCertificatePtr mCertificatePromise;

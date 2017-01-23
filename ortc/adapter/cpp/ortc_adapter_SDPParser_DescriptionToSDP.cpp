@@ -884,14 +884,14 @@ namespace ortc
                 fillMediaLine(options, description, mediaLine, result, *mline);
                 if (mediaLine.mCapabilities) {
                   auto sctpPort = make_shared<ASCTPPortLine>(Noop{});
-                  sctpPort->mPort = mediaLine.mCapabilities->mMaxPort;
+                  sctpPort->mPort = mediaLine.mPort;
                   auto maxMessageSize = make_shared<AMaxMessageSizeLine>(Noop{});
                   maxMessageSize->mMaxMessageSize = mediaLine.mCapabilities->mMaxMessageSize;
                   mline->mASCTPPortLine = sctpPort;
                   mline->mAMaxMessageSize = maxMessageSize;
                   auto format = make_shared<ISDPTypes::AFMTPLine>(Noop{});
                   format->mFormatStr = "webrtc-datachannel";
-                  format->mFormatSpecific.push_back(String("max-message-size") + string(mediaLine.mCapabilities->mMaxMessageSize));
+                  format->mFormatSpecific.push_back(String("max-message-size=") + string(mediaLine.mCapabilities->mMaxMessageSize));
                   mline->mAFMTPLines.push_back(format);
                 }
                 goto found;
