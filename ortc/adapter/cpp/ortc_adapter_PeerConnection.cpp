@@ -1405,7 +1405,7 @@ namespace ortc
         {
           auto &mediaLine = (*iter).second;
           if (!mediaLine->mSCTPTransport) continue;
-          if (!mediaLine->mSCTPTransport->getID() != transport->getID()) continue;
+          if (mediaLine->mSCTPTransport->getID() != transport->getID()) continue;
 
           auto dataChannelInfo = make_shared<DataChannelInfo>();
           dataChannelInfo->mDataChannel = channel;
