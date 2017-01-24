@@ -1151,10 +1151,21 @@ namespace ortc
             {
               case IPeerConnectionTypes::SignalingMode_JSON:  break;
               case IPeerConnectionTypes::SignalingMode_SDP: {
-                auto foundMedia = mRTPMedias.find(transportInfo->mID);
-                if (foundMedia != mRTPMedias.end()) {
-                  auto &mediaLineInfo = *((*foundMedia).second);
-                  midCandidate->mMLineIndex = mediaLineInfo.mLineIndex;
+                {
+                  auto foundMedia = mRTPMedias.find(transportInfo->mID);
+                  if (foundMedia != mRTPMedias.end()) {
+                    auto &mediaLineInfo = *((*foundMedia).second);
+                    midCandidate->mMLineIndex = mediaLineInfo.mLineIndex;
+                    break;
+                  }
+                }
+                {
+                  auto foundMedia = mSCTPMedias.find(transportInfo->mID);
+                  if (foundMedia != mSCTPMedias.end()) {
+                    auto &mediaLineInfo = *((*foundMedia).second);
+                    midCandidate->mMLineIndex = mediaLineInfo.mLineIndex;
+                    break;
+                  }
                 }
                 break;
               }
