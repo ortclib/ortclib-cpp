@@ -672,7 +672,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPMediaEngine::ntpServerTime(const Milliseconds &value)
     {
-      rtc::SyncWithNtp(value.count());
+			rtc::SyncWithNtp(value.count());
     }
 
     //-------------------------------------------------------------------------
@@ -1222,11 +1222,11 @@ namespace ortc
                                                char phase,
                                                const unsigned char *categoryGroupEnabled,
                                                const char *name,
-                                               uint64 id,
+                                               uint64_t id,
                                                int numArgs,
                                                const char **argNames,
                                                const unsigned char *argTypes,
-                                               const uint64 *argValues,
+                                               const uint64_t *argValues,
                                                unsigned char flags
                                                )
     {
@@ -2751,8 +2751,9 @@ namespace ortc
         report->mPacketsLost = receiveStreamStats.packets_lost;
         report->mJitter = receiveStreamStats.jitter_ms;
         report->mFractionLost = receiveStreamStats.fraction_lost;
+#ifdef WINRT
         report->mEndToEndDelay = Milliseconds(receiveStreamStats.end_to_end_delayMs);
-
+#endif
         reportStats[report->mID] = report;
       }
 
@@ -3583,7 +3584,7 @@ namespace ortc
         }
       }
       if (config.rtp.ssrc == 0) {
-        uint32_t ssrc = SafeInt<uint32>(ortc::services::IHelper::random(1, 0xFFFFFFFF));
+        uint32_t ssrc = SafeInt<uint32_t>(ortc::services::IHelper::random(1, 0xFFFFFFFF));
         webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetLocalSSRC(mChannel, ssrc);
         config.rtp.ssrc = ssrc;
       }
@@ -3906,8 +3907,9 @@ namespace ortc
         report->mPacketsLost = receiveStreamStats.rtp_stats.retransmitted.packets;
         report->mJitter = receiveStreamStats.rtcp_stats.jitter;
         report->mFractionLost = receiveStreamStats.rtcp_stats.fraction_lost;
+#ifdef WINRT
         report->mEndToEndDelay = Milliseconds(receiveStreamStats.current_endtoend_delay_ms);
-
+#endif
         reportStats[report->mID] = report;
       }
 
@@ -4708,7 +4710,7 @@ namespace ortc
             }
           }
           if (ssrc == 0)
-            ssrc = SafeInt<uint32>(ortc::services::IHelper::random(1, 0xFFFFFFFF));
+            ssrc = SafeInt<uint32_t>(ortc::services::IHelper::random(1, 0xFFFFFFFF));
           config.rtp.ssrcs.push_back(ssrc);
           if (encodingParamIter->mRTX.hasValue()) {
             IRTPTypes::RTXParameters rtx = encodingParamIter->mRTX;
@@ -4730,7 +4732,7 @@ namespace ortc
         }
       }
       if (encoderConfig.streams.size() == 0) {
-        config.rtp.ssrcs.push_back(SafeInt<uint32>(ortc::services::IHelper::random(1, 0xFFFFFFFF)));
+        config.rtp.ssrcs.push_back(SafeInt<uint32_t>(ortc::services::IHelper::random(1, 0xFFFFFFFF)));
         webrtc::VideoStream stream;
         stream.width = sourceWidth;
         stream.height = sourceHeight;

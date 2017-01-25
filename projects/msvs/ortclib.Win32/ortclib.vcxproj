@@ -209,7 +209,7 @@
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
       <AdditionalIncludeDirectories>$(ProjectDir)..\..\..;$(ProjectDir)..\..\..\..\zsLib;$(ProjectDir)..\..\..\..\ortclib-services-cpp;$(ProjectDir)..\..\..\..;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\webrtc;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\boringssl\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\usrsctp\usrsctplib;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\srtp\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\srtp\crypto\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;USE_ETW;USE_OPENSSL=1;NOMINMAX;WEBRTC_WIN;WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;USE_ETW;USE_OPENSSL=1;NOMINMAX;WEBRTC_WIN;WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE;_UNICODE;UNICODE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DisableSpecificWarnings>4068;4290</DisableSpecificWarnings>
     </ClCompile>
     <Link>
