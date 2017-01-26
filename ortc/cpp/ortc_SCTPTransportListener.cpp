@@ -401,21 +401,43 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
+    WORD SCTPTransportListener::allocateLocalPort()
+    {
+      AutoRecursiveLock lock(*this);
+
+      if ((isShuttingDown()) ||
+          (isShutdown())) {
+        return 0;
+      }
+
+      // allocate a local port without knowing the remote port
+      return allocateLocalPort(0);
+    }
+
+    //-------------------------------------------------------------------------
+    void SCTPTransportListener::deallocateLocalPort(WORD previouslyAllocatedLocalPort)
+    {
+      if (0 == previouslyAllocatedLocalPort) return;
+      deallocatePort(mAllocatedLocalPorts, previouslyAllocatedLocalPort);
+    }
+
+    //-------------------------------------------------------------------------
     void SCTPTransportListener::registerNewTransport(
                                                      IDTLSTransportPtr dtlsTransport,
                                                      UseSCTPTransportPtr &ioTransport,
                                                      WORD &ioLocalPort,
+                                                     bool localPortWasPreallocated,
                                                      WORD &ioRemotePort
                                                      )
     {
-      ORTC_THROW_INVALID_PARAMETERS_IF(!dtlsTransport)
-      ORTC_THROW_INVALID_PARAMETERS_IF(!ioTransport)
+      ORTC_THROW_INVALID_PARAMETERS_IF(!dtlsTransport);
+      ORTC_THROW_INVALID_PARAMETERS_IF(!ioTransport);
 
       UseSecureTransportPtr secureTransport = DTLSTransport::convert(dtlsTransport);
       ORTC_THROW_INVALID_STATE_IF(!secureTransport)
 
       auto dataTransport = secureTransport->getDataTransport();
-      ORTC_THROW_INVALID_STATE_IF(!dataTransport)
+      ORTC_THROW_INVALID_STATE_IF(!dataTransport);
 
       WORD localPort = ioLocalPort;
       WORD remotePort = ioRemotePort;
@@ -441,7 +463,7 @@ namespace ortc
           if (found != mTransports.end()) {
             ioTransport = (*found).second;
 
-            ZS_LOG_TRACE(log("found exisitng transport") + ZS_PARAM("transport", ioTransport->getID()) + ZS_PARAM("local port", localPort) + ZS_PARAM("remote port", remotePort) + ZS_PARAM("tuple id", tupleID));
+            ZS_LOG_TRACE(log("found existing transport") + ZS_PARAM("transport", ioTransport->getID()) + ZS_PARAM("local port", localPort) + ZS_PARAM("remote port", remotePort) + ZS_PARAM("tuple id", tupleID));
 
             if ((ioTransport->isShuttingDown()) ||
                 (ioTransport->isShutdown())) {
@@ -465,11 +487,13 @@ namespace ortc
             return;
           }
 
-          auto foundLocalPort = mAllocatedLocalPorts.find(localPort);
-          if (foundLocalPort != mAllocatedLocalPorts.end()) {
-            ZS_LOG_WARNING(Detail, log("port already in use (and mapped to a different remote port)") + ZS_PARAM("local port", localPort) + ZS_PARAM("remote port", remotePort) + ZS_PARAM("tuple id", tupleID))
-            ioTransport = UseSCTPTransportPtr();
-            return;
+          if (!localPortWasPreallocated) {
+            auto foundLocalPort = mAllocatedLocalPorts.find(localPort);
+            if (foundLocalPort != mAllocatedLocalPorts.end()) {
+              ZS_LOG_WARNING(Detail, log("port already in use (and mapped to a different remote port)") + ZS_PARAM("local port", localPort) + ZS_PARAM("remote port", remotePort) + ZS_PARAM("tuple id", tupleID))
+                ioTransport = UseSCTPTransportPtr();
+              return;
+            }
           }
 
           allocatePort(mAllocatedLocalPorts, localPort);
@@ -657,7 +681,7 @@ namespace ortc
 
         auto found = mTransports.find(tupleID);
         if (found == mTransports.end()) {
-          transport = UseSCTPTransport::create(mThisWeak.lock(), mSecureTransport.lock(), localPort, remotePort);
+          transport = UseSCTPTransport::create(mThisWeak.lock(), mSecureTransport.lock(), localPort);
           if (!transport) {
             ZS_LOG_WARNING(Debug, log("unable to create sctp transport"))
             return false;
@@ -671,9 +695,9 @@ namespace ortc
                         );
 
           if (mRemoteCapabilities) {
-            transport->start(*mRemoteCapabilities);
+            transport->start(*mRemoteCapabilities, remotePort);
           } else {
-            mPendingTransports[transport->getID()] = transport;
+            mPendingTransports[transport->getID()] = TransportPortPair(transport, remotePort);
           }
           allocatePort(mAllocatedLocalPorts, localPort);
           allocatePort(mAllocatedRemotePorts, remotePort);
@@ -869,7 +893,7 @@ namespace ortc
             }
             {
               auto found = mAnnouncedTransports.find(transport->getID());
-              if (found != mAnnouncedTransports.end()) mPendingTransports.erase(found);
+              if (found != mAnnouncedTransports.end()) mAnnouncedTransports.erase(found);
             }
             continue;
           }
@@ -929,8 +953,9 @@ namespace ortc
 
       for (auto iter = mPendingTransports.begin(); iter != mPendingTransports.end(); ++iter)
       {
-        UseSCTPTransportPtr transport = (*iter).second;
-        transport->start(*mRemoteCapabilities);
+        auto port = (*iter).second.second;
+        UseSCTPTransportPtr transport = (*iter).second.first;
+        transport->start(*mRemoteCapabilities, port);
       }
       mPendingTransports.clear();
 
@@ -1015,7 +1040,7 @@ namespace ortc
     {
       auto found = useMap.find(port);
       if (found == useMap.end()) {
-        ZS_LOG_ERROR(Debug, log("allocation was not found") + ZS_PARAM("port", port))
+        ZS_LOG_WARNING(Debug, log("allocation was not found") + ZS_PARAM("port", port))
         return;
       }
 

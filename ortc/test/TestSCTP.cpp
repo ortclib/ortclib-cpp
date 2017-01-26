@@ -961,16 +961,17 @@ namespace ortc
       void SCTPTester::init(
                             bool createSCTPNow,
                             Optional<WORD> localPort,
-                            Optional<WORD> removePort,
+                            Optional<WORD> remotePort,
                             Milliseconds packetDelay
                             )
       {
         AutoRecursiveLock lock(*this);
         mICETransport = FakeICETransport::create(getAssociatedMessageQueue(), packetDelay);
         mDTLSTransport = FakeSecureTransport::create(getAssociatedMessageQueue(), mICETransport);
+        mRemotePort = remotePort;
 
         if (createSCTPNow) {
-          mSCTP = ISCTPTransport::create(mThisWeak.lock(), mDTLSTransport, localPort, removePort);
+          mSCTP = ISCTPTransport::create(mThisWeak.lock(), mDTLSTransport, localPort);
         }
       }
 
@@ -1068,10 +1069,10 @@ namespace ortc
         auto remoteCaps = ISCTPTransport::getCapabilities();
 
         if (mSCTP) {
-          mSCTP->start(*remoteCaps);
+          mSCTP->start(*remoteCaps, mRemotePort.hasValue() ? mRemotePort.value() : 0);
         }
         if (remote->mSCTP) {
-          remote->mSCTP->start(*localCaps);
+          remote->mSCTP->start(*localCaps, remote->mRemotePort.hasValue() ? remote->mRemotePort.value() : 0);
         }
       }
 

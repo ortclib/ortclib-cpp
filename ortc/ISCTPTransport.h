@@ -104,8 +104,7 @@ namespace ortc
     static ISCTPTransportPtr create(
                                     ISCTPTransportDelegatePtr delegate,
                                     IDTLSTransportPtr transport,
-                                    WORD localPort = 0,   // 0 = port automatically chosen
-                                    WORD remotePort = 0   // 0 = use same as local port (default)
+                                    WORD localPort = 0    // 0 = port automatically chosen
                                     ) throw (InvalidParameters, InvalidStateError);
 
     static ISCTPTransportListenerSubscriptionPtr listen(
@@ -124,9 +123,12 @@ namespace ortc
     virtual WORD port() const = 0;
 
     virtual WORD localPort() const = 0;
-    virtual WORD remotePort() const = 0;
+    virtual Optional<WORD> remotePort() const = 0;
 
-    virtual void start(const Capabilities &remoteCapabilities) = 0;
+    virtual void start(
+                       const Capabilities &remoteCapabilities,
+                       WORD remotePort = 0
+                       ) throw (InvalidStateError, InvalidParameters) = 0;
     virtual void stop() = 0;
 
     virtual ISCTPTransportSubscriptionPtr subscribe(ISCTPTransportDelegatePtr delegate) = 0;

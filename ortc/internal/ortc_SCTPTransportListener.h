@@ -100,10 +100,14 @@ namespace ortc
 
       virtual PUID getID() const = 0;
 
+      virtual WORD allocateLocalPort() = 0;
+      virtual void deallocateLocalPort(WORD previouslyAllocatedLocalPort) = 0;
+
       virtual void registerNewTransport(
                                         IDTLSTransportPtr dtlsTransport,
                                         UseSCTPTransportPtr &ioTransport,
                                         WORD &ioLocalPort,
+                                        bool localPortWasPreallocated,
                                         WORD &ioRemotePort
                                         ) = 0;
 
@@ -178,7 +182,10 @@ namespace ortc
       typedef std::pair<LocalRemoteTupleID, UseSCTPTransportPtr> TupleSCTPTransportPair;
 
       typedef PUID SCTPTransportID;
+      typedef WORD Port;
+      typedef std::pair<UseSCTPTransportPtr, Port> TransportPortPair;
       typedef std::map<SCTPTransportID, UseSCTPTransportPtr> TransportIDMap;
+      typedef std::map<SCTPTransportID, TransportPortPair> TransportWithPortMap;
 
       typedef std::map<WORD, size_t> AllocatedPortMap;
 
@@ -229,10 +236,14 @@ namespace ortc
 
       virtual PUID getID() const override {return mID;}
 
+      virtual WORD allocateLocalPort() override;
+      virtual void deallocateLocalPort(WORD previouslyAllocatedLocalPort) override;
+
       virtual void registerNewTransport(
                                         IDTLSTransportPtr dtlsTransport,
                                         UseSCTPTransportPtr &ioTransport,
                                         WORD &ioLocalPort,
+                                        bool localPortWasPreallocated,
                                         WORD &ioRemotePort
                                         ) override;
 
@@ -325,7 +336,7 @@ namespace ortc
       bool mShutdown {false};
 
       TransportMap mTransports;
-      TransportIDMap mPendingTransports;
+      TransportWithPortMap mPendingTransports;
       TransportIDMap mAnnouncedTransports;
 
       AllocatedPortMap mAllocatedLocalPorts;

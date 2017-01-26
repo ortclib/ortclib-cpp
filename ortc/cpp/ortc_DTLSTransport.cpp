@@ -859,6 +859,9 @@ namespace ortc
     {
       bool isDTLSPacket = isDtlsPacket(buffer, bufferLengthInBytes);
 
+      StreamResult streamResult {};
+      int streamError {};
+
       ZS_EVENTING_5(
                     x, i, Trace, DtlsTransportReceivedPacket, ol, DtlsTransport, Receive,
                     puid, id, mID,
@@ -868,9 +871,9 @@ namespace ortc
                     size, size, bufferLengthInBytes
                     );
 
-      ZS_LOG_TRACE(log("handle receive packet") + ZS_PARAM("length", bufferLengthInBytes))
+      ZS_LOG_TRACE(log("handle receive packet") + ZS_PARAM("length", bufferLengthInBytes));
 
-      SecureByteBlockPtr decryptedPacket;
+      PacketQueue decryptedPackets;
       UseSRTPTransportPtr srtpTransport;
 
       ASSERT(viaTransport == component());  // must be identical
@@ -934,39 +937,22 @@ namespace ortc
 
           BYTE extractedBuffer[kMaxDtlsPacketLen] {};
 
-          size_t read = 0;
-          int error = 0;
-          auto result = mAdapter->read(extractedBuffer, sizeof(extractedBuffer), &read, &error);
+          while (true) {
+            size_t read = 0;
+            streamResult = mAdapter->read(extractedBuffer, sizeof(extractedBuffer), &read, &streamError);
 
-#define WARNING_CHECK_IF_MORE_THAN_ONE_SCTP_PACKET_PER_DTLS_PACKT_IS_POSSIBLE 1
-#define WARNING_CHECK_IF_MORE_THAN_ONE_SCTP_PACKET_PER_DTLS_PACKT_IS_POSSIBLE 2
-
-          wakeUpIfNeeded();
-
-          switch (result) {
-            case SR_SUCCESS: {
-              decryptedPacket = make_shared<SecureByteBlock>(extractedBuffer, read);
-              goto handle_data_packet;
-            }
-            case SR_BLOCK: {
-              ZS_LOG_TRACE(log("dtls packet consumed"))
-              return true;
-            }
-            case SR_EOS:  {
-              ZS_LOG_DEBUG(log("end of stream reached (thus shutting down)"))
-              cancel();
-              return true;
-            }
-            case SR_ERROR: {
-              ZS_LOG_ERROR(Debug, log("read error found (thus shutting down)") + ZS_PARAM("error code", error))
-              cancel();
-              return false;
+            switch (streamResult) {
+              case SR_SUCCESS: {
+                decryptedPackets.push(make_shared<SecureByteBlock>(extractedBuffer, read));
+                break;
+              }
+              case SR_BLOCK: 
+              case SR_EOS:  
+              case SR_ERROR:  goto handle_data_packet;
             }
           }
 
-          ASSERT(false);
-
-          return false;
+          goto handle_data_packet;
         }
 
         if (!isRtpPacket(buffer, bufferLengthInBytes)) {
@@ -1012,7 +998,14 @@ namespace ortc
 
     handle_data_packet:
       {
-        if (decryptedPacket) {
+        wakeUpIfNeeded();
+
+        bool returnResult {true};
+
+        while (decryptedPackets.size() > 0) {
+          SecureByteBlockPtr decryptedPacket = decryptedPackets.front();
+          decryptedPackets.pop();
+
           ZS_EVENTING_5(
                         x, i, Trace, DtlsTransportForwardingPacketToDataTransport, ol, DtlsTransport, Deliver,
                         puid, id, mID,
@@ -1022,10 +1015,29 @@ namespace ortc
                         size, size, decryptedPacket->SizeInBytes()
                         );
 
-          return mDataTransport->handleDataPacket(decryptedPacket->BytePtr(), decryptedPacket->SizeInBytes());
+          auto result = mDataTransport->handleDataPacket(decryptedPacket->BytePtr(), decryptedPacket->SizeInBytes());
+          if (!result) returnResult = false;
         }
-        ZS_LOG_WARNING(Debug, log("no data packet was decrypted"))
-        return false;
+
+        switch (streamResult) {
+          case SR_SUCCESS:  break;
+          case SR_BLOCK: {
+            ZS_LOG_TRACE(log("dtls packet consumed"));
+            break;
+          }
+          case SR_EOS: {
+            ZS_LOG_DEBUG(log("end of stream reached (thus shutting down)"));
+            cancel();
+            break;
+          }
+          case SR_ERROR: {
+            ZS_LOG_ERROR(Debug, log("read error found (thus shutting down)") + ZS_PARAM("error code", streamError));
+            cancel();
+            break;
+          }
+        }
+
+        return returnResult;
       }
 
       ASSERT(false); // cannot reach this point

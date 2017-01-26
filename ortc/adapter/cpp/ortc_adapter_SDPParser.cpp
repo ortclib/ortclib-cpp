@@ -598,7 +598,7 @@ namespace ortc
 
         if (0 == protoSplit[1].compareNoCase("DTLS")) {
           if (0 != protoSplit[2].compareNoCase("SCTP")) return ProtocolType_Unknown;
-          return ProtocolType_Unknown;
+          return ProtocolType_SCTP;
         }
 
         if (protoSplit.size() < 4) return ProtocolType_Unknown;
