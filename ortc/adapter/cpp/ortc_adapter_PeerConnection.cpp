@@ -179,6 +179,7 @@ namespace ortc
         resultEl->setValue("ortc::adapter::PeerConnection::SCTPMediaLineInfo");
 
         UseServicesHelper::debugAppend(resultEl, "sctp transport", mSCTPTransport ? mSCTPTransport->getID() : 0);
+        UseServicesHelper::debugAppend(resultEl, "data channels", mDataChannels.size());
 
         return resultEl;
       }
@@ -1021,6 +1022,14 @@ namespace ortc
         for (auto iter = mSCTPMedias.begin(); iter != mSCTPMedias.end(); ++iter) {
           auto &info = *((*iter).second);
 
+          if (stats.hasStatType(IStatsReportTypes::StatsType_DataChannel)) {
+            for (auto iter = info.mDataChannels.begin(); iter != info.mDataChannels.end(); ++iter)
+            {
+              auto dataChannelInfo = (*iter).second;
+              promises.push_back(dataChannelInfo->mDataChannel->getStats(stats));
+            }
+          }
+
           if (stats.hasStatType(IStatsReportTypes::StatsType_SCTPTransport)) {
             if (info.mSCTPTransport) {
               promises.push_back(info.mSCTPTransport->getStats(stats));
@@ -1142,10 +1151,21 @@ namespace ortc
             {
               case IPeerConnectionTypes::SignalingMode_JSON:  break;
               case IPeerConnectionTypes::SignalingMode_SDP: {
-                auto foundMedia = mRTPMedias.find(transportInfo->mID);
-                if (foundMedia != mRTPMedias.end()) {
-                  auto &mediaLineInfo = *((*foundMedia).second);
-                  midCandidate->mMLineIndex = mediaLineInfo.mLineIndex;
+                {
+                  auto foundMedia = mRTPMedias.find(transportInfo->mID);
+                  if (foundMedia != mRTPMedias.end()) {
+                    auto &mediaLineInfo = *((*foundMedia).second);
+                    midCandidate->mMLineIndex = mediaLineInfo.mLineIndex;
+                    break;
+                  }
+                }
+                {
+                  auto foundMedia = mSCTPMedias.find(transportInfo->mID);
+                  if (foundMedia != mSCTPMedias.end()) {
+                    auto &mediaLineInfo = *((*foundMedia).second);
+                    midCandidate->mMLineIndex = mediaLineInfo.mLineIndex;
+                    break;
+                  }
                 }
                 break;
               }
@@ -1362,7 +1382,7 @@ namespace ortc
       //-----------------------------------------------------------------------
       void PeerConnection::onSCTPTransportStateChange(
                                                       ISCTPTransportPtr transport,
-                                                      States state
+                                                      ISCTPTransportTypes::States state
                                                       )
       {
         ZS_LOG_TRACE(log("on sctp transport state change") + ZS_PARAM("transport id", transport->getID()) + ZS_PARAM("state", ISCTPTransportTypes::toString(state)));
@@ -1378,6 +1398,23 @@ namespace ortc
                                                       )
       {
         ZS_LOG_TRACE(log("on sctp transport") + ZS_PARAM("transport id", transport->getID()) + ZS_PARAM("channel id", channel->getID()));
+
+        AutoRecursiveLock lock(*this);
+
+        for (auto iter = mSCTPMedias.begin(); iter != mSCTPMedias.end(); ++iter)
+        {
+          auto &mediaLine = (*iter).second;
+          if (!mediaLine->mSCTPTransport) continue;
+          if (mediaLine->mSCTPTransport->getID() != transport->getID()) continue;
+
+          auto dataChannelInfo = make_shared<DataChannelInfo>();
+          dataChannelInfo->mDataChannel = channel;
+          dataChannelInfo->mSubscription = channel->subscribe(mThisWeak.lock());
+          mediaLine->mDataChannels[channel->getID()] = dataChannelInfo;
+          break;
+        }
+
+        mSubscriptions.delegate()->onPeerConnectionDataChannel(mThisWeak.lock(), channel);
       }
 
 
@@ -1393,6 +1430,63 @@ namespace ortc
       void PeerConnection::onSCTPTransport(ISCTPTransportPtr transport)
       {
         ZS_LOG_TRACE(log("on sctp transport listener") + ZS_PARAM("transport id", transport->getID()));
+      }
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark PeerConnection => IDataChannelDelegate
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      void PeerConnection::onDataChannelStateChange(
+                                                    IDataChannelPtr channel,
+                                                    IDataChannelTypes::States state
+                                                    )
+      {
+        if (state != IDataChannelTypes::State_Closed) return;
+
+        AutoRecursiveLock lock(*this);
+
+        for (auto iter = mSCTPMedias.begin(); iter != mSCTPMedias.end(); ++iter)
+        {
+          auto &mediaInfo = (*iter).second;
+          
+          auto found = mediaInfo->mDataChannels.find(channel->getID());
+          if (found == mediaInfo->mDataChannels.end()) continue;
+
+          mediaInfo->mDataChannels.erase(found);
+          ZS_LOG_DEBUG(log("data channel was remove") + ZS_PARAM("data channel id", channel->getID()));
+          return;
+        }
+
+        ZS_LOG_WARNING(Trace, log("data channel was close but not found in any media line (probably okay if during peer connection shutdown)") + ZS_PARAM("data channel id", channel->getID()));
+      }
+
+      //-----------------------------------------------------------------------
+      void PeerConnection::onDataChannelError(
+                                              IDataChannelPtr channel,
+                                              ErrorAnyPtr error
+                                              )
+      {
+        // ignored
+      }
+
+      //-----------------------------------------------------------------------
+      void PeerConnection::onDataChannelBufferedAmountLow(IDataChannelPtr channel)
+      {
+        // ignored
+      }
+
+      //-----------------------------------------------------------------------
+      void PeerConnection::onDataChannelMessage(
+                                                IDataChannelPtr channel,
+                                                MessageEventDataPtr data
+                                                )
+      {
+        // ignored
       }
 
       //-----------------------------------------------------------------------
@@ -1701,9 +1795,11 @@ namespace ortc
         if (!stepProcessRemote()) return;
         if (!stepProcessLocal()) return;
         if (!stepAddTracks()) return;
+        if (!stepAddSCTPTransport()) return;
         if (!stepCreateOfferOrAnswer()) return;
         if (!stepProcessPendingRemoteCandidates()) return;
         if (!stepFinalizeSenders()) return;
+        if (!stepFinalizeDataChannels()) return;
         if (!stepFixGathererState()) return;
         if (!stepFixTransportState()) return;
 
@@ -2424,8 +2520,125 @@ namespace ortc
       //-----------------------------------------------------------------------
       bool PeerConnection::stepProcessRemoteSCTPTransport(ISessionDescriptionTypes::DescriptionPtr description)
       {
-#define TODO_LATER 1
-#define TODO_LATER 2
+        for (auto iter = description->mSCTPMediaLines.begin(); iter != description->mSCTPMediaLines.end(); ++iter)
+        {
+          auto &mediaLine = *(*iter);
+
+          SCTPMediaLineInfoPtr mediaLineInfo;
+
+          // scope prepare media line
+          {
+            // scope: find the media line
+            {
+              if (mediaLine.mID.hasData()) {
+                auto found = mSCTPMedias.find(mediaLine.mID);
+                if (found != mSCTPMedias.end()) {
+                  mediaLineInfo = (*found).second;
+                }
+              }
+
+              if (!mediaLineInfo) {
+                mediaLineInfo = make_shared<SCTPMediaLineInfo>();
+                mediaLineInfo->mID = mediaLine.mID.hasData() ? registerIDUsage(mediaLine.mID) : registerNewID();
+                mediaLineInfo->mLineIndex = mediaLine.mDetails ? mediaLine.mDetails->mInternalIndex : Optional<size_t>();
+                mediaLineInfo->mNegotiationState = NegotiationState_RemoteOffered;
+                mSCTPMedias[mediaLineInfo->mID] = mediaLineInfo;
+              }
+            }
+
+            if (NegotiationState_Rejected == mediaLineInfo->mNegotiationState) {
+              ZS_LOG_WARNING(Debug, log("media line previously rejected") + mediaLineInfo->toDebug());
+              goto reject_media_line;
+            }
+
+            if (!mediaLine.mCapabilities) {
+              ZS_LOG_WARNING(Debug, log("media line is missing remote capabilities") + mediaLineInfo->toDebug());
+              goto reject_media_line;
+            }
+
+            if (0 == mediaLine.mPort) {
+              ZS_LOG_WARNING(Detail, log("SCTP port is not specified thus sctp transport must be rejected") + mediaLineInfo->toDebug() + mediaLine.toDebug());
+              goto reject_media_line;
+            }
+
+            mediaLineInfo->mBundledTransportID = mediaLine.mTransportID;
+            mediaLineInfo->mPrivateTransportID = mediaLine.mDetails ? mediaLine.mDetails->mPrivateTransportID : String();
+            mediaLineInfo->mRemoteCapabilities = make_shared<ISCTPTransportTypes::Capabilities>(*mediaLine.mCapabilities);
+
+            TransportInfoPtr transportInfo;
+
+            {
+              auto found = mTransports.find(mediaLineInfo->mBundledTransportID);
+              if (found != mTransports.end()) transportInfo = (*found).second;
+
+              if ((!transportInfo) &&
+                (mediaLineInfo->mPrivateTransportID.hasData())) {
+                found = mTransports.find(mediaLineInfo->mPrivateTransportID);
+                if (found != mTransports.end()) transportInfo = (*found).second;
+              }
+            }
+
+            if (!transportInfo) {
+              ZS_LOG_WARNING(Detail, log("did not find associated transport"));
+              goto reject_media_line;
+            }
+
+            if (NegotiationState_Rejected == transportInfo->mNegotiationState) {
+              ZS_LOG_WARNING(Detail, log("transport was rejected thus remote sctp must be rejected") + mediaLineInfo->toDebug() + transportInfo->toDebug());
+              goto reject_media_line;
+            }
+
+            if (!transportInfo->mRTP.mDTLSTransport) {
+              ZS_LOG_WARNING(Detail, log("transport is not DTLS based and thus must be rejected") + mediaLineInfo->toDebug() + transportInfo->toDebug());
+              goto reject_media_line;
+            }
+
+            try {
+              if (!mediaLineInfo->mSCTPTransport) {
+                if (!mediaLineInfo->mLocalPort.hasValue()) {
+                  mediaLineInfo->mLocalPort = mediaLine.mPort;
+                  mExistingLocalPorts.insert(mediaLine.mPort);
+                }
+                mediaLineInfo->mSCTPTransport = ISCTPTransport::create(mThisWeak.lock(), transportInfo->mRTP.mDTLSTransport, mediaLine.mPort);
+              }
+              if (!mediaLineInfo->mRemotePort.hasValue()) {
+                mediaLineInfo->mRemotePort = mediaLine.mPort;
+                mediaLineInfo->mSCTPTransport->start(*mediaLine.mCapabilities, mediaLine.mPort);
+              }
+            } catch (const InvalidParameters &e) {
+              ZS_LOG_WARNING(Detail, log("sctp transport cannot be constructed and started") + ZS_PARAM("invalid parameters exception", e.what()));
+              goto reject_media_line;
+            } catch (const InvalidStateError &e) {
+              ZS_LOG_WARNING(Detail, log("sctp transport cannot be constructed and started") + ZS_PARAM("invalid state exception", e.what()));
+              goto reject_media_line;
+            }
+
+            goto accept_media_line;
+          }
+
+        reject_media_line:
+          {
+            if (!mediaLineInfo) continue;
+            close(*mediaLineInfo);
+            continue;
+          }
+
+        accept_media_line:
+          {
+            switch (mediaLineInfo->mNegotiationState) {
+              case NegotiationState_PendingOffer:                                         // offered, now agreed
+              case NegotiationState_LocalOffered: {                                       // offered, now agreed
+                mediaLineInfo->mNegotiationState = NegotiationState_Agreed;
+                break;
+              }
+              case NegotiationState_Agreed:           break;                              // no change needed
+              case NegotiationState_RemoteOffered:    notifyNegotiationNeeded(); break;   // requires an offer/answer be done
+              case NegotiationState_Rejected:         break;                              // not possible
+            }
+            continue;
+          }
+        }
+
         return true;
       }
 
@@ -2830,8 +3043,57 @@ namespace ortc
       //-----------------------------------------------------------------------
       bool PeerConnection::stepProcessLocalSCTPTransport(ISessionDescriptionTypes::DescriptionPtr description)
       {
-#define TODO_LATER 1
-#define TODO_LATER 2
+        for (auto iter = description->mSCTPMediaLines.begin(); iter != description->mSCTPMediaLines.end(); ++iter)
+        {
+          auto &mediaLine = *(*iter);
+
+          SCTPMediaLineInfoPtr mediaLineInfo;
+
+          // scope prepare media line
+          {
+            // scope: find the media line
+            {
+              if (mediaLine.mID.hasData()) {
+                auto found = mSCTPMedias.find(mediaLine.mID);
+                if (found != mSCTPMedias.end()) {
+                  mediaLineInfo = (*found).second;
+                }
+              }
+
+              if (!mediaLineInfo) {
+                ZS_LOG_WARNING(Debug, log("media line was not found (thus reject it)") + mediaLineInfo->toDebug());
+                goto reject_media_line;
+              }
+            }
+
+            if (NegotiationState_Rejected == mediaLineInfo->mNegotiationState) {
+              ZS_LOG_WARNING(Debug, log("media line previously rejected") + mediaLineInfo->toDebug());
+              goto reject_media_line;
+            }
+
+            goto accept_media_line;
+          }
+
+        reject_media_line:
+          {
+            if (!mediaLineInfo) continue;
+            close(*mediaLineInfo);
+            continue;
+          }
+
+        accept_media_line:
+          {
+            switch (mediaLineInfo->mNegotiationState) {
+            case NegotiationState_PendingOffer:     mediaLineInfo->mNegotiationState = NegotiationState_LocalOffered; break;
+            case NegotiationState_LocalOffered:     break;
+            case NegotiationState_Agreed:           break;
+            case NegotiationState_RemoteOffered:    mediaLineInfo->mNegotiationState = NegotiationState_Agreed; break;
+            case NegotiationState_Rejected:         break;
+            }
+            continue;
+          }
+        }
+
         return true;
       }
 
@@ -3002,7 +3264,7 @@ namespace ortc
                 } else if (mediaLine->mPrivateTransportID.hasData()) {
                   mediaLine->mID = registerIDUsage(mediaLine->mPrivateTransportID);
                 } else {
-                  mediaLine->mID = registerNewID(3);
+                  mediaLine->mID = registerNewID();
                 }
                 break;
               }
@@ -3017,6 +3279,7 @@ namespace ortc
           {
             auto senderInfo = make_shared<SenderInfo>();
             senderInfo->mMediaLineID = useMediaLineID;
+            senderInfo->mNegotiationState = NegotiationState_LocalOffered;
 
             RTPMediaLineInfoPtr mediaLine;
 
@@ -3069,6 +3332,77 @@ namespace ortc
           }
         }
 
+        return true;
+      }
+
+      //-----------------------------------------------------------------------
+      bool PeerConnection::stepAddSCTPTransport()
+      {
+        if (mPendingAddDataChannels.size() < 1) {
+          ZS_LOG_TRACE(log("step - add sctp transport - no pending data channels"));
+          return true;
+        }
+
+        if (mConfiguration.mNegotiateSRTPSDES)
+        {
+          ZS_LOG_WARNING(Debug, log("step - add sctp transport - cannot add data cahnnel on SDES based transports"));
+          return true;
+        }
+
+        // find a compatible media line
+        for (auto iter = mSCTPMedias.begin(); iter != mSCTPMedias.end(); ++iter)
+        {
+          auto &mediaLine = *((*iter).second);
+          if (NegotiationState_Rejected == mediaLine.mNegotiationState) continue;
+
+          ZS_LOG_TRACE(log("step - add sctp transport - already have transport available"));
+          return true;
+        }
+
+        TransportInfoPtr transportInfo;
+
+        if (IPeerConnectionTypes::BundlePolicy_MaxBundle == mConfiguration.mBundlePolicy) {
+          for (auto iter = mTransports.begin(); iter != mTransports.end(); ++iter)
+          {
+            auto checkTransport = (*iter).second;
+            if (NegotiationState_Rejected == checkTransport->mNegotiationState) continue;
+          }
+        }
+
+        auto mediaLine = make_shared<SCTPMediaLineInfo>();
+        mediaLine->mNegotiationState = NegotiationState_LocalOffered;
+
+        if (!transportInfo) {
+          transportInfo = getTransportFromPool();
+          mediaLine->mPrivateTransportID = transportInfo->mID;
+        }
+
+        mediaLine->mBundledTransportID = transportInfo->mID;
+        mediaLine->mLineIndex = getNextHighestMLineIndex();
+
+        switch (mConfiguration.mSignalingMode) {
+          case IPeerConnectionTypes::SignalingMode_JSON: {
+            mediaLine->mID = registerNewID();
+            break;
+          }
+          case IPeerConnectionTypes::SignalingMode_SDP: {
+            // with SDP media ID and transport ID must share a common ID (unless it's bundled)
+            if (mediaLine->mPrivateTransportID.hasData()) {
+              mediaLine->mID = registerIDUsage(mediaLine->mPrivateTransportID);
+            } else {
+              mediaLine->mID = registerNewID();
+            }
+            break;
+          }
+        }
+
+        mediaLine->mLocalPort = registerNewLocalPort();
+        if (0 == mediaLine->mLocalPort.value()) {
+          close(*mediaLine);
+        }
+
+        mSCTPMedias[mediaLine->mID] = mediaLine;
+        notifyNegotiationNeeded();  // need to signal this to the remote party before it will be started
         return true;
       }
 
@@ -3188,6 +3522,37 @@ namespace ortc
           mediaLine->mReceiverCapabilities = make_shared<ISessionDescriptionTypes::RTPCapabilities>(*mediaInfo->mLocalReceiverCapabilities);
 
           description->mRTPMediaLines.push_back(mediaLine);
+        }
+
+        for (auto iter = mSCTPMedias.begin(); iter != mSCTPMedias.end(); ++iter) {
+          auto &mediaInfo = ((*iter).second);
+          if (NegotiationState_Rejected == mediaInfo->mNegotiationState) continue;
+
+          auto mediaLine = make_shared<ISessionDescriptionTypes::SCTPMediaLine>();
+          mediaLine->mID = mediaInfo->mID;
+          mediaLine->mTransportID = mediaInfo->mBundledTransportID;
+          mediaLine->mMediaType = "application";
+          if ((isSDP) ||
+            (mediaInfo->mPrivateTransportID.hasData())) {
+            mediaLine->mDetails = make_shared<ISessionDescriptionTypes::RTPMediaLine::Details>();
+            mediaLine->mDetails->mPrivateTransportID = mediaInfo->mPrivateTransportID;
+            if (isSDP) {
+              mediaLine->mDetails->mInternalIndex = mediaInfo->mLineIndex;
+              mediaLine->mDetails->mProtocol = "UDP/DTLS/SCTP";
+              mediaLine->mDetails->mConnectionData = make_shared<ISessionDescriptionTypes::ConnectionData>();
+              mediaLine->mDetails->mConnectionData->mRTP = make_shared<ISessionDescriptionTypes::ConnectionData::Details>();
+              mediaLine->mDetails->mConnectionData->mRTCP = make_shared<ISessionDescriptionTypes::ConnectionData::Details>();
+              mediaLine->mDetails->mConnectionData->mRTP->mNetType = mediaLine->mDetails->mConnectionData->mRTCP->mNetType = "IN";
+              mediaLine->mDetails->mConnectionData->mRTP->mAddrType = mediaLine->mDetails->mConnectionData->mRTCP->mAddrType = "IP4";
+              mediaLine->mDetails->mConnectionData->mRTP->mConnectionAddress = mediaLine->mDetails->mConnectionData->mRTCP->mConnectionAddress = "0.0.0.0";
+#define TODO_FILL_WITH_CANDIDATE_INFO_LATER 1
+#define TODO_FILL_WITH_CANDIDATE_INFO_LATER 2
+            }
+          }
+          mediaLine->mCapabilities = ISCTPTransport::getCapabilities();
+          mediaLine->mPort = mediaInfo->mLocalPort.value();
+
+          description->mSCTPMediaLines.push_back(mediaLine);
         }
 
         for (auto iter = mSenders.begin(); iter != mSenders.end(); ++iter) {
@@ -3374,7 +3739,6 @@ namespace ortc
             senderInfo->mPromise->reject(ErrorAny::create(error, reason));
             senderInfo->mPromise.reset();
             close(*senderInfo);
-            unregisterID(senderInfo->mID);
             mSenders.erase(current);
             // ensure unlinked transports / media lines get removed
             wake();
@@ -3385,6 +3749,84 @@ namespace ortc
           }
         }
 
+        return true;
+      }
+
+      //-----------------------------------------------------------------------
+      bool PeerConnection::stepFinalizeDataChannels()
+      {
+        SCTPMediaLineInfoPtr mediaLine;
+        bool rejectAll = false;
+
+        WORD error = UseHTTP::HTTPStatusCode_Conflict;
+        const char *reason = NULL;
+
+        while (mPendingAddDataChannels.size() > 0)
+        {
+          PendingAddDataChannelPtr pending = mPendingAddDataChannels.front();
+
+          if ((mConfiguration.mNegotiateSRTPSDES) ||
+              (rejectAll)) {
+            if (!reason) {
+              reason = "unable to add a datachannel unless the transport is DTLS not SRTP/SDES";
+            }
+            if (pending->mPromise) {
+              pending->mPromise->reject(ErrorAny::create(error, reason));
+              mPendingAddDataChannels.pop_front();
+              continue;
+            }
+          }
+
+          if (!mediaLine) {
+            size_t totalRejected = 0;
+            for (auto iter = mSCTPMedias.begin(); iter != mSCTPMedias.end(); ++iter)
+            {
+              auto checkMediaLine = (*iter).second;
+              if (NegotiationState_Rejected == checkMediaLine->mNegotiationState) {
+                ++totalRejected;
+                continue;
+              }
+
+              if (!checkMediaLine->mSCTPTransport) continue;
+              mediaLine = checkMediaLine;
+              break;
+            }
+
+            if (totalRejected == mSCTPMedias.size()) {
+              reason = "all sctp transport media lines have been rejected";
+              rejectAll = true;
+              continue;
+            }
+
+            if (!mediaLine) {
+              ZS_LOG_TRACE("step - finalize datachannels - unable to create datachannel as no SCTP transport is available");
+              return true;
+            }
+          }
+
+          if ((!mediaLine->mSCTPTransport) ||
+              (!mediaLine->mRemotePort.hasValue())) {
+            ZS_LOG_TRACE("step - finalize datachannels - unable to create datachannel as SCTP transport is not ready");
+            return true;
+          }
+
+          mPendingAddDataChannels.pop_front();
+
+          if (!pending->mParameters) {
+            pending->mParameters = make_shared<IDataChannelTypes::Parameters>();
+          }
+
+          auto dataChannel = IDataChannel::create(mThisWeak.lock(), mediaLine->mSCTPTransport, *pending->mParameters);
+
+          if (pending->mPromise) {
+            if (!dataChannel) {
+              pending->mPromise->reject(ErrorAny::create(error, "unable to create a new datachannel on the sctp transport"));
+            } else {
+              pending->mPromise->resolve(dataChannel);
+            }
+            pending->mPromise.reset();
+          }
+        }
         return true;
       }
 
@@ -3833,6 +4275,33 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
+      WORD PeerConnection::registerNewLocalPort()
+      {
+        auto capabilities = ISCTPTransport::getCapabilities();
+        WORD startingPort = capabilities->mMinPort;
+        if (0 == startingPort) {
+          startingPort = capabilities->mMaxPort;
+          if (0 == startingPort) {
+            startingPort = 5000;
+          }
+        }
+
+        do
+        {
+          auto found = mExistingLocalPorts.find(startingPort);
+          if (found != mExistingLocalPorts.end()) {
+            if (startingPort == capabilities->mMaxPort) return 0;
+            ++startingPort;
+            continue;
+          }
+          break;
+        } while (true);
+
+        mExistingLocalPorts.insert(startingPort);
+        return startingPort;
+      }
+
+      //-----------------------------------------------------------------------
       void PeerConnection::flushLocalPending(ISessionDescriptionPtr description)
       {
         if (!mPendingLocalDescription) return;
@@ -3858,6 +4327,7 @@ namespace ortc
         close(transportInfo.mRTCP);
         close(transportInfo.mRTP);
         transportInfo.mNegotiationState = NegotiationState_Rejected;
+        unregisterID(transportInfo.mID);
       }
 
       //-----------------------------------------------------------------------
@@ -3885,16 +4355,36 @@ namespace ortc
       void PeerConnection::close(RTPMediaLineInfo &mediaLineInfo)
       {
         mediaLineInfo.mNegotiationState = NegotiationState_Rejected;
+        unregisterID(mediaLineInfo.mID);
       }
 
       //-----------------------------------------------------------------------
       void PeerConnection::close(SCTPMediaLineInfo &mediaLineInfo)
       {
+        for (auto iter_doNotUse = mediaLineInfo.mDataChannels.begin(); iter_doNotUse != mediaLineInfo.mDataChannels.end(); )
+        {
+          auto current = iter_doNotUse;
+          ++iter_doNotUse;
+
+          auto dataChannel = (*current).second;
+
+          if (dataChannel->mSubscription) {
+            dataChannel->mSubscription->cancel();
+            dataChannel->mSubscription.reset();
+          }
+          if (dataChannel->mDataChannel) {
+            dataChannel->mDataChannel->close();
+            dataChannel->mDataChannel.reset();
+          }
+          mediaLineInfo.mDataChannels.erase(current);
+        }
+
         if (mediaLineInfo.mSCTPTransport) {
           mediaLineInfo.mSCTPTransport->stop();
           mediaLineInfo.mSCTPTransport.reset();
         }
         mediaLineInfo.mNegotiationState = NegotiationState_Rejected;
+        unregisterID(mediaLineInfo.mID);
       }
 
       //-----------------------------------------------------------------------
@@ -3924,6 +4414,7 @@ namespace ortc
           senderInfo.mSender.reset();
         }
         senderInfo.mNegotiationState = NegotiationState_Rejected;
+        unregisterID(senderInfo.mID);
       }
 
       //-----------------------------------------------------------------------
@@ -3946,6 +4437,7 @@ namespace ortc
         }
         receiverInfo.mNegotiationState = NegotiationState_Rejected;
         purgeNonReferencedAndEmptyStreams();
+        unregisterID(receiverInfo.mID);
       }
 
       //-----------------------------------------------------------------------

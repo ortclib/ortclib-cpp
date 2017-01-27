@@ -605,7 +605,7 @@ namespace ortc
 
         if (0 == protoSplit[1].compareNoCase("DTLS")) {
           if (0 != protoSplit[2].compareNoCase("SCTP")) return ProtocolType_Unknown;
-          return ProtocolType_Unknown;
+          return ProtocolType_SCTP;
         }
 
         if (protoSplit.size() < 4) return ProtocolType_Unknown;
@@ -958,7 +958,7 @@ namespace ortc
         mCandidateType = split[7];
 
         if (split.size() > 8) {
-          for (auto index = 10; index < split.size(); index += 2)
+          for (size_t index = 10; index < split.size(); index += 2)
           {
             ExtensionPair value(split[index], split[index + 1]);
             if (0 == value.first.compareNoCase("raddr")) {

@@ -492,7 +492,7 @@ namespace ortc
                                     IMessageQueuePtr queue,
                                     bool createSCTPNow = true,
                                     Optional<WORD> localPort = Optional<WORD>(),
-                                    Optional<WORD> removePort = Optional<WORD>(),
+                                    Optional<WORD> remotePort = Optional<WORD>(),
                                     Milliseconds packetDelay = Milliseconds()
                                     );
 
@@ -503,7 +503,7 @@ namespace ortc
         void init(
                   bool createSCTPNow,
                   Optional<WORD> localPort,
-                  Optional<WORD> removePort,
+                  Optional<WORD> remotePort,
                   Milliseconds packetDelay
                   );
 
@@ -616,6 +616,7 @@ namespace ortc
         FakeICETransportPtr mICETransport;
         FakeSecureTransportPtr mDTLSTransport;
         ISCTPTransportPtr mSCTP;
+        Optional<WORD> mRemotePort {};
 
         SCTPTesterWeakPtr mConnectedTester;
 
