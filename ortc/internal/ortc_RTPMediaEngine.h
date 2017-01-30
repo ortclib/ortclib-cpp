@@ -983,11 +983,11 @@ namespace ortc
                                          char phase,
                                          const unsigned char *categoryGroupEnabled,
                                          const char *name,
-                                         uint64 id,
+                                         uint64_t id,
                                          int numArgs,
                                          const char **argNames,
                                          const unsigned char *argTypes,
-                                         const uint64 *argValues,
+                                         const uint64_t *argValues,
                                          unsigned char flags
                                          );
 
