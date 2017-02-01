@@ -81,9 +81,6 @@
     <ClInclude Include="..\..\..\ortc\ISCTPTransport.h">
       <Filter>ortc</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\ortc\ISettings.h">
-      <Filter>ortc</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\ortc\ISRTPSDESTransport.h">
       <Filter>ortc</Filter>
     </ClInclude>
@@ -205,9 +202,6 @@
       <Filter>ortc\internal</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\ortc\internal\ortc_SCTPTransportListener.h">
-      <Filter>ortc\internal</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\ortc\internal\ortc_Settings.h">
       <Filter>ortc\internal</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\ortc\internal\ortc_SRTPSDESTransport.h">
@@ -433,9 +427,6 @@
     <ClCompile Include="..\..\..\ortc\cpp\ortc_SCTPTransportListener.cpp">
       <Filter>ortc\cpp</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\ortc\cpp\ortc_Settings.cpp">
-      <Filter>ortc\cpp</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\ortc\cpp\ortc_SRTPSDESTransport.cpp">
       <Filter>ortc\cpp</Filter>
     </ClCompile>
@@ -481,8 +472,5 @@
     <ClCompile Include="..\..\..\ortc\adapter\cpp\ortc_adapter_MediaStream.cpp">
       <Filter>ortc\adapter\cpp</Filter>
     </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <Text Include="ReadMe.txt" />
   </ItemGroup>
 </Project>
