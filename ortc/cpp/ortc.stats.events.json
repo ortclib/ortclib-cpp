@@ -33,7 +33,7 @@
         },
         {
           "name": "puid",
-          "type": "ulong"
+          "type": "size_t"
         },
         {
           "name": "size_t",
