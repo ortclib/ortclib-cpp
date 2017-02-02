@@ -33,7 +33,7 @@
         },
         {
           "name": "puid",
-          "type": "size_t"
+          "type": "uint64"
         },
         {
           "name": "size_t",
