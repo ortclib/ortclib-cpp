@@ -19,6 +19,9 @@
     <Filter Include="ortc\adapter\internal">
       <UniqueIdentifier>{a46272cc-d4bc-45f1-9353-82cc226e179e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ortc\idl">
+      <UniqueIdentifier>{9ceab807-59c7-48a2-b3e6-101f52afbe9e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\ortc\IConstraints.h">
@@ -278,6 +281,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\ortc\internal\ortc.stats.events_win_etw.h">
       <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\Ortc.idl">
+      <Filter>ortc\idl</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

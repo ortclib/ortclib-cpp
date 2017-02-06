@@ -46,6 +46,7 @@
     <ClInclude Include="..\..\..\ortc\IDataChannel.h" />
     <ClInclude Include="..\..\..\ortc\IDataChannelTypes.h" />
     <ClInclude Include="..\..\..\ortc\IDataTransport.h" />
+    <ClInclude Include="..\..\..\ortc\idl\Ortc.idl" />
     <ClInclude Include="..\..\..\ortc\IDTLSTransport.h" />
     <ClInclude Include="..\..\..\ortc\IDTMFSender.h" />
     <ClInclude Include="..\..\..\ortc\IHelper.h" />
