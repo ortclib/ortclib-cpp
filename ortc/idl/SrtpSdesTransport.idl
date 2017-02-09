@@ -1,0 +1,143 @@
+/*
+
+ Copyright (c) 2017, Optical Tone Ltd.
+ All rights reserved.
+
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+
+ 1. Redistributions of source code must retain the above copyright notice, this
+ list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright notice,
+ this list of conditions and the following disclaimer in the documentation
+ and/or other materials provided with the distribution.
+
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+ The views and conclusions contained in the software and documentation are those
+ of the authors and should not be interpreted as representing official policies,
+ either expressed or implied, of the FreeBSD Project.
+ 
+ */
+
+
+namespace org
+{
+  namespace ortc
+  {
+    [dictionary]
+    struct RTCSrtpSdesKeyParameters
+    {    // see RFC 4568 sect 9.2
+      string  keyMethod;     // must be "inline"
+      string  keySalt;       // key + salt, base 64 encoded e.g. base64(16 bytes + 14 bytes)
+      string  lifetime;      // must be "2^n" where n is the max number of packets to flow throw the transport
+      string  mkiValue;      // base 10 expressed value of Master Key Identifier (MKI) converted to string
+      uint16  mkiLength;     // number of bytes allocated on each SRTP packet for Master Key Identifier (MKI) [max = 128 bytes]
+
+      [constructor, default]
+      void RTCSrtpSdesKeyParameters();
+      [constructor, altname(RTCSrtpSdesKeyParametersClone)]
+      void RTCSrtpSdesKeyParameters(RTCSrtpSdesKeyParameters source);
+      [constructor, default, altname(RTCSrtpSdesKeyParametersWithJson)]
+      void RTCSrtpSdesKeyParameters(Json json);
+
+      Json toJson();
+      string hash();  
+    };
+
+    [dictionary]
+    struct RTCSrtpSdesCryptoParameters
+    { // see RFC 4568 sect 9.2
+      typedef std::list<RTCSrtpSdesKeyParameters> KeyParametersList;
+      typedef StringList SessionParamList;
+
+      uint16            tag;
+      string            cryptoSuite;
+      KeyParametersList keyParams;
+      SessionParamList  sessionParams;
+
+      [constructor, default]
+      void RTCSrtpSdesCryptoParameters();
+      [constructor, altname(RTCSrtpSdesCryptoParametersClone)]
+      void RTCSrtpSdesCryptoParameters(RTCSrtpSdesCryptoParameters source);
+      [constructor, default, altname(RTCSrtpSdesCryptoParametersWithJson)]
+      void RTCSrtpSdesCryptoParameters(Json json);
+
+      Json toJson();
+      string hash();
+    };
+
+    [dictionary]
+    struct RTCSrtpSdesParameters
+    {
+      typedef std::list<RTCSrtpSdesCryptoParameters> CryptoParametersList;
+      CryptoParametersList cryptoParams;
+
+      [constructor, default]
+      void RTCSrtpSdesParameters();
+      [constructor, altname(RTCSrtpSdesParametersClone)]
+      void RTCSrtpSdesParameters(RTCSrtpSdesParameters source);
+      [constructor, default, altname(RTCSrtpSdesParametersWithJson)]
+      void RTCSrtpSdesParameters(Json json);
+
+      Json toJson();
+      string hash();
+    };
+
+    [dictionary]
+    struct RTCSrtpSdesTransportLifetimeRemaining
+    {
+      unsigned long leastLifetimeRemainingPercentageForAllKeys;
+      unsigned long overallLifetimeRemainingPercentage;
+    };
+
+    struct RTCSrtpSdesTransportLifetimeRemainingEvent
+    {
+      [getter]
+      RTCSrtpSdesTransportLifetimeRemaining data;
+    };
+
+    interface RTCSrtpSdesTransport : RTCRtpTransport,
+                                     RTCStatsProvider
+    {
+      [static]
+      RTCSrtpSdesTransport convert(RTCRtpTransport rtpTransport);
+
+      [constructor]
+      void RTCSrtpSdesTransport(
+                                RTCIceTransport iceTransport,
+                                RTCSrtpSdesCryptoParameters encryptParameters,
+                                RTCSrtpSdesCryptoParameters decryptParameters
+                                );
+
+      [getter]
+      puid id;
+
+      [getter]
+      RTCIceTransport transport;
+      [getter]
+      RTCIceTransport rtcpTransport;
+
+      [static]
+      RTCSrtpSdesParameters getLocalParameters();
+
+      void stop();
+
+      [event]
+      void onLifetimeRemaining(RTCSrtpSdesTransportLifetimeRemainingEvent event);
+
+      [event]
+      void onError(ErrorEvent event);
+    };
+
+  }
+}

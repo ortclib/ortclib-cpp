@@ -111,7 +111,7 @@ namespace ortc
 
     virtual PromiseWithResultPtr getIdentityAssertion(
                                                       const char *provider,
-                                                      const char *protoocl = "default",
+                                                      const char *protocol = "default",
                                                       const char *username = NULL
                                                       ) throw (InvalidStateError) = 0;
 

@@ -33,45 +33,64 @@ namespace org
 {
   namespace ortc
   {
-    using namespace zs;
-    using namespace zs::Log;
-
-    typedef zs::exceptions::InvalidParameters InvalidParameters;
-    typedef zs::exceptions::InvalidState InvalidStateError;
-    typedef zs::exceptions::NotSupported NotSupported;
-    typedef zs::exceptions::NotImplemented NotImplemented;
-    typedef zs::exceptions::Unexpected Unexpected;
-
-    //!EXCLUSIVE WINRT
-    struct Dispatcher {};
-    //!EXCLUSIVE x
-
-    interface Ortc
+    [dictionary]
+    struct RTCDtlsParameters
     {
-      [constructor, altname(OrtcWithQueue)]
-      void Ortc(MessageQueue queue);
+      typedef std::list<RTCDtlsFingerprint> FingerprintList;
 
-      //!EXCLUSIVE WINRT
-      [constructor, default, altname(OrtcWithDispatcher)]
-      void Ortc(Dispatcher dispatcher);
-      //!EXCLUSIVE x
+      RTCDtlsRole role = auto;
+      FingerprintList fingerprints;
 
-      [altname(getNtpServerTime)]
-      Milliseconds ntpServerTime();
-      [altname(setNtpServerTime)]
-      void ntpServerTime(Milliseconds value);
+      [constructor, default]
+      void RTCDtlsParameters();
+      [constructor, altname(RTCDtlsParametersClone)]
+      void RTCDtlsParameters(RTCDtlsParameters source);
+      [constructor, default, altname(RTCDtlsParametersWithJson)]
+      void RTCDtlsParameters(Json json);
 
-      void setDefaultLogLevel(Level level);
-      void setLogLevel(string componenet, Level level);
+      Json toJson();
+      string hash();
+    };
 
-      void setDefaultEventingLevel(Level level);
-      void setEventingLevel(string componenet, Level level);
+    struct RTCDtlsTransportStateChangeEvent
+    {
+      [getter]
+      RTCDtlsTransportState state;
+    };
 
-      void startMediaTracing();
-      void stopMediaTracing();
-      bool isMediaTracing();
-      bool saveMediaTrace(String filename);
-      bool saveMediaTrace(String host, int port);
+
+    interface RTCDtlsTransport : RTCDataTransport,
+                                 RTCRtpTransport,
+                                 RTCRtcpTransport,
+                                 RTCStatsProvider
+    {
+      typedef std::list<RTCCertificate> CertificateList;
+
+      [getter]
+      puid id;
+
+      [getter]
+      CertificateList certificates;
+
+      [getter]
+      RTCIceTransport transport;
+
+      [getter]
+      RTCDtlsTransportState state;
+
+      RTCDtlsParameters getLocalParameters();
+      RTCDtlsParameters getRemoteParameters();
+
+      binary getRemoteCertificates();
+
+      void start(RTCDtlsParameters remoteParameters) throws (InvalidStateError, InvalidParameters);
+      void stop();
+
+      [event]
+      void onStateChange(RTCDtlsTransportStateChangeEvent event);
+
+      [event]
+      void onError(ErrorEvent event);
     };
   }
 }

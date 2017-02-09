@@ -1,0 +1,137 @@
+/*
+
+ Copyright (c) 2017, Optical Tone Ltd.
+ All rights reserved.
+
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+
+ 1. Redistributions of source code must retain the above copyright notice, this
+ list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright notice,
+ this list of conditions and the following disclaimer in the documentation
+ and/or other materials provided with the distribution.
+
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+ The views and conclusions contained in the software and documentation are those
+ of the authors and should not be interpreted as representing official policies,
+ either expressed or implied, of the FreeBSD Project.
+ 
+ */
+
+namespace org
+{
+  namespace ortc
+  {
+    interface RTCDataTransport
+    {
+    };
+
+    [dictionary]
+    struct RTCDataChannelParameters
+    {
+      string            label;
+      bool              ordered = true;
+      Milliseconds      maxPacketLifetime;
+      uint32            maxRetransmits;
+      string            protocol;
+      bool              negotiated;
+      [optional]
+      uint16            id;
+
+      [constructor, default]
+      void Parameters();
+      [constructor, altname(ParametersClone)]
+      void Parameters(Parameters source);
+      [constructor, default, altname(ParametersWithJson)]
+      void Parameters(Json json);
+
+      Json toJson();
+      string hash();
+    };
+
+    [dictionary]
+    struct RTCMessageEventData
+    {
+      [getter]
+      binary binary;
+
+      [getter]
+      string text;
+    };
+
+    struct RTCDataChannelStateChangeEvent
+    {
+      [getter]
+      RTCDataChannelState state;
+    };
+
+    struct RTCMessageEvent
+    {
+      [getter]
+      RTCMessageEventData data;
+    };
+
+    interface RTCDataChannel : RTCStatsProvider
+    {
+      [constructor]
+      void RTCDataChannel(RTCDataTransport transport, RTCDataChannelParameters params) throws (InvalidParameters, InvalidStateError);
+
+      [getter]
+      puid id;
+
+      [getter]
+      RTCDataTransport transport;
+
+      [getter]
+      RTCDataChannelParameters parameters;
+
+      [getter]
+      RTCDataChannelState readyState;
+
+      [getter]
+      size_t bufferedAmount;
+
+      [getter, setter]
+      size_t bufferedAmountLowThreshold;
+
+      [getter, setter]
+      string binaryType;
+
+      void close();
+
+      [default, altname(sendWithString)]
+      void send(string text);
+      [altname(sendWithBinary)]
+      void send(binary data);
+
+      [event]
+      void onOpen();
+
+      [event]
+      void onClose();
+
+      [event]
+      void onStateChanged(RTCDataChannelStateChangeEvent event);
+
+      [event]
+      void onError(ErrorEvent event);
+
+      [event]
+      void onBufferedAmountLow();
+
+      [event]
+      void onMessage(RTCMessageEvent event);
+    };
+  }
+}

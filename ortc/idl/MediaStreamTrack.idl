@@ -1,0 +1,251 @@
+/*
+ 
+ Copyright (c) 2017, Optical Tone Ltd.
+ All rights reserved.
+ 
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+ 
+ 1. Redistributions of source code must retain the above copyright notice, this
+ list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright notice,
+ this list of conditions and the following disclaimer in the documentation
+ and/or other materials provided with the distribution.
+ 
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ 
+ The views and conclusions contained in the software and documentation are those
+ of the authors and should not be interpreted as representing official policies,
+ either expressed or implied, of the FreeBSD Project.
+ 
+ */
+
+namespace org
+{
+  namespace ortc
+  {
+    [dictionary]
+    struct MediaTrackCapabilities
+    {
+      typedef std::list<bool> BoolList;
+
+      [optional]
+      LongRange     width;
+      [optional]
+      LongRange     height;
+      [optional]
+      DoubleRange   aspectRatio;
+      [optional]
+      DoubleRange   fameRate;
+      StringList    facingMode;
+      [optional]
+      DoubleRange   volume;
+      [optional]
+      LongRange     sampleRate;
+      [optional]
+      LongRange     sampleSize;
+      BoolList      echoCancellation;
+      [optional]
+      DoubleRange   latency;
+      [optional]
+      LongRange     channelCount;
+
+      string        deviceID;
+      string        groupID;
+
+      [constructor, default]
+      void MediaTrackCapabilities();
+      [constructor, altname(MediaTrackCapabilitiesClone)]
+      void MediaTrackCapabilities(MediaTrackCapabilities source);
+      [constructor, default, altname(MediaTrackCapabilitiesWithJson)]
+      void MediaTrackCapabilities(Json json);
+
+      Json toJson();
+      string hash();
+    };
+
+    [dictionary]
+    struct MediaTrackSettings
+    {
+      [optional]
+      long     width;
+      [optional]
+      long     height;
+      [optional]
+      double   aspectRatio;
+      [optional]
+      double   frameRate;
+      [optional]
+      string   facingMode;
+      [optional]
+      string   orientation;
+      [optional]
+      double   volume;
+      [optional]
+      long     sampleRate;
+      [optional]
+      long     sampleSize;
+      [optional]
+      bool     echoCancellation;
+      [optional]
+      double   latency;
+      [optional]
+      long     channelCount;
+      [optional]
+      string   deviceId;
+      [optional]
+      string   groupId;
+
+      [constructor, default]
+      void MediaTrackSettings();
+      [constructor, altname(MediaTrackSettingsClone)]
+      void MediaTrackSettings(MediaStreamTrackSettings source);
+      [constructor, default, altname(MediaTrackSettingsWithJson)]
+      void MediaTrackSettings(Json json);
+
+      Json toJson();
+      string hash();
+    };
+
+    [dictionary]
+    struct MediaTrackConstraintSet
+    {
+      ConstrainLong     width;
+      ConstrainLong     height;
+      ConstrainDouble   aspectRatio;
+      ConstrainDouble   frameRate;
+      ConstrainString   facingMode;
+      ConstrainString   orientation;
+      ConstrainDouble   volume;
+      ConstrainLong     sampleRate;
+      ConstrainLong     sampleSize;
+      ConstrainBoolean  echoCancellation;
+      ConstrainDouble   latency;
+      ConstrainLong     cannelCount;
+      ConstrainString   deviceId;
+      ConstrainString   groupId;
+
+      [constructor, default]
+      void MediaTrackConstraintSet();
+      [constructor, altname(MediaTrackConstraintSetClone)]
+      void MediaTrackConstraintSet(MediaTrackConstraintSet source);
+      [constructor, default, altname(MediaTrackConstraintSetWithJson)]
+      void MediaTrackConstraintSet(Json json);
+
+      Json toJson();
+      string hash();
+    };
+
+    [dictionary]
+    struct MediaTrackConstraints : MediaTrackConstraintSet
+    {
+      typedef std::list<MediaTrackConstraintSet> ConstraintSetList;
+
+      ConstraintSetList advanced;
+
+      [constructor, default]
+      void MediaTrackConstraints();
+      [constructor, altname(MediaTrackConstraintsClone)]
+      void MediaTrackConstraints(MediaTrackConstraints source);
+      [constructor, default, altname(MediaTrackConstraintsWithJson)]
+      void MediaTrackConstraints(Json json);
+
+      Json toJson();
+      string hash();
+    };
+
+    [dictionary]
+    struct MediaStreamConstraints
+    {
+      [optional, nullable]
+      MediaTrackConstraints audio;
+      [optional, nullable]
+      MediaTrackConstraints video;
+
+      [constructor, default]
+      void MediaStreamConstraints();
+      [constructor, altname(MediaStreamConstraintsClone)]
+      void MediaStreamConstraints(MediaStreamConstraints source);
+      [constructor, default, altname(MediaStreamConstraintsWithJson)]
+      void MediaStreamConstraints(Json json);
+
+      Json toJson();
+      string hash();
+    };
+
+    [dictionary]
+    struct OverconstrainedError
+    {
+      string name;
+      string constraint;
+      string message;
+    };
+
+    struct OverconstrainedErrorEvent
+    {
+      [getter]
+      OverconstrainedError error;
+    };
+
+    interface MediaStreamTrack
+    {
+      [getter]
+      puid id;
+
+      [getter]
+      MediaStreamTrackKind kind;
+
+      [getter]
+      string identifier;
+
+      [getter]
+      string deviceId;
+
+      [getter]
+      string label;
+
+      [getter, setter]
+      bool enabled;
+
+      [getter, setter]
+      bool muted;
+
+      [getter]
+      bool remote;
+
+      [getter]
+      MediaStreamTrackState readyState;
+
+      MediaStreamTrack clone();
+
+      void stop();
+
+      MediaTrackCapabilities getCapabilities();
+      MediaTrackConstraints getConstraints();
+      MediaTrackSettings getSettings();
+
+      zs::Promise applyConstraints(MediaTrackConstraints constraints);
+
+      [event]
+      void onMute();
+
+      [event]
+      void onUnmute();
+
+      [event]
+      void onEnded();
+
+      [event]
+      void onOverConstrained(OverconstrainedErrorEvent event);
+    };
+  }
+}

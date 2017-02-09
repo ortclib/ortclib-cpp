@@ -33,45 +33,43 @@ namespace org
 {
   namespace ortc
   {
-    using namespace zs;
-    using namespace zs::Log;
+    namespace adapter
+    {  
+      interface MediaStream : RTCStatsProvider
+      {
+        typedef std::list<MediaStreamTrack> MediaStreamTrackList;
 
-    typedef zs::exceptions::InvalidParameters InvalidParameters;
-    typedef zs::exceptions::InvalidState InvalidStateError;
-    typedef zs::exceptions::NotSupported NotSupported;
-    typedef zs::exceptions::NotImplemented NotImplemented;
-    typedef zs::exceptions::Unexpected Unexpected;
+        [constructor, default]
+        void MediaStream();
+        [constructor, altname(MediaStreamClone)]
+        void MediaStream(MediaStream source);
+        [constructor, default, altname(MediaStreamWithTracks)]
+        void MediaStream(MediaStreamTrackList tracks);
 
-    //!EXCLUSIVE WINRT
-    struct Dispatcher {};
-    //!EXCLUSIVE x
+        [getter]
+        puid id;
 
-    interface Ortc
-    {
-      [constructor, altname(OrtcWithQueue)]
-      void Ortc(MessageQueue queue);
+        [getter]
+        bool active;
 
-      //!EXCLUSIVE WINRT
-      [constructor, default, altname(OrtcWithDispatcher)]
-      void Ortc(Dispatcher dispatcher);
-      //!EXCLUSIVE x
+        MediaStreamTrackList getAudioTracks();
+        MediaStreamTrackList getVideoTracks();
+        MediaStreamTrack getTrackById(string id);
 
-      [altname(getNtpServerTime)]
-      Milliseconds ntpServerTime();
-      [altname(setNtpServerTime)]
-      void ntpServerTime(Milliseconds value);
+        [getter]
+        size_t count;
 
-      void setDefaultLogLevel(Level level);
-      void setLogLevel(string componenet, Level level);
+        void addTrack(MediaStreamTrack track);
+        void removeTrack(MediaStreamTrack track);
 
-      void setDefaultEventingLevel(Level level);
-      void setEventingLevel(string componenet, Level level);
+        MediaStream clone();
 
-      void startMediaTracing();
-      void stopMediaTracing();
-      bool isMediaTracing();
-      bool saveMediaTrace(String filename);
-      bool saveMediaTrace(String host, int port);
-    };
+        [event]
+        void onAddTrack(MediaStreamTrack track);
+        [event]
+        void onRemoteTrack(MediaStreamTrack track);
+      };
+
+    }
   }
 }

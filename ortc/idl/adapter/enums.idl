@@ -33,45 +33,97 @@ namespace org
 {
   namespace ortc
   {
-    using namespace zs;
-    using namespace zs::Log;
-
-    typedef zs::exceptions::InvalidParameters InvalidParameters;
-    typedef zs::exceptions::InvalidState InvalidStateError;
-    typedef zs::exceptions::NotSupported NotSupported;
-    typedef zs::exceptions::NotImplemented NotImplemented;
-    typedef zs::exceptions::Unexpected Unexpected;
-
-    //!EXCLUSIVE WINRT
-    struct Dispatcher {};
-    //!EXCLUSIVE x
-
-    interface Ortc
+    namespace adapter
     {
-      [constructor, altname(OrtcWithQueue)]
-      void Ortc(MessageQueue queue);
+      enum RTCSdpType
+      {
+        sdpOffer,
+        sdpPranser,
+        sdpAnswer,
+        sdpRollback,
+      };
+  
+      enum RTCSessionDescriptionSignalingType
+      {
+        json,
+        sdpOffer,
+        sdpPranser,
+        sdpAnswer,
+        sdpRollback,
+      };
 
-      //!EXCLUSIVE WINRT
-      [constructor, default, altname(OrtcWithDispatcher)]
-      void Ortc(Dispatcher dispatcher);
-      //!EXCLUSIVE x
+      enum RTCSessionDescriptionMediaType
+      {
+        unknown,
+        audio,
+        video,
+        text,
+        application,
+      };
 
-      [altname(getNtpServerTime)]
-      Milliseconds ntpServerTime();
-      [altname(setNtpServerTime)]
-      void ntpServerTime(Milliseconds value);
+      enum RTCSessionDescriptionMediaDirection
+      {
+        sendReceive,
+        sendOnly,
+        receiveOnly,
+        inactive,
+      };
 
-      void setDefaultLogLevel(Level level);
-      void setLogLevel(string componenet, Level level);
 
-      void setDefaultEventingLevel(Level level);
-      void setEventingLevel(string componenet, Level level);
+      enum RTCBundlePolicy
+      {
+        balanced,
+        maxCompat,
+        maxBundle,
+      };
 
-      void startMediaTracing();
-      void stopMediaTracing();
-      bool isMediaTracing();
-      bool saveMediaTrace(String filename);
-      bool saveMediaTrace(String host, int port);
-    };
+
+      enum RTCRtcpMuxPolicy
+      {
+        negotiated,
+        require,
+      };
+
+
+      enum RTCPeerConnectionSignalingMode
+      {
+        json,
+        sdp,
+      };
+
+
+      enum RTCSignalingState
+      {
+        stable,
+        haveLocalOffer,
+        haveRemoteOffer,
+        haveLocalPranswer,
+        haveRemotePranswer,
+        closed,
+      };
+
+      enum RTCIceConnectionState
+      {
+        new,
+        checking,
+        connected,
+        completed,
+        disconnected,
+        failed,
+        closed,
+      };
+
+      enum RTCPeerConnectionState
+      {
+        new,
+        connecting,
+        connected,
+        disconnected,
+        failed,
+        closed,
+      };
+
+    }
+
   }
 }

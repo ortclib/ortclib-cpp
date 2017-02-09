@@ -22,6 +22,9 @@
     <Filter Include="ortc\idl">
       <UniqueIdentifier>{9ceab807-59c7-48a2-b3e6-101f52afbe9e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ortc\idl\adapter">
+      <UniqueIdentifier>{77c8ce93-8bbf-4b4a-92ba-49bf839a7dd9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\ortc\IConstraints.h">
@@ -323,6 +326,9 @@
     <None Include="..\..\..\ortc\internal\ortc.events.jman">
       <Filter>ortc\internal</Filter>
     </None>
+    <None Include="..\..\..\ortc\idl\config.json">
+      <Filter>ortc\idl</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\ortc\cpp\ortc.cpp">
@@ -478,5 +484,88 @@
     <ClCompile Include="..\..\..\ortc\adapter\cpp\ortc_adapter_MediaStream.cpp">
       <Filter>ortc\adapter\cpp</Filter>
     </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Midl Include="..\..\..\ortc\idl\Capabilities.idl">
+      <Filter>ortc\idl</Filter>
+    </Midl>
+    <Midl Include="..\..\..\ortc\idl\Certificate.idl">
+      <Filter>ortc\idl</Filter>
+    </Midl>
+    <Midl Include="..\..\..\ortc\idl\Constraints.idl">
+      <Filter>ortc\idl</Filter>
+    </Midl>
+    <Midl Include="..\..\..\ortc\idl\DataChannel.idl">
+      <Filter>ortc\idl</Filter>
+    </Midl>
+    <Midl Include="..\..\..\ortc\idl\StatsReport.idl">
+      <Filter>ortc\idl</Filter>
+    </Midl>
+    <Midl Include="..\..\..\ortc\idl\enums.idl">
+      <Filter>ortc\idl</Filter>
+    </Midl>
+    <Midl Include="..\..\..\ortc\idl\StatsProvider.idl">
+      <Filter>ortc\idl</Filter>
+    </Midl>
+    <Midl Include="..\..\..\ortc\idl\error.idl">
+      <Filter>ortc\idl</Filter>
+    </Midl>
+    <Midl Include="..\..\..\ortc\idl\DtlsTransport.idl">
+      <Filter>ortc\idl</Filter>
+    </Midl>
+    <Midl Include="..\..\..\ortc\idl\IceGatherer.idl">
+      <Filter>ortc\idl</Filter>
+    </Midl>
+    <Midl Include="..\..\..\ortc\idl\IceTypes.idl">
+      <Filter>ortc\idl</Filter>
+    </Midl>
+    <Midl Include="..\..\..\ortc\idl\IceTransport.idl">
+      <Filter>ortc\idl</Filter>
+    </Midl>
+    <Midl Include="..\..\..\ortc\idl\IceTransportController.idl">
+      <Filter>ortc\idl</Filter>
+    </Midl>
+    <Midl Include="..\..\..\ortc\idl\Identity.idl">
+      <Filter>ortc\idl</Filter>
+    </Midl>
+    <Midl Include="..\..\..\ortc\idl\MediaDevices.idl">
+      <Filter>ortc\idl</Filter>
+    </Midl>
+    <Midl Include="..\..\..\ortc\idl\MediaStreamTrack.idl">
+      <Filter>ortc\idl</Filter>
+    </Midl>
+    <Midl Include="..\..\..\ortc\idl\RtpListener.idl">
+      <Filter>ortc\idl</Filter>
+    </Midl>
+    <Midl Include="..\..\..\ortc\idl\RtpTypes.idl">
+      <Filter>ortc\idl</Filter>
+    </Midl>
+    <Midl Include="..\..\..\ortc\idl\RtpReceiver.idl">
+      <Filter>ortc\idl</Filter>
+    </Midl>
+    <Midl Include="..\..\..\ortc\idl\RtpSender.idl">
+      <Filter>ortc\idl</Filter>
+    </Midl>
+    <Midl Include="..\..\..\ortc\idl\DtmfSender.idl">
+      <Filter>ortc\idl</Filter>
+    </Midl>
+    <Midl Include="..\..\..\ortc\idl\SctpTransport.idl">
+      <Filter>ortc\idl</Filter>
+    </Midl>
+    <Midl Include="..\..\..\ortc\idl\SrtpSdesTransport.idl">
+      <Filter>ortc\idl</Filter>
+    </Midl>
+    <Midl Include="..\..\..\ortc\idl\adapter\enums.idl">
+      <Filter>ortc\idl\adapter</Filter>
+    </Midl>
+    <Midl Include="..\..\..\ortc\idl\adapter\PeerConnection.idl">
+      <Filter>ortc\idl\adapter</Filter>
+    </Midl>
+    <Midl Include="..\..\..\ortc\idl\adapter\SessionDescription.idl">
+      <Filter>ortc\idl\adapter</Filter>
+    </Midl>
+    <Midl Include="..\..\..\ortc\idl\adapter\MediaStream.idl">
+      <Filter>ortc\idl\adapter</Filter>
+    </Midl>
   </ItemGroup>
 </Project>

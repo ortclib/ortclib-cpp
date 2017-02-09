@@ -1,0 +1,510 @@
+/*
+
+ Copyright (c) 2017, Optical Tone Ltd.
+ All rights reserved.
+
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+
+ 1. Redistributions of source code must retain the above copyright notice, this
+ list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright notice,
+ this list of conditions and the following disclaimer in the documentation
+ and/or other materials provided with the distribution.
+
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+ The views and conclusions contained in the software and documentation are those
+ of the authors and should not be interpreted as representing official policies,
+ either expressed or implied, of the FreeBSD Project.
+ 
+ */
+
+namespace org
+{
+  namespace ortc
+  {
+    typedef uint32 SsrcType;
+    typedef uint8 PayloadType;
+    typedef std::list<SsrcType> SsrcTypeList;
+
+    struct RTCStatsTypeSet
+    {
+      typedef std::set<RTCStatsType> EnumSet;
+
+      [constructor, default]
+      void RTCStatsTypeSet();
+      [constructor, altname(RTCStatsTypeSetWithValues)]
+      void RTCStatsTypeSet(EnumSet values);
+
+      bool hasStatType(RTCStatsType type);
+    };
+
+    struct RTCStats
+    {
+      [getter]
+      Time                timestamp;
+      [optional, getter]
+      RTCStatsType        statsType;
+      [getter]
+      string              statsTypeOther;
+      [getter]
+      string              id;
+
+      [constructor, default]
+      void RTCStats();
+      [constructor, altname(RTCStatsClone)]
+      void RTCStats(RTCStats source);
+      [constructor, default, altname(RTCStatsWithJson)]
+      void RTCStats(Json json);
+
+      string statsType();
+
+      Json toJson();
+      string hash();
+
+      void eventTrace();
+    };
+
+
+    struct RTPStreamStats : RTCStats
+    {
+      [optional, getter]
+      SsrcType            ssrc;
+      [getter]
+      string              associatedStatId;
+      [getter]
+      bool                isRemote;
+      [getter]
+      string              mediaType;
+      [getter]
+      string              mediaTrackId;
+      [getter]
+      string              transportId;
+      [getter]
+      string              codecId;
+      [getter]
+      unsigned long       firCount;
+      [getter]
+      unsigned long       pliCount;
+      [getter]
+      unsigned long       nackCount;
+      [getter]
+      unsigned long       sliCount;
+
+      [constructor, default]
+      void RTPStreamStats();
+      [constructor, altname(RTPStreamStatsClone)]
+      void RTPStreamStats(RTPStreamStats source);
+      [constructor, default, altname(RTPStreamStatsWithJson)]
+      void RTPStreamStats(Json json);
+
+      [static]
+      RTPStreamStats convert(RTCStats stat);
+
+      Json toJson();
+      string hash();
+    };
+
+    struct RTCCodec : RTCStats
+    {
+      [optional, getter]
+      PayloadType      payloadType;
+      [getter]
+      string           codec;
+      [getter]
+      unsigned long    clockRate;
+      [optional, getter]
+      unsigned long    channels;
+      [getter]
+      string           parameters;
+
+      [constructor, default]
+      void RTCCodec();
+      [constructor, altname(RTCCodecClone)]
+      void RTCCodec(Codec source);
+      [constructor, default, altname(RTCCodecWithJson)]
+      void RTCCodec(Json json);
+
+      [static]
+      RTCCodec convert(RTCStats stat);
+
+      Json toJson();
+      string hash();
+    };
+
+    struct RTCInboundRTPStreamStats : RTPStreamStats
+    {
+      [getter]
+      unsigned long       packetsReceived;
+      [getter]
+      unsigned long long  bytesReceived;
+      [getter]
+      unsigned long       packetsLost;
+      [getter]
+      double              jitter;
+      [getter]
+      double              fractionLost;
+      [getter]
+      Milliseconds        endToEndDelay;
+
+      [constructor, default]
+      void RTCInboundRTPStreamStats();
+      [constructor, altname(RTCInboundRTPStreamStatsClone)]
+      void RTCInboundRTPStreamStats(RTCInboundRTPStreamStats source);
+      [constructor, default, altname(RTCInboundRTPStreamStatsWithJson)]
+      void RTCInboundRTPStreamStats(Json json);
+
+      [static]
+      RTCInboundRTPStreamStats convert(RTCStats stat);
+      [static]
+      RTCInboundRTPStreamStats convert(RTPStreamStats stat);
+
+      Json toJson();
+      string hash();
+    };
+
+
+    struct RTCOutboundRTPStreamStats : RTPStreamStats
+    {
+      [getter]
+      unsigned long       packetsSent;
+      [getter]
+      unsigned long long  bytesSent;
+      [getter]
+      double              targetBitrate;
+      [getter]
+      double              roundTripTime;
+
+      [constructor, default]
+      void RTCOutboundRTPStreamStats();
+      [constructor, altname(RTCOutboundRTPStreamStatsClone)]
+      void RTCOutboundRTPStreamStats(RTCOutboundRTPStreamStats source);
+      [constructor, default, altname(RTCOutboundRTPStreamStatsWithJson)]
+      void RTCOutboundRTPStreamStats(Json json);
+
+      [static]
+      RTCOutboundRTPStreamStats convert(RTCStats stat);
+      [static]
+      RTCOutboundRTPStreamStats convert(RTPStreamStats stat);
+
+      Json toJson();
+      string hash();
+    };
+
+    struct RTCSctpTransportStats : RTCStats
+    {
+      [getter]
+      unsigned long dataChannelsOpened;
+      [getter]
+      unsigned long dataChannelsClosed;
+
+      [constructor, default]
+      void RTCSctpTransportStats();
+      [constructor, altname(RTCSCTPTransportStatsClone)]
+      void RTCSctpTransportStats(RTCSCTPTransportStats source);
+      [constructor, default, altname(RTCSCTPTransportStatsWithJson)]
+      void RTCSctpTransportStats(Json json);
+
+      [static]
+      RTCSctpTransportStats convert(RTCStats stat);
+
+      Json toJson();
+      string hash();
+    };
+
+    struct RTCMediaStreamStats : RTCStats
+    {
+      [getter]
+      string      streamId;
+      [getter]
+      StringList  trackIds;
+
+      [constructor, default]
+      void RTCMediaStreamStats();
+      [constructor, altname(RTCMediaStreamStatsClone)]
+      void RTCMediaStreamStats(RTCMediaStreamStats source);
+      [constructor, default, altname(RTCMediaStreamStatsWithJson)]
+      void RTCMediaStreamStats(Json json);
+
+      [static]
+      RTCMediaStreamStats convert(RTCStats stat);
+
+      Json toJson();
+      string hash();
+    };
+
+
+    struct RTCMediaStreamTrackStats : RTCStats
+    {
+      [getter]
+      string          trackId;
+      [getter]
+      bool            remoteSource;
+      [getter]
+      SsrcTypeList    ssrcIds;
+      [getter]
+      unsigned long   frameWidth;
+      [getter]
+      unsigned long   frameHeight;
+      [getter]
+      double          framesPerSecond;
+      [getter]
+      unsigned long   framesSent;
+      [getter]
+      unsigned long   framesReceived;
+      [getter]
+      unsigned long   framesDecoded;
+      [getter]
+      unsigned long   framesDropped;
+      [getter]
+      unsigned long   framesCorrupted;
+      [getter]
+      double          audioLevel;
+      [getter]
+      double          echoReturnLoss;
+      [getter]
+      double          echoReturnLossEnhancement;
+
+      [constructor, default]
+      void RTCMediaStreamTrackStats();
+      [constructor, altname(RTCMediaStreamTrackStats)]
+      void RTCMediaStreamTrackStats(RTCMediaStreamTrackStats source);
+      [constructor, default, altname(RTCMediaStreamTrackStatsWithJson)]
+      void RTCMediaStreamTrackStats(Json json);
+
+      [static]
+      RTCMediaStreamTrackStats convert(RTCStats stat);
+
+      Json toJson();
+      string hash();
+    };
+
+
+    struct RTCDataChannelStats : RTCStats
+    {
+      [getter]
+      string                    label;
+      [getter]
+      string                    protocol;
+      [getter]
+      long                      dataChannelId;
+      [getter]
+      RTCDataChannelState       state;
+      [getter]
+      unsigned long             messagesSent;
+      [getter]
+      unsigned long long        bytesSent;
+      [getter]
+      unsigned long             messagesReceived;
+      [getter]
+      unsigned long long        bytesReceived;
+
+      [constructor, default]
+      void RTCDataChannelStats();
+      [constructor, altname(RTCDataChannelStatsClone)]
+      void RTCDataChannelStats(RTCDataChannelStats source);
+      [constructor, default, altname(RTCDataChannelStatsWithJson)]
+      void RTCDataChannelStats(Json json);
+
+      [static]
+      RTCDataChannelStats convert(RTCStats stat);
+
+      Json toJson();
+      string hash(); 
+    };
+
+
+    struct RTCIceGathererStats : RTCStats
+    {
+      [getter]
+      unsigned long long  bytesSent;
+      [getter]
+      unsigned long long  bytesReceived;
+      [getter]
+      string              rtcpGathererStatsId;
+
+      [constructor, default]
+      void RTCIceGathererStats();
+      [constructor, altname(RTCIceGathererStatsClone)]
+      void RTCIceGathererStats(RTCIceGathererStats source);
+      [constructor, default, altname(RTCIceGathererStatsWithJson)]
+      void RTCIceGathererStats(Json json);
+
+      [static]
+      RTCIceGathererStats convert(RTCStats stat);
+
+      Json toJson();
+      string hash();
+    };
+
+    struct RTCIceTransportStats : RTCStats
+    {
+      [getter]
+      unsigned long long  bytesSent;
+      [getter]
+      unsigned long long  bytesReceived;
+      [getter]
+      string              rtcpTransportStatsId;
+      [getter]
+      bool                activeConnection;
+      [getter]
+      string              selectedCandidatePairId;
+
+      [constructor, default]
+      void RTCIceTransportStats();
+      [constructor, altname(RTCIceTransportStatsClone)]
+      void RTCIceTransportStats(constRTCIceTransportStats source);
+      [constructor, default, altname(RTCIceTransportStatsWithJson)]
+      void RTCIceTransportStats(Json json);
+
+      [static]
+      RTCIceTransportStats convert(RTCStats stat);
+
+      Json toJson();
+      string hash();
+    };
+
+    struct RTCDtlsTransportStats : RTCStats
+    {
+      [getter]
+      string localCertificateId;
+      [getter]
+      string remoteCertificateId;
+
+      [constructor, default]
+      void RTCDtlsTransportStats();
+      [constructor, altname(RTCDtlsTransportStatsClone)]
+      void RTCDtlsTransportStats(RTCDtlsTransportStats source);
+      [constructor, default, altname(RTCDtlsTransportStatsWithJson)]
+      void RTCDtlsTransportStats(Json json);
+
+      [static]
+      RTCDtlsTransportStats convert(RTCStats stat);
+    };
+
+    struct RTCSrtpTransportStats : RTCStats
+    {
+      [constructor, default]
+      void RTCSrtpTransportStats();
+      [constructor, altname(RTCSrtpTransportStatsClone)]
+      void RTCSrtpTransportStats(RTCDtlsTransportStats source);
+      [constructor, default, altname(RTCSrtpTransportStatsWithJson)]
+      void RTCSrtpTransportStats(Json json);
+
+      [static]
+      RTCDtlsTransportStats convert(RTCStats stat);
+    };
+
+    struct RTCIceCandidateAttributes : RTCStats
+    {
+      [getter]
+      string                  relatedId;
+      [getter]
+      string                  ipAddress;
+      [getter]
+      unsigned long           portNumber;
+      [getter]
+      string                  transport;
+      [getter]
+      RTCIceCandidateType     candidateType;
+      [getter]
+      unsigned long           priority;
+      [getter]
+      string                  addressSourceUrl;
+
+      [constructor, default]
+      void RTCIceCandidateAttributes();
+      [constructor, altname(RTCIceCandidateAttributesClone)]
+      void RTCIceCandidateAttributes(RTCIceCandidateAttributes source);
+      [constructor, default, altname(RTCIceCandidateAttributesWithJson)]
+      void RTCIceCandidateAttributes(Json json);
+
+      [static]
+      RTCIceCandidateAttributes convert(RTCStats stat);
+    };
+
+    struct RTCIceCandidatePairStats : RTCStats
+    {
+      [getter]
+      string                          transportId;
+      [getter]
+      string                          localCandidateId;
+      [getter]
+      string                          remoteCandidateId;
+      [getter]
+      RTCIceCandidatePairState        state;
+      [getter]
+      unsigned long long              priority;
+      [getter]
+      bool                            nominated;
+      [getter]
+      bool                            writable;
+      [getter]
+      bool                            readable;
+      [getter]
+      unsigned long long              bytesSent;
+      [getter]
+      unsigned long long              bytesReceived;
+      [getter]
+      double                          roundTripTime;
+      [getter]
+      double                          availableOutgoingBitrate;
+      [getter]
+      double                          availableIncomingBitrate;
+
+      [constructor, default]
+      void RTCIceCandidatePairStats();
+      [constructor, altname(RTCIceCandidatePairStatsClone)]
+      void RTCIceCandidatePairStats(RTCIceCandidatePairStats source);
+      [constructor, default, altname(RTCIceCandidatePairStatsWithJson)]
+      void RTCIceCandidatePairStats(Json json);
+
+      [static]
+      RTCIceCandidatePairStats convert(RTCStats stat);
+    };
+
+
+    struct RTCCertificateStats : RTCStats
+    {
+      [getter]
+      string fingerprint;
+      [getter]
+      string fingerprintAlgorithm;
+      [getter]
+      string base64Certificate;
+      [getter]
+      string issuerCertificateId;
+
+      [constructor, default]
+      void RTCCertificateStats();
+      [constructor, altname(RTCCertificateStatsClone)]
+      void RTCCertificateStats(RTCCertificateStats source);
+      [constructor, default, altname(RTCCertificateStatsWithJson)]
+      void RTCCertificateStats(Json json);
+
+      [static]
+      RTCCertificateStats convert(RTCStats stat);
+    };
+
+    interaction RTCStatsReport
+    {
+      typedef StringList IdList;
+
+      [getter]
+      puid id;
+
+      IdList getStatesIds();
+      RTCStats getStats(string id);
+    };
+  }
+}

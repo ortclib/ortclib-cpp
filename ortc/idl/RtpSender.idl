@@ -33,45 +33,50 @@ namespace org
 {
   namespace ortc
   {
-    using namespace zs;
-    using namespace zs::Log;
-
-    typedef zs::exceptions::InvalidParameters InvalidParameters;
-    typedef zs::exceptions::InvalidState InvalidStateError;
-    typedef zs::exceptions::NotSupported NotSupported;
-    typedef zs::exceptions::NotImplemented NotImplemented;
-    typedef zs::exceptions::Unexpected Unexpected;
-
-    //!EXCLUSIVE WINRT
-    struct Dispatcher {};
-    //!EXCLUSIVE x
-
-    interface Ortc
+    struct RTCSsrcConflictEvent
     {
-      [constructor, altname(OrtcWithQueue)]
-      void Ortc(MessageQueue queue);
+      [getter]
+      SsrcType ssrc;
+    };
+  
+    interface RTCRtpSender : RTCStatsProvider
+    {
+      [constructor]
+      void RTCRtpSender(
+                        MediaStreamTrackPtr track,
+                        RTCRtpTransportPtr transport,
+                        [optional]
+                        RTCRtcpTransportPtr rtcpTransport
+                        );
 
-      //!EXCLUSIVE WINRT
-      [constructor, default, altname(OrtcWithDispatcher)]
-      void Ortc(Dispatcher dispatcher);
-      //!EXCLUSIVE x
+      [getter]
+      puid id;
 
-      [altname(getNtpServerTime)]
-      Milliseconds ntpServerTime();
-      [altname(setNtpServerTime)]
-      void ntpServerTime(Milliseconds value);
+      [getter]
+      MediaStreamTrack track;
 
-      void setDefaultLogLevel(Level level);
-      void setLogLevel(string componenet, Level level);
+      [getter]
+      RTCRtpTransport transport;
 
-      void setDefaultEventingLevel(Level level);
-      void setEventingLevel(string componenet, Level level);
+      [getter, nullable]
+      RTCRtcpTransport rtcpTransport;
 
-      void startMediaTracing();
-      void stopMediaTracing();
-      bool isMediaTracing();
-      bool saveMediaTrace(String filename);
-      bool saveMediaTrace(String host, int port);
+      void setTransport(
+                        RTCRtpTransport transport,
+                        [optional]
+                        RTCIRtcpTransport rtcpTransport
+                        );
+
+      zs::Promise setTrack(MediaStreamTrack track);
+
+      RTCRtpCapabilities getCapabilities([optional] MediaStreamTrackKind kind);
+
+      zs::Promise send(RTCRtpParameters parameters);
+
+      void stop();
+
+      [event]
+      void onSsrcConflict(RTCSsrcConflictEvent conflict);
     };
   }
 }

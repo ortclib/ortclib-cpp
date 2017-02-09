@@ -1,0 +1,334 @@
+/*
+
+ Copyright (c) 2017, Optical Tone Ltd.
+ All rights reserved.
+
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+
+ 1. Redistributions of source code must retain the above copyright notice, this
+ list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright notice,
+ this list of conditions and the following disclaimer in the documentation
+ and/or other materials provided with the distribution.
+
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+ The views and conclusions contained in the software and documentation are those
+ of the authors and should not be interpreted as representing official policies,
+ either expressed or implied, of the FreeBSD Project.
+ 
+ */
+
+namespace org
+{
+  namespace ortc
+  {
+    namespace adapter
+    {
+      [dictionary]
+      struct RTCSessionDescriptionConnectionDataDetails
+      {
+        [optional]
+        uint16 port;
+        string netType;
+        string addrType;
+        string connectionAddress;
+
+        [constructor, default]
+        void RTCSessionDescriptionConnectionDataDetails();
+        [constructor, altname(RTCSessionDescriptionConnectionDataDetailsClone)]
+        void RTCSessionDescriptionConnectionDataDetails(RTCSessionDescriptionConnectionDataDetails source);
+        [constructor, default, altname(RTCSessionDescriptionConnectionDataDetailsWithJson)]
+        void RTCSessionDescriptionConnectionDataDetails(Json json);
+
+        Json toJson();
+        string hash();
+      };
+
+      [dictionary]
+      struct RTCSessionDescriptionConnectionData
+      {
+        RTCSessionDescriptionConnectionDataDetails rtp;
+        RTCSessionDescriptionConnectionDataDetails rtcp;
+
+        [constructor, default]
+        void RTCSessionDescriptionConnectionData();
+        [constructor, altname(RTCSessionDescriptionConnectionDataClone)]
+        void RTCSessionDescriptionConnectionData(RTCSessionDescriptionConnectionData source);
+        [constructor, default, altname(RTCSessionDescriptionConnectionDataWithJson)]
+        void RTCSessionDescriptionConnectionData(Json json);
+
+        Json toJson();
+        string hash();
+      };
+
+      [dictionary]
+      struct RTCSessionDescriptionTransportParameters
+      {
+        typedef std::list<RTCIceCandidate> CandidateList;
+
+        RTCIceParameters iceParameters;
+        RTCDtlsParameters dtlsParameters;
+        RTCSrtpSdesParameters srtpSdesParameters;
+        CandidateList mICECandidates;
+        bool mEndOfCandidates;
+
+        [constructor, default]
+        void RTCSessionDescriptionTransportParameters();
+        [constructor, altname(RTCSessionDescriptionTransportParametersClone)]
+        void RTCSessionDescriptionTransportParameters(RTCSessionDescriptionTransportParameters source);
+        [constructor, default, altname(RTCSessionDescriptionTransportParametersWithJson)]
+        void RTCSessionDescriptionTransportParameters(Json json);
+
+        Json toJson();
+        string hash();
+      };
+
+      [dictionary]
+      struct RTCSessionDescriptionTransport
+      {
+        string transportId;
+        RTCSessionDescriptionTransportParameters rtp;
+        RTCSessionDescriptionTransportParameters rtcp;
+        bool useMux;
+
+        [constructor, default]
+        void RTCSessionDescriptionTransport();
+        [constructor, altname(RTCSessionDescriptionTransportClone)]
+        void RTCSessionDescriptionTransport(RTCSessionDescriptionTransport source);
+        [constructor, default, altname(RTCSessionDescriptionTransportWithJson)]
+        void RTCSessionDescriptionTransport(Json json);
+
+        Json toJson();
+        string hash();
+      };
+
+      [dictionary]
+      struct RTCSessionDescriptionMediaLineDetails
+      {
+        size_t internalIndex;
+        string privateTransportID;
+
+        string protocol;
+
+        RTCSessionDescriptionConnectionData connectionData;
+        RTCSessionDescriptionMediaDirection mediaDirection = sendReceive;
+
+        [constructor, default]
+        void RTCSessionDescriptionMediaLineDetails();
+        [constructor, altname(RTCSessionDescriptionMediaLineDetailsClone)]
+        void RTCSessionDescriptionMediaLineDetails(RTCSessionDescriptionMediaLineDetails source);
+        [constructor, default, altname(RTCSessionDescriptionMediaLineDetailsWithJson)]
+        void RTCSessionDescriptionMediaLineDetails(Json json);
+
+        Json toJson();
+        string hash();
+      };
+
+      [dictionary]
+      struct RTCSessionDescriptionMediaLine
+      {
+        string id;
+        string transportId;
+
+        string mediaType;
+        RTCSessionDescriptionMediaLineDetails details;
+
+        [constructor, default]
+        void RTCSessionDescriptionMediaLine();
+        [constructor, altname(RTCSessionDescriptionMediaLineClone)]
+        void RTCSessionDescriptionMediaLine(RTCSessionDescriptionMediaLine source);
+        [constructor, default, altname(RTCSessionDescriptionMediaLineWithJson)]
+        void RTCSessionDescriptionMediaLine(Json json);
+
+        Json toJson();
+        string hash();
+      };
+
+      [dictionary]
+      struct RTCSessionDescriptionRtpMediaLine : RTCSessionDescriptionMediaLine
+      {
+        RTCRtpCapabilities senderCapabilities;
+        RTCRtpCapabilities receiverCapabilities;
+
+        [constructor, default]
+        void RTCSessionDescriptionRtpMediaLine();
+        [constructor, altname(RTCSessionDescriptionRtpMediaLineClone)]
+        void RTCSessionDescriptionRtpMediaLine(RTCSessionDescriptionRtpMediaLine source);
+        [constructor, default, altname(RTCSessionDescriptionRtpMediaLineWithJson)]
+        void RTCSessionDescriptionRtpMediaLine(Json json);
+
+        Json toJson();
+        string hash();
+      };
+
+      [dictionary]
+      struct RTCSessionDescriptionSctpMediaLine : RTCSessionDescriptionMediaLine
+      {
+        RTCSctpCapabilities capabilities;
+        [optional]
+        uint16 port;
+
+        [constructor, default]
+        void RTCSessionDescriptionSctpMediaLine();
+        [constructor, altname(RTCSessionDescriptionSctpMediaLineClone)]
+        void RTCSessionDescriptionSctpMediaLine(RTCSessionDescriptionSctpMediaLine source);
+        [constructor, default, altname(RTCSessionDescriptionSctpMediaLineWithJson)]
+        void RTCSessionDescriptionSctpMediaLine(Json json);
+
+        Json toJson();
+        string hash();
+      };
+
+      [dictionary]
+      struct RTCSessionDescriptionRtpSenderDetails
+      {
+        [optional]
+        size_t internalRtpMediaLineIndex;
+
+        [constructor, default]
+        void RTCSessionDescriptionRtpSenderDetails();
+        [constructor, altname(RTCSessionDescriptionRtpSenderDetailsClone)]
+        void RTCSessionDescriptionRtpSenderDetails(RTCSessionDescriptionRtpSenderDetails source);
+        [constructor, default, altname(RTCSessionDescriptionRtpSenderDetailsWithJson)]
+        void RTCSessionDescriptionRtpSenderDetails(Json json);
+
+        Json toJson();
+        string hash();
+      };
+
+      [dictionary]
+      struct RTCSessionDescriptionRtpSender
+      {
+        typedef string MediaStreamId;
+        typedef std::set<MediaStreamId> MediaStreamSet;
+
+        string id;
+        RTCSessionDescriptionRtpSenderDetails details;
+        string rtpMediaLineId;
+        RTCRtpParameters parameters;
+        string mediaStreamTrackId;
+        MediaStreamSet mediaStreamIds;
+
+        [constructor, default]
+        void RTCSessionDescriptionRtpSender();
+        [constructor, altname(RTCSessionDescriptionRtpSenderClone)]
+        void RTCSessionDescriptionRtpSender(RTCSessionDescriptionRtpSender source);
+        [constructor, default, altname(RTCSessionDescriptionRtpSenderWithJson)]
+        void RTCSessionDescriptionRtpSender(Json json);
+
+        Json toJson();
+        string hash();
+      };
+
+      [dictionary]
+      struct RTCIceCandidate
+      {
+        string mid;
+        [optional]
+        size_t mLineIndex;
+        RTCIceGatherCandidate candidate;
+
+        [constructor, default]
+        void RTCIceCandidate();
+        [constructor, altname(RTCIceCandidateClone)]
+        void RTCIceCandidate(RTCIceCandidate source);
+        [constructor, default, altname(RTCIceCandidateWithJson)]
+        void RTCIceCandidate(Json json);
+        [constructor, default, altname(RTCIceCandidateWithSdp)]
+        void RTCIceCandidate(string sdp);
+
+        Json toJson();
+        string toSdp();
+
+        string hash();
+      };
+
+      [dictionary]
+      struct RTCSessionDescriptionDescriptionDetails
+      {
+        string username = "-";
+        unsigned long long sessionId;
+        unsigned long long sessionVersion;
+        RTCSessionDescriptionConnectionDataDetails unicaseAddress;
+        string sessionName;
+        uint64 startTime;
+        uint64 endTime;
+        RTCSessionDescriptionConnectionData connectionData;  // optional; can be null;
+
+        [constructor, default]
+        void RTCSessionDescriptionDescriptionDetails();
+        [constructor, altname(RTCSessionDescriptionDescriptionDetailsClone)]
+        void RTCSessionDescriptionDescriptionDetails(RTCSessionDescriptionDescriptionDetails source);
+        [constructor, default, altname(RTCSessionDescriptionDescriptionDetailsWithJson)]
+        void RTCSessionDescriptionDescriptionDetails(Json json);
+
+        Json toJson();
+        string hash();
+      };
+
+      [dictionary]
+      struct RTCSessionDescriptionDescription
+      {
+        typedef std::list<RTCSessionDescriptionTransport> TransportList;
+        typedef std::list<RTCSessionDescriptionRtpMediaLine> RtpMediaList;
+        typedef std::list<RTCSessionDescriptionSctpMediaLine> SctpMediaList;
+        typedef std::list<RTCSessionDescriptionRtpSender> RtpSenderList;
+
+        RTCSessionDescriptionDescriptionDetails details;
+
+        TransportList transports;
+        RtpMediaList rtpMediaLines;
+        SctpMediaList sctpMediaLines;
+        RtpSenderList rtpSenders;
+
+        [constructor, default]
+        void RTCSessionDescriptionDescription();
+        [constructor, altname(RTCSessionDescriptionDescriptionClone)]
+        void RTCSessionDescriptionDescription(RTCSessionDescriptionDescription source);
+        [constructor, default, altname(RTCSessionDescriptionDescriptionWithJson)]
+        void RTCSessionDescriptionDescription(Json json);
+
+        Json toJson();
+        string hash();
+      };
+
+      interface RTCSessionDescription
+      {
+        [constructor, default, altname(RTCSessionDescriptionWithString)]
+        void RTCSessionDescription(
+                                   RTCSessionDescriptionSignalingType type,
+                                   string description
+                                   );
+
+        [constructor, altname(RTCSessionDescriptionWithDescription)]
+        void RTCSessionDescription(
+                                   RTCSessionDescriptionSignalingType type,
+                                   RTCSessionDescriptionDescription description
+                                   );
+
+        [getter]
+        puid id;
+
+        [getter]
+        RTCSessionDescriptionSignalingType type;
+
+        [getter]
+        RTCSessionDescriptionDescription description;
+
+        [getter]
+        string formattedDescription;
+      };
+    }
+  }
+}

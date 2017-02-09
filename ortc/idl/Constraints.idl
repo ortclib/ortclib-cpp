@@ -1,0 +1,208 @@
+/*
+ 
+ Copyright (c) 2017, Optical Tone Ltd.
+ All rights reserved.
+ 
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+ 
+ 1. Redistributions of source code must retain the above copyright notice, this
+ list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright notice,
+ this list of conditions and the following disclaimer in the documentation
+ and/or other materials provided with the distribution.
+ 
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ 
+ The views and conclusions contained in the software and documentation are those
+ of the authors and should not be interpreted as representing official policies,
+ either expressed or implied, of the FreeBSD Project.
+ 
+ */
+
+namespace org
+{
+  namespace ortc
+  {
+    [dictionary]
+    struct ConstrainBooleanParameters {
+      [optional]
+      bool exact;
+      [optional]
+      bool ideal;
+
+      [constructor, default]
+      void ConstrainBooleanParameters();
+      [constructor, altname(ConstrainBooleanParametersClone)]
+      void ConstrainBooleanParameters(ConstrainBooleanParameters source);
+      [constructor, default, altname(ConstrainBooleanParametersWithJson)]
+      void ConstrainBooleanParameters(Json json);
+
+      Json toJson();
+      string hash();
+    };
+
+    [dictionary]
+    struct ConstrainBoolean
+    {
+      [optional]
+      bool value;
+      [optional]
+      ConstrainBooleanParameters parameters;
+
+      [constructor, default]
+      void ConstrainBoolean();
+      [constructor, altname(ConstrainBooleanClone)]
+      void ConstrainBoolean(ConstrainBoolean source);
+      [constructor, default, altname(ConstrainBooleanWithJson)]
+      void ConstrainBoolean(Json json);
+
+      Json toJson();
+      string hash();
+    };
+
+    [dictionary]
+    struct ConstrainLongRange {
+      [optional]
+      long min;
+      [optional]
+      long max;
+      [optional]
+      long exact;
+      [optional]
+      long ideal;
+
+      [constructor, default]
+      void ConstrainLongRange();
+      [constructor, altname(ConstrainLongRangeClone)]
+      void ConstrainLongRange(ConstrainLongRange source);
+      [constructor, default, altname(ConstrainLongRangeWithJson)]
+      void ConstrainLongRange(Json json);
+
+      Json toJson();
+      string hash();
+    };
+
+    [dictionary]
+    struct ConstrainLong {
+      [optional]
+      long value;
+      [optional]
+      ConstrainLongRange range;
+
+      [constructor, default]
+      void ConstrainLong();
+      [constructor]
+      void ConstrainLong(ConstrainLong source);
+      [constructor, default, altname(ConstrainLongWithJson)]
+      void ConstrainLong(Json json);
+
+      Json toJson();
+      string hash();
+    };
+
+    [dictionary]
+    struct ConstrainDoubleRange {
+      [optional]
+      double min;
+      [optional]
+      double max;
+      [optional]
+      double exact;
+      [optional]
+      double ideal;
+
+      [constructor, default]
+      void ConstrainDoubleRange();
+      [constructor, altname(ConstrainDoubleRangeClone)]
+      void ConstrainDoubleRange(ConstrainDoubleRange source);
+      [constructor, default, altname(ConstrainDoubleRangeWithJson)]
+      void ConstrainDoubleRange(Json json);
+
+      Json toJson();
+      string hash();
+    };
+
+    [dictionary]
+    struct ConstrainDouble {
+      [optional]
+      double value;
+      [optional]
+      ConstrainDoubleRange range;
+
+      [constructor, default]
+      void ConstrainDouble();
+      [constructor, altname(ConstrainDoubleClone)]
+      void ConstrainDouble(ConstrainDouble source);
+      [constructor, default, altname(ConstrainDoubleWithJson)]
+      void ConstrainDouble(Json json);
+
+      Json toJson();
+      string hash();
+    };
+
+    [dictionary]
+    struct StringOrStringList {
+      [optional]
+      string value;
+      [optional]
+      StringList values;
+
+      [constructor, default]
+      void StringOrStringList();
+      [constructor, altname(StringOrStringListClone)]
+      void StringOrStringList(StringOrStringList source);
+      [constructor, default, altname(StringOrStringListWithJson)]
+      void StringOrStringList(Json json);
+
+      Json toJson();
+      string hash();
+    };
+
+    [dictionary]
+    struct ConstrainStringParameters {
+      [optional]
+      StringOrStringList exact;
+      [optional]
+      StringOrStringList ideal;
+
+      [constructor, default]
+      void ConstrainStringParameters();
+      [constructor, altname(ConstrainStringParametersClone)]
+      void ConstrainStringParameters(ConstrainStringParameters source);
+      [constructor, default, altname(ConstrainStringParametersWithJson)]
+      void ConstrainStringParameters(Json json);
+
+      Json toJson();
+      string hash();
+    };
+
+    [dictionary]
+    struct ConstrainString {
+      [optional]
+      StringOrStringList value;
+      [optional]
+      ConstrainStringParameters parameters;
+
+      [constructor, default]
+      void ConstrainString();
+      [constructor, altname(ConstrainStringClone)]
+      void ConstrainString(ConstrainString source);
+      [constructor, default, altname(ConstrainStringWithJson)]
+      void ConstrainString(Json json);
+
+      Json toJson();
+      string hash();
+    };
+
+  }
+}

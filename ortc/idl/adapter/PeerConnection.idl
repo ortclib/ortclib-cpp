@@ -1,0 +1,235 @@
+/*
+
+ Copyright (c) 2017, Optical Tone Ltd.
+ All rights reserved.
+
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+
+ 1. Redistributions of source code must retain the above copyright notice, this
+ list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright notice,
+ this list of conditions and the following disclaimer in the documentation
+ and/or other materials provided with the distribution.
+
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+ The views and conclusions contained in the software and documentation are those
+ of the authors and should not be interpreted as representing official policies,
+ either expressed or implied, of the FreeBSD Project.
+ 
+ */
+
+namespace org
+{
+  namespace ortc
+  {
+    namespace adapter
+    {
+      [dictionary]
+      struct RTCConfiguration
+      {
+        typedef std::list<RTCCertificate> CertificateList;
+
+        RTCIceGathererOptions gatherOptions;
+        RTCPeerConnectionSignalingMode signalingMode = json;
+        bool negotiateSrtpSdes;
+
+        RTCBundlePolicy bundlePolicy = balanced;
+        RTCRtcpMuxPolicy rtcpMuxPolicy = required;
+        CertificateList certificates;
+        size_t iceCandidatePoolSize;
+
+        [constructor, default]
+        void RTCConfiguration();
+        [constructor, altname(RTCConfigurationClone)]
+        void RTCConfiguration(RTCConfiguration source);
+      };
+
+      [dictionary]
+      struct RTCOfferAnswerOptions
+      {
+        bool voiceActivityDetection = true;
+      };
+
+      [dictionary]
+      struct RTCOfferOptions : RTCOfferAnswerOptions
+      {
+        bool iceRestart;
+      };
+
+      [dictionary]
+      struct RTCAnswerOptions : RTCOfferAnswerOptions
+      {
+      };
+
+      [dictionary]
+      struct RTCCapabilityOptions : RTCOfferAnswerOptions
+      {
+      };
+
+      [dictionary]
+      struct RTCMediaStreamTrackConfiguration
+      {
+        RTCRtpCapabilities capabilities;
+        RTCRtpParameters parameters;
+
+        [constructor, default]
+        void RTCMediaStreamTrackConfiguration();
+        [constructor, altname(RTCMediaStreamTrackConfigurationClone)]
+        void RTCMediaStreamTrackConfiguration(RTCMediaStreamTrackConfiguration source);
+      };
+
+      interface RTCPeerConnectionIceErrorEvent
+      {
+        string mid;
+        [optional]
+        unsigned short  mLineIndex;
+
+        RTCIceCandidate hostCandidate;
+        string          url;
+        [optional]
+        uint16          errorCode;
+        string          errorText;
+      };
+
+      struct RTCPeerConnectionIceEvent
+      {
+        RTCIceCandidate candidate;
+        string uri;
+      };
+
+      struct RTCPeerConnectionIceCompleteEvent
+      {
+        RTCIceCandidateComplete candidate;
+      };
+
+      struct RTCTrackEvent
+      {
+        typedef std::list<MediaStream> MediaStreamList;
+
+        RTCRtpReceiver receiver;
+        MediaStreamTrack track;
+        MediaStreamList mediaStreams;
+      };
+
+      interface RTCPeerConnection : RTCStatsProvider
+      {
+        typedef PromiseWith<RTCSessionDescription> PromiseWithDescription;
+        typedef std::list<RTCIceServer> ServerList;
+        typedef std::list<RTCRtpSender> SenderList;
+        typedef std::list<RTCRtpReceiver> ReceiverList;
+        typedef PromiseWith<RTCRtpSender> PromiseWithSender;
+        typedef PromiseWith<RTCDataChannel> PromiseWithDataChannel;
+
+        [constructor]
+        void RTCPeerConnection([optional] RTCConfiguration configuration);
+
+        PromiseWithDescription createOffer([optional] RTCOfferOptions options);
+        PromiseWithDescription createAnswer([optional] RTCAnswerOptions options);
+
+        PromiseWithDescription createCapabilities([optional] RTCCapabilityOptions options);
+
+        Promise setLocalDescription(RTCSessionDescription description);
+
+        [getter]
+        RTCSessionDescription localDescription;
+        [getter]
+        RTCSessionDescription currentDescription;
+        [getter]
+        RTCSessionDescription pendingDescription;
+
+        Promise setRemoteDescription(RTCSessionDescription description);
+        [getter]
+        RTCSessionDescription remoteDescription;
+        [getter]
+        RTCSessionDescription currentRemoteDescription;
+        [getter]
+        RTCSessionDescription pendingRemoteDescription;
+        void addICECandidate([dynamic] RTCIceGathererCandidate candidate);
+
+        [getter]
+        RTCSignalingState signalingState;
+        [getter]
+        RTCIceGathererState iceGatheringState;
+
+        [getter]
+        RTCIceConnectionState iceConnectionState;
+        [getter]
+        RTCPeerConnectionState connectionState;
+        [getter]
+        bool canTrickleCandidates;
+
+        ServerList getDefaultIceServers();
+
+        RTCConfiguration getConfiguration();
+        void setConfiguration(RTCConfiguration config);
+
+        void close();
+
+        SenderList getSenders();
+        ReceiverList getReceivers();
+
+        [default]
+        PromiseWithSender addTrack(
+                                   MediaStreamTrack track,
+                                   [optional]
+                                   RTCMediaStreamTrackConfiguration config
+                                   );
+        [altname(addTrackWithStreams)]
+        PromiseWithSender addTrack(
+                                   MediaStreamTrack track,
+                                   MediaStreamList mediaStreams,
+                                   [optional]
+                                   RTCMediaStreamTrackConfiguration config
+                                   );
+
+        void removeTrack(RTCRtpSender sender);
+
+        PromiseWithDataChannel createDataChannel(RTCDataChannelParameters parameters);
+
+        [event]
+        void onNegotiationNeeded();
+
+        [event]
+        void onIceCandidate(RTCPeerConnectionIceEvent event);
+
+        [event]
+        void onIceCandidateComplete(RTCPeerConnectionIceCompleteEvent event);
+
+        [event]
+        void onIceCandidateError(RTCPeerConnectionIceErrorEvent event);
+
+        [event]
+        void onSignalingStateChange();
+
+        [event]
+        void onIceConnectionStateChange();
+
+        [event]
+        void onIceGatheringStateChange();
+
+        [event]
+        void onConnectionStateChange();
+
+        [event]
+        void onTrack(RTCTrackEvent event);
+
+        [event]
+        void onTrackGone(RTCTrackEvent event);
+
+        [event]
+        void onDataChannel(RTCDataChannelEvent event);
+      };
+    }
+  }
+}

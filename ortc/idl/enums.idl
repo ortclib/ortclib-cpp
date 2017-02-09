@@ -1,0 +1,250 @@
+/*
+
+ Copyright (c) 2017, Optical Tone Ltd.
+ All rights reserved.
+
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+
+ 1. Redistributions of source code must retain the above copyright notice, this
+ list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright notice,
+ this list of conditions and the following disclaimer in the documentation
+ and/or other materials provided with the distribution.
+
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+ The views and conclusions contained in the software and documentation are those
+ of the authors and should not be interpreted as representing official policies,
+ either expressed or implied, of the FreeBSD Project.
+ 
+ */
+
+namespace org
+{
+  namespace ortc
+  {
+    enum RTCDataChannelState
+    {
+      connecting,
+      open,
+      closing,
+      closed,
+    };
+
+    enum RTCSctpTransportState
+    {
+      new,
+      connecting,
+      connected,
+      closed,
+    };
+
+    enum RTCIceRole
+    {
+      controlling,
+      controlled,
+    };
+
+    enum RTCIceComponent
+    {
+      rtp,
+      rtcp,
+    };
+
+    enum RTCIceProtocol
+    {
+      udp,
+      tcp,
+    };
+
+    enum RTCIceCandidateType
+    {
+      host,
+      srflex,
+      prflx,
+      relay,
+    };
+
+    enum RTCIceTcpCandidateType
+    {
+      active,
+      passive,
+      so,
+    };
+
+
+    enum RTCIceGathererState
+    {
+      new,
+      gathering,
+      complete,
+      closed,
+    };
+
+    enum RTCIceGathererFilterPolicy : uint64
+    {
+      none = 0,
+      noIPv4Host = 0x00000001,
+      noIPv4Srflx = 0x00000002,
+      noIPv4Prflx = 0x00000004,
+      noIPv4Relay = 0x00000008,
+      noIPv4Private = 0x00000010,
+      noIPv4 = 0x000000FF,
+      noIPv6Host = 0x00000100,
+      noIPv6Srflx = 0x00000200,
+      noIPv6Prflx = 0x00000400,
+      noIPv6Relay = 0x00000800,
+      noIPv6Private = 0x00001000,
+      noIPv6Tunnel = 0x00002000,
+      noIPv6Permanent = 0x00004000,
+      noIPv6 = 0x0000FF00,
+      noHost = 0x00000101,
+      noSrflx = 0x00000202,
+      noPrflx = 0x00000404,
+      noRelay = 0x00000808,
+      noPrivate = 0x00001010,
+      relayOnly = 0x00000707,
+      noCandidates = 0x7FFFFFFF,
+    };
+
+    enum RTCIceCredentialType
+    {
+      password,
+      token,
+    };
+
+    enum RTCIceTransportState
+    {
+      new,
+      checking,
+      connected,
+      completed,
+      disconnected,
+      failed,
+      closed,
+    };
+
+    enum RTCDataChannelState
+    {
+      connecting,
+      open,
+      closing,
+      closed,
+    };
+
+    enum RTCDtlsTransportState
+    {
+      new,
+      connecting,
+      connected,
+      closed,
+      failed,
+    };
+
+    enum RTCDtlsRole
+    {
+      auto,
+      client,
+      server,
+    };
+
+    enum RTCStatsType
+    {
+      inboundRTP,
+      outboundRTP,
+      codec,
+      sctpTransport,
+      dataChannel,
+      stream,
+      track,
+      iceGatherer,
+      iceTransport,
+      dtlsTransport,
+      srtpTransport,
+      certificate,
+      candidate,
+      candidatePair,
+      localCandidate,
+      remoteCandidate,
+    };
+
+    enum RTCIceCandidatePairState
+    {
+      frozen,
+      waiting,
+      inProgress,
+      failed,
+      succeeded,
+      cancelled,
+    };
+
+    enum MediaStreamTrackKind
+    {
+      audio,
+      video
+    };
+
+    enum MediaStreamTrackState
+    {
+      live,
+      ended,
+    };
+
+    enum MediaDeviceKind
+    {
+      audioInput,
+      audioOutput,
+      videoInput,
+    };
+
+
+    enum RTCRtpDegradationPreference
+    {
+      maintainFramerate,
+      maintainResolution,
+      balanced,
+    };
+
+    enum RTCRtpPriorityType
+    {
+      veryLow,
+      low,
+      medium,
+      high,
+    };
+
+    enum RTCRtpOpusCodecCapabilityOptionsSignal
+    {
+      auto,
+      music,
+      voice,
+    };
+
+
+    enum RTCRtpOpusCodecCapabilityOptionsApplication
+    {
+      voip,
+      audio,
+      lowDelay,
+    };
+
+    enum RTCRtpFlexFecCodecCapabilityParametersToP
+    {
+      n1DInterleavedFEC = 0,
+      n1DNonInterleavedFEC = 1,
+      n2DParityFEEC = 2,
+      reserved = 3,
+    };
+
+  }
+}

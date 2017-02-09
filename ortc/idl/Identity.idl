@@ -33,45 +33,53 @@ namespace org
 {
   namespace ortc
   {
-    using namespace zs;
-    using namespace zs::Log;
-
-    typedef zs::exceptions::InvalidParameters InvalidParameters;
-    typedef zs::exceptions::InvalidState InvalidStateError;
-    typedef zs::exceptions::NotSupported NotSupported;
-    typedef zs::exceptions::NotImplemented NotImplemented;
-    typedef zs::exceptions::Unexpected Unexpected;
-
-    //!EXCLUSIVE WINRT
-    struct Dispatcher {};
-    //!EXCLUSIVE x
-
-    interface Ortc
+    [dictionary]
+    struct RTCIdentityAssertion
     {
-      [constructor, altname(OrtcWithQueue)]
-      void Ortc(MessageQueue queue);
+      string idp;
+      string name;
+    };
 
-      //!EXCLUSIVE WINRT
-      [constructor, default, altname(OrtcWithDispatcher)]
-      void Ortc(Dispatcher dispatcher);
-      //!EXCLUSIVE x
+    [dictionary]
+    struct RTCIdentityResult
+    {
+      string assertion;
+    };
 
-      [altname(getNtpServerTime)]
-      Milliseconds ntpServerTime();
-      [altname(setNtpServerTime)]
-      void ntpServerTime(Milliseconds value);
+    [dictionary]
+    struct RTCIdentityError
+    {
+      string        idp;
+      string        protocol;
+      string        loginUrl;
+    };
 
-      void setDefaultLogLevel(Level level);
-      void setLogLevel(string componenet, Level level);
+    interface RTCIdentity
+    {
+      typedef PromiseWith<RTCIdentityResult, RTCIdentityError> PromiseWithResult;
+      typedef PromiseWith<RTCIdentityAssertion> PromiseWithAssertion;
 
-      void setDefaultEventingLevel(Level level);
-      void setEventingLevel(string componenet, Level level);
+      [constructor]
+      void RTCIdentity(RTCDtlsTransport transport);
 
-      void startMediaTracing();
-      void stopMediaTracing();
-      bool isMediaTracing();
-      bool saveMediaTrace(String filename);
-      bool saveMediaTrace(String host, int port);
+      [getter]
+      puid id;
+
+      [getter]
+      RTCIdentityAssertion peerIdentity;
+
+      [getter]
+      RTCDtlsTransport transport;
+
+      PromiseWithResult getIdentityAssertion(
+                                             string provider,
+                                             [optional]
+                                             string protocol,
+                                             [optional]
+                                             string username
+                                             );
+
+      PromiseWithAssertion setIdentityAssertion(string assertion);
     };
   }
 }

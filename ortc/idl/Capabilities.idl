@@ -1,17 +1,17 @@
 /*
-
+ 
  Copyright (c) 2017, Optical Tone Ltd.
  All rights reserved.
-
+ 
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions are met:
-
+ 
  1. Redistributions of source code must retain the above copyright notice, this
  list of conditions and the following disclaimer.
  2. Redistributions in binary form must reproduce the above copyright notice,
  this list of conditions and the following disclaimer in the documentation
  and/or other materials provided with the distribution.
-
+ 
  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
  ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
  WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
@@ -22,7 +22,7 @@
  ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-
+ 
  The views and conclusions contained in the software and documentation are those
  of the authors and should not be interpreted as representing official policies,
  either expressed or implied, of the FreeBSD Project.
@@ -33,45 +33,49 @@ namespace org
 {
   namespace ortc
   {
-    using namespace zs;
-    using namespace zs::Log;
-
-    typedef zs::exceptions::InvalidParameters InvalidParameters;
-    typedef zs::exceptions::InvalidState InvalidStateError;
-    typedef zs::exceptions::NotSupported NotSupported;
-    typedef zs::exceptions::NotImplemented NotImplemented;
-    typedef zs::exceptions::Unexpected Unexpected;
-
-    //!EXCLUSIVE WINRT
-    struct Dispatcher {};
-    //!EXCLUSIVE x
-
-    interface Ortc
+    [dictionary]
+    struct LongRange
     {
-      [constructor, altname(OrtcWithQueue)]
-      void Ortc(MessageQueue queue);
+      long min;
+      long max;
 
-      //!EXCLUSIVE WINRT
-      [constructor, default, altname(OrtcWithDispatcher)]
-      void Ortc(Dispatcher dispatcher);
-      //!EXCLUSIVE x
+      [constructor, default]
+      void LongRange();
 
-      [altname(getNtpServerTime)]
-      Milliseconds ntpServerTime();
-      [altname(setNtpServerTime)]
-      void ntpServerTime(Milliseconds value);
+      [constructor, default, altname(LongRangeWithValue)]
+      void LongRange(long value);
 
-      void setDefaultLogLevel(Level level);
-      void setLogLevel(string componenet, Level level);
+      [constructor, default, altname(LongRangeWithLimits)]
+      void LongRange(long min, long max);
 
-      void setDefaultEventingLevel(Level level);
-      void setEventingLevel(string componenet, Level level);
+      [constructor, altname(LongRangeWithJson)]
+      void LongRange(Json json);
 
-      void startMediaTracing();
-      void stopMediaTracing();
-      bool isMediaTracing();
-      bool saveMediaTrace(String filename);
-      bool saveMediaTrace(String host, int port);
+      Json toJson();
+      string hash();
     };
+
+    [dictionary]
+    struct DoubleRange
+    {
+      double min;
+      double max;
+
+      [constructor, default]
+      void DoubleRange();
+
+      [constructor, default, altname(DoubleRangeWithValue)]
+      void DoubleRange(long value);
+
+      [constructor, default, altname(DoubleRangeWithLimits)]
+      void DoubleRange(long min, long max);
+
+      [constructor, altname(DoubleRangeWithJson)]
+      void DoubleRange(Json json);
+
+      Json toJson();
+      string hash();
+    }
+
   }
 }

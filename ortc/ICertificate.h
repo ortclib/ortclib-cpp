@@ -82,7 +82,7 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
-  #pragma mark IDTLSTransport
+  #pragma mark ICertificate
   #pragma mark
 
   interaction ICertificate : public ICertificateTypes,

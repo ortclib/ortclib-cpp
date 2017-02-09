@@ -1,0 +1,169 @@
+/*
+
+ Copyright (c) 2017, Optical Tone Ltd.
+ All rights reserved.
+
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+
+ 1. Redistributions of source code must retain the above copyright notice, this
+ list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright notice,
+ this list of conditions and the following disclaimer in the documentation
+ and/or other materials provided with the distribution.
+
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+ The views and conclusions contained in the software and documentation are those
+ of the authors and should not be interpreted as representing official policies,
+ either expressed or implied, of the FreeBSD Project.
+ 
+ */
+
+namespace org
+{
+  namespace ortc
+  {
+    [dictionary]
+    struct RTCIceGathererInterfacePolicy
+    {
+      string                      interfaceType;
+      RTCIceGathererFilterPolicy  gatherPolicy = none;
+
+      [constructor, default]
+      void RTCIceGathererInterfacePolicy();
+      [constructor, altname(RTCIceGathererInterfacePolicyClone)]
+      void RTCIceGathererInterfacePolicy(RTCIceGathererInterfacePolicy source);
+      [constructor, default, altname(RTCIceGathererInterfacePolicyWithJson)]
+      void RTCIceGathererInterfacePolicy(Json json);
+
+      Json toJson();
+      string hash();
+    };
+
+    [dictionary]
+    struct RTCIceServer
+    {
+      StringList            urls;
+      string                userName;
+      string                credential;
+      RTCIceCredentialType  credentialType = password;
+
+      [constructor, default]
+      void RTCIceServer();
+      [constructor, altname(RTCIceServerClone)]
+      void RTCIceServer(RTCIceServer source);
+      [constructor, default, altname(RTCIceServerWithJson)]
+      void RTCIceServer(Json json);
+
+      Json toJson();
+      string hash();
+    };
+
+    [dictionary]
+    struct RTCIceGathererOptions
+    {
+      typedef std::list<RTCIceGathererInterfacePolicy> InterfacePolicyList;
+      typedef std::list<RTCIceServer> ServerList;
+
+      bool                continuousGathering = true;
+      InterfacePolicyList interfacePolicies;
+      ServerList          iceServers;
+
+      [constructor, default]
+      void RTCIceGathererOptions();
+      [constructor, altname(RTCIceGathererOptionsClone)]
+      void RTCIceGathererOptions(RTCIceGathererOptions source);
+      [constructor, default, altname(RTCIceGathererOptionsWithJson)]
+      void RTCIceGathererOptions(ElementPtr elem);
+
+      Json toJson();
+      string hash();
+    };
+
+    [dictionary]
+    struct RTCIceGathererIceErrorEvent
+    {
+      [nullable]
+      RTCIceCandidate hostCandidate;
+      string          url;
+      uint16          errorCode;
+      string          errorText;
+    };
+
+
+    struct RTCIceGathererStateChangeEvent
+    {
+      [getter]
+      RTCIceGathererState state;
+    };
+
+    struct RTCIceGathererCandidateEvent
+    {
+      [getter]
+      RTCIceCandidate candidate;
+      [getter]
+      string url;
+    };
+
+    struct RTCIceGathererCandidateCompleteEvent
+    {
+      [getter]
+      RTCIceCandidateComplete candidate;
+    };
+
+    interface RTCIceGatherer : RTCStatsProvider
+    {
+      typedef std::list<RTCIceCandidate> CandidateList;
+
+      [constructor]
+      void RTCIceGatherer(RTCIceGathererOptions options);
+
+      [getter]
+      puid id;
+
+      [getter]
+      RTCIceComponent component;
+
+      [getter]
+      RTCIceGathererState state;
+
+      RTCIceParameters getLocalParameters();
+      CandidateList getLocalCandidates();
+
+      RTCIceGatherer createAssociatedGatherer();
+
+      void gather(
+                  [optional]
+                  RTCIceGathererEvent options
+                  );
+
+      void close();
+
+      [event]
+      void onStateChange(RTCIceGathererStateChangeEvent event);
+
+      [event]
+      void onLocalCandidate(RTCIceGathererCandidateEvent event);
+
+      [event]
+      void onLocalCandidateComplete(RTCIceGathererCandidateCompleteEvent event);
+
+      [event]
+      void onLocalCandidateGone(RTCIceGathererCandidateEvent event);
+
+      [event]
+      void onError(RTCIceGathererIceErrorEvent event);
+    };
+
+  }
+}

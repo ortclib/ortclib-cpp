@@ -1,0 +1,529 @@
+/*
+
+ Copyright (c) 2017, Optical Tone Ltd.
+ All rights reserved.
+
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+
+ 1. Redistributions of source code must retain the above copyright notice, this
+ list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright notice,
+ this list of conditions and the following disclaimer in the documentation
+ and/or other materials provided with the distribution.
+
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+ The views and conclusions contained in the software and documentation are those
+ of the authors and should not be interpreted as representing official policies,
+ either expressed or implied, of the FreeBSD Project.
+ 
+ */
+
+namespace org
+{
+  namespace ortc
+  {
+    [dictionary]
+    struct RTCRtpCodecCapabilityOptions
+    {
+    };
+
+    [dictionary]
+    struct RTCRtpCodecCapabilityParameters
+    {
+    };
+
+    [dictionary]
+    struct RTCRtcpFeedback
+    {
+      string type;
+      string parameter;
+
+      [constructor, default]
+      void RTCRtcpFeedback();
+      [constructor, altname(RTCRtcpFeedbackClone)]
+      void RTCRtcpFeedback(RTCRtcpFeedback source);
+      [constructor, default, altname(RTCRtcpFeedbackWithJson)]
+      void RTCRtcpFeedback(Json json);
+
+      Json toJson();
+      string hash();
+    };
+
+    [dictionary]
+    struct RTCRtpCodecCapability
+    {
+      typedef std::list<RTCRtcpFeedback> RtcpFeedbackList;
+
+      string                          name;
+      string                          kind;
+      [optional]
+      unsigned long                   clockRate;
+      PayloadType                     peferredPayloadType;
+      Milliseconds                    pTime;
+      Milliseconds                    maxPTime;
+      [optional]
+      unsigned long                   numChannels;
+      RtcpFeedbackList                rtcpFeedback;
+      [dynamic]
+      RTCRtpCodecCapabilityParameters parameters;        // OpusCodecCapabilityParameters, VP8CodecCapabilityParameters, H264CodecCapabilityParameters, RTXCodecCapabilityParameters, FlexFECCodecCapabilityParameters
+      [dynamic]
+      RTCRtpCodecCapabilityOptions    options;                 // OpusCodecCapabilityOptions
+      unsigned short                  maxTemporalLayers;
+      unsigned short                  maxSpatialLayers;
+      bool                            svcMultiStreamSupport;
+
+      [constructor, default]
+      void RTCRtpCodecCapability();
+      [constructor, altname(RTCRtpCodecCapabilityClone)]
+      void RTCRtpCodecCapability(RTCRtpCodecCapability source);
+      [constructor, default, altname(RTCRtpCodecCapabilityWithJson)]
+      void RTCRtpCodecCapability(Json json);
+
+      Json toJson();
+      string hash();
+    };
+
+    [dictionary]
+    struct RTCRtpHeaderExtension
+    {
+      string kind;
+      string uri;
+      uint16 preferredId;
+      bool   preferredEncrypt;
+
+      [constructor, default]
+      void RTCRtpHeaderExtension();
+      [constructor, altname(RTCRtpHeaderExtensionClone)]
+      void RTCRtpHeaderExtension(RTCRtpHeaderExtension source);
+      [constructor, default, altname(RTCRtpHeaderExtensionWithJson)]
+      void RTCRtpHeaderExtension(Json json);
+
+      Json toJson();
+      string hash();
+    };
+
+
+    [dictionary]
+    struct RTCRtpCapabilities
+    {
+      typedef string FecMechanism;
+      typedef std::list<RTCRtpCodecCapability> CodecCapabilityList;
+      typedef std::list<RTCRtpHeaderExtension> HeaderExtensionsList;
+      typedef std::list<FecMechanism> FecMechanismList;
+
+      CodecCapabilityList   codecs;
+      HeaderExtensionsList  headerExtensions;
+      FecMechanismList      fecMechanisms;
+
+      [constructor, default]
+      void RTCRtpCapabilities();
+      [constructor, altname(RTCRtpCapabilitiesClone)]
+      void RTCRtpCapabilities(RTCRtpCapabilities source);
+      [constructor, default, altname(RTCRtpCapabilitiesWithJson)]
+      void RTCRtpCapabilities(Json json);
+
+      Json toJson();
+      string hash();
+    };
+
+    [dictionary]
+    struct RTCRtpOpusCodecCapabilityOptions : RTCRtpCodecCapabilityOptions
+    {
+      // sender capabilities
+      [optional]
+      unsigned long complexity;
+      [optional]
+      RTCRtpOpusCodecCapabilityOptionsSignal signal;
+      [optional]
+      RTCRtpOpusCodecCapabilityOptionsApplication application;
+      [optional]
+      unsigned long packetLossPerc;
+      [optional]
+      bool predictionDisabled;
+
+      [constructor, default]
+      void RTCRtpOpusCodecCapabilityOptions();
+      [constructor, altname(RTCRtpOpusCodecCapabilityOptionsClone)]
+      void RTCRtpOpusCodecCapabilityOptions(RTCRtpOpusCodecCapabilityOptions source);
+      [constructor, default, altname(RTCRtpOpusCodecCapabilityOptionsWithJson)]
+      void RTCRtpOpusCodecCapabilityOptions(Json json);
+
+      Json toJson();
+      string hash();
+    };
+
+    
+    // https://tools.ietf.org/html/rfc7587#section-6.1
+    [dictionary]
+    struct RTCRtpOpusCodecCapabilityParameters : RTCRtpCodecCapabilityParameters
+    {
+      [optional]
+      unsigned long maxPlaybackRate;
+      [optional]
+      unsigned long maxAverageBitrate;
+      [optional]
+      bool stereo;
+      [optional]
+      bool cbr;
+      [optional]
+      bool useInbandFec;
+      [optional]
+      bool useDtx;
+
+      // sender capability parameters
+      [optional]
+      unsigned long sPropMaxCaptureRate;
+      [optional]
+      bool sPropStereo;
+
+      [constructor, default]
+      void RTCRtpOpusCodecCapabilityParameters();
+      [constructor, altname(RTCRtpOpusCodecCapabilityParametersSource)]
+      void RTCRtpOpusCodecCapabilityParameters(RTCRtpOpusCodecCapabilityParameters source);
+      [constructor, default, altname(RTCRtpOpusCodecCapabilityParametersWithJson)]
+      void RTCRtpOpusCodecCapabilityParameters(Json json);
+
+      Json toJson();
+      string hash();
+    };
+
+    // https://tools.ietf.org/html/rfc7741#section-6.1
+    [dictionary]
+    struct RTCRtpVp8CodecCapabilityParameters : RTCRtpCodecCapabilityParameters
+    {
+      [optional]
+      unsigned long maxFr;
+      [optional]
+      unsigned long long maxFs;
+
+      [constructor, default]
+      void RTCRtpVp8CodecCapabilityParameters();
+      [constructor, altname(RTCRtpVp8CodecCapabilityParametersClone)]
+      void RTCRtpVp8CodecCapabilityParameters(RTCRtpVp8CodecCapabilityParameters source);
+      [constructor, default, altname(RTCRtpVp8CodecCapabilityParametersWithJson)]
+      void RTCRtpVp8CodecCapabilityParameters(Json json);
+
+      Json toJson();
+      string hash();
+    };
+
+    // https://tools.ietf.org/html/rfc7742#section-6.2
+    [dictionary]
+    struct RTCRtpH264CodecCapabilityParameters : RTCRtpCodecCapabilityParameters
+    {
+      typedef std::list<unsigned short>  PacketizationModeList;
+
+      [optional]
+      unsigned long profileLevelId;
+      PacketizationModeList packetizationModes;
+
+      [optional]
+      unsigned long long maxMnps;
+      [optional]
+      unsigned long long maxSMbps;
+      [optional]
+      unsigned long long maxFs;
+      [optional]
+      unsigned long long maxCpb;
+      [optional]
+      unsigned long long maxDpb;
+      [optional]
+      unsigned long long maxBr;
+
+      [constructor, default]
+      void RTCRtpH264CodecCapabilityParameters();
+      [constructor, altname(RTCRtpH264CodecCapabilityParametersClone)]
+      void RTCRtpH264CodecCapabilityParameters(RTCRtpH264CodecCapabilityParameters source);
+      [constructor, default, altname(RTCRtpH264CodecCapabilityParametersWithJson)]
+      void RTCRtpH264CodecCapabilityParameters(Json json);
+
+      Json toJson();
+      string hash();
+    };
+    
+    // https://tools.ietf.org/html/rfc4588#section-8.1
+    [dictionary]
+    struct RTCRtpRtxCodecCapabilityParameters : RTCRtpCodecCapabilityParameters
+    {
+      PayloadType apt;
+      Milliseconds rtxTime;
+
+      [constructor, default]
+      void RTCRtpRtxCodecCapabilityParameters();
+      [constructor, altname(RTCRtpRtxCodecCapabilityParametersClone)]
+      void RTCRtpRtxCodecCapabilityParameters(RTCRtpRtxCodecCapabilityParameters source);
+      [constructor, default, altname(RTCRtpRtxCodecCapabilityParametersWithJson)]
+      void RTCRtpRtxCodecCapabilityParameters(Json json);
+
+      Json toJson();
+      string hash();
+    };
+
+    struct RTCRtpFlexFecCodecCapabilityParameters : RTCRtpCodecCapabilityParameters
+    {
+      Microseconds repairWindow;
+
+      [optional]
+      unsigned long l;
+      [optional]
+      unsigned long d;
+      [optional]
+      RTCRtpFlexFecCodecCapabilityParametersToP toP;
+
+      [constructor, default]
+      void RTCRtpFlexFecCodecCapabilityParameters();
+      [constructor, altname(RTCRtpFlexFecCodecCapabilityParametersClone)]
+      void RTCRtpFlexFecCodecCapabilityParameters(RTCRtpFlexFecCodecCapabilityParameters source);
+      [constructor, default, altname(RTCRtpFlexFecCodecCapabilityParametersWithJson)]
+      void RTCRtpFlexFecCodecCapabilityParameters(Json json);
+
+      Json toJson();
+      string hash();
+    };
+
+    [dictionary]
+    struct RTCRtcpParameters {
+      SsrcType  ssrc;
+      string    cName;
+      bool      reducedSize;
+      bool      mux = true;
+
+      [constructor, default]
+      void RTCRtcpParameters();
+      [constructor, altname(RTCRtcpParametersClone)]
+      void RTCRtcpParameters(RTCRtcpParameters source);
+      [constructor, default, altname(RTCRtcpParametersWithJson)]
+      void RTCRtcpParameters(Json json);
+
+      Json toJson();
+      string hash();
+    };
+
+    typedef RTCRtpCodecCapabilityParameters RTCRtpCodecParameterSettings;
+
+    [dictionary]
+    struct RTCRtpCodecParameters
+    {
+      typedef std::list<RTCRtcpFeedback> RtcpFeedbackList;
+
+      string                        name;
+      PayloadType                   payloadType;
+      [optional]
+      unsigned long                 clockRate;
+      Milliseconds                  pTime;
+      Milliseconds                  maxPTime;
+      [optional]
+      unsigned long                 numChannels;
+      RtcpFeedbackList              rtcpFeedback;
+      [dynamic]
+      RTCRtpCodecParameterSettings  parameters;  // see OpusCodecParameters, RTXCodecParameters, REDCodecParameters, FlexFECCodecParameters for definitions
+
+      [constructor, default]
+      void RTCRtpCodecParameters();
+      [constructor, altname(RTCRtpCodecParametersClone)]
+      void RTCRtpCodecParameters(RTCRtpCodecParameters source);
+      [constructor, default, altname(RTCRtpCodecParametersWithJson)]
+      void RTCRtpCodecParameters(Json json);
+
+      Json toJson();
+      string hash();
+    };
+
+    [dictionary]
+    struct RTCRtpHeaderExtensionParameters
+    {
+      string  uri;
+      uint16  id;
+      bool    encrypt;
+
+      [constructor, default]
+      void RTCRtpHeaderExtensionParameters();
+      [constructor, altname(RTCRtpHeaderExtensionParametersClone)]
+      void RTCRtpHeaderExtensionParameters(RTCRtpHeaderExtensionParameters source);
+      [constructor, default, altname(RTCRtpHeaderExtensionParametersWithJson)]
+      void RTCRtpHeaderExtensionParameters(Json json);
+
+      Json toJson();
+      string hash();
+    };
+
+    [dictionary]
+    struct RTCRtpFecParameters
+    {
+      [optional]
+      SsrcType  ssrc;
+      string    mechanism;
+
+      [constructor, default]
+      void RTCRtpFecParameters();
+      [constructor, altname(RTCRtpFecParametersClone)]
+      void RTCRtpFecParameters(RTCRtpFecParameters source);
+      [constructor, default, altname(RTCRtpFecParametersWithJson)]
+      void RTCRtpFecParameters(Json json);
+
+      Json toJson();
+      string hash();
+    };
+
+    [dictionary]
+    struct RTCRtpRtxParameters
+    {
+      [optional]
+      SsrcType ssrc;
+
+      [constructor, default]
+      void RTCRtpRtxParameters();
+      [constructor, altname(RTCRtpRtxParametersClone)]
+      void RTCRtpRtxParameters(RTCRtpRtxParameters source);
+      [constructor, default, altname(RTCRtpRtxParametersWithJson)]
+      void RTCRtpRtxParameters(Json json);
+
+      Json toJson();
+      string hash();
+    };
+
+    [dictionary]
+    struct RTCRtpEncodingParameters
+    {
+      typedef string EncodingId;
+      typedef std::list<EncodingId> EncodingIdList;
+
+      [optional]
+      SsrcType                ssrc;
+      [optional]
+      PayloadType             codecPayloadType;
+      [optional]
+      RTCRtpFecParameters     fec;
+      [optional]
+      RTCRtpRtxParameters     rtx;
+      [optional]
+      RTCRtpPriorityType      priority;
+      [optional]
+      unsigned long long      maxBitrate;
+      [optional]
+      double                  minQuality;
+      [optional]
+      double                  resolutionScale;
+      [optional]
+      double                  framerateScale;
+      bool                    active = true;
+      EncodingId              encodingId;
+      EncodingIdList          dependencyEncodingIds;
+
+      [constructor, default]
+      void RTCRtpEncodingParameters();
+      [constructor, altname(RTCRtpEncodingParametersClone)]
+      void RTCRtpEncodingParameters(RTCRtpEncodingParameters source);
+      [constructor, default, altname(RTCRtpEncodingParametersWithJson)]
+      void RTCRtpEncodingParameters(Json json);
+
+      Json toJson();
+      string hash();
+    };
+
+    [dictionary]
+    struct RTCRtpParameters
+    {
+      typedef std::list<RTCRtpCodecParameters> CodecParametersList;
+      typedef std::list<RTCRtpHeaderExtensionParameters> HeaderExtensionParametersList;
+      typedef std::list<RTCRtpEncodingParameters> EncodingParametersList;
+
+      string                        muxId;
+      CodecParametersList           codecs;
+      HeaderExtensionParametersList headerExtensions;
+      EncodingParametersList        encodings;
+      RTCRtcpParameters             rtcp;
+      RTCRtpDegradationPreference   degredationPreference = balanced;
+
+      [constructor, default]
+      void RTCRtpParameters();
+      [constructor, altname(RTCRtpParametersClone)]
+      void RTCRtpParameters(RTCRtpParameters source);
+      [constructor, default, altname(RTCRtpParametersWithJson)]
+      void RTCRtpParameters(Json json);
+
+      Json toJson();
+      string hash();
+    };
+
+    [dictionary]
+    struct RTCRtpOpusCodecParameterSettings : RTCRtpCodecParameterSettings
+    {
+      // sender parameters
+      [optional]
+      unsigned long maxPlaybackRate;
+      [optional]
+      unsigned long maxAverageBitrate;
+      [optional]
+      bool stereo;
+      [optional]
+      bool cbr;
+      [optional]
+      bool useInbandFec;
+      [optional]
+      bool useDtx;
+
+      [optional]
+      unsigned long complexity;
+      [optional]
+      RTCRtpOpusCodecCapabilityOptionsSignal signal;
+      [optional]
+      RTCRtpOpusCodecCapabilityOptionsApplication application;
+      [optional]
+      unsigned long packetLossPerc;
+      [optional]
+      bool predictionDisabled;
+
+      // receiver parameters
+      [optional]
+      unsigned long sPropMaxCaptureRate;
+      [optional]
+      bool sPropStereo;
+
+      [constructor, default]
+      void RTCRtpOpusCodecParametersSettings();
+      [constructor, altname(RTCRtpOpusCodecParametersSettingsClone)]
+      void RTCRtpOpusCodecParametersSettings(RTCRtpOpusCodecParametersSettings source);
+      [constructor, default, altname(RTCRtpOpusCodecParametersSettingsWithJson)]
+      void RTCRtpOpusCodecParametersSettings(Json json);
+
+      Json toJson();
+      string hash();
+    };
+
+    typedef RTCRtpVp8CodecCapabilityParameters RTCRtpVp8CodecParameterSettings;
+    typedef RTCRtpH264CodecCapabilityParameters RTCRtpH264CodecParameterSettings;
+    typedef RTCRtpRtxCodecCapabilityParameters RTCRtpRtxCodecParameterSettings;
+    typedef RTCRtpFlexFecCodecCapabilityParameters RTCRtpFlexFecCodecParameterSettings;
+
+    [dictionary]
+    struct RTCRtpRedCodecParameterSettings : RTCRtpCodecParameterSettings
+    {
+      typedef std::list<PayloadType> PayloadTypeList;
+
+      PayloadTypeList payloadTypes;
+
+      [constructor, default]
+      void RTCRtpRedCodecParameterSettings();
+      [constructor, altname(RTCRtpRedCodecParameterSettingsClone)]
+      void RTCRtpRedCodecParameterSettings(RTCRtpRedCodecParameterSettings source);
+      [constructor, default, altname(RTCRtpRedCodecParameterSettingsWithJson)]
+      void RTCRtpRedCodecParameterSettings(Json json);
+
+      Json toJson();
+      string hash();
+    };
+
+  }
+}
