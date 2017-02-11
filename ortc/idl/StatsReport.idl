@@ -131,7 +131,7 @@ namespace org
       [constructor, default]
       void RTCCodec();
       [constructor, altname(RTCCodecClone)]
-      void RTCCodec(Codec source);
+      void RTCCodec(RTCCodec source);
       [constructor, default, altname(RTCCodecWithJson)]
       void RTCCodec(Json json);
 
@@ -210,9 +210,9 @@ namespace org
 
       [constructor, default]
       void RTCSctpTransportStats();
-      [constructor, altname(RTCSCTPTransportStatsClone)]
-      void RTCSctpTransportStats(RTCSCTPTransportStats source);
-      [constructor, default, altname(RTCSCTPTransportStatsWithJson)]
+      [constructor, altname(RTCSctpTransportStatsClone)]
+      void RTCSctpTransportStats(RTCSctpTransportStats source);
+      [constructor, default, altname(RTCSctpTransportStatsWithJson)]
       void RTCSctpTransportStats(Json json);
 
       [static]
@@ -363,7 +363,7 @@ namespace org
       [constructor, default]
       void RTCIceTransportStats();
       [constructor, altname(RTCIceTransportStatsClone)]
-      void RTCIceTransportStats(constRTCIceTransportStats source);
+      void RTCIceTransportStats(RTCIceTransportStats source);
       [constructor, default, altname(RTCIceTransportStatsWithJson)]
       void RTCIceTransportStats(Json json);
 

@@ -82,7 +82,7 @@ namespace org
       [static]
       RTCSctpTransportListener listen(
                                       RTCDtlsTransport transport,
-                                      RTCRtcpCapabilities remoteCapabilities
+                                      RTCSctpCapabilities remoteCapabilities
                                       );
 
       [getter]

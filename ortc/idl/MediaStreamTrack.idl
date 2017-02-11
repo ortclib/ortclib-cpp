@@ -108,7 +108,7 @@ namespace org
       [constructor, default]
       void MediaTrackSettings();
       [constructor, altname(MediaTrackSettingsClone)]
-      void MediaTrackSettings(MediaStreamTrackSettings source);
+      void MediaTrackSettings(MediaTrackSettings source);
       [constructor, default, altname(MediaTrackSettingsWithJson)]
       void MediaTrackSettings(Json json);
 

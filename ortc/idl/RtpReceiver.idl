@@ -78,7 +78,7 @@ namespace org
       RTCRtpTransport rtcpTransport;
 
       void setTransport(
-                        RTCRtpTransportPtr transport,
+                        RTCRtpTransport transport,
                         [optional]
                         RTCRtcpTransport rtcpTransport
                         );

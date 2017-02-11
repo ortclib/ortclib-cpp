@@ -237,7 +237,7 @@ namespace org
         string mid;
         [optional]
         size_t mLineIndex;
-        RTCIceGatherCandidate candidate;
+        RTCIceGathererCandidate candidate;
 
         [constructor, default]
         void RTCIceCandidate();

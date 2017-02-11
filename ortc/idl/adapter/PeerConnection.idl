@@ -124,6 +124,7 @@ namespace org
 
       interface RTCPeerConnection : RTCStatsProvider
       {
+        typedef std::list<MediaStream> MediaStreamList;
         typedef PromiseWith<RTCSessionDescription> PromiseWithDescription;
         typedef std::list<RTCIceServer> ServerList;
         typedef std::list<RTCRtpSender> SenderList;

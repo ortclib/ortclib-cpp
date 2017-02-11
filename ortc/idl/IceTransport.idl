@@ -87,9 +87,9 @@ namespace org
 
       RTCIceTransport createAssociatedTransport();
 
-      void addRemoteCandidate(RTCIceCanddiate remoteCandidate) throws (InvalidStateError, InvalidParameters);
+      void addRemoteCandidate(RTCIceCandidate remoteCandidate) throws (InvalidStateError, InvalidParameters);
       void setRemoteCandidates(CandidateList remoteCandidates) throws (InvalidStateError, InvalidParameters);
-      void removeRemoteCandidate(RTCGatherCandidate remoteCandidate) throws (InvalidStateError, InvalidParameters);
+      void removeRemoteCandidate(RTCIceGathererCandidate remoteCandidate) throws (InvalidStateError, InvalidParameters);
 
       void keepWarm(
                     RTCIceCandidatePair candidatePair,

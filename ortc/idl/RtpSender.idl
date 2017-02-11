@@ -43,10 +43,10 @@ namespace org
     {
       [constructor]
       void RTCRtpSender(
-                        MediaStreamTrackPtr track,
-                        RTCRtpTransportPtr transport,
+                        MediaStreamTrack track,
+                        RTCRtpTransport transport,
                         [optional]
-                        RTCRtcpTransportPtr rtcpTransport
+                        RTCRtcpTransport rtcpTransport
                         );
 
       [getter]
@@ -64,7 +64,7 @@ namespace org
       void setTransport(
                         RTCRtpTransport transport,
                         [optional]
-                        RTCIRtcpTransport rtcpTransport
+                        RTCRtcpTransport rtcpTransport
                         );
 
       zs::Promise setTrack(MediaStreamTrack track);

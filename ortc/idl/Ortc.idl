@@ -34,7 +34,7 @@ namespace org
   namespace ortc
   {
     using namespace zs;
-    using namespace zs::Log;
+    using namespace zs::log;
 
     typedef zs::exceptions::InvalidParameters InvalidParameters;
     typedef zs::exceptions::InvalidState InvalidStateError;
@@ -42,7 +42,7 @@ namespace org
     typedef zs::exceptions::NotImplemented NotImplemented;
     typedef zs::exceptions::Unexpected Unexpected;
 
-    //!EXCLUSIVE WINRT
+    //!EXCLUSIVE WINUWP
     struct Dispatcher {};
     //!EXCLUSIVE x
 
@@ -51,7 +51,7 @@ namespace org
       [constructor, altname(OrtcWithQueue)]
       void Ortc(MessageQueue queue);
 
-      //!EXCLUSIVE WINRT
+      //!EXCLUSIVE WINUWP
       [constructor, default, altname(OrtcWithDispatcher)]
       void Ortc(Dispatcher dispatcher);
       //!EXCLUSIVE x
@@ -70,8 +70,8 @@ namespace org
       void startMediaTracing();
       void stopMediaTracing();
       bool isMediaTracing();
-      bool saveMediaTrace(String filename);
-      bool saveMediaTrace(String host, int port);
+      bool saveMediaTrace(string filename);
+      bool saveMediaTrace(string host, int port);
     };
   }
 }

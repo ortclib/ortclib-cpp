@@ -50,11 +50,11 @@ namespace org
       uint16            id;
 
       [constructor, default]
-      void Parameters();
-      [constructor, altname(ParametersClone)]
-      void Parameters(Parameters source);
-      [constructor, default, altname(ParametersWithJson)]
-      void Parameters(Json json);
+      void RTCDataChannelParameters();
+      [constructor, altname(RTCDataChannelParametersClone)]
+      void RTCDataChannelParameters(RTCDataChannelParameters source);
+      [constructor, default, altname(RTCDataChannelParametersWithJson)]
+      void RTCDataChannelParameters(Json json);
 
       Json toJson();
       string hash();

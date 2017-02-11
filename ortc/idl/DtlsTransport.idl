@@ -66,6 +66,12 @@ namespace org
     {
       typedef std::list<RTCCertificate> CertificateList;
 
+      [constructor]
+      void RTCDtlsTransport(
+                            RTCIceTransport iceTransport,
+                            CertificateList certificates
+                            );
+
       [getter]
       puid id;
 

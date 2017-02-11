@@ -54,6 +54,8 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_Ortc.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\types.h" />
     <ClInclude Include="..\..\..\ortc\IDTLSTransport.h" />
     <ClInclude Include="..\..\..\ortc\IDTMFSender.h" />
     <ClInclude Include="..\..\..\ortc\IHelper.h" />
@@ -133,6 +135,14 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </None>
+    <None Include="..\..\..\ortc\idl\winuwp.json">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </None>
     <None Include="..\..\..\ortc\internal\ortc.events.jman" />
     <None Include="..\..\..\ortc\internal\ortc.events_win_etw.man" />
     <None Include="..\..\..\ortc\internal\ortc.events_win_etw.wprp" />
@@ -196,6 +206,7 @@
     <ClCompile Include="..\..\..\ortc\cpp\ortc_SRTPTransport.cpp" />
     <ClCompile Include="..\..\..\ortc\cpp\ortc_StatsReport.cpp" />
     <ClCompile Include="..\..\..\ortc\cpp\ortc_webrtc.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\wrapper_Ortc.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Midl Include="..\..\..\ortc\idl\adapter\enums.idl">

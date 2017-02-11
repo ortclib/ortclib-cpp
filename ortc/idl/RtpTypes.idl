@@ -492,11 +492,11 @@ namespace org
       bool sPropStereo;
 
       [constructor, default]
-      void RTCRtpOpusCodecParametersSettings();
-      [constructor, altname(RTCRtpOpusCodecParametersSettingsClone)]
-      void RTCRtpOpusCodecParametersSettings(RTCRtpOpusCodecParametersSettings source);
-      [constructor, default, altname(RTCRtpOpusCodecParametersSettingsWithJson)]
-      void RTCRtpOpusCodecParametersSettings(Json json);
+      void RTCRtpOpusCodecParameterSettings();
+      [constructor, altname(RTCRtpOpusCodecParameterSettingsClone)]
+      void RTCRtpOpusCodecParameterSettings(RTCRtpOpusCodecParameterSettings source);
+      [constructor, default, altname(RTCRtpOpusCodecParameterSettingsWithJson)]
+      void RTCRtpOpusCodecParameterSettings(Json json);
 
       Json toJson();
       string hash();

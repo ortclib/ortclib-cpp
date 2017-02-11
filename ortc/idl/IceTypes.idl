@@ -33,16 +33,16 @@ namespace org
 {
   namespace ortc
   {
-    struct RTCIceGatherCandidate
+    struct RTCIceGathererCandidate
     {
       [getter]
       RTCIceComponent  component;
 
       [static, default]
-      RTCIceGatherCandidate create(Json json);
+      RTCIceGathererCandidate create(Json json);
     };
 
-    struct RTCIceCandidate : RTCIceGatherCandidate
+    struct RTCIceCandidate : RTCIceGathererCandidate
     {
       [getter]
       string                  interfaceType;
@@ -68,19 +68,19 @@ namespace org
       uint16                  relatedPort;
 
       [static]
-      RTCIceCandidate convert(RTCIceGatherCandidate candidate);
+      RTCIceCandidate convert(RTCIceGathererCandidate candidate);
 
       Json toJson();
       string hash();
     };
 
-    struct RTCIceCandidateComplete : RTCIceGatherCandidate 
+    struct RTCIceCandidateComplete : RTCIceGathererCandidate
     {
       [getter]
       bool complete;
 
       [static]
-      RTCIceCandidateComplete convert(RTCIceGatherCandidate candidate);
+      RTCIceCandidateComplete convert(RTCIceGathererCandidate candidate);
 
       Json toJson();
       string hash();
