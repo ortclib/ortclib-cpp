@@ -41,6 +41,8 @@ namespace org
       string reason;
     };
 
+    typedef zs::PromiseRejectionReason<Error> PromiseRejectionReason;
+
     interface ErrorEvent
     {
       [getter]
