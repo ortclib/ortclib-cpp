@@ -48,29 +48,38 @@ namespace org
 
     interface Ortc
     {
-      [constructor, altname(OrtcWithQueue)]
-      void Ortc(MessageQueue queue);
+      [static, altname(SetupWithQueue)]
+      void Setup(MessageQueue queue);
 
       //!EXCLUSIVE WINUWP
-      [constructor, default, altname(OrtcWithDispatcher)]
-      void Ortc(Dispatcher dispatcher);
+      [static, default, altname(SetupWithDispatcher)]
+      void Setup(Dispatcher dispatcher);
       //!EXCLUSIVE x
 
-      [altname(getNtpServerTime)]
+      [static, altname(getNtpServerTime)]
       Milliseconds ntpServerTime();
-      [altname(setNtpServerTime)]
+      [static, altname(setNtpServerTime)]
       void ntpServerTime(Milliseconds value);
 
+      [static]
       void setDefaultLogLevel(Level level);
+      [static]
       void setLogLevel(string componenet, Level level);
 
+      [static]
       void setDefaultEventingLevel(Level level);
+      [static]
       void setEventingLevel(string componenet, Level level);
 
+      [static]
       void startMediaTracing();
+      [static]
       void stopMediaTracing();
+      [static]
       bool isMediaTracing();
+      [static]
       bool saveMediaTrace(string filename);
+      [static]
       bool saveMediaTrace(string host, int port);
     };
   }
