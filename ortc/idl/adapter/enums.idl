@@ -37,17 +37,17 @@ namespace org
     {
       enum RTCSdpType
       {
-        sdpOffer,
-        sdpPranser,
-        sdpAnswer,
-        sdpRollback,
+        pffer,
+        pranswer,
+        answer,
+        rollback,
       };
   
       enum RTCSessionDescriptionSignalingType
       {
         json,
         sdpOffer,
-        sdpPranser,
+        sdpPranswer,
         sdpAnswer,
         sdpRollback,
       };

@@ -158,9 +158,6 @@ namespace org
       void MediaTrackConstraints(MediaTrackConstraints source);
       [constructor, default, altname(MediaTrackConstraintsWithJson)]
       void MediaTrackConstraints(Json json);
-
-      Json toJson();
-      string hash();
     };
 
     [dictionary]
@@ -196,6 +193,16 @@ namespace org
       OverconstrainedError error;
     };
 
+    [special]
+    struct MediaSource
+    {
+      [getter, setter]
+      zs::Any source;
+
+      [getter, setter]
+      zs::Any track;
+    };
+
     interface MediaStreamTrack
     {
       [getter]
@@ -224,6 +231,9 @@ namespace org
 
       [getter]
       MediaStreamTrackState readyState;
+
+      [getter]
+      MediaSource source;
 
       MediaStreamTrack clone();
 

@@ -40,12 +40,12 @@ namespace org
       {
         typedef std::list<RTCCertificate> CertificateList;
 
-        RTCIceGathererOptions gatherOptions;
+        RTCIceGatherOptions gatherOptions;
         RTCPeerConnectionSignalingMode signalingMode = json;
         bool negotiateSrtpSdes;
 
         RTCBundlePolicy bundlePolicy = balanced;
-        RTCRtcpMuxPolicy rtcpMuxPolicy = required;
+        RTCRtcpMuxPolicy rtcpMuxPolicy = require;
         CertificateList certificates;
         size_t iceCandidatePoolSize;
 
@@ -93,7 +93,7 @@ namespace org
       {
         string mid;
         [optional]
-        unsigned short  mLineIndex;
+        unsigned short  sdpMLineIndex;
 
         RTCIceCandidate hostCandidate;
         string          url;

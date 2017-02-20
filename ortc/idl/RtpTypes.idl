@@ -69,7 +69,7 @@ namespace org
       string                          kind;
       [optional]
       unsigned long                   clockRate;
-      PayloadType                     peferredPayloadType;
+      PayloadType                     preferredPayloadType;
       Milliseconds                    pTime;
       Milliseconds                    maxPTime;
       [optional]
@@ -132,6 +132,8 @@ namespace org
       void RTCRtpCapabilities(RTCRtpCapabilities source);
       [constructor, default, altname(RTCRtpCapabilitiesWithJson)]
       void RTCRtpCapabilities(Json json);
+
+      RTCRtpCapabilities clone();
 
       Json toJson();
       string hash();

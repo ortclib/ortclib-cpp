@@ -88,6 +88,12 @@ namespace org
       typedef zs::PromiseWith<DeviceList> PromiseWithDeviceList;
       typedef zs::PromiseWith<TrackList> PromiseWithTrackList;
 
+      [constructor, delete]
+      void MediaDevices();
+
+      [static, getter]
+      MediaDevices singleton;
+
       [static]
       MediaTrackSupportedConstraints getSupportedConstraints();
 
@@ -96,6 +102,9 @@ namespace org
 
       [static]
       PromiseWithTrackList getUserMedia(MediaStreamConstraints constraints);
+
+      [event]
+      void onDeviceChange();
     };
   }
 }

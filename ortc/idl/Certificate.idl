@@ -54,7 +54,7 @@ namespace org
 
     interface RTCCertificate
     {
-      typedef zs::Promise<RTCCertificate> PromiseWithCertificate;
+      typedef zs::PromiseWith<RTCCertificate> PromiseWithCertificate;
 
       [static]
       PromiseWithCertificate generateCertificate();

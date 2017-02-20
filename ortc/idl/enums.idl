@@ -91,7 +91,7 @@ namespace org
       closed,
     };
 
-    enum RTCIceGathererFilterPolicy : uint64
+    enum RTCIceGatherFilterPolicy : uint64
     {
       none = 0,
       noIPv4Host = 0x00000001,
@@ -160,8 +160,8 @@ namespace org
 
     enum RTCStatsType
     {
-      inboundRTP,
-      outboundRTP,
+      inboundRtp,
+      outboundRtp,
       codec,
       sctpTransport,
       dataChannel,

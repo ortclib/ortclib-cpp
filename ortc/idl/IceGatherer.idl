@@ -34,17 +34,17 @@ namespace org
   namespace ortc
   {
     [dictionary]
-    struct RTCIceGathererInterfacePolicy
+    struct RTCIceGatherInterfacePolicy
     {
       string                      interfaceType;
-      RTCIceGathererFilterPolicy  gatherPolicy = none;
+      RTCIceGatherFilterPolicy    gatherPolicy = none;
 
       [constructor, default]
-      void RTCIceGathererInterfacePolicy();
-      [constructor, altname(RTCIceGathererInterfacePolicyClone)]
-      void RTCIceGathererInterfacePolicy(RTCIceGathererInterfacePolicy source);
-      [constructor, default, altname(RTCIceGathererInterfacePolicyWithJson)]
-      void RTCIceGathererInterfacePolicy(Json json);
+      void RTCIceGatherInterfacePolicy();
+      [constructor, altname(RTCIceGatherInterfacePolicyClone)]
+      void RTCIceGatherInterfacePolicy(RTCIceGatherInterfacePolicy source);
+      [constructor, default, altname(RTCIceGatherInterfacePolicyWithJson)]
+      void RTCIceGatherInterfacePolicy(Json json);
 
       Json toJson();
       string hash();
@@ -70,9 +70,9 @@ namespace org
     };
 
     [dictionary]
-    struct RTCIceGathererOptions
+    struct RTCIceGatherOptions
     {
-      typedef std::list<RTCIceGathererInterfacePolicy> InterfacePolicyList;
+      typedef std::list<RTCIceGatherInterfacePolicy> InterfacePolicyList;
       typedef std::list<RTCIceServer> ServerList;
 
       bool                continuousGathering = true;
@@ -80,11 +80,11 @@ namespace org
       ServerList          iceServers;
 
       [constructor, default]
-      void RTCIceGathererOptions();
-      [constructor, altname(RTCIceGathererOptionsClone)]
-      void RTCIceGathererOptions(RTCIceGathererOptions source);
-      [constructor, default, altname(RTCIceGathererOptionsWithJson)]
-      void RTCIceGathererOptions(Json json);
+      void RTCIceGatherOptions();
+      [constructor, altname(RTCIceGatherOptionsClone)]
+      void RTCIceGatherOptions(RTCIceGatherOptions source);
+      [constructor, default, altname(RTCIceGatherOptionsWithJson)]
+      void RTCIceGatherOptions(Json json);
 
       Json toJson();
       string hash();
@@ -126,7 +126,7 @@ namespace org
       typedef std::list<RTCIceCandidate> CandidateList;
 
       [constructor]
-      void RTCIceGatherer(RTCIceGathererOptions options);
+      void RTCIceGatherer(RTCIceGatherOptions options);
 
       [getter]
       puid id;
@@ -144,7 +144,7 @@ namespace org
 
       void gather(
                   [optional]
-                  RTCIceGathererOptions options
+                  RTCIceGatherOptions options
                   );
 
       void close();

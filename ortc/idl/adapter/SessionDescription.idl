@@ -167,9 +167,6 @@ namespace org
         void RTCSessionDescriptionRtpMediaLine(RTCSessionDescriptionRtpMediaLine source);
         [constructor, default, altname(RTCSessionDescriptionRtpMediaLineWithJson)]
         void RTCSessionDescriptionRtpMediaLine(Json json);
-
-        Json toJson();
-        string hash();
       };
 
       [dictionary]
@@ -185,9 +182,6 @@ namespace org
         void RTCSessionDescriptionSctpMediaLine(RTCSessionDescriptionSctpMediaLine source);
         [constructor, default, altname(RTCSessionDescriptionSctpMediaLineWithJson)]
         void RTCSessionDescriptionSctpMediaLine(Json json);
-
-        Json toJson();
-        string hash();
       };
 
       [dictionary]
@@ -234,16 +228,16 @@ namespace org
       [dictionary]
       struct RTCIceCandidate
       {
-        string mid;
+        string sdpMid;
         [optional]
-        size_t mLineIndex;
+        size_t sdpMLineIndex;
         RTCIceGathererCandidate candidate;
 
         [constructor, default]
         void RTCIceCandidate();
         [constructor, altname(RTCIceCandidateClone)]
         void RTCIceCandidate(RTCIceCandidate source);
-        [constructor, default, altname(RTCIceCandidateWithJson)]
+        [constructor, altname(RTCIceCandidateWithJson)]
         void RTCIceCandidate(Json json);
         [constructor, default, altname(RTCIceCandidateWithSdp)]
         void RTCIceCandidate(string sdp);

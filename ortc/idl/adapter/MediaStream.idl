@@ -52,8 +52,12 @@ namespace org
         [getter]
         bool active;
 
-        MediaStreamTrackList getAudioTracks();
-        MediaStreamTrackList getVideoTracks();
+        [getter]
+        MediaStreamTrackList tracks;
+        [getter]
+        MediaStreamTrackList audioTracks;
+        [getter]
+        MediaStreamTrackList videoTracks;
         MediaStreamTrack getTrackById(string id);
 
         [getter]

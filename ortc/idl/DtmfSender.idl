@@ -37,7 +37,7 @@ namespace org
     interface RTCRtpDtmfSender
     {
       [constructor]
-      void RTCRtpDTMFSender(RTCRtpSender sender);
+      void RTCRtpDtmfSender(RTCRtpSender sender);
 
       [getter]
       puid id;

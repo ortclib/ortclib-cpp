@@ -22,6 +22,8 @@
     "sources": {
       "source": [
         "Ortc.idl",
+        "Logger.idl",
+        "Settings.idl",
         "error.idl",
         "enums.idl",
         "Capabilities.idl",

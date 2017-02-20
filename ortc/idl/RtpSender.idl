@@ -69,6 +69,7 @@ namespace org
 
       zs::Promise setTrack(MediaStreamTrack track);
 
+      [static]
       RTCRtpCapabilities getCapabilities([optional] MediaStreamTrackKind kind);
 
       zs::Promise send(RTCRtpParameters parameters);

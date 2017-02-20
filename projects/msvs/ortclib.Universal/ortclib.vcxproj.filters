@@ -25,12 +25,6 @@
     <Filter Include="ortc\idl\adapter">
       <UniqueIdentifier>{77c8ce93-8bbf-4b4a-92ba-49bf839a7dd9}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ortc\idl\wrapper">
-      <UniqueIdentifier>{385b270f-970b-4f88-915a-a08906d1f7df}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="ortc\idl\wrapper\generated">
-      <UniqueIdentifier>{ac3399f1-dbcd-46e4-85a1-534b91fe13d8}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\ortc\IConstraints.h">
@@ -294,12 +288,6 @@
     <ClInclude Include="..\..\..\ortc\idl\Ortc.idl">
       <Filter>ortc\idl</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_Ortc.h">
-      <Filter>ortc\idl\wrapper\generated</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\types.h">
-      <Filter>ortc\idl\wrapper\generated</Filter>
-    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\ortc\internal\ortc_ETWStatsReport.man">
@@ -498,9 +486,6 @@
     </ClCompile>
     <ClCompile Include="..\..\..\ortc\adapter\cpp\ortc_adapter_MediaStream.cpp">
       <Filter>ortc\adapter\cpp</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\ortc\idl\wrapper\wrapper_Ortc.cpp">
-      <Filter>ortc\idl\wrapper</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

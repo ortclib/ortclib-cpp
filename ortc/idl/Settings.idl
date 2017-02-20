@@ -33,68 +33,39 @@ namespace org
 {
   namespace ortc
   {
-    using namespace zs;
-
-    typedef zs::exceptions::InvalidArgument InvalidParameters;
-    typedef zs::exceptions::BadState InvalidStateError;
-    typedef zs::exceptions::NotSupported NotSupported;
-    typedef zs::exceptions::NotImplemented NotImplemented;
-    typedef zs::exceptions::UnexpectedError Unexpected;
-
-    //!EXCLUSIVE WINUWP
-    [special, platform(webhidden)]
-    interface Dispatcher
-    {
-      [constructor]
-      void Dispatcher(Any source);
-
-      [static]
-      Any source;
-    };
-    //!EXCLUSIVE x
-
     [static]
-    interface OrtcLib
+    interface Settings
     {
-      [static, default]
-      void setup();
-
-      [static, altname(SetupWithQueue)]
-      void setup(MessageQueue queue);
-
-      [static, altname(getNtpServerTime)]
-      Milliseconds ntpServerTime();
-      [static, altname(setNtpServerTime)]
-      void ntpServerTime(Milliseconds value);
+      [static]
+      void applyDefaults();
 
       [static]
-      void startMediaTracing();
-      [static]
-      void stopMediaTracing();
-      [static]
-      bool isMediaTracing();
-      [static]
-      bool saveMediaTrace(string filename);
-      [static]
-      bool saveMediaTrace(string host, int port);
+      bool apply(string jsonSettings);
 
       [static]
-      zs::Promise notifyGoingToBackground();
+      void setString(string key, string value);
 
       [static]
-      void notifyGoingToBackgroundNow();
+      void setInt(string key, int64 value);
 
       [static]
-      void notifyReturningFromBackground();
+      void setUInt(string key, uint64 value);
+
+      [static]
+      void setBool(string key, bool value);
+
+      [static]
+      void setFloat(string key, float value);
+
+      [static]
+      void setDouble(string key, double value);
+
+      [static]
+      void clear(string key);
+
+      [static]
+      void clearAll();
     };
 
-    //!EXCLUSIVE WINUWP
-    [static, platform(webhidden)]
-    interface OrtcLibWithDispatcher
-    {
-      [static, default, altname(SetupWithDispatcher)]
-      void setup(Dispatcher dispatcher);
-    };
-    //!EXCLUSIVE x
   }
 }

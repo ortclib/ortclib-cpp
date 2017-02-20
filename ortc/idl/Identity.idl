@@ -54,9 +54,11 @@ namespace org
       string        loginUrl;
     };
 
+    typedef zs::PromiseRejectionReason<RTCIdentityError> PromiseRejectionIdentityError;
+
     interface RTCIdentity
     {
-      typedef PromiseWith<RTCIdentityResult, RTCIdentityError> PromiseWithResult;
+      typedef PromiseWith<RTCIdentityResult> PromiseWithResult;
       typedef PromiseWith<RTCIdentityAssertion> PromiseWithAssertion;
 
       [constructor]

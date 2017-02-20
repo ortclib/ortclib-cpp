@@ -67,8 +67,6 @@ namespace org
       [constructor, default, altname(RTCStatsWithJson)]
       void RTCStats(Json json);
 
-      string statsType();
-
       Json toJson();
       string hash();
 
@@ -76,7 +74,7 @@ namespace org
     };
 
 
-    struct RTPStreamStats : RTCStats
+    struct RTCRtpStreamStats : RTCStats
     {
       [optional, getter]
       SsrcType            ssrc;
@@ -102,17 +100,11 @@ namespace org
       unsigned long       sliCount;
 
       [constructor, default]
-      void RTPStreamStats();
-      [constructor, altname(RTPStreamStatsClone)]
-      void RTPStreamStats(RTPStreamStats source);
-      [constructor, default, altname(RTPStreamStatsWithJson)]
-      void RTPStreamStats(Json json);
-
-      [static]
-      RTPStreamStats convert(RTCStats stat);
-
-      Json toJson();
-      string hash();
+      void RTCRtpStreamStats();
+      [constructor, altname(RTCRtpStreamStatsClone)]
+      void RTCRtpStreamStats(RTCRtpStreamStats source);
+      [constructor, default, altname(RTCRtpStreamStatsWithJson)]
+      void RTCRtpStreamStats(Json json);
     };
 
     struct RTCCodec : RTCStats
@@ -134,15 +126,9 @@ namespace org
       void RTCCodec(RTCCodec source);
       [constructor, default, altname(RTCCodecWithJson)]
       void RTCCodec(Json json);
-
-      [static]
-      RTCCodec convert(RTCStats stat);
-
-      Json toJson();
-      string hash();
     };
 
-    struct RTCInboundRTPStreamStats : RTPStreamStats
+    struct RTCInboundRtpStreamStats : RTCRtpStreamStats
     {
       [getter]
       unsigned long       packetsReceived;
@@ -158,23 +144,14 @@ namespace org
       Milliseconds        endToEndDelay;
 
       [constructor, default]
-      void RTCInboundRTPStreamStats();
-      [constructor, altname(RTCInboundRTPStreamStatsClone)]
-      void RTCInboundRTPStreamStats(RTCInboundRTPStreamStats source);
-      [constructor, default, altname(RTCInboundRTPStreamStatsWithJson)]
-      void RTCInboundRTPStreamStats(Json json);
-
-      [static]
-      RTCInboundRTPStreamStats convert(RTCStats stat);
-      [static]
-      RTCInboundRTPStreamStats convert(RTPStreamStats stat);
-
-      Json toJson();
-      string hash();
+      void RTCInboundRtpStreamStats();
+      [constructor, altname(RTCInboundRtpStreamStatsClone)]
+      void RTCInboundRtpStreamStats(RTCInboundRtpStreamStats source);
+      [constructor, default, altname(RTCInboundRtpStreamStatsWithJson)]
+      void RTCInboundRtpStreamStats(Json json);
     };
 
-
-    struct RTCOutboundRTPStreamStats : RTPStreamStats
+    struct RTCOutboundRtpStreamStats : RTCRtpStreamStats
     {
       [getter]
       unsigned long       packetsSent;
@@ -186,19 +163,11 @@ namespace org
       double              roundTripTime;
 
       [constructor, default]
-      void RTCOutboundRTPStreamStats();
-      [constructor, altname(RTCOutboundRTPStreamStatsClone)]
-      void RTCOutboundRTPStreamStats(RTCOutboundRTPStreamStats source);
-      [constructor, default, altname(RTCOutboundRTPStreamStatsWithJson)]
-      void RTCOutboundRTPStreamStats(Json json);
-
-      [static]
-      RTCOutboundRTPStreamStats convert(RTCStats stat);
-      [static]
-      RTCOutboundRTPStreamStats convert(RTPStreamStats stat);
-
-      Json toJson();
-      string hash();
+      void RTCOutboundRtpStreamStats();
+      [constructor, altname(RTCOutboundRtpStreamStatsClone)]
+      void RTCOutboundRtpStreamStats(RTCOutboundRtpStreamStats source);
+      [constructor, default, altname(RTCOutboundRtpStreamStatsWithJson)]
+      void RTCOutboundRtpStreamStats(Json json);
     };
 
     struct RTCSctpTransportStats : RTCStats
@@ -214,12 +183,6 @@ namespace org
       void RTCSctpTransportStats(RTCSctpTransportStats source);
       [constructor, default, altname(RTCSctpTransportStatsWithJson)]
       void RTCSctpTransportStats(Json json);
-
-      [static]
-      RTCSctpTransportStats convert(RTCStats stat);
-
-      Json toJson();
-      string hash();
     };
 
     struct RTCMediaStreamStats : RTCStats
@@ -235,12 +198,6 @@ namespace org
       void RTCMediaStreamStats(RTCMediaStreamStats source);
       [constructor, default, altname(RTCMediaStreamStatsWithJson)]
       void RTCMediaStreamStats(Json json);
-
-      [static]
-      RTCMediaStreamStats convert(RTCStats stat);
-
-      Json toJson();
-      string hash();
     };
 
 
@@ -281,12 +238,6 @@ namespace org
       void RTCMediaStreamTrackStats(RTCMediaStreamTrackStats source);
       [constructor, default, altname(RTCMediaStreamTrackStatsWithJson)]
       void RTCMediaStreamTrackStats(Json json);
-
-      [static]
-      RTCMediaStreamTrackStats convert(RTCStats stat);
-
-      Json toJson();
-      string hash();
     };
 
 
@@ -315,12 +266,6 @@ namespace org
       void RTCDataChannelStats(RTCDataChannelStats source);
       [constructor, default, altname(RTCDataChannelStatsWithJson)]
       void RTCDataChannelStats(Json json);
-
-      [static]
-      RTCDataChannelStats convert(RTCStats stat);
-
-      Json toJson();
-      string hash(); 
     };
 
 
@@ -339,12 +284,6 @@ namespace org
       void RTCIceGathererStats(RTCIceGathererStats source);
       [constructor, default, altname(RTCIceGathererStatsWithJson)]
       void RTCIceGathererStats(Json json);
-
-      [static]
-      RTCIceGathererStats convert(RTCStats stat);
-
-      Json toJson();
-      string hash();
     };
 
     struct RTCIceTransportStats : RTCStats
@@ -366,12 +305,6 @@ namespace org
       void RTCIceTransportStats(RTCIceTransportStats source);
       [constructor, default, altname(RTCIceTransportStatsWithJson)]
       void RTCIceTransportStats(Json json);
-
-      [static]
-      RTCIceTransportStats convert(RTCStats stat);
-
-      Json toJson();
-      string hash();
     };
 
     struct RTCDtlsTransportStats : RTCStats
@@ -387,9 +320,6 @@ namespace org
       void RTCDtlsTransportStats(RTCDtlsTransportStats source);
       [constructor, default, altname(RTCDtlsTransportStatsWithJson)]
       void RTCDtlsTransportStats(Json json);
-
-      [static]
-      RTCDtlsTransportStats convert(RTCStats stat);
     };
 
     struct RTCSrtpTransportStats : RTCStats
@@ -400,9 +330,6 @@ namespace org
       void RTCSrtpTransportStats(RTCDtlsTransportStats source);
       [constructor, default, altname(RTCSrtpTransportStatsWithJson)]
       void RTCSrtpTransportStats(Json json);
-
-      [static]
-      RTCDtlsTransportStats convert(RTCStats stat);
     };
 
     struct RTCIceCandidateAttributes : RTCStats
@@ -428,9 +355,6 @@ namespace org
       void RTCIceCandidateAttributes(RTCIceCandidateAttributes source);
       [constructor, default, altname(RTCIceCandidateAttributesWithJson)]
       void RTCIceCandidateAttributes(Json json);
-
-      [static]
-      RTCIceCandidateAttributes convert(RTCStats stat);
     };
 
     struct RTCIceCandidatePairStats : RTCStats
@@ -468,9 +392,6 @@ namespace org
       void RTCIceCandidatePairStats(RTCIceCandidatePairStats source);
       [constructor, default, altname(RTCIceCandidatePairStatsWithJson)]
       void RTCIceCandidatePairStats(Json json);
-
-      [static]
-      RTCIceCandidatePairStats convert(RTCStats stat);
     };
 
 
@@ -491,9 +412,6 @@ namespace org
       void RTCCertificateStats(RTCCertificateStats source);
       [constructor, default, altname(RTCCertificateStatsWithJson)]
       void RTCCertificateStats(Json json);
-
-      [static]
-      RTCCertificateStats convert(RTCStats stat);
     };
 
     interaction RTCStatsReport
@@ -503,7 +421,8 @@ namespace org
       [getter]
       puid id;
 
-      IdList getStatesIds();
+      [getter]
+      IdList statsIds;
       RTCStats getStats(string id);
     };
   }
