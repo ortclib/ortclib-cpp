@@ -325,6 +325,7 @@
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_DoubleRange.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_Error.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_ErrorEvent.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_Json.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_Logger.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_LongRange.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_MediaDeviceInfo.cpp" />
@@ -337,6 +338,7 @@
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_MediaTrackConstraintSet.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_MediaTrackSettings.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_MediaTrackSupportedConstraints.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_MessageQueue.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_OrtcLib.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_OrtcLibWithDispatcher.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_OverconstrainedError.cpp" />
@@ -436,8 +438,6 @@
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCStatsTypeSet.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_Settings.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_StringOrStringList.cpp" />
-    <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_zs_Json.cpp" />
-    <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_zs_MessageQueue.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_adapter_MediaStream.h" />
@@ -478,6 +478,7 @@
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_DoubleRange.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_Error.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_ErrorEvent.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_Json.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_Logger.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_LongRange.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_MediaDeviceInfo.h" />
@@ -489,6 +490,7 @@
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_MediaTrackConstraintSet.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_MediaTrackSettings.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_MediaTrackSupportedConstraints.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_MessageQueue.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_OrtcLib.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_OrtcLibWithDispatcher.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_OverconstrainedError.h" />
@@ -589,8 +591,6 @@
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_Settings.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_StringOrStringList.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\types.h" />
-    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\zs_Json.h" />
-    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\zs_MessageQueue.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_adapter_MediaStream.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_adapter_RTCAnswerOptions.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_adapter_RTCCapabilityOptions.h" />
@@ -629,6 +629,7 @@
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_DoubleRange.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_Error.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_ErrorEvent.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_Json.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_Logger.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_LongRange.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_MediaDeviceInfo.h" />
@@ -641,6 +642,7 @@
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_MediaTrackConstraintSet.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_MediaTrackSettings.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_MediaTrackSupportedConstraints.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_MessageQueue.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_OrtcLib.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_OrtcLibWithDispatcher.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_OverconstrainedError.h" />
@@ -740,8 +742,6 @@
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCStatsTypeSet.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_Settings.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_StringOrStringList.h" />
-    <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_zs_Json.h" />
-    <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_zs_MessageQueue.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\types.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

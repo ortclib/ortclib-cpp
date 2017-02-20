@@ -54,7 +54,7 @@ namespace org
     struct RTCIceServer
     {
       StringList            urls;
-      string                userName;
+      string                username;
       string                credential;
       RTCIceCredentialType  credentialType = password;
 

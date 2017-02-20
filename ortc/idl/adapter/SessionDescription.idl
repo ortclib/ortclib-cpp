@@ -80,8 +80,8 @@ namespace org
         RTCIceParameters iceParameters;
         RTCDtlsParameters dtlsParameters;
         RTCSrtpSdesParameters srtpSdesParameters;
-        CandidateList mICECandidates;
-        bool mEndOfCandidates;
+        CandidateList iceCandidates;
+        bool endOfCandidates;
 
         [constructor, default]
         void RTCSessionDescriptionTransportParameters();
@@ -239,8 +239,17 @@ namespace org
         void RTCIceCandidate(RTCIceCandidate source);
         [constructor, altname(RTCIceCandidateWithJson)]
         void RTCIceCandidate(Json json);
-        [constructor, default, altname(RTCIceCandidateWithSdp)]
-        void RTCIceCandidate(string sdp);
+
+        [static]
+        RTCIceCandidate fromSdpStringWithMLineIndex(
+          string sdp,
+          size_t mlineIndex
+          );
+        [static]
+        RTCIceCandidate fromSdpStringWithMid(
+          string sdp,
+          string mid
+        );
 
         Json toJson();
         string toSdp();

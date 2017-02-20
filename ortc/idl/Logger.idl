@@ -306,7 +306,7 @@ namespace org
       /// <summary>
       /// Sets the log eventing for a component by its component string name.
       /// </summary>
-      [altname(setEventingLevelByName)]
+      [static, altname(setEventingLevelByName)]
       void setEventingLevel(string component, log::Level level);
 
       /// <summary>
@@ -315,6 +315,7 @@ namespace org
       /// listener and connecting to an eventing server cannot be enabled
       /// at the same time.
       /// </summary>
+      [static]
       void installEventingListener(
         string sharedSecret,
         uint16 listenPort,

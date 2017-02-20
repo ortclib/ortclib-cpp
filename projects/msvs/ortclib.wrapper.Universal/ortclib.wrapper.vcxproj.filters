@@ -529,12 +529,6 @@
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_StringOrStringList.cpp">
       <Filter>ortc\idl\wrapper</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_zs_Json.cpp">
-      <Filter>ortc\idl\wrapper</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_zs_MessageQueue.cpp">
-      <Filter>ortc\idl\wrapper</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_adapter_MediaStream.cpp">
       <Filter>ortc\idl\wrapper</Filter>
     </ClCompile>
@@ -569,6 +563,12 @@
       <Filter>ortc\idl\wrapper</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_OrtcLib.cpp">
+      <Filter>ortc\idl\wrapper</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_MessageQueue.cpp">
+      <Filter>ortc\idl\wrapper</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_Json.cpp">
       <Filter>ortc\idl\wrapper</Filter>
     </ClCompile>
   </ItemGroup>
@@ -984,12 +984,6 @@
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_StringOrStringList.h">
       <Filter>ortc\idl\wrapper</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_zs_Json.h">
-      <Filter>ortc\idl\wrapper</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_zs_MessageQueue.h">
-      <Filter>ortc\idl\wrapper</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\ortc\idl\wrapper\types.h">
       <Filter>ortc\idl\wrapper</Filter>
     </ClInclude>
@@ -1012,12 +1006,6 @@
       <Filter>ortc\idl\wrapper\generated</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\types.h">
-      <Filter>ortc\idl\wrapper\generated</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\zs_Json.h">
-      <Filter>ortc\idl\wrapper\generated</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\zs_MessageQueue.h">
       <Filter>ortc\idl\wrapper\generated</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_adapter_MediaStream.h">
@@ -1481,6 +1469,18 @@
     </ClInclude>
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_OrtcLibWithDispatcher.h">
       <Filter>ortc\idl\wrapper</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_MessageQueue.h">
+      <Filter>ortc\idl\wrapper</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_Json.h">
+      <Filter>ortc\idl\wrapper</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_MessageQueue.h">
+      <Filter>ortc\idl\wrapper\generated</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_Json.h">
+      <Filter>ortc\idl\wrapper\generated</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

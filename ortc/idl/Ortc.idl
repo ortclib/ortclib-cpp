@@ -41,6 +41,24 @@ namespace org
     typedef zs::exceptions::NotImplemented NotImplemented;
     typedef zs::exceptions::UnexpectedError Unexpected;
 
+    interface MessageQueue
+    {
+      [constructor, delete]
+      void MessageQueue();
+
+      [static]
+      MessageQueue getDefaultForUi();
+    };
+
+    interface Json
+    {
+      [constructor]
+      void Json(string jsonString);
+
+      [getter, setter]
+      string toString();
+    };
+
     //!EXCLUSIVE WINUWP
     [special, platform(webhidden)]
     interface Dispatcher
@@ -62,10 +80,8 @@ namespace org
       [static, altname(SetupWithQueue)]
       void setup(MessageQueue queue);
 
-      [static, altname(getNtpServerTime)]
-      Milliseconds ntpServerTime();
-      [static, altname(setNtpServerTime)]
-      void ntpServerTime(Milliseconds value);
+      [static]
+      Milliseconds ntpServerTime;
 
       [static]
       void startMediaTracing();

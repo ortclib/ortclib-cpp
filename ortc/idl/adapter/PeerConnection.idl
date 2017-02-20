@@ -135,10 +135,19 @@ namespace org
         [constructor]
         void RTCPeerConnection([optional] RTCConfiguration configuration);
 
-        PromiseWithDescription createOffer([optional] RTCOfferOptions options);
-        PromiseWithDescription createAnswer([optional] RTCAnswerOptions options);
+        [default]
+        PromiseWithDescription createOffer();
+        [altname(createOfferWithOptions)]
+        PromiseWithDescription createOffer(RTCOfferOptions options);
+        [default]
+        PromiseWithDescription createAnswer();
+        [altname(createAnswerWithOptions)]
+        PromiseWithDescription createAnswer(RTCAnswerOptions options);
 
-        PromiseWithDescription createCapabilities([optional] RTCCapabilityOptions options);
+        [default]
+        PromiseWithDescription createCapabilities();
+        [altname(createCapabilitiesWithOptions)]
+        PromiseWithDescription createCapabilities(RTCCapabilityOptions options);
 
         Promise setLocalDescription(RTCSessionDescription description);
 
@@ -156,7 +165,7 @@ namespace org
         RTCSessionDescription currentRemoteDescription;
         [getter]
         RTCSessionDescription pendingRemoteDescription;
-        void addICECandidate([dynamic] RTCIceGathererCandidate candidate);
+        void addIceCandidate(RTCIceCandidate candidate);
 
         [getter]
         RTCSignalingState signalingState;
