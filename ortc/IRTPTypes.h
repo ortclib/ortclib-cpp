@@ -150,8 +150,11 @@ namespace ortc
       CodecCapability() {};
       CodecCapability(const CodecCapability &source);
       CodecCapability(ElementPtr elem);
-
+#if __APPLE__
+      CodecCapability &operator=(const CodecCapability &op2) = default;
+#else
       CodecCapability &operator=(const CodecCapability &op2) = delete;
+#endif
 
       ElementPtr createElement(const char *objectName = "codecCapability") const;
 
@@ -482,9 +485,11 @@ namespace ortc
       CodecParameters() {}
       CodecParameters(const CodecParameters &source);
       CodecParameters(ElementPtr elem);
-
+#if __APPLE__
+      CodecParameters &operator=(const CodecParameters &op2) = default;
+#else
       CodecParameters &operator=(const CodecParameters &op2) = delete;
-
+#endif
       ElementPtr createElement(const char *objectName) const;
 
       ElementPtr toDebug() const;

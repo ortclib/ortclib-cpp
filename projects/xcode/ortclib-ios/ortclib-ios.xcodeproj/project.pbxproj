@@ -682,6 +682,26 @@
 		0064F80D1DE51EB900EE8962 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE,
+					WEBRTC_BUILD_LIBEVENT,
+					WEBRTC_POSIX,
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				HEADER_SEARCH_PATHS = (
+					../../..,
+					../../../..,
+					"../../../../ortclib-services-cpp",
+					../../../../zsLib,
+					../../../../../../webrtc/xplatform/boringssl/include,
+					../../../../../../webrtc/xplatform/libsrtp/srtp/include,
+					../../../../../../webrtc/xplatform/libsrtp/srtp/crypto/include,
+					../../../../../../webrtc/xplatform/libsrtp/config,
+					../../../../../../webrtc/xplatform/webrtc,
+					"$(inherited)",
+					../../../../../../webrtc/xplatform/usrsctp/usrsctplib,
+				);
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -691,6 +711,26 @@
 		0064F80E1DE51EB900EE8962 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE,
+					WEBRTC_BUILD_LIBEVENT,
+					WEBRTC_POSIX,
+					"NDEBUG=1",
+					"$(inherited)",
+				);
+				HEADER_SEARCH_PATHS = (
+					../../..,
+					../../../..,
+					"../../../../ortclib-services-cpp",
+					../../../../zsLib,
+					../../../../../../webrtc/xplatform/boringssl/include,
+					../../../../../../webrtc/xplatform/libsrtp/srtp/include,
+					../../../../../../webrtc/xplatform/libsrtp/srtp/crypto/include,
+					../../../../../../webrtc/xplatform/libsrtp/config,
+					../../../../../../webrtc/xplatform/webrtc,
+					"$(inherited)",
+					../../../../../../webrtc/xplatform/usrsctp/usrsctplib,
+				);
 				OTHER_LDFLAGS = "-ObjC";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;

@@ -643,6 +643,7 @@
 				009D19841DE52DBC00D139FF /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

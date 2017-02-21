@@ -33,6 +33,9 @@
 
 #include <ortc/types.h>
 
+#define __STRUCT__ struct
+#define interface __STRUCT__
+
 namespace ortc
 {
   namespace adapter

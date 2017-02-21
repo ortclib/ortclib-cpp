@@ -732,7 +732,7 @@ namespace ortc
       struct VideoCaptureCapabilityWithDistance
       {
         webrtc::VideoCaptureCapability mCapability;
-        FLOAT mDistance;
+        zsLib::FLOAT mDistance;
       };
 
       enum States
@@ -986,11 +986,11 @@ namespace ortc
                                          char phase,
                                          const unsigned char *categoryGroupEnabled,
                                          const char *name,
-                                         uint64 id,
+                                         uint64_t id,
                                          int numArgs,
                                          const char **argNames,
                                          const unsigned char *argTypes,
-                                         const uint64 *argValues,
+                                         const uint64_t *argValues,
                                          unsigned char flags
                                          );
 
@@ -1273,20 +1273,20 @@ namespace ortc
 
         int getAudioDeviceIndex(webrtc::VoiceEngine *voiceEngine, String deviceID);
 
-        FLOAT calculateSizeDistance(
+        zsLib::FLOAT calculateSizeDistance(
                                     ConstrainLongRange width,
                                     ConstrainLongRange height,
                                     webrtc::VideoCaptureCapability capability
                                     );
-        FLOAT calculateFrameRateDistance(
+        zsLib::FLOAT calculateFrameRateDistance(
                                          ConstrainDoubleRange frameRate,
                                          webrtc::VideoCaptureCapability capability
                                          );
-        FLOAT calculateAspectRatioDistance(
+        zsLib::FLOAT calculateAspectRatioDistance(
                                            ConstrainDoubleRange aspectRatio,
                                            webrtc::VideoCaptureCapability capability
                                            );
-        FLOAT calculateFormatDistance(webrtc::VideoCaptureCapability capability);
+        zsLib::FLOAT calculateFormatDistance(webrtc::VideoCaptureCapability capability);
 
       protected:
         String mDeviceID;

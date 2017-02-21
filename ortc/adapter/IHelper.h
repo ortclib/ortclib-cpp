@@ -80,8 +80,8 @@ namespace ortc
 
       ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::HeaderExtension, RTPHeaderExtension);
       ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::HeaderExtensionParameters, RTPHeaderExtensionParameters);
-      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::HeaderExtensionsList, RTPHeaderExtensionsList);
-      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::HeaderExtensionParametersList, RTPHeaderExtensionParametersList);
+      //ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::HeaderExtensionsList, RTPHeaderExtensionsList);
+      //ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::HeaderExtensionParametersList, RTPHeaderExtensionParametersList);
 
       ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::FECMechanism, RTPFECMechanism);
       ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::FECMechanismList, RTPFECMechanismList);
@@ -89,7 +89,7 @@ namespace ortc
       ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::RTCPFeedback, RTPRTCPFeedback);
       ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::RTCPFeedbackList, RTPRTCPFeedbackList);
 
-      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::CodecParametersList, RTPCodecParametersList);
+      //ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::CodecParametersList, RTPCodecParametersList);
 
       typedef IRTPTypes::CodecKinds RTPCodecKinds;
 

@@ -1096,11 +1096,11 @@ namespace ortc
                                                char phase,
                                                const unsigned char *categoryGroupEnabled,
                                                const char *name,
-                                               uint64 id,
+                                               uint64_t id,
                                                int numArgs,
                                                const char **argNames,
                                                const unsigned char *argTypes,
-                                               const uint64 *argValues,
+                                               const uint64_t *argValues,
                                                unsigned char flags
                                                )
     {
@@ -1242,11 +1242,11 @@ namespace ortc
                                                char phase,
                                                const unsigned char *categoryGroupEnabled,
                                                const char *name,
-                                               uint64 id,
+                                               uint64_t id,
                                                int numArgs,
                                                const char **argNames,
                                                const unsigned char *argTypes,
-                                               const uint64 *argValues,
+                                               const uint64_t *argValues,
                                                unsigned char flags
                                                )
     {
@@ -2046,8 +2046,8 @@ namespace ortc
         report->mID = id;
         report->mTrackID = id;
         report->mRemoteSource = remote;
-        report->mFrameWidth = settings->mWidth.hasValue() ? settings->mWidth : 0;
-        report->mFrameHeight = settings->mHeight.hasValue() ? settings->mHeight : 0;
+        report->mFrameWidth = settings->mWidth.hasValue() ? settings->mWidth.value() : 0;
+        report->mFrameHeight = settings->mHeight.hasValue() ? settings->mHeight.value() : 0;
         report->mFramesPerSecond = framesPerSecond;
         report->mFramesSent = mFramesSent;
         report->mFramesReceived = mFramesReceived;
@@ -2512,14 +2512,14 @@ namespace ortc
                                                                      webrtc::VideoCaptureCapability capability
                                                                      )
     {
-      if (frameRate.mMin.hasValue() && frameRate.mMin.value() > (DOUBLE)capability.maxFPS)
+      if (frameRate.mMin.hasValue() && frameRate.mMin.value() > (zsLib::DOUBLE)capability.maxFPS)
         return FLT_MAX;
-      if (frameRate.mMax.hasValue() && frameRate.mMax.value() < (DOUBLE)capability.maxFPS)
+      if (frameRate.mMax.hasValue() && frameRate.mMax.value() < (zsLib::DOUBLE)capability.maxFPS)
         return FLT_MAX;
-      if (frameRate.mExact.hasValue() && fabs(frameRate.mExact.value() - (DOUBLE)capability.maxFPS) > 0.01F)
+      if (frameRate.mExact.hasValue() && fabs(frameRate.mExact.value() - (zsLib::DOUBLE)capability.maxFPS) > 0.01F)
         return FLT_MAX;
       FLOAT frameRateDistance = 0.0F;
-      if (frameRate.mIdeal.hasValue() && fabs(frameRate.mExact.value() - (DOUBLE)capability.maxFPS) > 0.01F) {
+      if (frameRate.mIdeal.hasValue() && fabs(frameRate.mExact.value() - (zsLib::DOUBLE)capability.maxFPS) > 0.01F) {
         frameRateDistance = (FLOAT)(abs((int)(capability.maxFPS - frameRate.mIdeal.value()))) / (FLOAT)frameRate.mIdeal.value();
       }
 
@@ -2532,7 +2532,7 @@ namespace ortc
                                                                        webrtc::VideoCaptureCapability capability
                                                                        )
     {
-      DOUBLE capabilityAspectRatio = (DOUBLE)capability.width / (DOUBLE)capability.height;
+      zsLib::DOUBLE capabilityAspectRatio = (zsLib::DOUBLE)capability.width / (zsLib::DOUBLE)capability.height;
 
       if (aspectRatio.mMin.hasValue() && aspectRatio.mMin.value() > capabilityAspectRatio)
         return FLT_MAX;
@@ -2892,8 +2892,9 @@ namespace ortc
         report->mPacketsLost = receiveStreamStats.packets_lost;
         report->mJitter = receiveStreamStats.jitter_ms;
         report->mFractionLost = receiveStreamStats.fraction_lost;
+#ifdef WINRT
         report->mEndToEndDelay = Milliseconds(receiveStreamStats.end_to_end_delay_ms);
-
+#endif
         reportStats[report->mID] = report;
       }
 
@@ -3488,8 +3489,8 @@ namespace ortc
         report->mCodecID = mCodecPayloadName;
         report->mPacketsSent = sendStreamStats.packets_sent;
         report->mBytesSent = sendStreamStats.bytes_sent;
-        report->mTargetBitrate = (DOUBLE)mCurrentTargetBitrate;
-        report->mRoundTripTime = (DOUBLE)mCallStats->rtcp_rtt_stats()->LastProcessedRtt();
+        report->mTargetBitrate = (zsLib::DOUBLE)mCurrentTargetBitrate;
+        report->mRoundTripTime = (zsLib::DOUBLE)mCallStats->rtcp_rtt_stats()->LastProcessedRtt();
 
         reportStats[report->mID] = report;
       }
@@ -3838,7 +3839,7 @@ namespace ortc
         }
       }
       if (config.rtp.ssrc == 0) {
-        uint32_t ssrc = SafeInt<uint32>(ortc::services::IHelper::random(1, 0xFFFFFFFF));
+        uint32_t ssrc = SafeInt<uint32_t>(ortc::services::IHelper::random(1, 0xFFFFFFFF));
         webrtc::VoERTP_RTCP::GetInterface(voiceEngine)->SetLocalSSRC(channel, ssrc);
         config.rtp.ssrc = ssrc;
       }
@@ -4205,8 +4206,9 @@ namespace ortc
         report->mPacketsLost = receiveStreamStats.rtp_stats.retransmitted.packets;
         report->mJitter = receiveStreamStats.rtcp_stats.jitter;
         report->mFractionLost = receiveStreamStats.rtcp_stats.fraction_lost;
+#ifdef WINRT
         report->mEndToEndDelay = Milliseconds(receiveStreamStats.current_endtoend_delay_ms);
-
+#endif
         reportStats[report->mID] = report;
       }
 
@@ -4800,8 +4802,8 @@ namespace ortc
           report->mBytesSent = (*statsIter).second.rtp_stats.transmitted.header_bytes +
             (*statsIter).second.rtp_stats.transmitted.payload_bytes +
             (*statsIter).second.rtp_stats.transmitted.padding_bytes;
-          report->mTargetBitrate = (DOUBLE)mCurrentTargetBitrate;
-          report->mRoundTripTime = (DOUBLE)mCallStats->rtcp_rtt_stats()->LastProcessedRtt();
+          report->mTargetBitrate = (zsLib::DOUBLE)mCurrentTargetBitrate;
+          report->mRoundTripTime = (zsLib::DOUBLE)mCallStats->rtcp_rtt_stats()->LastProcessedRtt();
 
           reportStats[report->mID] = report;
         }
@@ -5114,7 +5116,7 @@ namespace ortc
             }
           }
           if (ssrc == 0)
-            ssrc = SafeInt<uint32>(ortc::services::IHelper::random(1, 0xFFFFFFFF));
+            ssrc = SafeInt<uint32_t>(ortc::services::IHelper::random(1, 0xFFFFFFFF));
           config.rtp.ssrcs.push_back(ssrc);
           if (encodingParamIter->mRTX.hasValue()) {
             IRTPTypes::RTXParameters rtx = encodingParamIter->mRTX;
@@ -5136,7 +5138,7 @@ namespace ortc
         }
       }
       if (encoderConfig.streams.size() == 0) {
-        config.rtp.ssrcs.push_back(SafeInt<uint32>(ortc::services::IHelper::random(1, 0xFFFFFFFF)));
+        config.rtp.ssrcs.push_back(SafeInt<uint32_t>(ortc::services::IHelper::random(1, 0xFFFFFFFF)));
         webrtc::VideoStream stream;
         stream.width = sourceWidth;
         stream.height = sourceHeight;
