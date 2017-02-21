@@ -33,32 +33,67 @@ namespace org
 {
   namespace ortc
   {
+    /// <summary>
+    /// The RTCDtlsParameters object includes information relating to DTLS
+    /// configuration.
+    /// </summary>
     [dictionary]
     struct RTCDtlsParameters
     {
       typedef std::list<RTCDtlsFingerprint> FingerprintList;
 
+      /// <summary>
+      /// The DTLS role, with a default of Auto.
+      /// </summary>
       RTCDtlsRole role = auto;
+      /// <summary>
+      /// Sequence of fingerprints, one fingerprint for each certificate.
+      /// </summary>
       FingerprintList fingerprints;
 
+      /// <summary>
+      /// Construct a new empty RTCDtlsParameters object.
+      /// </summary>
       [constructor, default]
       void RTCDtlsParameters();
+      /// <summary>
+      /// Construct a new RTCDtlsParameters object by cloning the contents of an existing object.
+      /// </summary>
       [constructor, altname(RTCDtlsParametersClone)]
       void RTCDtlsParameters(RTCDtlsParameters source);
+      /// <summary>
+      /// Construct an RTCDtlsParameters from a JSON object.
+      /// </summary>
       [constructor, default, altname(RTCDtlsParametersWithJson)]
       void RTCDtlsParameters(Json json);
 
+      /// <summary>
+      /// A helper routine to convert the object's data to structured JSON object data.
+      /// </summary>
       Json toJson();
+      /// <summary>
+      /// Return a hash of the data contained within the object.
+      /// </summary>
       string hash();
     };
 
+    /// <summary>
+    /// The OnStateChange event of the RTCDtlsTransport object uses the
+    /// RTCDtlsTransportStateChangeEvent interface.
+    /// </summary>
     struct RTCDtlsTransportStateChangeEvent
     {
+      /// <summary>
+      /// Gets the new RTCDtlsTransportState that caused the event.
+      /// </summary>
       [getter]
       RTCDtlsTransportState state;
     };
 
-
+    /// <summary>
+    /// The RTCDtlsTransport object includes information relating to Datagram
+    /// Transport Layer Security (DTLS) transport.
+    /// </summary>
     interface RTCDtlsTransport : RTCDataTransport,
                                  RTCRtpTransport,
                                  RTCRtcpTransport,
@@ -66,35 +101,91 @@ namespace org
     {
       typedef std::list<RTCCertificate> CertificateList;
 
+      /// <summary>
+      /// A RTCDtlsTransport instance is constructed using an RTCIceTransport
+      /// and a sequence of RTCCertificate objects. If certificates is
+      /// non-empty, check that the expires attribute of each RTCCertificate
+      /// object is in the future. If a certificate has expired, throw an
+      /// InvalidParameter exception; otherwise, store the certificates.
+      /// </summary>
       [constructor]
       void RTCDtlsTransport(
                             RTCIceTransport iceTransport,
                             CertificateList certificates
                             );
 
+      /// <summary>
+      /// Gets a unique object instance identifier for this object.
+      /// </summary>
       [getter]
-      puid id;
+      puid objectId;
 
+      /// <summary>
+      /// Gets the certificates provided in the constructor.
+      /// </summary>
       [getter]
       CertificateList certificates;
 
+      /// <summary>
+      /// The associated RTCIceTransport instance.
+      /// </summary>
       [getter]
       RTCIceTransport transport;
 
+      /// <summary>
+      /// The current state of the DTLS transport.
+      /// </summary>
       [getter]
       RTCDtlsTransportState state;
 
-      RTCDtlsParameters getLocalParameters();
-      RTCDtlsParameters getRemoteParameters();
+      /// <summary>
+      /// Gets the DTLS parameters of the local RTCDtlsTransport. If multiple
+      /// certificates were provided in the constructor, then multiple
+      /// fingerprints will be returned, one for each certificate.
+      /// </summary>
+      [getter]
+      RTCDtlsParameters localParameters;
+      /// <summary>
+      /// Gets the remote DTLS parameters passed in the Start() method.
+      /// Prior to calling start(), null is returned.
+      /// </summary>
+      [getter]
+      RTCDtlsParameters remoteParameters();
 
+      /// <summary>
+      /// Returns the certificate chain in use by the remote side, with each
+      /// certificate encoded in binary Distinguished Encoding Rules (DER)
+      /// [X690]. GetRemoteCertificates() returns an empty list prior to
+      /// selection of the remote certificate, which is completed once
+      /// RTCDtlsTransportState transitions to "Connected".
+      /// </summary>
       binary getRemoteCertificates();
 
+      /// <summary>
+      /// Start DTLS transport negotiation with the parameters of the remote
+      /// DTLS transport, including verification of the remote fingerprint,
+      /// then once the DTLS transport session is established, negotiate a
+      /// DTLS-SRTP [RFC5764] session to establish keys so as protect media
+      /// using SRTP [RFC3711]. Since symmetric RTP [RFC4961] is utilized,
+      /// the DTLS-SRTP session is bi-directional.
+      /// </summary>
       void start(RTCDtlsParameters remoteParameters) throws (InvalidStateError, InvalidParameters);
+      /// <summary>
+      /// Stops and closes the RTCDtlsTransport object. Calling stop() when
+      /// state is "closed" has no effect.
+      /// </summary>
       void stop();
 
+      /// <summary>
+      /// This event handler, uses the RTCDtlsTransportStateChangedEvent
+      /// interface. It is called any time the RTCDtlsTransportState changes.
+      /// </summary>
       [event]
       void onStateChange(RTCDtlsTransportStateChangeEvent event);
 
+      /// <summary>
+      /// This event is fired on reception of a DTLS error alert.
+      /// </summary>
       [event]
       void onError(ErrorEvent event);
     };

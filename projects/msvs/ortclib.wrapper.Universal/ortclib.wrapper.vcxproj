@@ -328,6 +328,7 @@
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_Json.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_Logger.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_LongRange.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_MediaControl.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_MediaDeviceInfo.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_MediaDevices.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_MediaSource.cpp" />
@@ -481,6 +482,7 @@
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_Json.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_Logger.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_LongRange.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_MediaControl.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_MediaDeviceInfo.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_MediaDevices.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_MediaStreamConstraints.h" />
@@ -632,6 +634,7 @@
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_Json.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_Logger.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_LongRange.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_MediaControl.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_MediaDeviceInfo.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_MediaDevices.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_MediaSource.h" />

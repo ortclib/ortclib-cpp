@@ -33,10 +33,21 @@ namespace org
 {
   namespace ortc
   {
+    /// <summary>
+    /// The RTCStatsProvider interface enables the retrieval of statistics.
+    /// </summary>
     interface RTCStatsProvider
     {
       typedef zs::PromiseWith<RTCStatsReport> PromiseWithStatsReport;
 
+      /// <summary>
+      /// Gets an awaitable RTCStatsReport object that will contain a set of
+      /// statistics objects for the inspected object. A null RTCStatsReport
+      /// return is possible if the object declined the request to inspect
+      /// statistics at this time. An RTCStatsReport containing no statistics
+      /// objects indicates that no inspectable statistics are available at
+      /// this time.
+      /// </summary>
       PromiseWithStatsReport getStats(RTCStatsTypeSet statTypes);
     };
   }

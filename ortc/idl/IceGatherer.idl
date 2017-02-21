@@ -33,134 +33,356 @@ namespace org
 {
   namespace ortc
   {
+    /// <summary>
+    /// ICE interface policy information.
+    /// </summary>
     [dictionary]
     struct RTCIceGatherInterfacePolicy
     {
+      /// <summary>
+      /// Gets or sets the string form of the RTCIceGatherInterfaceType enums
+      /// to specify which interface types this policy object applies.
+      /// </summary>
       string                      interfaceType;
+      /// <summary>
+      /// Gets or sets the candidate filter policy to apply to the specified
+      /// interface types.
+      /// </summary>
       RTCIceGatherFilterPolicy    gatherPolicy = none;
 
+      /// <summary>
+      /// Constructs a new empty RTCIceGatherInterfacePolicy object.
+      /// </summary>
       [constructor, default]
       void RTCIceGatherInterfacePolicy();
+      /// <summary>
+      /// Constructs a new RTCIceGatherInterfacePolicy object cloning the data from an existing object.
+      /// </summary>
       [constructor, altname(RTCIceGatherInterfacePolicyClone)]
       void RTCIceGatherInterfacePolicy(RTCIceGatherInterfacePolicy source);
+      /// <summary>
+      /// Constructs a new RTCIceGatherInterfacePolicy object extracing the data from a JSON object.
+      /// </summary>
       [constructor, default, altname(RTCIceGatherInterfacePolicyWithJson)]
       void RTCIceGatherInterfacePolicy(Json json);
 
+      /// <summary>
+      /// A helper routine to convert the object's data to structured JSON object data.
+      /// </summary>
       Json toJson();
+      /// <summary>
+      /// Return a hash of the data contained within the object.
+      /// </summary>
       string hash();
     };
 
+    /// <summary>
+    /// ICE server information.
+    /// </summary>
     [dictionary]
     struct RTCIceServer
     {
+      /// <summary>
+      /// Gets or sets the STUN or TURN URI(s) as defined in [RFC7064] and [RFC7065] or other
+      /// URI types.
+      /// </summary>
       StringList            urls;
+      /// <summary>
+      /// Gets or sets the username to use with that TURN server, if this
+      /// RTCIceServer object represents a TURN Server.
+      /// </summary>
       string                username;
+      /// <summary>
+      /// Gets or sets the TURN server credential, if this RTCIceServer object
+      /// represents a TURN Server.
+      /// </summary>
       string                credential;
+      /// <summary>
+      /// Gets or sets how credential should be used when that TURN server
+      /// requests authorization, if this RTCIceServer object represents a
+      /// TURN Server.
+      /// </summary>
       RTCIceCredentialType  credentialType = password;
 
+      /// <summary>
+      /// Constructs an empty instance of an RTCIceServer object.
+      /// </summary>
       [constructor, default]
       void RTCIceServer();
+      /// <summary>
+      /// Constructs an instance of an RTCIceServer object by cloning the data from an existing object.
+      /// </summary>
       [constructor, altname(RTCIceServerClone)]
       void RTCIceServer(RTCIceServer source);
+      /// <summary>
+      /// Constructs an instance of an RTCIceServer object by extracting the data from a JSON object.
+      /// </summary>
       [constructor, default, altname(RTCIceServerWithJson)]
       void RTCIceServer(Json json);
 
+      /// <summary>
+      /// A helper routine to convert the object's data to structured JSON object data.
+      /// </summary>
       Json toJson();
+      /// <summary>
+      /// Return a hash of the data contained within the object.
+      /// </summary>
       string hash();
     };
 
+    /// <summary>
+    /// RTCIceGatherOptions provides options relating to the gathering of ICE
+    /// candidates.
+    /// </summary>
     [dictionary]
     struct RTCIceGatherOptions
     {
       typedef std::list<RTCIceGatherInterfacePolicy> InterfacePolicyList;
       typedef std::list<RTCIceServer> ServerList;
 
+      /// <summary>
+      /// Gets or sets the option to specify continous gathering mode.
+      ///
+      /// If true, then the RTCIceGatherer will gather all candidates
+      /// available "for now" and fire a RTCIceGathererCandidateCompleteEvent.
+      /// However, should more candidates be discovered or Gather() get called
+      /// again after the the RTCIceGathererCandidateCompleteEvent then the
+      /// RTCIceGatherer is allowed to go back into the Gatherering state and
+      /// fire newly discovered candidates until another fired
+      /// RTCIceGathererCandidateCompleteEvent occurs.
+      ///
+      /// If false, then the RTCIceGatherer will not be able to discover any
+      /// new candidates after going into the Complete state, or go back
+      /// into the Gatherering state.
+      /// </summary>
       bool                continuousGathering = true;
+      /// <summary>
+      /// Gets or sets the ICE gather policy per interface type.
+      /// </summary>
       InterfacePolicyList interfacePolicies;
+      /// <summary>
+      /// Gets or sets additional ICE servers to be configured. Since
+      /// implementations may provide default ICE servers, and applications
+      /// can desire to restrict communications to the local LAN, iceServers
+      /// need not be set.
+      /// </summary>
       ServerList          iceServers;
 
+      /// <summary>
+      /// Constructs a new instance of an empty RTCIceGatherOptions object.
+      /// </summary>
       [constructor, default]
       void RTCIceGatherOptions();
+      /// <summary>
+      /// Constructs a new instance of an RTCIceGatherOptions object by cloning the contents of an existing object.
+      /// </summary>
       [constructor, altname(RTCIceGatherOptionsClone)]
       void RTCIceGatherOptions(RTCIceGatherOptions source);
+      /// <summary>
+      /// Constructs a new instance of an RTCIceGatherOptions object by extracting the data from a JSON object.
+      /// </summary>
       [constructor, default, altname(RTCIceGatherOptionsWithJson)]
       void RTCIceGatherOptions(Json json);
 
+      /// <summary>
+      /// A helper routine to convert the object's data to structured JSON object data.
+      /// </summary>
       Json toJson();
+      /// <summary>
+      /// Return a hash of the data contained within the object.
+      /// </summary>
       string hash();
     };
 
+    /// <summary>
+    /// This object represents the error event when the RTCIceGatherer object
+    /// has experienced an ICE gathering failure (such as an authentication
+    /// failure with TURN credentials).
+    /// </summary>
     [dictionary]
     struct RTCIceGathererIceErrorEvent
     {
+      /// <summary>
+      /// Gets the RTCIceCandidate used to communicate with the STUN or TURN
+      /// server. On a multihomed system, multiple interfaces may be sed to
+      /// contact the server, and this attribute allows the application to
+      /// figure out on which one the failure occurred.
+      /// </summary>
       [nullable]
       RTCIceCandidate hostCandidate;
+      /// <summary>
+      /// Gets the STUN or TURN URL identifying the server on which the
+      /// failure ocurred.
+      /// </summary>
       string          url;
+      /// <summary>
+      /// Gets the numeric STUN error code returned by the STUN or TURN
+      /// server. If the server could not be reached on all interfaces,
+      /// ErrorCode will be set to a TBD value in the 7XX range, as this does
+      /// not conflict with the STUN error code range, and HostCandidate will
+      /// be null.
+      /// </summary>
       uint16          errorCode;
+      /// <summary>
+      /// Gets the STUN reason text returned by the STUN or TURN server.
+      /// </summary>
       string          errorText;
     };
 
-
+    /// <summary>
+    /// This object represents the event for when the RTCIceGathererState
+    /// changed.
+    /// </summary>
     struct RTCIceGathererStateChangeEvent
     {
+      /// <summary>
+      /// Gets the new RTCIceGathererState that caused the event.
+      /// </summary>
       [getter]
       RTCIceGathererState state;
     };
 
+    /// <summary>
+    /// This object represents the event for when a new RTCIceGathererCandidate
+    /// is made available (or is gone).
+    /// </summary>
     struct RTCIceGathererCandidateEvent
     {
+      /// <summary>
+      /// Gets the ICE candidate that caused the event.
+      /// </summary>
       [getter]
       RTCIceCandidate candidate;
+      /// <summary>
+      /// Gets the URL of the server from which the candidate was obtained.
+      /// </summary>
       [getter]
       string url;
     };
 
+    /// <summary>
+    /// This object represents the event for when a new
+    /// RTCIceCandidateComplete is made available.
+    /// </summary>
     struct RTCIceGathererCandidateCompleteEvent
     {
+      /// <summary>
+      /// Gets the ICE candidate that caused the event.
+      /// </summary>
       [getter]
       RTCIceCandidateComplete candidate;
     };
 
+    /// <summary>
+    /// The RTCIceGatherer gathers local host, server reflexive and relay
+    /// candidates, as well as enabling the retrieval of local Interactive
+    /// Connectivity Establishment (ICE) parameters which can be exchanged in
+    /// signaling. By enabling an endpoint to use a set of local candidates to
+    /// construct multiple RTCIceTransport objects, the RTCIceGatherer enables
+    /// support for scenarios such as parallel forking.
+    /// </summary>
     interface RTCIceGatherer : RTCStatsProvider
     {
       typedef std::list<RTCIceCandidate> CandidateList;
 
+      /// <summary>
+      /// Constructs an instance of an RTCIceGatherer.
+      /// </summary>
       [constructor]
       void RTCIceGatherer(RTCIceGatherOptions options);
 
+      /// <summary>
+      /// Gets a unique object instance identifier for this object.
+      /// </summary>
       [getter]
-      puid id;
+      puid objectId;
 
+      /// <summary>
+      /// Gets the component-id of the RTCIceGatherer object. In
+      /// RTCIceGatherer objects returned by createAssociatedGatherer() the
+      /// value of component is "RTCP". In all other RTCIceGatherer objects,
+      /// the value of component is "RTP".
+      /// </summary>
       [getter]
       RTCIceComponent component;
 
+      /// <summary>
+      /// Gets the current state of the ICE gatherer.
+      /// </summary>
       [getter]
       RTCIceGathererState state;
 
-      RTCIceParameters getLocalParameters();
-      CandidateList getLocalCandidates();
+      /// <summary>
+      /// Obtain the ICE parameters of the RTCIceGatherer.
+      /// </summary>
+      [getter]
+      RTCIceParameters localParameters;
+      /// <summary>
+      /// Retrieve the sequence of valid local candidates associated with the
+      /// RTCIceGatherer. This retrieves all unpruned local candidates
+      /// currently known (except for peer reflexive candidates), even if an
+      /// onlocalcandidate event hasn't been processed yet. Prior to calling
+      /// Gather() an empty list will be returned.
+      /// </summary>
+      [getter]
+      CandidateList localCandidates;
 
+      /// <summary>
+      /// Create an associated RTCIceGatherer for RTCP, with the same
+      /// RTCIceParameters and RTCIceGatherOptions. If state is "closed",
+      /// throw an InvalidStateError exception. If an RTCIceGatherer calls the
+      /// method more than once, or if component is "RTCP", throw an
+      /// InvalidStateError exception.
+      /// </summary>
       RTCIceGatherer createAssociatedGatherer();
 
-      void gather(
-                  [optional]
-                  RTCIceGatherOptions options
-                  );
+      /// <summary>
+      /// Gather ICE candidates. Utilize the value of options passed in the constructor.
+      /// </summary>
+      [default]
+      void gather();
 
+      /// <summary>
+      /// Gather ICE candidates with the options specified.
+      /// </summary>
+      void gather(RTCIceGatherOptions options);
+
+      /// <summary>
+      /// Prunes all local candidates, and closes the port. Associated
+      /// RTCIceTransport objects transition to the "disconnected" state
+      /// (unless they were in the "failed" state). Calling close() when state
+      /// is "closed" has no effect.
+      /// </summary>
       void close();
 
+      /// <summary>
+      /// The RTCIceGathererState changed.
+      /// </summary>
       [event]
       void onStateChange(RTCIceGathererStateChangeEvent event);
 
+      /// <summary>
+      /// A new RTCIceGathererCandidate is made available.
+      /// </summary>
       [event]
       void onLocalCandidate(RTCIceGathererCandidateEvent event);
 
+      /// <summary>
+      /// A new RTCIceCandidateComplete is made available.
+      /// </summary>
       [event]
       void onLocalCandidateComplete(RTCIceGathererCandidateCompleteEvent event);
 
+      /// <summary>
+      /// A new RTCIceGathererCandidate is no longer available.
+      /// </summary>
       [event]
       void onLocalCandidateGone(RTCIceGathererCandidateEvent event);
 
+      /// <summary>
+      /// The RTCIceGatherer object has experienced an ICE gathering failure
+      /// (such as an authentication failure with TURN credentials).
+      /// </summary>
       [event]
       void onError(RTCIceGathererIceErrorEvent event);
     };

@@ -35,41 +35,118 @@ namespace org
   {
     namespace adapter
     {  
+      /// <summary>
+      /// The two main components in the MediaStream API are the
+      /// MediaStreamTrack and MediaStream interfaces. The MediaStreamTrack
+      /// object represents media of a single type that originates from one
+      /// media source in the User Agent, e.g. video produced by a web camera.
+      /// A MediaStream is used to group several MediaStreamTrack objects into
+      /// one unit that can be recorded or rendered in a media element.
+      /// </summary>
       interface MediaStream : RTCStatsProvider
       {
         typedef std::list<MediaStreamTrack> MediaStreamTrackList;
 
+        /// <summary>
+        /// Constructs an empty MediaStream object.
+        /// </summary>
         [constructor, default]
         void MediaStream();
+        /// <summary>
+        /// Constructs an instance of an MediaStream and clones the tracks
+        /// from the original MediaStream.
+        /// </summary>
         [constructor, altname(MediaStreamClone)]
         void MediaStream(MediaStream source);
+        /// <summary>
+        /// Constructs an instance of an MediaStream containing a list of
+        /// MediaStreamTracks supplied.
+        /// </summary>
         [constructor, default, altname(MediaStreamWithTracks)]
         void MediaStream(MediaStreamTrackList tracks);
 
+        /// <summary>
+        /// Gets a unique object instance identifier for this object.
+        /// </summary>
         [getter]
-        puid id;
+        puid objectId;
 
+        /// <summary>
+        /// Gets the media stream identifier. When a MediaStream object is
+        /// created, the engine must generate an identifier string, and must
+        /// initialize the object's id attribute to that string. A good
+        /// practice is to use a UUID [RFC4122], which is 36 characters long
+        /// in its canonical form. To avoid fingerprinting, implementations
+        /// should use the forms in section 4.4 or 4.5 of [RFC4122] when
+        /// generating UUIDs.
+        /// </summary>
+        [getter]
+        string id;
+
+        /// <summary>
+        /// Gets an indicator if this MediaStream is active.
+        /// </summary>
         [getter]
         bool active;
 
+        /// <summary>
+        /// Returns a sequence of MediaStreamTrack objects representing all
+        /// the tracks in this stream.
+        /// </summary>
         [getter]
         MediaStreamTrackList tracks;
+        /// <summary>
+        /// Gets a sequence of MediaStreamTrack objects representing the
+        /// audio tracks in this stream.
+        /// </summary>
         [getter]
         MediaStreamTrackList audioTracks;
         [getter]
+        /// <summary>
+        /// Gets a sequence of MediaStreamTrack objects representing the
+        /// video tracks in this stream.
+        /// </summary>
         MediaStreamTrackList videoTracks;
+        /// <summary>
+        /// The GetTrackById() method must return either a MediaStreamTrack
+        /// object from this stream's track set whose id is equal to trackId,
+        /// or null, if no such track exists.
+        /// </summary>
         MediaStreamTrack getTrackById(string id);
 
+        /// <summary>
+        /// Gets the number of media stream tracks contained within the media
+        /// stream.
+        /// </summary>
         [getter]
         size_t count;
 
+        /// <summary>
+        /// Adds the given MediaStreamTrack to this MediaStream.
+        /// </summary>
         void addTrack(MediaStreamTrack track);
+        /// <summary>
+        /// Removes the given MediaStreamTrack object from this MediaStream.
+        /// </summary>
         void removeTrack(MediaStreamTrack track);
 
+        /// <summary>
+        /// Clones the given MediaStream and all its tracks.
+        /// </summary>
         MediaStream clone();
 
+        /// <summary>
+        /// This event fires when a new MediaStreamTrack has been added to
+        /// this stream. Note that this event is not fired when the script
+        /// directly modifies the tracks of a MediaStream.
+        /// </summary>
         [event]
         void onAddTrack(MediaStreamTrack track);
+        /// <summary>
+        /// This event fires when a MediaStreamTrack has been removed from
+        /// this stream. Note that this event is not fired when the script
+        /// directly modifies the tracks of a MediaStream.
+        /// </summary>
         [event]
         void onRemoteTrack(MediaStreamTrack track);
       };

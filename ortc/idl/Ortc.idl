@@ -41,73 +41,145 @@ namespace org
     typedef zs::exceptions::NotImplemented NotImplemented;
     typedef zs::exceptions::UnexpectedError Unexpected;
 
+    /// <summary>
+    /// A message queue for receiving delegate events.
+    /// </summary>
     interface MessageQueue
     {
       [constructor, delete]
       void MessageQueue();
 
+      /// <summary>
+      /// The default windows message queue for the system GUI thread.
+      /// </summary>
       [static]
       MessageQueue getDefaultForUi();
     };
 
+    /// <summary>
+    /// An object representation of a JSON blob.
+    /// </summary>
     interface Json
     {
+      /// <summary>
+      /// Construct an object representation of a JSON blob from a string.
+      /// </summary>
       [constructor]
       void Json(string jsonString);
 
-      [getter, setter]
+      /// <summary>
+      /// Convert the JSON object into a string.
+      /// </summary>
       string toString();
     };
 
     //!EXCLUSIVE WINUWP
+    /// <summary>
+    /// An reference holder to the system dispatcher object.
+    /// </summary>
     [special, platform(webhidden)]
     interface Dispatcher
     {
+      /// <summary>
+      /// Construct an object reference holder to the system dispatcher object.
+      /// </summary>
       [constructor]
       void Dispatcher(Any source);
 
+      /// <summary>
+      /// Gets or sets the default system dispatcher object.
+      /// </summary>
       [static]
       Any source;
     };
     //!EXCLUSIVE x
 
+    /// <summary>
+    /// Setup methods for the ORTC Lib stack.
+    /// </summary>
     [static]
     interface OrtcLib
     {
+      /// <summary>
+      /// Initialize the ORTC stack.
+      /// </summary>
       [static, default]
       void setup();
 
-      [static, altname(SetupWithQueue)]
+      /// <summary>
+      /// Initialize the ORTC stack with a target event queue for delegate events.
+      /// </summary>
+      [static, altname(setupWithQueue)]
       void setup(MessageQueue queue);
 
+      /// <summary>
+      /// Gets or sets the NTP server time discovered in milliseconds since
+      /// NTP epoch. This property must only be set at the actual moment when
+      /// the server time was discovered to ensure the NTP clock is as closed
+      /// to accurate as possible.
+      /// </summary>
       [static]
       Milliseconds ntpServerTime;
 
+      /// <summary>
+      /// Starts media engine trancing system. The collected traces can be
+      /// saved to file or sent to TCP listener. Traces can be visualised
+      /// further by importing the data into Chrome browser tool that can be
+      /// accessed using following option - chrome://tracing.
+      /// This method starts the tracing engine.
+      /// </summary>
       [static]
       void startMediaTracing();
+      /// <summary>
+      /// Stops media tracing process.
+      /// </summary>
       [static]
       void stopMediaTracing();
+      /// <summary>
+      /// Indiceates whether tracing system is activated.
+      /// </summary>
       [static]
       bool isMediaTracing();
+      /// <summary>
+      /// Saves media trace data to the file specified by filename.
+      /// </summary>
       [static]
       bool saveMediaTrace(string filename);
+      /// <summary>
+      /// Sends all traced data to TCP listener specified by host name and port.
+      /// </summary>
       [static]
       bool saveMediaTrace(string host, int port);
 
+      /// <summary>
+      /// Notify the application is going to the background.
+      /// </summary>
       [static]
       zs::Promise notifyGoingToBackground();
 
+      /// <summary>
+      /// Notify the application is going to the background immediately.
+      /// </summary>
       [static]
       void notifyGoingToBackgroundNow();
 
+      /// <summary>
+      /// Notify the application is returning from the background.
+      /// </summary>
       [static]
       void notifyReturningFromBackground();
     };
 
     //!EXCLUSIVE WINUWP
+    /// <summary>
+    /// Setup methods for the ORTC Lib stack when using dispatcher.
+    /// </summary>
     [static, platform(webhidden)]
     interface OrtcLibWithDispatcher
     {
+      /// <summary>
+      /// Initialize the ORTC stack with a target dispatcher for delegate events.
+      /// </summary>
       [static, default, altname(SetupWithDispatcher)]
       void setup(Dispatcher dispatcher);
     };

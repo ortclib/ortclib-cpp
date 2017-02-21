@@ -33,36 +33,70 @@ namespace org
 {
   namespace ortc
   {
+    /// <summary>
+    /// Controls the detailed settings of how the ORTC engine operates.
+    /// </summary>
     [static]
     interface Settings
     {
+      /// <summary>
+      /// Apply all the default settings for how the ORTC engine should
+      /// behave.
+      /// </summary>
       [static]
       void applyDefaults();
 
+      /// <summary>
+      /// Apply a collection of json based settings.
+      /// </summary>
       [static]
-      bool apply(string jsonSettings);
+      bool apply(Json jsonSettings);
 
+      /// <summary>
+      /// Apply a specific string setting with a key and value.
+      /// </summary>
       [static]
       void setString(string key, string value);
 
+      /// <summary>
+      /// Apply a specific integer setting with a key and value.
+      /// </summary>
       [static]
       void setInt(string key, int64 value);
 
+      /// <summary>
+      /// Apply a specific unsigned integer setting with a key and value.
+      /// </summary>
       [static]
       void setUInt(string key, uint64 value);
 
+      /// <summary>
+      /// Apply a specific boolean setting with a key and value.
+      /// </summary>
       [static]
       void setBool(string key, bool value);
 
+      /// <summary>
+      /// Apply a specific floating point setting with a key and value.
+      /// </summary>
       [static]
       void setFloat(string key, float value);
 
+      /// <summary>
+      /// Apply a specific double floating point setting with a key and value.
+      /// </summary>
       [static]
       void setDouble(string key, double value);
 
+      /// <summary>
+      /// Clear a specific setting by its key.
+      /// </summary>
       [static]
       void clear(string key);
 
+      /// <summary>
+      /// Clear all known settings.
+      /// </summary>
       [static]
       void clearAll();
     };

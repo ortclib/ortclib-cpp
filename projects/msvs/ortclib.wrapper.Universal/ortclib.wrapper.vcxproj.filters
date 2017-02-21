@@ -571,6 +571,9 @@
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_Json.cpp">
       <Filter>ortc\idl\wrapper</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_MediaControl.cpp">
+      <Filter>ortc\idl\wrapper</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_adapter_RTCCapabilityOptions.h">
@@ -1480,6 +1483,12 @@
       <Filter>ortc\idl\wrapper\generated</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_Json.h">
+      <Filter>ortc\idl\wrapper\generated</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_MediaControl.h">
+      <Filter>ortc\idl\wrapper</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_MediaControl.h">
       <Filter>ortc\idl\wrapper\generated</Filter>
     </ClInclude>
   </ItemGroup>

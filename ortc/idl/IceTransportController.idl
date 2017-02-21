@@ -33,22 +33,55 @@ namespace org
 {
   namespace ortc
   {
+    /// <summmary>
+    /// The RTCIceTransportController object assists in the managing of ICE
+    /// freezing and bandwidth estimation.
+    /// </summmary>
     interface RTCIceTransportController
     {
       typedef std::list<RTCIceTransport> IceTransportList;
 
+      /// <summmary>
+      /// Constructs an instance of the RTCIceTransportController.
+      /// </summmary>
       [constructor]
       void RTCIceTransportController();
 
+      /// <summmary>
+      /// Get a unique object instance identifier for this object.
+      /// </summmary>
       [getter]
-      puid id;
+      puid objectId;
 
+      /// <summary>
+      /// Gets the RTCIceTransport with a component of "RTP". If
+      /// addTransport() has not been called, an empty list is returned.
+      /// </summary>
       [getter]
       IceTransportList transports;
 
+      /// <summary>
+      /// Adds transport to the RTCIceTransportController object for the
+      /// purposes of managing ICE freezing and sharing bandwidth estimation.
+      /// Since addTransport manages ICE freezing, candidate pairs that are
+      /// not in the frozen state maintain their state when
+      /// AddTransport(transport) is called. RTCIceTransport objects will be
+      /// unfrozen according to their index. The added transport is inserted
+      /// as the final index.
+      ///
+      ///  If transport.state is "closed", throw an InvalidStateError
+      /// exception. If transport has already been added to another
+      /// RTCIceTransportController object, or if transport.component is
+      /// "RTCP", throw an InvalidStateError exception.
+      /// </summary>
+      void addTransport(RTCIceTransport transport) throws (InvalidParameters, InvalidStateError);
+      /// <summary>
+      /// The transport is inserted at index. If index is greater than the
+      /// current number of RTCIceTransports with a component of "RTP",
+      /// throw an InvalidParameters exception.
+      /// </summary>
       void addTransport(
                         RTCIceTransport transport,
-                        [optional]
                         size_t index
                         ) throws (InvalidParameters, InvalidStateError);
     };

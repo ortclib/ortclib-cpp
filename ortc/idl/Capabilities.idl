@@ -33,47 +33,101 @@ namespace org
 {
   namespace ortc
   {
+    /// <summary>
+    /// The minimum and maximum legal values for an interger value.
+    /// </summary>
     [dictionary]
     struct LongRange
     {
+      /// <summary>
+      /// Gets or sets the minimum value of this property.
+      /// </summary>
       long min;
+      /// <summary>
+      /// Gets or sets the maximum legal value of this property.
+      /// </summary>
       long max;
 
+      /// <summary>
+      /// Constructs a new minimum and maximum legal range for an integer value.
+      /// </summary>
       [constructor, default]
       void LongRange();
 
+      /// <summary>
+      /// Constructs a minimum and maximum legal range given an integer value.
+      /// </summary>
       [constructor, default, altname(LongRangeWithValue)]
       void LongRange(long value);
 
+      /// <summary>
+      /// Constructs a minimum and maximum legal range given an integer minimum and maximum value.
+      /// </summary>
       [constructor, default, altname(LongRangeWithLimits)]
       void LongRange(long min, long max);
 
+      /// <summary>
+      /// Constructs a minimum and maximum legal range given a JSON object.
+      /// </summary>
       [constructor, altname(LongRangeWithJson)]
       void LongRange(Json json);
 
+      /// <summary>
+      /// Convert the integer range into a JSON object.
+      /// </summary>
       Json toJson();
+      /// <summary>
+      /// Get a hash value of the integer range.
+      /// </summary>
       string hash();
     };
 
+    /// <summary>
+    /// The minimum and maximum legal values for an real value.
+    /// </summary>
     [dictionary]
     struct DoubleRange
     {
+      /// <summary>
+      /// Gets or sets the minimum value of this property.
+      /// </summary>
       double min;
+      /// <summary>
+      /// Gets or sets the maximum legal value of this property.
+      /// </summary>
       double max;
 
+      /// <summary>
+      /// Constructs a new minimum and maximum legal range for a real value.
+      /// </summary>
       [constructor, default]
       void DoubleRange();
 
+      /// <summary>
+      /// Constructs a minimum and maximum legal range given a real value.
+      /// </summary>
       [constructor, default, altname(DoubleRangeWithValue)]
       void DoubleRange(long value);
 
+      /// <summary>
+      /// Constructs a minimum and maximum legal range given a real minimum and maximum value.
+      /// </summary>
       [constructor, default, altname(DoubleRangeWithLimits)]
       void DoubleRange(long min, long max);
 
+      /// <summary>
+      /// Constructs a minimum and maximum legal range given a JSON object.
+      /// </summary>
       [constructor, altname(DoubleRangeWithJson)]
       void DoubleRange(Json json);
 
+      /// <summary>
+      /// Convert the real number range into a JSON object.
+      /// </summary>
       Json toJson();
+      /// <summary>
+      /// Get a hash value of a real value range.
+      /// </summary>
       string hash();
     }
 

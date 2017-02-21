@@ -34,35 +34,104 @@ namespace org
 {
   namespace ortc
   {  
+    /// <summary>
+    /// An RTCDtmfSender instance allows sending DTMF tones to/from the remote
+    /// peer, as per [RFC4733].
+    /// </summary>
     interface RTCRtpDtmfSender
     {
+      /// <summary>
+      /// Construct an instance of the RTCDtmfSender associated to an
+      /// RTCRtpSender.
+      /// </summary>
       [constructor]
       void RTCRtpDtmfSender(RTCRtpSender sender);
 
+      /// <summary>
+      /// Gets a unique object instance identifier for this object.
+      /// </summary>
       [getter]
-      puid id;
+      puid objectId;
 
+      /// <summary>
+      /// Gets whether the RTCDtmfSender is capable of sending DTMF.
+      /// </summary>
       bool canInsertDtmf();
 
+      /// <summary>
+      /// The InsertDTMF() method is used to send DTMF tones. Since DTMF tones
+      /// cannot be sent without configuring the DTMF codec, if InsertDTMF()
+      /// is called prior to sender.Send(parameters), or if
+      /// sender.Send(parameters) was called but parameters did not include
+      /// the DTMF codec, throw an InvalidStateError exception.
+      /// </summary>
+      [default]
+      void insertDtmf(string tones) throws(InvalidStateError, InvalidParameters);
+
+      /// <summary>
+      /// The InsertDTMF() method is used to send DTMF tones. Since DTMF tones
+      /// cannot be sent without configuring the DTMF codec, if InsertDTMF()
+      /// is called prior to sender.Send(parameters), or if
+      /// sender.Send(parameters) was called but parameters did not include
+      /// the DTMF codec, throw an InvalidStateError exception.
+      /// </summary>
+      [altname(insertDtmfWithDuration)]
       void insertDtmf(
                       string tones,
-                      [optional]
+                      Milliseconds duration
+                      ) throws (InvalidStateError, InvalidParameters);
+
+      /// <summary>
+      /// The InsertDTMF() method is used to send DTMF tones. Since DTMF tones
+      /// cannot be sent without configuring the DTMF codec, if InsertDTMF()
+      /// is called prior to sender.Send(parameters), or if
+      /// sender.Send(parameters) was called but parameters did not include
+      /// the DTMF codec, throw an InvalidStateError exception.
+      /// </summary>
+      [altname(insertDtmfWithDurationAndGap)]
+      void insertDtmf(
+                      string tones,
                       Milliseconds duration,
-                      [optional]
                       Milliseconds interToneGap
                       ) throws (InvalidStateError, InvalidParameters);
 
+      /// <summary>
+      /// Gets the RTCRtpSender instance.
+      /// </summary>
       [getter]
       RTCRtpSender sender;
 
+      /// <summary>
+      /// Gets the toneBuffer attribute returns a list of the tones remaining
+      /// to be played out.
+      /// </summary>
       [getter]
       string toneBuffer;
 
+      /// <summary>
+      /// Get the duration attribute returns the current tone duration value
+      /// in milliseconds. This value will be the value last set via the
+      /// InsertDTMF() method, or the default value of 100 ms if
+      /// InsertDTMF() was called without specifying the duration.
+      /// </summary>
       [getter]
       Milliseconds duration;
 
+      /// <summary>
+      /// Gets the interToneGap attribute returns the current value of the
+      /// between-tone gap. This value will be the value last set via the
+      /// InsertDTMF() method, or the default value of 70 ms if InsertDTMF()
+      /// was called without specifying the interToneGap.
+      /// </summary>
       [getter]
       Milliseconds interToneGap;
+
+      /// <summary>
+      /// The OnToneChange event handler uses the RTCDTMFToneChangeEvent
+      /// interface to return the character for each tone as it is played out.
+      /// </summary>
+      [event]
+      void onToneChange();
     };
 
   }

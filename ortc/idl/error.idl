@@ -33,18 +33,37 @@ namespace org
 {
   namespace ortc
   {
+    /// <summary>
+    /// This object represents generic error information.
+    /// </summary>
     [dictionary]
     struct Error
     {
+      /// <summary>
+      /// Gets or sets a string representing the error code (see HTTP
+      /// status codes).
+      /// </summary>
       uint16 errorCode;
+      /// <summary>
+      /// Gets or sets a string representing one of the error typename.
+      /// </summary>
       string name;
+      /// <summary>
+      /// Gets or sets a string representing one of the error reason.
+      /// </summary>
       string reason;
     };
 
     typedef zs::PromiseRejectionReason<Error> PromiseRejectionReason;
 
+    /// <summary>
+    /// This object represents the error event for event delegates.
+    /// </summary>
     interface ErrorEvent
     {
+      /// <summary>
+      /// Gets the error information associated with this event (if any).
+      /// </summary>
       [getter]
       Error error;
     };
