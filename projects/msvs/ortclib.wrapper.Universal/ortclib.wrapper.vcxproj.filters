@@ -13,109 +13,6 @@
     <Filter Include="ortc\idl\wrapper\generated">
       <UniqueIdentifier>{856ec7c4-23a4-4b0a-ae49-46a103ab4f34}</UniqueIdentifier>
     </Filter>
-    <Filter Include="ortc\idl\adapter">
-      <UniqueIdentifier>{8e4e19d9-65a2-4b68-9635-e2c0d194b07c}</UniqueIdentifier>
-    </Filter>
-  </ItemGroup>
-  <ItemGroup>
-    <Midl Include="..\..\..\ortc\idl\DtlsTransport.idl">
-      <Filter>ortc\idl</Filter>
-    </Midl>
-    <Midl Include="..\..\..\ortc\idl\DtmfSender.idl">
-      <Filter>ortc\idl</Filter>
-    </Midl>
-    <Midl Include="..\..\..\ortc\idl\enums.idl">
-      <Filter>ortc\idl</Filter>
-    </Midl>
-    <Midl Include="..\..\..\ortc\idl\error.idl">
-      <Filter>ortc\idl</Filter>
-    </Midl>
-    <Midl Include="..\..\..\ortc\idl\IceGatherer.idl">
-      <Filter>ortc\idl</Filter>
-    </Midl>
-    <Midl Include="..\..\..\ortc\idl\IceTransport.idl">
-      <Filter>ortc\idl</Filter>
-    </Midl>
-    <Midl Include="..\..\..\ortc\idl\IceTransportController.idl">
-      <Filter>ortc\idl</Filter>
-    </Midl>
-    <Midl Include="..\..\..\ortc\idl\IceTypes.idl">
-      <Filter>ortc\idl</Filter>
-    </Midl>
-    <Midl Include="..\..\..\ortc\idl\Identity.idl">
-      <Filter>ortc\idl</Filter>
-    </Midl>
-    <Midl Include="..\..\..\ortc\idl\MediaDevices.idl">
-      <Filter>ortc\idl</Filter>
-    </Midl>
-    <Midl Include="..\..\..\ortc\idl\MediaStreamTrack.idl">
-      <Filter>ortc\idl</Filter>
-    </Midl>
-    <Midl Include="..\..\..\ortc\idl\Ortc.idl">
-      <Filter>ortc\idl</Filter>
-    </Midl>
-    <Midl Include="..\..\..\ortc\idl\RtpListener.idl">
-      <Filter>ortc\idl</Filter>
-    </Midl>
-    <Midl Include="..\..\..\ortc\idl\RtpReceiver.idl">
-      <Filter>ortc\idl</Filter>
-    </Midl>
-    <Midl Include="..\..\..\ortc\idl\RtpSender.idl">
-      <Filter>ortc\idl</Filter>
-    </Midl>
-    <Midl Include="..\..\..\ortc\idl\RtpTypes.idl">
-      <Filter>ortc\idl</Filter>
-    </Midl>
-    <Midl Include="..\..\..\ortc\idl\SctpTransport.idl">
-      <Filter>ortc\idl</Filter>
-    </Midl>
-    <Midl Include="..\..\..\ortc\idl\SrtpSdesTransport.idl">
-      <Filter>ortc\idl</Filter>
-    </Midl>
-    <Midl Include="..\..\..\ortc\idl\StatsProvider.idl">
-      <Filter>ortc\idl</Filter>
-    </Midl>
-    <Midl Include="..\..\..\ortc\idl\StatsReport.idl">
-      <Filter>ortc\idl</Filter>
-    </Midl>
-    <Midl Include="..\..\..\ortc\idl\Capabilities.idl">
-      <Filter>ortc\idl</Filter>
-    </Midl>
-    <Midl Include="..\..\..\ortc\idl\Certificate.idl">
-      <Filter>ortc\idl</Filter>
-    </Midl>
-    <Midl Include="..\..\..\ortc\idl\Constraints.idl">
-      <Filter>ortc\idl</Filter>
-    </Midl>
-    <Midl Include="..\..\..\ortc\idl\DataChannel.idl">
-      <Filter>ortc\idl</Filter>
-    </Midl>
-    <Midl Include="..\..\..\ortc\idl\adapter\MediaStream.idl">
-      <Filter>ortc\idl\adapter</Filter>
-    </Midl>
-    <Midl Include="..\..\..\ortc\idl\adapter\PeerConnection.idl">
-      <Filter>ortc\idl\adapter</Filter>
-    </Midl>
-    <Midl Include="..\..\..\ortc\idl\adapter\SessionDescription.idl">
-      <Filter>ortc\idl\adapter</Filter>
-    </Midl>
-    <Midl Include="..\..\..\ortc\idl\adapter\enums.idl">
-      <Filter>ortc\idl\adapter</Filter>
-    </Midl>
-    <Midl Include="..\..\..\ortc\idl\Settings.idl">
-      <Filter>ortc\idl</Filter>
-    </Midl>
-    <Midl Include="..\..\..\ortc\idl\Logger.idl">
-      <Filter>ortc\idl</Filter>
-    </Midl>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\..\..\ortc\idl\winuwp.json">
-      <Filter>ortc\idl</Filter>
-    </None>
-    <None Include="..\..\..\ortc\idl\config.json">
-      <Filter>ortc\idl</Filter>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_adapter_RTCCapabilityOptions.cpp">
@@ -572,6 +469,12 @@
       <Filter>ortc\idl\wrapper</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_MediaControl.cpp">
+      <Filter>ortc\idl\wrapper</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc.cpp">
+      <Filter>ortc\idl\wrapper</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_Helper.cpp">
       <Filter>ortc\idl\wrapper</Filter>
     </ClCompile>
   </ItemGroup>
@@ -1490,6 +1393,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_MediaControl.h">
       <Filter>ortc\idl\wrapper\generated</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_Helper.h">
+      <Filter>ortc\idl\wrapper</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
