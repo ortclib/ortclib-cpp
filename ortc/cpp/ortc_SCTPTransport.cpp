@@ -1154,7 +1154,7 @@ namespace ortc
                     bool, hasMaxRetransmits, packet->mMaxRetransmits.hasValue(),
                     ulong, maxRetransmits, packet->mMaxRetransmits.value(),
                     buffer, data, ((bool)packet->mBuffer) ? packet->mBuffer->BytePtr() : NULL,
-                    size, size, ((bool)packet->mBuffer) ? SafeInt<unsigned int>(packet->mBuffer->SizeInBytes()) : 0
+                    size, size, ((bool)packet->mBuffer) ? size_t((SafeInt<unsigned int>(packet->mBuffer->SizeInBytes()))) : 0
                     );
 
       ZS_DECLARE_TYPEDEF_PTR(ISCTPTransportForDataChannel::RejectReason, RejectReason)
@@ -1458,7 +1458,7 @@ namespace ortc
                     dword, timestamp, packet->mTimestamp,
                     int, flags, packet->mFlags,
                     buffer, data, ((bool)packet->mBuffer) ? packet->mBuffer->BytePtr() : NULL,
-                    size, size, ((bool)packet->mBuffer) ? SafeInt<unsigned int>(packet->mBuffer->SizeInBytes()) : 0
+                    size, size, ((bool)packet->mBuffer) ? size_t(SafeInt<unsigned int>(packet->mBuffer->SizeInBytes())) : 0
                     );
 
       ZS_LOG_TRACE(log("on incoming packet") + packet->toDebug())
@@ -1542,7 +1542,7 @@ namespace ortc
                       dword, timestamp, packet->mTimestamp,
                       int, flags, packet->mFlags,
                       buffer, data, ((bool)packet->mBuffer) ? packet->mBuffer->BytePtr() : NULL,
-                      size, size, ((bool)packet->mBuffer) ? SafeInt<unsigned int>(packet->mBuffer->SizeInBytes()) : 0          
+                      size, size, ((bool)packet->mBuffer) ? size_t(SafeInt<unsigned int>(packet->mBuffer->SizeInBytes())) : 0
                       );
         ZS_LOG_TRACE(log("forwarding to data channel") + ZS_PARAM("data channel", dataChannel->getID()) + packet->toDebug());
         dataChannel->handleSCTPPacket(packet);

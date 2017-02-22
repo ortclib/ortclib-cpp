@@ -223,6 +223,7 @@
 		009D16151DE5210200D139FF /* IStatsReport.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IStatsReport.h; sourceTree = "<group>"; };
 		009D16161DE5210200D139FF /* ortc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ortc.h; sourceTree = "<group>"; };
 		009D16331DE5210300D139FF /* types.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = types.h; sourceTree = "<group>"; };
+		5206B1B01E5CDB3600029C2C /* ortcEvents.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ortcEvents.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -393,6 +394,7 @@
 		009D15D81DE5210200D139FF /* internal */ = {
 			isa = PBXGroup;
 			children = (
+				5206B1B01E5CDB3600029C2C /* ortcEvents.h */,
 				009D15D91DE5210200D139FF /* ifaddrs-android.h */,
 				009D15DA1DE5210200D139FF /* ortc.events.h */,
 				009D15DB1DE5210200D139FF /* ortc.events.jman */,

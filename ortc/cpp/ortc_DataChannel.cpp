@@ -578,7 +578,7 @@ namespace ortc
                     dword, timestamp, packet->mTimestamp,
                     int, flags, packet->mFlags,
                     buffer, packet, ((bool)packet->mBuffer) ? packet->mBuffer->BytePtr() : NULL,
-                    size, size, ((bool)packet->mBuffer) ? SafeInt<unsigned int>(packet->mBuffer->SizeInBytes()) : 0
+                    size, size, ((bool)packet->mBuffer) ? size_t(SafeInt<unsigned int>(packet->mBuffer->SizeInBytes())) : 0
                     );
 
       // scope: obtain whatever data is required inside lock to process SCTP packet
@@ -1574,7 +1574,7 @@ namespace ortc
                     dword, timestamp, packet.mTimestamp,
                     int, flags, packet.mFlags,
                     buffer, packet, ((bool)packet.mBuffer) ? packet.mBuffer->BytePtr() : NULL,
-                    size, size, ((bool)packet.mBuffer) ? SafeInt<unsigned int>(packet.mBuffer->SizeInBytes()) : 0
+                    size, size, ((bool)packet.mBuffer) ? size_t(SafeInt<unsigned int>(packet.mBuffer->SizeInBytes())) : 0
                     );
 
 
