@@ -775,7 +775,7 @@ namespace org
         /// Constructs an instance of an RTCIceCandidate object by extracting object data from a JSON object.
         /// </summary>
         [constructor, altname(RTCIceCandidateWithJson)]
-        void RTCIceCandidate(Json json);
+        void RTCIceCandidate(Json json) throws (InvalidParameters);
 
         /// <summary>
         /// A helper routine to easily converty from a SDP-candidate string to
@@ -785,7 +785,7 @@ namespace org
         RTCIceCandidate fromSdpStringWithMLineIndex(
                                                    string sdp,
                                                    size_t mlineIndex
-                                                   );
+                                                   ) throws (InvalidParameters);
         /// <summary>
         /// A helper routine to easily converty from a SDP-candidate string to
         /// an RTCIceCandidate object.
@@ -794,7 +794,7 @@ namespace org
         RTCIceCandidate fromSdpStringWithMid(
                                              string sdp,
                                              string mid
-                                             );
+                                             ) throws (InvalidParameters);
 
         /// <summary>
         /// A helper routine to easily convert to a SDP-candidate string.
@@ -1066,7 +1066,7 @@ namespace org
         void RTCSessionDescription(
                                    RTCSessionDescriptionSignalingType type,
                                    string description
-                                   );
+                                   ) throws (InvalidParameters, InvalidStateError);
 
         /// <summary>
         /// Constructs an instance of an RTCSessionDescription from a
@@ -1076,7 +1076,7 @@ namespace org
         void RTCSessionDescription(
                                    RTCSessionDescriptionSignalingType type,
                                    RTCSessionDescriptionDescription description
-                                   );
+                                   ) throws(InvalidParameters, InvalidStateError);
 
         /// <summary>
         /// Helper routine to convert RTP capabilities into the appropriate

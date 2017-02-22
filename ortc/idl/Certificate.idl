@@ -98,7 +98,7 @@ namespace org
       /// </summary>
       /// <returns>An awaitable newly generated certificate.</returns>
       [static]
-      PromiseWithCertificate generateCertificate();
+      PromiseWithCertificate generateCertificate() throws (NotImplemented);
 
       /// <summary>
       /// The GenerateCertificate method causes the user agent to create and
@@ -113,7 +113,7 @@ namespace org
         /// with the certificate is generated.
         /// </param>
         string keygenAlgorithm
-        );
+        ) throws(NotImplemented);
 
       [static, altname(generateCertificateWithJson)]
       PromiseWithCertificate generateCertificate(Json keygenAlgorithm);

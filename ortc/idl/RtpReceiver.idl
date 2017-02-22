@@ -126,7 +126,7 @@ namespace org
       void RTCRtpReceiver(
                           MediaStreamTrackKind kind,
                           RTCRtpTransport transport,
-                          );
+                          ) throws (InvalidParameters, InvalidStateError);
       /// <summary>
       /// Constructs an instance of RTCRtpReceiver from a value of kind and an
       /// RTCDtlsTransport object. If an attempt is made to construct an
@@ -140,7 +140,7 @@ namespace org
                           MediaStreamTrackKind kind,
                           RTCRtpTransport transport,
                           RTCRtcpTransport rtcpTransport
-                          );
+                          ) throws(InvalidParameters, InvalidStateError);
 
       /// <summary>
       /// Gets a unique object instance identifier for this object.
@@ -179,7 +179,7 @@ namespace org
       /// InvalidParameters exception. If SetTransport() is called and
       /// transport.State is "closed", throw an InvalidParameters exception.
       /// </summary>
-      void setTransport(RTCRtpTransport transport);
+      void setTransport(RTCRtpTransport transport) throws (InvalidParameters, InvalidStateError);
       /// <summary>
       /// Set the RTP RTCSrtpSdesTransport. If the last call to
       /// receive(parameters) had parameters.Rtcp.Mux set to false, throw an
@@ -189,7 +189,7 @@ namespace org
       void setTransport(
                         RTCRtpTransport transport,
                         RTCRtcpTransport rtcpTransport
-                        );
+                        ) throws(InvalidParameters, InvalidStateError);
 
       /// <summary>
       /// Obtain the receiver capabilities, based on kind. Capabilities such
@@ -221,7 +221,7 @@ namespace org
       /// throw an InvalidParameters exception. SSRC misusage also results in
       /// an InvalidParameters exception.
       /// </summary>
-      zs::Promise receive(RTCRtpParameters parameters);
+      zs::Promise receive(RTCRtpParameters parameters) throws (InvalidParameters, InvalidStateError);
       /// <summary>
       /// Stops receiving the track on the wire. Stop is final like
       /// MediaStreamTrack.

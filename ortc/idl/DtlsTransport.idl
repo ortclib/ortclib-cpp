@@ -112,7 +112,7 @@ namespace org
       void RTCDtlsTransport(
                             RTCIceTransport iceTransport,
                             CertificateList certificates
-                            );
+                            ) throws (InvalidParameters, InvalidStateError);
 
       /// <summary>
       /// Gets a unique object instance identifier for this object.

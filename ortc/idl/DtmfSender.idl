@@ -45,7 +45,7 @@ namespace org
       /// RTCRtpSender.
       /// </summary>
       [constructor]
-      void RTCRtpDtmfSender(RTCRtpSender sender);
+      void RTCRtpDtmfSender(RTCRtpSender sender) throws (InvalidStateError);
 
       /// <summary>
       /// Gets a unique object instance identifier for this object.

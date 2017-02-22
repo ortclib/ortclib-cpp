@@ -334,7 +334,7 @@ namespace org
       /// method more than once, or if component is "RTCP", throw an
       /// InvalidStateError exception.
       /// </summary>
-      RTCIceGatherer createAssociatedGatherer();
+      RTCIceGatherer createAssociatedGatherer() throws (InvalidStateError);
 
       /// <summary>
       /// Gather ICE candidates. Utilize the value of options passed in the constructor.

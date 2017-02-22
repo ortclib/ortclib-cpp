@@ -64,7 +64,7 @@ namespace org
       void RTCRtpSender(
                         MediaStreamTrack track,
                         RTCRtpTransport transport,
-                        );
+                        ) throws (InvalidParameters, InvalidStateError);
 
       /// <summary>
       /// Constructs an instance of an RTCRtpSender from an MediaStreamTrack
@@ -78,7 +78,7 @@ namespace org
                         MediaStreamTrack track,
                         RTCRtpTransport transport,
                         RTCRtcpTransport rtcpTransport
-                        );
+                        ) throws(InvalidParameters, InvalidStateError);
 
       /// <summary>
       /// Gets a unique object instance identifier for this object.
@@ -121,7 +121,7 @@ namespace org
       /// </summary>
       void setTransport(
                         RTCRtpTransport transport,
-                        );
+                        ) throws (InvalidParameters, InvalidStateError);
       /// <summary>
       /// Set the RTP RTCDtlsTransport and RTCP RTCDtlsTransport. If
       /// SetTransport() is called when transport.State or rtcpTransport.State
@@ -130,12 +130,12 @@ namespace org
       void setTransport(
                         RTCRtpTransport transport,
                         RTCRtcpTransport rtcpTransport
-                        );
+                        ) throws(InvalidParameters, InvalidStateError);
 
       /// <summary>
       /// Attempts to replace the track being sent with another track provided.
       /// </summary>
-      zs::Promise setTrack(MediaStreamTrack track);
+      zs::Promise setTrack(MediaStreamTrack track) throws(InvalidParameters, InvalidStateError);
 
       /// <summary>
       /// Obtain the sender capabilities, based on kind. Capabilities such as
@@ -178,7 +178,7 @@ namespace org
       /// stops sending when stop() is called. SSRC misusage results in an
       /// InvalidParameters exception.
       /// </summary>
-      zs::Promise send(RTCRtpParameters parameters);
+      zs::Promise send(RTCRtpParameters parameters) throws (InvalidParameters, InvalidStateError);
 
       /// <summary>
       /// Stops sending the track on the wire, and sends an RTCP BYE. Stop is

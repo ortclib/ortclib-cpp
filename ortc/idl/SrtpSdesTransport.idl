@@ -235,7 +235,7 @@ namespace org
                                 RTCIceTransport iceTransport,
                                 RTCSrtpSdesCryptoParameters encryptParameters,
                                 RTCSrtpSdesCryptoParameters decryptParameters
-                                );
+                                ) throws (InvalidParameters, InvalidStateError);
 
       /// <summary>
       /// Gets a unique object instance identifier for this object.

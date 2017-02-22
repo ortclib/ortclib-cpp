@@ -239,14 +239,14 @@ namespace org
       /// types. This Send() method transmits a string to the remote peer.
       /// </summary>
       [default, altname(sendWithString)]
-      void send(string text);
+      void send(string text) throws (InvalidParameters, InvalidStateError);
       /// <summary>
       /// The Send() method is overloaded to handle different data argument
       /// types. This Send() method transmits a binary blob to the remote
       /// peer.
       /// </summary>
       [altname(sendWithBinary)]
-      void send(binary data);
+      void send(binary data) throws (InvalidParameters, InvalidStateError);
 
       /// <summary>
       /// The event handler when the state of the RTCDataChannel is open.

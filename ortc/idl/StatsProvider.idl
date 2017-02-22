@@ -48,7 +48,7 @@ namespace org
       /// objects indicates that no inspectable statistics are available at
       /// this time.
       /// </summary>
-      PromiseWithStatsReport getStats(RTCStatsTypeSet statTypes);
+      PromiseWithStatsReport getStats(RTCStatsTypeSet statTypes) throws (InvalidParameters, InvalidStateError);
     };
   }
 }

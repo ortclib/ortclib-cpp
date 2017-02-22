@@ -124,7 +124,7 @@ namespace org
         /// <summary>
         /// Adds the given MediaStreamTrack to this MediaStream.
         /// </summary>
-        void addTrack(MediaStreamTrack track);
+        void addTrack(MediaStreamTrack track) throws (InvalidParameters);
         /// <summary>
         /// Removes the given MediaStreamTrack object from this MediaStream.
         /// </summary>

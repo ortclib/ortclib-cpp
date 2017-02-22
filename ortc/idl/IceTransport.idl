@@ -92,7 +92,7 @@ namespace org
       /// specified RTCIceGatherer. 
       /// </summary>
       [constructor, altname(RTCIceTransportWithGatherer)]
-      void RTCIceTransport(RTCIceGatherer gatherer);
+      void RTCIceTransport(RTCIceGatherer gatherer) throws (InvalidStateError);
 
       /// <summary>
       /// Gets an unique object instance identifier for this object.
@@ -160,7 +160,7 @@ namespace org
       void start(
                  RTCIceGatherer gatherer,
                  RTCIceParameters remoteParameters,
-                 );
+                 ) throws (InvalidParameters, InvalidStateError);
 
       /// <summary>
       /// The first time Start() is called, candidate connectivity checks are
@@ -180,7 +180,7 @@ namespace org
                  RTCIceGatherer gatherer,
                  RTCIceParameters remoteParameters,
                  RTCIceRole options
-                 );
+                 ) throws(InvalidParameters, InvalidStateError);
 
       /// <summary>
       /// The first time Start() is called, candidate connectivity checks are
@@ -200,7 +200,7 @@ namespace org
                  RTCIceGatherer gatherer,
                  RTCIceParameters remoteParameters,
                  RTCIceTransportOptions options
-                 );
+                 ) throws(InvalidParameters, InvalidStateError);
 
       /// <summary>
       /// Stops and closes the current object. Also removes the object from
