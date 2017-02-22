@@ -39,11 +39,6 @@ wrapper::impl::org::ortc::MediaStreamTrack::~MediaStreamTrack()
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::MediaStreamTrack::wrapper_init_org_ortc_MediaStreamTrack()
-{
-}
-
-//------------------------------------------------------------------------------
 wrapper::org::ortc::MediaStreamTrackPtr wrapper::impl::org::ortc::MediaStreamTrack::clone()
 {
   wrapper::org::ortc::MediaStreamTrackPtr result {};

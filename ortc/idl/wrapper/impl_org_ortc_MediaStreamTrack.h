@@ -25,7 +25,6 @@ namespace wrapper {
           virtual wrapper::org::ortc::MediaTrackConstraintsPtr getConstraints() override;
           virtual wrapper::org::ortc::MediaTrackSettingsPtr getSettings() override;
           virtual PromisePtr applyConstraints(wrapper::org::ortc::MediaTrackConstraintsPtr constraints) override;
-          virtual void wrapper_init_org_ortc_MediaStreamTrack() override;
 
           // properties MediaStreamTrack
           virtual uint64_t get_objectId() override;
