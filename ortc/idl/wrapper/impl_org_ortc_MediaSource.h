@@ -23,7 +23,6 @@ namespace wrapper {
           virtual AnyPtr get_source() override;
           virtual void set_source(AnyPtr value) override;
           virtual AnyPtr get_track() override;
-          virtual void set_track(AnyPtr value) override;
         };
 
       } // ortc

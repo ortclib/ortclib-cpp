@@ -62,9 +62,4 @@ AnyPtr wrapper::impl::org::ortc::MediaSource::get_track()
   return result;
 }
 
-//------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::MediaSource::set_track(AnyPtr value)
-{
-}
-
 
