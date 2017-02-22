@@ -551,7 +551,7 @@ namespace ortc
         webrtc::VideoFrame frame;
         frame.CreateEmptyFrame(width, height, width, width / 2, width / 2);
 
-        uint8_t* yBuffer = frame.buffer(webrtc::kYPlane);
+        uint8_t* yBuffer = frame.video_frame_buffer()->MutableDataY();//buffer(webrtc::kYPlane);
         for (int i = 0; i < height; i++)
         {
           memset(yBuffer, 0, width);
@@ -561,8 +561,8 @@ namespace ortc
           yBuffer += width;
         }
 
-        uint8_t* uBuffer = frame.buffer(webrtc::kUPlane);
-        uint8_t* vBuffer = frame.buffer(webrtc::kVPlane);
+        uint8_t* uBuffer = frame.video_frame_buffer()->MutableDataU();//frame.buffer(webrtc::kUPlane);
+        uint8_t* vBuffer = frame.video_frame_buffer()->MutableDataV();//frame.buffer(webrtc::kVPlane);
         for (int i = 0; i < height / 2; i++)
         {
           memset(uBuffer, 128, width / 2);

@@ -298,8 +298,9 @@ namespace ortc
       {
         AutoRecursiveLock lock(*this);
 
-        if (mVideoRendererCallback)
-          mVideoRendererCallback->RenderFrame(1, videoFrame);
+        //Renderer is not in use anymore
+        //if (mVideoRendererCallback)
+        //  mVideoRendererCallback->RenderFrame(1, videoFrame);
 
         auto senderChannel = mSenderChannel.lock();
         //if (senderChannel)

@@ -672,6 +672,26 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				EXECUTABLE_PREFIX = lib;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE,
+					WEBRTC_BUILD_LIBEVENT,
+					WEBRTC_POSIX,
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				HEADER_SEARCH_PATHS = (
+					../../..,
+					../../../..,
+					"../../../../ortclib-services-cpp",
+					../../../../zsLib,
+					../../../../../../webrtc/xplatform/boringssl/include,
+					../../../../../../webrtc/xplatform/libsrtp/srtp/include,
+					../../../../../../webrtc/xplatform/libsrtp/srtp/crypto/include,
+					../../../../../../webrtc/xplatform/libsrtp/config,
+					../../../../../../webrtc/xplatform/webrtc,
+					"$(inherited)",
+					../../../../../../webrtc/xplatform/usrsctp/usrsctplib,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -680,6 +700,24 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				EXECUTABLE_PREFIX = lib;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE,
+					WEBRTC_BUILD_LIBEVENT,
+					WEBRTC_POSIX,
+				);
+				HEADER_SEARCH_PATHS = (
+					../../..,
+					../../../..,
+					"../../../../ortclib-services-cpp",
+					../../../../zsLib,
+					../../../../../../webrtc/xplatform/boringssl/include,
+					../../../../../../webrtc/xplatform/libsrtp/srtp/include,
+					../../../../../../webrtc/xplatform/libsrtp/srtp/crypto/include,
+					../../../../../../webrtc/xplatform/libsrtp/config,
+					../../../../../../webrtc/xplatform/webrtc,
+					"$(inherited)",
+					../../../../../../webrtc/xplatform/usrsctp/usrsctplib,
+				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
@@ -703,6 +741,7 @@
 				009D171E1DE5283100D139FF /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
