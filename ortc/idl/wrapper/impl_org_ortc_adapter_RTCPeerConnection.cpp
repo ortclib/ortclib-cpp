@@ -6,9 +6,10 @@ using ::zsLib::String;
 using ::zsLib::Optional;
 using ::zsLib::Any;
 using ::zsLib::AnyPtr;
+using ::zsLib::AnyHolder;
 using ::zsLib::Promise;
 using ::zsLib::PromisePtr;
-using ::zsLib::PromiseWith;
+using ::zsLib::PromiseWithHolder;
 using ::zsLib::eventing::SecureByteBlock;
 using ::zsLib::eventing::SecureByteBlockPtr;
 using ::std::shared_ptr;
@@ -37,9 +38,9 @@ wrapper::impl::org::ortc::adapter::RTCPeerConnection::~RTCPeerConnection()
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWith< wrapper::org::ortc::RTCStatsReportPtr > > wrapper::impl::org::ortc::adapter::RTCPeerConnection::getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes)
+shared_ptr< PromiseWithHolder< wrapper::org::ortc::RTCStatsReportPtr > > wrapper::impl::org::ortc::adapter::RTCPeerConnection::getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes)
 {
-  shared_ptr< PromiseWith< wrapper::org::ortc::RTCStatsReportPtr > > result {};
+  shared_ptr< PromiseWithHolder< wrapper::org::ortc::RTCStatsReportPtr > > result {};
   return result;
 }
 
@@ -54,44 +55,44 @@ void wrapper::impl::org::ortc::adapter::RTCPeerConnection::wrapper_init_org_ortc
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWith< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > wrapper::impl::org::ortc::adapter::RTCPeerConnection::createOffer()
+shared_ptr< PromiseWithHolder< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > wrapper::impl::org::ortc::adapter::RTCPeerConnection::createOffer()
 {
-  shared_ptr< PromiseWith< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > result {};
+  shared_ptr< PromiseWithHolder< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > result {};
   return result;
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWith< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > wrapper::impl::org::ortc::adapter::RTCPeerConnection::createOffer(wrapper::org::ortc::adapter::RTCOfferOptionsPtr options)
+shared_ptr< PromiseWithHolder< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > wrapper::impl::org::ortc::adapter::RTCPeerConnection::createOffer(wrapper::org::ortc::adapter::RTCOfferOptionsPtr options)
 {
-  shared_ptr< PromiseWith< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > result {};
+  shared_ptr< PromiseWithHolder< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > result {};
   return result;
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWith< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > wrapper::impl::org::ortc::adapter::RTCPeerConnection::createAnswer()
+shared_ptr< PromiseWithHolder< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > wrapper::impl::org::ortc::adapter::RTCPeerConnection::createAnswer()
 {
-  shared_ptr< PromiseWith< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > result {};
+  shared_ptr< PromiseWithHolder< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > result {};
   return result;
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWith< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > wrapper::impl::org::ortc::adapter::RTCPeerConnection::createAnswer(wrapper::org::ortc::adapter::RTCAnswerOptionsPtr options)
+shared_ptr< PromiseWithHolder< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > wrapper::impl::org::ortc::adapter::RTCPeerConnection::createAnswer(wrapper::org::ortc::adapter::RTCAnswerOptionsPtr options)
 {
-  shared_ptr< PromiseWith< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > result {};
+  shared_ptr< PromiseWithHolder< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > result {};
   return result;
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWith< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > wrapper::impl::org::ortc::adapter::RTCPeerConnection::createCapabilities()
+shared_ptr< PromiseWithHolder< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > wrapper::impl::org::ortc::adapter::RTCPeerConnection::createCapabilities()
 {
-  shared_ptr< PromiseWith< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > result {};
+  shared_ptr< PromiseWithHolder< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > result {};
   return result;
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWith< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > wrapper::impl::org::ortc::adapter::RTCPeerConnection::createCapabilities(wrapper::org::ortc::adapter::RTCCapabilityOptionsPtr options)
+shared_ptr< PromiseWithHolder< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > wrapper::impl::org::ortc::adapter::RTCPeerConnection::createCapabilities(wrapper::org::ortc::adapter::RTCCapabilityOptionsPtr options)
 {
-  shared_ptr< PromiseWith< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > result {};
+  shared_ptr< PromiseWithHolder< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > result {};
   return result;
 }
 
@@ -141,30 +142,30 @@ shared_ptr< list< wrapper::org::ortc::RTCRtpReceiverPtr > > wrapper::impl::org::
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWith< wrapper::org::ortc::RTCRtpSenderPtr > > wrapper::impl::org::ortc::adapter::RTCPeerConnection::addTrack(wrapper::org::ortc::MediaStreamTrackPtr track)
+shared_ptr< PromiseWithHolder< wrapper::org::ortc::RTCRtpSenderPtr > > wrapper::impl::org::ortc::adapter::RTCPeerConnection::addTrack(wrapper::org::ortc::MediaStreamTrackPtr track)
 {
-  shared_ptr< PromiseWith< wrapper::org::ortc::RTCRtpSenderPtr > > result {};
+  shared_ptr< PromiseWithHolder< wrapper::org::ortc::RTCRtpSenderPtr > > result {};
   return result;
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWith< wrapper::org::ortc::RTCRtpSenderPtr > > wrapper::impl::org::ortc::adapter::RTCPeerConnection::addTrack(
+shared_ptr< PromiseWithHolder< wrapper::org::ortc::RTCRtpSenderPtr > > wrapper::impl::org::ortc::adapter::RTCPeerConnection::addTrack(
   wrapper::org::ortc::MediaStreamTrackPtr track,
   wrapper::org::ortc::adapter::RTCMediaStreamTrackConfigurationPtr config
   )
 {
-  shared_ptr< PromiseWith< wrapper::org::ortc::RTCRtpSenderPtr > > result {};
+  shared_ptr< PromiseWithHolder< wrapper::org::ortc::RTCRtpSenderPtr > > result {};
   return result;
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWith< wrapper::org::ortc::RTCRtpSenderPtr > > wrapper::impl::org::ortc::adapter::RTCPeerConnection::addTrack(
+shared_ptr< PromiseWithHolder< wrapper::org::ortc::RTCRtpSenderPtr > > wrapper::impl::org::ortc::adapter::RTCPeerConnection::addTrack(
   wrapper::org::ortc::MediaStreamTrackPtr track,
   shared_ptr< list< wrapper::org::ortc::adapter::MediaStreamPtr > > mediaStreams,
   wrapper::org::ortc::adapter::RTCMediaStreamTrackConfigurationPtr config
   )
 {
-  shared_ptr< PromiseWith< wrapper::org::ortc::RTCRtpSenderPtr > > result {};
+  shared_ptr< PromiseWithHolder< wrapper::org::ortc::RTCRtpSenderPtr > > result {};
   return result;
 }
 
@@ -174,9 +175,9 @@ void wrapper::impl::org::ortc::adapter::RTCPeerConnection::removeTrack(wrapper::
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWith< wrapper::org::ortc::RTCDataChannelPtr > > wrapper::impl::org::ortc::adapter::RTCPeerConnection::createDataChannel(wrapper::org::ortc::RTCDataChannelParametersPtr parameters)
+shared_ptr< PromiseWithHolder< wrapper::org::ortc::RTCDataChannelPtr > > wrapper::impl::org::ortc::adapter::RTCPeerConnection::createDataChannel(wrapper::org::ortc::RTCDataChannelParametersPtr parameters)
 {
-  shared_ptr< PromiseWith< wrapper::org::ortc::RTCDataChannelPtr > > result {};
+  shared_ptr< PromiseWithHolder< wrapper::org::ortc::RTCDataChannelPtr > > result {};
   return result;
 }
 

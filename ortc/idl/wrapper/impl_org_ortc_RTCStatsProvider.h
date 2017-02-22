@@ -19,7 +19,7 @@ namespace wrapper {
           virtual ~RTCStatsProvider();
 
           // methods RTCStatsProvider
-          virtual shared_ptr< PromiseWith< wrapper::org::ortc::RTCStatsReportPtr > > getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) override;
+          virtual shared_ptr< PromiseWithHolder< wrapper::org::ortc::RTCStatsReportPtr > > getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) override;
           virtual void wrapper_init_org_ortc_RTCStatsProvider() override;
         };
 

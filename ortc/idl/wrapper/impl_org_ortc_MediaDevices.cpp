@@ -6,9 +6,10 @@ using ::zsLib::String;
 using ::zsLib::Optional;
 using ::zsLib::Any;
 using ::zsLib::AnyPtr;
+using ::zsLib::AnyHolder;
 using ::zsLib::Promise;
 using ::zsLib::PromisePtr;
-using ::zsLib::PromiseWith;
+using ::zsLib::PromiseWithHolder;
 using ::zsLib::eventing::SecureByteBlock;
 using ::zsLib::eventing::SecureByteBlockPtr;
 using ::std::shared_ptr;
@@ -44,16 +45,16 @@ wrapper::org::ortc::MediaTrackSupportedConstraintsPtr wrapper::org::ortc::MediaD
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWith< shared_ptr< list< wrapper::org::ortc::MediaDeviceInfoPtr > > > > wrapper::org::ortc::MediaDevices::enumerateDevices()
+shared_ptr< PromiseWithHolder< shared_ptr< list< wrapper::org::ortc::MediaDeviceInfoPtr > > > > wrapper::org::ortc::MediaDevices::enumerateDevices()
 {
-  shared_ptr< PromiseWith< shared_ptr< list< wrapper::org::ortc::MediaDeviceInfoPtr > > > > result {};
+  shared_ptr< PromiseWithHolder< shared_ptr< list< wrapper::org::ortc::MediaDeviceInfoPtr > > > > result {};
   return result;
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWith< shared_ptr< list< wrapper::org::ortc::MediaStreamTrackPtr > > > > wrapper::org::ortc::MediaDevices::getUserMedia(wrapper::org::ortc::MediaStreamConstraintsPtr constraints)
+shared_ptr< PromiseWithHolder< shared_ptr< list< wrapper::org::ortc::MediaStreamTrackPtr > > > > wrapper::org::ortc::MediaDevices::getUserMedia(wrapper::org::ortc::MediaStreamConstraintsPtr constraints)
 {
-  shared_ptr< PromiseWith< shared_ptr< list< wrapper::org::ortc::MediaStreamTrackPtr > > > > result {};
+  shared_ptr< PromiseWithHolder< shared_ptr< list< wrapper::org::ortc::MediaStreamTrackPtr > > > > result {};
   return result;
 }
 

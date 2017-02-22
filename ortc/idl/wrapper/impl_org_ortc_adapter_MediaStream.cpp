@@ -6,9 +6,10 @@ using ::zsLib::String;
 using ::zsLib::Optional;
 using ::zsLib::Any;
 using ::zsLib::AnyPtr;
+using ::zsLib::AnyHolder;
 using ::zsLib::Promise;
 using ::zsLib::PromisePtr;
-using ::zsLib::PromiseWith;
+using ::zsLib::PromiseWithHolder;
 using ::zsLib::eventing::SecureByteBlock;
 using ::zsLib::eventing::SecureByteBlockPtr;
 using ::std::shared_ptr;
@@ -37,9 +38,9 @@ wrapper::impl::org::ortc::adapter::MediaStream::~MediaStream()
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWith< wrapper::org::ortc::RTCStatsReportPtr > > wrapper::impl::org::ortc::adapter::MediaStream::getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes)
+shared_ptr< PromiseWithHolder< wrapper::org::ortc::RTCStatsReportPtr > > wrapper::impl::org::ortc::adapter::MediaStream::getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes)
 {
-  shared_ptr< PromiseWith< wrapper::org::ortc::RTCStatsReportPtr > > result {};
+  shared_ptr< PromiseWithHolder< wrapper::org::ortc::RTCStatsReportPtr > > result {};
   return result;
 }
 

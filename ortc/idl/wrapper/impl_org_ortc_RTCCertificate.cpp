@@ -6,9 +6,10 @@ using ::zsLib::String;
 using ::zsLib::Optional;
 using ::zsLib::Any;
 using ::zsLib::AnyPtr;
+using ::zsLib::AnyHolder;
 using ::zsLib::Promise;
 using ::zsLib::PromisePtr;
-using ::zsLib::PromiseWith;
+using ::zsLib::PromiseWithHolder;
 using ::zsLib::eventing::SecureByteBlock;
 using ::zsLib::eventing::SecureByteBlockPtr;
 using ::std::shared_ptr;
@@ -42,23 +43,23 @@ void wrapper::impl::org::ortc::RTCCertificate::wrapper_init_org_ortc_RTCCertific
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWith< wrapper::org::ortc::RTCCertificatePtr > > wrapper::org::ortc::RTCCertificate::generateCertificate()
+shared_ptr< PromiseWithHolder< wrapper::org::ortc::RTCCertificatePtr > > wrapper::org::ortc::RTCCertificate::generateCertificate()
 {
-  shared_ptr< PromiseWith< wrapper::org::ortc::RTCCertificatePtr > > result {};
+  shared_ptr< PromiseWithHolder< wrapper::org::ortc::RTCCertificatePtr > > result {};
   return result;
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWith< wrapper::org::ortc::RTCCertificatePtr > > wrapper::org::ortc::RTCCertificate::generateCertificate(String keygenAlgorithm)
+shared_ptr< PromiseWithHolder< wrapper::org::ortc::RTCCertificatePtr > > wrapper::org::ortc::RTCCertificate::generateCertificate(String keygenAlgorithm)
 {
-  shared_ptr< PromiseWith< wrapper::org::ortc::RTCCertificatePtr > > result {};
+  shared_ptr< PromiseWithHolder< wrapper::org::ortc::RTCCertificatePtr > > result {};
   return result;
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWith< wrapper::org::ortc::RTCCertificatePtr > > wrapper::org::ortc::RTCCertificate::generateCertificate(wrapper::org::ortc::JsonPtr keygenAlgorithm)
+shared_ptr< PromiseWithHolder< wrapper::org::ortc::RTCCertificatePtr > > wrapper::org::ortc::RTCCertificate::generateCertificate(wrapper::org::ortc::JsonPtr keygenAlgorithm)
 {
-  shared_ptr< PromiseWith< wrapper::org::ortc::RTCCertificatePtr > > result {};
+  shared_ptr< PromiseWithHolder< wrapper::org::ortc::RTCCertificatePtr > > result {};
   return result;
 }
 
