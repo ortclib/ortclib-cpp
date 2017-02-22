@@ -692,6 +692,9 @@ namespace org
       [getter]
       MediaSource source;
 
+      [constructor, delete]
+      void MediaStreamTrack();
+
       /// <summary>
       /// Clones this MediaStreamTrack.
       /// </summary>
