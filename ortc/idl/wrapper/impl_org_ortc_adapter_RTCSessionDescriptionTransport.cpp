@@ -10,6 +10,7 @@ using ::zsLib::AnyHolder;
 using ::zsLib::Promise;
 using ::zsLib::PromisePtr;
 using ::zsLib::PromiseWithHolder;
+using ::zsLib::PromiseWithHolderPtr;
 using ::zsLib::eventing::SecureByteBlock;
 using ::zsLib::eventing::SecureByteBlockPtr;
 using ::std::shared_ptr;

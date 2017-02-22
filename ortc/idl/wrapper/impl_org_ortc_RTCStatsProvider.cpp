@@ -10,6 +10,7 @@ using ::zsLib::AnyHolder;
 using ::zsLib::Promise;
 using ::zsLib::PromisePtr;
 using ::zsLib::PromiseWithHolder;
+using ::zsLib::PromiseWithHolderPtr;
 using ::zsLib::eventing::SecureByteBlock;
 using ::zsLib::eventing::SecureByteBlockPtr;
 using ::std::shared_ptr;
@@ -43,9 +44,9 @@ void wrapper::impl::org::ortc::RTCStatsProvider::wrapper_init_org_ortc_RTCStatsP
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWithHolder< wrapper::org::ortc::RTCStatsReportPtr > > wrapper::impl::org::ortc::RTCStatsProvider::getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes)
+shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > wrapper::impl::org::ortc::RTCStatsProvider::getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes)
 {
-  shared_ptr< PromiseWithHolder< wrapper::org::ortc::RTCStatsReportPtr > > result {};
+  shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > result {};
   return result;
 }
 

@@ -20,17 +20,17 @@ namespace wrapper {
             virtual ~RTCPeerConnection();
 
             // methods RTCStatsProvider
-            virtual shared_ptr< PromiseWithHolder< wrapper::org::ortc::RTCStatsReportPtr > > getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) override;
+            virtual shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) override;
 
             // methods RTCPeerConnection
             virtual void wrapper_init_org_ortc_adapter_RTCPeerConnection() override;
             virtual void wrapper_init_org_ortc_adapter_RTCPeerConnection(wrapper::org::ortc::adapter::RTCConfigurationPtr configuration) override;
-            virtual shared_ptr< PromiseWithHolder< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > createOffer() override;
-            virtual shared_ptr< PromiseWithHolder< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > createOffer(wrapper::org::ortc::adapter::RTCOfferOptionsPtr options) override;
-            virtual shared_ptr< PromiseWithHolder< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > createAnswer() override;
-            virtual shared_ptr< PromiseWithHolder< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > createAnswer(wrapper::org::ortc::adapter::RTCAnswerOptionsPtr options) override;
-            virtual shared_ptr< PromiseWithHolder< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > createCapabilities() override;
-            virtual shared_ptr< PromiseWithHolder< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > createCapabilities(wrapper::org::ortc::adapter::RTCCapabilityOptionsPtr options) override;
+            virtual shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > createOffer() override;
+            virtual shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > createOffer(wrapper::org::ortc::adapter::RTCOfferOptionsPtr options) override;
+            virtual shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > createAnswer() override;
+            virtual shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > createAnswer(wrapper::org::ortc::adapter::RTCAnswerOptionsPtr options) override;
+            virtual shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > createCapabilities() override;
+            virtual shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > createCapabilities(wrapper::org::ortc::adapter::RTCCapabilityOptionsPtr options) override;
             virtual PromisePtr setLocalDescription(wrapper::org::ortc::adapter::RTCSessionDescriptionPtr description) override;
             virtual PromisePtr setRemoteDescription(wrapper::org::ortc::adapter::RTCSessionDescriptionPtr description) override;
             virtual void addIceCandidate(wrapper::org::ortc::adapter::RTCIceCandidatePtr candidate) override;
@@ -38,18 +38,18 @@ namespace wrapper {
             virtual void close() override;
             virtual shared_ptr< list< wrapper::org::ortc::RTCRtpSenderPtr > > getSenders() override;
             virtual shared_ptr< list< wrapper::org::ortc::RTCRtpReceiverPtr > > getReceivers() override;
-            virtual shared_ptr< PromiseWithHolder< wrapper::org::ortc::RTCRtpSenderPtr > > addTrack(wrapper::org::ortc::MediaStreamTrackPtr track) override;
-            virtual shared_ptr< PromiseWithHolder< wrapper::org::ortc::RTCRtpSenderPtr > > addTrack(
+            virtual shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCRtpSenderPtr > > addTrack(wrapper::org::ortc::MediaStreamTrackPtr track) override;
+            virtual shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCRtpSenderPtr > > addTrack(
               wrapper::org::ortc::MediaStreamTrackPtr track,
               wrapper::org::ortc::adapter::RTCMediaStreamTrackConfigurationPtr config
               ) override;
-            virtual shared_ptr< PromiseWithHolder< wrapper::org::ortc::RTCRtpSenderPtr > > addTrack(
+            virtual shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCRtpSenderPtr > > addTrack(
               wrapper::org::ortc::MediaStreamTrackPtr track,
               shared_ptr< list< wrapper::org::ortc::adapter::MediaStreamPtr > > mediaStreams,
               wrapper::org::ortc::adapter::RTCMediaStreamTrackConfigurationPtr config
               ) override;
             virtual void removeTrack(wrapper::org::ortc::RTCRtpSenderPtr sender) override;
-            virtual shared_ptr< PromiseWithHolder< wrapper::org::ortc::RTCDataChannelPtr > > createDataChannel(wrapper::org::ortc::RTCDataChannelParametersPtr parameters) override;
+            virtual shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCDataChannelPtr > > createDataChannel(wrapper::org::ortc::RTCDataChannelParametersPtr parameters) override;
 
             // properties RTCPeerConnection
             virtual uint64_t get_objectId() override;

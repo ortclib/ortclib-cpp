@@ -10,6 +10,7 @@ using ::zsLib::AnyHolder;
 using ::zsLib::Promise;
 using ::zsLib::PromisePtr;
 using ::zsLib::PromiseWithHolder;
+using ::zsLib::PromiseWithHolderPtr;
 using ::zsLib::eventing::SecureByteBlock;
 using ::zsLib::eventing::SecureByteBlockPtr;
 using ::std::shared_ptr;
@@ -43,37 +44,37 @@ void wrapper::impl::org::ortc::RTCIdentity::wrapper_init_org_ortc_RTCIdentity(wr
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWithHolder< wrapper::org::ortc::RTCIdentityResultPtr > > wrapper::impl::org::ortc::RTCIdentity::getIdentityAssertion(String provider)
+shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCIdentityResultPtr > > wrapper::impl::org::ortc::RTCIdentity::getIdentityAssertion(String provider)
 {
-  shared_ptr< PromiseWithHolder< wrapper::org::ortc::RTCIdentityResultPtr > > result {};
+  shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCIdentityResultPtr > > result {};
   return result;
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWithHolder< wrapper::org::ortc::RTCIdentityResultPtr > > wrapper::impl::org::ortc::RTCIdentity::getIdentityAssertion(
+shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCIdentityResultPtr > > wrapper::impl::org::ortc::RTCIdentity::getIdentityAssertion(
   String provider,
   String protocol
   )
 {
-  shared_ptr< PromiseWithHolder< wrapper::org::ortc::RTCIdentityResultPtr > > result {};
+  shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCIdentityResultPtr > > result {};
   return result;
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWithHolder< wrapper::org::ortc::RTCIdentityResultPtr > > wrapper::impl::org::ortc::RTCIdentity::getIdentityAssertion(
+shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCIdentityResultPtr > > wrapper::impl::org::ortc::RTCIdentity::getIdentityAssertion(
   String provider,
   String protocol,
   String username
   )
 {
-  shared_ptr< PromiseWithHolder< wrapper::org::ortc::RTCIdentityResultPtr > > result {};
+  shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCIdentityResultPtr > > result {};
   return result;
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWithHolder< wrapper::org::ortc::RTCIdentityAssertionPtr > > wrapper::impl::org::ortc::RTCIdentity::setIdentityAssertion(String assertion)
+shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCIdentityAssertionPtr > > wrapper::impl::org::ortc::RTCIdentity::setIdentityAssertion(String assertion)
 {
-  shared_ptr< PromiseWithHolder< wrapper::org::ortc::RTCIdentityAssertionPtr > > result {};
+  shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCIdentityAssertionPtr > > result {};
   return result;
 }
 
