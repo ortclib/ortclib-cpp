@@ -108,7 +108,7 @@ namespace ortc
                     string, stat_group_name, reportID,
                     double, timestamp, timestamp,
                     string, stat_name, statName,
-                    int32_t, stat_value, value
+                    int32, stat_value, value
                     );
       ZS_EVENTING_ASSIGN_VALUE(StatsReportInt32, 101);
       ZS_LOG_INSANE(slog("report uint32") + ZS_PARAM("report id", reportID) + ZS_PARAM("stat name", statName) + ZS_PARAM("timestamp", timestamp) + ZS_PARAM("value", value));
@@ -122,7 +122,7 @@ namespace ortc
                     string, stat_group_name, reportID,
                     double, timestamp, timestamp,
                     string, stat_name, statName,
-                    int64_t, stat_value, value
+                    int64, stat_value, value
                     );
       ZS_EVENTING_ASSIGN_VALUE(StatsReportInt64, 102);
 
