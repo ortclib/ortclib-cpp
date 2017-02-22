@@ -148,7 +148,7 @@ namespace org
         /// directly modifies the tracks of a MediaStream.
         /// </summary>
         [event]
-        void onRemoteTrack(MediaStreamTrack track);
+        void onRemoveTrack(MediaStreamTrack track);
       };
 
     }
