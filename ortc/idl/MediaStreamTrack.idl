@@ -606,7 +606,7 @@ namespace org
       /// <summary>
       /// Gets or sets the media track associated to the media source.
       /// </summary>
-      [getter, setter]
+      [getter]
       zs::Any track;
     };
 
