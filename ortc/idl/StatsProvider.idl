@@ -40,6 +40,9 @@ namespace org
     {
       typedef zs::PromiseWith<RTCStatsReport> PromiseWithStatsReport;
 
+      [constructor, delete]
+      void RTCStatsProvider();
+
       /// <summary>
       /// Gets an awaitable RTCStatsReport object that will contain a set of
       /// statistics objects for the inspected object. A null RTCStatsReport
