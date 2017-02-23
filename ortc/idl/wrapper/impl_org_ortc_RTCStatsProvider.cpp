@@ -39,11 +39,6 @@ wrapper::impl::org::ortc::RTCStatsProvider::~RTCStatsProvider()
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCStatsProvider::wrapper_init_org_ortc_RTCStatsProvider()
-{
-}
-
-//------------------------------------------------------------------------------
 shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > wrapper::impl::org::ortc::RTCStatsProvider::getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes)
 {
   shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > result {};
