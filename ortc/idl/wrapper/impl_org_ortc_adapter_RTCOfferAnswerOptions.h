@@ -18,7 +18,6 @@ namespace wrapper {
 
             RTCOfferAnswerOptions();
             virtual ~RTCOfferAnswerOptions();
-            virtual void wrapper_init_org_ortc_adapter_RTCOfferAnswerOptions() override;
           };
 
         } // adapter

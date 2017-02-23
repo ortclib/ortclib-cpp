@@ -38,9 +38,4 @@ wrapper::impl::org::ortc::adapter::RTCOfferAnswerOptions::~RTCOfferAnswerOptions
 {
 }
 
-//------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::adapter::RTCOfferAnswerOptions::wrapper_init_org_ortc_adapter_RTCOfferAnswerOptions()
-{
-}
-
 
