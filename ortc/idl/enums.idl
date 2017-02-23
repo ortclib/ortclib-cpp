@@ -498,10 +498,6 @@ namespace org
     enum RTCStatsType
     {
       /// <summary>
-      /// Statistics returned are unknown and thus should be ignored.
-      /// </summary>
-      unknown,
-      /// <summary>
       /// Statistics for the inbound RTP stream that is currently received
       /// with this RTCRtpReceiver object. It is accessed by the
       /// RTCInboundRtpStreamStats.

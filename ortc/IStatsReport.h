@@ -153,6 +153,7 @@ namespace ortc
 
       String statsType() const { if (mStatsType.hasValue()) return IStatsReportTypes::toString(mStatsType); return mStatsTypeOther; }
 
+      static StatsPtr create(const Stats &source);
       static StatsPtr create(ElementPtr rootEl);
 
       static StatsPtr convert(AnyPtr any);

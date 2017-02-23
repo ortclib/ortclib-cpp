@@ -1006,6 +1006,9 @@ namespace org
     {
       typedef StringList IdList;
 
+      [constructor, delete]
+      void RTCStatsReport();
+
       /// <summary>
       /// Gets a unique object instance identifier for this object.
       /// </summary>

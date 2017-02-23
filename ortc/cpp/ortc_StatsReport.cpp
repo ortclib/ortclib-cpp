@@ -672,6 +672,33 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
+  IStatsReportTypes::StatsPtr IStatsReportTypes::Stats::create(const Stats &source)
+  {
+    if (!source.mStatsType.hasValue()) return make_shared<Stats>(source);
+    switch (source.mStatsType.value())
+    {
+      case StatsType_InboundRTP:      return make_shared<InboundRTPStreamStats>(dynamic_cast<const InboundRTPStreamStats &>(source));
+      case StatsType_OutboundRTP:     return make_shared<OutboundRTPStreamStats>(dynamic_cast<const OutboundRTPStreamStats &>(source));
+      case StatsType_Codec:           return make_shared<Codec>(dynamic_cast<const Codec &>(source));
+      case StatsType_SCTPTransport:   return make_shared<SCTPTransportStats>(dynamic_cast<const SCTPTransportStats &>(source));
+      case StatsType_DataChannel:     return make_shared<DataChannelStats>(dynamic_cast<const DataChannelStats &>(source));
+      case StatsType_Stream:          return make_shared<MediaStreamStats>(dynamic_cast<const MediaStreamStats &>(source));
+      case StatsType_Track:           return make_shared<MediaStreamTrackStats>(dynamic_cast<const MediaStreamTrackStats &>(source));
+      case StatsType_ICEGatherer:     return make_shared<ICEGathererStats>(dynamic_cast<const ICEGathererStats &>(source));
+      case StatsType_ICETransport:    return make_shared<ICETransportStats>(dynamic_cast<const ICETransportStats &>(source));
+      case StatsType_DTLSTransport:   return make_shared<DTLSTransportStats>(dynamic_cast<const DTLSTransportStats &>(source));
+      case StatsType_SRTPTransport:   return make_shared<SRTPTransportStats>(dynamic_cast<const SRTPTransportStats &>(source));
+      case StatsType_Certificate:     return make_shared<CertificateStats>(dynamic_cast<const CertificateStats &>(source));
+      case StatsType_Candidate:       return make_shared<ICECandidateAttributes>(dynamic_cast<const ICECandidateAttributes &>(source));
+      case StatsType_CandidatePair:   return make_shared<ICECandidatePairStats>(dynamic_cast<const ICECandidatePairStats &>(source));
+      case StatsType_LocalCandidate:  return make_shared<ICECandidateAttributes>(dynamic_cast<const ICECandidateAttributes &>(source));
+      case StatsType_RemoteCandidate: return make_shared<ICECandidateAttributes>(dynamic_cast<const ICECandidateAttributes &>(source));
+    }
+
+    return StatsPtr();
+  }
+
+  //---------------------------------------------------------------------------
   IStatsReportTypes::StatsPtr IStatsReportTypes::Stats::create(ElementPtr rootEl)
   {
     if (!rootEl) return StatsPtr();
