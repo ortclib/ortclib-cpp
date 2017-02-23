@@ -44,14 +44,14 @@ void wrapper::impl::org::ortc::DoubleRange::wrapper_init_org_ortc_DoubleRange()
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::DoubleRange::wrapper_init_org_ortc_DoubleRange(long value)
+void wrapper::impl::org::ortc::DoubleRange::wrapper_init_org_ortc_DoubleRange(double value)
 {
 }
 
 //------------------------------------------------------------------------------
 void wrapper::impl::org::ortc::DoubleRange::wrapper_init_org_ortc_DoubleRange(
-  long min,
-  long max
+  double min,
+  double max
   )
 {
 }

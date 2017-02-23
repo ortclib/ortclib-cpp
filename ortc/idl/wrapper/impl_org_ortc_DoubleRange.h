@@ -20,10 +20,10 @@ namespace wrapper {
 
           // methods DoubleRange
           virtual void wrapper_init_org_ortc_DoubleRange() override;
-          virtual void wrapper_init_org_ortc_DoubleRange(long value) override;
+          virtual void wrapper_init_org_ortc_DoubleRange(double value) override;
           virtual void wrapper_init_org_ortc_DoubleRange(
-            long min,
-            long max
+            double min,
+            double max
             ) override;
           virtual void wrapper_init_org_ortc_DoubleRange(wrapper::org::ortc::JsonPtr json) override;
           virtual wrapper::org::ortc::JsonPtr toJson() override;
