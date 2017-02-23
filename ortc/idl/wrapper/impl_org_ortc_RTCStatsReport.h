@@ -20,7 +20,6 @@ namespace wrapper {
 
           // methods RTCStatsReport
           virtual wrapper::org::ortc::RTCStatsPtr getStats(String id) override;
-          virtual void wrapper_init_org_ortc_RTCStatsReport() override;
 
           // properties RTCStatsReport
           virtual uint64_t get_objectId() override;

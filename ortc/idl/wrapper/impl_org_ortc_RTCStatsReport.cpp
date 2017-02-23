@@ -39,11 +39,6 @@ wrapper::impl::org::ortc::RTCStatsReport::~RTCStatsReport()
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCStatsReport::wrapper_init_org_ortc_RTCStatsReport()
-{
-}
-
-//------------------------------------------------------------------------------
 wrapper::org::ortc::RTCStatsPtr wrapper::impl::org::ortc::RTCStatsReport::getStats(String id)
 {
   wrapper::org::ortc::RTCStatsPtr result {};
