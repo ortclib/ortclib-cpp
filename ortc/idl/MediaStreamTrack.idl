@@ -73,7 +73,7 @@ namespace org
       /// must refer to the User Agent's vsync display rate.
       /// </summary>
       [optional]
-      DoubleRange   fameRate;
+      DoubleRange   frameRate;
       /// <summary>
       /// This string (or each string, when a list) should be one of the members of
       /// VideoFacingMode. The members describe the directions that the camera can
