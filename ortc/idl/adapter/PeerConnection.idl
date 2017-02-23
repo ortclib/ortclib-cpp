@@ -102,6 +102,9 @@ namespace org
       [dictionary]
       struct RTCOfferAnswerOptions
       {
+        [constructor, delete]
+        void RTCOfferAnswerOptions();
+
         /// <summary>
         /// Gets or sets if VAD is enabled. Many codecs and systems are
         /// capable of detecting "silence" and changing their behavior in this
