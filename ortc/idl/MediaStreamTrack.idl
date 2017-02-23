@@ -135,11 +135,11 @@ namespace org
       /// <summary>
       /// The origin-unique identifier for the source of the MediaStreamTrack.
       /// </summary>
-      string        deviceID;
+      string        deviceId;
       /// <summary>
       /// The browsing session-unique group identifier for the source of the MediaStreamTrack.
       /// </summary>
-      string        groupID;
+      string        groupId;
 
       /// <summary>
       /// Constructs an empty instance of a MediaTrackCapabilities object.
