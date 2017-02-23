@@ -769,7 +769,7 @@ namespace org
       /// Constructs an instance of an RTCSrtpTransportStats object by cloning object data from an existing object.
       /// </summary>
       [constructor, altname(RTCSrtpTransportStatsClone)]
-      void RTCSrtpTransportStats(RTCDtlsTransportStats source);
+      void RTCSrtpTransportStats(RTCSrtpTransportStats source);
       /// <summary>
       /// Constructs an instance of an RTCSrtpTransportStats object by extracting object data from a JSON object.
       /// </summary>
