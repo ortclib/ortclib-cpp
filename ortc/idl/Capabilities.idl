@@ -107,13 +107,13 @@ namespace org
       /// Constructs a minimum and maximum legal range given a real value.
       /// </summary>
       [constructor, default, altname(DoubleRangeWithValue)]
-      void DoubleRange(long value);
+      void DoubleRange(double value);
 
       /// <summary>
       /// Constructs a minimum and maximum legal range given a real minimum and maximum value.
       /// </summary>
       [constructor, default, altname(DoubleRangeWithLimits)]
-      void DoubleRange(long min, long max);
+      void DoubleRange(double min, double max);
 
       /// <summary>
       /// Constructs a minimum and maximum legal range given a JSON object.
