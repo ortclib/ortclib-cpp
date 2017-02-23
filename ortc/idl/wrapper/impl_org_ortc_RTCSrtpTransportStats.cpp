@@ -86,7 +86,7 @@ void wrapper::impl::org::ortc::RTCSrtpTransportStats::wrapper_init_org_ortc_RTCS
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCSrtpTransportStats::wrapper_init_org_ortc_RTCSrtpTransportStats(wrapper::org::ortc::RTCDtlsTransportStatsPtr source)
+void wrapper::impl::org::ortc::RTCSrtpTransportStats::wrapper_init_org_ortc_RTCSrtpTransportStats(wrapper::org::ortc::RTCSrtpTransportStatsPtr source)
 {
 }
 

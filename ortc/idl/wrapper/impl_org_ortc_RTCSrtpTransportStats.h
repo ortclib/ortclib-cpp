@@ -30,7 +30,7 @@ namespace wrapper {
 
           // methods RTCSrtpTransportStats
           virtual void wrapper_init_org_ortc_RTCSrtpTransportStats() override;
-          virtual void wrapper_init_org_ortc_RTCSrtpTransportStats(wrapper::org::ortc::RTCDtlsTransportStatsPtr source) override;
+          virtual void wrapper_init_org_ortc_RTCSrtpTransportStats(wrapper::org::ortc::RTCSrtpTransportStatsPtr source) override;
           virtual void wrapper_init_org_ortc_RTCSrtpTransportStats(wrapper::org::ortc::JsonPtr json) override;
         };
 
