@@ -477,6 +477,21 @@
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_Helper.cpp">
       <Filter>ortc\idl\wrapper</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCRtpCodecParameterSettings.cpp">
+      <Filter>ortc\idl\wrapper</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCRtpFlexFecCodecParameterSettings.cpp">
+      <Filter>ortc\idl\wrapper</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCRtpH264CodecParameterSettings.cpp">
+      <Filter>ortc\idl\wrapper</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCRtpRtxCodecParameterSettings.cpp">
+      <Filter>ortc\idl\wrapper</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCRtpVp8CodecParameterSettings.cpp">
+      <Filter>ortc\idl\wrapper</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_adapter_RTCCapabilityOptions.h">
@@ -1396,6 +1411,33 @@
     </ClInclude>
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_Helper.h">
       <Filter>ortc\idl\wrapper</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCRtpCodecParameterSettings.h">
+      <Filter>ortc\idl\wrapper</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCRtpFlexFecCodecParameterSettings.h">
+      <Filter>ortc\idl\wrapper</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCRtpH264CodecParameterSettings.h">
+      <Filter>ortc\idl\wrapper</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCRtpRtxCodecParameterSettings.h">
+      <Filter>ortc\idl\wrapper</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCRtpVp8CodecParameterSettings.h">
+      <Filter>ortc\idl\wrapper</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_RTCRtpFlexFecCodecParameterSettings.h">
+      <Filter>ortc\idl\wrapper\generated</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_RTCRtpH264CodecParameterSettings.h">
+      <Filter>ortc\idl\wrapper\generated</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_RTCRtpRtxCodecParameterSettings.h">
+      <Filter>ortc\idl\wrapper\generated</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_RTCRtpVp8CodecParameterSettings.h">
+      <Filter>ortc\idl\wrapper\generated</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
