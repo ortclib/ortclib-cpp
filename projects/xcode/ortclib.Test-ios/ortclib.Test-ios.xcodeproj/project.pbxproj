@@ -159,6 +159,13 @@
 			remoteGlobalIDString = 0064F8021DE51EB900EE8962;
 			remoteInfo = "ortclib-ios";
 		};
+		526A20B71E6093A800BA0F07 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 526A20B31E6093A800BA0F07 /* webrtcWrapper_ios.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 9451F25C1BC54F57008CB8D7;
+			remoteInfo = webrtcWrapper_ios;
+		};
 		52AD841B1E5DE9A800DCD81D /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 52DC77151E5DC6CE00267CF4 /* zsLib-ios.xcodeproj */;
@@ -193,20 +200,6 @@
 			proxyType = 1;
 			remoteGlobalIDString = 008A13841DA1A13600D1664A;
 			remoteInfo = "ortclib.services-ios";
-		};
-		52AD84381E5DEA0300DCD81D /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 52AD84341E5DEA0300DCD81D /* webrtcWrapper_ios.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 9451F25C1BC54F57008CB8D7;
-			remoteInfo = webrtcWrapper_ios;
-		};
-		52AD843A1E5DEA0A00DCD81D /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 52AD84341E5DEA0300DCD81D /* webrtcWrapper_ios.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 9451F25B1BC54F57008CB8D7;
-			remoteInfo = webrtcWrapper_ios;
 		};
 		52DC77011E5DC67000267CF4 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -292,9 +285,9 @@
 		009D1A981DE52FBF00D139FF /* TestSRTP.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = TestSRTP.cpp; sourceTree = "<group>"; };
 		52656CBC1E5F02A1009DAE87 /* libaudio_decoder_factory_interface.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libaudio_decoder_factory_interface.a; path = "../../../../../../webrtc/xplatform/webrtc/out_ios64/Debug-iphoneos/libaudio_decoder_factory_interface.a"; sourceTree = "<group>"; };
 		52656CBE1E5F040E009DAE87 /* libaudio_processing_neon.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libaudio_processing_neon.a; path = "../../../../../../webrtc/xplatform/webrtc/out_ios64/Debug-iphoneos/libaudio_processing_neon.a"; sourceTree = "<group>"; };
+		526A20B31E6093A800BA0F07 /* webrtcWrapper_ios.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = webrtcWrapper_ios.xcodeproj; path = "/Users/sergejjovanovic/Work/Projects/opticaltone/Apple_master_merge/ortclib-sdk/ortc/apple/workspaces/xcode/../../projects/xcode/webrtcWrappers/webrtcWrapper_ios/webrtcWrapper_ios.xcodeproj"; sourceTree = "<absolute>"; };
 		52AD84301E5DE9C200DCD81D /* libzsLib-eventing-ios.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libzsLib-eventing-ios.a"; path = "../../../../zsLib-eventing/projects/xcode/zsLib-eventing-ios/build/Debug-iphoneos/libzsLib-eventing-ios.a"; sourceTree = "<group>"; };
 		52AD84321E5DE9D500DCD81D /* libwebrtcWrapper_ios.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libwebrtcWrapper_ios.a; path = "../../../../../apple/projects/xcode/webrtcWrappers/webrtcWrapper_ios/build/Debug-iphoneos/libwebrtcWrapper_ios.a"; sourceTree = "<group>"; };
-		52AD84341E5DEA0300DCD81D /* webrtcWrapper_ios.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = webrtcWrapper_ios.xcodeproj; path = "/Users/sergejjovanovic/Work/Projects/opticaltone/Apple/ortclib-sdk/ortc/apple/workspaces/xcode/../../projects/xcode/webrtcWrappers/webrtcWrapper_ios/webrtcWrapper_ios.xcodeproj"; sourceTree = "<absolute>"; };
 		52AD843E1E5DF2DD00DCD81D /* libcurl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcurl.a; path = "../../../../curl/curl/ios-appstore/lib/libcurl.a"; sourceTree = "<group>"; };
 		52AD84401E5DF35B00DCD81D /* libwebrtc.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libwebrtc.a; path = "../../../../../../webrtc/xplatform/webrtc/out_ios/Debug-iphoneos/libwebrtc.a"; sourceTree = "<group>"; };
 		52AD84421E5DF48B00DCD81D /* librtp_rtcp.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = librtp_rtcp.a; path = "../../../../../../webrtc/xplatform/webrtc/out_ios/Debug-iphoneos/librtp_rtcp.a"; sourceTree = "<group>"; };
@@ -450,7 +443,7 @@
 		009D19851DE52DEA00D139FF = {
 			isa = PBXGroup;
 			children = (
-				52AD84341E5DEA0300DCD81D /* webrtcWrapper_ios.xcodeproj */,
+				526A20B31E6093A800BA0F07 /* webrtcWrapper_ios.xcodeproj */,
 				52DC77151E5DC6CE00267CF4 /* zsLib-ios.xcodeproj */,
 				52DC770F1E5DC6C000267CF4 /* cryptopp-ios.xcodeproj */,
 				52DC77091E5DC69100267CF4 /* udns-ios.xcodeproj */,
@@ -561,6 +554,14 @@
 			path = ../../../ortc/test;
 			sourceTree = "<group>";
 		};
+		526A20B41E6093A800BA0F07 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				526A20B81E6093A800BA0F07 /* libwebrtcWrapper_ios.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		52AD842F1E5DE9C200DCD81D /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -627,14 +628,6 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		52AD84351E5DEA0300DCD81D /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				52AD84391E5DEA0300DCD81D /* libwebrtcWrapper_ios.a */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 		52DC76FE1E5DC67000267CF4 /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -689,7 +682,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				52AD843B1E5DEA0A00DCD81D /* PBXTargetDependency */,
 				52AD841C1E5DE9A800DCD81D /* PBXTargetDependency */,
 				52AD841E1E5DE9A800DCD81D /* PBXTargetDependency */,
 				52AD84201E5DE9A800DCD81D /* PBXTargetDependency */,
@@ -797,8 +789,8 @@
 					ProjectRef = 52DC77091E5DC69100267CF4 /* udns-ios.xcodeproj */;
 				},
 				{
-					ProductGroup = 52AD84351E5DEA0300DCD81D /* Products */;
-					ProjectRef = 52AD84341E5DEA0300DCD81D /* webrtcWrapper_ios.xcodeproj */;
+					ProductGroup = 526A20B41E6093A800BA0F07 /* Products */;
+					ProjectRef = 526A20B31E6093A800BA0F07 /* webrtcWrapper_ios.xcodeproj */;
 				},
 				{
 					ProductGroup = 52DC77161E5DC6CE00267CF4 /* Products */;
@@ -822,11 +814,11 @@
 			remoteRef = 009D19E01DE52E8200D139FF /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		52AD84391E5DEA0300DCD81D /* libwebrtcWrapper_ios.a */ = {
+		526A20B81E6093A800BA0F07 /* libwebrtcWrapper_ios.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
 			path = libwebrtcWrapper_ios.a;
-			remoteRef = 52AD84381E5DEA0300DCD81D /* PBXContainerItemProxy */;
+			remoteRef = 526A20B71E6093A800BA0F07 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		52DC77021E5DC67000267CF4 /* libortclib.services-ios.a */ = {
@@ -1011,11 +1003,6 @@
 			name = "ortclib.services-ios";
 			targetProxy = 52AD84231E5DE9A800DCD81D /* PBXContainerItemProxy */;
 		};
-		52AD843B1E5DEA0A00DCD81D /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = webrtcWrapper_ios;
-			targetProxy = 52AD843A1E5DEA0A00DCD81D /* PBXContainerItemProxy */;
-		};
 /* End PBXTargetDependency section */
 
 /* Begin PBXVariantGroup section */
@@ -1157,12 +1144,13 @@
 					../../../../../../webrtc/xplatform/libsrtp/config,
 					../../../../../../webrtc/xplatform/webrtc,
 					../../../../../../webrtc/xplatform/usrsctp/usrsctplib,
+					"../../../../zsLib-eventing",
 				);
 				INFOPLIST_FILE = "ortclib.Test-ios/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"../../../../curl/curl/ios-dev/lib",
-					"../../../../../../webrtc/xplatform/webrtc/out_ios64/Debug-iphoneos",
+					"../../../../../../webrtc/xplatform/webrtc/out_ios/Debug-iphoneos",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "org.ortc.ortclib-Test-ios";
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -1195,12 +1183,13 @@
 					../../../../../../webrtc/xplatform/libsrtp/config,
 					../../../../../../webrtc/xplatform/webrtc,
 					../../../../../../webrtc/xplatform/usrsctp/usrsctplib,
+					"../../../../zsLib-eventing",
 				);
 				INFOPLIST_FILE = "ortclib.Test-ios/Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				LIBRARY_SEARCH_PATHS = (
 					"../../../../curl/curl/ios-appstore/lib",
-					"../../../../../../webrtc/xplatform/webrtc/out_ios64/Release-iphoneos",
+					"../../../../../../webrtc/xplatform/webrtc/out_ios/Release-iphoneos",
 				);
 				PRODUCT_BUNDLE_IDENTIFIER = "org.ortc.ortclib-Test-ios";
 				PRODUCT_NAME = "$(TARGET_NAME)";
