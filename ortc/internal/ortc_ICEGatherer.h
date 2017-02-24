@@ -39,14 +39,13 @@
 
 #include <ortc/services/IBackOffTimer.h>
 #include <ortc/services/IDNS.h>
-#include <ortc/services/IWakeDelegate.h>
 #include <ortc/services/ISTUNDiscovery.h>
 #include <ortc/services/ITURNSocket.h>
 #include <ortc/services/STUNPacket.h>
 
 #include <zsLib/MessageQueueAssociator.h>
 #include <zsLib/Socket.h>
-#include <zsLib/Timer.h>
+#include <zsLib/ITimer.h>
 
 #include <cryptopp/queue.h>
 
@@ -90,25 +89,9 @@ namespace ortc
 {
   namespace internal
   {
-    ZS_DECLARE_INTERACTION_PTR(IICETransportForICEGatherer)
-    ZS_DECLARE_INTERACTION_PROXY(IGathererAsyncDelegate)
+    ZS_DECLARE_INTERACTION_PTR(IICETransportForICEGatherer);
+    ZS_DECLARE_INTERACTION_PROXY(IGathererAsyncDelegate);
 
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IICEGathererForSettings
-    #pragma mark
-
-    interaction IICEGathererForSettings
-    {
-      ZS_DECLARE_TYPEDEF_PTR(IICEGathererForSettings, ForSettings)
-
-      static void applyDefaults();
-
-      virtual ~IICEGathererForSettings() {}
-    };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -199,7 +182,6 @@ namespace ortc
                         public MessageQueueAssociator,
                         public SharedRecursiveLock,
                         public IICEGatherer,
-                        public IICEGathererForSettings,
                         public IICEGathererForICETransport,
                         public IGathererAsyncDelegate,
                         public IWakeDelegate,
@@ -218,7 +200,6 @@ namespace ortc
 
       friend interaction IICEGatherer;
       friend interaction IICEGathererFactory;
-      friend interaction IICEGathererForSettings;
       friend interaction IICEGathererForICETransport;
 
       typedef IICEGatherer::States States;
@@ -314,11 +295,11 @@ namespace ortc
       typedef std::map<CandidateHash, CandidatePair> CandidateMap;
 
       typedef std::list<ReflexivePortPtr> ReflexivePortList;
-      typedef std::map<TimerPtr, HostAndReflexivePortPair> TimerToReflexivePortMap;
+      typedef std::map<ITimerPtr, HostAndReflexivePortPair> TimerToReflexivePortMap;
 
       typedef std::list<RelayPortPtr> RelayPortList;
       typedef std::map<IPAddress, RelayPortPtr> IPToRelayPortMap;
-      typedef std::map<TimerPtr, HostAndRelayPortPair> TimerToRelayPortMap;
+      typedef std::map<ITimerPtr, HostAndRelayPortPair> TimerToRelayPortMap;
 
       typedef std::pair<HostPortPtr, TCPPortPtr> HostAndTCPPortPair;
       typedef std::map<SocketPtr, HostAndTCPPortPair> SocketToTCPPortMap;
@@ -369,7 +350,6 @@ namespace ortc
       virtual ~ICEGatherer();
 
       static ICEGathererPtr convert(IICEGathererPtr object);
-      static ICEGathererPtr convert(ForSettingsPtr object);
       static ICEGathererPtr convert(ForICETransportPtr object);
 
     protected:
@@ -479,7 +459,7 @@ namespace ortc
       #pragma mark ICEGatherer => ITimerDelegate
       #pragma mark
 
-      virtual void onTimer(TimerPtr timer) override;
+      virtual void onTimer(ITimerPtr timer) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -673,7 +653,7 @@ namespace ortc
         CandidatePtr mCandidate;
 
         Time mLastActivity;
-        TimerPtr mInactivityTimer;
+        ITimerPtr mInactivityTimer;
 
         ElementPtr toDebug() const;
       };
@@ -699,7 +679,7 @@ namespace ortc
         CandidatePtr mReflexiveCandidate;
 
         Time mLastActivity;
-        TimerPtr mInactivityTimer;
+        ITimerPtr mInactivityTimer;
 
         ElementPtr toDebug() const;
       };
@@ -1082,7 +1062,7 @@ namespace ortc
 
       bool mGetLocalIPsNow {true};
       Seconds mRecheckIPsDuration {};
-      TimerPtr mRecheckIPsTimer;
+      ITimerPtr mRecheckIPsTimer;
       HostIPSorter::DataList mPendingHostIPs;
       HostIPSorter::DataList mResolvedHostIPs;
       HostIPSorter::QueryMap mResolveHostIPQueries;
@@ -1119,7 +1099,7 @@ namespace ortc
 
       String mWarmUpAfterNewInterfaceBindingHostsHash;
       Time mWarmUpAfterNewInterfaceBindingUntil;
-      TimerPtr mWarmUpAterNewInterfaceBindingTimer;
+      ITimerPtr mWarmUpAterNewInterfaceBindingTimer;
 
       Seconds mReflexiveInactivityTime {};
       TimerToReflexivePortMap mReflexiveInactivityTimers;
@@ -1133,14 +1113,14 @@ namespace ortc
       size_t mMaxTCPBufferingSizePendingConnection {};
       size_t mMaxTCPBufferingSizeConnected {};
 
-      TimerPtr mCleanUpBufferingTimer;
+      ITimerPtr mCleanUpBufferingTimer;
       Seconds mMaxBufferingTime {};
       size_t mMaxTotalBuffers {};
       BufferedPacketList mBufferedPackets;
 
       LocalCandidateRemoteIPRouteMap mQuickSearchRoutes;
       RouteMap mRoutes;
-      TimerPtr mCleanUnusedRoutesTimer;
+      ITimerPtr mCleanUnusedRoutesTimer;
       Seconds mCleanUnusedRoutesDuration {};
 
       bool mTransportsChanged {true};

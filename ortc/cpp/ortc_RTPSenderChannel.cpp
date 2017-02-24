@@ -45,10 +45,12 @@
 #include <ortc/internal/ortc.events.h>
 #include <ortc/internal/platform.h>
 
-#include <ortc/services/ISettings.h>
-#include <ortc/services/IHelper.h>
+#include <ortc/IHelper.h>
 #include <ortc/services/IHTTP.h>
 
+#include <zsLib/eventing/IHasher.h>
+
+#include <zsLib/ISettings.h>
 #include <zsLib/SafeInt.h>
 #include <zsLib/Stringize.h>
 #include <zsLib/Log.h>
@@ -68,14 +70,14 @@ namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_rtpsender) }
 
 namespace ortc
 {
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::ISettings, UseSettings)
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHelper, UseServicesHelper)
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHTTP, UseHTTP)
-
-  typedef ortc::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
+  ZS_DECLARE_USING_PTR(zsLib, ISettings);
+  ZS_DECLARE_USING_PTR(zsLib::eventing, IHasher)
+  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHTTP, UseHTTP);
 
   namespace internal
   {
+    ZS_DECLARE_CLASS_PTR(RTPSenderChannelSettingsDefaults);
+
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -90,14 +92,46 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IICETransportForSettings
+    #pragma mark RTPSenderChannelSettingsDefaults
     #pragma mark
 
-    //-------------------------------------------------------------------------
-    void IRTPSenderChannelForSettings::applyDefaults()
+    class RTPSenderChannelSettingsDefaults : public ISettingsApplyDefaultsDelegate
     {
-      UseSettings::setUInt(ORTC_SETTING_RTP_SENDER_CHANNEL_RETAG_RTP_PACKETS_AFTER_SSRC_NOT_SENT_IN_SECONDS, 5);
-      UseSettings::setBool(ORTC_SETTING_RTP_SENDER_CHANNEL_TAG_MID_RID_IN_RTCP_SDES, true);
+    public:
+      //-----------------------------------------------------------------------
+      ~RTPSenderChannelSettingsDefaults()
+      {
+        ISettings::removeDefaults(*this);
+      }
+
+      //-----------------------------------------------------------------------
+      static RTPSenderChannelSettingsDefaultsPtr singleton()
+      {
+        static SingletonLazySharedPtr<RTPSenderChannelSettingsDefaults> singleton(create());
+        return singleton.singleton();
+      }
+
+      //-----------------------------------------------------------------------
+      static RTPSenderChannelSettingsDefaultsPtr create()
+      {
+        auto pThis(make_shared<RTPSenderChannelSettingsDefaults>());
+        ISettings::installDefaults(pThis);
+        return pThis;
+      }
+
+      //-----------------------------------------------------------------------
+      virtual void notifySettingsApplyDefaults() override
+      {
+        ISettings::setUInt(ORTC_SETTING_RTP_SENDER_CHANNEL_RETAG_RTP_PACKETS_AFTER_SSRC_NOT_SENT_IN_SECONDS, 5);
+        ISettings::setBool(ORTC_SETTING_RTP_SENDER_CHANNEL_TAG_MID_RID_IN_RTCP_SDES, true);
+      }
+      
+    };
+
+    //-------------------------------------------------------------------------
+    void installRTPSenderChannelSettingsDefaults()
+    {
+      RTPSenderChannelSettingsDefaults::singleton();
     }
 
     //-------------------------------------------------------------------------
@@ -173,8 +207,8 @@ namespace ortc
       mSender(sender),
       mTrack(track),
       mParameters(make_shared<Parameters>(params)),
-      mRetagAfterInSeconds(Seconds(UseSettings::getUInt(ORTC_SETTING_RTP_SENDER_CHANNEL_RETAG_RTP_PACKETS_AFTER_SSRC_NOT_SENT_IN_SECONDS))),
-      mTagSDES(UseSettings::getBool(ORTC_SETTING_RTP_SENDER_CHANNEL_TAG_MID_RID_IN_RTCP_SDES))
+      mRetagAfterInSeconds(Seconds(ISettings::getUInt(ORTC_SETTING_RTP_SENDER_CHANNEL_RETAG_RTP_PACKETS_AFTER_SSRC_NOT_SENT_IN_SECONDS))),
+      mTagSDES(ISettings::getBool(ORTC_SETTING_RTP_SENDER_CHANNEL_TAG_MID_RID_IN_RTCP_SDES))
     {
       ZS_LOG_DETAIL(debug("created"))
 
@@ -243,11 +277,6 @@ namespace ortc
       ZS_EVENTING_1(x, i, Detail, RtpSenderChannelDestroy, ol, RtpSender, Stop, puid, id, mID);
     }
 
-    //-------------------------------------------------------------------------
-    RTPSenderChannelPtr RTPSenderChannel::convert(ForSettingsPtr object)
-    {
-      return ZS_DYNAMIC_PTR_CAST(RTPSenderChannel, object);
-    }
 
     //-------------------------------------------------------------------------
     RTPSenderChannelPtr RTPSenderChannel::convert(ForRTPSenderPtr object)
@@ -685,7 +714,7 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void RTPSenderChannel::onTimer(TimerPtr timer)
+    void RTPSenderChannel::onTimer(ITimerPtr timer)
     {
       ZS_LOG_DEBUG(log("timer") + ZS_PARAM("timer id", timer->getID()))
 
@@ -808,7 +837,7 @@ namespace ortc
     Log::Params RTPSenderChannel::log(const char *message) const
     {
       ElementPtr objectEl = Element::create("ortc::RTPSenderChannel");
-      UseServicesHelper::debugAppend(objectEl, "id", mID);
+      IHelper::debugAppend(objectEl, "id", mID);
       return Log::Params(message, objectEl);
     }
 
@@ -825,19 +854,19 @@ namespace ortc
 
       ElementPtr resultEl = Element::create("ortc::RTPSenderChannel");
 
-      UseServicesHelper::debugAppend(resultEl, "id", mID);
+      IHelper::debugAppend(resultEl, "id", mID);
 
-      UseServicesHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
+      IHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
 
-      UseServicesHelper::debugAppend(resultEl, "state", toString(mCurrentState));
+      IHelper::debugAppend(resultEl, "state", toString(mCurrentState));
 
-      UseServicesHelper::debugAppend(resultEl, "error", mLastError);
-      UseServicesHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
+      IHelper::debugAppend(resultEl, "error", mLastError);
+      IHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
 
-      UseServicesHelper::debugAppend(resultEl, "secure transport state", ISecureTransport::toString(mSecureTransportState));
+      IHelper::debugAppend(resultEl, "secure transport state", ISecureTransport::toString(mSecureTransportState));
 
       auto sender = mSender.lock();
-      UseServicesHelper::debugAppend(resultEl, "sender", sender ? sender->getID() : 0);
+      IHelper::debugAppend(resultEl, "sender", sender ? sender->getID() : 0);
 
       return resultEl;
     }
@@ -981,20 +1010,20 @@ namespace ortc
       // If any changes have occured then the streams that pass through
       // this mapping must be retagged with the MuxID / RID.
       {
-        SHA1Hasher hasher;
+        auto hasher = IHasher::sha1();
         if (mMuxHeader) {
-          hasher.update(mMuxHeader->hash());
+          hasher->update(mMuxHeader->hash());
         }
-        hasher.update(":");
+        hasher->update(":");
         if (mRIDHeader) {
-          hasher.update(mRIDHeader->hash());
+          hasher->update(mRIDHeader->hash());
         }
-        hasher.update(":");
-        hasher.update(mMuxID);
-        hasher.update(":");
-        hasher.update(mRID);
+        hasher->update(":");
+        hasher->update(mMuxID);
+        hasher->update(":");
+        hasher->update(mRID);
 
-        String hashResult = hasher.final();
+        String hashResult = hasher->finalizeAsString();
         if (hashResult != mHeaderHash) {
           mTaggings.clear();
         }

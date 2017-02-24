@@ -36,7 +36,7 @@
 
 #include <ortc/internal/ortc_Helper.h>
 
-#include <ortc/services/IHelper.h>
+#include <ortc/adapter/IHelper.h>
 
 #include <zsLib/Log.h>
 #include <zsLib/Numeric.h>
@@ -58,13 +58,6 @@ namespace ortc
   {
     using zsLib::Stringize;
     using zsLib::Numeric;
-
-    ZS_DECLARE_TYPEDEF_PTR(ortc::internal::Helper, UseHelper);
-    ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHelper, UseServicesHelper);
-
-    ZS_DECLARE_TYPEDEF_PTR(ortc::adapter::IHelper, UseAdapterHelper);
-
-    typedef ortc::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
 
     namespace internal
     {
@@ -437,18 +430,18 @@ namespace ortc
                 for (auto iterKeyParam = crypto.mKeyParams.begin(); iterKeyParam != crypto.mKeyParams.end(); ++iterKeyParam) {
                   auto &keyParam = (*iterKeyParam);
 
-                  UseServicesHelper::SplitMap splitsMKI;
+                  IHelper::SplitMap splitsMKI;
                   splitsMKI[0] = keyParam.mMKIValue;
                   splitsMKI[1] = (0 != keyParam.mMKILength ? string(keyParam.mMKILength) : String());
-                  UseServicesHelper::splitPruneEmpty(splitsMKI);
+                  IHelper::splitPruneEmpty(splitsMKI);
 
-                  UseServicesHelper::SplitMap splits;
+                  IHelper::SplitMap splits;
                   splits[0] = keyParam.mKeySalt;
                   splits[1] = keyParam.mLifetime;
-                  splits[2] = UseServicesHelper::combine(splitsMKI, ":");
-                  UseServicesHelper::splitPruneEmpty(splits);
+                  splits[2] = IHelper::combine(splitsMKI, ":");
+                  IHelper::splitPruneEmpty(splits);
 
-                  cryptoLine->mKeyParams.push_back(ISDPTypes::KeyValuePair(keyParam.mKeyMethod, UseServicesHelper::combine(splits,"|")));
+                  cryptoLine->mKeyParams.push_back(ISDPTypes::KeyValuePair(keyParam.mKeyMethod, IHelper::combine(splits,"|")));
                 }
                 cryptoLine->mSessionParams = crypto.mSessionParams;
                 mline.mACryptoLines.push_back(cryptoLine);
@@ -884,14 +877,14 @@ namespace ortc
                 fillMediaLine(options, description, mediaLine, result, *mline);
                 if (mediaLine.mCapabilities) {
                   auto sctpPort = make_shared<ASCTPPortLine>(Noop{});
-                  sctpPort->mPort = mediaLine.mCapabilities->mMaxPort;
+                  sctpPort->mPort = mediaLine.mPort;
                   auto maxMessageSize = make_shared<AMaxMessageSizeLine>(Noop{});
                   maxMessageSize->mMaxMessageSize = mediaLine.mCapabilities->mMaxMessageSize;
                   mline->mASCTPPortLine = sctpPort;
                   mline->mAMaxMessageSize = maxMessageSize;
                   auto format = make_shared<ISDPTypes::AFMTPLine>(Noop{});
                   format->mFormatStr = "webrtc-datachannel";
-                  format->mFormatSpecific.push_back(String("max-message-size") + string(mediaLine.mCapabilities->mMaxMessageSize));
+                  format->mFormatSpecific.push_back(String("max-message-size=") + string(mediaLine.mCapabilities->mMaxMessageSize));
                   mline->mAFMTPLines.push_back(format);
                 }
                 goto found;

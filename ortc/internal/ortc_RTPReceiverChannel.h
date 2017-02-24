@@ -40,9 +40,8 @@
 #include <ortc/IMediaStreamTrack.h>
 #include <ortc/IStatsProvider.h>
 
-#include <ortc/services/IWakeDelegate.h>
 #include <zsLib/MessageQueueAssociator.h>
-#include <zsLib/Timer.h>
+#include <zsLib/ITimer.h>
 
 
 //#define ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE "ortc/sctp/max-message-size"
@@ -51,37 +50,20 @@ namespace ortc
 {
   namespace internal
   {
-    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelForSettings)
-    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelForRTPReceiver)
-    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelForMediaStreamTrack)
-    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelForRTPReceiverChannelMediaBase)
-    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelForRTPReceiverChannelAudio)
-    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelForRTPReceiverChannelVideo)
+    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelForRTPReceiver);
+    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelForMediaStreamTrack);
+    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelForRTPReceiverChannelMediaBase);
+    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelForRTPReceiverChannelAudio);
+    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelForRTPReceiverChannelVideo);
 
-    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverForRTPReceiverChannel)
-    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelMediaBaseForRTPReceiverChannel)
-    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelAudioForRTPReceiverChannel)
-    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelVideoForRTPReceiverChannel)
-    ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrackForRTPReceiverChannel)
+    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverForRTPReceiverChannel);
+    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelMediaBaseForRTPReceiverChannel);
+    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelAudioForRTPReceiverChannel);
+    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelVideoForRTPReceiverChannel);
+    ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrackForRTPReceiverChannel);
 
-    ZS_DECLARE_INTERACTION_PROXY(IRTPReceiverChannelAsyncDelegate)
+    ZS_DECLARE_INTERACTION_PROXY(IRTPReceiverChannelAsyncDelegate);
 
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPReceiverChannelForSettings
-    #pragma mark
-
-    interaction IRTPReceiverChannelForSettings
-    {
-      ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverChannelForSettings, ForSettings)
-
-      static void applyDefaults();
-
-      virtual ~IRTPReceiverChannelForSettings() {}
-    };
     
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -231,7 +213,6 @@ namespace ortc
     class RTPReceiverChannel : public Noop,
                                public MessageQueueAssociator,
                                public SharedRecursiveLock,
-                               public IRTPReceiverChannelForSettings,
                                public IRTPReceiverChannelForRTPReceiver,
                                public IRTPReceiverChannelForMediaStreamTrack,
                                public IRTPReceiverChannelForRTPReceiverChannelAudio,
@@ -246,7 +227,6 @@ namespace ortc
     public:
       friend interaction IRTPReceiverChannel;
       friend interaction IRTPReceiverChannelFactory;
-      friend interaction IRTPReceiverChannelForSettings;
       friend interaction IRTPReceiverChannelForRTPReceiver;
       friend interaction IRTPReceiverChannelForRTPReceiverChannelMediaBase;
       friend interaction IRTPReceiverChannelForRTPReceiverChannelAudio;
@@ -294,7 +274,6 @@ namespace ortc
     public:
       virtual ~RTPReceiverChannel();
 
-      static RTPReceiverChannelPtr convert(ForSettingsPtr object);
       static RTPReceiverChannelPtr convert(ForRTPReceiverPtr object);
       static RTPReceiverChannelPtr convert(ForRTPReceiverChannelMediaBasePtr object);
       static RTPReceiverChannelPtr convert(ForRTPReceiverChannelAudioPtr object);
@@ -379,7 +358,7 @@ namespace ortc
       #pragma mark RTPReceiverChannel => ITimerDelegate
       #pragma mark
 
-      virtual void onTimer(TimerPtr timer) override;
+      virtual void onTimer(ITimerPtr timer) override;
 
       //-----------------------------------------------------------------------
       #pragma mark

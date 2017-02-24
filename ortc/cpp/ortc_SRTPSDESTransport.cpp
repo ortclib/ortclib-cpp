@@ -37,9 +37,13 @@
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/platform.h>
 
-#include <ortc/services/IHelper.h>
+#include <ortc/IHelper.h>
+
 #include <ortc/services/IHTTP.h>
 
+#include <zsLib/eventing/IHasher.h>
+
+#include <zsLib/ISettings.h>
 #include <zsLib/Numeric.h>
 #include <zsLib/Stringize.h>
 #include <zsLib/Log.h>
@@ -51,18 +55,17 @@ namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_srtp) }
 
 namespace ortc
 {
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHelper, UseServicesHelper)
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHTTP, UseHTTP)
-
-  ZS_DECLARE_TYPEDEF_PTR(ortc::internal::Helper, UseHelper)
+  ZS_DECLARE_USING_PTR(zsLib, ISettings);
+  ZS_DECLARE_USING_PTR(zsLib::eventing, IHasher);
+  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHTTP, UseHTTP);
 
   using zsLib::Log;
   using zsLib::Numeric;
 
-  typedef ortc::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
-
   namespace internal
   {
+    ZS_DECLARE_CLASS_PTR(SRTPSDESTransportSettingsDefaults);
+
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -71,18 +74,50 @@ namespace ortc
     #pragma mark (helpers)
     #pragma mark
 
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark SRTPSDESTransport => ISRTPSDESTransportForSettings
-    #pragma mark
 
     //-------------------------------------------------------------------------
-    void ISRTPSDESTransportForSettings::applyDefaults()
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark SRTPSDESTransportSettingsDefaults
+    #pragma mark
+
+    class SRTPSDESTransportSettingsDefaults : public ISettingsApplyDefaultsDelegate
     {
-      // none at this time
+    public:
+      //-----------------------------------------------------------------------
+      ~SRTPSDESTransportSettingsDefaults()
+      {
+        ISettings::removeDefaults(*this);
+      }
+
+      //-----------------------------------------------------------------------
+      static SRTPSDESTransportSettingsDefaultsPtr singleton()
+      {
+        static SingletonLazySharedPtr<SRTPSDESTransportSettingsDefaults> singleton(create());
+        return singleton.singleton();
+      }
+
+      //-----------------------------------------------------------------------
+      static SRTPSDESTransportSettingsDefaultsPtr create()
+      {
+        auto pThis(make_shared<SRTPSDESTransportSettingsDefaults>());
+        ISettings::installDefaults(pThis);
+        return pThis;
+      }
+
+      //-----------------------------------------------------------------------
+      virtual void notifySettingsApplyDefaults() override
+      {
+      }
+      
+    };
+
+    //-------------------------------------------------------------------------
+    void installSRTPSDESTransportSettingsDefaults()
+    {
+      SRTPSDESTransportSettingsDefaults::singleton();
     }
 
     //-------------------------------------------------------------------------
@@ -591,7 +626,7 @@ namespace ortc
     Log::Params SRTPSDESTransport::log(const char *message) const
     {
       ElementPtr objectEl = Element::create("ortc::SRTPSDESTransport");
-      UseServicesHelper::debugAppend(objectEl, "id", mID);
+      IHelper::debugAppend(objectEl, "id", mID);
       return Log::Params(message, objectEl);
     }
 
@@ -608,26 +643,26 @@ namespace ortc
 
       ElementPtr resultEl = Element::create("ortc::SRTPSDESTransport");
 
-      UseServicesHelper::debugAppend(resultEl, "id", mID);
+      IHelper::debugAppend(resultEl, "id", mID);
 
-      UseServicesHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
+      IHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
 
-      UseServicesHelper::debugAppend(resultEl, "subscribers", mSubscriptions.size());
-      UseServicesHelper::debugAppend(resultEl, "default subscription", (bool)mDefaultSubscription);
+      IHelper::debugAppend(resultEl, "subscribers", mSubscriptions.size());
+      IHelper::debugAppend(resultEl, "default subscription", (bool)mDefaultSubscription);
 
-      UseServicesHelper::debugAppend(resultEl, "secure transport subscriptions", mSecureTransportSubscriptions.size());
-      UseServicesHelper::debugAppend(resultEl, "secure transport state", ISecureTransportTypes::toString(mSecureTransportState));
+      IHelper::debugAppend(resultEl, "secure transport subscriptions", mSecureTransportSubscriptions.size());
+      IHelper::debugAppend(resultEl, "secure transport state", ISecureTransportTypes::toString(mSecureTransportState));
 
-      UseServicesHelper::debugAppend(resultEl, "error", mLastError);
-      UseServicesHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
+      IHelper::debugAppend(resultEl, "error", mLastError);
+      IHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
 
-      UseServicesHelper::debugAppend(resultEl, "ice rtp transport", mICETransportRTP ? mICETransportRTP->getID() : 0);
-      UseServicesHelper::debugAppend(resultEl, "ice attached rtcp", mAttachedRTCP);
-      UseServicesHelper::debugAppend(resultEl, "ice rtcp transport", mICETransportRTCP ? mICETransportRTCP->getID() : 0);
+      IHelper::debugAppend(resultEl, "ice rtp transport", mICETransportRTP ? mICETransportRTP->getID() : 0);
+      IHelper::debugAppend(resultEl, "ice attached rtcp", mAttachedRTCP);
+      IHelper::debugAppend(resultEl, "ice rtcp transport", mICETransportRTCP ? mICETransportRTCP->getID() : 0);
 
-      UseServicesHelper::debugAppend(resultEl, "srtp transport", mSRTPTransport ? mSRTPTransport->getID() : 0);
+      IHelper::debugAppend(resultEl, "srtp transport", mSRTPTransport ? mSRTPTransport->getID() : 0);
 
-      UseServicesHelper::debugAppend(resultEl, "rtp listener", mRTPListener ? mRTPListener->getID() : 0);
+      IHelper::debugAppend(resultEl, "rtp listener", mRTPListener ? mRTPListener->getID() : 0);
 
       return resultEl;
     }
@@ -829,8 +864,8 @@ namespace ortc
   {
     if (!elem) return;
 
-    UseHelper::getElementValue(elem, "ortc::ISRTPSDESTransportTypes::CryptoParameters", "tag", mTag);
-    UseHelper::getElementValue(elem, "ortc::ISRTPSDESTransportTypes::CryptoParameters", "cryptoSuite", mCryptoSuite);
+    IHelper::getElementValue(elem, "ortc::ISRTPSDESTransportTypes::CryptoParameters", "tag", mTag);
+    IHelper::getElementValue(elem, "ortc::ISRTPSDESTransportTypes::CryptoParameters", "cryptoSuite", mCryptoSuite);
 
     {
       ElementPtr keyParamsEl = elem->findFirstChildElement("keyParams");
@@ -849,7 +884,7 @@ namespace ortc
       if (sessionParamsEl) {
         ElementPtr sessionParamEl = sessionParamsEl->findFirstChildElement("sessionParam");
         while (sessionParamEl) {
-          mSessionParams.push_back(UseServicesHelper::getElementTextAndDecode(sessionParamEl));
+          mSessionParams.push_back(IHelper::getElementTextAndDecode(sessionParamEl));
           sessionParamEl = sessionParamEl->findNextSiblingElement("sessionParam");
         }
       }
@@ -861,8 +896,8 @@ namespace ortc
   {
     ElementPtr elem = Element::create(objectName);
 
-    UseHelper::adoptElementValue(elem, "tag", mTag);
-    UseHelper::adoptElementValue(elem, "cryptoSuite", mCryptoSuite, false);
+    IHelper::adoptElementValue(elem, "tag", mTag);
+    IHelper::adoptElementValue(elem, "cryptoSuite", mCryptoSuite, false);
 
     if (mKeyParams.size() > 0) {
       ElementPtr keyParamsEl = Element::create("keyParams");
@@ -878,7 +913,7 @@ namespace ortc
       ElementPtr sessionParamsEl = Element::create("sessionParams");
       for (auto iter = mSessionParams.begin(); iter != mSessionParams.end(); ++iter) {
         auto &value = (*iter);
-        sessionParamsEl->adoptAsLastChild(UseServicesHelper::createElementWithTextAndJSONEncode("sessionParam", value));
+        sessionParamsEl->adoptAsLastChild(IHelper::createElementWithTextAndJSONEncode("sessionParam", value));
       }
       elem->adoptAsLastChild(sessionParamsEl);
     }
@@ -897,38 +932,38 @@ namespace ortc
   //---------------------------------------------------------------------------
   String ISRTPSDESTransportTypes::CryptoParameters::hash() const
   {
-    SHA1Hasher hasher;
+    auto hasher = IHasher::sha1();
 
-    hasher.update("ISRTPSDESTransportTypes:CryptoParameters:");
+    hasher->update("ISRTPSDESTransportTypes:CryptoParameters:");
 
-    hasher.update(mTag);
-    hasher.update(":");
-    hasher.update(mCryptoSuite);
+    hasher->update(mTag);
+    hasher->update(":");
+    hasher->update(mCryptoSuite);
 
-    hasher.update(":keyParams");
+    hasher->update(":keyParams");
 
     {
       for (auto iter = mKeyParams.begin(); iter != mKeyParams.end(); ++iter) {
         auto keyParam = (*iter);
         auto hash = keyParam.hash();
-        hasher.update(":");
-        hasher.update(hash);
+        hasher->update(":");
+        hasher->update(hash);
       }
     }
 
-    hasher.update(":sessionParams");
+    hasher->update(":sessionParams");
 
     {
       ElementPtr listEl = Element::create("sessionParams");
 
       for (auto iter = mSessionParams.begin(); iter != mSessionParams.end(); ++iter) {
         auto sessionParam = (*iter);
-        hasher.update(":");
-        hasher.update(sessionParam);
+        hasher->update(":");
+        hasher->update(sessionParam);
       }
     }
 
-    return hasher.final();
+    return hasher->finalizeAsString();
   }
 
   //---------------------------------------------------------------------------
@@ -987,20 +1022,20 @@ namespace ortc
   //---------------------------------------------------------------------------
   String ISRTPSDESTransportTypes::Parameters::hash() const
   {
-    SHA1Hasher hasher;
+    auto hasher = IHasher::sha1();
 
-    hasher.update("ISRTPSDESTransportTypes:Parameters:");
+    hasher->update("ISRTPSDESTransportTypes:Parameters:");
 
     {
       for (auto iter = mCryptoParams.begin(); iter != mCryptoParams.end(); ++iter) {
         auto cryptoParam = (*iter);
         auto hash = cryptoParam.hash();
-        hasher.update(":");
-        hasher.update(hash);
+        hasher->update(":");
+        hasher->update(hash);
       }
     }
 
-    return hasher.final();
+    return hasher->finalizeAsString();
   }
 
   //---------------------------------------------------------------------------
@@ -1016,11 +1051,11 @@ namespace ortc
   {
     if (!elem) return;
 
-    UseHelper::getElementValue(elem, "ortc::ISRTPSDESTransportTypes::KeyParameters", "keyMethod", mKeyMethod);
-    UseHelper::getElementValue(elem, "ortc::ISRTPSDESTransportTypes::KeyParameters", "keySalt", mKeySalt);
-    UseHelper::getElementValue(elem, "ortc::ISRTPSDESTransportTypes::KeyParameters", "lifetime", mLifetime);
-    UseHelper::getElementValue(elem, "ortc::ISRTPSDESTransportTypes::KeyParameters", "mkiValue", mMKIValue);
-    UseHelper::getElementValue(elem, "ortc::ISRTPSDESTransportTypes::KeyParameters", "mkiLength", mMKILength);
+    IHelper::getElementValue(elem, "ortc::ISRTPSDESTransportTypes::KeyParameters", "keyMethod", mKeyMethod);
+    IHelper::getElementValue(elem, "ortc::ISRTPSDESTransportTypes::KeyParameters", "keySalt", mKeySalt);
+    IHelper::getElementValue(elem, "ortc::ISRTPSDESTransportTypes::KeyParameters", "lifetime", mLifetime);
+    IHelper::getElementValue(elem, "ortc::ISRTPSDESTransportTypes::KeyParameters", "mkiValue", mMKIValue);
+    IHelper::getElementValue(elem, "ortc::ISRTPSDESTransportTypes::KeyParameters", "mkiLength", mMKILength);
   }
 
   //---------------------------------------------------------------------------
@@ -1028,11 +1063,11 @@ namespace ortc
   {
     ElementPtr elem = Element::create(objectName);
 
-    UseHelper::adoptElementValue(elem, "keyMethod", mKeyMethod, false);
-    UseHelper::adoptElementValue(elem, "keySalt", mKeySalt, false);
-    UseHelper::adoptElementValue(elem, "lifetime", mLifetime, false);
-    UseHelper::adoptElementValue(elem, "mkiValue", mMKIValue, false);
-    UseHelper::adoptElementValue(elem, "mkiLength", mMKILength);
+    IHelper::adoptElementValue(elem, "keyMethod", mKeyMethod, false);
+    IHelper::adoptElementValue(elem, "keySalt", mKeySalt, false);
+    IHelper::adoptElementValue(elem, "lifetime", mLifetime, false);
+    IHelper::adoptElementValue(elem, "mkiValue", mMKIValue, false);
+    IHelper::adoptElementValue(elem, "mkiLength", mMKILength);
 
     if (!elem->hasChildren()) return ElementPtr();
     
@@ -1048,21 +1083,21 @@ namespace ortc
   //---------------------------------------------------------------------------
   String ISRTPSDESTransportTypes::KeyParameters::hash() const
   {
-    SHA1Hasher hasher;
+    auto hasher = IHasher::sha1();
 
-    hasher.update("ISRTPSDESTransportTypes:Parameters:");
+    hasher->update("ISRTPSDESTransportTypes:Parameters:");
 
-    hasher.update(mKeyMethod);
-    hasher.update(":");
-    hasher.update(mKeySalt);
-    hasher.update(":");
-    hasher.update(mLifetime);
-    hasher.update(":");
-    hasher.update(mMKIValue);
-    hasher.update(":");
-    hasher.update(mMKILength);
+    hasher->update(mKeyMethod);
+    hasher->update(":");
+    hasher->update(mKeySalt);
+    hasher->update(":");
+    hasher->update(mLifetime);
+    hasher->update(":");
+    hasher->update(mMKIValue);
+    hasher->update(":");
+    hasher->update(mMKILength);
 
-    return hasher.final();
+    return hasher->finalizeAsString();
   }
 
   //---------------------------------------------------------------------------

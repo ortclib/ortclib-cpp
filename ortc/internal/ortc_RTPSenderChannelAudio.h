@@ -39,9 +39,8 @@
 #include <ortc/IRTPTypes.h>
 #include <ortc/IMediaStreamTrack.h>
 
-#include <ortc/services/IWakeDelegate.h>
 #include <zsLib/MessageQueueAssociator.h>
-#include <zsLib/Timer.h>
+#include <zsLib/ITimer.h>
 #include <zsLib/Event.h>
 
 #include <webrtc/transport.h>
@@ -69,23 +68,6 @@ namespace ortc
     ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrackForRTPSenderChannelAudio)
 
     ZS_DECLARE_INTERACTION_PROXY(IRTPSenderChannelAudioAsyncDelegate)
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPSenderChannelAudioAudioForSettings
-    #pragma mark
-
-    interaction IRTPSenderChannelAudioForSettings
-    {
-      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelAudioForSettings, ForSettings)
-
-      static void applyDefaults();
-
-      virtual ~IRTPSenderChannelAudioForSettings() {}
-    };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -177,7 +159,6 @@ namespace ortc
     class RTPSenderChannelAudio : public Noop,
                                   public MessageQueueAssociator,
                                   public SharedRecursiveLock,
-                                  public IRTPSenderChannelAudioForSettings,
                                   public IRTPSenderChannelAudioForRTPSenderChannel,
                                   public IRTPSenderChannelAudioForMediaStreamTrack,
                                   public IRTPSenderChannelAudioForRTPMediaEngine,
@@ -193,7 +174,6 @@ namespace ortc
     public:
       friend interaction IRTPSenderChannelAudio;
       friend interaction IRTPSenderChannelAudioFactory;
-      friend interaction IRTPSenderChannelAudioForSettings;
       friend interaction IRTPSenderChannelMediaBaseForRTPSenderChannel;
       friend interaction IRTPSenderChannelAudioForRTPSenderChannel;
       friend interaction IRTPSenderChannelMediaBaseForMediaStreamTrack;
@@ -262,7 +242,6 @@ namespace ortc
     public:
       virtual ~RTPSenderChannelAudio();
 
-      static RTPSenderChannelAudioPtr convert(ForSettingsPtr object);
       static RTPSenderChannelAudioPtr convert(ForRTPSenderChannelFromMediaBasePtr object);
       static RTPSenderChannelAudioPtr convert(ForRTPSenderChannelPtr object);
       static RTPSenderChannelAudioPtr convert(ForMediaStreamTrackFromMediaBasePtr object);
@@ -354,7 +333,7 @@ namespace ortc
       #pragma mark RTPSenderChannelAudio => ITimerDelegate
       #pragma mark
 
-      virtual void onTimer(TimerPtr timer) override;
+      virtual void onTimer(ITimerPtr timer) override;
 
       //-----------------------------------------------------------------------
       #pragma mark

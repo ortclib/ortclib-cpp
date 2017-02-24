@@ -31,6 +31,7 @@
 
 #include <ortc/internal/types.h>
 #include <ortc/internal/ortc.h>
+#include <ortc/internal/ortc.events.h>
 #include <zsLib/Log.h>
 
 namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(ortclib) }
@@ -51,6 +52,30 @@ namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(ortclib_rtptypes) }
 namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(ortclib_sctp_datachannel) }
 namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(ortclib_srtp) }
 namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(ortclib_stats) }
+
+ZS_EVENTING_EXCLUSIVE(OrtcLib);
+ZS_EVENTING_SUBSYSTEM_DEFAULT_LEVEL(ortclib, Debug);
+ZS_EVENTING_SUBSYSTEM_DEFAULT_LEVEL(ortclib_webrtc, Debug);
+ZS_EVENTING_SUBSYSTEM_DEFAULT_LEVEL(ortclib_dtlstransport, Debug);
+ZS_EVENTING_SUBSYSTEM_DEFAULT_LEVEL(ortclib_icegatherer, Debug);
+ZS_EVENTING_SUBSYSTEM_DEFAULT_LEVEL(ortclib_icegatherer_router, Debug);
+ZS_EVENTING_SUBSYSTEM_DEFAULT_LEVEL(ortclib_icetransport, Debug);
+ZS_EVENTING_SUBSYSTEM_DEFAULT_LEVEL(ortclib_icetransport_controller, Debug);
+ZS_EVENTING_SUBSYSTEM_DEFAULT_LEVEL(ortclib_mediadevices, Debug);
+ZS_EVENTING_SUBSYSTEM_DEFAULT_LEVEL(ortclib_mediastreamtrack, Debug);
+ZS_EVENTING_SUBSYSTEM_DEFAULT_LEVEL(ortclib_rtp_rtcp_packet, Debug);
+ZS_EVENTING_SUBSYSTEM_DEFAULT_LEVEL(ortclib_rtplistener, Debug);
+ZS_EVENTING_SUBSYSTEM_DEFAULT_LEVEL(ortclib_rtpmediaengine, Debug);
+ZS_EVENTING_SUBSYSTEM_DEFAULT_LEVEL(ortclib_rtpreceiver, Debug);
+ZS_EVENTING_SUBSYSTEM_DEFAULT_LEVEL(ortclib_rtpsender, Debug);
+ZS_EVENTING_SUBSYSTEM_DEFAULT_LEVEL(ortclib_rtptypes, Debug);
+ZS_EVENTING_SUBSYSTEM_DEFAULT_LEVEL(ortclib_sctp_datachannel, Debug);
+ZS_EVENTING_SUBSYSTEM_DEFAULT_LEVEL(ortclib_srtp, Debug);
+ZS_EVENTING_EXCLUSIVE(x);
+
+ZS_EVENTING_EXCLUSIVE(OrtcLibStatsReport);
+ZS_EVENTING_SUBSYSTEM_DEFAULT_LEVEL(ortclib_stats, Debug);
+ZS_EVENTING_EXCLUSIVE(x);
 
 namespace ortc
 {

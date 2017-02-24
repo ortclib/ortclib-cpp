@@ -33,10 +33,13 @@
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/platform.h>
 
-#include <ortc/services/ISettings.h>
-#include <ortc/services/IHelper.h>
+#include <ortc/IHelper.h>
+
 #include <ortc/services/IHTTP.h>
 
+#include <zsLib/eventing/IHasher.h>
+
+#include <zsLib/ISettings.h>
 #include <zsLib/Stringize.h>
 #include <zsLib/Log.h>
 #include <zsLib/XML.h>
@@ -55,14 +58,15 @@ namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
 
 namespace ortc
 {
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::ISettings, UseSettings)
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHelper, UseServicesHelper)
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHTTP, UseHTTP)
+  ZS_DECLARE_USING_PTR(zsLib, ISettings);
+  ZS_DECLARE_USING_PTR(zsLib::eventing, IHasher);
+  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHTTP, UseHTTP);
 
-  typedef ortc::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
 
   namespace internal
   {
+    ZS_DECLARE_CLASS_PTR(IdentitySettingsDefaults);
+
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -77,13 +81,45 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IIdentityForSettings
+    #pragma mark IdentitySettingsDefaults
     #pragma mark
 
-    //-------------------------------------------------------------------------
-    void IIdentityForSettings::applyDefaults()
+    class IdentitySettingsDefaults : public ISettingsApplyDefaultsDelegate
     {
-//      UseSettings::setUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE, 5*1024);
+    public:
+      //-----------------------------------------------------------------------
+      ~IdentitySettingsDefaults()
+      {
+        ISettings::removeDefaults(*this);
+      }
+
+      //-----------------------------------------------------------------------
+      static IdentitySettingsDefaultsPtr singleton()
+      {
+        static SingletonLazySharedPtr<IdentitySettingsDefaults> singleton(create());
+        return singleton.singleton();
+      }
+
+      //-----------------------------------------------------------------------
+      static IdentitySettingsDefaultsPtr create()
+      {
+        auto pThis(make_shared<IdentitySettingsDefaults>());
+        ISettings::installDefaults(pThis);
+        return pThis;
+      }
+
+      //-----------------------------------------------------------------------
+      virtual void notifySettingsApplyDefaults() override
+      {
+        //      ISettings::setUInt(ORTC_SETTING__IDENTITY_, 0);
+      }
+      
+    };
+
+    //-------------------------------------------------------------------------
+    void installIdentitySettingsDefaults()
+    {
+      IdentitySettingsDefaults::singleton();
     }
 
     //-------------------------------------------------------------------------
@@ -128,12 +164,6 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     IdentityPtr Identity::convert(IIdentityPtr object)
-    {
-      return ZS_DYNAMIC_PTR_CAST(Identity, object);
-    }
-
-    //-------------------------------------------------------------------------
-    IdentityPtr Identity::convert(ForSettingsPtr object)
     {
       return ZS_DYNAMIC_PTR_CAST(Identity, object);
     }
@@ -229,7 +259,7 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void Identity::onTimer(TimerPtr timer)
+    void Identity::onTimer(ITimerPtr timer)
     {
       ZS_LOG_DEBUG(log("timer") + ZS_PARAM("timer id", timer->getID()))
 
@@ -259,7 +289,7 @@ namespace ortc
     Log::Params Identity::log(const char *message) const
     {
       ElementPtr objectEl = Element::create("ortc::Identity");
-      UseServicesHelper::debugAppend(objectEl, "id", mID);
+      IHelper::debugAppend(objectEl, "id", mID);
       return Log::Params(message, objectEl);
     }
 
@@ -276,11 +306,11 @@ namespace ortc
 
       ElementPtr resultEl = Element::create("ortc::Identity");
 
-      UseServicesHelper::debugAppend(resultEl, "id", mID);
+      IHelper::debugAppend(resultEl, "id", mID);
 
-      UseServicesHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
+      IHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
 
-      UseServicesHelper::debugAppend(resultEl, "shutdown", mShutdown);
+      IHelper::debugAppend(resultEl, "shutdown", mShutdown);
 
       return resultEl;
     }

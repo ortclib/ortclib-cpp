@@ -38,10 +38,13 @@
 #include <ortc/internal/ortc.events.h>
 #include <ortc/internal/platform.h>
 
-#include <ortc/services/IHelper.h>
-#include <ortc/services/IHTTP.h>
-#include <ortc/services/ISettings.h>
+#include <ortc/IHelper.h>
 
+#include <ortc/services/IHTTP.h>
+
+#include <zsLib/eventing/IHasher.h>
+
+#include <zsLib/ISettings.h>
 #include <zsLib/Log.h>
 #include <zsLib/Numeric.h>
 #include <zsLib/Stringize.h>
@@ -55,19 +58,19 @@ namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_icetransport) }
 
 namespace ortc
 {
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHelper, UseServicesHelper)
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHTTP, UseHTTP)
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::ISettings, UseSettings)
+  ZS_DECLARE_USING_PTR(zsLib, ISettings);
+  ZS_DECLARE_USING_PTR(zsLib::eventing, IHasher);
 
-  ZS_DECLARE_TYPEDEF_PTR(ortc::internal::Helper, UseHelper)
+  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHTTP, UseHTTP);
 
-  typedef ortc::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
 
   using zsLib::Numeric;
   using zsLib::Log;
 
   namespace internal
   {
+    ZS_DECLARE_CLASS_PTR(ICETransportSettingsDefaults);
+
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -107,34 +110,68 @@ namespace ortc
       return diff > comparison;
     }
 
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IICETransportForSettings
-    #pragma mark
 
     //-------------------------------------------------------------------------
-    void IICETransportForSettings::applyDefaults()
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark ICETransportSettingsDefaults
+    #pragma mark
+
+    class ICETransportSettingsDefaults : public ISettingsApplyDefaultsDelegate
     {
-      UseSettings::setUInt(ORTC_SETTING_ICE_TRANSPORT_MAX_CANDIDATE_PAIRS_TO_TEST, 100);
+    public:
+      //-----------------------------------------------------------------------
+      ~ICETransportSettingsDefaults()
+      {
+        ISettings::removeDefaults(*this);
+      }
 
-      UseSettings::setUInt(ORTC_SETTING_ICE_TRANSPORT_ACTIVATION_TIMER_IN_MILLISECONDS, 40);
+      //-----------------------------------------------------------------------
+      static ICETransportSettingsDefaultsPtr singleton()
+      {
+        static SingletonLazySharedPtr<ICETransportSettingsDefaults> singleton(create());
+        return singleton.singleton();
+      }
 
-      UseSettings::setUInt(ORTC_SETTING_ICE_TRANSPORT_NO_PACKETS_RECEVIED_RECHECK_CANDIDATES_IN_SECONDS, 7);
+      //-----------------------------------------------------------------------
+      static ICETransportSettingsDefaultsPtr create()
+      {
+        auto pThis(make_shared<ICETransportSettingsDefaults>());
+        ISettings::installDefaults(pThis);
+        return pThis;
+      }
 
-      UseSettings::setUInt(ORTC_SETTING_ICE_TRANSPORT_EXPIRE_ROUTE_IN_SECONDS, 60);
+      //-----------------------------------------------------------------------
+      virtual void notifySettingsApplyDefaults() override
+      {
+        ISettings::setUInt(ORTC_SETTING_ICE_TRANSPORT_MAX_CANDIDATE_PAIRS_TO_TEST, 100);
 
-      UseSettings::setBool(ORTC_SETTING_ICE_TRANSPORT_BLACKLIST_AFTER_CONSENT_REMOVAL, false);
+        ISettings::setUInt(ORTC_SETTING_ICE_TRANSPORT_ACTIVATION_TIMER_IN_MILLISECONDS, 40);
 
-      UseSettings::setUInt(ORTC_SETTING_ICE_TRANSPORT_KEEP_WARM_TIME_BASE_IN_MILLISECONDS, 4000);
-      UseSettings::setUInt(ORTC_SETTING_ICE_TRANSPORT_KEEP_WARM_TIME_RANDOMIZED_ADD_TIME_IN_MILLISECONDS, 2000);
+        ISettings::setUInt(ORTC_SETTING_ICE_TRANSPORT_NO_PACKETS_RECEVIED_RECHECK_CANDIDATES_IN_SECONDS, 7);
 
-      UseSettings::setBool(ORTC_SETTING_ICE_TRANSPORT_TEST_CANDIDATE_PAIRS_OF_LOWER_PREFERENCE, false);
+        ISettings::setUInt(ORTC_SETTING_ICE_TRANSPORT_EXPIRE_ROUTE_IN_SECONDS, 60);
 
-      UseSettings::setUInt(ORTC_SETTING_ICE_TRANSPORT_MAX_BUFFERED_FOR_SECURE_TRANSPORT, 5);
+        ISettings::setBool(ORTC_SETTING_ICE_TRANSPORT_BLACKLIST_AFTER_CONSENT_REMOVAL, false);
+
+        ISettings::setUInt(ORTC_SETTING_ICE_TRANSPORT_KEEP_WARM_TIME_BASE_IN_MILLISECONDS, 4000);
+        ISettings::setUInt(ORTC_SETTING_ICE_TRANSPORT_KEEP_WARM_TIME_RANDOMIZED_ADD_TIME_IN_MILLISECONDS, 2000);
+
+        ISettings::setBool(ORTC_SETTING_ICE_TRANSPORT_TEST_CANDIDATE_PAIRS_OF_LOWER_PREFERENCE, false);
+
+        ISettings::setUInt(ORTC_SETTING_ICE_TRANSPORT_MAX_BUFFERED_FOR_SECURE_TRANSPORT, 5);
+      }
+      
+    };
+
+    //-------------------------------------------------------------------------
+    void installICETransportSettingsDefaults()
+    {
+      ICETransportSettingsDefaults::singleton();
     }
+
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -186,13 +223,13 @@ namespace ortc
       SharedRecursiveLock(SharedRecursiveLock::create()),
       mGatherer(ICEGatherer::convert(gatherer)),
       mRouteStateTracker(make_shared<RouteStateTracker>(mID)),
-      mNoPacketsReceivedRecheckTime(UseSettings::getUInt(ORTC_SETTING_ICE_TRANSPORT_NO_PACKETS_RECEVIED_RECHECK_CANDIDATES_IN_SECONDS)),
-      mExpireRouteTime(UseSettings::getUInt(ORTC_SETTING_ICE_TRANSPORT_EXPIRE_ROUTE_IN_SECONDS)),
-      mTestLowerPreferenceCandidatePairs(UseSettings::getBool(ORTC_SETTING_ICE_TRANSPORT_TEST_CANDIDATE_PAIRS_OF_LOWER_PREFERENCE)),
-      mBlacklistConsent(UseSettings::getBool(ORTC_SETTING_ICE_TRANSPORT_BLACKLIST_AFTER_CONSENT_REMOVAL)),
-      mKeepWarmTimeBase(UseSettings::getUInt(ORTC_SETTING_ICE_TRANSPORT_KEEP_WARM_TIME_BASE_IN_MILLISECONDS)),
-      mKeepWarmTimeRandomizedAddTime(UseSettings::getUInt(ORTC_SETTING_ICE_TRANSPORT_KEEP_WARM_TIME_RANDOMIZED_ADD_TIME_IN_MILLISECONDS)),
-      mMaxBufferedPackets(UseSettings::getUInt(ORTC_SETTING_ICE_TRANSPORT_MAX_BUFFERED_FOR_SECURE_TRANSPORT))
+      mNoPacketsReceivedRecheckTime(ISettings::getUInt(ORTC_SETTING_ICE_TRANSPORT_NO_PACKETS_RECEVIED_RECHECK_CANDIDATES_IN_SECONDS)),
+      mExpireRouteTime(ISettings::getUInt(ORTC_SETTING_ICE_TRANSPORT_EXPIRE_ROUTE_IN_SECONDS)),
+      mTestLowerPreferenceCandidatePairs(ISettings::getBool(ORTC_SETTING_ICE_TRANSPORT_TEST_CANDIDATE_PAIRS_OF_LOWER_PREFERENCE)),
+      mBlacklistConsent(ISettings::getBool(ORTC_SETTING_ICE_TRANSPORT_BLACKLIST_AFTER_CONSENT_REMOVAL)),
+      mKeepWarmTimeBase(ISettings::getUInt(ORTC_SETTING_ICE_TRANSPORT_KEEP_WARM_TIME_BASE_IN_MILLISECONDS)),
+      mKeepWarmTimeRandomizedAddTime(ISettings::getUInt(ORTC_SETTING_ICE_TRANSPORT_KEEP_WARM_TIME_RANDOMIZED_ADD_TIME_IN_MILLISECONDS)),
+      mMaxBufferedPackets(ISettings::getUInt(ORTC_SETTING_ICE_TRANSPORT_MAX_BUFFERED_FOR_SECURE_TRANSPORT))
     {
       ZS_LOG_BASIC(debug("created"));
 
@@ -205,7 +242,7 @@ namespace ortc
         mDefaultSubscription = mSubscriptions.subscribe(originalDelegate, IORTCForInternal::queueDelegate());
       }
 
-      auto resolverBuffer = UseServicesHelper::random(sizeof(mConflictResolver));
+      auto resolverBuffer = IHelper::random(sizeof(mConflictResolver));
       memcpy(&mConflictResolver, resolverBuffer->BytePtr(), resolverBuffer->SizeInBytes());
 
       ZS_EVENTING_11(
@@ -264,12 +301,6 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     ICETransportPtr ICETransport::convert(IRTCPTransportPtr object)
-    {
-      return ZS_DYNAMIC_PTR_CAST(ICETransport, object);
-    }
-
-    //-------------------------------------------------------------------------
-    ICETransportPtr ICETransport::convert(ForSettingsPtr object)
     {
       return ZS_DYNAMIC_PTR_CAST(ICETransport, object);
     }
@@ -1727,13 +1758,13 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void ICETransport::onTimer(TimerPtr timer)
+    void ICETransport::onTimer(ITimerPtr timer)
     {
       ZS_EVENTING_3(
                     x, i, Trace, IceTransportInternalTimerEvent, ol, IceTransport, InternalEvent,
                     puid, id, mID,
                     puid, timerId, timer->getID(),
-                    string, timerType, NULL
+                    string, timerType, (const char *)NULL
                     );
 
       ZS_LOG_TRACE(log("timer fired") + ZS_PARAM("timer id", timer->getID()))
@@ -2275,7 +2306,7 @@ namespace ortc
 
       if ((keptWarm) &&
           (!route->mNextKeepWarm)) {
-        route->mNextKeepWarm = Timer::create(mThisWeak.lock(), zsLib::now() + mKeepWarmTimeBase + Milliseconds(UseServicesHelper::random(0, static_cast<size_t>(mKeepWarmTimeRandomizedAddTime.count()))));
+        route->mNextKeepWarm = ITimer::create(mThisWeak.lock(), zsLib::now() + mKeepWarmTimeBase + Milliseconds(IHelper::random(0, static_cast<size_t>(mKeepWarmTimeRandomizedAddTime.count()))));
         mNextKeepWarmTimers[route->mNextKeepWarm] = route;
 
         ZS_LOG_TRACE(log("installed keep warm timer") + route->toDebug())
@@ -2335,7 +2366,7 @@ namespace ortc
     Log::Params ICETransport::log(const char *message) const
     {
       ElementPtr objectEl = Element::create("ortc::ICETransport");
-      UseServicesHelper::debugAppend(objectEl, "id", mID);
+      IHelper::debugAppend(objectEl, "id", mID);
       return Log::Params(message, objectEl);
     }
 
@@ -2355,94 +2386,94 @@ namespace ortc
       auto transportController = mTransportController.lock();
       auto rtpTransport = mRTPTransport.lock();
 
-      UseServicesHelper::debugAppend(resultEl, "id", mID);
+      IHelper::debugAppend(resultEl, "id", mID);
 
 
-      UseServicesHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
+      IHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
 
-      UseServicesHelper::debugAppend(resultEl, "subscribers", mSubscriptions.size());
-      UseServicesHelper::debugAppend(resultEl, "default subscription", (bool)mDefaultSubscription);
+      IHelper::debugAppend(resultEl, "subscribers", mSubscriptions.size());
+      IHelper::debugAppend(resultEl, "default subscription", (bool)mDefaultSubscription);
 
-      UseServicesHelper::debugAppend(resultEl, "component", IICETypes::toString(mComponent));
+      IHelper::debugAppend(resultEl, "component", IICETypes::toString(mComponent));
 
-      UseServicesHelper::debugAppend(resultEl, "state", IICETransport::toString(mCurrentState));
+      IHelper::debugAppend(resultEl, "state", IICETransport::toString(mCurrentState));
 
-      UseServicesHelper::debugAppend(resultEl, "error", mLastError);
-      UseServicesHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
+      IHelper::debugAppend(resultEl, "error", mLastError);
+      IHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
 
-      UseServicesHelper::debugAppend(resultEl, "gatherer", mGatherer ? mGatherer->getID() : 0);
-      UseServicesHelper::debugAppend(resultEl, "gatherer subscription", mGathererSubscription ? mGathererSubscription->getID() : 0);
-      UseServicesHelper::debugAppend(resultEl, "gatherer router", mGathererRouter ? mGathererRouter->getID() : 0);
+      IHelper::debugAppend(resultEl, "gatherer", mGatherer ? mGatherer->getID() : 0);
+      IHelper::debugAppend(resultEl, "gatherer subscription", mGathererSubscription ? mGathererSubscription->getID() : 0);
+      IHelper::debugAppend(resultEl, "gatherer router", mGathererRouter ? mGathererRouter->getID() : 0);
 
-      UseServicesHelper::debugAppend(resultEl, "transport controller", transportController ? transportController->getID() : 0);
+      IHelper::debugAppend(resultEl, "transport controller", transportController ? transportController->getID() : 0);
 
-      UseServicesHelper::debugAppend(resultEl, "rtp transport", rtpTransport ? rtpTransport->getID() : 0);
-      UseServicesHelper::debugAppend(resultEl, "rtcp transport", mRTCPTransport ? mRTCPTransport->getID() : 0);
+      IHelper::debugAppend(resultEl, "rtp transport", rtpTransport ? rtpTransport->getID() : 0);
+      IHelper::debugAppend(resultEl, "rtcp transport", mRTCPTransport ? mRTCPTransport->getID() : 0);
 
-      UseServicesHelper::debugAppend(resultEl, "wake up", mWakeUp);
-      UseServicesHelper::debugAppend(resultEl, "warm routes changed", mWarmRoutesChanged);
-      UseServicesHelper::debugAppend(resultEl, "force pick route again", mForcePickRouteAgain);
+      IHelper::debugAppend(resultEl, "wake up", mWakeUp);
+      IHelper::debugAppend(resultEl, "warm routes changed", mWarmRoutesChanged);
+      IHelper::debugAppend(resultEl, "force pick route again", mForcePickRouteAgain);
 
-      UseServicesHelper::debugAppend(resultEl, "options hash", mOptionsHash);
-      UseServicesHelper::debugAppend(resultEl, "options", mOptions.toDebug());
-      UseServicesHelper::debugAppend(resultEl, "conflict resolver", mConflictResolver);
+      IHelper::debugAppend(resultEl, "options hash", mOptionsHash);
+      IHelper::debugAppend(resultEl, "options", mOptions.toDebug());
+      IHelper::debugAppend(resultEl, "conflict resolver", mConflictResolver);
 
-      UseServicesHelper::debugAppend(resultEl, "remote parameters hash", mRemoteParametersHash);
-      UseServicesHelper::debugAppend(resultEl, "remote parameters", mRemoteParameters.toDebug());
+      IHelper::debugAppend(resultEl, "remote parameters hash", mRemoteParametersHash);
+      IHelper::debugAppend(resultEl, "remote parameters", mRemoteParameters.toDebug());
 
-      UseServicesHelper::debugAppend(resultEl, "local candidates hash", mLocalCandidatesHash);
-      UseServicesHelper::debugAppend(resultEl, "local candidates", mLocalCandidates.size());
-      UseServicesHelper::debugAppend(resultEl, "end of local candidates", mLocalCandidatesComplete);
+      IHelper::debugAppend(resultEl, "local candidates hash", mLocalCandidatesHash);
+      IHelper::debugAppend(resultEl, "local candidates", mLocalCandidates.size());
+      IHelper::debugAppend(resultEl, "end of local candidates", mLocalCandidatesComplete);
 
-      UseServicesHelper::debugAppend(resultEl, "remote candidates hash", mRemoteCandidatesHash);
-      UseServicesHelper::debugAppend(resultEl, "remote candidates", mRemoteCandidates.size());
-      UseServicesHelper::debugAppend(resultEl, "end of remote candidates", mRemoteCandidatesComplete);
+      IHelper::debugAppend(resultEl, "remote candidates hash", mRemoteCandidatesHash);
+      IHelper::debugAppend(resultEl, "remote candidates", mRemoteCandidates.size());
+      IHelper::debugAppend(resultEl, "end of remote candidates", mRemoteCandidatesComplete);
 
-      UseServicesHelper::debugAppend(resultEl, "computed pairs hash", mComputedPairsHash);
-      UseServicesHelper::debugAppend(resultEl, "legal routes", mLegalRoutes.size());
-      UseServicesHelper::debugAppend(resultEl, "foundation routes", mFoundationRoutes.size());
-      UseServicesHelper::debugAppend(resultEl, mRouteStateTracker->toDebug());
+      IHelper::debugAppend(resultEl, "computed pairs hash", mComputedPairsHash);
+      IHelper::debugAppend(resultEl, "legal routes", mLegalRoutes.size());
+      IHelper::debugAppend(resultEl, "foundation routes", mFoundationRoutes.size());
+      IHelper::debugAppend(resultEl, mRouteStateTracker->toDebug());
 
-      UseServicesHelper::debugAppend(resultEl, "activation timer", mActivationTimer ? mActivationTimer->getID() : 0);
-      UseServicesHelper::debugAppend(resultEl, "activate routes that received checks", mNextActivationCausesAllRoutesThatReceivedChecksToActivate);
+      IHelper::debugAppend(resultEl, "activation timer", mActivationTimer ? mActivationTimer->getID() : 0);
+      IHelper::debugAppend(resultEl, "activate routes that received checks", mNextActivationCausesAllRoutesThatReceivedChecksToActivate);
 
-      UseServicesHelper::debugAppend(resultEl, "pending activation", mPendingActivation.size());
+      IHelper::debugAppend(resultEl, "pending activation", mPendingActivation.size());
 
-      UseServicesHelper::debugAppend(resultEl, "frozen", mFrozen.size());
+      IHelper::debugAppend(resultEl, "frozen", mFrozen.size());
 
-      UseServicesHelper::debugAppend(resultEl, "active route", mActiveRoute ? mActiveRoute->toDebug() : ElementPtr());
+      IHelper::debugAppend(resultEl, "active route", mActiveRoute ? mActiveRoute->toDebug() : ElementPtr());
 
-      UseServicesHelper::debugAppend(resultEl, "warm routes", mWarmRoutes.size());
+      IHelper::debugAppend(resultEl, "warm routes", mWarmRoutes.size());
 
-      UseServicesHelper::debugAppend(resultEl, "gatherer routes", mGathererRoutes.size());
+      IHelper::debugAppend(resultEl, "gatherer routes", mGathererRoutes.size());
 
-      UseServicesHelper::debugAppend(resultEl, "outgoing checks", mOutgoingChecks.size());
-      UseServicesHelper::debugAppend(resultEl, "next keep warm timers", mNextKeepWarmTimers.size());
+      IHelper::debugAppend(resultEl, "outgoing checks", mOutgoingChecks.size());
+      IHelper::debugAppend(resultEl, "next keep warm timers", mNextKeepWarmTimers.size());
 
-      UseServicesHelper::debugAppend(resultEl, "use candidate route", mUseCandidateRoute ? mUseCandidateRoute->toDebug() : ElementPtr());
-      UseServicesHelper::debugAppend(resultEl, "use candidate request", mUseCandidateRequest ? mUseCandidateRequest->getID() : 0);
-      UseServicesHelper::debugAppend(resultEl, "last received use candidate", mLastReceivedUseCandidate);
+      IHelper::debugAppend(resultEl, "use candidate route", mUseCandidateRoute ? mUseCandidateRoute->toDebug() : ElementPtr());
+      IHelper::debugAppend(resultEl, "use candidate request", mUseCandidateRequest ? mUseCandidateRequest->getID() : 0);
+      IHelper::debugAppend(resultEl, "last received use candidate", mLastReceivedUseCandidate);
 
-      UseServicesHelper::debugAppend(resultEl, "last received packet", mLastReceivedPacket);
-      UseServicesHelper::debugAppend(resultEl, "last received packet timer", mLastReceivedPacketTimer ? mLastReceivedPacketTimer->getID() : 0);
-      UseServicesHelper::debugAppend(resultEl, "no packets received recheck time", mNoPacketsReceivedRecheckTime);
+      IHelper::debugAppend(resultEl, "last received packet", mLastReceivedPacket);
+      IHelper::debugAppend(resultEl, "last received packet timer", mLastReceivedPacketTimer ? mLastReceivedPacketTimer->getID() : 0);
+      IHelper::debugAppend(resultEl, "no packets received recheck time", mNoPacketsReceivedRecheckTime);
 
-      UseServicesHelper::debugAppend(resultEl, "expire route time", mExpireRouteTime);
-      UseServicesHelper::debugAppend(resultEl, "expire route timer", mExpireRouteTimer ? mExpireRouteTimer->getID() : 0);
-      UseServicesHelper::debugAppend(resultEl, "blacklist consent", mBlacklistConsent);
+      IHelper::debugAppend(resultEl, "expire route time", mExpireRouteTime);
+      IHelper::debugAppend(resultEl, "expire route timer", mExpireRouteTimer ? mExpireRouteTimer->getID() : 0);
+      IHelper::debugAppend(resultEl, "blacklist consent", mBlacklistConsent);
 
-      UseServicesHelper::debugAppend(resultEl, "keep warm time base", mKeepWarmTimeBase);
-      UseServicesHelper::debugAppend(resultEl, "keep warm randomized add time", mKeepWarmTimeRandomizedAddTime);
+      IHelper::debugAppend(resultEl, "keep warm time base", mKeepWarmTimeBase);
+      IHelper::debugAppend(resultEl, "keep warm randomized add time", mKeepWarmTimeRandomizedAddTime);
 
-      UseServicesHelper::debugAppend(resultEl, "secure transport id", mSecureTransportID);
-      UseServicesHelper::debugAppend(resultEl, "secure transport", (bool)(mSecureTransport.lock()));
-      UseServicesHelper::debugAppend(resultEl, "secure transport (old)", (bool)(mSecureTransportOld.lock()));
+      IHelper::debugAppend(resultEl, "secure transport id", mSecureTransportID);
+      IHelper::debugAppend(resultEl, "secure transport", (bool)(mSecureTransport.lock()));
+      IHelper::debugAppend(resultEl, "secure transport (old)", (bool)(mSecureTransportOld.lock()));
 
-      UseServicesHelper::debugAppend(resultEl, "max buffered packets", mMaxBufferedPackets);
-      UseServicesHelper::debugAppend(resultEl, "must buffer packets", mMustBufferPackets);
-      UseServicesHelper::debugAppend(resultEl, "buffered packets", mBufferedPackets.size());
+      IHelper::debugAppend(resultEl, "max buffered packets", mMaxBufferedPackets);
+      IHelper::debugAppend(resultEl, "must buffer packets", mMustBufferPackets);
+      IHelper::debugAppend(resultEl, "buffered packets", mBufferedPackets.size());
 
-      UseServicesHelper::debugAppend(resultEl, "received username on ICE response packet", mSTUNPacketOptions.mBindResponseRequiresUsernameAttribute);
+      IHelper::debugAppend(resultEl, "received username on ICE response packet", mSTUNPacketOptions.mBindResponseRequiresUsernameAttribute);
 
       return resultEl;
     }
@@ -2628,16 +2659,16 @@ namespace ortc
         installFoundation(route);
       }
 
-      SHA1Hasher hasher;
+      auto hasher = IHasher::sha1();
 
       for (auto iter = mLegalRoutes.begin(); iter != mLegalRoutes.end(); ++iter) {
         auto hash = (*iter).first;
 
-        hasher.update(hash);
-        hasher.update(":");
+        hasher->update(hash);
+        hasher->update(":");
       }
 
-      mComputedPairsHash = hasher.final();
+      mComputedPairsHash = hasher->finalizeAsString();
       return true;
     }
 
@@ -2732,9 +2763,9 @@ namespace ortc
     need_activation_timer:
       {
         if (!mActivationTimer) {
-          auto duration = Milliseconds(UseSettings::getUInt(ORTC_SETTING_ICE_TRANSPORT_ACTIVATION_TIMER_IN_MILLISECONDS));
+          auto duration = Milliseconds(ISettings::getUInt(ORTC_SETTING_ICE_TRANSPORT_ACTIVATION_TIMER_IN_MILLISECONDS));
           ZS_LOG_DEBUG(log("creating activation timer") + ZS_PARAM("duration (ms)", duration))
-          mActivationTimer = Timer::create(mThisWeak.lock(), duration);
+          mActivationTimer = ITimer::create(mThisWeak.lock(), duration);
         }
       }
       return true;
@@ -2992,7 +3023,7 @@ namespace ortc
 
           ZS_LOG_DEBUG(log("installing keep warm timer") + route->toDebug())
 
-          route->mNextKeepWarm = Timer::create(mThisWeak.lock(), zsLib::now() + mKeepWarmTimeBase + Milliseconds(UseServicesHelper::random(0, static_cast<size_t>(mKeepWarmTimeRandomizedAddTime.count()))));
+          route->mNextKeepWarm = ITimer::create(mThisWeak.lock(), zsLib::now() + mKeepWarmTimeBase + Milliseconds(IHelper::random(0, static_cast<size_t>(mKeepWarmTimeRandomizedAddTime.count()))));
           mNextKeepWarmTimers[route->mNextKeepWarm] = route;
           continue;
         }
@@ -3040,7 +3071,7 @@ namespace ortc
 
       ZS_LOG_DEBUG(log("setting up expire route timer") + ZS_PARAM("expire (s)", mExpireRouteTime))
 
-      mExpireRouteTimer = Timer::create(mThisWeak.lock(), mExpireRouteTime);
+      mExpireRouteTimer = ITimer::create(mThisWeak.lock(), mExpireRouteTime);
       return true;
     }
     
@@ -3093,7 +3124,7 @@ namespace ortc
         }
 
         ZS_LOG_DEBUG(log("setting up last received packet timer") + ZS_PARAM("no packets received recheck time", mNoPacketsReceivedRecheckTime))
-        mLastReceivedPacketTimer = Timer::create(mThisWeak.lock(), mNoPacketsReceivedRecheckTime);
+        mLastReceivedPacketTimer = ITimer::create(mThisWeak.lock(), mNoPacketsReceivedRecheckTime);
       }
       
       return true;
@@ -3734,7 +3765,7 @@ namespace ortc
       route->trace(__func__, "forced active");
 
       // install a temporary keep warm timer (to force route activate sooner)
-      route->mNextKeepWarm = Timer::create(mThisWeak.lock(), zsLib::now() + Milliseconds(UseServicesHelper::random(0, static_cast<size_t>(mKeepWarmTimeRandomizedAddTime.count()))));
+      route->mNextKeepWarm = ITimer::create(mThisWeak.lock(), zsLib::now() + Milliseconds(IHelper::random(0, static_cast<size_t>(mKeepWarmTimeRandomizedAddTime.count()))));
       mNextKeepWarmTimers[route->mNextKeepWarm] = route;
 
       ZS_LOG_TRACE(log("forcing route to generate activity") + route->toDebug())
@@ -4611,7 +4642,7 @@ namespace ortc
       fix(stunPacket);
 
       auto remoteIP = route->mCandidatePair->mRemote->ip();
-      auto result = ISTUNRequester::create(UseServicesHelper::getServicePoolQueue(), mThisWeak.lock(), remoteIP, stunPacket, STUNPacket::RFC_5245_ICE, pattern);
+      auto result = ISTUNRequester::create(IHelper::getServicePoolQueue(), mThisWeak.lock(), remoteIP, stunPacket, STUNPacket::RFC_5245_ICE, pattern);
       ZS_EVENTING_2(
                     x, i, Debug, IceTransportInternalStunRequesterCreate, ol, IceTransport, Info,
                     puid, id, mID,
@@ -4975,31 +5006,31 @@ namespace ortc
     {
       ElementPtr resultEl = Element::create("ortc::ICETransport::Route");
 
-      UseServicesHelper::debugAppend(resultEl, "id", mID);
+      IHelper::debugAppend(resultEl, "id", mID);
 
-      UseServicesHelper::debugAppend(resultEl, mCandidatePair ? mCandidatePair->toDebug() : ElementPtr());
-      UseServicesHelper::debugAppend(resultEl, "candidate pair hash", mCandidatePairHash);
+      IHelper::debugAppend(resultEl, mCandidatePair ? mCandidatePair->toDebug() : ElementPtr());
+      IHelper::debugAppend(resultEl, "candidate pair hash", mCandidatePairHash);
 
-      UseServicesHelper::debugAppend(resultEl, "state", toString(mState));
+      IHelper::debugAppend(resultEl, "state", toString(mState));
 
-      UseServicesHelper::debugAppend(resultEl, "gatherer route", mGathererRoute ? mGathererRoute->toDebug() : ElementPtr());
+      IHelper::debugAppend(resultEl, "gatherer route", mGathererRoute ? mGathererRoute->toDebug() : ElementPtr());
 
-      UseServicesHelper::debugAppend(resultEl, "last received check", mLastReceivedCheck);
-      UseServicesHelper::debugAppend(resultEl, "last sent check", mLastSentCheck);
+      IHelper::debugAppend(resultEl, "last received check", mLastReceivedCheck);
+      IHelper::debugAppend(resultEl, "last sent check", mLastSentCheck);
 
-      UseServicesHelper::debugAppend(resultEl, "last received media", mLastReceivedMedia);
-      UseServicesHelper::debugAppend(resultEl, "last received response", mLastReceivedResponse);
+      IHelper::debugAppend(resultEl, "last received media", mLastReceivedMedia);
+      IHelper::debugAppend(resultEl, "last received response", mLastReceivedResponse);
 
-      UseServicesHelper::debugAppend(resultEl, "prune", mPrune);
-      UseServicesHelper::debugAppend(resultEl, "keep warm", mKeepWarm);
-      UseServicesHelper::debugAppend(resultEl, "outgoing check", mOutgoingCheck ? mOutgoingCheck->getID() : 0);
-      UseServicesHelper::debugAppend(resultEl, "keep warm timer", mNextKeepWarm ? mNextKeepWarm->getID() : 0);
+      IHelper::debugAppend(resultEl, "prune", mPrune);
+      IHelper::debugAppend(resultEl, "keep warm", mKeepWarm);
+      IHelper::debugAppend(resultEl, "outgoing check", mOutgoingCheck ? mOutgoingCheck->getID() : 0);
+      IHelper::debugAppend(resultEl, "keep warm timer", mNextKeepWarm ? mNextKeepWarm->getID() : 0);
 
-      UseServicesHelper::debugAppend(resultEl, "last round trip check", mLastRoundTripCheck);
-      UseServicesHelper::debugAppend(resultEl, "last round trip measurement", mLastRoundTripMeasurement);
+      IHelper::debugAppend(resultEl, "last round trip check", mLastRoundTripCheck);
+      IHelper::debugAppend(resultEl, "last round trip measurement", mLastRoundTripMeasurement);
 
-      UseServicesHelper::debugAppend(resultEl, "frozen promise", (bool)mFrozenPromise);
-      UseServicesHelper::debugAppend(resultEl, "dependent promises", mDependentPromises.size());
+      IHelper::debugAppend(resultEl, "frozen promise", (bool)mFrozenPromise);
+      IHelper::debugAppend(resultEl, "dependent promises", mDependentPromises.size());
 
       return resultEl;
     }
@@ -5059,7 +5090,7 @@ namespace ortc
                              puid/routeId, mID,
                              string/callingMethod, function,
                              string/message, message,
-                             puid/outerObjectId, ((bool)mTracker) ? mTracker->mOuterObjectID : 0,
+                             puid/outerObjectId, ((bool)mTracker) ? mTracker->mOuterObjectID : static_cast<PUID>(0),
                              string/localCandidatePairHash, mCandidatePairHash,
                              string/localInterfaceType, mCandidatePair->mLocal->mInterfaceType,
                              string/localFoundation, mCandidatePair->mLocal->mFoundation,
@@ -5083,7 +5114,7 @@ namespace ortc
                              string/remoteTcpType, IICETypes::toString(mCandidatePair->mRemote->mTCPType),
                              string/remoteRelatedAddress, mCandidatePair->mRemote->mRelatedAddress,
                              word/remoteRelatedPort, mCandidatePair->mRemote->mRelatedPort,
-                             puid/gathererRouteId, ((bool)mGathererRoute) ? mGathererRoute->mID : 0,
+                             puid/gathererRouteId, ((bool)mGathererRoute) ? mGathererRoute->mID : static_cast<PUID>(0),
                              qword/pendingPriority, mPendingPriority,
                              duration/lastReceivedCheck, zsLib::timeSinceEpoch<Milliseconds>(mLastReceivedCheck).count(),
                              duration/lastSentCheck, zsLib::timeSinceEpoch<Milliseconds>(mLastSentCheck).count(),
@@ -5091,8 +5122,8 @@ namespace ortc
                              duration/lastReceivedResponse, zsLib::timeSinceEpoch<Milliseconds>(mLastReceivedResponse).count(),
                              bool/prune, mPrune,
                              bool/keepWarm, mKeepWarm,
-                             puid/outgoingCheckStunRequeter, ((bool)mOutgoingCheck) ? mOutgoingCheck->getID() : 0,
-                             puid/nextKeepWarmStunRequester, ((bool)mNextKeepWarm) ? mNextKeepWarm->getID() : 0,
+                             puid/outgoingCheckStunRequeter, ((bool)mOutgoingCheck) ? mOutgoingCheck->getID() : static_cast<PUID>(0),
+                             puid/nextKeepWarmStunRequester, ((bool)mNextKeepWarm) ? mNextKeepWarm->getID() : static_cast<PUID>(0),
                              bool/frozenPromise, (bool)mFrozenPromise,
                              size_t/totalDependentPromises, mDependentPromises.size(),
                              duration/lastRecievedCheck, zsLib::timeSinceEpoch<Milliseconds>(mLastReceivedCheck).count(),
@@ -5104,7 +5135,7 @@ namespace ortc
     Log::Params ICETransport::Route::log(const char *message) const
     {
       ElementPtr objectEl = Element::create("ortc::ICETransport::Route");
-      UseServicesHelper::debugAppend(objectEl, "id", mID);
+      IHelper::debugAppend(objectEl, "id", mID);
       return Log::Params(message, objectEl);
     }
 
@@ -5134,14 +5165,14 @@ namespace ortc
     {
       ElementPtr resultEl = Element::create("ortc::ICETransport::RouteStateTracker");
 
-      UseServicesHelper::debugAppend(resultEl, "new", mStates[Route::State_New]);
-      UseServicesHelper::debugAppend(resultEl, "pending", mStates[Route::State_Pending]);
-      UseServicesHelper::debugAppend(resultEl, "frozen", mStates[Route::State_Frozen]);
-      UseServicesHelper::debugAppend(resultEl, "in progress", mStates[Route::State_InProgress]);
-      UseServicesHelper::debugAppend(resultEl, "succeeded", mStates[Route::State_Succeeded]);
-      UseServicesHelper::debugAppend(resultEl, "ignored", mStates[Route::State_Ignored]);
-      UseServicesHelper::debugAppend(resultEl, "failed", mStates[Route::State_Failed]);
-      UseServicesHelper::debugAppend(resultEl, "blacklisted", mStates[Route::State_Blacklisted]);
+      IHelper::debugAppend(resultEl, "new", mStates[Route::State_New]);
+      IHelper::debugAppend(resultEl, "pending", mStates[Route::State_Pending]);
+      IHelper::debugAppend(resultEl, "frozen", mStates[Route::State_Frozen]);
+      IHelper::debugAppend(resultEl, "in progress", mStates[Route::State_InProgress]);
+      IHelper::debugAppend(resultEl, "succeeded", mStates[Route::State_Succeeded]);
+      IHelper::debugAppend(resultEl, "ignored", mStates[Route::State_Ignored]);
+      IHelper::debugAppend(resultEl, "failed", mStates[Route::State_Failed]);
+      IHelper::debugAppend(resultEl, "blacklisted", mStates[Route::State_Blacklisted]);
 
       return resultEl;
     }
@@ -5308,17 +5339,17 @@ namespace ortc
   //---------------------------------------------------------------------------
   String IICETransportTypes::CandidatePair::hash(bool includePriorities) const
   {
-    SHA1Hasher hasher;
+    auto hasher = IHasher::sha1();
 
     String localHash = mLocal ? mLocal->hash(includePriorities) : String();
     String remoteHash = mRemote ? mRemote->hash(includePriorities) : String();
 
-    hasher.update("candidate-pair:");
-    hasher.update(localHash);
-    hasher.update(":");
-    hasher.update(remoteHash);
+    hasher->update("candidate-pair:");
+    hasher->update(localHash);
+    hasher->update(":");
+    hasher->update(remoteHash);
 
-    return hasher.final();
+    return hasher->finalizeAsString();
   }
 
 
@@ -5336,10 +5367,10 @@ namespace ortc
   {
     if (!elem) return;
 
-    UseHelper::getElementValue(elem, "ortc::IICETransportTypes::Options", "aggressiveIce", mAggressiveICE);
+    IHelper::getElementValue(elem, "ortc::IICETransportTypes::Options", "aggressiveIce", mAggressiveICE);
 
     {
-      String str = UseServicesHelper::getElementText(elem->findFirstChildElement("role"));
+      String str = IHelper::getElementText(elem->findFirstChildElement("role"));
       if (str.hasData()) {
         try {
           mRole = toRole(str);
@@ -5355,8 +5386,8 @@ namespace ortc
   {
     ElementPtr elem = Element::create(objectName);
 
-    UseHelper::adoptElementValue(elem, "aggressiveIce", mAggressiveICE);
-    UseHelper::adoptElementValue(elem, "role", IICETypes::toString(mRole), false);
+    IHelper::adoptElementValue(elem, "aggressiveIce", mAggressiveICE);
+    IHelper::adoptElementValue(elem, "role", IICETypes::toString(mRole), false);
 
     if (!elem->hasChildren()) return ElementPtr();
     
@@ -5372,14 +5403,14 @@ namespace ortc
   //---------------------------------------------------------------------------
   String IICETransportTypes::Options::hash() const
   {
-    SHA1Hasher hasher;
+    auto hasher = IHasher::sha1();
 
-    hasher.update("ortc::IICETransport::Options:");
-    hasher.update(mAggressiveICE);
-    hasher.update(":");
-    hasher.update(IICETypes::toString(mRole));
+    hasher->update("ortc::IICETransport::Options:");
+    hasher->update(mAggressiveICE);
+    hasher->update(":");
+    hasher->update(IICETypes::toString(mRole));
 
-    return hasher.final();
+    return hasher->finalizeAsString();
   }
 
   //---------------------------------------------------------------------------
@@ -5411,5 +5442,4 @@ namespace ortc
     return internal::IICETransportFactory::singleton().create(delegate, gatherer);
   }
 
-
-}
+} // namespace ortc

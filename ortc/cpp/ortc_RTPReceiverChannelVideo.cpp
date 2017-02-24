@@ -38,10 +38,10 @@
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/platform.h>
 
-#include <ortc/services/ISettings.h>
-#include <ortc/services/IHelper.h>
+#include <ortc/IHelper.h>
 #include <ortc/services/IHTTP.h>
 
+#include <zsLib/ISettings.h>
 #include <zsLib/Stringize.h>
 #include <zsLib/Log.h>
 #include <zsLib/XML.h>
@@ -59,15 +59,12 @@ namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_rtpreceiver) }
 
 namespace ortc
 {
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::ISettings, UseSettings)
-  ZS_DECLARE_TYPEDEF_PTR(ortc::internal::Helper, UseHelper)
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHelper, UseServicesHelper)
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHTTP, UseHTTP)
-
-  typedef ortc::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
+  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHTTP, UseHTTP);
 
   namespace internal
   {
+    ZS_DECLARE_CLASS_PTR(RTPReceiverChannelVideoSettingsDefaults);
+
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -82,13 +79,44 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IICETransportForSettings
+    #pragma mark DTMFSenderSettingsDefaults
     #pragma mark
 
-    //-------------------------------------------------------------------------
-    void IRTPReceiverChannelVideoForSettings::applyDefaults()
+    class RTPReceiverChannelVideoSettingsDefaults : public ISettingsApplyDefaultsDelegate
     {
-//      UseSettings::setUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE, 5*1024);
+    public:
+      //-----------------------------------------------------------------------
+      ~RTPReceiverChannelVideoSettingsDefaults()
+      {
+        ISettings::removeDefaults(*this);
+      }
+
+      //-----------------------------------------------------------------------
+      static RTPReceiverChannelVideoSettingsDefaultsPtr singleton()
+      {
+        static SingletonLazySharedPtr<RTPReceiverChannelVideoSettingsDefaults> singleton(create());
+        return singleton.singleton();
+      }
+
+      //-----------------------------------------------------------------------
+      static RTPReceiverChannelVideoSettingsDefaultsPtr create()
+      {
+        auto pThis(make_shared<RTPReceiverChannelVideoSettingsDefaults>());
+        ISettings::installDefaults(pThis);
+        return pThis;
+      }
+
+      //-----------------------------------------------------------------------
+      virtual void notifySettingsApplyDefaults() override
+      {
+      }
+      
+    };
+
+    //-------------------------------------------------------------------------
+    void installRTPReceiverChannelVideoSettingsDefaults()
+    {
+      RTPReceiverChannelVideoSettingsDefaults::singleton();
     }
 
     //-------------------------------------------------------------------------
@@ -364,7 +392,7 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void RTPReceiverChannelVideo::onTimer(TimerPtr timer)
+    void RTPReceiverChannelVideo::onTimer(ITimerPtr timer)
     {
       ZS_LOG_DEBUG(log("timer") + ZS_PARAM("timer id", timer->getID()))
 
@@ -552,7 +580,7 @@ namespace ortc
     Log::Params RTPReceiverChannelVideo::log(const char *message) const
     {
       ElementPtr objectEl = Element::create("ortc::RTPReceiverChannelVideo");
-      UseServicesHelper::debugAppend(objectEl, "id", mID);
+      IHelper::debugAppend(objectEl, "id", mID);
       return Log::Params(message, objectEl);
     }
 
@@ -569,17 +597,17 @@ namespace ortc
 
       ElementPtr resultEl = Element::create("ortc::RTPReceiverChannelVideo");
 
-      UseServicesHelper::debugAppend(resultEl, "id", mID);
+      IHelper::debugAppend(resultEl, "id", mID);
 
-      UseServicesHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
+      IHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
 
-      UseServicesHelper::debugAppend(resultEl, "state", toString(mCurrentState));
+      IHelper::debugAppend(resultEl, "state", toString(mCurrentState));
 
-      UseServicesHelper::debugAppend(resultEl, "error", mLastError);
-      UseServicesHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
+      IHelper::debugAppend(resultEl, "error", mLastError);
+      IHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
 
       auto receiverChannel = mReceiverChannel.lock();
-      UseServicesHelper::debugAppend(resultEl, "receiver channel", receiverChannel ? receiverChannel->getID() : 0);
+      IHelper::debugAppend(resultEl, "receiver channel", receiverChannel ? receiverChannel->getID() : 0);
 
       return resultEl;
     }

@@ -35,10 +35,8 @@
 #include <ortc/internal/ortc_ISRTPTransport.h>
 #include <ortc/internal/ortc_ISecureTransport.h>
 
-#include <ortc/services/IWakeDelegate.h>
-
 #include <zsLib/MessageQueueAssociator.h>
-#include <zsLib/Timer.h>
+#include <zsLib/ITimer.h>
 
 // Forward declaration to avoid pulling in libsrtp headers here
 struct srtp_event_data_t;
@@ -54,12 +52,11 @@ namespace ortc
 {
   namespace internal
   {
-    ZS_DECLARE_CLASS_PTR(SRTPInit)
+    ZS_DECLARE_CLASS_PTR(SRTPInit);
 
-    ZS_DECLARE_INTERACTION_PTR(ISecureTransportForSRTPTransport)
+    ZS_DECLARE_INTERACTION_PTR(ISecureTransportForSRTPTransport);
 
-    ZS_DECLARE_INTERACTION_PTR(ISRTPTransportForSettings)
-    ZS_DECLARE_INTERACTION_PTR(ISRTPTransportForSecureTransport)
+    ZS_DECLARE_INTERACTION_PTR(ISRTPTransportForSecureTransport);
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -136,7 +133,6 @@ namespace ortc
                           public MessageQueueAssociator,
                           public SharedRecursiveLock,
                           public ISRTPTransport,
-                          public ISRTPTransportForSettings,
                           public ISRTPTransportForSecureTransport,
                           public IWakeDelegate,
                           public zsLib::ITimerDelegate
@@ -147,7 +143,6 @@ namespace ortc
     public:
       friend interaction ISRTPTransport;
       friend interaction ISRTPTransportFactory;
-      friend interaction ISRTPTransportForSettings;
       friend interaction ISRTPTransportForSecureTransport;
 
       ZS_DECLARE_STRUCT_PTR(KeyingMaterial)
@@ -202,7 +197,6 @@ namespace ortc
       virtual ~SRTPTransport();
 
       static SRTPTransportPtr convert(ISRTPTransportPtr object);
-      static SRTPTransportPtr convert(ForSettingsPtr object);
       static SRTPTransportPtr convert(ForSecureTransportPtr object);
 
     protected:
@@ -255,7 +249,7 @@ namespace ortc
       #pragma mark SRTPTransport => ITimerDelegate
       #pragma mark
 
-      virtual void onTimer(TimerPtr timer) override;
+      virtual void onTimer(ITimerPtr timer) override;
 
       //-----------------------------------------------------------------------
       #pragma mark

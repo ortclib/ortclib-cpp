@@ -48,12 +48,18 @@ namespace ortc
     typedef zsLib::Log Log;
 
     static void setup(IMessageQueuePtr defaultDelegateMessageQueue);
-
+#ifdef WINRT
+    static void setup(Windows::UI::Core::CoreDispatcher ^dispatcher);
+#endif //WINRT
+    
     static Milliseconds ntpServerTime();
     static void ntpServerTime(const Milliseconds &value);
 
     static void setDefaultLogLevel(Log::Level level);
     static void setLogLevel(const char *componenet, Log::Level level);
+
+    static void setDefaultEventingLevel(Log::Level level);
+    static void setEventingLevel(const char *componenet, Log::Level level);
 
     static void startMediaTracing();
     static void stopMediaTracing();

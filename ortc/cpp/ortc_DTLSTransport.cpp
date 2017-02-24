@@ -38,12 +38,15 @@
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/ortc.events.h>
 #include <ortc/internal/platform.h>
-#include <ortc/ISRTPSDESTransport.h>
 
-#include <ortc/services/ISettings.h>
-#include <ortc/services/IHelper.h>
+#include <ortc/ISRTPSDESTransport.h>
+#include <ortc/IHelper.h>
+
 #include <ortc/services/IHTTP.h>
 
+#include <zsLib/eventing/IHasher.h>
+
+#include <zsLib/ISettings.h>
 #include <zsLib/Numeric.h>
 #include <zsLib/Stringize.h>
 #include <zsLib/Log.h>
@@ -73,22 +76,21 @@ namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_dtlstransport) }
 
 namespace ortc
 {
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::ISettings, UseSettings)
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHelper, UseServicesHelper)
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHTTP, UseHTTP)
+  ZS_DECLARE_USING_PTR(zsLib, ISettings);
+  ZS_DECLARE_USING_PTR(zsLib::eventing, IHasher);
+  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHTTP, UseHTTP);
 
-  typedef ortc::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
 #ifndef RTC_UNUSED
 #define RTC_UNUSED(x) RtcUnused(static_cast<const void*>(&x))
 #endif //RTC_UNUSED
-
-  ZS_DECLARE_TYPEDEF_PTR(ortc::internal::Helper, UseHelper)
 
   using zsLib::Numeric;
   using zsLib::Log;
 
   namespace internal
   {
+    ZS_DECLARE_CLASS_PTR(DTLSTransportSettingsDefaults);
+
     typedef DTLSTransport::StreamResult StreamResult;
 
     //-------------------------------------------------------------------------
@@ -296,21 +298,55 @@ namespace ortc
       }
     }
 
+    
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IICETransportForSettings
+    #pragma mark DTLSTransportSettingsDefaults
     #pragma mark
 
-    //-------------------------------------------------------------------------
-    void IDTLSTransportForSettings::applyDefaults()
+    class DTLSTransportSettingsDefaults : public ISettingsApplyDefaultsDelegate
     {
-      UseSettings::setUInt(ORTC_SETTING_DTLS_TRANSPORT_MAX_PENDING_DTLS_BUFFER, kMaxDtlsPacketLen*4);
+    public:
+      //-----------------------------------------------------------------------
+      ~DTLSTransportSettingsDefaults()
+      {
+        ISettings::removeDefaults(*this);
+      }
 
-      UseSettings::setUInt(ORTC_SETTING_DTLS_TRANSPORT_MAX_PENDING_RTP_PACKETS, 50);
+      //-----------------------------------------------------------------------
+      static DTLSTransportSettingsDefaultsPtr singleton()
+      {
+        static SingletonLazySharedPtr<DTLSTransportSettingsDefaults> singleton(create());
+        return singleton.singleton();
+      }
+
+      //-----------------------------------------------------------------------
+      static DTLSTransportSettingsDefaultsPtr create()
+      {
+        auto pThis(make_shared<DTLSTransportSettingsDefaults>());
+        ISettings::installDefaults(pThis);
+        return pThis;
+      }
+
+      //-----------------------------------------------------------------------
+      virtual void notifySettingsApplyDefaults() override
+      {
+        ISettings::setUInt(ORTC_SETTING_DTLS_TRANSPORT_MAX_PENDING_DTLS_BUFFER, kMaxDtlsPacketLen * 4);
+
+        ISettings::setUInt(ORTC_SETTING_DTLS_TRANSPORT_MAX_PENDING_RTP_PACKETS, 50);
+      }
+      
+    };
+
+    //-------------------------------------------------------------------------
+    void installDTLSTransportSettingsDefaults()
+    {
+      DTLSTransportSettingsDefaults::singleton();
     }
+
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -351,8 +387,8 @@ namespace ortc
       SharedRecursiveLock(SharedRecursiveLock::create()),
       mICETransport(ICETransport::convert(iceTransport)),
       mComponent(mICETransport->component()),
-      mMaxPendingDTLSBuffer(UseSettings::getUInt(ORTC_SETTING_DTLS_TRANSPORT_MAX_PENDING_DTLS_BUFFER)),
-      mMaxPendingRTPPackets(UseSettings::getUInt(ORTC_SETTING_DTLS_TRANSPORT_MAX_PENDING_RTP_PACKETS))
+      mMaxPendingDTLSBuffer(ISettings::getUInt(ORTC_SETTING_DTLS_TRANSPORT_MAX_PENDING_DTLS_BUFFER)),
+      mMaxPendingRTPPackets(ISettings::getUInt(ORTC_SETTING_DTLS_TRANSPORT_MAX_PENDING_RTP_PACKETS))
     {
       ORTC_THROW_INVALID_PARAMETERS_IF(!mICETransport);
 
@@ -823,6 +859,9 @@ namespace ortc
     {
       bool isDTLSPacket = isDtlsPacket(buffer, bufferLengthInBytes);
 
+      StreamResult streamResult {};
+      int streamError {};
+
       ZS_EVENTING_5(
                     x, i, Trace, DtlsTransportReceivedPacket, ol, DtlsTransport, Receive,
                     puid, id, mID,
@@ -832,9 +871,9 @@ namespace ortc
                     size, size, bufferLengthInBytes
                     );
 
-      ZS_LOG_TRACE(log("handle receive packet") + ZS_PARAM("length", bufferLengthInBytes))
+      ZS_LOG_TRACE(log("handle receive packet") + ZS_PARAM("length", bufferLengthInBytes));
 
-      SecureByteBlockPtr decryptedPacket;
+      PacketQueue decryptedPackets;
       UseSRTPTransportPtr srtpTransport;
 
       ASSERT(viaTransport == component());  // must be identical
@@ -898,39 +937,22 @@ namespace ortc
 
           BYTE extractedBuffer[kMaxDtlsPacketLen] {};
 
-          size_t read = 0;
-          int error = 0;
-          auto result = mAdapter->read(extractedBuffer, sizeof(extractedBuffer), &read, &error);
+          while (true) {
+            size_t read = 0;
+            streamResult = mAdapter->read(extractedBuffer, sizeof(extractedBuffer), &read, &streamError);
 
-#define WARNING_CHECK_IF_MORE_THAN_ONE_SCTP_PACKET_PER_DTLS_PACKT_IS_POSSIBLE 1
-#define WARNING_CHECK_IF_MORE_THAN_ONE_SCTP_PACKET_PER_DTLS_PACKT_IS_POSSIBLE 2
-
-          wakeUpIfNeeded();
-
-          switch (result) {
-            case SR_SUCCESS: {
-              decryptedPacket = make_shared<SecureByteBlock>(extractedBuffer, read);
-              goto handle_data_packet;
-            }
-            case SR_BLOCK: {
-              ZS_LOG_TRACE(log("dtls packet consumed"))
-              return true;
-            }
-            case SR_EOS:  {
-              ZS_LOG_DEBUG(log("end of stream reached (thus shutting down)"))
-              cancel();
-              return true;
-            }
-            case SR_ERROR: {
-              ZS_LOG_ERROR(Debug, log("read error found (thus shutting down)") + ZS_PARAM("error code", error))
-              cancel();
-              return false;
+            switch (streamResult) {
+              case SR_SUCCESS: {
+                decryptedPackets.push(make_shared<SecureByteBlock>(extractedBuffer, read));
+                break;
+              }
+              case SR_BLOCK: 
+              case SR_EOS:  
+              case SR_ERROR:  goto handle_data_packet;
             }
           }
 
-          ASSERT(false);
-
-          return false;
+          goto handle_data_packet;
         }
 
         if (!isRtpPacket(buffer, bufferLengthInBytes)) {
@@ -976,7 +998,14 @@ namespace ortc
 
     handle_data_packet:
       {
-        if (decryptedPacket) {
+        wakeUpIfNeeded();
+
+        bool returnResult {true};
+
+        while (decryptedPackets.size() > 0) {
+          SecureByteBlockPtr decryptedPacket = decryptedPackets.front();
+          decryptedPackets.pop();
+
           ZS_EVENTING_5(
                         x, i, Trace, DtlsTransportForwardingPacketToDataTransport, ol, DtlsTransport, Deliver,
                         puid, id, mID,
@@ -986,10 +1015,29 @@ namespace ortc
                         size, size, decryptedPacket->SizeInBytes()
                         );
 
-          return mDataTransport->handleDataPacket(decryptedPacket->BytePtr(), decryptedPacket->SizeInBytes());
+          auto result = mDataTransport->handleDataPacket(decryptedPacket->BytePtr(), decryptedPacket->SizeInBytes());
+          if (!result) returnResult = false;
         }
-        ZS_LOG_WARNING(Debug, log("no data packet was decrypted"))
-        return false;
+
+        switch (streamResult) {
+          case SR_SUCCESS:  break;
+          case SR_BLOCK: {
+            ZS_LOG_TRACE(log("dtls packet consumed"));
+            break;
+          }
+          case SR_EOS: {
+            ZS_LOG_DEBUG(log("end of stream reached (thus shutting down)"));
+            cancel();
+            break;
+          }
+          case SR_ERROR: {
+            ZS_LOG_ERROR(Debug, log("read error found (thus shutting down)") + ZS_PARAM("error code", streamError));
+            cancel();
+            break;
+          }
+        }
+
+        return returnResult;
       }
 
       ASSERT(false); // cannot reach this point
@@ -1273,7 +1321,7 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void DTLSTransport::onTimer(TimerPtr timer)
+    void DTLSTransport::onTimer(ITimerPtr timer)
     {
       ZS_EVENTING_2(
                     x, i, Trace, DtlsTransportInternalTimerEvent, ol, DtlsTransport, InternalEvent,
@@ -1593,9 +1641,9 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    TimerPtr DTLSTransport::adapterCreateTimeout(Milliseconds timeout)
+    ITimerPtr DTLSTransport::adapterCreateTimeout(Milliseconds timeout)
     {
-      return Timer::create(mThisWeak.lock(), zsLib::now() + timeout);
+      return ITimer::create(mThisWeak.lock(), zsLib::now() + timeout);
     }
 
     //-------------------------------------------------------------------------
@@ -1610,7 +1658,7 @@ namespace ortc
     Log::Params DTLSTransport::log(const char *message) const
     {
       ElementPtr objectEl = Element::create("ortc::DTLSTransport");
-      UseServicesHelper::debugAppend(objectEl, "id", mID);
+      IHelper::debugAppend(objectEl, "id", mID);
       return Log::Params(message, objectEl);
     }
 
@@ -1627,44 +1675,44 @@ namespace ortc
 
       ElementPtr resultEl = Element::create("ortc::DTLSTransport");
 
-      UseServicesHelper::debugAppend(resultEl, "id", mID);
+      IHelper::debugAppend(resultEl, "id", mID);
 
-      UseServicesHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
+      IHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
 
-      UseServicesHelper::debugAppend(resultEl, "subscriptions", mSubscriptions.size());
-      UseServicesHelper::debugAppend(resultEl, "default subscription", (bool)mDefaultSubscription);
+      IHelper::debugAppend(resultEl, "subscriptions", mSubscriptions.size());
+      IHelper::debugAppend(resultEl, "default subscription", (bool)mDefaultSubscription);
 
-      UseServicesHelper::debugAppend(resultEl, "state", IDTLSTransport::toString(mCurrentState));
+      IHelper::debugAppend(resultEl, "state", IDTLSTransport::toString(mCurrentState));
 
-      UseServicesHelper::debugAppend(resultEl, "secure transport subscriptions", mSecureTransportSubscriptions.size());
-      UseServicesHelper::debugAppend(resultEl, "secure transport state", ISecureTransportTypes::toString(mSecureTransportState));
+      IHelper::debugAppend(resultEl, "secure transport subscriptions", mSecureTransportSubscriptions.size());
+      IHelper::debugAppend(resultEl, "secure transport state", ISecureTransportTypes::toString(mSecureTransportState));
 
-      UseServicesHelper::debugAppend(resultEl, "error", mLastError);
-      UseServicesHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
+      IHelper::debugAppend(resultEl, "error", mLastError);
+      IHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
 
-      UseServicesHelper::debugAppend(resultEl, "ice transport", mICETransport ? mICETransport->getID() : 0);
+      IHelper::debugAppend(resultEl, "ice transport", mICETransport ? mICETransport->getID() : 0);
 
-      UseServicesHelper::debugAppend(resultEl, "certificates", mCertificates.size());
+      IHelper::debugAppend(resultEl, "certificates", mCertificates.size());
 
-      UseServicesHelper::debugAppend(resultEl, "local params", mLocalParams.toDebug());
-      UseServicesHelper::debugAppend(resultEl, "remote params", mRemoteParams.toDebug());
+      IHelper::debugAppend(resultEl, "local params", mLocalParams.toDebug());
+      IHelper::debugAppend(resultEl, "remote params", mRemoteParams.toDebug());
 
-      UseServicesHelper::debugAppend(resultEl, "adapter", mAdapter ? mAdapter->toDebug() : ElementPtr());
+      IHelper::debugAppend(resultEl, "adapter", mAdapter ? mAdapter->toDebug() : ElementPtr());
 
-      UseServicesHelper::debugAppend(resultEl, "max pending dtls buffer", mMaxPendingDTLSBuffer);
-      UseServicesHelper::debugAppend(resultEl, "max pending rtp packets", mMaxPendingRTPPackets);
+      IHelper::debugAppend(resultEl, "max pending dtls buffer", mMaxPendingDTLSBuffer);
+      IHelper::debugAppend(resultEl, "max pending rtp packets", mMaxPendingRTPPackets);
 
-      UseServicesHelper::debugAppend(resultEl, "put pending incoming RTP packets into queue", mPutIncomingRTPIntoPendingQueue);
-      UseServicesHelper::debugAppend(resultEl, "pending incoming RTP packets", mPendingIncomingRTP.size());
-      UseServicesHelper::debugAppend(resultEl, "pending incoming dtls buffer size (bytes)", mPendingIncomingDTLS.CurrentSize());
+      IHelper::debugAppend(resultEl, "put pending incoming RTP packets into queue", mPutIncomingRTPIntoPendingQueue);
+      IHelper::debugAppend(resultEl, "pending incoming RTP packets", mPendingIncomingRTP.size());
+      IHelper::debugAppend(resultEl, "pending incoming dtls buffer size (bytes)", mPendingIncomingDTLS.CurrentSize());
 
-      UseServicesHelper::debugAppend(resultEl, "pending outgoing dtls packets", mPendingOutgoingDTLS.size());
+      IHelper::debugAppend(resultEl, "pending outgoing dtls packets", mPendingOutgoingDTLS.size());
 
-      UseServicesHelper::debugAppend(resultEl, "fixed role", mFixedRole);
+      IHelper::debugAppend(resultEl, "fixed role", mFixedRole);
 
-      UseServicesHelper::debugAppend(resultEl, "validation", Adapter::toString(mValidation));
+      IHelper::debugAppend(resultEl, "validation", Adapter::toString(mValidation));
 
-      UseServicesHelper::debugAppend(resultEl, "srtp transport", mSRTPTransport ? mSRTPTransport->getID() : 0);
+      IHelper::debugAppend(resultEl, "srtp transport", mSRTPTransport ? mSRTPTransport->getID() : 0);
 
       return resultEl;
     }
@@ -2124,8 +2172,8 @@ namespace ortc
       sendingKeyParams.mKeyMethod = "inline";
       receivingKeyParams.mKeyMethod = "inline";
 
-      sendingKeyParams.mKeySalt = UseServicesHelper::convertToBase64(sendKey->BytePtr(), sendKey->SizeInBytes());
-      receivingKeyParams.mKeySalt = UseServicesHelper::convertToBase64(receiveKey->BytePtr(), receiveKey->SizeInBytes());
+      sendingKeyParams.mKeySalt = IHelper::convertToBase64(sendKey->BytePtr(), sendKey->SizeInBytes());
+      receivingKeyParams.mKeySalt = IHelper::convertToBase64(receiveKey->BytePtr(), receiveKey->SizeInBytes());
 
       sendingKeyParams.mLifetime = "2^31";
       receivingKeyParams.mLifetime = "2^31";
@@ -2265,10 +2313,10 @@ namespace ortc
       temp.replaceAll(":", "");
       temp.trim();
 
-      SecureByteBlockPtr fingerprint = UseServicesHelper::convertFromHex(temp);
+      SecureByteBlockPtr fingerprint = IHelper::convertFromHex(temp);
       if (!fingerprint) return VALIDATION_NA;
 
-      if (0 != UseServicesHelper::compare(*digest, *fingerprint)) return VALIDATION_FAILED;
+      if (0 != IHelper::compare(*digest, *fingerprint)) return VALIDATION_FAILED;
 
       return VALIDATION_PASSED;
     }
@@ -2747,7 +2795,7 @@ namespace ortc
     Log::Params DTLSTransport::Adapter::log(const char *message) const
     {
       ElementPtr objectEl = Element::create("ortc::DTLSTransport::Adapter");
-      UseServicesHelper::debugAppend(objectEl, "id", mID);
+      IHelper::debugAppend(objectEl, "id", mID);
       return Log::Params(message, objectEl);
     }
 
@@ -2927,7 +2975,7 @@ namespace ortc
 
 
     //-------------------------------------------------------------------------
-    void DTLSTransport::Adapter::onTimer(TimerPtr timer)
+    void DTLSTransport::Adapter::onTimer(ITimerPtr timer)
     {
       if (!mTimer) return;
       if (timer != mTimer) {
@@ -3118,37 +3166,37 @@ namespace ortc
     {
       ElementPtr resultEl = Element::create("ortc::DTLSTransport::Adapter");
 
-      UseServicesHelper::debugAppend(resultEl, "id", mID);
-      UseServicesHelper::debugAppend(resultEl, "outer", (bool)(mOuter.lock()));
+      IHelper::debugAppend(resultEl, "id", mID);
+      IHelper::debugAppend(resultEl, "outer", (bool)(mOuter.lock()));
 
-      UseServicesHelper::debugAppend(resultEl, "timer", mTimer ? mTimer->getID() : 0);
+      IHelper::debugAppend(resultEl, "timer", mTimer ? mTimer->getID() : 0);
 
-      UseServicesHelper::debugAppend(resultEl, "state", toString(state_));
-      UseServicesHelper::debugAppend(resultEl, "role", toString(role_));
-      UseServicesHelper::debugAppend(resultEl, "sll error code", ssl_error_code_);
+      IHelper::debugAppend(resultEl, "state", toString(state_));
+      IHelper::debugAppend(resultEl, "role", toString(role_));
+      IHelper::debugAppend(resultEl, "sll error code", ssl_error_code_);
 
-      UseServicesHelper::debugAppend(resultEl, "sll read needs write", ssl_read_needs_write_);
-      UseServicesHelper::debugAppend(resultEl, "sll write needs read", ssl_write_needs_read_);
+      IHelper::debugAppend(resultEl, "sll read needs write", ssl_read_needs_write_);
+      IHelper::debugAppend(resultEl, "sll write needs read", ssl_write_needs_read_);
 
-      UseServicesHelper::debugAppend(resultEl, "sll", ssl_ ? true : false);
-      UseServicesHelper::debugAppend(resultEl, "sll context", ssl_ctx_ ? true : false);
+      IHelper::debugAppend(resultEl, "sll", ssl_ ? true : false);
+      IHelper::debugAppend(resultEl, "sll context", ssl_ctx_ ? true : false);
 
-      UseServicesHelper::debugAppend(resultEl, "use certificate", UseCertificate::toDebug(identity_));
+      IHelper::debugAppend(resultEl, "use certificate", UseCertificate::toDebug(identity_));
 
-      UseServicesHelper::debugAppend(resultEl, "ssl server name", ssl_server_name_);
+      IHelper::debugAppend(resultEl, "ssl server name", ssl_server_name_);
 
-      UseServicesHelper::debugAppend(resultEl, "peer certificate", peer_certificate_ ? true : false);
+      IHelper::debugAppend(resultEl, "peer certificate", peer_certificate_ ? true : false);
 
-      UseServicesHelper::debugAppend(resultEl, "custom verification succeeded", custom_verification_succeeded_);
+      IHelper::debugAppend(resultEl, "custom verification succeeded", custom_verification_succeeded_);
 
-      UseServicesHelper::debugAppend(resultEl, "srtp ciphers", srtp_ciphers_);
+      IHelper::debugAppend(resultEl, "srtp ciphers", srtp_ciphers_);
 
-      UseServicesHelper::debugAppend(resultEl, "ssl mode", toString(ssl_mode_));
+      IHelper::debugAppend(resultEl, "ssl mode", toString(ssl_mode_));
 
-      UseServicesHelper::debugAppend(resultEl, "ssl max version", toString(ssl_max_version_));
+      IHelper::debugAppend(resultEl, "ssl max version", toString(ssl_max_version_));
 
-      UseServicesHelper::debugAppend(resultEl, "client auth enabled", client_auth_enabled_);
-      UseServicesHelper::debugAppend(resultEl, "ignore bad certificate", ignore_bad_cert_);
+      IHelper::debugAppend(resultEl, "client auth enabled", client_auth_enabled_);
+      IHelper::debugAppend(resultEl, "ignore bad certificate", ignore_bad_cert_);
 
       return resultEl;
     }
@@ -3274,7 +3322,7 @@ namespace ortc
     if (!elem) return;
 
     {
-      String str = UseServicesHelper::getElementText(elem->findFirstChildElement("role"));
+      String str = IHelper::getElementText(elem->findFirstChildElement("role"));
       if (str.hasData()) {
         try {
           mRole = IDTLSTransportTypes::toRole(str);
@@ -3304,7 +3352,7 @@ namespace ortc
   {
     ElementPtr elem = Element::create(objectName);
 
-    UseHelper::adoptElementValue(elem, "role", IDTLSTransportTypes::toString(mRole), false);
+    IHelper::adoptElementValue(elem, "role", IDTLSTransportTypes::toString(mRole), false);
 
     if (mFingerprints.size() > 0) {
       ElementPtr fingerprintsEl = Element::create("fingerprints");
@@ -3338,21 +3386,21 @@ namespace ortc
   //---------------------------------------------------------------------------
   String IDTLSTransportTypes::Parameters::hash() const
   {
-    SHA1Hasher hasher;
+    auto hasher = IHasher::sha1();
 
-    hasher.update("IDTLSTransportTypes:Parameters:");
-    hasher.update(toString(mRole));
+    hasher->update("IDTLSTransportTypes:Parameters:");
+    hasher->update(toString(mRole));
 
     for (auto iter = mFingerprints.begin(); iter != mFingerprints.end(); ++iter) {
       auto fingerprint = (*iter);
 
-      hasher.update(":");
-      hasher.update(fingerprint.mAlgorithm);
-      hasher.update(":");
-      hasher.update(fingerprint.mValue);
+      hasher->update(":");
+      hasher->update(fingerprint.mAlgorithm);
+      hasher->update(":");
+      hasher->update(fingerprint.mValue);
     }
 
-    return hasher.final();
+    return hasher->finalizeAsString();
   }
 
   //---------------------------------------------------------------------------

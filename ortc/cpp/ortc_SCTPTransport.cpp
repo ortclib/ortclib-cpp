@@ -39,10 +39,12 @@
 #include <ortc/internal/ortc.events.h>
 #include <ortc/internal/platform.h>
 
-#include <ortc/services/ISettings.h>
-#include <ortc/services/IHelper.h>
+#include <ortc/IHelper.h>
 #include <ortc/services/IHTTP.h>
 
+#include <zsLib/eventing/IHasher.h>
+
+#include <zsLib/ISettings.h>
 #include <zsLib/Numeric.h>
 #include <zsLib/SafeInt.h>
 #include <zsLib/Stringize.h>
@@ -88,16 +90,13 @@ namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_sctp_datachannel) }
 
 namespace ortc
 {
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::ISettings, UseSettings)
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHelper, UseServicesHelper)
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHTTP, UseHTTP)
+  ZS_DECLARE_USING_PTR(zsLib, ISettings);
+  ZS_DECLARE_USING_PTR(zsLib::eventing, IHasher);
 
-  ZS_DECLARE_TYPEDEF_PTR(ortc::internal::Helper, UseHelper)
+  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHTTP, UseHTTP);
 
   using zsLib::Log;
   using zsLib::Numeric;
-
-  typedef ortc::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
 
   ZS_DECLARE_INTERACTION_TEAR_AWAY(ISCTPTransport, internal::SCTPTransport::TearAwayData)
 
@@ -105,9 +104,11 @@ namespace ortc
 
   namespace internal
   {
+    ZS_DECLARE_CLASS_PTR(SCTPTransportSettingsDefaults);
+
     struct SCTPHelper;
 
-    ZS_DECLARE_TYPEDEF_PTR(SCTPHelper, UseSCTPHelper)
+    ZS_DECLARE_TYPEDEF_PTR(SCTPHelper, UseSCTPHelper);
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -154,12 +155,12 @@ namespace ortc
     {
       ElementPtr resultEl = Element::create("ortc::SCTPPacketIncoming");
 
-      UseServicesHelper::debugAppend(resultEl, "type", toString(mType));
-      UseServicesHelper::debugAppend(resultEl, "sessiond id", mSessionID);
-      UseServicesHelper::debugAppend(resultEl, "sequence number", mSequenceNumber);
-      UseServicesHelper::debugAppend(resultEl, "timestamp", mTimestamp);
-      UseServicesHelper::debugAppend(resultEl, "flags", mFlags);
-      UseServicesHelper::debugAppend(resultEl, "buffer", mBuffer ? mBuffer->SizeInBytes() : 0);
+      IHelper::debugAppend(resultEl, "type", toString(mType));
+      IHelper::debugAppend(resultEl, "sessiond id", mSessionID);
+      IHelper::debugAppend(resultEl, "sequence number", mSequenceNumber);
+      IHelper::debugAppend(resultEl, "timestamp", mTimestamp);
+      IHelper::debugAppend(resultEl, "flags", mFlags);
+      IHelper::debugAppend(resultEl, "buffer", mBuffer ? mBuffer->SizeInBytes() : 0);
 
       return resultEl;
     }
@@ -177,12 +178,12 @@ namespace ortc
     {
       ElementPtr resultEl = Element::create("ortc::SCTPPacketOutgoing");
 
-      UseServicesHelper::debugAppend(resultEl, "type", toString(mType));
-      UseServicesHelper::debugAppend(resultEl, "sessiond id", mSessionID);
-      UseServicesHelper::debugAppend(resultEl, "ordered", mOrdered);
-      UseServicesHelper::debugAppend(resultEl, "max packet lifetime (ms)", mMaxPacketLifetime);
-      UseServicesHelper::debugAppend(resultEl, "max retransmits", mMaxRetransmits);
-      UseServicesHelper::debugAppend(resultEl, "buffer", mBuffer ? mBuffer->SizeInBytes() : 0);
+      IHelper::debugAppend(resultEl, "type", toString(mType));
+      IHelper::debugAppend(resultEl, "sessiond id", mSessionID);
+      IHelper::debugAppend(resultEl, "ordered", mOrdered);
+      IHelper::debugAppend(resultEl, "max packet lifetime (ms)", mMaxPacketLifetime);
+      IHelper::debugAppend(resultEl, "max retransmits", mMaxRetransmits);
+      IHelper::debugAppend(resultEl, "buffer", mBuffer ? mBuffer->SizeInBytes() : 0);
 
       return resultEl;
     }
@@ -267,6 +268,54 @@ namespace ortc
       }
     };
 
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark SCTPTransportSettingsDefaults
+    #pragma mark
+
+    class SCTPTransportSettingsDefaults : public ISettingsApplyDefaultsDelegate
+    {
+    public:
+      //-----------------------------------------------------------------------
+      ~SCTPTransportSettingsDefaults()
+      {
+        ISettings::removeDefaults(*this);
+      }
+
+      //-----------------------------------------------------------------------
+      static SCTPTransportSettingsDefaultsPtr singleton()
+      {
+        static SingletonLazySharedPtr<SCTPTransportSettingsDefaults> singleton(create());
+        return singleton.singleton();
+      }
+
+      //-----------------------------------------------------------------------
+      static SCTPTransportSettingsDefaultsPtr create()
+      {
+        auto pThis(make_shared<SCTPTransportSettingsDefaults>());
+        ISettings::installDefaults(pThis);
+        return pThis;
+      }
+
+      //-----------------------------------------------------------------------
+      virtual void notifySettingsApplyDefaults() override
+      {
+        // http://tools.ietf.org/html/draft-ietf-rtcweb-data-channel-05#section-6.2
+        ISettings::setUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_SESSIONS_PER_PORT, kMaxSctpSid);
+      }
+
+    };
+
+    //-------------------------------------------------------------------------
+    void installSCTPTransportSettingsDefaults()
+    {
+      SCTPTransportSettingsDefaults::singleton();
+    }
+
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -341,7 +390,7 @@ namespace ortc
         // second paragraph of
         // http://tools.ietf.org/html/draft-ietf-rtcweb-data-channel-05#section-6.2
         // is cricket::kMaxSctpSid.
-        usrsctp_sysctl_set_sctp_nr_outgoing_streams_default(SafeInt<uint32_t>(UseSettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_SESSIONS_PER_PORT)));
+        usrsctp_sysctl_set_sctp_nr_outgoing_streams_default(SafeInt<uint32_t>(ISettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_SESSIONS_PER_PORT)));
 
         mInitialized = true;
       }
@@ -368,11 +417,11 @@ namespace ortc
       //-----------------------------------------------------------------------
       static SCTPInitPtr singleton()
       {
-        AutoRecursiveLock lock(*UseServicesHelper::getGlobalLock());
+        AutoRecursiveLock lock(*IHelper::getGlobalLock());
         static SingletonLazySharedPtr<SCTPInit> singleton(create());
         SCTPInitPtr result = singleton.singleton();
 
-        static zsLib::SingletonManager::Register registerSingleton("ortc::ortc::SCTPInit", result);
+        static zsLib::SingletonManager::Register registerSingleton("org.ortc.SCTPInit", result);
 
         if (!result) {
           ZS_LOG_WARNING(Detail, slog("singleton gone"))
@@ -416,7 +465,7 @@ namespace ortc
         ZS_LOG_TRACE(slog("on sctp output packet") + ZS_PARAM("address", ((PTRNUMBER)addr)) + ZS_PARAM("length", length) + ZS_PARAM("tos", tos) + ZS_PARAM("set_df", set_df))
 
         if (ZS_IS_LOGGING(Insane)) {
-          String str = UseServicesHelper::convertToBase64((const BYTE *)data, length);
+          String str = IHelper::convertToBase64((const BYTE *)data, length);
           ZS_LOG_INSANE(slog("sctp outgoing packet") + ZS_PARAM("wire out", str))
         }
 
@@ -498,7 +547,7 @@ namespace ortc
         packet->mSequenceNumber = rcv.rcv_ssn;
         packet->mTimestamp = rcv.rcv_tsn;
         packet->mFlags = flags;
-        packet->mBuffer = UseServicesHelper::convertToBuffer((const BYTE *)data, length);
+        packet->mBuffer = IHelper::convertToBuffer((const BYTE *)data, length);
 
         if (!transport) {
           ZS_LOG_WARNING(Trace, slog("transport is gone (thus cannot receive packet)") + ZS_PARAM("socket", ((PTRNUMBER)sock)) + ZS_PARAM("length", length) + ZS_PARAM("flags", flags) + ZS_PARAM("ulp", ((PTRNUMBER)ulp_info)))
@@ -520,7 +569,7 @@ namespace ortc
       Log::Params log(const char *message) const
       {
         ElementPtr objectEl = Element::create("ortc::SCTPInit");
-        UseServicesHelper::debugAppend(objectEl, "id", mID);
+        IHelper::debugAppend(objectEl, "id", mID);
         return Log::Params(message, objectEl);
       }
 
@@ -542,7 +591,7 @@ namespace ortc
         AutoRecursiveLock lock(mLock);
         ElementPtr resultEl = Element::create("ortc::SCTPInit");
 
-        UseServicesHelper::debugAppend(resultEl, "id", mID);
+        IHelper::debugAppend(resultEl, "id", mID);
 
         return resultEl;
       }
@@ -585,21 +634,6 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark ISCTPTransportForSettings
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    void ISCTPTransportForSettings::applyDefaults()
-    {
-      // http://tools.ietf.org/html/draft-ietf-rtcweb-data-channel-05#section-6.2
-      UseSettings::setUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_SESSIONS_PER_PORT, kMaxSctpSid);
-    }
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
     #pragma mark ISCTPTransportForDataChannel
     #pragma mark
 
@@ -607,11 +641,10 @@ namespace ortc
     ISCTPTransportForSCTPTransportListener::ForListenerPtr ISCTPTransportForSCTPTransportListener::create(
                                                                                                           UseListenerPtr listener,
                                                                                                           UseSecureTransportPtr secureTransport,
-                                                                                                          WORD localPort,
-                                                                                                          WORD remotePort
+                                                                                                          WORD localPort
                                                                                                           )
     {
-      return ISCTPTransportFactory::singleton().create(listener, secureTransport, localPort, remotePort);
+      return ISCTPTransportFactory::singleton().create(listener, secureTransport, localPort);
     }
 
     //-------------------------------------------------------------------------
@@ -672,7 +705,7 @@ namespace ortc
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
       mSCTPInit(SCTPInit::singleton()),
-      mMaxSessionsPerPort(UseSettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_SESSIONS_PER_PORT)),
+      mMaxSessionsPerPort(ISettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_SESSIONS_PER_PORT)),
       mListener(listener),
       mSecureTransport(secureTransport),
       mIncoming(0 != localPort),
@@ -796,61 +829,47 @@ namespace ortc
     ISCTPTransportPtr SCTPTransport::create(
                                             ISCTPTransportDelegatePtr delegate,
                                             IDTLSTransportPtr transport,
-                                            WORD inLocalPort,
-                                            WORD inRemotePort
+                                            WORD inLocalPort
                                             ) throw (InvalidParameters, InvalidStateError)
     {
-      ORTC_THROW_INVALID_PARAMETERS_IF(!transport)
+      ORTC_THROW_INVALID_PARAMETERS_IF(!transport);
 
       UseSecureTransportPtr useSecureTransport = DTLSTransport::convert(transport);
-      ASSERT(((bool)useSecureTransport))
+      ASSERT(((bool)useSecureTransport));
 
       auto dataTransport = useSecureTransport->getDataTransport();
-      ORTC_THROW_INVALID_STATE_IF(!dataTransport)
+      ORTC_THROW_INVALID_STATE_IF(!dataTransport);
 
       UseListenerPtr listener = SCTPTransportListener::convert(dataTransport);
-      ORTC_THROW_INVALID_STATE_IF(!listener)
+      ORTC_THROW_INVALID_STATE_IF(!listener);
 
-      SCTPTransportPtr pThis(make_shared<SCTPTransport>(make_private {}, IORTCForInternal::queueORTC(), listener, useSecureTransport));
+      Optional<WORD> allocatedLocalPort {};
+      if (0 == inLocalPort) {
+        allocatedLocalPort = listener->allocateLocalPort();
+        ORTC_THROW_INVALID_STATE_IF(0 == allocatedLocalPort.value());
+        inLocalPort = allocatedLocalPort.value();
+      }
+
+      SCTPTransportPtr pThis(make_shared<SCTPTransport>(make_private{}, IORTCForInternal::queueORTC(), listener, useSecureTransport));
       pThis->mThisWeak = pThis;
       pThis->mThisSocket = new SCTPTransportWeakPtr(pThis);
 
-      ForListenerPtr forListener = pThis;
-
-      WORD localPort = inLocalPort;
-      WORD remotePort = inRemotePort;
-      listener->registerNewTransport(transport, forListener, localPort, remotePort);
-
-      if (!forListener) {
-        ZS_LOG_WARNING(Debug, slog("unable to allocate port") + ZS_PARAM("local port", inLocalPort) + ZS_PARAM("remote port", inRemotePort))
-        ORTC_THROW_INVALID_PARAMETERS("unable to allocate port, local port=" + string(inLocalPort) + ", remote port=" + string(remotePort))
-      }
-
-      ISCTPTransportPtr registeredTransport = SCTPTransport::convert(forListener);
-
-      auto oldThis = pThis;
-      pThis = SCTPTransport::convert(forListener);
+      ISCTPTransportPtr registeredTransport = pThis;
 
       auto tearAway = ISCTPTransportTearAway::create(registeredTransport, make_shared<TearAwayData>());
-      ORTC_THROW_INVALID_STATE_IF(!tearAway)
+      ORTC_THROW_INVALID_STATE_IF(!tearAway);
 
       auto tearAwayData = ISCTPTransportTearAway::data(tearAway);
-      ORTC_THROW_INVALID_STATE_IF(!tearAwayData)
+      ORTC_THROW_INVALID_STATE_IF(!tearAwayData);
 
       tearAwayData->mListener = listener;
-
-      if (delegate) {
-        tearAwayData->mDefaultSubscription = registeredTransport->subscribe(delegate);
-      }
+      tearAwayData->mDelegate = delegate;
 
       AutoRecursiveLock lock(*pThis);
-      pThis->mLocalPort = localPort;
-      pThis->mRemotePort = remotePort;
-      if (pThis->getID() == oldThis->getID()) {
-        pThis->init();
-      } else {
-        oldThis->cancel();
-      }
+      pThis->mTearAway = tearAway;
+      pThis->mLocalPort = inLocalPort;
+      pThis->mAllocatedLocalPort = allocatedLocalPort;
+      pThis->init();
       return tearAway;
     }
 
@@ -880,22 +899,26 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    WORD SCTPTransport::remotePort() const
+    Optional<WORD> SCTPTransport::remotePort() const
     {
       return mRemotePort;
     }
 
     //-------------------------------------------------------------------------
-    void SCTPTransport::start(const Capabilities &remoteCapabilities)
+    void SCTPTransport::start(
+                              const Capabilities &remoteCapabilities,
+                              WORD inRemotePort
+                              ) throw (InvalidStateError, InvalidParameters)
     {
-      ZS_EVENTING_6(
+      ZS_EVENTING_7(
                     x, i, Detail, SctpTransportStart, ol, SctpTransport, Start,
                     puid, id, mID,
                     size_t, maxMessageSize, remoteCapabilities.mMaxMessageSize,
                     word, minPort, remoteCapabilities.mMinPort,
                     word, maxPort, remoteCapabilities.mMaxPort,
                     word, maxUsablePorts, remoteCapabilities.mMaxUsablePorts,
-                    word, maxSessionsPerPort, remoteCapabilities.mMaxSessionsPerPort
+                    word, maxSessionsPerPort, remoteCapabilities.mMaxSessionsPerPort,
+                    word, remotePort, inRemotePort
                     );
 
       ZS_LOG_DEBUG(log("start called") + remoteCapabilities.toDebug());
@@ -903,11 +926,60 @@ namespace ortc
       AutoRecursiveLock lock(*this);
       if ((isShuttingDown()) ||
           (isShutdown())) {
-        ORTC_THROW_INVALID_STATE("already shutting down")
+        ORTC_THROW_INVALID_STATE("already shutting down");
       }
 
       if (mCapabilities) {
-        ORTC_THROW_INVALID_STATE("already started")
+        ORTC_THROW_INVALID_STATE("already started");
+      }
+
+      if (0 != inRemotePort) {
+        mRemotePort = inRemotePort;
+      }
+
+      auto secureTransport = mSecureTransport.lock();
+      ORTC_THROW_INVALID_STATE_IF(!secureTransport);
+
+      auto dataTransport = secureTransport->getDataTransport();
+
+      ForListenerPtr forListener = mThisWeak.lock();
+      auto originalForListener = forListener;
+
+      UseListenerPtr listener = SCTPTransportListener::convert(dataTransport);
+      ORTC_THROW_INVALID_STATE_IF(!listener);
+
+      WORD localPort = mLocalPort;
+      WORD remotePort = mRemotePort.hasValue() ? mRemotePort.value() : 0;
+      listener->registerNewTransport(DTLSTransport::convert(secureTransport), forListener, localPort, mAllocatedLocalPort.hasValue(), remotePort);
+      if (!forListener) {
+        ZS_LOG_WARNING(Debug, slog("unable to allocate port") + ZS_PARAM("local port", mLocalPort) + ZS_PARAM("remote port", mRemotePort));
+        ORTC_THROW_INVALID_PARAMETERS("unable to allocate port, local port=" + string(mLocalPort) + ", remote port=" + string(remotePort));
+      }
+
+      auto usePThis = SCTPTransport::convert(forListener);
+
+      mLocalPort = localPort;
+      mRemotePort = remotePort;
+
+      auto originalTearAwayInterface = mTearAway.lock();
+      auto tearAway = ISCTPTransportTearAway::tearAway(originalTearAwayInterface);
+      if (tearAway) {
+        tearAway->setDelegate(usePThis);
+
+        auto tearAwayData = ISCTPTransportTearAway::data(originalTearAwayInterface);
+        if (tearAwayData) {
+          auto delegate = tearAwayData->mDelegate.lock();
+          if ((!tearAwayData->mDefaultSubscription) &&
+              (delegate)) {
+            tearAwayData->mDefaultSubscription = usePThis->subscribe(delegate);
+            tearAwayData->mDelegate.reset();
+          }
+        }
+      }
+
+      if (forListener != originalForListener) {
+        cancel();
+        return;
       }
 
       mCapabilities = make_shared<Capabilities>(remoteCapabilities);
@@ -1295,11 +1367,10 @@ namespace ortc
     SCTPTransport::ForListenerPtr SCTPTransport::create(
                                                         UseListenerPtr listener,
                                                         UseSecureTransportPtr secureTransport,
-                                                        WORD localPort,
-                                                        WORD remotePort
+                                                        WORD localPort
                                                         )
     {
-      SCTPTransportPtr pThis(make_shared<SCTPTransport>(make_private {}, IORTCForInternal::queueORTC(), listener, secureTransport, localPort, remotePort));
+      SCTPTransportPtr pThis(make_shared<SCTPTransport>(make_private {}, IORTCForInternal::queueORTC(), listener, secureTransport, localPort));
       pThis->mThisWeak = pThis;
       pThis->mThisSocket = new SCTPTransportWeakPtr(pThis);
       pThis->init();
@@ -1432,7 +1503,7 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void SCTPTransport::onTimer(TimerPtr timer)
+    void SCTPTransport::onTimer(ITimerPtr timer)
     {
       // UNUSED
       // ZS_LOG_DEBUG(log("timer") + ZS_PARAM("timer id", timer->getID()))
@@ -1597,7 +1668,7 @@ namespace ortc
     Log::Params SCTPTransport::log(const char *message) const
     {
       ElementPtr objectEl = Element::create("ortc::SCTPTransport");
-      UseServicesHelper::debugAppend(objectEl, "id", mID);
+      IHelper::debugAppend(objectEl, "id", mID);
       return Log::Params(message, objectEl);
     }
 
@@ -1621,59 +1692,59 @@ namespace ortc
 
       ElementPtr resultEl = Element::create("ortc::SCTPTransport");
 
-      UseServicesHelper::debugAppend(resultEl, "id", mID);
+      IHelper::debugAppend(resultEl, "id", mID);
 
-      UseServicesHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
+      IHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
 
-      UseServicesHelper::debugAppend(resultEl, "sctp init", (bool)mSCTPInit);
-      UseServicesHelper::debugAppend(resultEl, "mMaxSessionsPerPort", mMaxSessionsPerPort);
+      IHelper::debugAppend(resultEl, "sctp init", (bool)mSCTPInit);
+      IHelper::debugAppend(resultEl, "mMaxSessionsPerPort", mMaxSessionsPerPort);
 
-      UseServicesHelper::debugAppend(resultEl, "subscribers", mSubscriptions.size());
+      IHelper::debugAppend(resultEl, "subscribers", mSubscriptions.size());
 
-      UseServicesHelper::debugAppend(resultEl, "data channel subscriptions", mDataChannelSubscriptions.size());
+      IHelper::debugAppend(resultEl, "data channel subscriptions", mDataChannelSubscriptions.size());
 
-      UseServicesHelper::debugAppend(resultEl, "state", toString(mCurrentState));
+      IHelper::debugAppend(resultEl, "state", toString(mCurrentState));
 
-      UseServicesHelper::debugAppend(resultEl, "error", mLastError);
-      UseServicesHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
+      IHelper::debugAppend(resultEl, "error", mLastError);
+      IHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
 
       auto listener = mListener.lock();
-      UseServicesHelper::debugAppend(resultEl, "listener", listener ? listener->getID() : 0);
+      IHelper::debugAppend(resultEl, "listener", listener ? listener->getID() : 0);
 
       auto secureTransport = mSecureTransport.lock();
-      UseServicesHelper::debugAppend(resultEl, "secure transport", secureTransport ? secureTransport->getID() : 0);
-      UseServicesHelper::debugAppend(resultEl, "secure transport subscription", (bool)mSecureTransportSubscription);
+      IHelper::debugAppend(resultEl, "secure transport", secureTransport ? secureTransport->getID() : 0);
+      IHelper::debugAppend(resultEl, "secure transport subscription", (bool)mSecureTransportSubscription);
 
-      UseServicesHelper::debugAppend(resultEl, mCapabilities ? mCapabilities->toDebug() : ElementPtr());
+      IHelper::debugAppend(resultEl, mCapabilities ? mCapabilities->toDebug() : ElementPtr());
 
-      UseServicesHelper::debugAppend(resultEl, "this socket", (PTRNUMBER)mThisSocket);
+      IHelper::debugAppend(resultEl, "this socket", (PTRNUMBER)mThisSocket);
 
-      UseServicesHelper::debugAppend(resultEl, "incoming", mIncoming);
+      IHelper::debugAppend(resultEl, "incoming", mIncoming);
 
-      UseServicesHelper::debugAppend(resultEl, "socket", (PTRNUMBER)mSocket);
+      IHelper::debugAppend(resultEl, "socket", (PTRNUMBER)mSocket);
 
-      UseServicesHelper::debugAppend(resultEl, "local port", mLocalPort);
-      UseServicesHelper::debugAppend(resultEl, "remote port", mRemotePort);
+      IHelper::debugAppend(resultEl, "local port", mLocalPort);
+      IHelper::debugAppend(resultEl, "remote port", mRemotePort);
 
-      UseServicesHelper::debugAppend(resultEl, "announced data channels", mAnnouncedIncomingDataChannels.size());
+      IHelper::debugAppend(resultEl, "announced data channels", mAnnouncedIncomingDataChannels.size());
 
-      UseServicesHelper::debugAppend(resultEl, "sessions", mSessions.size());
+      IHelper::debugAppend(resultEl, "sessions", mSessions.size());
 
-      UseServicesHelper::debugAppend(resultEl, "pending reset", mPendingResetSessions.size());
-      UseServicesHelper::debugAppend(resultEl, "queued reset", mQueuedResetSessions.size());
+      IHelper::debugAppend(resultEl, "pending reset", mPendingResetSessions.size());
+      IHelper::debugAppend(resultEl, "queued reset", mQueuedResetSessions.size());
 
-      UseServicesHelper::debugAppend(resultEl, "settled role", mSettledRole);
-      UseServicesHelper::debugAppend(resultEl, "current allocation", mCurrentAllocationSessionID);
-      UseServicesHelper::debugAppend(resultEl, "min allocation", mMinAllocationSessionID);
-      UseServicesHelper::debugAppend(resultEl, "max allocation", mMaxAllocationSessionID);
-      UseServicesHelper::debugAppend(resultEl, "next allocation increment", mNextAllocationIncrement);
+      IHelper::debugAppend(resultEl, "settled role", mSettledRole);
+      IHelper::debugAppend(resultEl, "current allocation", mCurrentAllocationSessionID);
+      IHelper::debugAppend(resultEl, "min allocation", mMinAllocationSessionID);
+      IHelper::debugAppend(resultEl, "max allocation", mMaxAllocationSessionID);
+      IHelper::debugAppend(resultEl, "next allocation increment", mNextAllocationIncrement);
 
-      UseServicesHelper::debugAppend(resultEl, "waiting to send", mWaitingToSend.size());
+      IHelper::debugAppend(resultEl, "waiting to send", mWaitingToSend.size());
 
-      UseServicesHelper::debugAppend(resultEl, "connected", mConnected);
-      UseServicesHelper::debugAppend(resultEl, "write ready", mWriteReady);
+      IHelper::debugAppend(resultEl, "connected", mConnected);
+      IHelper::debugAppend(resultEl, "write ready", mWriteReady);
 
-      UseServicesHelper::debugAppend(resultEl, "pending incoming buffers", mPendingIncomingBuffers.size());
+      IHelper::debugAppend(resultEl, "pending incoming buffers", mPendingIncomingBuffers.size());
 
       return resultEl;
     }
@@ -2092,6 +2163,9 @@ namespace ortc
 
       auto listener = mListener.lock();
       if (listener) {
+        if (mAllocatedLocalPort.hasValue()) {
+          listener->deallocateLocalPort(mAllocatedLocalPort.value());
+        }
         listener->notifyShutdown(*this, mLocalPort, mRemotePort);
       }
 
@@ -2258,7 +2332,7 @@ namespace ortc
       event.se_assoc_id = SCTP_ALL_ASSOC;
       event.se_on = 1;
       for (size_t i = 0; i < ARRAY_SIZE(event_types); i++) {
-        event.se_type = event_types[i];
+        event.se_type = static_cast<uint16_t>(event_types[i]);
         if (usrsctp_setsockopt(sock, IPPROTO_SCTP, SCTP_EVENT, &event, sizeof(event)) < 0) {
           ZS_LOG_ERROR(Detail, log("failed to set SCTP_EVENT type") + ZS_PARAM("event", event.se_type) + ZS_PARAM("errno", errno))
           return false;
@@ -2564,24 +2638,22 @@ namespace ortc
     ISCTPTransportFactory::ForListenerPtr ISCTPTransportFactory::create(
                                                                         UseListenerPtr listener,
                                                                         UseSecureTransportPtr secureTransport,
-                                                                        WORD localPort,
-                                                                        WORD remotePort
+                                                                        WORD localPort
                                                                         )
     {
       if (this) {}
-      return internal::SCTPTransport::create(listener, secureTransport, localPort, remotePort);
+      return internal::SCTPTransport::create(listener, secureTransport, localPort);
     }
 
     //-------------------------------------------------------------------------
     ISCTPTransportPtr ISCTPTransportFactory::create(
                                                     ISCTPTransportDelegatePtr delegate,
                                                     IDTLSTransportPtr transport,
-                                                    WORD localPort,
-                                                    WORD remotePort
+                                                    WORD localPort
                                                     )
     {
       if (this) {}
-      return internal::SCTPTransport::create(delegate, transport, localPort, remotePort);
+      return internal::SCTPTransport::create(delegate, transport, localPort);
     }
 
   } // internal namespace
@@ -2599,11 +2671,11 @@ namespace ortc
   {
     if (!elem) return;
 
-    UseHelper::getElementValue(elem, "ortc::ISCTPTransportTypes::Capabilities", "maxMessageSize", mMaxMessageSize);
-    UseHelper::getElementValue(elem, "ortc::ISCTPTransportTypes::Capabilities", "minPort", mMinPort);
-    UseHelper::getElementValue(elem, "ortc::ISCTPTransportTypes::Capabilities", "maxPort", mMaxPort);
-    UseHelper::getElementValue(elem, "ortc::ISCTPTransportTypes::Capabilities", "maxUsablePorts", mMaxUsablePorts);
-    UseHelper::getElementValue(elem, "ortc::ISCTPTransportTypes::Capabilities", "maxSessionsPerPort", mMaxSessionsPerPort);
+    IHelper::getElementValue(elem, "ortc::ISCTPTransportTypes::Capabilities", "maxMessageSize", mMaxMessageSize);
+    IHelper::getElementValue(elem, "ortc::ISCTPTransportTypes::Capabilities", "minPort", mMinPort);
+    IHelper::getElementValue(elem, "ortc::ISCTPTransportTypes::Capabilities", "maxPort", mMaxPort);
+    IHelper::getElementValue(elem, "ortc::ISCTPTransportTypes::Capabilities", "maxUsablePorts", mMaxUsablePorts);
+    IHelper::getElementValue(elem, "ortc::ISCTPTransportTypes::Capabilities", "maxSessionsPerPort", mMaxSessionsPerPort);
   }
 
   //---------------------------------------------------------------------------
@@ -2613,11 +2685,11 @@ namespace ortc
 
     ElementPtr elem = Element::create(objectName);
 
-    UseHelper::adoptElementValue(elem, "maxMessageSize", mMaxMessageSize);
-    UseHelper::adoptElementValue(elem, "minPort", mMinPort);
-    UseHelper::adoptElementValue(elem, "maxPort", mMaxPort);
-    UseHelper::adoptElementValue(elem, "maxUsablePorts", mMaxUsablePorts);
-    UseHelper::adoptElementValue(elem, "maxSessionsPerPort", mMaxSessionsPerPort);
+    IHelper::adoptElementValue(elem, "maxMessageSize", mMaxMessageSize);
+    IHelper::adoptElementValue(elem, "minPort", mMinPort);
+    IHelper::adoptElementValue(elem, "maxPort", mMaxPort);
+    IHelper::adoptElementValue(elem, "maxUsablePorts", mMaxUsablePorts);
+    IHelper::adoptElementValue(elem, "maxSessionsPerPort", mMaxSessionsPerPort);
 
     if (!elem->hasChildren()) return ElementPtr();
 
@@ -2633,19 +2705,19 @@ namespace ortc
   //---------------------------------------------------------------------------
   String ISCTPTransportTypes::Capabilities::hash() const
   {
-    SHA1Hasher hasher;
+    auto hasher = IHasher::sha1();
 
-    hasher.update("ISCTPTransportTypes:Capabilities:");
-    hasher.update(mMaxMessageSize);
-    hasher.update(":");
-    hasher.update(mMinPort);
-    hasher.update(":");
-    hasher.update(mMaxPort);
-    hasher.update(":");
-    hasher.update(mMaxUsablePorts);
-    hasher.update(":");
-    hasher.update(mMaxSessionsPerPort);
-    return hasher.final();
+    hasher->update("ISCTPTransportTypes:Capabilities:");
+    hasher->update(mMaxMessageSize);
+    hasher->update(":");
+    hasher->update(mMinPort);
+    hasher->update(":");
+    hasher->update(mMaxPort);
+    hasher->update(":");
+    hasher->update(mMaxUsablePorts);
+    hasher->update(":");
+    hasher->update(mMaxSessionsPerPort);
+    return hasher->finalizeAsString();
   }
 
   //---------------------------------------------------------------------------
@@ -2692,11 +2764,10 @@ namespace ortc
   ISCTPTransportPtr ISCTPTransport::create(
                                            ISCTPTransportDelegatePtr delegate,
                                            IDTLSTransportPtr transport,
-                                           WORD localPort,
-                                           WORD remotePort
+                                           WORD localPort
                                            ) throw (InvalidParameters, InvalidStateError)
   {
-    return internal::ISCTPTransportFactory::singleton().create(delegate, transport, localPort, remotePort);
+    return internal::ISCTPTransportFactory::singleton().create(delegate, transport, localPort);
   }
 
   //---------------------------------------------------------------------------

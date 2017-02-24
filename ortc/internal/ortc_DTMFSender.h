@@ -35,8 +35,6 @@
 
 #include <ortc/IDTMFSender.h>
 
-#include <ortc/services/IWakeDelegate.h>
-
 #include <zsLib/MessageQueueAssociator.h>
 
 //#define ORTC_SETTING_SRTP_TRANSPORT_WARN_OF_KEY_LIFETIME_EXHAUGSTION_WHEN_REACH_PERCENTAGE_USSED "ortc/srtp/warm-key-lifetime-exhaustion-when-reach-percentage-used"
@@ -45,27 +43,9 @@ namespace ortc
 {
   namespace internal
   {
-    ZS_DECLARE_INTERACTION_PTR(IRTPSenderForDTMFSender)
+    ZS_DECLARE_INTERACTION_PTR(IRTPSenderForDTMFSender);
 
-    ZS_DECLARE_INTERACTION_PTR(IDTMFSenderForSettings)
-    ZS_DECLARE_INTERACTION_PTR(IDTMFSenderForRTPSender)
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IDTMFSenderForSettings
-    #pragma mark
-
-    interaction IDTMFSenderForSettings
-    {
-      ZS_DECLARE_TYPEDEF_PTR(IDTMFSenderForSettings, ForSettings)
-
-      static void applyDefaults();
-
-      virtual ~IDTMFSenderForSettings() {}
-    };
+    ZS_DECLARE_INTERACTION_PTR(IDTMFSenderForRTPSender);
     
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -97,7 +77,6 @@ namespace ortc
                        public MessageQueueAssociator,
                        public SharedRecursiveLock,
                        public IDTMFSender,
-                       public IDTMFSenderForSettings,
                        public IDTMFSenderForRTPSender,
                        public IWakeDelegate,
                        public IDTMFSenderDelegate
@@ -108,7 +87,6 @@ namespace ortc
     public:
       friend interaction IDTMFSender;
       friend interaction IDTMFSenderFactory;
-      friend interaction IDTMFSenderForSettings;
       friend interaction IDTMFSenderForRTPSender;
 
       ZS_DECLARE_TYPEDEF_PTR(IRTPSenderForDTMFSender, UseRTPSender)
@@ -134,7 +112,6 @@ namespace ortc
       virtual ~DTMFSender();
 
       static DTMFSenderPtr convert(IDTMFSenderPtr object);
-      static DTMFSenderPtr convert(ForSettingsPtr object);
       static DTMFSenderPtr convert(ForRTPSenderPtr object);
 
     protected:

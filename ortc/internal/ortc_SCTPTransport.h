@@ -39,13 +39,13 @@
 #include <ortc/IICETransport.h>
 #include <ortc/internal/ortc_ISecureTransport.h>
 
-#include <ortc/services/IWakeDelegate.h>
 #include <zsLib/MessageQueueAssociator.h>
-#include <zsLib/Timer.h>
+#include <zsLib/ITimer.h>
 #include <zsLib/ProxySubscriptions.h>
 #include <zsLib/TearAway.h>
 
 #include <usrsctp.h>
+#include <queue>
 
 #define ORTC_SETTING_SCTP_TRANSPORT_MAX_SESSIONS_PER_PORT "ortc/sctp/max-sessions-per-port"
 
@@ -230,13 +230,15 @@ namespace ortc
       static ForListenerPtr create(
                                    UseListenerPtr listener,
                                    UseSecureTransportPtr secureTransport,
-                                   WORD localPort,
-                                   WORD remotePort
+                                   WORD localPort
                                    );
 
       virtual PUID getID() const = 0;
 
-      virtual void start(const Capabilities &remoteCapabilities) = 0;
+      virtual void start(
+                         const Capabilities &remoteCapabilities,
+                         WORD remotePort
+                         ) throw (InvalidStateError, InvalidParameters) = 0;
 
       virtual bool handleDataPacket(
                                     const BYTE *buffer,
@@ -344,14 +346,14 @@ namespace ortc
       friend interaction ISCTPTransportForSCTPTransportListener;
       friend class SCTPInit;
 
-      ZS_DECLARE_TYPEDEF_PTR(IDataChannelForSCTPTransport, UseDataChannel)
-      ZS_DECLARE_TYPEDEF_PTR(ISCTPTransportListenerForSCTPTransport, UseListener)
-      ZS_DECLARE_TYPEDEF_PTR(IICETransportForDataTransport, UseICETransport)
+      ZS_DECLARE_TYPEDEF_PTR(IDataChannelForSCTPTransport, UseDataChannel);
+      ZS_DECLARE_TYPEDEF_PTR(ISCTPTransportListenerForSCTPTransport, UseListener);
+      ZS_DECLARE_TYPEDEF_PTR(IICETransportForDataTransport, UseICETransport);
 
-      ZS_DECLARE_TYPEDEF_PTR(IDataChannelTypes::Parameters, Parameters)
+      ZS_DECLARE_TYPEDEF_PTR(IDataChannelTypes::Parameters, Parameters);
       ZS_DECLARE_TYPEDEF_PTR(ISCTPTransportTypes::Capabilities, Capabilities);
 
-      ZS_DECLARE_STRUCT_PTR(TearAwayData)
+      ZS_DECLARE_STRUCT_PTR(TearAwayData);
 
       typedef PUID DataChannelID;
       typedef std::map<DataChannelID, UseDataChannelPtr> DataChannelMap;
@@ -426,8 +428,7 @@ namespace ortc
       static ISCTPTransportPtr create(
                                       ISCTPTransportDelegatePtr delegate,
                                       IDTLSTransportPtr transport,
-                                      WORD localPort = 0,
-                                      WORD remotePort = 0
+                                      WORD localPort = 0
                                       ) throw (InvalidParameters, InvalidStateError);
 
       virtual PUID getID() const override {return mID;}
@@ -438,9 +439,12 @@ namespace ortc
       virtual WORD port() const override;
 
       virtual WORD localPort() const override;
-      virtual WORD remotePort() const override;
-      
-      virtual void start(const Capabilities &remoteCapabilities) override;
+      virtual Optional<WORD> remotePort() const override;
+
+      virtual void start(
+                         const Capabilities &remoteCapabilities,
+                         WORD remotePort
+                         ) throw (InvalidStateError, InvalidParameters) override;
       virtual void stop() override;
 
       virtual ISCTPTransportSubscriptionPtr subscribe(ISCTPTransportDelegatePtr delegate) override;
@@ -487,11 +491,13 @@ namespace ortc
       static ForListenerPtr create(
                                    UseListenerPtr listener,
                                    UseSecureTransportPtr secureTransport,
-                                   WORD localPort,
-                                   WORD remotePort
+                                   WORD localPort
                                    );
 
-      // (duplicate) virtual void start(const Capabilities &remoteCapabilities) = 0;
+      // (duplicate) virtual void start(
+      //                                const Capabilities &remoteCapabilities,
+      //                                WORD remotePort
+      //                                ) throw (InvalidStateError, InvalidParameters) = 0;
 
       virtual bool handleDataPacket(
                                     const BYTE *buffer,
@@ -525,7 +531,7 @@ namespace ortc
       #pragma mark SCTPTransport => ITimerDelegate
       #pragma mark
 
-      virtual void onTimer(TimerPtr timer) override;
+      virtual void onTimer(ITimerPtr timer) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -596,6 +602,7 @@ namespace ortc
       struct TearAwayData
       {
         UseListenerPtr mListener;
+        ISCTPTransportDelegateWeakPtr mDelegate;
         ISCTPTransportSubscriptionPtr mDefaultSubscription;
       };
 
@@ -630,13 +637,15 @@ namespace ortc
       CapabilitiesPtr mCapabilities;
 
       SCTPTransportWeakPtr *mThisSocket {};
+      ISCTPTransportWeakPtr mTearAway;
 
       bool mIncoming {false};
 
       struct socket *mSocket {};
 
       WORD mLocalPort {};
-      WORD mRemotePort {};
+      Optional<WORD> mAllocatedLocalPort {};
+      Optional<WORD> mRemotePort {};
 
       DataChannelMap mAnnouncedIncomingDataChannels;
 
@@ -681,15 +690,13 @@ namespace ortc
       virtual ForListenerPtr create(
                                     UseListenerPtr listener,
                                     UseSecureTransportPtr secureTransport,
-                                    WORD localPort,
-                                    WORD remotePort
+                                    WORD localPort
                                     );
 
       virtual ISCTPTransportPtr create(
                                        ISCTPTransportDelegatePtr delegate,
                                        IDTLSTransportPtr transport,
-                                       WORD localPort = 0,
-                                       WORD remotePort = 0
+                                       WORD localPort = 0
                                        );
     };
 
@@ -712,8 +719,10 @@ ZS_DECLARE_TEAR_AWAY_METHOD_CONST_RETURN_0(transport, IDTLSTransportPtr)
 ZS_DECLARE_TEAR_AWAY_METHOD_CONST_RETURN_0(state, States)
 ZS_DECLARE_TEAR_AWAY_METHOD_CONST_RETURN_0(port, WORD)
 ZS_DECLARE_TEAR_AWAY_METHOD_CONST_RETURN_0(localPort, WORD)
-ZS_DECLARE_TEAR_AWAY_METHOD_CONST_RETURN_0(remotePort, WORD)
-ZS_DECLARE_TEAR_AWAY_METHOD_1(start, const Capabilities &)
+ZS_DECLARE_TEAR_AWAY_METHOD_CONST_RETURN_0(remotePort, Optional<WORD>)
+  virtual void start(const Capabilities & v1, WORD v2) throw (ortc::InvalidStateError, ortc::InvalidParameters) override {
+    getDelegate()->start(v1, v2);
+  }
 ZS_DECLARE_TEAR_AWAY_METHOD_0(stop)
 ZS_DECLARE_TEAR_AWAY_METHOD_RETURN_1(subscribe, ISCTPTransportSubscriptionPtr, ISCTPTransportDelegatePtr)
 ZS_DECLARE_TEAR_AWAY_END()

@@ -35,7 +35,7 @@
 
 #include <ortc/IICEGatherer.h>
 
-#include <zsLib/Timer.h>
+#include <zsLib/ITimer.h>
 
 #include <tuple>
 
@@ -102,7 +102,7 @@ namespace ortc
       #pragma mark ICEGathererRouter => ITimerDelegate
       #pragma mark
 
-      void onTimer(TimerPtr timer);
+      void onTimer(ITimerPtr timer);
 
     protected:
       //-----------------------------------------------------------------------
@@ -145,7 +145,7 @@ namespace ortc
 
       CandidateRemoteIPToRouteMap mRoutes;
 
-      TimerPtr mTimer;
+      ITimerPtr mTimer;
     };
   }
 }

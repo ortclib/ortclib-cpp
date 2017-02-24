@@ -36,7 +36,6 @@
 #include <ortc/ortc.h>
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/ortc_Helper.h>
-#include <ortc/internal/ortc_Settings.h>
 #include <ortc/internal/ortc_Certificate.h>
 #include <ortc/internal/ortc_DTLSTransport.h>
 #include <ortc/internal/ortc_ICEGatherer.h>

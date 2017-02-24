@@ -36,7 +36,6 @@
 #include <ortc/IICETransportController.h>
 #include <ortc/IICETransport.h>
 
-#include <ortc/services/IWakeDelegate.h>
 #include <zsLib/MessageQueueAssociator.h>
 
 namespace ortc

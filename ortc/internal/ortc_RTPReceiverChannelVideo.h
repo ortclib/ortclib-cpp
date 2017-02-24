@@ -41,12 +41,13 @@
 #include <ortc/IRTPTypes.h>
 #include <ortc/IMediaStreamTrack.h>
 
-#include <ortc/services/IWakeDelegate.h>
 #include <zsLib/MessageQueueAssociator.h>
-#include <zsLib/Timer.h>
+#include <zsLib/ITimer.h>
 #include <zsLib/Event.h>
 
 #include <webrtc/transport.h>
+
+#include <queue>
 
 //#define ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE "ortc/sctp/max-message-size"
 
@@ -306,7 +307,7 @@ namespace ortc
       #pragma mark RTPReceiverChannelVideo => ITimerDelegate
       #pragma mark
 
-      virtual void onTimer(TimerPtr timer) override;
+      virtual void onTimer(ITimerPtr timer) override;
 
       //-----------------------------------------------------------------------
       #pragma mark

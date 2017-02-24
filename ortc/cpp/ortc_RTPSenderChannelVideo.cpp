@@ -37,10 +37,10 @@
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/platform.h>
 
-#include <ortc/services/ISettings.h>
-#include <ortc/services/IHelper.h>
+#include <ortc/IHelper.h>
 #include <ortc/services/IHTTP.h>
 
+#include <zsLib/ISettings.h>
 #include <zsLib/Stringize.h>
 #include <zsLib/Log.h>
 #include <zsLib/XML.h>
@@ -60,14 +60,13 @@ namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_rtpsender) }
 
 namespace ortc
 {
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::ISettings, UseSettings)
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHelper, UseServicesHelper)
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHTTP, UseHTTP)
-
-  typedef ortc::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
+  ZS_DECLARE_USING_PTR(zsLib, ISettings);
+  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHTTP, UseHTTP);
 
   namespace internal
   {
+    ZS_DECLARE_CLASS_PTR(RTPSenderChannelVideoSettingsDefaults);
+
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -77,18 +76,51 @@ namespace ortc
     #pragma mark
 
 
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IICETransportForSettings
-    #pragma mark
 
     //-------------------------------------------------------------------------
-    void IRTPSenderChannelVideoForSettings::applyDefaults()
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPSenderChannelVideoSettingsDefaults
+    #pragma mark
+
+    class RTPSenderChannelVideoSettingsDefaults : public ISettingsApplyDefaultsDelegate
     {
-//      UseSettings::setUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE, 5*1024);
+    public:
+      //-----------------------------------------------------------------------
+      ~RTPSenderChannelVideoSettingsDefaults()
+      {
+        ISettings::removeDefaults(*this);
+      }
+
+      //-----------------------------------------------------------------------
+      static RTPSenderChannelVideoSettingsDefaultsPtr singleton()
+      {
+        static SingletonLazySharedPtr<RTPSenderChannelVideoSettingsDefaults> singleton(create());
+        return singleton.singleton();
+      }
+
+      //-----------------------------------------------------------------------
+      static RTPSenderChannelVideoSettingsDefaultsPtr create()
+      {
+        auto pThis(make_shared<RTPSenderChannelVideoSettingsDefaults>());
+        ISettings::installDefaults(pThis);
+        return pThis;
+      }
+
+      //-----------------------------------------------------------------------
+      virtual void notifySettingsApplyDefaults() override
+      {
+        //      ISettings::setUInt(ORTC_SETTING_RTP_SENDER_CHANNEL_VIDEO_, 0);
+      }
+      
+    };
+
+    //-------------------------------------------------------------------------
+    void installRTPSenderChannelVideoSettingsDefaults()
+    {
+      RTPSenderChannelVideoSettingsDefaults::singleton();
     }
 
     //-------------------------------------------------------------------------
@@ -180,12 +212,6 @@ namespace ortc
       mThisWeak.reset();
 
       cancel();
-    }
-
-    //-------------------------------------------------------------------------
-    RTPSenderChannelVideoPtr RTPSenderChannelVideo::convert(ForSettingsPtr object)
-    {
-      return ZS_DYNAMIC_PTR_CAST(RTPSenderChannelVideo, object);
     }
 
     //-------------------------------------------------------------------------
@@ -354,7 +380,7 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void RTPSenderChannelVideo::onTimer(TimerPtr timer)
+    void RTPSenderChannelVideo::onTimer(ITimerPtr timer)
     {
       ZS_LOG_DEBUG(log("timer") + ZS_PARAM("timer id", timer->getID()))
 
@@ -522,7 +548,7 @@ namespace ortc
     Log::Params RTPSenderChannelVideo::log(const char *message) const
     {
       ElementPtr objectEl = Element::create("ortc::RTPSenderChannelVideo");
-      UseServicesHelper::debugAppend(objectEl, "id", mID);
+      IHelper::debugAppend(objectEl, "id", mID);
       return Log::Params(message, objectEl);
     }
 
@@ -539,17 +565,17 @@ namespace ortc
 
       ElementPtr resultEl = Element::create("ortc::RTPSenderChannelVideo");
 
-      UseServicesHelper::debugAppend(resultEl, "id", mID);
+      IHelper::debugAppend(resultEl, "id", mID);
 
-      UseServicesHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
+      IHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
 
-      UseServicesHelper::debugAppend(resultEl, "state", toString(mCurrentState));
+      IHelper::debugAppend(resultEl, "state", toString(mCurrentState));
 
-      UseServicesHelper::debugAppend(resultEl, "error", mLastError);
-      UseServicesHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
+      IHelper::debugAppend(resultEl, "error", mLastError);
+      IHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
 
       auto senderChannel = mSenderChannel.lock();
-      UseServicesHelper::debugAppend(resultEl, "sender channel", senderChannel ? senderChannel->getID() : 0);
+      IHelper::debugAppend(resultEl, "sender channel", senderChannel ? senderChannel->getID() : 0);
 
       return resultEl;
     }

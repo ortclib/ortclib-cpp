@@ -32,6 +32,7 @@
 #pragma once
 
 #include <ortc/types.h>
+#include <ortc/services/IHelper.h>
 
 namespace ortc
 {
@@ -44,8 +45,7 @@ namespace ortc
   #pragma mark IHelper
   #pragma mark
 
-  interaction IHelper
+  interaction IHelper : public services::IHelper
   {
-
   };
 }

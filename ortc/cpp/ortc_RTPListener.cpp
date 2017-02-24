@@ -41,10 +41,10 @@
 #include <ortc/internal/ortc.events.h>
 #include <ortc/internal/platform.h>
 
-#include <ortc/services/ISettings.h>
-#include <ortc/services/IHelper.h>
+#include <ortc/IHelper.h>
 #include <ortc/services/IHTTP.h>
 
+#include <zsLib/ISettings.h>
 #include <zsLib/SafeInt.h>
 #include <zsLib/Stringize.h>
 #include <zsLib/Log.h>
@@ -64,16 +64,15 @@ namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_rtplistener) }
 
 namespace ortc
 {
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::ISettings, UseSettings)
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHelper, UseServicesHelper)
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHTTP, UseHTTP)
+  ZS_DECLARE_USING_PTR(zsLib, ISettings);
+  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHTTP, UseHTTP);
 
-  typedef ortc::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
-
-  ZS_DECLARE_INTERACTION_TEAR_AWAY(IRTPListener, internal::RTPListener::TearAwayData)
+  ZS_DECLARE_INTERACTION_TEAR_AWAY(IRTPListener, internal::RTPListener::TearAwayData);
 
   namespace internal
   {
+    ZS_DECLARE_CLASS_PTR(RTPListenerSettingsDefaults);
+
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -99,29 +98,62 @@ namespace ortc
       return true;
     }
     
-
+    
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IICETransportForSettings
+    #pragma mark RTPListenerSettingsDefaults
     #pragma mark
 
-    //-------------------------------------------------------------------------
-    void IRTPListenerForSettings::applyDefaults()
+    class RTPListenerSettingsDefaults : public ISettingsApplyDefaultsDelegate
     {
-      UseSettings::setUInt(ORTC_SETTING_RTP_LISTENER_MAX_RTP_PACKETS_IN_BUFFER, 100);
-      UseSettings::setUInt(ORTC_SETTING_RTP_LISTENER_MAX_AGE_RTP_PACKETS_IN_SECONDS, 30);
+    public:
+      //-----------------------------------------------------------------------
+      ~RTPListenerSettingsDefaults()
+      {
+        ISettings::removeDefaults(*this);
+      }
 
-      UseSettings::setUInt(ORTC_SETTING_RTP_LISTENER_MAX_RTCP_PACKETS_IN_BUFFER, 100);
-      UseSettings::setUInt(ORTC_SETTING_RTP_LISTENER_MAX_AGE_RTCP_PACKETS_IN_SECONDS, 30);
+      //-----------------------------------------------------------------------
+      static RTPListenerSettingsDefaultsPtr singleton()
+      {
+        static SingletonLazySharedPtr<RTPListenerSettingsDefaults> singleton(create());
+        return singleton.singleton();
+      }
 
-      UseSettings::setUInt(ORTC_SETTING_RTP_LISTENER_SSRC_TIMEOUT_IN_SECONDS, 60);
-      UseSettings::setUInt(ORTC_SETTING_RTP_LISTENER_UNHANDLED_EVENTS_TIMEOUT_IN_SECONDS, 60);
+      //-----------------------------------------------------------------------
+      static RTPListenerSettingsDefaultsPtr create()
+      {
+        auto pThis(make_shared<RTPListenerSettingsDefaults>());
+        ISettings::installDefaults(pThis);
+        return pThis;
+      }
 
-      UseSettings::setUInt(ORTC_SETTING_RTP_LISTENER_ONLY_RESOLVE_AMBIGUOUS_PAYLOAD_MAPPING_IF_ACTIVITY_DIFFERS_IN_MILLISECONDS, 5*1000);
+      //-----------------------------------------------------------------------
+      virtual void notifySettingsApplyDefaults() override
+      {
+        ISettings::setUInt(ORTC_SETTING_RTP_LISTENER_MAX_RTP_PACKETS_IN_BUFFER, 100);
+        ISettings::setUInt(ORTC_SETTING_RTP_LISTENER_MAX_AGE_RTP_PACKETS_IN_SECONDS, 30);
+
+        ISettings::setUInt(ORTC_SETTING_RTP_LISTENER_MAX_RTCP_PACKETS_IN_BUFFER, 100);
+        ISettings::setUInt(ORTC_SETTING_RTP_LISTENER_MAX_AGE_RTCP_PACKETS_IN_SECONDS, 30);
+
+        ISettings::setUInt(ORTC_SETTING_RTP_LISTENER_SSRC_TIMEOUT_IN_SECONDS, 60);
+        ISettings::setUInt(ORTC_SETTING_RTP_LISTENER_UNHANDLED_EVENTS_TIMEOUT_IN_SECONDS, 60);
+
+        ISettings::setUInt(ORTC_SETTING_RTP_LISTENER_ONLY_RESOLVE_AMBIGUOUS_PAYLOAD_MAPPING_IF_ACTIVITY_DIFFERS_IN_MILLISECONDS, 5 * 1000);
+      }
+      
+    };
+
+    //-------------------------------------------------------------------------
+    void installRTPListenerSettingsDefaults()
+    {
+      RTPListenerSettingsDefaults::singleton();
     }
+
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -243,20 +275,20 @@ namespace ortc
     {
       ElementPtr resultEl = Element::create("ortc::RTPListener::RegisteredHeaderExtension");
 
-      UseServicesHelper::debugAppend(resultEl, "header extension uri", IRTPTypes::toString(mHeaderExtensionURI));
-      UseServicesHelper::debugAppend(resultEl, "local id", mLocalID);
-      UseServicesHelper::debugAppend(resultEl, "encrypted", mEncrypted);
+      IHelper::debugAppend(resultEl, "header extension uri", IRTPTypes::toString(mHeaderExtensionURI));
+      IHelper::debugAppend(resultEl, "local id", mLocalID);
+      IHelper::debugAppend(resultEl, "encrypted", mEncrypted);
 
       ElementPtr referencesEl = Element::create("references");
       for (auto iter = mReferences.begin(); iter != mReferences.end(); ++iter)
       {
         auto objectID = (*iter).first;
 
-        UseServicesHelper::debugAppend(referencesEl, "reference", string(objectID));
+        IHelper::debugAppend(referencesEl, "reference", string(objectID));
       }
 
       if (referencesEl->hasChildren()) {
-        UseServicesHelper::debugAppend(resultEl, referencesEl);
+        IHelper::debugAppend(resultEl, referencesEl);
       }
 
       return resultEl;
@@ -290,13 +322,13 @@ namespace ortc
     {
       ElementPtr resultEl = Element::create("ortc::RTPListener::ReceiverInfo");
 
-      UseServicesHelper::debugAppend(resultEl, "order id", mOrderID);
-      UseServicesHelper::debugAppend(resultEl, "receiver id", mReceiverID);
-      UseServicesHelper::debugAppend(resultEl, "receiver", ((bool)mReceiver.lock()));
+      IHelper::debugAppend(resultEl, "order id", mOrderID);
+      IHelper::debugAppend(resultEl, "receiver id", mReceiverID);
+      IHelper::debugAppend(resultEl, "receiver", ((bool)mReceiver.lock()));
 
-      UseServicesHelper::debugAppend(resultEl, "kind", mKind.hasValue() ? IMediaStreamTrackTypes::toString(mKind) : (const char *)NULL);
-      UseServicesHelper::debugAppend(resultEl, mFilledParameters.toDebug());
-      UseServicesHelper::debugAppend(resultEl, mOriginalParameters.toDebug());
+      IHelper::debugAppend(resultEl, "kind", mKind.hasValue() ? IMediaStreamTrackTypes::toString(mKind) : (const char *)NULL);
+      IHelper::debugAppend(resultEl, mFilledParameters.toDebug());
+      IHelper::debugAppend(resultEl, mOriginalParameters.toDebug());
 
       return resultEl;
     }
@@ -320,10 +352,10 @@ namespace ortc
     {
       ElementPtr resultEl = Element::create("ortc::RTPListener::SSRCInfo");
 
-      UseServicesHelper::debugAppend(resultEl, "ssrc", mSSRC);
-      UseServicesHelper::debugAppend(resultEl, "last usage", mLastUsage);
-      UseServicesHelper::debugAppend(resultEl, "mux id", mMuxID);
-      UseServicesHelper::debugAppend(resultEl, mReceiverInfo ? mReceiverInfo->toDebug() : ElementPtr());
+      IHelper::debugAppend(resultEl, "ssrc", mSSRC);
+      IHelper::debugAppend(resultEl, "last usage", mLastUsage);
+      IHelper::debugAppend(resultEl, "mux id", mMuxID);
+      IHelper::debugAppend(resultEl, mReceiverInfo ? mReceiverInfo->toDebug() : ElementPtr());
 
       return resultEl;
     }
@@ -357,10 +389,10 @@ namespace ortc
     {
       ElementPtr resultEl = Element::create("ortc::RTPListener::UnhandledEventInfo");
 
-      UseServicesHelper::debugAppend(resultEl, "ssrc", mSSRC);
-      UseServicesHelper::debugAppend(resultEl, "codec payload type", mCodecPayloadType);
-      UseServicesHelper::debugAppend(resultEl, "mux id", mMuxID);
-      UseServicesHelper::debugAppend(resultEl, "rid", mRID);
+      IHelper::debugAppend(resultEl, "ssrc", mSSRC);
+      IHelper::debugAppend(resultEl, "codec payload type", mCodecPayloadType);
+      IHelper::debugAppend(resultEl, "mux id", mMuxID);
+      IHelper::debugAppend(resultEl, "rid", mRID);
 
       return resultEl;
     }
@@ -395,15 +427,15 @@ namespace ortc
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
       mRTPTransport(transport),
-      mMaxBufferedRTPPackets(SafeInt<decltype(mMaxBufferedRTPPackets)>(UseSettings::getUInt(ORTC_SETTING_RTP_LISTENER_MAX_RTP_PACKETS_IN_BUFFER))),
-      mMaxRTPPacketAge(UseSettings::getUInt(ORTC_SETTING_RTP_LISTENER_MAX_AGE_RTP_PACKETS_IN_SECONDS)),
-      mMaxBufferedRTCPPackets(SafeInt<decltype(mMaxBufferedRTCPPackets)>(UseSettings::getUInt(ORTC_SETTING_RTP_LISTENER_MAX_RTCP_PACKETS_IN_BUFFER))),
-      mMaxRTCPPacketAge(UseSettings::getUInt(ORTC_SETTING_RTP_LISTENER_MAX_AGE_RTCP_PACKETS_IN_SECONDS)),
+      mMaxBufferedRTPPackets(SafeInt<decltype(mMaxBufferedRTPPackets)>(ISettings::getUInt(ORTC_SETTING_RTP_LISTENER_MAX_RTP_PACKETS_IN_BUFFER))),
+      mMaxRTPPacketAge(ISettings::getUInt(ORTC_SETTING_RTP_LISTENER_MAX_AGE_RTP_PACKETS_IN_SECONDS)),
+      mMaxBufferedRTCPPackets(SafeInt<decltype(mMaxBufferedRTCPPackets)>(ISettings::getUInt(ORTC_SETTING_RTP_LISTENER_MAX_RTCP_PACKETS_IN_BUFFER))),
+      mMaxRTCPPacketAge(ISettings::getUInt(ORTC_SETTING_RTP_LISTENER_MAX_AGE_RTCP_PACKETS_IN_SECONDS)),
       mReceivers(make_shared<ReceiverObjectMap>()),
       mSenders(make_shared<SenderObjectMap>()),
-      mAmbiguousPayloadMappingMinDifference(UseSettings::getUInt(ORTC_SETTING_RTP_LISTENER_ONLY_RESOLVE_AMBIGUOUS_PAYLOAD_MAPPING_IF_ACTIVITY_DIFFERS_IN_MILLISECONDS)),
-      mSSRCTableExpires(UseSettings::getUInt(ORTC_SETTING_RTP_LISTENER_SSRC_TIMEOUT_IN_SECONDS)),
-      mUnhandledEventsExpires(UseSettings::getUInt(ORTC_SETTING_RTP_LISTENER_UNHANDLED_EVENTS_TIMEOUT_IN_SECONDS))
+      mAmbiguousPayloadMappingMinDifference(ISettings::getUInt(ORTC_SETTING_RTP_LISTENER_ONLY_RESOLVE_AMBIGUOUS_PAYLOAD_MAPPING_IF_ACTIVITY_DIFFERS_IN_MILLISECONDS)),
+      mSSRCTableExpires(ISettings::getUInt(ORTC_SETTING_RTP_LISTENER_SSRC_TIMEOUT_IN_SECONDS)),
+      mUnhandledEventsExpires(ISettings::getUInt(ORTC_SETTING_RTP_LISTENER_UNHANDLED_EVENTS_TIMEOUT_IN_SECONDS))
     {
       ZS_EVENTING_8(
                     x, i, Detail, RtpListenerCreate, ol, RtpListener, Start,
@@ -434,7 +466,7 @@ namespace ortc
         mSSRCTableExpires = Seconds(1);
       }
 
-      mSSRCTableTimer = Timer::create(mThisWeak.lock(), (zsLib::toMilliseconds(mSSRCTableExpires) / 2));
+      mSSRCTableTimer = ITimer::create(mThisWeak.lock(), (zsLib::toMilliseconds(mSSRCTableExpires) / 2));
 
       if (mUnhandledEventsExpires < Seconds(1)) {
         mUnhandledEventsExpires = Seconds(1);
@@ -458,12 +490,6 @@ namespace ortc
     {
       IRTPListenerPtr original = IRTPListenerTearAway::original(object);
       return ZS_DYNAMIC_PTR_CAST(RTPListener, original);
-    }
-
-    //-------------------------------------------------------------------------
-    RTPListenerPtr RTPListener::convert(ForSettingsPtr object)
-    {
-      return ZS_DYNAMIC_PTR_CAST(RTPListener, object);
     }
 
     //-------------------------------------------------------------------------
@@ -1174,13 +1200,13 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void RTPListener::onTimer(TimerPtr timer)
+    void RTPListener::onTimer(ITimerPtr timer)
     {
       ZS_EVENTING_3(
                     x, i, Trace, RtpListenerInternalTimerEvent, ol, RtpListener, InternalEvent,
                     puid, id, mID,
                     puid, timerId, timer->getID(),
-                    string, timerType, NULL
+                    string, timerType, (const char *)NULL
                     );
 
       ZS_LOG_DEBUG(log("timer") + ZS_PARAM("timer id", timer->getID()))
@@ -1318,7 +1344,7 @@ namespace ortc
     Log::Params RTPListener::log(const char *message) const
     {
       ElementPtr objectEl = Element::create("ortc::RTPListener");
-      UseServicesHelper::debugAppend(objectEl, "id", mID);
+      IHelper::debugAppend(objectEl, "id", mID);
       return Log::Params(message, objectEl);
     }
 
@@ -1335,20 +1361,20 @@ namespace ortc
 
       ElementPtr resultEl = Element::create("ortc::RTPListener");
 
-      UseServicesHelper::debugAppend(resultEl, "id", mID);
+      IHelper::debugAppend(resultEl, "id", mID);
 
-      UseServicesHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
+      IHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
 
-      UseServicesHelper::debugAppend(resultEl, "subscribers", mSubscriptions.size());
-      UseServicesHelper::debugAppend(resultEl, "default subscription", (bool)mDefaultSubscription);
+      IHelper::debugAppend(resultEl, "subscribers", mSubscriptions.size());
+      IHelper::debugAppend(resultEl, "default subscription", (bool)mDefaultSubscription);
 
-      UseServicesHelper::debugAppend(resultEl, "state", toString(mCurrentState));
+      IHelper::debugAppend(resultEl, "state", toString(mCurrentState));
 
-      UseServicesHelper::debugAppend(resultEl, "error", mLastError);
-      UseServicesHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
+      IHelper::debugAppend(resultEl, "error", mLastError);
+      IHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
 
       auto rtpTransport = mRTPTransport.lock();
-      UseServicesHelper::debugAppend(resultEl, "rtp transport", rtpTransport ? rtpTransport->getID() : 0);
+      IHelper::debugAppend(resultEl, "rtp transport", rtpTransport ? rtpTransport->getID() : 0);
 
       return resultEl;
     }
@@ -2528,7 +2554,7 @@ namespace ortc
       if (found != mUnhandledEvents.end()) return;
 
       if (mUnhandledEvents.size() < 1) {
-        mUnhanldedEventsTimer = Timer::create(mThisWeak.lock(), mUnhandledEventsExpires);
+        mUnhanldedEventsTimer = ITimer::create(mThisWeak.lock(), mUnhandledEventsExpires);
       }
 
       mUnhandledEvents[unhandled] = tick;

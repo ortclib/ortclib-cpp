@@ -44,10 +44,13 @@
 #include <ortc/internal/ortc.events.h>
 #include <ortc/internal/platform.h>
 
-#include <ortc/services/ISettings.h>
-#include <ortc/services/IHelper.h>
+#include <ortc/IHelper.h>
+
 #include <ortc/services/IHTTP.h>
 
+#include <zsLib/eventing/IHasher.h>
+
+#include <zsLib/ISettings.h>
 #include <zsLib/SafeInt.h>
 #include <zsLib/Stringize.h>
 #include <zsLib/Log.h>
@@ -67,14 +70,15 @@ namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_rtpreceiver) }
 
 namespace ortc
 {
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::ISettings, UseSettings)
+  ZS_DECLARE_USING_PTR(zsLib, ISettings);
+  ZS_DECLARE_USING_PTR(zsLib::eventing, IHasher);
+
   ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHelper, UseServicesHelper)
   ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHTTP, UseHTTP)
 
-  typedef ortc::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
-
   namespace internal
   {
+    ZS_DECLARE_CLASS_PTR(RTPReceiverSettingsDefaults);
     ZS_DECLARE_TYPEDEF_PTR(IStatsReportForInternal, UseStatsReport);
 
     //-------------------------------------------------------------------------
@@ -102,27 +106,60 @@ namespace ortc
       return true;
     }
 
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IICETransportForSettings
-    #pragma mark
 
     //-------------------------------------------------------------------------
-    void IRTPReceiverForSettings::applyDefaults()
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPReceiverSettingsDefaults
+    #pragma mark
+
+    class RTPReceiverSettingsDefaults : public ISettingsApplyDefaultsDelegate
     {
-      UseSettings::setUInt(ORTC_SETTING_RTP_RECEIVER_SSRC_TIMEOUT_IN_SECONDS, 60);
+    public:
+      //-----------------------------------------------------------------------
+      ~RTPReceiverSettingsDefaults()
+      {
+        ISettings::removeDefaults(*this);
+      }
 
-      UseSettings::setUInt(ORTC_SETTING_RTP_RECEIVER_MAX_RTP_PACKETS_IN_BUFFER, 100);
-      UseSettings::setUInt(ORTC_SETTING_RTP_RECEIVER_MAX_AGE_RTP_PACKETS_IN_SECONDS, 30);
+      //-----------------------------------------------------------------------
+      static RTPReceiverSettingsDefaultsPtr singleton()
+      {
+        static SingletonLazySharedPtr<RTPReceiverSettingsDefaults> singleton(create());
+        return singleton.singleton();
+      }
 
-      UseSettings::setUInt(ORTC_SETTING_RTP_RECEIVER_CSRC_EXPIRY_TIME_IN_SECONDS, 10);
+      //-----------------------------------------------------------------------
+      static RTPReceiverSettingsDefaultsPtr create()
+      {
+        auto pThis(make_shared<RTPReceiverSettingsDefaults>());
+        ISettings::installDefaults(pThis);
+        return pThis;
+      }
 
-      UseSettings::setUInt(ORTC_SETTING_RTP_RECEIVER_ONLY_RESOLVE_AMBIGUOUS_PAYLOAD_MAPPING_IF_ACTIVITY_DIFFERS_IN_MILLISECONDS, 5*1000);
+      //-----------------------------------------------------------------------
+      virtual void notifySettingsApplyDefaults() override
+      {
+        ISettings::setUInt(ORTC_SETTING_RTP_RECEIVER_SSRC_TIMEOUT_IN_SECONDS, 60);
 
-      UseSettings::setUInt(ORTC_SETTING_RTP_RECEIVER_LOCK_TO_RECEIVER_CHANNEL_AFTER_SWITCH_EXCLUSIVELY_FOR_IN_MILLISECONDS, 3*1000);
+        ISettings::setUInt(ORTC_SETTING_RTP_RECEIVER_MAX_RTP_PACKETS_IN_BUFFER, 100);
+        ISettings::setUInt(ORTC_SETTING_RTP_RECEIVER_MAX_AGE_RTP_PACKETS_IN_SECONDS, 30);
+
+        ISettings::setUInt(ORTC_SETTING_RTP_RECEIVER_CSRC_EXPIRY_TIME_IN_SECONDS, 10);
+
+        ISettings::setUInt(ORTC_SETTING_RTP_RECEIVER_ONLY_RESOLVE_AMBIGUOUS_PAYLOAD_MAPPING_IF_ACTIVITY_DIFFERS_IN_MILLISECONDS, 5 * 1000);
+
+        ISettings::setUInt(ORTC_SETTING_RTP_RECEIVER_LOCK_TO_RECEIVER_CHANNEL_AFTER_SWITCH_EXCLUSIVELY_FOR_IN_MILLISECONDS, 3 * 1000);
+      }
+      
+    };
+
+    //-------------------------------------------------------------------------
+    void installRTPReceiverSettingsDefaults()
+    {
+      RTPReceiverSettingsDefaults::singleton();
     }
 
     //-------------------------------------------------------------------------
@@ -484,12 +521,12 @@ namespace ortc
       SharedRecursiveLock(SharedRecursiveLock::create()),
       mKind(kind),
       mChannels(make_shared<ChannelWeakMap>()),
-      mMaxBufferedRTPPackets(SafeInt<decltype(mMaxBufferedRTPPackets)>(UseSettings::getUInt(ORTC_SETTING_RTP_RECEIVER_MAX_RTP_PACKETS_IN_BUFFER))),
-      mMaxRTPPacketAge(UseSettings::getUInt(ORTC_SETTING_RTP_RECEIVER_MAX_AGE_RTP_PACKETS_IN_SECONDS)),
-      mLockAfterSwitchTime(UseSettings::getUInt(ORTC_SETTING_RTP_RECEIVER_LOCK_TO_RECEIVER_CHANNEL_AFTER_SWITCH_EXCLUSIVELY_FOR_IN_MILLISECONDS)),
-      mAmbiguousPayloadMappingMinDifference(UseSettings::getUInt(ORTC_SETTING_RTP_RECEIVER_ONLY_RESOLVE_AMBIGUOUS_PAYLOAD_MAPPING_IF_ACTIVITY_DIFFERS_IN_MILLISECONDS)),
-      mSSRCTableExpires(Seconds(UseSettings::getUInt(ORTC_SETTING_RTP_RECEIVER_SSRC_TIMEOUT_IN_SECONDS))),
-      mContributingSourcesExpiry(Seconds(UseSettings::getUInt(ORTC_SETTING_RTP_RECEIVER_CSRC_EXPIRY_TIME_IN_SECONDS)))
+      mMaxBufferedRTPPackets(SafeInt<decltype(mMaxBufferedRTPPackets)>(ISettings::getUInt(ORTC_SETTING_RTP_RECEIVER_MAX_RTP_PACKETS_IN_BUFFER))),
+      mMaxRTPPacketAge(ISettings::getUInt(ORTC_SETTING_RTP_RECEIVER_MAX_AGE_RTP_PACKETS_IN_SECONDS)),
+      mLockAfterSwitchTime(ISettings::getUInt(ORTC_SETTING_RTP_RECEIVER_LOCK_TO_RECEIVER_CHANNEL_AFTER_SWITCH_EXCLUSIVELY_FOR_IN_MILLISECONDS)),
+      mAmbiguousPayloadMappingMinDifference(ISettings::getUInt(ORTC_SETTING_RTP_RECEIVER_ONLY_RESOLVE_AMBIGUOUS_PAYLOAD_MAPPING_IF_ACTIVITY_DIFFERS_IN_MILLISECONDS)),
+      mSSRCTableExpires(Seconds(ISettings::getUInt(ORTC_SETTING_RTP_RECEIVER_SSRC_TIMEOUT_IN_SECONDS))),
+      mContributingSourcesExpiry(Seconds(ISettings::getUInt(ORTC_SETTING_RTP_RECEIVER_CSRC_EXPIRY_TIME_IN_SECONDS)))
     {
       ZS_LOG_DETAIL(debug("created"))
 
@@ -532,12 +569,12 @@ namespace ortc
         mSSRCTableExpires = Seconds(1);
       }
 
-      mSSRCTableTimer = Timer::create(mThisWeak.lock(), (zsLib::toMilliseconds(mSSRCTableExpires) / 2));
+      mSSRCTableTimer = ITimer::create(mThisWeak.lock(), (zsLib::toMilliseconds(mSSRCTableExpires) / 2));
 
       if (mContributingSourcesExpiry < Seconds(1)) {
         mContributingSourcesExpiry = Seconds(1);
       }
-      mContributingSourcesTimer = Timer::create(mThisWeak.lock(), (zsLib::toMilliseconds(mContributingSourcesExpiry) / 2));
+      mContributingSourcesTimer = ITimer::create(mThisWeak.lock(), (zsLib::toMilliseconds(mContributingSourcesExpiry) / 2));
 
       mRTCPTransportSubscription = mRTCPTransport->subscribe(mThisWeak.lock());
 
@@ -558,12 +595,6 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     RTPReceiverPtr RTPReceiver::convert(IRTPReceiverPtr object)
-    {
-      return ZS_DYNAMIC_PTR_CAST(RTPReceiver, object);
-    }
-
-    //-------------------------------------------------------------------------
-    RTPReceiverPtr RTPReceiver::convert(ForSettingsPtr object)
     {
       return ZS_DYNAMIC_PTR_CAST(RTPReceiver, object);
     }
@@ -1806,7 +1837,7 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void RTPReceiver::onTimer(TimerPtr timer)
+    void RTPReceiver::onTimer(ITimerPtr timer)
     {
       ZS_EVENTING_2(x, i, Trace, RtpReceiverInternalTimerEvent, ol, RtpReceiver, InternalEvent, puid, id, mID, puid, timerId, timer->getID());
 
@@ -4446,17 +4477,16 @@ namespace ortc
   //---------------------------------------------------------------------------
   String IRTPReceiverTypes::ContributingSource::hash() const
   {
-    SHA1Hasher hasher;
-
-    hasher.update("IRTPReceiverTypes:ContributingSource:");
-    hasher.update(mTimestamp);
-    hasher.update(":");
-    hasher.update(mCSRC);
-    hasher.update(":");
-    hasher.update(mAudioLevel);
-    hasher.update(":");
-    hasher.update(mVoiceActivityFlag);
-    return hasher.final();
+    auto hasher = IHasher::sha1();
+    hasher->update("IRTPReceiverTypes:ContributingSource:");
+    hasher->update(mTimestamp);
+    hasher->update(":");
+    hasher->update(mCSRC);
+    hasher->update(":");
+    hasher->update(mAudioLevel);
+    hasher->update(":");
+    hasher->update(mVoiceActivityFlag);
+    return hasher->finalizeAsString();
   }
 
   //---------------------------------------------------------------------------

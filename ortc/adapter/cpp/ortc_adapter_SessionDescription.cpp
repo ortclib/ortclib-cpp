@@ -33,9 +33,9 @@
 #include <ortc/adapter/internal/ortc_adapter_SessionDescription.h>
 #include <ortc/adapter/internal/ortc_adapter_SDPParser.h>
 
-#include <ortc/internal/ortc_Helper.h>
+#include <ortc/adapter/IHelper.h>
 
-#include <ortc/services/IHelper.h>
+#include <zsLib/eventing/IHasher.h>
 
 #include <zsLib/Log.h>
 #include <zsLib/Numeric.h>
@@ -54,13 +54,10 @@ namespace ortc
 {
   namespace adapter
   {
+    ZS_DECLARE_USING_PTR(zsLib::eventing, IHasher);
+
     using zsLib::Stringize;
     using zsLib::Numeric;
-
-    ZS_DECLARE_TYPEDEF_PTR(ortc::internal::Helper, UseHelper);
-    ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHelper, UseServicesHelper);
-
-    typedef ortc::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
 
     namespace internal
     {
@@ -168,7 +165,7 @@ namespace ortc
 
           switch (mType) {
             case SignalingType_JSON: {
-              auto rootEl = UseServicesHelper::toJSON(mFormattedString);
+              auto rootEl = IHelper::toJSON(mFormattedString);
               mDescription = ISessionDescriptionTypes::Description::create(rootEl);
               break;
             }
@@ -201,7 +198,7 @@ namespace ortc
               ElementPtr rootEl = mDescription->createElement();
               if (!rootEl) return SignalingDescription();
 
-              mFormattedString = UseServicesHelper::toString(rootEl);
+              mFormattedString = zsLib::IHelper::toString(rootEl);
               break;
             }
             case SignalingType_SDPOffer:
@@ -236,16 +233,16 @@ namespace ortc
       {
         ElementPtr resultEl = Element::create("ortc::adapter::internal::SessionDescription");
 
-        UseServicesHelper::debugAppend(resultEl, "id", mID);
+        IHelper::debugAppend(resultEl, "id", mID);
 
-        UseServicesHelper::debugAppend(resultEl, "type", ISessionDescriptionTypes::toString(mType));
+        IHelper::debugAppend(resultEl, "type", ISessionDescriptionTypes::toString(mType));
 
-        UseServicesHelper::debugAppend(resultEl, "converted", mConverted);
-        UseServicesHelper::debugAppend(resultEl, mDescription ? mDescription->toDebug() : ElementPtr());
+        IHelper::debugAppend(resultEl, "converted", mConverted);
+        IHelper::debugAppend(resultEl, mDescription ? mDescription->toDebug() : ElementPtr());
 
-        UseServicesHelper::debugAppend(resultEl, "formatted", mFormattedString);
+        IHelper::debugAppend(resultEl, "formatted", mFormattedString);
 
-        UseServicesHelper::debugAppend(resultEl, "sdp", (bool)mSDP);
+        IHelper::debugAppend(resultEl, "sdp", (bool)mSDP);
 
         return resultEl;
       }
@@ -425,16 +422,16 @@ namespace ortc
     //-------------------------------------------------------------------------
     String ISessionDescriptionTypes::ConnectionData::hash() const
     {
-      SHA1Hasher hasher;
+      auto hasher = IHasher::sha1();
 
-      hasher.update("adapter::ISessionDescriptionTypes::ConnectionData:");
+      hasher->update("adapter::ISessionDescriptionTypes::ConnectionData:");
 
-      hasher.update(mRTP ? mRTP->hash() : String());
-      hasher.update(":");
-      hasher.update(mRTCP ? mRTCP->hash() : String());
-      hasher.update(":end");
+      hasher->update(mRTP ? mRTP->hash() : String());
+      hasher->update(":");
+      hasher->update(mRTCP ? mRTCP->hash() : String());
+      hasher->update(":end");
 
-      return hasher.final();
+      return hasher->finalizeAsString();
     }
 
     //-------------------------------------------------------------------------
@@ -448,10 +445,10 @@ namespace ortc
     //-------------------------------------------------------------------------
     ISessionDescriptionTypes::ConnectionData::Details::Details(ElementPtr rootEl)
     {
-      UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::ConnectionData::Details", "port", mPort);
-      UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::ConnectionData::Details", "netType", mNetType);
-      UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::ConnectionData::Details", "addrType", mAddrType);
-      UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::ConnectionData::Details", "connectionAddress", mConnectionAddress);
+      IHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::ConnectionData::Details", "port", mPort);
+      IHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::ConnectionData::Details", "netType", mNetType);
+      IHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::ConnectionData::Details", "addrType", mAddrType);
+      IHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::ConnectionData::Details", "connectionAddress", mConnectionAddress);
     }
 
     //-------------------------------------------------------------------------
@@ -459,10 +456,10 @@ namespace ortc
     {
       ElementPtr rootEl = Element::create(objectName);
 
-      UseHelper::adoptElementValue(rootEl, "port", mPort);
-      UseHelper::adoptElementValue(rootEl, "netType", mNetType, false);
-      UseHelper::adoptElementValue(rootEl, "addrType", mAddrType, false);
-      UseHelper::adoptElementValue(rootEl, "connectionAddress", mConnectionAddress, false);
+      IHelper::adoptElementValue(rootEl, "port", mPort);
+      IHelper::adoptElementValue(rootEl, "netType", mNetType, false);
+      IHelper::adoptElementValue(rootEl, "addrType", mAddrType, false);
+      IHelper::adoptElementValue(rootEl, "connectionAddress", mConnectionAddress, false);
 
       if (!rootEl->hasChildren()) return ElementPtr();
 
@@ -478,20 +475,20 @@ namespace ortc
     //-------------------------------------------------------------------------
     String ISessionDescriptionTypes::ConnectionData::Details::hash() const
     {
-      SHA1Hasher hasher;
+      auto hasher = IHasher::sha1();
 
-      hasher.update("adapter::ISessionDescriptionTypes::ConnectionData:Details:");
+      hasher->update("adapter::ISessionDescriptionTypes::ConnectionData:Details:");
 
-      hasher.update(mPort);
-      hasher.update(":");
-      hasher.update(mNetType);
-      hasher.update(":");
-      hasher.update(mAddrType);
-      hasher.update(":");
-      hasher.update(mConnectionAddress);
-      hasher.update(":end");
+      hasher->update(mPort);
+      hasher->update(":");
+      hasher->update(mNetType);
+      hasher->update(":");
+      hasher->update(mAddrType);
+      hasher->update(":");
+      hasher->update(mConnectionAddress);
+      hasher->update(":end");
 
-      return hasher.final();
+      return hasher->finalizeAsString();
     }
 
     //-------------------------------------------------------------------------
@@ -513,10 +510,10 @@ namespace ortc
     //-------------------------------------------------------------------------
     ISessionDescriptionTypes::Transport::Transport(ElementPtr rootEl)
     {
-      UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::Transport", "id", mID);
+      IHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::Transport", "id", mID);
       mRTP = Parameters::create(rootEl->findFirstChildElement("rtp"));
       mRTCP = Parameters::create(rootEl->findFirstChildElement("rtcp"));
-      UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::Transport", "useMux", mUseMux);
+      IHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::Transport", "useMux", mUseMux);
     }
     
     //-------------------------------------------------------------------------
@@ -524,11 +521,11 @@ namespace ortc
     {
       ElementPtr rootEl = Element::create(objectName);
 
-      UseHelper::adoptElementValue(rootEl, "id", mID, false);
+      IHelper::adoptElementValue(rootEl, "id", mID, false);
       rootEl->adoptAsLastChild(mRTP ? mRTP->createElement("rtp") : ElementPtr());
       rootEl->adoptAsLastChild(mRTCP ? mRTCP->createElement("rtcp") : ElementPtr());
       rootEl->adoptAsLastChild(mRTCP ? mRTCP->createElement("rtcp") : ElementPtr());
-      UseHelper::adoptElementValue(rootEl, "useMux", mUseMux);
+      IHelper::adoptElementValue(rootEl, "useMux", mUseMux);
 
       if (!rootEl->hasChildren()) return ElementPtr();
 
@@ -544,20 +541,20 @@ namespace ortc
     //-------------------------------------------------------------------------
     String ISessionDescriptionTypes::Transport::hash() const
     {
-      SHA1Hasher hasher;
+      auto hasher = IHasher::sha1();
 
-      hasher.update("adapter::ISessionDescriptionTypes::Transport:");
+      hasher->update("adapter::ISessionDescriptionTypes::Transport:");
 
-      hasher.update(mID);
-      hasher.update(":");
-      hasher.update(mRTP ? mRTP->hash() : String());
-      hasher.update(":");
-      hasher.update(mRTCP ? mRTCP->hash() : String());
-      hasher.update(":");
-      hasher.update(mUseMux);
-      hasher.update(":end");
+      hasher->update(mID);
+      hasher->update(":");
+      hasher->update(mRTP ? mRTP->hash() : String());
+      hasher->update(":");
+      hasher->update(mRTCP ? mRTCP->hash() : String());
+      hasher->update(":");
+      hasher->update(mUseMux);
+      hasher->update(":end");
 
-      return hasher.final();
+      return hasher->finalizeAsString();
     }
 
     //-------------------------------------------------------------------------
@@ -611,7 +608,7 @@ namespace ortc
           mEndOfCandidates = complete->mComplete;
         }
       }
-      UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::Transport::Parameters", "endOfCandidates", mEndOfCandidates);
+      IHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::Transport::Parameters", "endOfCandidates", mEndOfCandidates);
     }
 
     //-------------------------------------------------------------------------
@@ -637,7 +634,7 @@ namespace ortc
         rootEl->adoptAsLastChild(iceCandidatesEl);
       }
       if (mEndOfCandidates) {
-        UseHelper::adoptElementValue(rootEl, "endOfCandidates", mEndOfCandidates);
+        IHelper::adoptElementValue(rootEl, "endOfCandidates", mEndOfCandidates);
       }
 
       if (!rootEl->hasChildren()) return ElementPtr();
@@ -654,26 +651,26 @@ namespace ortc
     //-------------------------------------------------------------------------
     String ISessionDescriptionTypes::Transport::Parameters::hash() const
     {
-      SHA1Hasher hasher;
+      auto hasher = IHasher::sha1();
 
-      hasher.update("adapter::ISessionDescriptionTypes::Transport:Parameters:");
+      hasher->update("adapter::ISessionDescriptionTypes::Transport:Parameters:");
 
-      hasher.update(mICEParameters ? mICEParameters->hash() : String());
-      hasher.update(":");
-      hasher.update(mDTLSParameters ? mDTLSParameters->hash() : String());
-      hasher.update(":");
-      hasher.update(mSRTPSDESParameters ? mSRTPSDESParameters->hash() : String());
-      hasher.update(":iceCandidates:e5b06c5ff5eedd9f3708345a612fac9dac682a42:");
+      hasher->update(mICEParameters ? mICEParameters->hash() : String());
+      hasher->update(":");
+      hasher->update(mDTLSParameters ? mDTLSParameters->hash() : String());
+      hasher->update(":");
+      hasher->update(mSRTPSDESParameters ? mSRTPSDESParameters->hash() : String());
+      hasher->update(":iceCandidates:e5b06c5ff5eedd9f3708345a612fac9dac682a42:");
       for (auto iter = mICECandidates.begin(); iter != mICECandidates.end(); ++iter) {
         auto candidate = (*iter);
         if (!candidate) continue;
-        hasher.update(candidate->hash());
-        hasher.update(":");
+        hasher->update(candidate->hash());
+        hasher->update(":");
       }
-      hasher.update(mEndOfCandidates);
-      hasher.update(":end");
+      hasher->update(mEndOfCandidates);
+      hasher->update(":end");
 
-      return hasher.final();
+      return hasher->finalizeAsString();
     }
 
     //-------------------------------------------------------------------------
@@ -698,9 +695,9 @@ namespace ortc
     {
       if (!rootEl) return;
 
-      UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::MediaLine", "id", mID);
-      UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::MediaLine", "transportId", mTransportID);
-      UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::MediaLine", "mediaType", mMediaType);
+      IHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::MediaLine", "id", mID);
+      IHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::MediaLine", "transportId", mTransportID);
+      IHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::MediaLine", "mediaType", mMediaType);
       mDetails = Details::create(rootEl->findFirstChildElement("details"));
     }
 
@@ -709,9 +706,9 @@ namespace ortc
     {
       ElementPtr rootEl = Element::create(objectName);
 
-      UseHelper::adoptElementValue(rootEl, "id", mID, false);
-      UseHelper::adoptElementValue(rootEl, "transportId", mTransportID, false);
-      UseHelper::adoptElementValue(rootEl, "mediaType", mMediaType, false);
+      IHelper::adoptElementValue(rootEl, "id", mID, false);
+      IHelper::adoptElementValue(rootEl, "transportId", mTransportID, false);
+      IHelper::adoptElementValue(rootEl, "mediaType", mMediaType, false);
       rootEl->adoptAsLastChild(mDetails ? mDetails->createElement() : ElementPtr());
 
       if (!rootEl->hasChildren()) return ElementPtr();
@@ -728,20 +725,20 @@ namespace ortc
     //-------------------------------------------------------------------------
     String ISessionDescriptionTypes::MediaLine::hash() const
     {
-      SHA1Hasher hasher;
+      auto hasher = IHasher::sha1();
 
-      hasher.update("adapter::ISessionDescriptionTypes::MediaLine:");
+      hasher->update("adapter::ISessionDescriptionTypes::MediaLine:");
 
-      hasher.update(mID);
-      hasher.update(":");
-      hasher.update(mTransportID);
-      hasher.update(":");
-      hasher.update(mMediaType);
-      hasher.update(":");
-      hasher.update(mDetails ? mDetails->hash() : String());
-      hasher.update(":end");
+      hasher->update(mID);
+      hasher->update(":");
+      hasher->update(mTransportID);
+      hasher->update(":");
+      hasher->update(mMediaType);
+      hasher->update(":");
+      hasher->update(mDetails ? mDetails->hash() : String());
+      hasher->update(":end");
 
-      return hasher.final();
+      return hasher->finalizeAsString();
     }
 
     //-------------------------------------------------------------------------
@@ -767,11 +764,11 @@ namespace ortc
     {
       if (!rootEl) return;
 
-      UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::MediaLine::Details", "index", mInternalIndex);
-      UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::MediaLine::Details", "privateTransportId", mPrivateTransportID);
-      UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::MediaLine::Details", "protocol", mProtocol);
+      IHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::MediaLine::Details", "index", mInternalIndex);
+      IHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::MediaLine::Details", "privateTransportId", mPrivateTransportID);
+      IHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::MediaLine::Details", "protocol", mProtocol);
       String directionStr;
-      UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::MediaLine::Details", "direction", directionStr);
+      IHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::MediaLine::Details", "direction", directionStr);
       if (directionStr.hasData()) {
         try {
           mMediaDirection = toMediaDirection(directionStr);
@@ -787,10 +784,10 @@ namespace ortc
     {
       ElementPtr rootEl = Element::create(objectName);
 
-      UseHelper::adoptElementValue(rootEl, "index", mInternalIndex);
-      UseHelper::adoptElementValue(rootEl, "privateTransportId", mPrivateTransportID, false);
-      UseHelper::adoptElementValue(rootEl, "protocol", mProtocol, false);
-      UseHelper::adoptElementValue(rootEl, "direction", toString(mMediaDirection), false);
+      IHelper::adoptElementValue(rootEl, "index", mInternalIndex);
+      IHelper::adoptElementValue(rootEl, "privateTransportId", mPrivateTransportID, false);
+      IHelper::adoptElementValue(rootEl, "protocol", mProtocol, false);
+      IHelper::adoptElementValue(rootEl, "direction", toString(mMediaDirection), false);
       rootEl->adoptAsLastChild(mConnectionData ? mConnectionData->createElement() : ElementPtr());
 
       if (!rootEl->hasChildren()) return ElementPtr();
@@ -807,22 +804,22 @@ namespace ortc
     //-------------------------------------------------------------------------
     String ISessionDescriptionTypes::MediaLine::Details::hash() const
     {
-      SHA1Hasher hasher;
+      auto hasher = IHasher::sha1();
 
-      hasher.update("adapter::ISessionDescriptionTypes::MediaLine:Details:");
+      hasher->update("adapter::ISessionDescriptionTypes::MediaLine:Details:");
 
-      hasher.update(mInternalIndex);
-      hasher.update(":");
-      hasher.update(mPrivateTransportID);
-      hasher.update(":");
-      hasher.update(mProtocol);
-      hasher.update(":");
-      hasher.update(toString(mMediaDirection));
-      hasher.update(":");
-      hasher.update(mConnectionData ? mConnectionData->hash() : String());
-      hasher.update(":end");
+      hasher->update(mInternalIndex);
+      hasher->update(":");
+      hasher->update(mPrivateTransportID);
+      hasher->update(":");
+      hasher->update(mProtocol);
+      hasher->update(":");
+      hasher->update(toString(mMediaDirection));
+      hasher->update(":");
+      hasher->update(mConnectionData ? mConnectionData->hash() : String());
+      hasher->update(":end");
 
-      return hasher.final();
+      return hasher->finalizeAsString();
     }
 
     //-------------------------------------------------------------------------
@@ -873,18 +870,18 @@ namespace ortc
     //-------------------------------------------------------------------------
     String ISessionDescriptionTypes::RTPMediaLine::hash() const
     {
-      SHA1Hasher hasher;
+      auto hasher = IHasher::sha1();
 
-      hasher.update("adapter::ISessionDescriptionTypes::RTPMediaLine:");
+      hasher->update("adapter::ISessionDescriptionTypes::RTPMediaLine:");
 
-      hasher.update(MediaLine::hash());
-      hasher.update(":");
-      hasher.update(mSenderCapabilities ? mSenderCapabilities->hash() : String());
-      hasher.update(":");
-      hasher.update(mReceiverCapabilities ? mReceiverCapabilities->hash() : String());
-      hasher.update(":end");
+      hasher->update(MediaLine::hash());
+      hasher->update(":");
+      hasher->update(mSenderCapabilities ? mSenderCapabilities->hash() : String());
+      hasher->update(":");
+      hasher->update(mReceiverCapabilities ? mReceiverCapabilities->hash() : String());
+      hasher->update(":end");
 
-      return hasher.final();
+      return hasher->finalizeAsString();
     }
 
     //-------------------------------------------------------------------------
@@ -910,7 +907,7 @@ namespace ortc
       if (!rootEl) return;
 
       mCapabilities = SCTPCapabilities::create(rootEl->findFirstChildElement("capabilities"));
-      UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::SCTPMediaLine", "port", mPort);
+      IHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::SCTPMediaLine", "port", mPort);
     }
 
     //-------------------------------------------------------------------------
@@ -921,7 +918,7 @@ namespace ortc
       ElementPtr rootEl = MediaLine::createElement(objectName);
 
       rootEl->adoptAsLastChild(mCapabilities ? mCapabilities->createElement("capabilities") : ElementPtr());
-      UseHelper::adoptElementValue(rootEl, "port", mPort);
+      IHelper::adoptElementValue(rootEl, "port", mPort);
 
       if (!rootEl->hasChildren()) return ElementPtr();
 
@@ -937,18 +934,18 @@ namespace ortc
     //-------------------------------------------------------------------------
     String ISessionDescriptionTypes::SCTPMediaLine::hash() const
     {
-      SHA1Hasher hasher;
+      auto hasher = IHasher::sha1();
 
-      hasher.update("adapter::ISessionDescriptionTypes::SCTPMediaLine:");
+      hasher->update("adapter::ISessionDescriptionTypes::SCTPMediaLine:");
 
-      hasher.update(MediaLine::hash());
-      hasher.update(":");
-      hasher.update(mCapabilities ? mCapabilities->hash() : String());
-      hasher.update(":");
-      hasher.update(mPort);
-      hasher.update(":end");
+      hasher->update(MediaLine::hash());
+      hasher->update(":");
+      hasher->update(mCapabilities ? mCapabilities->hash() : String());
+      hasher->update(":");
+      hasher->update(mPort);
+      hasher->update(":end");
 
-      return hasher.final();
+      return hasher->finalizeAsString();
     }
     
     //-------------------------------------------------------------------------
@@ -975,11 +972,11 @@ namespace ortc
     {
       if (!rootEl) return;
 
-      UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::RTPSender", "id", mID);
+      IHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::RTPSender", "id", mID);
       mDetails = Details::create(rootEl->findFirstChildElement("details"));
-      UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::RTPSender", "rtpMediaLineId", mRTPMediaLineID);
+      IHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::RTPSender", "rtpMediaLineId", mRTPMediaLineID);
       mParameters = RTPParameters::create(rootEl->findFirstChildElement("rtpParameters"));
-      UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::RTPSender", "mediaStreamTrackId", mMediaStreamTrackID);
+      IHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::RTPSender", "mediaStreamTrackId", mMediaStreamTrackID);
 
       // scope: get media stream IDs
       {
@@ -988,7 +985,7 @@ namespace ortc
           ElementPtr mediaStreamIDEl = mediaStreamIDsEl->findFirstChildElement("mediaStreamId");
           while (mediaStreamIDEl)
           {
-            String mediaStreamID = UseServicesHelper::getElementTextAndDecode(mediaStreamIDEl);
+            String mediaStreamID = IHelper::getElementTextAndDecode(mediaStreamIDEl);
             mediaStreamIDEl = mediaStreamIDEl->findNextSiblingElement("mediaStreamId");
             if (mediaStreamID.isEmpty()) continue;
             mMediaStreamIDs.insert(mediaStreamID);
@@ -1004,22 +1001,22 @@ namespace ortc
 
       ElementPtr rootEl = Element::create(objectName);
 
-      UseHelper::adoptElementValue(rootEl, "id", mID, false);
+      IHelper::adoptElementValue(rootEl, "id", mID, false);
       if (mDetails) {
         rootEl->adoptAsLastChild(mDetails->createElement());
       }
-      UseHelper::adoptElementValue(rootEl, "rtpMediaLineId", mRTPMediaLineID, false);
+      IHelper::adoptElementValue(rootEl, "rtpMediaLineId", mRTPMediaLineID, false);
       if (mParameters) {
         rootEl->adoptAsLastChild(mParameters->createElement("rtpParameters"));
       }
-      UseHelper::adoptElementValue(rootEl, "mediaStreamTrackId", mMediaStreamTrackID, false);
+      IHelper::adoptElementValue(rootEl, "mediaStreamTrackId", mMediaStreamTrackID, false);
 
       if (mMediaStreamIDs.size() > 0) {
         ElementPtr mediaStreamIDsEl = Element::create("mediaSteamIds");
         for (auto iter = mMediaStreamIDs.begin(); iter != mMediaStreamIDs.end(); ++iter)
         {
           auto streamID = (*iter);
-          UseHelper::adoptElementValue(mediaStreamIDsEl, "mediaSteamId", streamID, false);
+          IHelper::adoptElementValue(mediaStreamIDsEl, "mediaSteamId", streamID, false);
         }
         if (mediaStreamIDsEl->hasChildren()) {
           rootEl->adoptAsLastChild(mediaStreamIDsEl);
@@ -1040,30 +1037,30 @@ namespace ortc
     //-------------------------------------------------------------------------
     String ISessionDescriptionTypes::RTPSender::hash() const
     {
-      SHA1Hasher hasher;
+      auto hasher = IHasher::sha1();
 
-      hasher.update("adapter::ISessionDescriptionTypes::RTPSender:");
+      hasher->update("adapter::ISessionDescriptionTypes::RTPSender:");
 
-      hasher.update(mID);
-      hasher.update(":");
-      hasher.update(mDetails ? mDetails->hash() : String());
-      hasher.update(":");
-      hasher.update(mRTPMediaLineID);
-      hasher.update(":");
-      hasher.update(mMediaStreamTrackID);
-      hasher.update(":");
-      hasher.update(mParameters ? mParameters->hash() : String());
-      hasher.update(":mediaStreamIds:c67e2347f3017b042808a99de9e935a17409226c");
+      hasher->update(mID);
+      hasher->update(":");
+      hasher->update(mDetails ? mDetails->hash() : String());
+      hasher->update(":");
+      hasher->update(mRTPMediaLineID);
+      hasher->update(":");
+      hasher->update(mMediaStreamTrackID);
+      hasher->update(":");
+      hasher->update(mParameters ? mParameters->hash() : String());
+      hasher->update(":mediaStreamIds:c67e2347f3017b042808a99de9e935a17409226c");
 
       for (auto iter = mMediaStreamIDs.begin(); iter != mMediaStreamIDs.end(); ++iter)
       {
         auto streamID = (*iter);
-        hasher.update(streamID);
-        hasher.update(":");
+        hasher->update(streamID);
+        hasher->update(":");
       }
-      hasher.update(":end");
+      hasher->update(":end");
 
-      return hasher.final();
+      return hasher->finalizeAsString();
     }
 
     //-------------------------------------------------------------------------
@@ -1085,7 +1082,7 @@ namespace ortc
     {
       if (!rootEl) return;
 
-      UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::RTPSender::Details", "index", mInternalRTPMediaLineIndex);
+      IHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::RTPSender::Details", "index", mInternalRTPMediaLineIndex);
     }
 
     //-------------------------------------------------------------------------
@@ -1095,7 +1092,7 @@ namespace ortc
 
       ElementPtr rootEl = Element::create(objectName);
 
-      UseHelper::adoptElementValue(rootEl, "index", mInternalRTPMediaLineIndex);
+      IHelper::adoptElementValue(rootEl, "index", mInternalRTPMediaLineIndex);
 
       if (!rootEl->hasChildren()) return ElementPtr();
 
@@ -1111,15 +1108,15 @@ namespace ortc
     //-------------------------------------------------------------------------
     String ISessionDescriptionTypes::RTPSender::Details::hash() const
     {
-      SHA1Hasher hasher;
+      auto hasher = IHasher::sha1();
 
-      hasher.update("adapter::ISessionDescriptionTypes::RTPSender:Details:");
+      hasher->update("adapter::ISessionDescriptionTypes::RTPSender:Details:");
 
-      hasher.update(mInternalRTPMediaLineIndex);
+      hasher->update(mInternalRTPMediaLineIndex);
 
-      hasher.update(":end");
+      hasher->update(":end");
 
-      return hasher.final();
+      return hasher->finalizeAsString();
     }
 
     //-------------------------------------------------------------------------
@@ -1158,8 +1155,8 @@ namespace ortc
 
       auto result = make_shared<ICECandidate>();
 
-      UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::ICECandidate", "mid", result->mMid);
-      UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::ICECandidate", "index", result->mMLineIndex);
+      IHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::ICECandidate", "mid", result->mMid);
+      IHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::ICECandidate", "index", result->mMLineIndex);
 
       bool isComplete = false;
 
@@ -1207,8 +1204,8 @@ namespace ortc
 
       ElementPtr rootEl = Element::create(objectName);
 
-      UseHelper::adoptElementValue(rootEl, "mid", mMid, false);
-      UseHelper::adoptElementValue(rootEl, "index", mMLineIndex);
+      IHelper::adoptElementValue(rootEl, "mid", mMid, false);
+      IHelper::adoptElementValue(rootEl, "index", mMLineIndex);
       rootEl->adoptAsLastChild(candidateEl);
       return rootEl;
     }
@@ -1222,31 +1219,31 @@ namespace ortc
     //-------------------------------------------------------------------------
     String ISessionDescriptionTypes::ICECandidate::hash() const
     {
-      SHA1Hasher hasher;
+      auto hasher = IHasher::sha1();
 
-      hasher.update("adapter::ISessionDescriptionTypes::ICECandidate:");
+      hasher->update("adapter::ISessionDescriptionTypes::ICECandidate:");
 
-      hasher.update(mMid);
-      hasher.update(":");
-      hasher.update(mMLineIndex);
-      hasher.update(":");
+      hasher->update(mMid);
+      hasher->update(":");
+      hasher->update(mMLineIndex);
+      hasher->update(":");
 
       {
         auto iceCandidate = IICETypes::Candidate::convert(mCandidate);
         if (iceCandidate) {
-          hasher.update(iceCandidate->hash());
+          hasher->update(iceCandidate->hash());
         }
       }
-      hasher.update(":");
+      hasher->update(":");
       {
         auto iceCandidate = IICETypes::CandidateComplete::convert(mCandidate);
         if (iceCandidate) {
-          hasher.update(iceCandidate->hash());
+          hasher->update(iceCandidate->hash());
         }
       }
 
-      hasher.update(":end");
-      return hasher.final();
+      hasher->update(":end");
+      return hasher->finalizeAsString();
     }
 
     //-------------------------------------------------------------------------
@@ -1458,48 +1455,48 @@ namespace ortc
     //-------------------------------------------------------------------------
     String ISessionDescriptionTypes::Description::hash() const
     {
-      SHA1Hasher hasher;
+      auto hasher = IHasher::sha1();
 
-      hasher.update("adapter::ISessionDescriptionTypes::Description:");
+      hasher->update("adapter::ISessionDescriptionTypes::Description:");
 
-      hasher.update(mDetails ? mDetails->hash() : String());
+      hasher->update(mDetails ? mDetails->hash() : String());
 
-      hasher.update(":transports:436e7244e8d2c773ff7827e40ab1775cfc898a36:");
+      hasher->update(":transports:436e7244e8d2c773ff7827e40ab1775cfc898a36:");
 
       for (auto iter = mTransports.begin(); iter != mTransports.end(); ++iter)
       {
         auto transport = (*iter);
         if (!transport) continue;
-        hasher.update(transport->hash());
-        hasher.update(":");
+        hasher->update(transport->hash());
+        hasher->update(":");
       }
-      hasher.update(":rtpMediaLines:b45495b53fe9e894816a794e959e475d68a31d0e:");
+      hasher->update(":rtpMediaLines:b45495b53fe9e894816a794e959e475d68a31d0e:");
       for (auto iter = mRTPMediaLines.begin(); iter != mRTPMediaLines.end(); ++iter)
       {
         auto mediaLine = (*iter);
         if (!mediaLine) continue;
-        hasher.update(mediaLine->hash());
-        hasher.update(":");
+        hasher->update(mediaLine->hash());
+        hasher->update(":");
       }
-      hasher.update(":sctpMediaLines:d62607480f61c36891f6b97a55623d83fff0749c:");
+      hasher->update(":sctpMediaLines:d62607480f61c36891f6b97a55623d83fff0749c:");
       for (auto iter = mSCTPMediaLines.begin(); iter != mSCTPMediaLines.end(); ++iter)
       {
         auto mediaLine = (*iter);
         if (!mediaLine) continue;
-        hasher.update(mediaLine->hash());
-        hasher.update(":");
+        hasher->update(mediaLine->hash());
+        hasher->update(":");
       }
-      hasher.update(":rtpSenders:02a37fd161e55bdb384517cecb6f8c52ca5fa113:");
+      hasher->update(":rtpSenders:02a37fd161e55bdb384517cecb6f8c52ca5fa113:");
       for (auto iter = mRTPSenders.begin(); iter != mRTPSenders.end(); ++iter)
       {
         auto sender = (*iter);
         if (!sender) continue;
-        hasher.update(sender->hash());
-        hasher.update(":");
+        hasher->update(sender->hash());
+        hasher->update(":");
       }
-      hasher.update(":end");
+      hasher->update(":end");
 
-      return hasher.final();
+      return hasher->finalizeAsString();
     }
 
     //-------------------------------------------------------------------------
@@ -1528,11 +1525,11 @@ namespace ortc
     {
       if (!rootEl) return;
 
-      UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::Description::Details", "username", mUsername);
+      IHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::Description::Details", "username", mUsername);
 
       {
         String sessionID;
-        UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::Description::Details", "id", sessionID);
+        IHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::Description::Details", "id", sessionID);
 
         try {
           mSessionID = Numeric<decltype(mSessionID)>(sessionID);
@@ -1541,11 +1538,11 @@ namespace ortc
         }
       }
 
-      UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::Description::Details", "version", mSessionVersion);
+      IHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::Description::Details", "version", mSessionVersion);
       mUnicaseAddress = ConnectionData::Details::create(rootEl->findFirstChildElement("unicastAddress"));
-      UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::Description::Details", "name", mSessionName);
-      UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::Description::Details", "startTime", mStartTime);
-      UseHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::Description::Details", "endTime", mEndTime);
+      IHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::Description::Details", "name", mSessionName);
+      IHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::Description::Details", "startTime", mStartTime);
+      IHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::Description::Details", "endTime", mEndTime);
       mConnectionData = ConnectionData::create(rootEl->findFirstChildElement("connectionData"));
     }
 
@@ -1556,15 +1553,15 @@ namespace ortc
 
       ElementPtr rootEl = Element::create(objectName);
 
-      UseHelper::adoptElementValue(rootEl, "username", mUsername, false);
-      UseHelper::adoptElementValue(rootEl, "id", string(mSessionID), false);
-      UseHelper::adoptElementValue(rootEl, "version", mSessionVersion);
+      IHelper::adoptElementValue(rootEl, "username", mUsername, false);
+      IHelper::adoptElementValue(rootEl, "id", string(mSessionID), false);
+      IHelper::adoptElementValue(rootEl, "version", mSessionVersion);
       if (mUnicaseAddress) {
         rootEl->adoptAsLastChild(mUnicaseAddress->createElement("unicastAddress"));
       }
-      UseHelper::adoptElementValue(rootEl, "name", mSessionName, false);
-      UseHelper::adoptElementValue(rootEl, "startTime", mStartTime);
-      UseHelper::adoptElementValue(rootEl, "endTime", mEndTime);
+      IHelper::adoptElementValue(rootEl, "name", mSessionName, false);
+      IHelper::adoptElementValue(rootEl, "startTime", mStartTime);
+      IHelper::adoptElementValue(rootEl, "endTime", mEndTime);
       if (mConnectionData) {
         rootEl->adoptAsLastChild(mConnectionData->createElement());
       }
@@ -1583,32 +1580,32 @@ namespace ortc
     //-------------------------------------------------------------------------
     String ISessionDescriptionTypes::Description::Details::hash() const
     {
-      SHA1Hasher hasher;
+      auto hasher = IHasher::sha1();
 
-      hasher.update("adapter::ISessionDescriptionTypes::Description:Details:");
+      hasher->update("adapter::ISessionDescriptionTypes::Description:Details:");
 
-      hasher.update(mUsername);
-      hasher.update(":");
-      hasher.update(mSessionID);
-      hasher.update(":");
-      hasher.update(mSessionVersion);
-      hasher.update(":");
+      hasher->update(mUsername);
+      hasher->update(":");
+      hasher->update(mSessionID);
+      hasher->update(":");
+      hasher->update(mSessionVersion);
+      hasher->update(":");
       if (mUnicaseAddress) {
-        hasher.update(mUnicaseAddress->hash());
+        hasher->update(mUnicaseAddress->hash());
       }
-      hasher.update(":");
-      hasher.update(mSessionName);
-      hasher.update(":");
-      hasher.update(mStartTime);
-      hasher.update(":");
-      hasher.update(mEndTime);
-      hasher.update(":");
+      hasher->update(":");
+      hasher->update(mSessionName);
+      hasher->update(":");
+      hasher->update(mStartTime);
+      hasher->update(":");
+      hasher->update(mEndTime);
+      hasher->update(":");
       if (mConnectionData) {
-        hasher.update(mConnectionData->hash());
+        hasher->update(mConnectionData->hash());
       }
-      hasher.update(":end");
+      hasher->update(":end");
 
-      return hasher.final();
+      return hasher->finalizeAsString();
     }
 
     //-------------------------------------------------------------------------

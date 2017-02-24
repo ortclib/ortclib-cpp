@@ -30,13 +30,12 @@
  */
 
 
-#include <zsLib/MessageQueueThread.h>
-
 #include <ortc/IICEGatherer.h>
-#include <ortc/ISettings.h>
 
 #include <ortc/services/IHelper.h>
 
+#include <zsLib/IMessageQueueThread.h>
+#include <zsLib/ISettings.h>
 #include <zsLib/XML.h>
 
 #include "config.h"
@@ -52,7 +51,7 @@ using zsLib::AutoPUID;
 using zsLib::AutoRecursiveLock;
 using namespace zsLib::XML;
 
-ZS_DECLARE_TYPEDEF_PTR(ortc::ISettings, UseSettings)
+ZS_DECLARE_TYPEDEF_PTR(zsLib::ISettings, UseSettings)
 ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHelper, UseServicesHelper)
 
 namespace ortc
@@ -329,9 +328,9 @@ void doTestICEGatherer()
 
   TESTING_SLEEP(1000)
 
-  ortc::ISettings::applyDefaults();
+  UseSettings::applyDefaults();
 
-  zsLib::MessageQueueThreadPtr thread(zsLib::MessageQueueThread::createBasic());
+  auto thread(zsLib::IMessageQueueThread::createBasic());
 
   size_t totalHostIPs = UseSettings::getUInt("tester/total-host-ips");
 
@@ -369,7 +368,7 @@ void doTestICEGatherer()
           break;
         }
         case 1: {
-          ortc::ISettings::setBool("ortc/gatherer/gather-passive-tcp-candidates", false);
+          UseSettings::setBool("ortc/gatherer/gather-passive-tcp-candidates", false);
 
           expectations1.mCandidatesTCPHostPassive = 0;
           expectations1.mCandidateGone = expectations1.mCandidatesUDPHost + expectations1.mCandidatesTCPHostActive + expectations1.mCandidatesTCPHostPassive;
@@ -378,7 +377,7 @@ void doTestICEGatherer()
           break;
         }
         case 2: {
-          ortc::ISettings::setBool("ortc/gatherer/gather-passive-tcp-candidates", true);
+          UseSettings::setBool("ortc/gatherer/gather-passive-tcp-candidates", true);
 
           expectations1.mCandidateGone = 0;
           expectations1.mStateClosed = 0;

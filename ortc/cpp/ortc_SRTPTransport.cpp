@@ -37,10 +37,12 @@
 #include <ortc/internal/ortc.events.h>
 #include <ortc/internal/platform.h>
 
-#include <ortc/services/ISettings.h>
-#include <ortc/services/IHelper.h>
+#include <ortc/IHelper.h>
 #include <ortc/services/IHTTP.h>
 
+#include <zsLib/eventing/IHasher.h>
+
+#include <zsLib/ISettings.h>
 #include <zsLib/Stringize.h>
 #include <zsLib/Log.h>
 #include <zsLib/Numeric.h>
@@ -74,12 +76,10 @@ namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_srtp) }
 
 namespace ortc
 {
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::ISettings, UseSettings)
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHelper, UseServicesHelper)
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHTTP, UseHTTP)
-  ZS_DECLARE_TYPEDEF_PTR(ortc::internal::Helper, UseHelper)
+  ZS_DECLARE_USING_PTR(zsLib, ISettings);
+  ZS_DECLARE_USING_PTR(zsLib::eventing, IHasher);
 
-  typedef ortc::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
+  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHTTP, UseHTTP);
 
   typedef CryptoPP::Integer Integer;
 
@@ -87,6 +87,8 @@ namespace ortc
 
   namespace internal
   {
+    ZS_DECLARE_CLASS_PTR(SRTPTransportSettingsDefaults);
+
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -123,18 +125,50 @@ namespace ortc
       return 1;
     }
     
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISRTPTransportForSettings
-    #pragma mark
 
     //-------------------------------------------------------------------------
-    void ISRTPTransportForSettings::applyDefaults()
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark SRTPTransportSettingsDefaults
+    #pragma mark
+
+    class SRTPTransportSettingsDefaults : public ISettingsApplyDefaultsDelegate
     {
-//      UseSettings::setUInt(ORTC_SETTING_SRTP_TRANSPORT_WARN_OF_KEY_LIFETIME_EXHAUGSTION_WHEN_REACH_PERCENTAGE_USSED, 90);
+    public:
+      //-----------------------------------------------------------------------
+      ~SRTPTransportSettingsDefaults()
+      {
+        ISettings::removeDefaults(*this);
+      }
+
+      //-----------------------------------------------------------------------
+      static SRTPTransportSettingsDefaultsPtr singleton()
+      {
+        static SingletonLazySharedPtr<SRTPTransportSettingsDefaults> singleton(create());
+        return singleton.singleton();
+      }
+
+      //-----------------------------------------------------------------------
+      static SRTPTransportSettingsDefaultsPtr create()
+      {
+        auto pThis(make_shared<SRTPTransportSettingsDefaults>());
+        ISettings::installDefaults(pThis);
+        return pThis;
+      }
+
+      //-----------------------------------------------------------------------
+      virtual void notifySettingsApplyDefaults() override
+      {
+      }
+      
+    };
+
+    //-------------------------------------------------------------------------
+    void installSRTPTransportSettingsDefaults()
+    {
+      SRTPTransportSettingsDefaults::singleton();
     }
 
     //-------------------------------------------------------------------------
@@ -157,7 +191,7 @@ namespace ortc
 
         KeyParameters key;
         key.mKeyMethod = "inline";
-        key.mKeySalt = UseServicesHelper::convertToBase64(*UseServicesHelper::random(SRTP_MASTER_KEY_LEN));
+        key.mKeySalt = IHelper::convertToBase64(*IHelper::random(SRTP_MASTER_KEY_LEN));
         key.mLifetime = "2^32";
         key.mMKILength = 0;
 
@@ -171,7 +205,7 @@ namespace ortc
 
         KeyParameters key;
         key.mKeyMethod = "inline";
-        key.mKeySalt = UseServicesHelper::convertToBase64(*UseServicesHelper::random(SRTP_MASTER_KEY_LEN));
+        key.mKeySalt = IHelper::convertToBase64(*IHelper::random(SRTP_MASTER_KEY_LEN));
         key.mLifetime = "2^32";
         key.mMKILength = 0;
 
@@ -216,7 +250,7 @@ namespace ortc
         return true;
       } else if (!op2) return false;
 
-      int compare = UseServicesHelper::compare(*op1, *op2);
+      int compare = IHelper::compare(*op1, *op2);
       return compare < 0;
     }
 
@@ -284,11 +318,11 @@ namespace ortc
       //-----------------------------------------------------------------------
       static SRTPInitPtr singleton()
       {
-        AutoRecursiveLock lock(*UseServicesHelper::getGlobalLock());
+        AutoRecursiveLock lock(*IHelper::getGlobalLock());
         static SingletonLazySharedPtr<SRTPInit> singleton(create());
         SRTPInitPtr result = singleton.singleton();
 
-        static zsLib::SingletonManager::Register registerSingleton("ortc::ortc::SRTPInit", result);
+        static zsLib::SingletonManager::Register registerSingleton("org.ortc.SRTPInit", result);
 
         if (!result) {
           ZS_LOG_WARNING(Detail, slog("singleton gone"))
@@ -318,7 +352,7 @@ namespace ortc
       Log::Params log(const char *message) const
       {
         ElementPtr objectEl = Element::create("ortc::SRTPInit");
-        UseServicesHelper::debugAppend(objectEl, "id", mID);
+        IHelper::debugAppend(objectEl, "id", mID);
         return Log::Params(message, objectEl);
       }
 
@@ -340,7 +374,7 @@ namespace ortc
         AutoRecursiveLock lock(mLock);
         ElementPtr resultEl = Element::create("ortc::SRTPInit");
 
-        UseServicesHelper::debugAppend(resultEl, "id", mID);
+        IHelper::debugAppend(resultEl, "id", mID);
 
         return resultEl;
       }
@@ -443,7 +477,7 @@ namespace ortc
             }
           }
 
-          keyingMaterial->mKeySalt = UseServicesHelper::convertFromBase64(keyParam.mKeySalt);
+          keyingMaterial->mKeySalt = IHelper::convertFromBase64(keyParam.mKeySalt);
           if (!(keyingMaterial->mKeySalt)) {
             ZS_LOG_WARNING(Detail, log("could not extract key salt") + keyParam.toDebug())
             ORTC_THROW_INVALID_PARAMETERS("could not extract key salt:" + keyParam.mKeySalt)
@@ -551,12 +585,6 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     SRTPTransportPtr SRTPTransport::convert(ISRTPTransportPtr object)
-    {
-      return ZS_DYNAMIC_PTR_CAST(SRTPTransport, object);
-    }
-
-    //-------------------------------------------------------------------------
-    SRTPTransportPtr SRTPTransport::convert(ForSettingsPtr object)
     {
       return ZS_DYNAMIC_PTR_CAST(SRTPTransport, object);
     }
@@ -715,7 +743,7 @@ namespace ortc
 
           auto found = material.mKeys.find(material.mTempMKIHolder);
           if (found == material.mKeys.end()) {
-            ZS_LOG_WARNING(Debug, log("no key was found with packet's MKI value") + ZS_PARAM("mki value", UseServicesHelper::convertToHex(*(material.mTempMKIHolder))))
+            ZS_LOG_WARNING(Debug, log("no key was found with packet's MKI value") + ZS_PARAM("mki value", IHelper::convertToHex(*(material.mTempMKIHolder))))
             return false;
           }
 
@@ -1006,7 +1034,7 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void SRTPTransport::onTimer(TimerPtr timer)
+    void SRTPTransport::onTimer(ITimerPtr timer)
     {
       // NOT USED
       // ZS_LOG_DEBUG(log("timer") + ZS_PARAM("timer id", timer->getID()))
@@ -1034,7 +1062,7 @@ namespace ortc
     Log::Params SRTPTransport::log(const char *message) const
     {
       ElementPtr objectEl = Element::create("ortc::SRTPTransport");
-      UseServicesHelper::debugAppend(objectEl, "id", mID);
+      IHelper::debugAppend(objectEl, "id", mID);
       return Log::Params(message, objectEl);
     }
 
@@ -1058,22 +1086,22 @@ namespace ortc
 
       ElementPtr resultEl = Element::create("ortc::SRTPTransport");
 
-      UseServicesHelper::debugAppend(resultEl, "id", mID);
+      IHelper::debugAppend(resultEl, "id", mID);
 
-      UseServicesHelper::debugAppend(resultEl, "subscribers", mSubscriptions.size());
-      UseServicesHelper::debugAppend(resultEl, "default subscription", (bool)mDefaultSubscription);
+      IHelper::debugAppend(resultEl, "subscribers", mSubscriptions.size());
+      IHelper::debugAppend(resultEl, "default subscription", (bool)mDefaultSubscription);
 
       UseSecureTransportPtr secureTransport = mSecureTransport.lock();
-      UseServicesHelper::debugAppend(resultEl, "secure transport", secureTransport ? secureTransport->getID() : 0);
+      IHelper::debugAppend(resultEl, "secure transport", secureTransport ? secureTransport->getID() : 0);
 
-      UseServicesHelper::debugAppend(resultEl, "encrypt params", mParams[Direction_Encrypt].toDebug());
-      UseServicesHelper::debugAppend(resultEl, "decrypt params", mParams[Direction_Decrypt].toDebug());
+      IHelper::debugAppend(resultEl, "encrypt params", mParams[Direction_Encrypt].toDebug());
+      IHelper::debugAppend(resultEl, "decrypt params", mParams[Direction_Decrypt].toDebug());
 
-      UseServicesHelper::debugAppend(resultEl, "last remaining least key percentage reported", mLastRemainingLeastKeyPercentageReported);
-      UseServicesHelper::debugAppend(resultEl, "last remaining overall percentage reported", mLastRemainingOverallPercentageReported);
+      IHelper::debugAppend(resultEl, "last remaining least key percentage reported", mLastRemainingLeastKeyPercentageReported);
+      IHelper::debugAppend(resultEl, "last remaining overall percentage reported", mLastRemainingOverallPercentageReported);
 
       for (size_t loopDirection = Direction_First; loopDirection != Direction_Last; ++loopDirection) {
-        UseServicesHelper::debugAppend(resultEl, toString((Directions)loopDirection), mMaterial[loopDirection].toDebug());
+        IHelper::debugAppend(resultEl, toString((Directions)loopDirection), mMaterial[loopDirection].toDebug());
       }
 
       return resultEl;
@@ -1138,9 +1166,9 @@ namespace ortc
     {
       ORTC_THROW_INVALID_PARAMETERS_IF(lifetime.isEmpty())
 
-      UseServicesHelper::SplitMap splitValues;
+      IHelper::SplitMap splitValues;
 
-      UseServicesHelper::split(lifetime, splitValues, '^');
+      IHelper::split(lifetime, splitValues, '^');
 
       if (splitValues.size() < 2) {
         try {
@@ -1227,10 +1255,10 @@ namespace ortc
     {
       ElementPtr resultEl = Element::create("ortc::SRTPTransport::KeyingMaterial");
 
-      UseServicesHelper::debugAppend(resultEl, mOriginalValues.toDebug());
-      UseServicesHelper::debugAppend(resultEl, "mki (hex)", mMKIValue ? UseServicesHelper::convertToHex(*mMKIValue) : String());
+      IHelper::debugAppend(resultEl, mOriginalValues.toDebug());
+      IHelper::debugAppend(resultEl, "mki (hex)", mMKIValue ? IHelper::convertToHex(*mMKIValue) : String());
 
-      UseServicesHelper::debugAppend(resultEl, "lifetime", mLifetime);
+      IHelper::debugAppend(resultEl, "lifetime", mLifetime);
 
       for (size_t loopComponent = IICETypes::Component_First; loopComponent <= IICETypes::Component_Last; ++loopComponent) {
         const char *message = "UNDEFINED";
@@ -1238,12 +1266,12 @@ namespace ortc
           case IICETypes::Component_RTP:    message = "total RTP packets"; break;
           case IICETypes::Component_RTCP:   message = "total RTCP packets"; break;
         }
-        UseServicesHelper::debugAppend(resultEl, message, mTotalPackets[IICETypes::Component_RTP]);
+        IHelper::debugAppend(resultEl, message, mTotalPackets[IICETypes::Component_RTP]);
       }
 
-      UseServicesHelper::debugAppend(resultEl, "key salt", mKeySalt ? UseServicesHelper::convertToHex(*mKeySalt) : String());
+      IHelper::debugAppend(resultEl, "key salt", mKeySalt ? IHelper::convertToHex(*mKeySalt) : String());
 
-      UseServicesHelper::debugAppend(resultEl, "srtp session", (PTRNUMBER)mSRTPSession);
+      IHelper::debugAppend(resultEl, "srtp session", (PTRNUMBER)mSRTPSession);
 
       return resultEl;
     }
@@ -1251,23 +1279,23 @@ namespace ortc
     //-------------------------------------------------------------------------
     String SRTPTransport::KeyingMaterial::hash() const
     {
-      SHA1Hasher hasher;
+      auto hasher = IHasher::sha1();
 
-      hasher.update("ortc:SRTPTransport::KeyingMaterial:");
+      hasher->update("ortc:SRTPTransport::KeyingMaterial:");
 
-      hasher.update(mOriginalValues.hash());
-      hasher.update(":");
-      hasher.update(mMKIValue ? UseServicesHelper::convertToHex(*mMKIValue) : String());
+      hasher->update(mOriginalValues.hash());
+      hasher->update(":");
+      hasher->update(mMKIValue ? IHelper::convertToHex(*mMKIValue) : String());
 
-      hasher.update(":");
-      hasher.update(mLifetime);
+      hasher->update(":");
+      hasher->update(mLifetime);
 
       for (size_t loopComponent = IICETypes::Component_First; loopComponent <= IICETypes::Component_Last; ++loopComponent) {
-        hasher.update(":");
-        hasher.update(mTotalPackets[loopComponent]);
+        hasher->update(":");
+        hasher->update(mTotalPackets[loopComponent]);
       }
 
-      return hasher.final();
+      return hasher->finalizeAsString();
     }
 
     //-------------------------------------------------------------------------
@@ -1283,14 +1311,14 @@ namespace ortc
     {
       ElementPtr resultEl = Element::create("ortc::SRTPTransport::DirectionMaterial");
 
-      UseServicesHelper::debugAppend(resultEl, "mki length", mMKILength);
+      IHelper::debugAppend(resultEl, "mki length", mMKILength);
 
-      UseServicesHelper::debugAppend(resultEl, "temp mki holder (hex)", mTempMKIHolder ? UseServicesHelper::convertToHex(*mTempMKIHolder) : String());
+      IHelper::debugAppend(resultEl, "temp mki holder (hex)", mTempMKIHolder ? IHelper::convertToHex(*mTempMKIHolder) : String());
 
       for (auto iter = mKeys.begin(); iter != mKeys.end(); ++iter)
       {
         auto keyingMaterial = (*iter).second;
-        UseServicesHelper::debugAppend(resultEl, keyingMaterial->toDebug());
+        IHelper::debugAppend(resultEl, keyingMaterial->toDebug());
       }
 
       for (size_t loop = IICETypes::Component_First; loop <= IICETypes::Component_Last; ++loop) {
@@ -1299,7 +1327,7 @@ namespace ortc
           case IICETypes::Component_RTP:   message = "max total lifetime (RTP)"; break;
           case IICETypes::Component_RTCP:  message = "max total lifetime (RTCP)"; break;
         }
-        UseServicesHelper::debugAppend(resultEl, message, mMaxTotalLifetime[loop]);
+        IHelper::debugAppend(resultEl, message, mMaxTotalLifetime[loop]);
       }
 
       return resultEl;
@@ -1308,13 +1336,13 @@ namespace ortc
     //-------------------------------------------------------------------------
     String SRTPTransport::DirectionMaterial::hash() const
     {
-      SHA1Hasher hasher;
+      auto hasher = IHasher::sha1();
 
-      hasher.update("ortc:SRTPTransport::DirectionMaterial:");
+      hasher->update("ortc:SRTPTransport::DirectionMaterial:");
 
-      hasher.update(mMKILength);
-      hasher.update(":");
-      hasher.update(mTempMKIHolder ? string(mTempMKIHolder->SizeInBytes()) : "0");  // do not hex encode because value is bogus temporary (but size must be fixed)
+      hasher->update(mMKILength);
+      hasher->update(":");
+      hasher->update(mTempMKIHolder ? string(mTempMKIHolder->SizeInBytes()) : "0");  // do not hex encode because value is bogus temporary (but size must be fixed)
 
       for (auto iter = mKeys.begin(); iter != mKeys.end(); ++iter)
       {
@@ -1322,17 +1350,17 @@ namespace ortc
 
         auto hash = keyingMaterial->hash();
 
-        hasher.update(":");
-        hasher.update(hash);
+        hasher->update(":");
+        hasher->update(hash);
       }
 
-      hasher.update(":");
+      hasher->update(":");
       for (size_t loop = IICETypes::Component_First; loop <= IICETypes::Component_Last; ++loop) {
-        hasher.update(":");
-        hasher.update(mMaxTotalLifetime[loop]);
+        hasher->update(":");
+        hasher->update(mMaxTotalLifetime[loop]);
       }
 
-      return hasher.final();
+      return hasher->finalizeAsString();
     }
 
     //-------------------------------------------------------------------------

@@ -30,11 +30,9 @@
  */
 
 
-#include <zsLib/MessageQueueThread.h>
 
 #include <ortc/IDTLSTransport.h>
 #include <ortc/ISRTPSDESTransport.h>
-#include <ortc/ISettings.h>
 
 #include <ortc/internal/ortc_ISRTPTransport.h>
 #include <ortc/internal/ortc_SRTPTransport.h>
@@ -43,6 +41,8 @@
 
 #include <ortc/services/IHelper.h>
 
+#include <zsLib/ISettings.h>
+#include <zsLib/IMessageQueueThread.h>
 #include <zsLib/XML.h>
 
 #include "config.h"
@@ -70,7 +70,7 @@ using ortc::internal::ISRTPTransportDelegatePtr;
 ZS_DECLARE_USING_PTR(ortc::internal, ISRTPTransport)
 ZS_DECLARE_USING_PTR(ortc::services, SecureByteBlock)
 
-ZS_DECLARE_TYPEDEF_PTR(ortc::ISettings, UseSettings)
+ZS_DECLARE_TYPEDEF_PTR(zsLib::ISettings, UseSettings)
 ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHelper, UseServicesHelper)
 ZS_DECLARE_TYPEDEF_PTR(ortc::internal::ISecureTransportForSRTPTransport, UseSecureTransport)
 ZS_DECLARE_TYPEDEF_PTR(ortc::internal::ISRTPTransportForSecureTransport, UseSRTPTransport)
@@ -705,9 +705,9 @@ void doTestSRTP()
 
   TESTING_SLEEP(1000)
 
-  ortc::ISettings::applyDefaults();
+  UseSettings::applyDefaults();
 
-  zsLib::MessageQueueThreadPtr thread(zsLib::MessageQueueThread::createBasic());
+  auto thread(zsLib::IMessageQueueThread::createBasic());
 
   FakeSecureTransportPtr fakeDTLSObject1;
   FakeSecureTransportPtr fakeDTLSObject2;
@@ -1051,7 +1051,7 @@ void doTestSRTP()
                 memcpy(rtp_packet, kPcmuFrame, rtp_len);
                 // In order to be able to run this test function multiple times we can not
                 // use the same sequence number twice. Increase the sequence number by one.
-                SetBE16(reinterpret_cast<BYTE*>(rtp_packet)+2, i);
+                SetBE16(reinterpret_cast<BYTE*>(rtp_packet)+2, static_cast<WORD>(i));
 
                 SecureByteBlockPtr buffer(std::make_shared<SecureByteBlock>(172));  // allocate a buffer of 40 bytes
                 buffer = UseServicesHelper::convertToBuffer(rtp_packet, rtp_len);

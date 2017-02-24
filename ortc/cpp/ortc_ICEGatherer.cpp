@@ -36,16 +36,19 @@
 #include <ortc/internal/ortc.events.h>
 #include <ortc/internal/platform.h>
 
+#include <ortc/IHelper.h>
+
 #include <ortc/services/IDNS.h>
-#include <ortc/services/IHelper.h>
 #include <ortc/services/IHTTP.h>
-#include <ortc/services/ISettings.h>
 #include <ortc/services/ISTUNDiscovery.h>
 #include <ortc/services/ISTUNRequester.h>
 #include <ortc/services/ITURNSocket.h>
 
+#include <zsLib/eventing/IHasher.h>
+
+#include <zsLib/ISettings.h>
 #include <zsLib/Numeric.h>
-#include <zsLib/Timer.h>
+#include <zsLib/ITimer.h>
 #include <zsLib/XML.h>
 
 #include <zsLib/SafeInt.h>
@@ -95,23 +98,24 @@ namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_icegatherer) }
 
 namespace ortc
 {
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IDNS, UseDNS)
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHelper, UseServicesHelper)
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHTTP, UseHTTP)
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::ISettings, UseSettings)
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IBackOffTimerPattern, UseBackOffTimerPattern)
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::ITURNSocket, ITURNSocket)
+  ZS_DECLARE_USING_PTR(zsLib, ISettings);
+  ZS_DECLARE_USING_PTR(zsLib::eventing, IHasher);
+  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IDNS, UseDNS);
+  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHTTP, UseHTTP);
+  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IBackOffTimerPattern, UseBackOffTimerPattern);
+  ZS_DECLARE_TYPEDEF_PTR(ortc::services::ITURNSocket, ITURNSocket);
 
   ZS_DECLARE_TYPEDEF_PTR(ortc::internal::Helper, UseHelper)
 
   using zsLib::Numeric;
   using zsLib::Log;
-  typedef ortc::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
 
   ZS_DECLARE_USING_PROXY(zsLib, ISocketDelegate)
 
   namespace internal
   {
+    ZS_DECLARE_CLASS_PTR(ICEGathererSettingsDefaults);
+
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -120,255 +124,289 @@ namespace ortc
     #pragma mark helpers
     #pragma mark
 
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IICEGathererForSettings
-    #pragma mark
 
     //-------------------------------------------------------------------------
-    void IICEGathererForSettings::applyDefaults()
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark ICEGathererSettingsDefaults
+    #pragma mark
+
+    class ICEGathererSettingsDefaults : public ISettingsApplyDefaultsDelegate
     {
-      ElementPtr rootEl = Element::create("interfaces");
-
+    public:
+      //-----------------------------------------------------------------------
+      ~ICEGathererSettingsDefaults()
       {
-        ICEGatherer::HostIPSorter::InterfaceNameMappingInfo info;
-        info.mInterfaceNameRegularExpression = "lo[0-9].*"; // loopback
-        info.mInterfaceType = ICEGatherer::InterfaceType_LAN;
-        info.mOrderIndex = ORTC_ICEGATHERER_TO_ORDER(info.mInterfaceType, 1);
-        rootEl->adoptAsLastChild(info.createElement());
+        ISettings::removeDefaults(*this);
       }
+
+      //-----------------------------------------------------------------------
+      static ICEGathererSettingsDefaultsPtr singleton()
+      {
+        static SingletonLazySharedPtr<ICEGathererSettingsDefaults> singleton(create());
+        return singleton.singleton();
+      }
+
+      //-----------------------------------------------------------------------
+      static ICEGathererSettingsDefaultsPtr create()
+      {
+        auto pThis(make_shared<ICEGathererSettingsDefaults>());
+        ISettings::installDefaults(pThis);
+        return pThis;
+      }
+
+      //-----------------------------------------------------------------------
+      virtual void notifySettingsApplyDefaults() override
+      {
+        ElementPtr rootEl = Element::create("interfaces");
+
+        {
+          ICEGatherer::HostIPSorter::InterfaceNameMappingInfo info;
+          info.mInterfaceNameRegularExpression = "lo[0-9].*"; // loopback
+          info.mInterfaceType = ICEGatherer::InterfaceType_LAN;
+          info.mOrderIndex = ORTC_ICEGATHERER_TO_ORDER(info.mInterfaceType, 1);
+          rootEl->adoptAsLastChild(info.createElement());
+        }
 #ifdef __APPLE__
 #ifdef TARGET_OS_IPHONE
-      {
-        ICEGatherer::HostIPSorter::InterfaceNameMappingInfo info;
-        info.mInterfaceNameRegularExpression = "en0";       // always wifi on ios
-        info.mInterfaceType = ICEGatherer::InterfaceType_WLAN;
-        info.mOrderIndex = ORTC_ICEGATHERER_TO_ORDER(info.mInterfaceType, 1);
-        rootEl->adoptAsLastChild(info.createElement());
-      }
-      {
-        ICEGatherer::HostIPSorter::InterfaceNameMappingInfo info;
-        info.mInterfaceNameRegularExpression = "en1";       // always WLAN on ios
-        info.mInterfaceType = ICEGatherer::InterfaceType_WWAN;
-        info.mOrderIndex = ORTC_ICEGATHERER_TO_ORDER(info.mInterfaceType, 1);
-        rootEl->adoptAsLastChild(info.createElement());
-      }
+        {
+          ICEGatherer::HostIPSorter::InterfaceNameMappingInfo info;
+          info.mInterfaceNameRegularExpression = "en0";       // always wifi on ios
+          info.mInterfaceType = ICEGatherer::InterfaceType_WLAN;
+          info.mOrderIndex = ORTC_ICEGATHERER_TO_ORDER(info.mInterfaceType, 1);
+          rootEl->adoptAsLastChild(info.createElement());
+        }
+        {
+          ICEGatherer::HostIPSorter::InterfaceNameMappingInfo info;
+          info.mInterfaceNameRegularExpression = "en1";       // always WLAN on ios
+          info.mInterfaceType = ICEGatherer::InterfaceType_WWAN;
+          info.mOrderIndex = ORTC_ICEGATHERER_TO_ORDER(info.mInterfaceType, 1);
+          rootEl->adoptAsLastChild(info.createElement());
+        }
 #elif TARGET_OS_MAX
-      {
-        ICEGatherer::HostIPSorter::InterfaceNameMappingInfo info;
-        info.mInterfaceNameRegularExpression = "en0";       // typically local ethernet
-        info.mInterfaceType = ICEGatherer::InterfaceType_LAN;
-        info.mOrderIndex = ORTC_ICEGATHERER_TO_ORDER(info.mInterfaceType, 10);
-        rootEl->adoptAsLastChild(info.createElement());
-      }
-      {
-        ICEGatherer::HostIPSorter::InterfaceNameMappingInfo info;
-        info.mInterfaceNameRegularExpression = "en1";       // typically wifi
-        info.mInterfaceType = ICEGatherer::InterfaceType_WLAN;
-        info.mOrderIndex = ORTC_ICEGATHERER_TO_ORDER(info.mInterfaceType, 1);
-        rootEl->adoptAsLastChild(info.createElement());
-      }
+        {
+          ICEGatherer::HostIPSorter::InterfaceNameMappingInfo info;
+          info.mInterfaceNameRegularExpression = "en0";       // typically local ethernet
+          info.mInterfaceType = ICEGatherer::InterfaceType_LAN;
+          info.mOrderIndex = ORTC_ICEGATHERER_TO_ORDER(info.mInterfaceType, 10);
+          rootEl->adoptAsLastChild(info.createElement());
+        }
+        {
+          ICEGatherer::HostIPSorter::InterfaceNameMappingInfo info;
+          info.mInterfaceNameRegularExpression = "en1";       // typically wifi
+          info.mInterfaceType = ICEGatherer::InterfaceType_WLAN;
+          info.mOrderIndex = ORTC_ICEGATHERER_TO_ORDER(info.mInterfaceType, 1);
+          rootEl->adoptAsLastChild(info.createElement());
+        }
 #endif //TARGET_OS_IPHONE
 #else //__APPLE__
 #endif //__APPLE__
-      {
-        ICEGatherer::HostIPSorter::InterfaceNameMappingInfo info;
-        info.mInterfaceNameRegularExpression = "en[0-9].*";   // ethernet
-        info.mInterfaceType = ICEGatherer::InterfaceType_LAN;
-        info.mOrderIndex = ORTC_ICEGATHERER_TO_ORDER(info.mInterfaceType, 99);
-        rootEl->adoptAsLastChild(info.createElement());
-      }
-      {
-        ICEGatherer::HostIPSorter::InterfaceNameMappingInfo info;
-        info.mInterfaceNameRegularExpression = "bbptp[0-9].*";
-        info.mInterfaceType = ICEGatherer::InterfaceType_LAN;
-        info.mOrderIndex = ORTC_ICEGATHERER_TO_ORDER(info.mInterfaceType, 50);
-        rootEl->adoptAsLastChild(info.createElement());
-      }
-      {
-        ICEGatherer::HostIPSorter::InterfaceNameMappingInfo info;
-        info.mInterfaceNameRegularExpression = "p2p[0-9].*";    // point to point
-        info.mInterfaceType = ICEGatherer::InterfaceType_LAN;
-        info.mOrderIndex = ORTC_ICEGATHERER_TO_ORDER(info.mInterfaceType, 55);
-        rootEl->adoptAsLastChild(info.createElement());
-      }
-      {
-        ICEGatherer::HostIPSorter::InterfaceNameMappingInfo info;
-        info.mInterfaceNameRegularExpression = "awdl[0-9].*";   // apple wireless direct link
-        info.mInterfaceType = ICEGatherer::InterfaceType_WLAN;
-        info.mOrderIndex = ORTC_ICEGATHERER_TO_ORDER(info.mInterfaceType, 50);
-        rootEl->adoptAsLastChild(info.createElement());
-      }
-      {
-        ICEGatherer::HostIPSorter::InterfaceNameMappingInfo info;
-        info.mInterfaceNameRegularExpression = "pdp_ip[0-9].*"; // GSM style data service
-        info.mInterfaceType = ICEGatherer::InterfaceType_WWAN;
-        info.mOrderIndex = ORTC_ICEGATHERER_TO_ORDER(info.mInterfaceType, 50);
-        rootEl->adoptAsLastChild(info.createElement());
-      }
-      {
-        ICEGatherer::HostIPSorter::InterfaceNameMappingInfo info;
-        info.mInterfaceNameRegularExpression = "vmnet[0-9].*";  // virtual interface
-        info.mInterfaceType = ICEGatherer::InterfaceType_VPN;
-        info.mOrderIndex = ORTC_ICEGATHERER_TO_ORDER(info.mInterfaceType, 1);
-        rootEl->adoptAsLastChild(info.createElement());
-      }
-      {
-        ICEGatherer::HostIPSorter::InterfaceNameMappingInfo info;
-        info.mInterfaceNameRegularExpression = "bridge[0-9].*"; // bridged network
-        info.mInterfaceType = ICEGatherer::InterfaceType_VPN;
-        info.mOrderIndex = ORTC_ICEGATHERER_TO_ORDER(info.mInterfaceType, 10);
-        rootEl->adoptAsLastChild(info.createElement());
-      }
-      {
-        ICEGatherer::HostIPSorter::InterfaceNameMappingInfo info;
-        info.mInterfaceNameRegularExpression = "stf[0-9].*";  // 6 to 4 IP
-        info.mInterfaceType = ICEGatherer::InterfaceType_Tunnel;
-        info.mOrderIndex = ORTC_ICEGATHERER_TO_ORDER(info.mInterfaceType, 1);
-        rootEl->adoptAsLastChild(info.createElement());
-      }
-      {
-        ICEGatherer::HostIPSorter::InterfaceNameMappingInfo info;
-        info.mInterfaceNameRegularExpression = "tsp[0-9].*";  // 6 to 4 IP tunnel
-        info.mInterfaceType = ICEGatherer::InterfaceType_Tunnel;
-        info.mOrderIndex = ORTC_ICEGATHERER_TO_ORDER(info.mInterfaceType, 1);
-        rootEl->adoptAsLastChild(info.createElement());
-      }
-      {
-        ICEGatherer::HostIPSorter::InterfaceNameMappingInfo info;
-        info.mInterfaceNameRegularExpression = "(?i)isatap";  // 6 to 4 IP tunnel
-        info.mInterfaceType = ICEGatherer::InterfaceType_Tunnel;
-        info.mOrderIndex = ORTC_ICEGATHERER_TO_ORDER(info.mInterfaceType, 2);
-        rootEl->adoptAsLastChild(info.createElement());
-      }
-      {
-        ICEGatherer::HostIPSorter::InterfaceNameMappingInfo info;
-        info.mInterfaceNameRegularExpression = "gif[0-9].*";   // generic tunnel interface
-        info.mInterfaceType = ICEGatherer::InterfaceType_Tunnel;
-        info.mOrderIndex = ORTC_ICEGATHERER_TO_ORDER(info.mInterfaceType, 10);
-        rootEl->adoptAsLastChild(info.createElement());
-      }
-      {
-        ICEGatherer::HostIPSorter::InterfaceNameMappingInfo info;
-        info.mInterfaceNameRegularExpression = "fw[0-9].*";   // firewire
-        info.mInterfaceType = ICEGatherer::InterfaceType_Unknown;
-        info.mOrderIndex = ORTC_ICEGATHERER_TO_ORDER(info.mInterfaceType, 20);
-        rootEl->adoptAsLastChild(info.createElement());
-      }
+        {
+          ICEGatherer::HostIPSorter::InterfaceNameMappingInfo info;
+          info.mInterfaceNameRegularExpression = "en[0-9].*";   // ethernet
+          info.mInterfaceType = ICEGatherer::InterfaceType_LAN;
+          info.mOrderIndex = ORTC_ICEGATHERER_TO_ORDER(info.mInterfaceType, 99);
+          rootEl->adoptAsLastChild(info.createElement());
+        }
+        {
+          ICEGatherer::HostIPSorter::InterfaceNameMappingInfo info;
+          info.mInterfaceNameRegularExpression = "bbptp[0-9].*";
+          info.mInterfaceType = ICEGatherer::InterfaceType_LAN;
+          info.mOrderIndex = ORTC_ICEGATHERER_TO_ORDER(info.mInterfaceType, 50);
+          rootEl->adoptAsLastChild(info.createElement());
+        }
+        {
+          ICEGatherer::HostIPSorter::InterfaceNameMappingInfo info;
+          info.mInterfaceNameRegularExpression = "p2p[0-9].*";    // point to point
+          info.mInterfaceType = ICEGatherer::InterfaceType_LAN;
+          info.mOrderIndex = ORTC_ICEGATHERER_TO_ORDER(info.mInterfaceType, 55);
+          rootEl->adoptAsLastChild(info.createElement());
+        }
+        {
+          ICEGatherer::HostIPSorter::InterfaceNameMappingInfo info;
+          info.mInterfaceNameRegularExpression = "awdl[0-9].*";   // apple wireless direct link
+          info.mInterfaceType = ICEGatherer::InterfaceType_WLAN;
+          info.mOrderIndex = ORTC_ICEGATHERER_TO_ORDER(info.mInterfaceType, 50);
+          rootEl->adoptAsLastChild(info.createElement());
+        }
+        {
+          ICEGatherer::HostIPSorter::InterfaceNameMappingInfo info;
+          info.mInterfaceNameRegularExpression = "pdp_ip[0-9].*"; // GSM style data service
+          info.mInterfaceType = ICEGatherer::InterfaceType_WWAN;
+          info.mOrderIndex = ORTC_ICEGATHERER_TO_ORDER(info.mInterfaceType, 50);
+          rootEl->adoptAsLastChild(info.createElement());
+        }
+        {
+          ICEGatherer::HostIPSorter::InterfaceNameMappingInfo info;
+          info.mInterfaceNameRegularExpression = "vmnet[0-9].*";  // virtual interface
+          info.mInterfaceType = ICEGatherer::InterfaceType_VPN;
+          info.mOrderIndex = ORTC_ICEGATHERER_TO_ORDER(info.mInterfaceType, 1);
+          rootEl->adoptAsLastChild(info.createElement());
+        }
+        {
+          ICEGatherer::HostIPSorter::InterfaceNameMappingInfo info;
+          info.mInterfaceNameRegularExpression = "bridge[0-9].*"; // bridged network
+          info.mInterfaceType = ICEGatherer::InterfaceType_VPN;
+          info.mOrderIndex = ORTC_ICEGATHERER_TO_ORDER(info.mInterfaceType, 10);
+          rootEl->adoptAsLastChild(info.createElement());
+        }
+        {
+          ICEGatherer::HostIPSorter::InterfaceNameMappingInfo info;
+          info.mInterfaceNameRegularExpression = "stf[0-9].*";  // 6 to 4 IP
+          info.mInterfaceType = ICEGatherer::InterfaceType_Tunnel;
+          info.mOrderIndex = ORTC_ICEGATHERER_TO_ORDER(info.mInterfaceType, 1);
+          rootEl->adoptAsLastChild(info.createElement());
+        }
+        {
+          ICEGatherer::HostIPSorter::InterfaceNameMappingInfo info;
+          info.mInterfaceNameRegularExpression = "tsp[0-9].*";  // 6 to 4 IP tunnel
+          info.mInterfaceType = ICEGatherer::InterfaceType_Tunnel;
+          info.mOrderIndex = ORTC_ICEGATHERER_TO_ORDER(info.mInterfaceType, 1);
+          rootEl->adoptAsLastChild(info.createElement());
+        }
+        {
+          ICEGatherer::HostIPSorter::InterfaceNameMappingInfo info;
+          info.mInterfaceNameRegularExpression = "(?i)isatap";  // 6 to 4 IP tunnel
+          info.mInterfaceType = ICEGatherer::InterfaceType_Tunnel;
+          info.mOrderIndex = ORTC_ICEGATHERER_TO_ORDER(info.mInterfaceType, 2);
+          rootEl->adoptAsLastChild(info.createElement());
+        }
+        {
+          ICEGatherer::HostIPSorter::InterfaceNameMappingInfo info;
+          info.mInterfaceNameRegularExpression = "gif[0-9].*";   // generic tunnel interface
+          info.mInterfaceType = ICEGatherer::InterfaceType_Tunnel;
+          info.mOrderIndex = ORTC_ICEGATHERER_TO_ORDER(info.mInterfaceType, 10);
+          rootEl->adoptAsLastChild(info.createElement());
+        }
+        {
+          ICEGatherer::HostIPSorter::InterfaceNameMappingInfo info;
+          info.mInterfaceNameRegularExpression = "fw[0-9].*";   // firewire
+          info.mInterfaceType = ICEGatherer::InterfaceType_Unknown;
+          info.mOrderIndex = ORTC_ICEGATHERER_TO_ORDER(info.mInterfaceType, 20);
+          rootEl->adoptAsLastChild(info.createElement());
+        }
 
-      {
-        ICEGatherer::HostIPSorter::InterfaceNameMappingInfo info;
-        info.mInterfaceNameRegularExpression = "(?i)gigabit";     // ethernet
-        info.mInterfaceType = ICEGatherer::InterfaceType_LAN;
-        info.mOrderIndex = ORTC_ICEGATHERER_TO_ORDER(info.mInterfaceType, 15);
-        rootEl->adoptAsLastChild(info.createElement());
+        {
+          ICEGatherer::HostIPSorter::InterfaceNameMappingInfo info;
+          info.mInterfaceNameRegularExpression = "(?i)gigabit";     // ethernet
+          info.mInterfaceType = ICEGatherer::InterfaceType_LAN;
+          info.mOrderIndex = ORTC_ICEGATHERER_TO_ORDER(info.mInterfaceType, 15);
+          rootEl->adoptAsLastChild(info.createElement());
+        }
+        {
+          ICEGatherer::HostIPSorter::InterfaceNameMappingInfo info;
+          info.mInterfaceNameRegularExpression = "(?i)wwan";    // wireless wan
+          info.mInterfaceType = ICEGatherer::InterfaceType_WWAN;
+          info.mOrderIndex = ORTC_ICEGATHERER_TO_ORDER(info.mInterfaceType, 5);
+          rootEl->adoptAsLastChild(info.createElement());
+        }
+        {
+          ICEGatherer::HostIPSorter::InterfaceNameMappingInfo info;
+          info.mInterfaceNameRegularExpression = "(?i)wireless";    // wireless lan
+          info.mInterfaceType = ICEGatherer::InterfaceType_WLAN;
+          info.mOrderIndex = ORTC_ICEGATHERER_TO_ORDER(info.mInterfaceType, 5);
+          rootEl->adoptAsLastChild(info.createElement());
+        }
+        {
+          ICEGatherer::HostIPSorter::InterfaceNameMappingInfo info;
+          info.mInterfaceNameRegularExpression = "(?i)bluetooth";   // bluetooh network
+          info.mInterfaceType = ICEGatherer::InterfaceType_WLAN;
+          info.mOrderIndex = ORTC_ICEGATHERER_TO_ORDER(info.mInterfaceType, 15);
+          rootEl->adoptAsLastChild(info.createElement());
+        }
+        {
+          ICEGatherer::HostIPSorter::InterfaceNameMappingInfo info;
+          info.mInterfaceNameRegularExpression = "(?i)local area connection";   // lan
+          info.mInterfaceType = ICEGatherer::InterfaceType_LAN;
+          info.mOrderIndex = ORTC_ICEGATHERER_TO_ORDER(info.mInterfaceType, 25);
+          rootEl->adoptAsLastChild(info.createElement());
+        }
+        {
+          ICEGatherer::HostIPSorter::InterfaceNameMappingInfo info;
+          info.mInterfaceNameRegularExpression = "(?i)vmware";   // treat like vpn
+          info.mInterfaceType = ICEGatherer::InterfaceType_VPN;
+          info.mOrderIndex = ORTC_ICEGATHERER_TO_ORDER(info.mInterfaceType, 5);
+          rootEl->adoptAsLastChild(info.createElement());
+        }
+        {
+          ICEGatherer::HostIPSorter::InterfaceNameMappingInfo info;
+          info.mInterfaceNameRegularExpression = "(?i)ethernet";   // treat like lan
+          info.mInterfaceType = ICEGatherer::InterfaceType_LAN;
+          info.mOrderIndex = ORTC_ICEGATHERER_TO_ORDER(info.mInterfaceType, 23);
+          rootEl->adoptAsLastChild(info.createElement());
+        }
+        {
+          ICEGatherer::HostIPSorter::InterfaceNameMappingInfo info;
+          info.mInterfaceNameRegularExpression = "(?i)tunnel";   // tunneled network adapter
+          info.mInterfaceType = ICEGatherer::InterfaceType_Tunnel;
+          info.mOrderIndex = ORTC_ICEGATHERER_TO_ORDER(info.mInterfaceType, 15);
+          rootEl->adoptAsLastChild(info.createElement());
+        }
+        {
+          ICEGatherer::HostIPSorter::InterfaceNameMappingInfo info;
+          info.mInterfaceNameRegularExpression = ".*";   // catch-all
+          info.mInterfaceType = ICEGatherer::InterfaceType_Unknown;
+          info.mOrderIndex = 9999;
+          rootEl->adoptAsLastChild(info.createElement());
+        }
+
+        String mapping = IHelper::toString(rootEl);
+
+        ISettings::setString(ORTC_SETTING_GATHERER_INTERFACE_NAME_MAPPING, mapping);
+        ISettings::setUInt(ORTC_SETTING_GATHERER_USERNAME_FRAG_LENGTH, 80/5); // must be at least 80 bits
+        ISettings::setUInt(ORTC_SETTING_GATHERER_PASSWORD_LENGTH, 128/5);     // must be at least 128 bits
+
+        ISettings::setBool(ORTC_SETTING_GATHERER_CREATE_TCP_CANDIDATES, true);
+
+        {
+          UseBackOffTimerPatternPtr pattern = UseBackOffTimerPattern::create();
+          pattern->addNextRetryAfterFailureDuration(Seconds(1));
+          pattern->addNextRetryAfterFailureDuration(Seconds(1));
+          pattern->setMultiplierForLastRetryAfterFailureDuration(2.0);
+          pattern->setMaxRetryAfterFailureDuration(Seconds(120));
+          pattern->setMaxAttempts(6);
+
+          ISettings::setString(ORTC_SETTING_GATHERER_BIND_BACK_OFF_TIMER, pattern->save());
+        }
+
+        ISettings::setUInt(ORTC_SETTING_GATHERER_WARM_UP_TIME_AFTER_NEW_INTERFACE_IN_SECONDS, 30);
+
+        {
+          ICEGatherer::Preference pref(ICEGatherer::PreferenceType_Priority);
+          pref.save();
+        }
+        {
+          ICEGatherer::Preference pref(ICEGatherer::PreferenceType_Unfreeze);
+          pref.save();
+        }
+
+        ISettings::setUInt(ORTC_SETTING_GATHERER_DEFAULT_STUN_KEEP_ALIVE_IN_SECONDS, 30);
+
+        ISettings::setUInt(ORTC_SETTING_GATHERER_REFLEXIVE_INACTIVITY_TIMEOUT_IN_SECONDS, 60*2);
+        ISettings::setUInt(ORTC_SETTING_GATHERER_RELAY_INACTIVITY_TIMEOUT_IN_SECONDS, 60*2);
+        ISettings::setUInt(ORTC_SETTING_GATHERER_MAX_INCOMING_PACKET_BUFFERING_TIME_IN_SECONDS, 30);
+        ISettings::setUInt(ORTC_SETTING_GATHERER_MAX_TOTAL_INCOMING_PACKET_BUFFERING, 50);
+
+        ISettings::setUInt(ORTC_SETTING_GATHERER_MAX_PENDING_OUTGOING_TCP_SOCKET_BUFFERING_IN_BYTES, 100*1024); // max 100K
+        ISettings::setUInt(ORTC_SETTING_GATHERER_MAX_CONNECTED_TCP_SOCKET_BUFFERING_IN_BYTES, 10*1024);  // max 10K
+
+        ISettings::setUInt(ORTC_SETTING_GATHERER_CLEAN_UNUSED_ROUTES_NOT_USED_IN_SECONDS, 90);
+
+        ISettings::setBool(ORTC_SETTING_GATHERER_GATHER_PASSIVE_TCP_CANDIDATES, true);
+
+        ISettings::setUInt(ORTC_SETTING_GATHERER_RECHECK_IP_ADDRESSES_IN_SECONDS, 60);
       }
-      {
-        ICEGatherer::HostIPSorter::InterfaceNameMappingInfo info;
-        info.mInterfaceNameRegularExpression = "(?i)wwan";    // wireless wan
-        info.mInterfaceType = ICEGatherer::InterfaceType_WWAN;
-        info.mOrderIndex = ORTC_ICEGATHERER_TO_ORDER(info.mInterfaceType, 5);
-        rootEl->adoptAsLastChild(info.createElement());
-      }
-      {
-        ICEGatherer::HostIPSorter::InterfaceNameMappingInfo info;
-        info.mInterfaceNameRegularExpression = "(?i)wireless";    // wireless lan
-        info.mInterfaceType = ICEGatherer::InterfaceType_WLAN;
-        info.mOrderIndex = ORTC_ICEGATHERER_TO_ORDER(info.mInterfaceType, 5);
-        rootEl->adoptAsLastChild(info.createElement());
-      }
-      {
-        ICEGatherer::HostIPSorter::InterfaceNameMappingInfo info;
-        info.mInterfaceNameRegularExpression = "(?i)bluetooth";   // bluetooh network
-        info.mInterfaceType = ICEGatherer::InterfaceType_WLAN;
-        info.mOrderIndex = ORTC_ICEGATHERER_TO_ORDER(info.mInterfaceType, 15);
-        rootEl->adoptAsLastChild(info.createElement());
-      }
-      {
-        ICEGatherer::HostIPSorter::InterfaceNameMappingInfo info;
-        info.mInterfaceNameRegularExpression = "(?i)local area connection";   // lan
-        info.mInterfaceType = ICEGatherer::InterfaceType_LAN;
-        info.mOrderIndex = ORTC_ICEGATHERER_TO_ORDER(info.mInterfaceType, 25);
-        rootEl->adoptAsLastChild(info.createElement());
-      }
-      {
-        ICEGatherer::HostIPSorter::InterfaceNameMappingInfo info;
-        info.mInterfaceNameRegularExpression = "(?i)vmware";   // treat like vpn
-        info.mInterfaceType = ICEGatherer::InterfaceType_VPN;
-        info.mOrderIndex = ORTC_ICEGATHERER_TO_ORDER(info.mInterfaceType, 5);
-        rootEl->adoptAsLastChild(info.createElement());
-      }
-      {
-        ICEGatherer::HostIPSorter::InterfaceNameMappingInfo info;
-        info.mInterfaceNameRegularExpression = "(?i)ethernet";   // treat like lan
-        info.mInterfaceType = ICEGatherer::InterfaceType_LAN;
-        info.mOrderIndex = ORTC_ICEGATHERER_TO_ORDER(info.mInterfaceType, 23);
-        rootEl->adoptAsLastChild(info.createElement());
-      }
-      {
-        ICEGatherer::HostIPSorter::InterfaceNameMappingInfo info;
-        info.mInterfaceNameRegularExpression = "(?i)tunnel";   // tunneled network adapter
-        info.mInterfaceType = ICEGatherer::InterfaceType_Tunnel;
-        info.mOrderIndex = ORTC_ICEGATHERER_TO_ORDER(info.mInterfaceType, 15);
-        rootEl->adoptAsLastChild(info.createElement());
-      }
-      {
-        ICEGatherer::HostIPSorter::InterfaceNameMappingInfo info;
-        info.mInterfaceNameRegularExpression = ".*";   // catch-all
-        info.mInterfaceType = ICEGatherer::InterfaceType_Unknown;
-        info.mOrderIndex = 9999;
-        rootEl->adoptAsLastChild(info.createElement());
-      }
+      
+    };
 
-      String mapping = UseServicesHelper::toString(rootEl);
-
-      UseSettings::setString(ORTC_SETTING_GATHERER_INTERFACE_NAME_MAPPING, mapping);
-      UseSettings::setUInt(ORTC_SETTING_GATHERER_USERNAME_FRAG_LENGTH, 80/5); // must be at least 80 bits
-      UseSettings::setUInt(ORTC_SETTING_GATHERER_PASSWORD_LENGTH, 128/5);     // must be at least 128 bits
-
-      UseSettings::setBool(ORTC_SETTING_GATHERER_CREATE_TCP_CANDIDATES, true);
-
-      {
-        UseBackOffTimerPatternPtr pattern = UseBackOffTimerPattern::create();
-        pattern->addNextRetryAfterFailureDuration(Seconds(1));
-        pattern->addNextRetryAfterFailureDuration(Seconds(1));
-        pattern->setMultiplierForLastRetryAfterFailureDuration(2.0);
-        pattern->setMaxRetryAfterFailureDuration(Seconds(120));
-        pattern->setMaxAttempts(6);
-
-        UseSettings::setString(ORTC_SETTING_GATHERER_BIND_BACK_OFF_TIMER, pattern->save());
-      }
-
-      UseSettings::setUInt(ORTC_SETTING_GATHERER_WARM_UP_TIME_AFTER_NEW_INTERFACE_IN_SECONDS, 30);
-
-      {
-        ICEGatherer::Preference pref(ICEGatherer::PreferenceType_Priority);
-        pref.save();
-      }
-      {
-        ICEGatherer::Preference pref(ICEGatherer::PreferenceType_Unfreeze);
-        pref.save();
-      }
-
-      UseSettings::setUInt(ORTC_SETTING_GATHERER_DEFAULT_STUN_KEEP_ALIVE_IN_SECONDS, 30);
-
-      UseSettings::setUInt(ORTC_SETTING_GATHERER_REFLEXIVE_INACTIVITY_TIMEOUT_IN_SECONDS, 60*2);
-      UseSettings::setUInt(ORTC_SETTING_GATHERER_RELAY_INACTIVITY_TIMEOUT_IN_SECONDS, 60*2);
-      UseSettings::setUInt(ORTC_SETTING_GATHERER_MAX_INCOMING_PACKET_BUFFERING_TIME_IN_SECONDS, 30);
-      UseSettings::setUInt(ORTC_SETTING_GATHERER_MAX_TOTAL_INCOMING_PACKET_BUFFERING, 50);
-
-      UseSettings::setUInt(ORTC_SETTING_GATHERER_MAX_PENDING_OUTGOING_TCP_SOCKET_BUFFERING_IN_BYTES, 100*1024); // max 100K
-      UseSettings::setUInt(ORTC_SETTING_GATHERER_MAX_CONNECTED_TCP_SOCKET_BUFFERING_IN_BYTES, 10*1024);  // max 10K
-
-      UseSettings::setUInt(ORTC_SETTING_GATHERER_CLEAN_UNUSED_ROUTES_NOT_USED_IN_SECONDS, 90);
-
-      UseSettings::setBool(ORTC_SETTING_GATHERER_GATHER_PASSIVE_TCP_CANDIDATES, true);
-
-      UseSettings::setUInt(ORTC_SETTING_GATHERER_RECHECK_IP_ADDRESSES_IN_SECONDS, 60);
+    //-------------------------------------------------------------------------
+    void installICEGathererSettingsDefaults()
+    {
+      ICEGathererSettingsDefaults::singleton();
     }
+
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -523,23 +561,23 @@ namespace ortc
       SharedRecursiveLock(SharedRecursiveLock::create()),
       MessageQueueAssociator(options.mQueue),
       mGathererRouter(ICEGathererRouter::create()),
-      mUsernameFrag(options.mUsernameFragment.hasData() ? options.mUsernameFragment : UseServicesHelper::randomString(UseSettings::getUInt(ORTC_SETTING_GATHERER_USERNAME_FRAG_LENGTH))),
-      mPassword(options.mPassword.hasData() ? options.mPassword : UseServicesHelper::randomString(UseSettings::getUInt(ORTC_SETTING_GATHERER_PASSWORD_LENGTH))),
-      mCreateTCPCandidates(UseSettings::getBool(ORTC_SETTING_GATHERER_CREATE_TCP_CANDIDATES)),
+      mUsernameFrag(options.mUsernameFragment.hasData() ? options.mUsernameFragment : IHelper::randomString(ISettings::getUInt(ORTC_SETTING_GATHERER_USERNAME_FRAG_LENGTH))),
+      mPassword(options.mPassword.hasData() ? options.mPassword : IHelper::randomString(ISettings::getUInt(ORTC_SETTING_GATHERER_PASSWORD_LENGTH))),
+      mCreateTCPCandidates(ISettings::getBool(ORTC_SETTING_GATHERER_CREATE_TCP_CANDIDATES)),
       mOptions(options.mOptions),
       mComponent(options.mComponent),
       mRTPGatherer(options.mRTPGatherer),
-      mReflexiveInactivityTime(Seconds(UseSettings::getUInt(ORTC_SETTING_GATHERER_REFLEXIVE_INACTIVITY_TIMEOUT_IN_SECONDS))),
-      mRelayInactivityTime(Seconds(UseSettings::getUInt(ORTC_SETTING_GATHERER_RELAY_INACTIVITY_TIMEOUT_IN_SECONDS))),
-      mMaxBufferingTime(Seconds(UseSettings::getUInt(ORTC_SETTING_GATHERER_MAX_INCOMING_PACKET_BUFFERING_TIME_IN_SECONDS))),
-      mMaxTotalBuffers(UseSettings::getUInt(ORTC_SETTING_GATHERER_MAX_TOTAL_INCOMING_PACKET_BUFFERING)),
-      mMaxTCPBufferingSizePendingConnection(UseSettings::getUInt(ORTC_SETTING_GATHERER_MAX_PENDING_OUTGOING_TCP_SOCKET_BUFFERING_IN_BYTES)),
-      mMaxTCPBufferingSizeConnected(UseSettings::getUInt(ORTC_SETTING_GATHERER_MAX_CONNECTED_TCP_SOCKET_BUFFERING_IN_BYTES)),
-      mGatherPassiveTCP(UseSettings::getBool(ORTC_SETTING_GATHERER_GATHER_PASSIVE_TCP_CANDIDATES))
+      mReflexiveInactivityTime(Seconds(ISettings::getUInt(ORTC_SETTING_GATHERER_REFLEXIVE_INACTIVITY_TIMEOUT_IN_SECONDS))),
+      mRelayInactivityTime(Seconds(ISettings::getUInt(ORTC_SETTING_GATHERER_RELAY_INACTIVITY_TIMEOUT_IN_SECONDS))),
+      mMaxBufferingTime(Seconds(ISettings::getUInt(ORTC_SETTING_GATHERER_MAX_INCOMING_PACKET_BUFFERING_TIME_IN_SECONDS))),
+      mMaxTotalBuffers(ISettings::getUInt(ORTC_SETTING_GATHERER_MAX_TOTAL_INCOMING_PACKET_BUFFERING)),
+      mMaxTCPBufferingSizePendingConnection(ISettings::getUInt(ORTC_SETTING_GATHERER_MAX_PENDING_OUTGOING_TCP_SOCKET_BUFFERING_IN_BYTES)),
+      mMaxTCPBufferingSizeConnected(ISettings::getUInt(ORTC_SETTING_GATHERER_MAX_CONNECTED_TCP_SOCKET_BUFFERING_IN_BYTES)),
+      mGatherPassiveTCP(ISettings::getBool(ORTC_SETTING_GATHERER_GATHER_PASSIVE_TCP_CANDIDATES))
     {
       mSTUNPacketParseOptions = STUNPacket::ParseOptions(STUNPacket::RFC_AllowAll, false, "ortc::ICEGatherer", mID);
 
-      auto recheckIPsInSeconds = UseSettings::getUInt(ORTC_SETTING_GATHERER_RECHECK_IP_ADDRESSES_IN_SECONDS);
+      auto recheckIPsInSeconds = ISettings::getUInt(ORTC_SETTING_GATHERER_RECHECK_IP_ADDRESSES_IN_SECONDS);
 
       if (0 != recheckIPsInSeconds) {
         mRecheckIPsDuration = Seconds(recheckIPsInSeconds);
@@ -575,10 +613,10 @@ namespace ortc
       ZS_LOG_DETAIL(log("use candidate priority") + mPreferences[PreferenceType_Priority].toDebug())
       ZS_LOG_DETAIL(log("unfreeze candidate priority") + mPreferences[PreferenceType_Unfreeze].toDebug())
 
-      String networkOrder = UseSettings::getString(ORTC_SETTING_GATHERER_INTERFACE_NAME_MAPPING);
+      String networkOrder = ISettings::getString(ORTC_SETTING_GATHERER_INTERFACE_NAME_MAPPING);
       if (networkOrder.hasData()) {
 
-        ElementPtr rootEl = UseServicesHelper::toJSON(networkOrder);
+        ElementPtr rootEl = IHelper::toJSON(networkOrder);
         if (rootEl) {
           ElementPtr interfaceEl = rootEl->getFirstChildElement();
           while (interfaceEl) {
@@ -611,10 +649,10 @@ namespace ortc
 
       AutoRecursiveLock lock(*this);
 
-      auto cleanInSeconds = UseSettings::getUInt(ORTC_SETTING_GATHERER_CLEAN_UNUSED_ROUTES_NOT_USED_IN_SECONDS);
+      auto cleanInSeconds = ISettings::getUInt(ORTC_SETTING_GATHERER_CLEAN_UNUSED_ROUTES_NOT_USED_IN_SECONDS);
       if (0 != cleanInSeconds) {
         mCleanUnusedRoutesDuration = Seconds(cleanInSeconds);
-        mCleanUnusedRoutesTimer = Timer::create(mThisWeak.lock(), mCleanUnusedRoutesDuration);
+        mCleanUnusedRoutesTimer = ITimer::create(mThisWeak.lock(), mCleanUnusedRoutesDuration);
 
         ZS_LOG_DETAIL(log("setting up timer to clean unsed routes") + ZS_PARAM("clean duration (s)", mCleanUnusedRoutesDuration) + ZS_PARAM("timer", mCleanUnusedRoutesTimer->getID()))
       }
@@ -634,12 +672,6 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     ICEGathererPtr ICEGatherer::convert(IICEGathererPtr object)
-    {
-      return ZS_DYNAMIC_PTR_CAST(ICEGatherer, object);
-    }
-
-    //-------------------------------------------------------------------------
-    ICEGathererPtr ICEGatherer::convert(ForSettingsPtr object)
     {
       return ZS_DYNAMIC_PTR_CAST(ICEGatherer, object);
     }
@@ -1486,12 +1518,12 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void ICEGatherer::onTimer(TimerPtr timer)
+    void ICEGatherer::onTimer(ITimerPtr timer)
     {
       ZS_EVENTING_3(
                     x, i, Trace, IceGathererInternalTimerEvent, ol, IceGatherer, InternalEvent,
                     puid, id, mID,
-                    string, timerType, NULL,
+                    string, timerType, (const char *)NULL,
                     puid, relatedObjectId, 0
                     );
 
@@ -1644,7 +1676,7 @@ namespace ortc
             ZS_LOG_TRACE(log("no need to shutdown reflexive port at this time (still active)") + reflexivePort->toDebug() + ZS_PARAM("now", now));
 
             auto fireAt = reflexivePort->mLastActivity + mReflexiveInactivityTime;
-            reflexivePort->mInactivityTimer = Timer::create(mThisWeak.lock(), fireAt);
+            reflexivePort->mInactivityTimer = ITimer::create(mThisWeak.lock(), fireAt);
             mReflexiveInactivityTimers[reflexivePort->mInactivityTimer] = HostAndReflexivePortPair(hostPort, reflexivePort);
             return;
           }
@@ -1695,7 +1727,7 @@ namespace ortc
             ZS_LOG_TRACE(log("no need to shutdown relay port at this time (still active)") + relayPort->toDebug() + ZS_PARAM("now", now))
 
             auto fireAt = relayPort->mLastActivity + mRelayInactivityTime;
-            relayPort->mInactivityTimer = Timer::create(mThisWeak.lock(), fireAt);
+            relayPort->mInactivityTimer = ITimer::create(mThisWeak.lock(), fireAt);
             mRelayInactivityTimers[relayPort->mInactivityTimer] = HostAndRelayPortPair(hostPort, relayPort);
             return;
           }
@@ -2237,7 +2269,7 @@ namespace ortc
     Log::Params ICEGatherer::log(const char *message) const
     {
       ElementPtr objectEl = Element::create("ortc::ICEGatherer");
-      UseServicesHelper::debugAppend(objectEl, "id", mID);
+      IHelper::debugAppend(objectEl, "id", mID);
       return Log::Params(message, objectEl);
     }
 
@@ -2261,94 +2293,94 @@ namespace ortc
 
       ElementPtr resultEl = Element::create("ortc::ICEGatherer");
 
-      UseServicesHelper::debugAppend(resultEl, "id", mID);
+      IHelper::debugAppend(resultEl, "id", mID);
 
-      UseServicesHelper::debugAppend(resultEl, "gatherer router", ICEGathererRouter::toDebug(mGathererRouter));
+      IHelper::debugAppend(resultEl, "gatherer router", ICEGathererRouter::toDebug(mGathererRouter));
 
-      UseServicesHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
+      IHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
 
-      UseServicesHelper::debugAppend(resultEl, "subscribers", mSubscriptions.size());
-      UseServicesHelper::debugAppend(resultEl, "default subscription", (bool)mDefaultSubscription);
+      IHelper::debugAppend(resultEl, "subscribers", mSubscriptions.size());
+      IHelper::debugAppend(resultEl, "default subscription", (bool)mDefaultSubscription);
 
-      UseServicesHelper::debugAppend(resultEl, "internal state", toString(mCurrentState));
-      UseServicesHelper::debugAppend(resultEl, "state", IICEGathererTypes::toString(toState(mCurrentState)));
+      IHelper::debugAppend(resultEl, "internal state", toString(mCurrentState));
+      IHelper::debugAppend(resultEl, "state", IICEGathererTypes::toString(toState(mCurrentState)));
 
-      UseServicesHelper::debugAppend(resultEl, "error", mLastError);
-      UseServicesHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
+      IHelper::debugAppend(resultEl, "error", mLastError);
+      IHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
 
-      UseServicesHelper::debugAppend(resultEl, "component", mComponent);
-      UseServicesHelper::debugAppend(resultEl, "username frag", mUsernameFrag);
-      UseServicesHelper::debugAppend(resultEl, "password", mPassword);
+      IHelper::debugAppend(resultEl, "component", mComponent);
+      IHelper::debugAppend(resultEl, "username frag", mUsernameFrag);
+      IHelper::debugAppend(resultEl, "password", mPassword);
 
-      UseServicesHelper::debugAppend(resultEl, "options", mOptions.toDebug());
+      IHelper::debugAppend(resultEl, "options", mOptions.toDebug());
 
 
-      UseServicesHelper::debugAppend(resultEl, "interface mappings", mInterfaceMappings.size());
-      UseServicesHelper::debugAppend(resultEl, "create tcp candidates", mCreateTCPCandidates);
+      IHelper::debugAppend(resultEl, "interface mappings", mInterfaceMappings.size());
+      IHelper::debugAppend(resultEl, "create tcp candidates", mCreateTCPCandidates);
 
-      UseServicesHelper::debugAppend(resultEl, "get local ips now", mGetLocalIPsNow);
-      UseServicesHelper::debugAppend(resultEl, "recheck ips duration", mRecheckIPsDuration);
-      UseServicesHelper::debugAppend(resultEl, "recheck ips timer", mRecheckIPsTimer ? mRecheckIPsTimer->getID() : 0);
-      UseServicesHelper::debugAppend(resultEl, "pending host ips", mPendingHostIPs.size());
-      UseServicesHelper::debugAppend(resultEl, "resolved host ips", mResolvedHostIPs.size());
-      UseServicesHelper::debugAppend(resultEl, "resolve host ip queries", mResolveHostIPQueries.size());
+      IHelper::debugAppend(resultEl, "get local ips now", mGetLocalIPsNow);
+      IHelper::debugAppend(resultEl, "recheck ips duration", mRecheckIPsDuration);
+      IHelper::debugAppend(resultEl, "recheck ips timer", mRecheckIPsTimer ? mRecheckIPsTimer->getID() : 0);
+      IHelper::debugAppend(resultEl, "pending host ips", mPendingHostIPs.size());
+      IHelper::debugAppend(resultEl, "resolved host ips", mResolvedHostIPs.size());
+      IHelper::debugAppend(resultEl, "resolve host ip queries", mResolveHostIPQueries.size());
 
-      UseServicesHelper::debugAppend(resultEl, "hosts hash", mHostsHash);
-      UseServicesHelper::debugAppend(resultEl, "options hash", mOptionsHash);
+      IHelper::debugAppend(resultEl, "hosts hash", mHostsHash);
+      IHelper::debugAppend(resultEl, "options hash", mOptionsHash);
 
-      UseServicesHelper::debugAppend(resultEl, "default port", mDefaultPort);
+      IHelper::debugAppend(resultEl, "default port", mDefaultPort);
 
-      UseServicesHelper::debugAppend(resultEl, "last fixed host ports host hash", mLastFixedHostPortsHostsHash);
-      UseServicesHelper::debugAppend(resultEl, "last bound host ports host hash", mLastBoundHostPortsHostHash);
-      UseServicesHelper::debugAppend(resultEl, "last reflexive host hash", mLastReflexiveHostsHash);
-      UseServicesHelper::debugAppend(resultEl, "last relay host hash", mLastRelayHostsHash);
+      IHelper::debugAppend(resultEl, "last fixed host ports host hash", mLastFixedHostPortsHostsHash);
+      IHelper::debugAppend(resultEl, "last bound host ports host hash", mLastBoundHostPortsHostHash);
+      IHelper::debugAppend(resultEl, "last reflexive host hash", mLastReflexiveHostsHash);
+      IHelper::debugAppend(resultEl, "last relay host hash", mLastRelayHostsHash);
 
-      UseServicesHelper::debugAppend(resultEl, "host ports", mHostPorts.size());
-      UseServicesHelper::debugAppend(resultEl, "host port sockets", mHostPortSockets.size());
+      IHelper::debugAppend(resultEl, "host ports", mHostPorts.size());
+      IHelper::debugAppend(resultEl, "host port sockets", mHostPortSockets.size());
 
-      UseServicesHelper::debugAppend(resultEl, "stun discoveries", mSTUNDiscoveries.size());
-      UseServicesHelper::debugAppend(resultEl, "turn sockets", mTURNSockets.size());
-      UseServicesHelper::debugAppend(resultEl, "turn sockets shutting down", mShutdownTURNSockets.size());
+      IHelper::debugAppend(resultEl, "stun discoveries", mSTUNDiscoveries.size());
+      IHelper::debugAppend(resultEl, "turn sockets", mTURNSockets.size());
+      IHelper::debugAppend(resultEl, "turn sockets shutting down", mShutdownTURNSockets.size());
 
-      UseServicesHelper::debugAppend(resultEl, "has stun servers options hash", mHasSTUNServersOptionsHash);
-      UseServicesHelper::debugAppend(resultEl, "has stun servers", mHasSTUNServers);
+      IHelper::debugAppend(resultEl, "has stun servers options hash", mHasSTUNServersOptionsHash);
+      IHelper::debugAppend(resultEl, "has stun servers", mHasSTUNServers);
 
-      UseServicesHelper::debugAppend(resultEl, "has turn servers options hash", mHasTURNServersOptionsHash);
-      UseServicesHelper::debugAppend(resultEl, "has turn servers", mHasSTUNServers);
+      IHelper::debugAppend(resultEl, "has turn servers options hash", mHasTURNServersOptionsHash);
+      IHelper::debugAppend(resultEl, "has turn servers", mHasSTUNServers);
 
-      UseServicesHelper::debugAppend(resultEl, "last local preference", mLastLocalPreference.size());
+      IHelper::debugAppend(resultEl, "last local preference", mLastLocalPreference.size());
 
-      UseServicesHelper::debugAppend(resultEl, "notified candidates", mNotifiedCandidates.size());
-      UseServicesHelper::debugAppend(resultEl, "local candidates", mLocalCandidates.size());
+      IHelper::debugAppend(resultEl, "notified candidates", mNotifiedCandidates.size());
+      IHelper::debugAppend(resultEl, "local candidates", mLocalCandidates.size());
 
-      UseServicesHelper::debugAppend(resultEl, "keep warm since just created", mKeepWarmSinceJustCreated);
+      IHelper::debugAppend(resultEl, "keep warm since just created", mKeepWarmSinceJustCreated);
 
-      UseServicesHelper::debugAppend(resultEl, "warm up after new interface binding hosts hash", mWarmUpAfterNewInterfaceBindingHostsHash);
-      UseServicesHelper::debugAppend(resultEl, "warm up after new interface binding until", mWarmUpAfterNewInterfaceBindingUntil);
-      UseServicesHelper::debugAppend(resultEl, "warm up after new interface binding timre", mWarmUpAterNewInterfaceBindingTimer ? mWarmUpAterNewInterfaceBindingTimer->getID() : 0);
+      IHelper::debugAppend(resultEl, "warm up after new interface binding hosts hash", mWarmUpAfterNewInterfaceBindingHostsHash);
+      IHelper::debugAppend(resultEl, "warm up after new interface binding until", mWarmUpAfterNewInterfaceBindingUntil);
+      IHelper::debugAppend(resultEl, "warm up after new interface binding timre", mWarmUpAterNewInterfaceBindingTimer ? mWarmUpAterNewInterfaceBindingTimer->getID() : 0);
 
-      UseServicesHelper::debugAppend(resultEl, "reflexive inactive time", mReflexiveInactivityTime);
-      UseServicesHelper::debugAppend(resultEl, "reflexive inactive timers", mReflexiveInactivityTimers.size());
+      IHelper::debugAppend(resultEl, "reflexive inactive time", mReflexiveInactivityTime);
+      IHelper::debugAppend(resultEl, "reflexive inactive timers", mReflexiveInactivityTimers.size());
 
-      UseServicesHelper::debugAppend(resultEl, "relay inactive time", mRelayInactivityTime);
-      UseServicesHelper::debugAppend(resultEl, "relay inactive timers", mRelayInactivityTimers.size());
+      IHelper::debugAppend(resultEl, "relay inactive time", mRelayInactivityTime);
+      IHelper::debugAppend(resultEl, "relay inactive timers", mRelayInactivityTimers.size());
 
-      UseServicesHelper::debugAppend(resultEl, "tcp ports", mTCPPorts.size());
-      UseServicesHelper::debugAppend(resultEl, "tcp candidate to tcp ports", mTCPCandidateToTCPPorts.size());
-      UseServicesHelper::debugAppend(resultEl, "max tcp buffering size pending connection", mMaxTCPBufferingSizePendingConnection);
-      UseServicesHelper::debugAppend(resultEl, "max tcp buffering size connected", mMaxTCPBufferingSizeConnected);
+      IHelper::debugAppend(resultEl, "tcp ports", mTCPPorts.size());
+      IHelper::debugAppend(resultEl, "tcp candidate to tcp ports", mTCPCandidateToTCPPorts.size());
+      IHelper::debugAppend(resultEl, "max tcp buffering size pending connection", mMaxTCPBufferingSizePendingConnection);
+      IHelper::debugAppend(resultEl, "max tcp buffering size connected", mMaxTCPBufferingSizeConnected);
 
-      UseServicesHelper::debugAppend(resultEl, "clean up buffering timer", mCleanUpBufferingTimer ? mCleanUpBufferingTimer->getID() : 0);
-      UseServicesHelper::debugAppend(resultEl, "max buffering time", mMaxBufferingTime);
-      UseServicesHelper::debugAppend(resultEl, "max total buffers", mMaxTotalBuffers);
-      UseServicesHelper::debugAppend(resultEl, "buffered packets", mBufferedPackets.size());
+      IHelper::debugAppend(resultEl, "clean up buffering timer", mCleanUpBufferingTimer ? mCleanUpBufferingTimer->getID() : 0);
+      IHelper::debugAppend(resultEl, "max buffering time", mMaxBufferingTime);
+      IHelper::debugAppend(resultEl, "max total buffers", mMaxTotalBuffers);
+      IHelper::debugAppend(resultEl, "buffered packets", mBufferedPackets.size());
 
-      UseServicesHelper::debugAppend(resultEl, "quick search routes", mQuickSearchRoutes.size());
-      UseServicesHelper::debugAppend(resultEl, "routes", mRoutes.size());
-      UseServicesHelper::debugAppend(resultEl, "clean unused routes timer", mCleanUnusedRoutesTimer ? mCleanUnusedRoutesTimer->getID() : 0);
-      UseServicesHelper::debugAppend(resultEl, "clean unused routes duration", mCleanUnusedRoutesDuration);
+      IHelper::debugAppend(resultEl, "quick search routes", mQuickSearchRoutes.size());
+      IHelper::debugAppend(resultEl, "routes", mRoutes.size());
+      IHelper::debugAppend(resultEl, "clean unused routes timer", mCleanUnusedRoutesTimer ? mCleanUnusedRoutesTimer->getID() : 0);
+      IHelper::debugAppend(resultEl, "clean unused routes duration", mCleanUnusedRoutesDuration);
 
-      UseServicesHelper::debugAppend(resultEl, "installed transports", mInstalledTransports.size());
+      IHelper::debugAppend(resultEl, "installed transports", mInstalledTransports.size());
 
       return resultEl;
     }
@@ -2446,7 +2478,7 @@ namespace ortc
       }
 
       ZS_LOG_DEBUG(log("creating a recheck ip timer") + ZS_PARAM("recheck duration (s)", mRecheckIPsDuration))
-      mRecheckIPsTimer = Timer::create(mThisWeak.lock(), mRecheckIPsDuration);
+      mRecheckIPsTimer = ITimer::create(mThisWeak.lock(), mRecheckIPsDuration);
       return true;
     }
 
@@ -2959,8 +2991,8 @@ namespace ortc
                             x, i, Trace, IceGathererResolveFoundHostIP, ol, IceGatherer, Info,
                             puid, id, mID,
                             string, hostIp, ip.string(),
-                            string, hostName, NULL,
-                            string, interfaceName, NULL,
+                            string, hostName, (const char *)NULL,
+                            string, interfaceName, (const char *)NULL,
                             ulong, adapterSpecific, 0
                             );
 
@@ -3006,7 +3038,7 @@ namespace ortc
                         x, i, Trace, IceGathererResolveFoundHostIP, ol, IceGatherer, Info,
                         puid, id, mID,
                         string, hostIp, ip.string(),
-                        string, hostName, NULL,
+                        string, hostName, (const char *)NULL,
                         string, interfaceName, ifa->ifa_name,
                         ulong, adapterSpecific, ifa->ifa_flags
                         );
@@ -3044,17 +3076,17 @@ namespace ortc
 
       ZS_LOG_DEBUG(log("--- GATHERING HOST IPs: START ---"))
 
-      SHA1Hasher hasher;
+      auto hasher = IHasher::sha1();
 
       for (auto iter = mResolvedHostIPs.begin(); iter != mResolvedHostIPs.end(); ++iter) {
         auto data = (*iter);
         ZS_LOG_DEBUG(log("found host IP") + ZS_PARAM("ip", data->mIP.string()))
 
-        hasher.update(data->mIP.string());
-        hasher.update(":");
+        hasher->update(data->mIP.string());
+        hasher->update(":");
       }
 
-      mHostsHash = hasher.final();
+      mHostsHash = hasher->finalizeAsString();
 
       ZS_LOG_DEBUG(log("--- GATHERING HOST IPs: END ---") + ZS_PARAM("hash", mHostsHash))
       return true;
@@ -3165,7 +3197,7 @@ namespace ortc
         if (!hostPort->mBoundUDPSocket) {
           bool firstAttempt = false;
           if (!hostPort->mBindUDPBackOffTimer) {
-            hostPort->mBindUDPBackOffTimer = UseBackOffTimer::create(UseSettings::getString(ORTC_SETTING_GATHERER_BIND_BACK_OFF_TIMER), mThisWeak.lock());
+            hostPort->mBindUDPBackOffTimer = UseBackOffTimer::create(ISettings::getString(ORTC_SETTING_GATHERER_BIND_BACK_OFF_TIMER), mThisWeak.lock());
             firstAttempt = true;
           }
 
@@ -3215,7 +3247,7 @@ namespace ortc
           if (!hostPort->mBoundTCPSocket) {
             bool firstAttempt = false;
             if (!hostPort->mBindTCPBackOffTimer) {
-              hostPort->mBindTCPBackOffTimer = UseBackOffTimer::create(UseSettings::getString(ORTC_SETTING_GATHERER_BIND_BACK_OFF_TIMER), mThisWeak.lock());
+              hostPort->mBindTCPBackOffTimer = UseBackOffTimer::create(ISettings::getString(ORTC_SETTING_GATHERER_BIND_BACK_OFF_TIMER), mThisWeak.lock());
               firstAttempt = true;
             }
 
@@ -3410,9 +3442,9 @@ namespace ortc
 
       mWarmUpAfterNewInterfaceBindingHostsHash = mHostsHash;
 
-      mWarmUpAfterNewInterfaceBindingUntil = zsLib::now() + Seconds(UseSettings::getUInt(ORTC_SETTING_GATHERER_WARM_UP_TIME_AFTER_NEW_INTERFACE_IN_SECONDS));
+      mWarmUpAfterNewInterfaceBindingUntil = zsLib::now() + Seconds(ISettings::getUInt(ORTC_SETTING_GATHERER_WARM_UP_TIME_AFTER_NEW_INTERFACE_IN_SECONDS));
 
-      mWarmUpAterNewInterfaceBindingTimer = Timer::create(mThisWeak.lock(), mWarmUpAfterNewInterfaceBindingUntil);
+      mWarmUpAterNewInterfaceBindingTimer = ITimer::create(mThisWeak.lock(), mWarmUpAfterNewInterfaceBindingUntil);
 
       // force the reflexive / relay to be setup again (if needed)
       mLastReflexiveHostsHash.clear();
@@ -3555,7 +3587,7 @@ namespace ortc
 
               Seconds keepAliveTime {};
 
-              auto keepAliveInSeconds = UseSettings::getUInt(ORTC_SETTING_GATHERER_DEFAULT_STUN_KEEP_ALIVE_IN_SECONDS);
+              auto keepAliveInSeconds = ISettings::getUInt(ORTC_SETTING_GATHERER_DEFAULT_STUN_KEEP_ALIVE_IN_SECONDS);
               if (0 != keepAliveInSeconds) {
                 keepAliveTime = Seconds(keepAliveInSeconds);
               }
@@ -3570,7 +3602,7 @@ namespace ortc
               options.mLookupType = lookup;
               options.mKeepWarmPingTime = keepAliveTime;
 
-              reflexivePort->mSTUNDiscovery = UseSTUNDiscovery::create(UseServicesHelper::getServiceQueue(), mThisWeak.lock(), options);
+              reflexivePort->mSTUNDiscovery = UseSTUNDiscovery::create(IHelper::getServiceQueue(), mThisWeak.lock(), options);
               ZS_THROW_UNEXPECTED_ERROR_IF(!reflexivePort->mSTUNDiscovery)
 
               mSTUNDiscoveries[reflexivePort->mSTUNDiscovery] = HostAndReflexivePortPair(hostPort, reflexivePort);
@@ -3686,7 +3718,7 @@ namespace ortc
 
           if (!reflexivePort->mInactivityTimer) {
             Time fireAt = reflexivePort->mLastActivity + mReflexiveInactivityTime;
-            reflexivePort->mInactivityTimer = Timer::create(mThisWeak.lock(), fireAt);
+            reflexivePort->mInactivityTimer = ITimer::create(mThisWeak.lock(), fireAt);
             mReflexiveInactivityTimers[reflexivePort->mInactivityTimer] = HostAndReflexivePortPair(hostPort, reflexivePort);
             ZS_LOG_TRACE(log("setup reflexive inactivity timeout") + ZS_PARAMIZE(fireAt) + reflexivePort->toDebug())
           }
@@ -3868,7 +3900,7 @@ namespace ortc
               options.mLookupType = lookup;
               options.mUseChannelBinding = true;
 
-              relayPort->mTURNSocket = UseTURNSocket::create(UseServicesHelper::getServiceQueue(), mThisWeak.lock(), options);
+              relayPort->mTURNSocket = UseTURNSocket::create(IHelper::getServiceQueue(), mThisWeak.lock(), options);
               ZS_THROW_UNEXPECTED_ERROR_IF(!relayPort->mTURNSocket);
 
               ZS_LOG_DEBUG(log("turn socket created") + ZS_PARAM("turn socket", relayPort->mTURNSocket->getID()) + ZS_PARAM("source ip", hostPort->mBoundUDPIP.string()) + hostPort->toDebug())
@@ -4049,7 +4081,7 @@ namespace ortc
 
           if (!relayPort->mInactivityTimer) {
             Time fireAt = relayPort->mLastActivity + mRelayInactivityTime;
-            relayPort->mInactivityTimer = Timer::create(mThisWeak.lock(), fireAt);
+            relayPort->mInactivityTimer = ITimer::create(mThisWeak.lock(), fireAt);
             mRelayInactivityTimers[relayPort->mInactivityTimer] = HostAndRelayPortPair(hostPort, relayPort);
             ZS_LOG_TRACE(log("setup relay inactivity timeout") + ZS_PARAMIZE(fireAt) + relayPort->toDebug())
           }
@@ -4329,7 +4361,7 @@ namespace ortc
     {
       if (state == mCurrentState) return;
 
-      ZS_LOG_DEBUG(log("state changed") + ZS_PARAM("new state", toString(state)) + ZS_PARAM("old state", toString(mCurrentState)))
+      ZS_LOG_DEBUG(log("state changed") + ZS_PARAM("new state", toString(state)) + ZS_PARAM("old state", toString(mCurrentState)));
 
       auto oldState = toState(mCurrentState);
       auto newState = toState(state);
@@ -5880,7 +5912,7 @@ namespace ortc
                       x, i, Trace, IceGathererDeliverIceTransportIncomingStunPacket, ol, IceGatherer, Deliver,
                       puid, id, mID,
                       puid, iceTransportId, transport->getID(),
-                      puid, routeId, ((bool)route) ? route->mID : 0,
+                      puid, routeId, ((bool)route) ? route->mID : static_cast<PUID>(0),
                       puid, routerRouteId, routerRoute->mID,
                       bool, wasBuffered, false
                       );
@@ -5901,9 +5933,9 @@ namespace ortc
         ZS_EVENTING_4(
                       x, e, Debug, IceGathererErrorIceTransportIncomingStunPacket, ol, IceGatherer, Receive,
                       puid, id, mID,
-                      puid, iceTransportId, transport ? transport->getID() : 0,
-                      puid, routeId, ((bool)route) ? route->mID : 0,
-                      puid, routerRouteId, routerRoute ? routerRoute->mID : 0
+                      puid, iceTransportId, transport ? transport->getID() : static_cast<PUID>(0),
+                      puid, routeId, ((bool)route) ? route->mID : static_cast<PUID>(0),
+                      puid, routerRouteId, routerRoute ? routerRoute->mID : static_cast<PUID>(0)
                       );
 
         ZS_LOG_ERROR(Debug, log("candidate password integrity failed") + ZS_PARAM("request", stunPacket->toDebug()) + ZS_PARAM("reply", response->toDebug()))
@@ -5940,7 +5972,7 @@ namespace ortc
         mBufferedPackets.push_back(packet);
 
         if (!mCleanUpBufferingTimer) {
-          mCleanUpBufferingTimer = Timer::create(mThisWeak.lock(), Seconds(1));
+          mCleanUpBufferingTimer = ITimer::create(mThisWeak.lock(), Seconds(1));
         }
       }
       return SecureByteBlockPtr();
@@ -6006,7 +6038,7 @@ namespace ortc
         BufferedPacketPtr packet(make_shared<BufferedPacket>());
         packet->mTimestamp = zsLib::now();
         packet->mRouterRoute = routerRoute;
-        packet->mBuffer = UseServicesHelper::convertToBuffer(buffer, bufferSizeInBytes);
+        packet->mBuffer = IHelper::convertToBuffer(buffer, bufferSizeInBytes);
 
         ZS_EVENTING_6(
                       x, i, Trace, IceGathererBufferIceTransportIncomingPacket, ol, IceGatherer, Buffer,
@@ -6022,7 +6054,7 @@ namespace ortc
         mBufferedPackets.push_back(packet);
         
         if (!mCleanUpBufferingTimer) {
-          mCleanUpBufferingTimer = Timer::create(mThisWeak.lock(), Seconds(1));
+          mCleanUpBufferingTimer = ITimer::create(mThisWeak.lock(), Seconds(1));
         }
       }
     }
@@ -6770,17 +6802,17 @@ namespace ortc
     {
       ElementPtr resultEl = Element::create("ortc::ICEGatherer::HostIPSorter::Data");
 
-      UseServicesHelper::debugAppend(resultEl, "interface name", mInterfaceName);
-      UseServicesHelper::debugAppend(resultEl, "interface description", mInterfaceDescription);
-      UseServicesHelper::debugAppend(resultEl, "interface type", toString(mInterfaceType));
-      UseServicesHelper::debugAppend(resultEl, "filter policy", IICEGathererTypes::toString(mFilterPolicy));
+      IHelper::debugAppend(resultEl, "interface name", mInterfaceName);
+      IHelper::debugAppend(resultEl, "interface description", mInterfaceDescription);
+      IHelper::debugAppend(resultEl, "interface type", toString(mInterfaceType));
+      IHelper::debugAppend(resultEl, "filter policy", IICEGathererTypes::toString(mFilterPolicy));
 
-      UseServicesHelper::debugAppend(resultEl, "host name", mHostName);
-      UseServicesHelper::debugAppend(resultEl, "ip", mIP.string());
-      UseServicesHelper::debugAppend(resultEl, "order id", mOrderIndex);
-      UseServicesHelper::debugAppend(resultEl, "adapter metric", mAdapterMetric);
-      UseServicesHelper::debugAppend(resultEl, "index", mIndex);
-      UseServicesHelper::debugAppend(resultEl, "temporary ip", mIsTemporaryIP);
+      IHelper::debugAppend(resultEl, "host name", mHostName);
+      IHelper::debugAppend(resultEl, "ip", mIP.string());
+      IHelper::debugAppend(resultEl, "order id", mOrderIndex);
+      IHelper::debugAppend(resultEl, "adapter metric", mAdapterMetric);
+      IHelper::debugAppend(resultEl, "index", mIndex);
+      IHelper::debugAppend(resultEl, "temporary ip", mIsTemporaryIP);
 
       return resultEl;
     }
@@ -6800,9 +6832,9 @@ namespace ortc
 
       if (!el) return info;
 
-      info.mInterfaceNameRegularExpression = UseServicesHelper::getElementTextAndDecode(el->findFirstChildElement("nameRegEx"));
-      info.mInterfaceType =  toInterfaceType(UseServicesHelper::getElementTextAndDecode(el->findFirstChildElement("type")));
-      String order = UseServicesHelper::getElementText(el->findFirstChildElement("order"));
+      info.mInterfaceNameRegularExpression = IHelper::getElementTextAndDecode(el->findFirstChildElement("nameRegEx"));
+      info.mInterfaceType =  toInterfaceType(IHelper::getElementTextAndDecode(el->findFirstChildElement("type")));
+      String order = IHelper::getElementText(el->findFirstChildElement("order"));
       try {
         info.mOrderIndex = Numeric<decltype(info.mOrderIndex)>(order);
       } catch(const Numeric<decltype(info.mOrderIndex)>::ValueOutOfRange &) {
@@ -6818,13 +6850,13 @@ namespace ortc
       ElementPtr rootEl = Element::create(objectName);
 
       if (mInterfaceNameRegularExpression.hasData()) {
-        rootEl->adoptAsLastChild(UseServicesHelper::createElementWithTextAndJSONEncode("nameRegEx", mInterfaceNameRegularExpression));
+        rootEl->adoptAsLastChild(IHelper::createElementWithTextAndJSONEncode("nameRegEx", mInterfaceNameRegularExpression));
       }
       if (InterfaceType_Unknown != mInterfaceType) {
-        rootEl->adoptAsLastChild(UseServicesHelper::createElementWithTextAndJSONEncode("type", toString(mInterfaceType)));
+        rootEl->adoptAsLastChild(IHelper::createElementWithTextAndJSONEncode("type", toString(mInterfaceType)));
       }
       if (0 != mOrderIndex) {
-        rootEl->adoptAsLastChild(UseServicesHelper::createElementWithNumber("order", string(mOrderIndex)));
+        rootEl->adoptAsLastChild(IHelper::createElementWithNumber("order", string(mOrderIndex)));
       }
       return rootEl;
     }
@@ -6856,16 +6888,16 @@ namespace ortc
     {
       ElementPtr resultEl = Element::create("ortc::ICEGatherer::ReflexivePort");
 
-      UseServicesHelper::debugAppend(resultEl, "id", mID);
+      IHelper::debugAppend(resultEl, "id", mID);
 
-      UseServicesHelper::debugAppend(resultEl, mServer.toDebug());
-      UseServicesHelper::debugAppend(resultEl, "stun discovery", UseSTUNDiscovery::toDebug(mSTUNDiscovery));
+      IHelper::debugAppend(resultEl, mServer.toDebug());
+      IHelper::debugAppend(resultEl, "stun discovery", UseSTUNDiscovery::toDebug(mSTUNDiscovery));
 
-      UseServicesHelper::debugAppend(resultEl, "options hash", mOptionsHash);
-      UseServicesHelper::debugAppend(resultEl, mCandidate ? mCandidate->toDebug() : ElementPtr());
+      IHelper::debugAppend(resultEl, "options hash", mOptionsHash);
+      IHelper::debugAppend(resultEl, mCandidate ? mCandidate->toDebug() : ElementPtr());
 
-      UseServicesHelper::debugAppend(resultEl, "last activity", mLastActivity);
-      UseServicesHelper::debugAppend(resultEl, "inactivity timer", mInactivityTimer ? mInactivityTimer->getID() : 0);
+      IHelper::debugAppend(resultEl, "last activity", mLastActivity);
+      IHelper::debugAppend(resultEl, "inactivity timer", mInactivityTimer ? mInactivityTimer->getID() : 0);
 
       return resultEl;
     }
@@ -6883,17 +6915,17 @@ namespace ortc
     {
       ElementPtr resultEl = Element::create("ortc::ICEGatherer::RelayPort");
 
-      UseServicesHelper::debugAppend(resultEl, "id", mID);
+      IHelper::debugAppend(resultEl, "id", mID);
 
-      UseServicesHelper::debugAppend(resultEl, mServer.toDebug());
-      UseServicesHelper::debugAppend(resultEl, "turn socket", UseTURNSocket::toDebug(mTURNSocket));
+      IHelper::debugAppend(resultEl, mServer.toDebug());
+      IHelper::debugAppend(resultEl, "turn socket", UseTURNSocket::toDebug(mTURNSocket));
 
-      UseServicesHelper::debugAppend(resultEl, "options hash", mOptionsHash);
-      UseServicesHelper::debugAppend(resultEl, "relay candidate", mRelayCandidate ? mRelayCandidate->toDebug() : ElementPtr());
-      UseServicesHelper::debugAppend(resultEl, "reflexive candidate", mRelayCandidate ? mRelayCandidate->toDebug() : ElementPtr());
+      IHelper::debugAppend(resultEl, "options hash", mOptionsHash);
+      IHelper::debugAppend(resultEl, "relay candidate", mRelayCandidate ? mRelayCandidate->toDebug() : ElementPtr());
+      IHelper::debugAppend(resultEl, "reflexive candidate", mRelayCandidate ? mRelayCandidate->toDebug() : ElementPtr());
 
-      UseServicesHelper::debugAppend(resultEl, "last activity", mLastActivity);
-      UseServicesHelper::debugAppend(resultEl, "inactivity timer", mInactivityTimer ? mInactivityTimer->getID() : 0);
+      IHelper::debugAppend(resultEl, "last activity", mLastActivity);
+      IHelper::debugAppend(resultEl, "inactivity timer", mInactivityTimer ? mInactivityTimer->getID() : 0);
 
       return resultEl;
     }
@@ -6911,33 +6943,33 @@ namespace ortc
     {
       ElementPtr resultEl = Element::create("ortc::ICEGatherer::HostPort");
 
-      UseServicesHelper::debugAppend(resultEl, "id", mID);
+      IHelper::debugAppend(resultEl, "id", mID);
 
-      UseServicesHelper::debugAppend(resultEl, mHostData->toDebug());
+      IHelper::debugAppend(resultEl, mHostData->toDebug());
 
-      UseServicesHelper::debugAppend(resultEl, "options hash", mBoundOptionsHash);
+      IHelper::debugAppend(resultEl, "options hash", mBoundOptionsHash);
 
-      UseServicesHelper::debugAppend(resultEl, "candidate udp", mCandidateUDP ? mCandidateUDP->toDebug() : ElementPtr());
-      UseServicesHelper::debugAppend(resultEl, "bound udp ip", mBoundUDPIP.string());
-      UseServicesHelper::debugAppend(resultEl, "bound udp socket", string(mBoundUDPSocket));
-      UseServicesHelper::debugAppend(resultEl, "udp back off timer", UseBackOffTimer::toDebug(mBindUDPBackOffTimer));
+      IHelper::debugAppend(resultEl, "candidate udp", mCandidateUDP ? mCandidateUDP->toDebug() : ElementPtr());
+      IHelper::debugAppend(resultEl, "bound udp ip", mBoundUDPIP.string());
+      IHelper::debugAppend(resultEl, "bound udp socket", string(mBoundUDPSocket));
+      IHelper::debugAppend(resultEl, "udp back off timer", UseBackOffTimer::toDebug(mBindUDPBackOffTimer));
 
-      UseServicesHelper::debugAppend(resultEl, "passive candidate tcp", mCandidateTCPPassive ? mCandidateTCPPassive->toDebug() : ElementPtr());
-      UseServicesHelper::debugAppend(resultEl, "active candidate tcp", mCandidateTCPActive ? mCandidateTCPActive->toDebug() : ElementPtr());
-      UseServicesHelper::debugAppend(resultEl, "bound udp ip", mBoundTCPIP.string());
-      UseServicesHelper::debugAppend(resultEl, "bound tcp socket", string(mBoundTCPSocket));
-      UseServicesHelper::debugAppend(resultEl, "tcp back off timer", UseBackOffTimer::toDebug(mBindTCPBackOffTimer));
+      IHelper::debugAppend(resultEl, "passive candidate tcp", mCandidateTCPPassive ? mCandidateTCPPassive->toDebug() : ElementPtr());
+      IHelper::debugAppend(resultEl, "active candidate tcp", mCandidateTCPActive ? mCandidateTCPActive->toDebug() : ElementPtr());
+      IHelper::debugAppend(resultEl, "bound udp ip", mBoundTCPIP.string());
+      IHelper::debugAppend(resultEl, "bound tcp socket", string(mBoundTCPSocket));
+      IHelper::debugAppend(resultEl, "tcp back off timer", UseBackOffTimer::toDebug(mBindTCPBackOffTimer));
 
-      UseServicesHelper::debugAppend(resultEl, "warm up after binding", mWarmUpAfterBinding);
+      IHelper::debugAppend(resultEl, "warm up after binding", mWarmUpAfterBinding);
 
-      UseServicesHelper::debugAppend(resultEl, "reflexive options hash", mReflexiveOptionsHash);
-      UseServicesHelper::debugAppend(resultEl, "reflexive ports", mReflexivePorts.size());
+      IHelper::debugAppend(resultEl, "reflexive options hash", mReflexiveOptionsHash);
+      IHelper::debugAppend(resultEl, "reflexive ports", mReflexivePorts.size());
 
-      UseServicesHelper::debugAppend(resultEl, "relay options hash", mRelayOptionsHash);
-      UseServicesHelper::debugAppend(resultEl, "relay ports", mRelayPorts.size());
-      UseServicesHelper::debugAppend(resultEl, "ip to relay port mapping", mIPToRelayPortMapping.size());
+      IHelper::debugAppend(resultEl, "relay options hash", mRelayOptionsHash);
+      IHelper::debugAppend(resultEl, "relay ports", mRelayPorts.size());
+      IHelper::debugAppend(resultEl, "ip to relay port mapping", mIPToRelayPortMapping.size());
 
-      UseServicesHelper::debugAppend(resultEl, "tcp ports", mTCPPorts.size());
+      IHelper::debugAppend(resultEl, "tcp ports", mTCPPorts.size());
 
       return resultEl;
     }
@@ -6955,20 +6987,20 @@ namespace ortc
     {
       ElementPtr resultEl = Element::create("ortc::ICEGatherer::TCPPort");
 
-      UseServicesHelper::debugAppend(resultEl, "id", mID);
+      IHelper::debugAppend(resultEl, "id", mID);
 
-      UseServicesHelper::debugAppend(resultEl, "connected", mConnected);
+      IHelper::debugAppend(resultEl, "connected", mConnected);
 
-      UseServicesHelper::debugAppend(resultEl, "candidate", mCandidate ? mCandidate->toDebug() : ElementPtr());
+      IHelper::debugAppend(resultEl, "candidate", mCandidate ? mCandidate->toDebug() : ElementPtr());
 
-      UseServicesHelper::debugAppend(resultEl, "remote ip", mRemoteIP.string());
-      UseServicesHelper::debugAppend(resultEl, "socket", string(mSocket));
-      UseServicesHelper::debugAppend(resultEl, "incoming buffer", mIncomingBuffer.CurrentSize());
-      UseServicesHelper::debugAppend(resultEl, "outgoing buffer", mOutgoingBuffer.CurrentSize());
+      IHelper::debugAppend(resultEl, "remote ip", mRemoteIP.string());
+      IHelper::debugAppend(resultEl, "socket", string(mSocket));
+      IHelper::debugAppend(resultEl, "incoming buffer", mIncomingBuffer.CurrentSize());
+      IHelper::debugAppend(resultEl, "outgoing buffer", mOutgoingBuffer.CurrentSize());
 
-      UseServicesHelper::debugAppend(resultEl, "transport id", mTransportID);
+      IHelper::debugAppend(resultEl, "transport id", mTransportID);
       UseICETransportPtr transport = mTransport.lock();
-      UseServicesHelper::debugAppend(resultEl, "ice transport", transport ? transport->getID() : 0);
+      IHelper::debugAppend(resultEl, "ice transport", transport ? transport->getID() : 0);
 
       return resultEl;
     }
@@ -6986,14 +7018,14 @@ namespace ortc
     {
       ElementPtr resultEl = Element::create("ortc::ICEGatherer::BufferedPacket");
 
-      UseServicesHelper::debugAppend(resultEl, "timestamp", mTimestamp);
+      IHelper::debugAppend(resultEl, "timestamp", mTimestamp);
 
-      UseServicesHelper::debugAppend(resultEl, mRouterRoute ? mRouterRoute->toDebug() : ElementPtr());
+      IHelper::debugAppend(resultEl, mRouterRoute ? mRouterRoute->toDebug() : ElementPtr());
 
-      UseServicesHelper::debugAppend(resultEl, "stun packet", (bool)mSTUNPacket);
-      UseServicesHelper::debugAppend(resultEl, "rfrag", mRFrag);
+      IHelper::debugAppend(resultEl, "stun packet", (bool)mSTUNPacket);
+      IHelper::debugAppend(resultEl, "rfrag", mRFrag);
 
-      UseServicesHelper::debugAppend(resultEl, "buffer", mBuffer ? mBuffer->SizeInBytes() : 0);
+      IHelper::debugAppend(resultEl, "buffer", mBuffer ? mBuffer->SizeInBytes() : 0);
 
       return resultEl;
     }
@@ -7018,9 +7050,9 @@ namespace ortc
                        puid, outerObjectId, mOuterObjectID,
                        duration, lastUsed, zsLib::timeSinceEpoch<Milliseconds>(mLastUsed).count(),
                        puid, transportId, mTransportID,
-                       word, hostPort, mHostPort ? mHostPort->mID : 0,
-                       word, relayPort, mRelayPort ? mRelayPort->mID : 0,
-                       puid, tcpPortId, mTCPPort ? mTCPPort->mID : 0,
+                       word, hostPort, mHostPort ? mHostPort->mID : static_cast<WORD>(0),
+                       word, relayPort, mRelayPort ? mRelayPort->mID : static_cast<WORD>(0),
+                       puid, tcpPortId, mTCPPort ? mTCPPort->mID : static_cast<PUID>(0),
                        string, interfaceType, mLocalCandidate->mInterfaceType,
                        string, foundation, mLocalCandidate->mFoundation,
                        dword, priority, mLocalCandidate->mPriority,
@@ -7043,20 +7075,20 @@ namespace ortc
                        puid, outerObjectId, mOuterObjectID,
                        duration, lastUsed, zsLib::timeSinceEpoch<Milliseconds>(mLastUsed).count(),
                        puid, transportId, mTransportID,
-                       word, hostPort, mHostPort ? mHostPort->mID : 0,
-                       word, relayPort, mRelayPort ? mRelayPort->mID : 0,
-                       puid, tcpPortId, mTCPPort ? mTCPPort->mID : 0,
-                       string, interfaceType, NULL,
-                       string, foundation, NULL,
-                       dword, priority, 0,
-                       dword, unfreezePriority, 0,
-                       string, protocol, NULL,
-                       string, ip, NULL,
-                       word, port, 0,
-                       string, candidateType, NULL,
-                       string, tcpType, NULL,
-                       string, relatedAddress, NULL,
-                       word, relatedPort, 0
+                       word, hostPort, mHostPort ? mHostPort->mID : static_cast<WORD>(0),
+                       word, relayPort, mRelayPort ? mRelayPort->mID : static_cast<WORD>(0),
+                       puid, tcpPortId, mTCPPort ? mTCPPort->mID : static_cast<PUID>(0),
+                       string, interfaceType, (const char *)NULL,
+                       string, foundation, (const char *)NULL,
+                       dword, priority, static_cast<DWORD>(0),
+                       dword, unfreezePriority, static_cast<DWORD>(0),
+                       string, protocol, (const char *)NULL,
+                       string, ip, (const char *)NULL,
+                       word, port, static_cast<WORD>(0),
+                       string, candidateType, (const char *)NULL,
+                       string, tcpType, (const char *)NULL,
+                       string, relatedAddress, (const char *)NULL,
+                       word, relatedPort, static_cast<WORD>(0)
                        );
 
       }
@@ -7068,20 +7100,20 @@ namespace ortc
     {
       ElementPtr resultEl = Element::create("ortc::ICEGatherer::Route");
 
-      UseServicesHelper::debugAppend(resultEl, "id", mID);
+      IHelper::debugAppend(resultEl, "id", mID);
 
-      UseServicesHelper::debugAppend(resultEl, mRouterRoute ? mRouterRoute->toDebug() : ElementPtr());
+      IHelper::debugAppend(resultEl, mRouterRoute ? mRouterRoute->toDebug() : ElementPtr());
 
-      UseServicesHelper::debugAppend(resultEl, "last used", mLastUsed);
-      UseServicesHelper::debugAppend(resultEl, "local candidate", mLocalCandidate ? mLocalCandidate->toDebug() : ElementPtr());
+      IHelper::debugAppend(resultEl, "last used", mLastUsed);
+      IHelper::debugAppend(resultEl, "local candidate", mLocalCandidate ? mLocalCandidate->toDebug() : ElementPtr());
 
       UseICETransportPtr transport = mTransport.lock();
-      UseServicesHelper::debugAppend(resultEl, "transport id", mTransportID);
-      UseServicesHelper::debugAppend(resultEl, "ice transport", transport ? transport->getID() : 0);
+      IHelper::debugAppend(resultEl, "transport id", mTransportID);
+      IHelper::debugAppend(resultEl, "ice transport", transport ? transport->getID() : 0);
 
-      UseServicesHelper::debugAppend(resultEl, "host port", mHostPort ? mHostPort->toDebug() : ElementPtr());
-      UseServicesHelper::debugAppend(resultEl, "relay port", mRelayPort ? mRelayPort->toDebug() : ElementPtr());
-      UseServicesHelper::debugAppend(resultEl, "tcp port", mTCPPort ? mTCPPort->toDebug() : ElementPtr());
+      IHelper::debugAppend(resultEl, "host port", mHostPort ? mHostPort->toDebug() : ElementPtr());
+      IHelper::debugAppend(resultEl, "relay port", mRelayPort ? mRelayPort->toDebug() : ElementPtr());
+      IHelper::debugAppend(resultEl, "tcp port", mTCPPort ? mTCPPort->toDebug() : ElementPtr());
 
       return resultEl;
     }
@@ -7100,8 +7132,8 @@ namespace ortc
       ElementPtr resultEl = Element::create("ortc::ICEGatherer::InstalledTransport");
 
       UseICETransportPtr transport = mTransport.lock();
-      UseServicesHelper::debugAppend(resultEl, "transport id", mTransportID);
-      UseServicesHelper::debugAppend(resultEl, "ice transport", transport ? transport->getID() : 0);
+      IHelper::debugAppend(resultEl, "transport id", mTransportID);
+      IHelper::debugAppend(resultEl, "ice transport", transport ? transport->getID() : 0);
 
       return resultEl;
     }
@@ -7226,7 +7258,7 @@ namespace ortc
       getSettingsPrefixes(candidateTypeStr, protocolTypeStr, interfaceTypeStr, addressFamilyStr);
 
       for (auto loop = zsLib::to_underlying(IICETypes::CandidateType_First); loop <= IICETypes::CandidateType_Last; ++loop) {
-        mCandidateTypePreferences[loop] = static_cast<DWORD>(UseSettings::getUInt((String(candidateTypeStr) + IICETypes::toString(static_cast<IICETypes::CandidateTypes>(loop))).c_str()));
+        mCandidateTypePreferences[loop] = static_cast<DWORD>(ISettings::getUInt((String(candidateTypeStr) + IICETypes::toString(static_cast<IICETypes::CandidateTypes>(loop))).c_str()));
         ZS_EVENTING_5(
                       x, i, Detail, IceGathererInitializeInstallPreference, ol, IceGatherer, Initialization,
                       puid, outerObjectId, mOuterObjectID,
@@ -7239,7 +7271,7 @@ namespace ortc
         ZS_LOG_DEBUG(log("candidate type preference") + ZS_PARAM("type", ICEGatherer::toString(mType)) + ZS_PARAM("candidate type", IICETypes::toString(static_cast<IICETypes::CandidateTypes>(loop))) + ZS_PARAM("preference", mCandidateTypePreferences[loop]))
       }
       for (auto loop = zsLib::to_underlying(IICETypes::Protocol_First); loop <= IICETypes::Protocol_Last; ++loop) {
-        mProtocolTypePreferences[loop] = static_cast<DWORD>(UseSettings::getUInt((String(protocolTypeStr) + IICETypes::toString(static_cast<IICETypes::Protocols>(loop))).c_str()));
+        mProtocolTypePreferences[loop] = static_cast<DWORD>(ISettings::getUInt((String(protocolTypeStr) + IICETypes::toString(static_cast<IICETypes::Protocols>(loop))).c_str()));
         ZS_EVENTING_5(
                       x, i, Detail, IceGathererInitializeInstallPreference, ol, IceGatherer, Initialization,
                       puid, outerObjectId, mOuterObjectID,
@@ -7251,7 +7283,7 @@ namespace ortc
         ZS_LOG_DEBUG(log("protocol type preference") + ZS_PARAM("type", ICEGatherer::toString(mType)) + ZS_PARAM("protocol", IICETypes::toString(static_cast<IICETypes::Protocols>(loop))) + ZS_PARAM("preference", mProtocolTypePreferences[loop]))
       }
       for (auto loop = zsLib::to_underlying(ICEGatherer::InterfaceType_First); loop <= ICEGatherer::InterfaceType_Last; ++loop) {
-        mInterfaceTypePreferences[loop] = static_cast<DWORD>(UseSettings::getUInt((String(interfaceTypeStr) + ICEGatherer::toString(static_cast<ICEGatherer::InterfaceTypes>(loop))).c_str()));
+        mInterfaceTypePreferences[loop] = static_cast<DWORD>(ISettings::getUInt((String(interfaceTypeStr) + ICEGatherer::toString(static_cast<ICEGatherer::InterfaceTypes>(loop))).c_str()));
         ZS_EVENTING_5(
                       x, i, Detail, IceGathererInitializeInstallPreference, ol, IceGatherer, Initialization,
                       puid, outerObjectId, mOuterObjectID,
@@ -7263,7 +7295,7 @@ namespace ortc
         ZS_LOG_DEBUG(log("interface type preference") + ZS_PARAM("type", ICEGatherer::toString(mType)) + ZS_PARAM("interface type", ICEGatherer::toString(static_cast<ICEGatherer::InterfaceTypes>(loop))) + ZS_PARAM("preference", mInterfaceTypePreferences[loop]))
       }
       for (auto loop = zsLib::to_underlying(ICEGatherer::AddressFamily_First); loop <= ICEGatherer::AddressFamily_Last; ++loop) {
-        mAddressFamilyPreferences[loop] = static_cast<DWORD>(UseSettings::getUInt((String(addressFamilyStr) + ICEGatherer::toString(static_cast<ICEGatherer::AddressFamilies>(loop))).c_str()));
+        mAddressFamilyPreferences[loop] = static_cast<DWORD>(ISettings::getUInt((String(addressFamilyStr) + ICEGatherer::toString(static_cast<ICEGatherer::AddressFamilies>(loop))).c_str()));
         ZS_EVENTING_5(
                       x, i, Detail, IceGathererInitializeInstallPreference, ol, IceGatherer, Initialization,
                       puid, outerObjectId, mOuterObjectID,
@@ -7286,16 +7318,16 @@ namespace ortc
       getSettingsPrefixes(candidateTypeStr, protocolTypeStr, interfaceTypeStr, addressFamilyStr);
 
       for (size_t loop = IICETypes::CandidateType_First; loop <= IICETypes::CandidateType_Last; ++loop) {
-        UseSettings::setUInt((String(candidateTypeStr) + IICETypes::toString(static_cast<IICETypes::CandidateTypes>(loop))).c_str(), mCandidateTypePreferences[loop]);
+        ISettings::setUInt((String(candidateTypeStr) + IICETypes::toString(static_cast<IICETypes::CandidateTypes>(loop))).c_str(), mCandidateTypePreferences[loop]);
       }
       for (size_t loop = IICETypes::Protocol_First; loop <= IICETypes::Protocol_Last; ++loop) {
-        UseSettings::setUInt((String(protocolTypeStr) + IICETypes::toString(static_cast<IICETypes::Protocols>(loop))).c_str(), mProtocolTypePreferences[loop]);
+        ISettings::setUInt((String(protocolTypeStr) + IICETypes::toString(static_cast<IICETypes::Protocols>(loop))).c_str(), mProtocolTypePreferences[loop]);
       }
       for (size_t loop = ICEGatherer::InterfaceType_First; loop <= ICEGatherer::InterfaceType_Last; ++loop) {
-        UseSettings::setUInt((String(interfaceTypeStr) + ICEGatherer::toString(static_cast<ICEGatherer::InterfaceTypes>(loop))).c_str(), mInterfaceTypePreferences[loop]);
+        ISettings::setUInt((String(interfaceTypeStr) + ICEGatherer::toString(static_cast<ICEGatherer::InterfaceTypes>(loop))).c_str(), mInterfaceTypePreferences[loop]);
       }
       for (size_t loop = ICEGatherer::AddressFamily_First; loop <= ICEGatherer::AddressFamily_Last; ++loop) {
-        UseSettings::setUInt((String(addressFamilyStr) + ICEGatherer::toString(static_cast<ICEGatherer::AddressFamilies>(loop))).c_str(), mAddressFamilyPreferences[loop]);
+        ISettings::setUInt((String(addressFamilyStr) + ICEGatherer::toString(static_cast<ICEGatherer::AddressFamilies>(loop))).c_str(), mAddressFamilyPreferences[loop]);
       }
     }
 
@@ -7303,7 +7335,7 @@ namespace ortc
     Log::Params ICEGatherer::Preference::log(const char *message) const
     {
       ElementPtr objectEl = Element::create("ortc::ICEGatherer::Preference");
-      UseServicesHelper::debugAppend(objectEl, "id", mOuterObjectID);
+      IHelper::debugAppend(objectEl, "id", mOuterObjectID);
       return Log::Params(message, objectEl);
     }
 
@@ -7324,16 +7356,16 @@ namespace ortc
       ElementPtr addressFamiliesEl = Element::create("addressFamilies");
 
       for (size_t loop = IICETypes::CandidateType_First; loop <= IICETypes::CandidateType_Last; ++loop) {
-        UseServicesHelper::debugAppend(candidatesEl, (String(candidateTypeStr) + IICETypes::toString(static_cast<IICETypes::CandidateTypes>(loop))).c_str(), mCandidateTypePreferences[loop]);
+        IHelper::debugAppend(candidatesEl, (String(candidateTypeStr) + IICETypes::toString(static_cast<IICETypes::CandidateTypes>(loop))).c_str(), mCandidateTypePreferences[loop]);
       }
       for (size_t loop = IICETypes::Protocol_First; loop <= IICETypes::Protocol_Last; ++loop) {
-        UseServicesHelper::debugAppend(protocolsEl, (String(protocolTypeStr) + IICETypes::toString(static_cast<IICETypes::Protocols>(loop))).c_str(), mProtocolTypePreferences[loop]);
+        IHelper::debugAppend(protocolsEl, (String(protocolTypeStr) + IICETypes::toString(static_cast<IICETypes::Protocols>(loop))).c_str(), mProtocolTypePreferences[loop]);
       }
       for (size_t loop = ICEGatherer::InterfaceType_First; loop <= ICEGatherer::InterfaceType_Last; ++loop) {
-        UseServicesHelper::debugAppend(interfacesEl, (String(interfaceTypeStr) + ICEGatherer::toString(static_cast<ICEGatherer::InterfaceTypes>(loop))).c_str(), mInterfaceTypePreferences[loop]);
+        IHelper::debugAppend(interfacesEl, (String(interfaceTypeStr) + ICEGatherer::toString(static_cast<ICEGatherer::InterfaceTypes>(loop))).c_str(), mInterfaceTypePreferences[loop]);
       }
       for (size_t loop = ICEGatherer::AddressFamily_First; loop <= ICEGatherer::AddressFamily_Last; ++loop) {
-        UseServicesHelper::debugAppend(addressFamiliesEl, (String(addressFamilyStr) + ICEGatherer::toString(static_cast<ICEGatherer::AddressFamilies>(loop))).c_str(), mAddressFamilyPreferences[loop]);
+        IHelper::debugAppend(addressFamiliesEl, (String(addressFamilyStr) + ICEGatherer::toString(static_cast<ICEGatherer::AddressFamilies>(loop))).c_str(), mAddressFamilyPreferences[loop]);
       }
 
       resultEl->adoptAsLastChild(candidatesEl);
@@ -7516,8 +7548,8 @@ namespace ortc
   {
     String policyStr(filters);
 
-    UseServicesHelper::SplitMap splits;
-    UseServicesHelper::split(policyStr, splits, ',');
+    IHelper::SplitMap splits;
+    IHelper::split(policyStr, splits, ',');
 
     IICEGathererTypes::FilterPolicies result = FilterPolicy_None;
 
@@ -7579,7 +7611,7 @@ namespace ortc
     if (!elem) return;
 
     {
-      String str = UseServicesHelper::getElementText(elem->findFirstChildElement("continuousGathering"));
+      String str = IHelper::getElementText(elem->findFirstChildElement("continuousGathering"));
       if (str.hasData()) {
         try {
           mContinuousGathering = Numeric<decltype(mContinuousGathering)>(str);
@@ -7599,7 +7631,7 @@ namespace ortc
         interfacePolicyEl = interfacePolicyEl->findNextSiblingElement("interfacePolicy");
       }
     } else {
-      String gatherPolicy = UseServicesHelper::getElementText(elem->findFirstChildElement("gatherPolicy"));
+      String gatherPolicy = IHelper::getElementText(elem->findFirstChildElement("gatherPolicy"));
       if (gatherPolicy.hasData()) {
         InterfacePolicy policy;
         if ("all" == gatherPolicy) {
@@ -7632,7 +7664,7 @@ namespace ortc
   {
     ElementPtr elem = Element::create(objectName);
 
-    elem->adoptAsLastChild(UseServicesHelper::createElementWithNumber("continuousGathering",  string(mContinuousGathering)));
+    elem->adoptAsLastChild(IHelper::createElementWithNumber("continuousGathering",  string(mContinuousGathering)));
 
     if (mInterfacePolicies.size() > 0) {
       ElementPtr interfacePoliciesEl = Element::create("interfacePolicies");
@@ -7671,22 +7703,22 @@ namespace ortc
   //---------------------------------------------------------------------------
   String IICEGathererTypes::Options::hash() const
   {
-    SHA1Hasher hasher;
+    auto hasher = IHasher::sha1();
 
-    hasher.update(mContinuousGathering ? "Options:true:policy:" : "Options:false:policy:");
+    hasher->update(mContinuousGathering ? "Options:true:policy:" : "Options:false:policy:");
     for (auto iter = mInterfacePolicies.begin(); iter != mInterfacePolicies.end(); ++iter) {
       auto policy = (*iter);
-      hasher.update(policy.hash());
-      hasher.update(":");
+      hasher->update(policy.hash());
+      hasher->update(":");
     }
-    hasher.update("servers:");
+    hasher->update("servers:");
     for (auto iter = mICEServers.begin(); iter != mICEServers.end(); ++iter) {
       auto server = (*iter);
-      hasher.update(server.hash());
-      hasher.update(":");
+      hasher->update(server.hash());
+      hasher->update(":");
     }
 
-    return hasher.final();
+    return hasher->finalizeAsString();
   }
 
   //---------------------------------------------------------------------------
@@ -7708,19 +7740,19 @@ namespace ortc
       ElementPtr urlEl = urlsEl->findFirstChildElement("url");
       if (urlEl) {
         while (urlEl) {
-          mURLs.push_back(UseServicesHelper::getElementTextAndDecode(urlEl));
+          mURLs.push_back(IHelper::getElementTextAndDecode(urlEl));
           urlEl = urlEl->findNextSiblingElement("iceServer");
         }
       } else {
-        mURLs.push_back(UseServicesHelper::getElementTextAndDecode(urlsEl));
+        mURLs.push_back(IHelper::getElementTextAndDecode(urlsEl));
       }
     }
 
-    mUserName = UseServicesHelper::getElementTextAndDecode(elem->findFirstChildElement("username"));
-    mCredential = UseServicesHelper::getElementTextAndDecode(elem->findFirstChildElement("credential"));
+    mUserName = IHelper::getElementTextAndDecode(elem->findFirstChildElement("username"));
+    mCredential = IHelper::getElementTextAndDecode(elem->findFirstChildElement("credential"));
 
     {
-      String str = UseServicesHelper::getElementText(elem->findFirstChildElement("credentialType"));
+      String str = IHelper::getElementText(elem->findFirstChildElement("credentialType"));
       if (str.hasData()) {
         try {
           mCredentialType = IICEGathererTypes::toCredentialType(str);
@@ -7742,24 +7774,24 @@ namespace ortc
 
         for (auto iter = mURLs.begin(); iter != mURLs.end(); ++iter) {
           auto url = (*iter);
-          urlsEl->adoptAsLastChild(UseServicesHelper::createElementWithTextAndJSONEncode("url", url));
+          urlsEl->adoptAsLastChild(IHelper::createElementWithTextAndJSONEncode("url", url));
         }
 
         elem->adoptAsLastChild(urlsEl);
       } else {
         auto url = mURLs.front();
-        elem->adoptAsLastChild(UseServicesHelper::createElementWithTextAndJSONEncode("urls",  url));
+        elem->adoptAsLastChild(IHelper::createElementWithTextAndJSONEncode("urls",  url));
       }
     }
 
     if (mUserName.hasData()) {
-      elem->adoptAsLastChild(UseServicesHelper::createElementWithTextAndJSONEncode("username",  mUserName));
+      elem->adoptAsLastChild(IHelper::createElementWithTextAndJSONEncode("username",  mUserName));
     }
     if (mCredential.hasData()) {
-      elem->adoptAsLastChild(UseServicesHelper::createElementWithTextAndJSONEncode("credential",  mCredential));
+      elem->adoptAsLastChild(IHelper::createElementWithTextAndJSONEncode("credential",  mCredential));
     }
 
-    elem->adoptAsLastChild(UseServicesHelper::createElementWithText("credentialType", toString(mCredentialType)));
+    elem->adoptAsLastChild(IHelper::createElementWithText("credentialType", toString(mCredentialType)));
 
     if (!elem->hasChildren()) return ElementPtr();
     
@@ -7775,22 +7807,22 @@ namespace ortc
   //---------------------------------------------------------------------------
   String IICEGathererTypes::Server::hash() const
   {
-    SHA1Hasher hasher;
+    auto hasher = IHasher::sha1();
 
-    hasher.update("Server:");
+    hasher->update("Server:");
     for (auto iter = mURLs.begin(); iter != mURLs.end(); ++iter) {
       auto url = (*iter);
-      hasher.update(url);
-      hasher.update(":");
+      hasher->update(url);
+      hasher->update(":");
     }
-    hasher.update("credentials:");
-    hasher.update(mUserName);
-    hasher.update(":");
-    hasher.update(mCredential);
-    hasher.update(":");
-    hasher.update(toString(mCredentialType));
+    hasher->update("credentials:");
+    hasher->update(mUserName);
+    hasher->update(":");
+    hasher->update(mCredential);
+    hasher->update(":");
+    hasher->update(toString(mCredentialType));
 
-    return hasher.final();
+    return hasher->finalizeAsString();
   }
 
   //---------------------------------------------------------------------------
@@ -7809,7 +7841,7 @@ namespace ortc
     UseHelper::getElementValue(elem, "ortc::IICEGathererTypes::InterfacePolicy", "interfaceType", mInterfaceType);
 
     {
-      String str = UseServicesHelper::getElementText(elem->findFirstChildElement("gatherPolicy"));
+      String str = IHelper::getElementText(elem->findFirstChildElement("gatherPolicy"));
       if (str.hasData()) {
         try {
           mGatherPolicy = toPolicy(str);
@@ -7843,13 +7875,13 @@ namespace ortc
   //---------------------------------------------------------------------------
   String IICEGathererTypes::InterfacePolicy::hash() const
   {
-    SHA1Hasher hasher;
+    auto hasher = IHasher::sha1();
 
-    hasher.update("InterfacePolicy:");
-    hasher.update(mInterfaceType);
-    hasher.update(":");
-    hasher.update(toString(mGatherPolicy));
-    return hasher.final();
+    hasher->update("InterfacePolicy:");
+    hasher->update(mInterfaceType);
+    hasher->update(":");
+    hasher->update(toString(mGatherPolicy));
+    return hasher->finalizeAsString();
   }
 
   //---------------------------------------------------------------------------
@@ -7908,19 +7940,19 @@ namespace ortc
   //---------------------------------------------------------------------------
   String IICEGathererTypes::ErrorEvent::hash() const
   {
-    SHA1Hasher hasher;
+    auto hasher = IHasher::sha1();
 
-    hasher.update("ErrorEvent:");
+    hasher->update("ErrorEvent:");
     if (mHostCandidate) {
-      hasher.update(mHostCandidate->hash());
+      hasher->update(mHostCandidate->hash());
     }
-    hasher.update(":");
-    hasher.update(mURL);
-    hasher.update(":");
-    hasher.update(mErrorCode);
-    hasher.update(":");
-    hasher.update(mErrorText);
-    return hasher.final();
+    hasher->update(":");
+    hasher->update(mURL);
+    hasher->update(":");
+    hasher->update(mErrorCode);
+    hasher->update(":");
+    hasher->update(mErrorText);
+    return hasher->finalizeAsString();
   }
 
 

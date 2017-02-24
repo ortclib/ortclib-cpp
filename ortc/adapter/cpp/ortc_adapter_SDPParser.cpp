@@ -36,7 +36,7 @@
 
 #include <ortc/internal/ortc_Helper.h>
 
-#include <ortc/services/IHelper.h>
+#include <ortc/adapter/IHelper.h>
 
 #include <zsLib/Log.h>
 #include <zsLib/Numeric.h>
@@ -58,13 +58,6 @@ namespace ortc
   {
     using zsLib::Stringize;
     using zsLib::Numeric;
-
-    ZS_DECLARE_TYPEDEF_PTR(ortc::internal::Helper, UseHelper);
-    ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHelper, UseServicesHelper);
-
-    ZS_DECLARE_TYPEDEF_PTR(ortc::adapter::IHelper, UseAdapterHelper);
-
-    typedef ortc::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
 
     namespace internal
     {
@@ -581,8 +574,8 @@ namespace ortc
       ISDPTypes::ProtocolTypes ISDPTypes::toProtocolType(const char *proto)
       {
         String str(proto);
-        UseServicesHelper::SplitMap protoSplit;
-        UseServicesHelper::split(str, protoSplit, "/");
+        IHelper::SplitMap protoSplit;
+        IHelper::split(str, protoSplit, "/");
         ORTC_THROW_INVALID_PARAMETERS_IF(protoSplit.size() < 2);
 
         if (0 == protoSplit[0].compareNoCase("RTP")) {
@@ -605,7 +598,7 @@ namespace ortc
 
         if (0 == protoSplit[1].compareNoCase("DTLS")) {
           if (0 != protoSplit[2].compareNoCase("SCTP")) return ProtocolType_Unknown;
-          return ProtocolType_Unknown;
+          return ProtocolType_SCTP;
         }
 
         if (protoSplit.size() < 4) return ProtocolType_Unknown;
@@ -640,9 +633,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       ISDPTypes::OLine::OLine(const char *value)
       {
-        UseServicesHelper::SplitMap split;
-        UseServicesHelper::split(String(value), split, " ");
-        UseServicesHelper::splitPruneEmpty(split);
+        IHelper::SplitMap split;
+        IHelper::split(String(value), split, " ");
+        IHelper::splitPruneEmpty(split);
         ORTC_THROW_INVALID_PARAMETERS_IF(6 != split.size());
 
         mUsername = split[0];
@@ -692,10 +685,10 @@ namespace ortc
         MediaLine(mline)
       {
         String str(value);
-        UseServicesHelper::SplitMap split;
-        UseServicesHelper::split(String(value), split, ":");
-        UseServicesHelper::splitTrim(split);
-        UseServicesHelper::splitPruneEmpty(split);
+        IHelper::SplitMap split;
+        IHelper::split(String(value), split, ":");
+        IHelper::splitTrim(split);
+        IHelper::splitPruneEmpty(split);
         ORTC_THROW_INVALID_PARAMETERS_IF(2 != split.size());
 
         mBWType = split[0];
@@ -709,9 +702,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       ISDPTypes::TLine::TLine(const char *value)
       {
-        UseServicesHelper::SplitMap split;
-        UseServicesHelper::split(String(value), split, " ");
-        UseServicesHelper::splitPruneEmpty(split);
+        IHelper::SplitMap split;
+        IHelper::split(String(value), split, " ");
+        IHelper::splitPruneEmpty(split);
         ORTC_THROW_INVALID_PARAMETERS_IF(2 != split.size());
 
         try {
@@ -729,10 +722,10 @@ namespace ortc
       //-----------------------------------------------------------------------
       ISDPTypes::MLine::MLine(const char *value)
       {
-        UseServicesHelper::SplitMap split;
-        UseServicesHelper::split(String(value), split, " ");
-        UseServicesHelper::splitTrim(split);
-        UseServicesHelper::splitPruneEmpty(split);
+        IHelper::SplitMap split;
+        IHelper::split(String(value), split, " ");
+        IHelper::splitTrim(split);
+        IHelper::splitPruneEmpty(split);
         ORTC_THROW_INVALID_PARAMETERS_IF(split.size() < 3);
 
         mMedia = split[0];
@@ -741,10 +734,10 @@ namespace ortc
 
         // fix port
         {
-          UseServicesHelper::SplitMap portSplit;
-          UseServicesHelper::split(split[1], portSplit, "/");
-          UseServicesHelper::splitTrim(portSplit);
-          UseServicesHelper::splitPruneEmpty(portSplit);
+          IHelper::SplitMap portSplit;
+          IHelper::split(split[1], portSplit, "/");
+          IHelper::splitTrim(portSplit);
+          IHelper::splitPruneEmpty(portSplit);
           ORTC_THROW_INVALID_PARAMETERS_IF(portSplit.size() > 2);
           ORTC_THROW_INVALID_PARAMETERS_IF(portSplit.size() < 1);
 
@@ -782,7 +775,7 @@ namespace ortc
         result.append(" ");
         result.append(mProtoStr);
         result.append(" ");
-        result.append(UseServicesHelper::combine(mFmts, " "));
+        result.append(IHelper::combine(mFmts, " "));
         return result;
       }
 
@@ -790,9 +783,9 @@ namespace ortc
       ISDPTypes::CLine::CLine(MLinePtr mline, const char *value) :
         MediaLine(mline)
       {
-        UseServicesHelper::SplitMap split;
-        UseServicesHelper::split(String(value), split, " ");
-        UseServicesHelper::splitPruneEmpty(split);
+        IHelper::SplitMap split;
+        IHelper::split(String(value), split, " ");
+        IHelper::splitPruneEmpty(split);
         ORTC_THROW_INVALID_PARAMETERS_IF(3 != split.size());
 
         mNetType = split[0];
@@ -823,9 +816,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       ISDPTypes::AGroupLine::AGroupLine(const char *value)
       {
-        UseServicesHelper::SplitMap split;
-        UseServicesHelper::split(String(value), split, " ");
-        UseServicesHelper::splitPruneEmpty(split);
+        IHelper::SplitMap split;
+        IHelper::split(String(value), split, " ");
+        IHelper::splitPruneEmpty(split);
         ORTC_THROW_INVALID_PARAMETERS_IF(split.size() < 1);
 
         mSemantic = split[0];
@@ -844,7 +837,7 @@ namespace ortc
         String result("group:");
         result.append(mSemantic);
         result.append(" ");
-        result.append(UseServicesHelper::combine(mIdentificationTags, " "));
+        result.append(IHelper::combine(mIdentificationTags, " "));
         return result;
       }
 
@@ -852,9 +845,9 @@ namespace ortc
       ISDPTypes::AMSIDLine::AMSIDLine(MLinePtr mline, const char *value) :
         AMediaLine(mline)
       {
-        UseServicesHelper::SplitMap split;
-        UseServicesHelper::split(String(value), split, " ");
-        UseServicesHelper::splitPruneEmpty(split);
+        IHelper::SplitMap split;
+        IHelper::split(String(value), split, " ");
+        IHelper::splitPruneEmpty(split);
         ORTC_THROW_INVALID_PARAMETERS_IF(split.size() < 1);
         ORTC_THROW_INVALID_PARAMETERS_IF(split.size() > 2);
 
@@ -896,10 +889,10 @@ namespace ortc
       //-----------------------------------------------------------------------
       ISDPTypes::AICEOptionsLine::AICEOptionsLine(const char *value)
       {
-        UseServicesHelper::SplitMap split;
-        UseServicesHelper::split(String(value), split, " ");
-        UseServicesHelper::splitTrim(split);
-        UseServicesHelper::splitPruneEmpty(split);
+        IHelper::SplitMap split;
+        IHelper::split(String(value), split, " ");
+        IHelper::splitTrim(split);
+        IHelper::splitPruneEmpty(split);
         ORTC_THROW_INVALID_PARAMETERS_IF(split.size() < 1);
 
         for (auto iter = split.begin(); iter != split.end(); ++iter) {
@@ -913,7 +906,7 @@ namespace ortc
       {
         String result;
         result.append("ice-options:");
-        result.append(UseServicesHelper::combine(mTags, " "));
+        result.append(IHelper::combine(mTags, " "));
         return result;
       }
 
@@ -921,10 +914,10 @@ namespace ortc
       ISDPTypes::ACandidateLine::ACandidateLine(MLinePtr mline, const char *value) :
         AMediaLine(mline)
       {
-        UseServicesHelper::SplitMap split;
-        UseServicesHelper::split(String(value), split, " ");
-        UseServicesHelper::splitTrim(split);
-        UseServicesHelper::splitPruneEmpty(split);
+        IHelper::SplitMap split;
+        IHelper::split(String(value), split, " ");
+        IHelper::splitTrim(split);
+        IHelper::splitPruneEmpty(split);
         ORTC_THROW_INVALID_PARAMETERS_IF(split.size() < 8);
 
         if (split.size() > 8) {
@@ -958,7 +951,7 @@ namespace ortc
         mCandidateType = split[7];
 
         if (split.size() > 8) {
-          for (auto index = 10; index < split.size(); index += 2)
+          for (size_t index = 10; index < split.size(); index += 2)
           {
             ExtensionPair value(split[index], split[index + 1]);
             if (0 == value.first.compareNoCase("raddr")) {
@@ -1028,10 +1021,10 @@ namespace ortc
       ISDPTypes::AFingerprintLine::AFingerprintLine(MLinePtr mline, const char *value) :
         AMediaLine(mline)
       {
-        UseServicesHelper::SplitMap split;
-        UseServicesHelper::split(String(value), split, " ");
-        UseServicesHelper::splitTrim(split);
-        UseServicesHelper::splitPruneEmpty(split);
+        IHelper::SplitMap split;
+        IHelper::split(String(value), split, " ");
+        IHelper::splitTrim(split);
+        IHelper::splitPruneEmpty(split);
         ORTC_THROW_INVALID_PARAMETERS_IF(2 != split.size());
 
         mHashFunc = split[0];
@@ -1055,10 +1048,10 @@ namespace ortc
       ISDPTypes::ACryptoLine::ACryptoLine(MLinePtr mline, const char *value) :
         AMediaLine(mline)
       {
-        UseServicesHelper::SplitMap split;
-        UseServicesHelper::split(String(value), split, " ");
-        UseServicesHelper::splitTrim(split);
-        UseServicesHelper::splitPruneEmpty(split);
+        IHelper::SplitMap split;
+        IHelper::split(String(value), split, " ");
+        IHelper::splitTrim(split);
+        IHelper::splitPruneEmpty(split);
         ORTC_THROW_INVALID_PARAMETERS_IF(split.size() < 3);
 
         try {
@@ -1068,19 +1061,19 @@ namespace ortc
         }
         mCryptoSuite = split[1];
 
-        UseServicesHelper::SplitMap keyParamsSplit;
-        UseServicesHelper::split(String(split[2]), keyParamsSplit, ";");
-        UseServicesHelper::splitTrim(keyParamsSplit);
-        UseServicesHelper::splitPruneEmpty(keyParamsSplit);
+        IHelper::SplitMap keyParamsSplit;
+        IHelper::split(String(split[2]), keyParamsSplit, ";");
+        IHelper::splitTrim(keyParamsSplit);
+        IHelper::splitPruneEmpty(keyParamsSplit);
         ORTC_THROW_INVALID_PARAMETERS_IF(keyParamsSplit.size() < 1);
 
         for (auto iter = keyParamsSplit.begin(); iter != keyParamsSplit.end(); ++iter) {
           auto &keyParam = (*iter).second;
 
-          UseServicesHelper::SplitMap keyMethodInfoSplit;
-          UseServicesHelper::split(keyParam, keyMethodInfoSplit, ":");
-          UseServicesHelper::splitTrim(keyMethodInfoSplit);
-          UseServicesHelper::splitPruneEmpty(keyMethodInfoSplit);
+          IHelper::SplitMap keyMethodInfoSplit;
+          IHelper::split(keyParam, keyMethodInfoSplit, ":");
+          IHelper::splitTrim(keyMethodInfoSplit);
+          IHelper::splitPruneEmpty(keyMethodInfoSplit);
           ORTC_THROW_INVALID_PARAMETERS_IF(2 != keyMethodInfoSplit.size());
           
           mKeyParams.push_back(KeyParam(keyMethodInfoSplit[0], keyMethodInfoSplit[1]));
@@ -1124,7 +1117,7 @@ namespace ortc
 
         if (mSessionParams.size() > 0) {
           result.append(" ");
-          result.append(UseServicesHelper::combine(mSessionParams, " "));
+          result.append(IHelper::combine(mSessionParams, " "));
         }
 
         return result;
@@ -1150,16 +1143,16 @@ namespace ortc
       ISDPTypes::AExtmapLine::AExtmapLine(MLinePtr mline, const char *value) :
         AMediaLine(mline)
       {
-        UseServicesHelper::SplitMap split;
-        UseServicesHelper::split(String(value), split, " ");
-        UseServicesHelper::splitTrim(split);
-        UseServicesHelper::splitPruneEmpty(split);
+        IHelper::SplitMap split;
+        IHelper::split(String(value), split, " ");
+        IHelper::splitTrim(split);
+        IHelper::splitPruneEmpty(split);
         ORTC_THROW_INVALID_PARAMETERS_IF(split.size() < 2);
 
-        UseServicesHelper::SplitMap entrySplit;
-        UseServicesHelper::split(split[0], entrySplit, "/");
-        UseServicesHelper::splitTrim(entrySplit);
-        UseServicesHelper::splitPruneEmpty(entrySplit);
+        IHelper::SplitMap entrySplit;
+        IHelper::split(split[0], entrySplit, "/");
+        IHelper::splitTrim(entrySplit);
+        IHelper::splitPruneEmpty(entrySplit);
         ORTC_THROW_INVALID_PARAMETERS_IF(entrySplit.size() < 1);
 
         try {
@@ -1222,10 +1215,10 @@ namespace ortc
       ISDPTypes::ARTPMapLine::ARTPMapLine(MLinePtr mline, const char *value) :
         AMediaLine(mline)
       {
-        UseServicesHelper::SplitMap split;
-        UseServicesHelper::split(String(value), split, " ");
-        UseServicesHelper::splitTrim(split);
-        UseServicesHelper::splitPruneEmpty(split);
+        IHelper::SplitMap split;
+        IHelper::split(String(value), split, " ");
+        IHelper::splitTrim(split);
+        IHelper::splitPruneEmpty(split);
         ORTC_THROW_INVALID_PARAMETERS_IF(2 != split.size());
 
         try {
@@ -1234,10 +1227,10 @@ namespace ortc
           ORTC_THROW_INVALID_PARAMETERS("payload type value out of range: " + split[0]);
         }
 
-        UseServicesHelper::SplitMap encodingSplit;
-        UseServicesHelper::split(split[1], encodingSplit, "/");
-        UseServicesHelper::splitTrim(encodingSplit);
-        UseServicesHelper::splitPruneEmpty(encodingSplit);
+        IHelper::SplitMap encodingSplit;
+        IHelper::split(split[1], encodingSplit, "/");
+        IHelper::splitTrim(encodingSplit);
+        IHelper::splitPruneEmpty(encodingSplit);
         ORTC_THROW_INVALID_PARAMETERS_IF(encodingSplit.size() < 2);
 
         mEncodingName = encodingSplit[0];
@@ -1279,10 +1272,10 @@ namespace ortc
         AMediaLine(mline),
         mSourceLine(sourceLine)
       {
-        UseServicesHelper::SplitMap split;
-        UseServicesHelper::split(String(value), split, " ");
-        UseServicesHelper::splitTrim(split);
-        UseServicesHelper::splitPruneEmpty(split);
+        IHelper::SplitMap split;
+        IHelper::split(String(value), split, " ");
+        IHelper::splitTrim(split);
+        IHelper::splitPruneEmpty(split);
         ORTC_THROW_INVALID_PARAMETERS_IF(split.size() < 1);
 
         mFormatStr = split[0];
@@ -1312,7 +1305,7 @@ namespace ortc
           result.append(string(mFormat));
         }
         result.append(" ");
-        result.append(UseServicesHelper::combine(mFormatSpecific, " "));
+        result.append(IHelper::combine(mFormatSpecific, " "));
         return result;
       }
 
@@ -1320,10 +1313,10 @@ namespace ortc
       ISDPTypes::ARTCPLine::ARTCPLine(MLinePtr mline, const char *value) :
         AMediaLine(mline)
       {
-        UseServicesHelper::SplitMap split;
-        UseServicesHelper::split(String(value), split, " ");
-        UseServicesHelper::splitTrim(split);
-        UseServicesHelper::splitPruneEmpty(split);
+        IHelper::SplitMap split;
+        IHelper::split(String(value), split, " ");
+        IHelper::splitTrim(split);
+        IHelper::splitPruneEmpty(split);
         ORTC_THROW_INVALID_PARAMETERS_IF(split.size() < 1);
 
         try {
@@ -1361,10 +1354,10 @@ namespace ortc
       ISDPTypes::ARTCPFBLine::ARTCPFBLine(MLinePtr mline, const char *value) :
         AMediaLine(mline)
       {
-        UseServicesHelper::SplitMap split;
-        UseServicesHelper::split(String(value), split, " ");
-        UseServicesHelper::splitTrim(split);
-        UseServicesHelper::splitPruneEmpty(split);
+        IHelper::SplitMap split;
+        IHelper::split(String(value), split, " ");
+        IHelper::splitTrim(split);
+        IHelper::splitPruneEmpty(split);
         ORTC_THROW_INVALID_PARAMETERS_IF(split.size() < 2);
         ORTC_THROW_INVALID_PARAMETERS_IF(split.size() > 4);
 
@@ -1434,10 +1427,10 @@ namespace ortc
       ISDPTypes::ASSRCLine::ASSRCLine(MLinePtr mline, const char *value) :
         AMediaLine(mline)
       {
-        UseServicesHelper::SplitMap split;
-        UseServicesHelper::split(String(value), split, " ");
-        UseServicesHelper::splitTrim(split);
-        UseServicesHelper::splitPruneEmpty(split);
+        IHelper::SplitMap split;
+        IHelper::split(String(value), split, " ");
+        IHelper::splitTrim(split);
+        IHelper::splitPruneEmpty(split);
         ORTC_THROW_INVALID_PARAMETERS_IF(split.size() < 2);
 
         try {
@@ -1449,10 +1442,10 @@ namespace ortc
         size_t index = 1;
         for (; index < split.size(); ++index)
         {
-          UseServicesHelper::SplitMap splitValues;
-          UseServicesHelper::split(split[index], splitValues, ":");
-          UseServicesHelper::splitTrim(splitValues);
-          UseServicesHelper::splitPruneEmpty(splitValues);
+          IHelper::SplitMap splitValues;
+          IHelper::split(split[index], splitValues, ":");
+          IHelper::splitTrim(splitValues);
+          IHelper::splitPruneEmpty(splitValues);
           ORTC_THROW_INVALID_PARAMETERS_IF((splitValues.size() < 1) || (splitValues.size() > 2));
 
           mAttributeValues.push_back(KeyValuePair(splitValues[0], splitValues.size() > 1 ? splitValues[1] : String()));
@@ -1481,10 +1474,10 @@ namespace ortc
       ISDPTypes::ASSRCGroupLine::ASSRCGroupLine(MLinePtr mline, const char *value) :
         AMediaLine(mline)
       {
-        UseServicesHelper::SplitMap split;
-        UseServicesHelper::split(String(value), split, " ");
-        UseServicesHelper::splitTrim(split);
-        UseServicesHelper::splitPruneEmpty(split);
+        IHelper::SplitMap split;
+        IHelper::split(String(value), split, " ");
+        IHelper::splitTrim(split);
+        IHelper::splitPruneEmpty(split);
         ORTC_THROW_INVALID_PARAMETERS_IF(split.size() < 2);
 
         mSemantics = split[0];
@@ -1526,39 +1519,39 @@ namespace ortc
       ISDPTypes::ARIDLine::ARIDLine(MLinePtr mline, const char *value) :
         AMediaLine(mline)
       {
-        UseServicesHelper::SplitMap split;
-        UseServicesHelper::split(String(value), split, " ");
-        UseServicesHelper::splitTrim(split);
-        UseServicesHelper::splitPruneEmpty(split);
+        IHelper::SplitMap split;
+        IHelper::split(String(value), split, " ");
+        IHelper::splitTrim(split);
+        IHelper::splitPruneEmpty(split);
         ORTC_THROW_INVALID_PARAMETERS_IF(split.size() < 3);
 
         mID = split[0];
         mDirection = toDirection(split[1]);
         ORTC_THROW_INVALID_PARAMETERS_IF(!isValid(mDirection, false, true, true, false));
 
-        UseServicesHelper::SplitMap ridParamSplit;
-        UseServicesHelper::split(split[2], ridParamSplit, ";");
-        UseServicesHelper::splitTrim(ridParamSplit);
-        UseServicesHelper::splitPruneEmpty(ridParamSplit);
+        IHelper::SplitMap ridParamSplit;
+        IHelper::split(split[2], ridParamSplit, ";");
+        IHelper::splitTrim(ridParamSplit);
+        IHelper::splitPruneEmpty(ridParamSplit);
         ORTC_THROW_INVALID_PARAMETERS_IF(ridParamSplit.size() < 1);
 
         for (auto iter = ridParamSplit.begin(); iter != ridParamSplit.end(); ++iter) {
           auto &param = (*iter).second;
 
-          UseServicesHelper::SplitMap keyValueSplit;
-          UseServicesHelper::split(param, keyValueSplit, "=");
-          UseServicesHelper::splitTrim(keyValueSplit);
-          UseServicesHelper::splitPruneEmpty(keyValueSplit);
+          IHelper::SplitMap keyValueSplit;
+          IHelper::split(param, keyValueSplit, "=");
+          IHelper::splitTrim(keyValueSplit);
+          IHelper::splitPruneEmpty(keyValueSplit);
           ORTC_THROW_INVALID_PARAMETERS_IF(keyValueSplit.size() < 1);
 
           if (keyValueSplit[0].compare("pt")) {
             // special handling
             ORTC_THROW_INVALID_PARAMETERS_IF(keyValueSplit.size() < 2);
 
-            UseServicesHelper::SplitMap payloadTypeSplit;
-            UseServicesHelper::split(keyValueSplit[1], payloadTypeSplit, ",");
-            UseServicesHelper::splitTrim(payloadTypeSplit);
-            UseServicesHelper::splitPruneEmpty(payloadTypeSplit);
+            IHelper::SplitMap payloadTypeSplit;
+            IHelper::split(keyValueSplit[1], payloadTypeSplit, ",");
+            IHelper::splitTrim(payloadTypeSplit);
+            IHelper::splitPruneEmpty(payloadTypeSplit);
             ORTC_THROW_INVALID_PARAMETERS_IF(payloadTypeSplit.size() < 1);
             for (auto iterPayload = payloadTypeSplit.begin(); iterPayload != payloadTypeSplit.end(); ++iterPayload) {
               auto &ptStr = (*iter).second;
@@ -1628,10 +1621,10 @@ namespace ortc
       ISDPTypes::ASimulcastLine::ASimulcastLine(MLinePtr mline, const char *value) :
         AMediaLine(mline)
       {
-        UseServicesHelper::SplitMap split;
-        UseServicesHelper::split(String(value), split, " ");
-        UseServicesHelper::splitTrim(split);
-        UseServicesHelper::splitPruneEmpty(split);
+        IHelper::SplitMap split;
+        IHelper::split(String(value), split, " ");
+        IHelper::splitTrim(split);
+        IHelper::splitPruneEmpty(split);
         ORTC_THROW_INVALID_PARAMETERS_IF(split.size() < 2);
         ORTC_THROW_INVALID_PARAMETERS_IF(0 != (split.size()%2));
 
@@ -1641,20 +1634,20 @@ namespace ortc
           scValue.mDirection = toDirection(split[index]);
           ORTC_THROW_INVALID_PARAMETERS_IF(!isValid(scValue.mDirection, false, true, true, false));
 
-          UseServicesHelper::SplitMap altListSplit;
-          UseServicesHelper::split(split[index+1], altListSplit, ";");
-          UseServicesHelper::splitTrim(altListSplit);
-          UseServicesHelper::splitPruneEmpty(altListSplit);
+          IHelper::SplitMap altListSplit;
+          IHelper::split(split[index+1], altListSplit, ";");
+          IHelper::splitTrim(altListSplit);
+          IHelper::splitPruneEmpty(altListSplit);
           ORTC_THROW_INVALID_PARAMETERS_IF(altListSplit.size() < 1);
 
           for (auto iter = altListSplit.begin(); iter != altListSplit.end(); ++iter) {
             auto &altValue = (*iter).second;
 
             SCIDList scids;
-            UseServicesHelper::SplitMap scidListSplit;
-            UseServicesHelper::split(altValue, scidListSplit, ",");
-            UseServicesHelper::splitTrim(scidListSplit);
-            UseServicesHelper::splitPruneEmpty(scidListSplit);
+            IHelper::SplitMap scidListSplit;
+            IHelper::split(altValue, scidListSplit, ",");
+            IHelper::splitTrim(scidListSplit);
+            IHelper::splitPruneEmpty(scidListSplit);
             ORTC_THROW_INVALID_PARAMETERS_IF(scidListSplit.size() < 1);
 
             for (auto iterScid = scidListSplit.begin(); iterScid != scidListSplit.end(); ++iterScid) {

@@ -33,7 +33,7 @@
         },
         {
           "name": "puid",
-          "type": "ulong"
+          "type": "size_t"
         },
         {
           "name": "size_t",
@@ -49,7 +49,7 @@
         },
         {
           "name": "enum",
-          "type": "uint64"
+          "type": "int64"
         },
         {
           "name": "duration",

@@ -34,9 +34,7 @@
 #include <ortc/adapter/internal/ortc_adapter_SessionDescription.h>
 #include <ortc/adapter/internal/ortc_adapter_Helper.h>
 
-#include <ortc/internal/ortc_Helper.h>
-
-#include <ortc/services/IHelper.h>
+#include <ortc/adapter/IHelper.h>
 
 #include <zsLib/Log.h>
 #include <zsLib/Numeric.h>
@@ -58,13 +56,6 @@ namespace ortc
   {
     using zsLib::Stringize;
     using zsLib::Numeric;
-
-    ZS_DECLARE_TYPEDEF_PTR(ortc::internal::Helper, UseHelper);
-    ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHelper, UseServicesHelper);
-
-    ZS_DECLARE_TYPEDEF_PTR(ortc::adapter::IHelper, UseAdapterHelper);
-
-    typedef ortc::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
 
     namespace internal
     {

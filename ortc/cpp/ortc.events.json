@@ -33,7 +33,7 @@
         },
         {
           "name": "puid",
-          "type": "ulong"
+          "type": "size_t"
         },
         {
           "name": "size_t",
@@ -49,7 +49,7 @@
         },
         {
           "name": "enum",
-          "type": "uint64"
+          "type": "int64"
         },
         {
           "name": "duration",
@@ -63,6 +63,7 @@
     },
     "sources": {
       "source": [
+        "ortc.cpp",
         "ortc_Certificate.cpp",
         "ortc_DataChannel.cpp",
         "ortc_DTLSTransport.cpp",
@@ -107,8 +108,8 @@
         },
         {
           "name": "IceGatherer",
-          "opCodes": {
-            "opCode": [
+          "opcodes": {
+            "opcode": [
               { "name": "CreateAssociated" },
               { "name": "Gather" },
               { "name": "HostSocketBind" },
@@ -122,8 +123,8 @@
         },
         {
           "name": "IceTransport",
-          "opCodes": {
-            "opCode": [
+          "opcodes": {
+            "opcode": [
               { "name": "CreateAssociated" },
               { "name": "AddCandidate" },
               { "name": "RemoveCandidate" },
@@ -143,8 +144,8 @@
         },
         {
           "name": "RtpReceiver",
-          "opCodes": {
-            "opCode": [
+          "opcodes": {
+            "opcode": [
               { "name": "SetTransport" }
             ]
           }
@@ -154,8 +155,8 @@
         },
         {
           "name": "RtpSender",
-          "opCodes": {
-            "opCode": [
+          "opcodes": {
+            "opcode": [
               { "name": "SetTransport" },
               { "name": "SetTrack" }
             ]
@@ -172,8 +173,8 @@
         },
         {
           "name": "SctpTransportListener",
-          "opCodes": {
-            "opCode": [
+          "opcodes": {
+            "opcode": [
               { "name": "SetTransport" },
               { "name": "Listen" }
             ]
@@ -184,8 +185,8 @@
         }
       ]
     },
-    "opCodes": {
-      "opCode": [
+    "opcodes": {
+      "opcode": [
         {
           "name": "Initialization"
         },

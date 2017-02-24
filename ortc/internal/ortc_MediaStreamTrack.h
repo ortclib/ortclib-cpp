@@ -36,9 +36,8 @@
 #include <ortc/IMediaStreamTrack.h>
 #include <ortc/internal/ortc_RTPMediaEngine.h>
 
-#include <ortc/services/IWakeDelegate.h>
 #include <zsLib/MessageQueueAssociator.h>
-#include <zsLib/Timer.h>
+#include <zsLib/ITimer.h>
 
 #include <zsLib/WeightedMovingAverage.h>
 
@@ -72,22 +71,6 @@ namespace ortc
     using zsLib::FLOAT;
     using zsLib::INT;
 
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrackForSettings
-    #pragma mark
-
-    interaction IMediaStreamTrackForSettings
-    {
-      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForSettings, ForSettings)
-
-      static void applyDefaults();
-
-      virtual ~IMediaStreamTrackForSettings() {}
-    };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -363,7 +346,6 @@ namespace ortc
                              public MessageQueueAssociator,
                              public SharedRecursiveLock,
                              public IMediaStreamTrack,
-                             public IMediaStreamTrackForSettings,
                              public IMediaStreamTrackForRTPSender,
                              public IMediaStreamTrackForRTPSenderChannel,
                              public IMediaStreamTrackForRTPSenderChannelAudio,
@@ -386,7 +368,6 @@ namespace ortc
     public:
       friend interaction IMediaStreamTrack;
       friend interaction IMediaStreamTrackFactory;
-      friend interaction IMediaStreamTrackForSettings;
       friend interaction IMediaStreamTrackForRTPSender;
       friend interaction IMediaStreamTrackForRTPSenderChannel;
       friend interaction IMediaStreamTrackForRTPSenderChannelAudio;
@@ -445,7 +426,6 @@ namespace ortc
                                         );
 
       static MediaStreamTrackPtr convert(IMediaStreamTrackPtr object);
-      static MediaStreamTrackPtr convert(ForSettingsPtr object);
       static MediaStreamTrackPtr convert(ForSenderPtr object);
       static MediaStreamTrackPtr convert(ForSenderChannelPtr object);
       static MediaStreamTrackPtr convert(ForSenderChannelMediaBasePtr object);
@@ -632,7 +612,7 @@ namespace ortc
       #pragma mark MediaStreamTrack => ITimerDelegate
       #pragma mark
 
-      virtual void onTimer(TimerPtr timer) override;
+      virtual void onTimer(ITimerPtr timer) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -719,7 +699,7 @@ namespace ortc
 
       PromisePtr mCloseDevicePromise;
 
-      TimerPtr mStatsTimer;
+      ITimerPtr mStatsTimer;
     };
 
     //-------------------------------------------------------------------------

@@ -45,11 +45,11 @@
 #include <ortc/internal/platform.h>
 
 #include <ortc/IRTPReceiver.h>
+#include <ortc/IHelper.h>
 
-#include <ortc/services/ISettings.h>
-#include <ortc/services/IHelper.h>
 #include <ortc/services/IHTTP.h>
 
+#include <zsLib/ISettings.h>
 #include <zsLib/Stringize.h>
 #include <zsLib/Log.h>
 #include <zsLib/XML.h>
@@ -74,14 +74,13 @@ namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_rtpsender) }
 
 namespace ortc
 {
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::ISettings, UseSettings)
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHelper, UseServicesHelper)
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHTTP, UseHTTP)
-
-  typedef ortc::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
+  ZS_DECLARE_USING_PTR(zsLib, ISettings);
+  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHTTP, UseHTTP);
 
   namespace internal
   {
+    ZS_DECLARE_CLASS_PTR(RTPSenderSettingsDefaults);
+
     ZS_DECLARE_TYPEDEF_PTR(IStatsReportForInternal, UseStatsReport);
 
     //-------------------------------------------------------------------------
@@ -98,13 +97,58 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
+    #pragma mark RTPSenderSettingsDefaults
+    #pragma mark
+
+    class RTPSenderSettingsDefaults : public ISettingsApplyDefaultsDelegate
+    {
+    public:
+      //-----------------------------------------------------------------------
+      ~RTPSenderSettingsDefaults()
+      {
+        ISettings::removeDefaults(*this);
+      }
+
+      //-----------------------------------------------------------------------
+      static RTPSenderSettingsDefaultsPtr singleton()
+      {
+        static SingletonLazySharedPtr<RTPSenderSettingsDefaults> singleton(create());
+        return singleton.singleton();
+      }
+
+      //-----------------------------------------------------------------------
+      static RTPSenderSettingsDefaultsPtr create()
+      {
+        auto pThis(make_shared<RTPSenderSettingsDefaults>());
+        ISettings::installDefaults(pThis);
+        return pThis;
+      }
+
+      //-----------------------------------------------------------------------
+      virtual void notifySettingsApplyDefaults() override
+      {
+      }
+      
+    };
+
+    //-------------------------------------------------------------------------
+    void installRTPSenderSettingsDefaults()
+    {
+      RTPSenderSettingsDefaults::singleton();
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
     #pragma mark IICETransportForSettings
     #pragma mark
 
     //-------------------------------------------------------------------------
     void IRTPSenderForSettings::applyDefaults()
     {
-//      UseSettings::setUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE, 5*1024);
+//      ISettings::setUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE, 5*1024);
     }
 
     //-------------------------------------------------------------------------
@@ -270,9 +314,9 @@ namespace ortc
       ElementPtr resultEl = Element::create("ortc::RTPSender::ChannelHolder");
 
       auto outer = mHolder.lock();
-      UseServicesHelper::debugAppend(resultEl, "outer", outer ? outer->getID() : 0);
-      UseServicesHelper::debugAppend(resultEl, "channel", mChannel ? mChannel->getID() : 0);
-      UseServicesHelper::debugAppend(resultEl, "last reported state", ISecureTransport::toString(mLastReportedState));
+      IHelper::debugAppend(resultEl, "outer", outer ? outer->getID() : 0);
+      IHelper::debugAppend(resultEl, "channel", mChannel ? mChannel->getID() : 0);
+      IHelper::debugAppend(resultEl, "last reported state", ISecureTransport::toString(mLastReportedState));
       return resultEl;
     }
 
@@ -1323,7 +1367,7 @@ namespace ortc
     Log::Params RTPSender::log(const char *message) const
     {
       ElementPtr objectEl = Element::create("ortc::RTPSender");
-      UseServicesHelper::debugAppend(objectEl, "id", mID);
+      IHelper::debugAppend(objectEl, "id", mID);
       return Log::Params(message, objectEl);
     }
 
@@ -1340,40 +1384,40 @@ namespace ortc
 
       ElementPtr resultEl = Element::create("ortc::RTPSender");
 
-      UseServicesHelper::debugAppend(resultEl, "id", mID);
+      IHelper::debugAppend(resultEl, "id", mID);
 
-      UseServicesHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
+      IHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
 
-      UseServicesHelper::debugAppend(resultEl, "subscribers", mSubscriptions.size());
-      UseServicesHelper::debugAppend(resultEl, "default subscription", (bool)mDefaultSubscription);
+      IHelper::debugAppend(resultEl, "subscribers", mSubscriptions.size());
+      IHelper::debugAppend(resultEl, "default subscription", (bool)mDefaultSubscription);
 
-      UseServicesHelper::debugAppend(resultEl, "state", toString(mCurrentState));
+      IHelper::debugAppend(resultEl, "state", toString(mCurrentState));
 
-      UseServicesHelper::debugAppend(resultEl, "error", mLastError);
-      UseServicesHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
+      IHelper::debugAppend(resultEl, "error", mLastError);
+      IHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
 
-      UseServicesHelper::debugAppend(resultEl, "parameters", mParameters ? mParameters->toDebug() : ElementPtr());
-      UseServicesHelper::debugAppend(resultEl, "parameter grouped into channels", mParametersGroupedIntoChannels.size());
+      IHelper::debugAppend(resultEl, "parameters", mParameters ? mParameters->toDebug() : ElementPtr());
+      IHelper::debugAppend(resultEl, "parameter grouped into channels", mParametersGroupedIntoChannels.size());
 
-      UseServicesHelper::debugAppend(resultEl, "listener", mListener ? mListener->getID() : 0);
+      IHelper::debugAppend(resultEl, "listener", mListener ? mListener->getID() : 0);
 
-      UseServicesHelper::debugAppend(resultEl, "rtp transport", mRTPTransport ? mRTPTransport->getID() : 0);
-      UseServicesHelper::debugAppend(resultEl, "rtcp transport", mRTCPTransport ? mRTCPTransport->getID() : 0);
+      IHelper::debugAppend(resultEl, "rtp transport", mRTPTransport ? mRTPTransport->getID() : 0);
+      IHelper::debugAppend(resultEl, "rtcp transport", mRTCPTransport ? mRTCPTransport->getID() : 0);
 
-      UseServicesHelper::debugAppend(resultEl, "rtcp transport subscription", mRTCPTransportSubscription ? mRTCPTransportSubscription->getID() : 0);
+      IHelper::debugAppend(resultEl, "rtcp transport subscription", mRTCPTransportSubscription ? mRTCPTransportSubscription->getID() : 0);
 
-      UseServicesHelper::debugAppend(resultEl, "send rtp over transport", IICETypes::toString(mSendRTPOverTransport));
-      UseServicesHelper::debugAppend(resultEl, "send rtcp over transport", IICETypes::toString(mSendRTCPOverTransport));
-      UseServicesHelper::debugAppend(resultEl, "receive rtcp over transport", IICETypes::toString(mReceiveRTCPOverTransport));
+      IHelper::debugAppend(resultEl, "send rtp over transport", IICETypes::toString(mSendRTPOverTransport));
+      IHelper::debugAppend(resultEl, "send rtcp over transport", IICETypes::toString(mSendRTCPOverTransport));
+      IHelper::debugAppend(resultEl, "receive rtcp over transport", IICETypes::toString(mReceiveRTCPOverTransport));
 
-      UseServicesHelper::debugAppend(resultEl, "last reported transport state to channels", ISecureTransportTypes::toString(mLastReportedTransportStateToChannels));
+      IHelper::debugAppend(resultEl, "last reported transport state to channels", ISecureTransportTypes::toString(mLastReportedTransportStateToChannels));
 
-      UseServicesHelper::debugAppend(resultEl, "kind", mKind.hasValue() ? IMediaStreamTrackTypes::toString(mKind.value()) : (const char *)NULL);
-      UseServicesHelper::debugAppend(resultEl, "track", mTrack ? mTrack->getID() : 0);
+      IHelper::debugAppend(resultEl, "kind", mKind.hasValue() ? IMediaStreamTrackTypes::toString(mKind.value()) : (const char *)NULL);
+      IHelper::debugAppend(resultEl, "track", mTrack ? mTrack->getID() : 0);
 
-      UseServicesHelper::debugAppend(resultEl, "channels", mChannels->size());
+      IHelper::debugAppend(resultEl, "channels", mChannels->size());
 
-      UseServicesHelper::debugAppend(resultEl, "conflicts", mConflicts.size());
+      IHelper::debugAppend(resultEl, "conflicts", mConflicts.size());
 
       return resultEl;
     }

@@ -30,12 +30,12 @@
  */
 
 
-#include <zsLib/MessageQueueThread.h>
 
 #include "TestSCTP.h"
 #include <ortc/ISCTPTransport.h>
-#include <ortc/ISettings.h>
 
+#include <zsLib/IMessageQueueThread.h>
+#include <zsLib/ISettings.h>
 #include <zsLib/XML.h>
 
 #include "config.h"
@@ -53,7 +53,7 @@ using zsLib::AutoPUID;
 using zsLib::AutoRecursiveLock;
 using namespace zsLib::XML;
 
-ZS_DECLARE_TYPEDEF_PTR(ortc::ISettings, UseSettings)
+ZS_DECLARE_TYPEDEF_PTR(zsLib::ISettings, UseSettings)
 ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHelper, UseServicesHelper)
 
 namespace ortc
@@ -94,7 +94,7 @@ namespace ortc
       {
         AutoRecursiveLock lock(*this);
         if (Milliseconds() != mPacketDelay) {
-          mTimer = Timer::create(mThisWeak.lock(), mPacketDelay);
+          mTimer = ITimer::create(mThisWeak.lock(), mPacketDelay);
         }
       }
 
@@ -360,7 +360,7 @@ namespace ortc
       #pragma mark
 
       //-----------------------------------------------------------------------
-      void FakeICETransport::onTimer(TimerPtr timer)
+      void FakeICETransport::onTimer(ITimerPtr timer)
       {
         FakeSecureTransportPtr transport;
 
@@ -961,16 +961,17 @@ namespace ortc
       void SCTPTester::init(
                             bool createSCTPNow,
                             Optional<WORD> localPort,
-                            Optional<WORD> removePort,
+                            Optional<WORD> remotePort,
                             Milliseconds packetDelay
                             )
       {
         AutoRecursiveLock lock(*this);
         mICETransport = FakeICETransport::create(getAssociatedMessageQueue(), packetDelay);
         mDTLSTransport = FakeSecureTransport::create(getAssociatedMessageQueue(), mICETransport);
+        mRemotePort = remotePort;
 
         if (createSCTPNow) {
-          mSCTP = ISCTPTransport::create(mThisWeak.lock(), mDTLSTransport, localPort, removePort);
+          mSCTP = ISCTPTransport::create(mThisWeak.lock(), mDTLSTransport, localPort);
         }
       }
 
@@ -1068,10 +1069,10 @@ namespace ortc
         auto remoteCaps = ISCTPTransport::getCapabilities();
 
         if (mSCTP) {
-          mSCTP->start(*remoteCaps);
+          mSCTP->start(*remoteCaps, mRemotePort.hasValue() ? mRemotePort.value() : 0);
         }
         if (remote->mSCTP) {
-          remote->mSCTP->start(*localCaps);
+          remote->mSCTP->start(*localCaps, remote->mRemotePort.hasValue() ? remote->mRemotePort.value() : 0);
         }
       }
 
@@ -1450,9 +1451,9 @@ void doTestSCTP()
 
   TESTING_SLEEP(1000)
 
-  ortc::ISettings::applyDefaults();
+  UseSettings::applyDefaults();
 
-  zsLib::MessageQueueThreadPtr thread(zsLib::MessageQueueThread::createBasic());
+  auto thread(zsLib::IMessageQueueThread::createBasic());
 
   SCTPTesterPtr testSCTPObject1;
   SCTPTesterPtr testSCTPObject2;

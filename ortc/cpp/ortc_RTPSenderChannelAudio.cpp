@@ -38,10 +38,11 @@
 #include <ortc/internal/ortc_StatsReport.h>
 #include <ortc/internal/platform.h>
 
-#include <ortc/services/ISettings.h>
-#include <ortc/services/IHelper.h>
+#include <ortc/IHelper.h>
+
 #include <ortc/services/IHTTP.h>
 
+#include <zsLib/ISettings.h>
 #include <zsLib/Stringize.h>
 #include <zsLib/Log.h>
 #include <zsLib/XML.h>
@@ -59,14 +60,14 @@ namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_rtpsender) }
 
 namespace ortc
 {
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::ISettings, UseSettings);
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHelper, UseServicesHelper);
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHTTP, UseHTTP);
+  ZS_DECLARE_USING_PTR(zsLib, ISettings);
 
-  typedef ortc::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
+  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHTTP, UseHTTP);
 
   namespace internal
   {
+    ZS_DECLARE_CLASS_PTR(RTPSenderChannelAudioSettingsDefaults);
+
     ZS_DECLARE_TYPEDEF_PTR(IStatsReportForInternal, UseStatsReport);
 
     //-------------------------------------------------------------------------
@@ -78,18 +79,50 @@ namespace ortc
     #pragma mark
 
 
+    
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark IICETransportForSettings
+    #pragma mark RTPSenderChannelAudioSettingsDefaults
     #pragma mark
 
-    //-------------------------------------------------------------------------
-    void IRTPSenderChannelAudioForSettings::applyDefaults()
+    class RTPSenderChannelAudioSettingsDefaults : public ISettingsApplyDefaultsDelegate
     {
-//      UseSettings::setUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE, 5*1024);
+    public:
+      //-----------------------------------------------------------------------
+      ~RTPSenderChannelAudioSettingsDefaults()
+      {
+        ISettings::removeDefaults(*this);
+      }
+
+      //-----------------------------------------------------------------------
+      static RTPSenderChannelAudioSettingsDefaultsPtr singleton()
+      {
+        static SingletonLazySharedPtr<RTPSenderChannelAudioSettingsDefaults> singleton(create());
+        return singleton.singleton();
+      }
+
+      //-----------------------------------------------------------------------
+      static RTPSenderChannelAudioSettingsDefaultsPtr create()
+      {
+        auto pThis(make_shared<RTPSenderChannelAudioSettingsDefaults>());
+        ISettings::installDefaults(pThis);
+        return pThis;
+      }
+
+      //-----------------------------------------------------------------------
+      virtual void notifySettingsApplyDefaults() override
+      {
+      }
+      
+    };
+
+    //-------------------------------------------------------------------------
+    void installRTPSenderChannelAudioSettingsDefaults()
+    {
+      RTPSenderChannelAudioSettingsDefaults::singleton();
     }
 
     //-------------------------------------------------------------------------
@@ -123,9 +156,9 @@ namespace ortc
     {
       ElementPtr resultEl = Element::create("ortc::RTPSenderChannelAudio::ToneInfo");
 
-      UseServicesHelper::debugAppend(resultEl, "tones", mTones);
-      UseServicesHelper::debugAppend(resultEl, "duration", mDuration);
-      UseServicesHelper::debugAppend(resultEl, "inter tone gap", mInterToneGap);
+      IHelper::debugAppend(resultEl, "tones", mTones);
+      IHelper::debugAppend(resultEl, "duration", mDuration);
+      IHelper::debugAppend(resultEl, "inter tone gap", mInterToneGap);
 
       return resultEl;
     }
@@ -200,12 +233,6 @@ namespace ortc
       mThisWeak.reset();
 
       cancel();
-    }
-
-    //-------------------------------------------------------------------------
-    RTPSenderChannelAudioPtr RTPSenderChannelAudio::convert(ForSettingsPtr object)
-    {
-      return ZS_DYNAMIC_PTR_CAST(RTPSenderChannelAudio, object);
     }
 
     //-------------------------------------------------------------------------
@@ -526,7 +553,7 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void RTPSenderChannelAudio::onTimer(TimerPtr timer)
+    void RTPSenderChannelAudio::onTimer(ITimerPtr timer)
     {
       ZS_LOG_DEBUG(log("timer") + ZS_PARAM("timer id", timer->getID()))
 
@@ -697,7 +724,7 @@ namespace ortc
     Log::Params RTPSenderChannelAudio::log(const char *message) const
     {
       ElementPtr objectEl = Element::create("ortc::RTPSenderChannelAudio");
-      UseServicesHelper::debugAppend(objectEl, "id", mID);
+      IHelper::debugAppend(objectEl, "id", mID);
       return Log::Params(message, objectEl);
     }
 
@@ -714,17 +741,17 @@ namespace ortc
 
       ElementPtr resultEl = Element::create("ortc::RTPSenderChannelAudio");
 
-      UseServicesHelper::debugAppend(resultEl, "id", mID);
+      IHelper::debugAppend(resultEl, "id", mID);
 
-      UseServicesHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
+      IHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
 
-      UseServicesHelper::debugAppend(resultEl, "state", toString(mCurrentState));
+      IHelper::debugAppend(resultEl, "state", toString(mCurrentState));
 
-      UseServicesHelper::debugAppend(resultEl, "error", mLastError);
-      UseServicesHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
+      IHelper::debugAppend(resultEl, "error", mLastError);
+      IHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
 
       auto senderChannel = mSenderChannel.lock();
-      UseServicesHelper::debugAppend(resultEl, "sender channel", senderChannel ? senderChannel->getID() : 0);
+      IHelper::debugAppend(resultEl, "sender channel", senderChannel ? senderChannel->getID() : 0);
 
       return resultEl;
     }

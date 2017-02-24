@@ -34,9 +34,9 @@
 #include <ortc/adapter/internal/ortc_adapter_SessionDescription.h>
 #include <ortc/adapter/internal/ortc_adapter_Helper.h>
 
-#include <ortc/internal/ortc_Helper.h>
+#include <ortc/adapter/IHelper.h>
 
-#include <ortc/services/IHelper.h>
+#include <zsLib/eventing/IHasher.h>
 
 #include <zsLib/Log.h>
 #include <zsLib/Numeric.h>
@@ -59,12 +59,7 @@ namespace ortc
     using zsLib::Stringize;
     using zsLib::Numeric;
 
-    ZS_DECLARE_TYPEDEF_PTR(ortc::internal::Helper, UseHelper);
-    ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHelper, UseServicesHelper);
-
-    ZS_DECLARE_TYPEDEF_PTR(ortc::adapter::IHelper, UseAdapterHelper);
-
-    typedef ortc::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
+    ZS_DECLARE_USING_PTR(zsLib::eventing, IHasher);
 
     namespace internal
     {
@@ -85,28 +80,28 @@ namespace ortc
       //-----------------------------------------------------------------------
       static String createTransportIDFromIndex(size_t index)
       {
-        SHA1Hasher hasher;
-        hasher.update("transport_index:");
-        hasher.update(index);
-        return hasher.final();
+        auto hasher = IHasher::sha1();
+        hasher->update("transport_index:");
+        hasher->update(index);
+        return hasher->finalizeAsString();
       }
 
       //-----------------------------------------------------------------------
       static String createMediaLineIDFromIndex(size_t index)
       {
-        SHA1Hasher hasher;
-        hasher.update("media_line_index:");
-        hasher.update(index);
-        return hasher.final();
+        auto hasher = IHasher::sha1();
+        hasher->update("media_line_index:");
+        hasher->update(index);
+        return hasher->finalizeAsString();
       }
 
       //-----------------------------------------------------------------------
       static String createSenderIDFromIndex(size_t index)
       {
-        SHA1Hasher hasher;
-        hasher.update("sender_index:");
-        hasher.update(index);
-        return hasher.final();
+        auto hasher = IHasher::sha1();
+        hasher->update("sender_index:");
+        hasher->update(index);
+        return hasher->finalizeAsString();
       }
 
       //-----------------------------------------------------------------------
@@ -209,10 +204,10 @@ namespace ortc
             ISRTPSDESTransportTypes::KeyParameters keyParams;
             keyParams.mKeyMethod = akeyParam.first;
 
-            UseServicesHelper::SplitMap keyInfoSplit;
-            UseServicesHelper::split(akeyParam.second, keyInfoSplit, "|");
-            UseServicesHelper::splitTrim(keyInfoSplit);
-            UseServicesHelper::splitPruneEmpty(keyInfoSplit);
+            IHelper::SplitMap keyInfoSplit;
+            IHelper::split(akeyParam.second, keyInfoSplit, "|");
+            IHelper::splitTrim(keyInfoSplit);
+            IHelper::splitPruneEmpty(keyInfoSplit);
             ORTC_THROW_INVALID_PARAMETERS_IF(keyInfoSplit.size() < 1);
 
             keyParams.mKeySalt = keyInfoSplit[0];
@@ -220,10 +215,10 @@ namespace ortc
               keyParams.mLifetime = keyInfoSplit[1];
             }
             if (keyInfoSplit.size() > 2) {
-              UseServicesHelper::SplitMap mkiSplit;
-              UseServicesHelper::split(keyInfoSplit[2], mkiSplit, "|");
-              UseServicesHelper::splitTrim(mkiSplit);
-              UseServicesHelper::splitPruneEmpty(mkiSplit);
+              IHelper::SplitMap mkiSplit;
+              IHelper::split(keyInfoSplit[2], mkiSplit, "|");
+              IHelper::splitTrim(mkiSplit);
+              IHelper::splitPruneEmpty(mkiSplit);
               ORTC_THROW_INVALID_PARAMETERS_IF(mkiSplit.size() < 2);
 
               keyParams.mMKIValue = mkiSplit[0];
@@ -500,20 +495,20 @@ namespace ortc
                                            ISDPTypes::KeyValueList &outKeyValues
                                            )
       {
-        String params = UseServicesHelper::combine(formatSpecificList, ";");
+        String params = IHelper::combine(formatSpecificList, ";");
 
-        UseServicesHelper::SplitMap formatSplit;
-        UseServicesHelper::split(params, formatSplit, ";");
-        UseServicesHelper::splitTrim(formatSplit);
-        UseServicesHelper::splitPruneEmpty(formatSplit);
+        IHelper::SplitMap formatSplit;
+        IHelper::split(params, formatSplit, ";");
+        IHelper::splitTrim(formatSplit);
+        IHelper::splitPruneEmpty(formatSplit);
 
         for (auto iter = formatSplit.begin(); iter != formatSplit.end(); ++iter) {
           auto &keyValue = (*iter).second;
 
-          UseServicesHelper::SplitMap keyValueSplit;
-          UseServicesHelper::split(keyValue, keyValueSplit, "=");
-          UseServicesHelper::splitTrim(keyValueSplit);
-          UseServicesHelper::splitPruneEmpty(keyValueSplit);
+          IHelper::SplitMap keyValueSplit;
+          IHelper::split(keyValue, keyValueSplit, "=");
+          IHelper::splitTrim(keyValueSplit);
+          IHelper::splitPruneEmpty(keyValueSplit);
           ORTC_THROW_INVALID_PARAMETERS_IF(keyValueSplit.size() < 1);
 
           String key = keyValueSplit[0];
@@ -1049,11 +1044,11 @@ namespace ortc
           for (auto iterFormats = mline.mAFMTPLines.begin(); iterFormats != mline.mAFMTPLines.end(); ++iterFormats) {
             auto &format = *(*iterFormats);
             if (format.mFormat != redPayloadType) continue;
-            String combinedREDFormat = UseServicesHelper::combine(format.mFormatSpecific, "/");
-            UseServicesHelper::SplitMap redSplit;
-            UseServicesHelper::split(combinedREDFormat, redSplit, "/");
-            UseServicesHelper::splitTrim(redSplit);
-            UseServicesHelper::splitPruneEmpty(redSplit);
+            String combinedREDFormat = IHelper::combine(format.mFormatSpecific, "/");
+            IHelper::SplitMap redSplit;
+            IHelper::split(combinedREDFormat, redSplit, "/");
+            IHelper::splitTrim(redSplit);
+            IHelper::splitPruneEmpty(redSplit);
             for (auto iterRED = redSplit.begin(); iterRED != redSplit.end(); ++iterRED) {
               auto &redFormatPayloadTypeStr = (*iterRED).second;
               try {
@@ -1162,7 +1157,7 @@ namespace ortc
             continue;
           }
 
-          sender->mParameters = UseAdapterHelper::capabilitiesToParameters(*foundMediaLine->mSenderCapabilities);
+          sender->mParameters = IHelper::capabilitiesToParameters(*foundMediaLine->mSenderCapabilities);
 
           sender->mParameters->mMuxID = mid;
           sender->mParameters->mRTCP.mMux = (mline.mRTCPMux.hasValue() ? mline.mRTCPMux.value() : false);

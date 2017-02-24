@@ -44,10 +44,10 @@
 
 #include <ortc/IStatsReport.h>
 
-#include <ortc/services/ISettings.h>
-#include <ortc/services/IHelper.h>
+#include <ortc/IHelper.h>
 #include <ortc/services/IHTTP.h>
 
+#include <zsLib/ISettings.h>
 #include <zsLib/Singleton.h>
 #include <zsLib/Log.h>
 #include <zsLib/XML.h>
@@ -84,14 +84,12 @@ namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_rtpmediaengine) }
 
 namespace ortc
 {
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::ISettings, UseSettings);
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHelper, UseServicesHelper);
+  ZS_DECLARE_USING_PTR(zsLib, ISettings);
   ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHTTP, UseHTTP);
-
-  typedef ortc::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
 
   namespace internal
   {
+    ZS_DECLARE_CLASS_PTR(RTPMediaEngineSettingsDefaults);
     ZS_DECLARE_CLASS_PTR(RTPMediaEngineRegistration);
     ZS_DECLARE_CLASS_PTR(RTPMediaEngineSingleton);
     ZS_DECLARE_TYPEDEF_PTR(IStatsReportForInternal, UseStatsReport);
@@ -106,6 +104,52 @@ namespace ortc
 
     // foreward declaration
     void webrtcTrace(Log::Severity severity, Log::Level level, const char *message);
+
+    
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark RTPMediaEngineSettingsDefaults
+    #pragma mark
+
+    class RTPMediaEngineSettingsDefaults : public ISettingsApplyDefaultsDelegate
+    {
+    public:
+      //-----------------------------------------------------------------------
+      ~RTPMediaEngineSettingsDefaults()
+      {
+        ISettings::removeDefaults(*this);
+      }
+
+      //-----------------------------------------------------------------------
+      static RTPMediaEngineSettingsDefaultsPtr singleton()
+      {
+        static SingletonLazySharedPtr<RTPMediaEngineSettingsDefaults> singleton(create());
+        return singleton.singleton();
+      }
+
+      //-----------------------------------------------------------------------
+      static RTPMediaEngineSettingsDefaultsPtr create()
+      {
+        auto pThis(make_shared<RTPMediaEngineSettingsDefaults>());
+        ISettings::installDefaults(pThis);
+        return pThis;
+      }
+
+      //-----------------------------------------------------------------------
+      virtual void notifySettingsApplyDefaults() override
+      {
+      }
+      
+    };
+
+    //-------------------------------------------------------------------------
+    void installRTPMediaEngineSettingsDefaults()
+    {
+      RTPMediaEngineSettingsDefaults::singleton();
+    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -199,11 +243,11 @@ namespace ortc
       //-----------------------------------------------------------------------
       static RTPMediaEngineSingletonPtr singleton()
       {
-        AutoRecursiveLock lock(*UseServicesHelper::getGlobalLock());
+        AutoRecursiveLock lock(*IHelper::getGlobalLock());
         static SingletonLazySharedPtr<RTPMediaEngineSingleton> singleton(create());
         RTPMediaEngineSingletonPtr result = singleton.singleton();
 
-        static zsLib::SingletonManager::Register registerSingleton("ortc::ortc::RTPMediaEngineSingleton", result);
+        static zsLib::SingletonManager::Register registerSingleton("org.ortc.RTPMediaEngineSingleton", result);
 
         if (!result) {
           ZS_LOG_WARNING(Detail, slog("singleton gone"))
@@ -229,7 +273,7 @@ namespace ortc
       Log::Params log(const char *message) const
       {
         ElementPtr objectEl = Element::create("ortc::RTPMediaEngineSingleton");
-        UseServicesHelper::debugAppend(objectEl, "id", mID);
+        IHelper::debugAppend(objectEl, "id", mID);
         return Log::Params(message, objectEl);
       }
 
@@ -251,7 +295,7 @@ namespace ortc
         AutoRecursiveLock lock(*this);
         ElementPtr resultEl = Element::create("ortc::RTPMediaEngineSingleton");
 
-        UseServicesHelper::debugAppend(resultEl, "id", mID);
+        IHelper::debugAppend(resultEl, "id", mID);
 
         return resultEl;
       }
@@ -672,7 +716,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPMediaEngine::ntpServerTime(const Milliseconds &value)
     {
-      rtc::SyncWithNtp(value.count());
+			rtc::SyncWithNtp(value.count());
     }
 
     //-------------------------------------------------------------------------
@@ -954,7 +998,7 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void RTPMediaEngine::onTimer(TimerPtr timer)
+    void RTPMediaEngine::onTimer(ITimerPtr timer)
     {
       ZS_LOG_DEBUG(log("timer") + ZS_PARAM("timer id", timer->getID()))
 
@@ -1142,7 +1186,7 @@ namespace ortc
     Log::Params RTPMediaEngine::log(const char *message) const
     {
       ElementPtr objectEl = Element::create("ortc::RTPMediaEngine");
-      UseServicesHelper::debugAppend(objectEl, "id", mID);
+      IHelper::debugAppend(objectEl, "id", mID);
       return Log::Params(message, objectEl);
     }
 
@@ -1159,27 +1203,27 @@ namespace ortc
 
       ElementPtr resultEl = Element::create("ortc::RTPMediaEngine");
 
-      UseServicesHelper::debugAppend(resultEl, "id", mID);
+      IHelper::debugAppend(resultEl, "id", mID);
 
-      UseServicesHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
+      IHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
 
-      UseServicesHelper::debugAppend(resultEl, "state", toString(mCurrentState));
+      IHelper::debugAppend(resultEl, "state", toString(mCurrentState));
 
-      UseServicesHelper::debugAppend(resultEl, "error", mLastError);
-      UseServicesHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
+      IHelper::debugAppend(resultEl, "error", mLastError);
+      IHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
 
       auto registration = mRegistration.lock();
-      UseServicesHelper::debugAppend(resultEl, "registration", (bool)registration);
+      IHelper::debugAppend(resultEl, "registration", (bool)registration);
 
-      UseServicesHelper::debugAppend(resultEl, "pending ready", mPendingReady.size());
+      IHelper::debugAppend(resultEl, "pending ready", mPendingReady.size());
 
-      UseServicesHelper::debugAppend(resultEl, "device resources", mDeviceResources.size());
-      UseServicesHelper::debugAppend(resultEl, "pending setup device resources", mPendingSetupDeviceResources.size());
-      UseServicesHelper::debugAppend(resultEl, "pending close device resources", mPendingCloseDeviceResources.size());
+      IHelper::debugAppend(resultEl, "device resources", mDeviceResources.size());
+      IHelper::debugAppend(resultEl, "pending setup device resources", mPendingSetupDeviceResources.size());
+      IHelper::debugAppend(resultEl, "pending close device resources", mPendingCloseDeviceResources.size());
 
-      UseServicesHelper::debugAppend(resultEl, "channel resources", mChannelResources.size());
-      UseServicesHelper::debugAppend(resultEl, "pending setup channel resources", mPendingSetupChannelResources.size());
-      UseServicesHelper::debugAppend(resultEl, "pending close channel resources", mPendingCloseChannelResources.size());
+      IHelper::debugAppend(resultEl, "channel resources", mChannelResources.size());
+      IHelper::debugAppend(resultEl, "pending setup channel resources", mPendingSetupChannelResources.size());
+      IHelper::debugAppend(resultEl, "pending close channel resources", mPendingCloseChannelResources.size());
 
       return resultEl;
     }
@@ -1935,6 +1979,12 @@ namespace ortc
       auto settings = track->getSettings();
       if (!settings) return;
 
+      AutoRecursiveLock lock(*this);
+
+      if (mVideoRendererCallback) {
+        mVideoRendererCallback->RenderFrame(1, *videoFrame);
+      }
+
       if (!settings->mWidth.hasValue() || (settings->mWidth != videoFrame->width()))
         settings->mWidth = videoFrame->width();
       if (!settings->mHeight.hasValue() || (settings->mHeight != videoFrame->height()))
@@ -2062,13 +2112,14 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPMediaEngine::DeviceResource::onCapturedVideoFrame(VideoFramePtr frame)
     {
+      UseMediaStreamTrackPtr track = mTrack.lock();
+
       {
         AutoRecursiveLock lock(*this);
 
         if (mVideoRendererCallback) mVideoRendererCallback->RenderFrame(1, *frame);
       }
 
-      auto track = mTrack.lock();
       if (!track) return;
 
       track->sendCapturedVideoFrame(frame);
@@ -2100,6 +2151,7 @@ namespace ortc
 
       auto kind = track->kind();
       auto remote = track->remote();
+
       auto constraints = track->getConstraints();
       auto pThis = ZS_DYNAMIC_PTR_CAST(DeviceResource, mThisWeak.lock());
 
@@ -3549,7 +3601,7 @@ namespace ortc
       mDTMFTones.erase(0, firstTonePosition + 1);
 
       auto pThis = ZS_DYNAMIC_PTR_CAST(AudioSenderChannelResource, mThisWeak.lock());
-      mDTMFTimer = Timer::create(pThis, Milliseconds(toneGap), false);
+      mDTMFTimer = ITimer::create(pThis, Milliseconds(toneGap), false);
     }
 
     //-------------------------------------------------------------------------
@@ -3580,7 +3632,7 @@ namespace ortc
       mDTMFTones = tones;
       mDTMFDuration = duration;
       mDTMFInterToneGap = interToneGap;
-      mDTMFTimer = Timer::create(pThis, Milliseconds(0), false);
+      mDTMFTimer = ITimer::create(pThis, Milliseconds(0), false);
     }
 
     //-------------------------------------------------------------------------
@@ -3637,7 +3689,7 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void RTPMediaEngine::AudioSenderChannelResource::onTimer(TimerPtr timer)
+    void RTPMediaEngine::AudioSenderChannelResource::onTimer(ITimerPtr timer)
     {
       AutoRecursiveLock lock(*this);
 

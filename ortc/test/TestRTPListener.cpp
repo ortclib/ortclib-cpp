@@ -30,15 +30,14 @@
  */
 
 
-#include <zsLib/MessageQueueThread.h>
-
 #include "TestRTPListener.h"
 
 #include <ortc/internal/ortc_RTPPacket.h>
 #include <ortc/internal/ortc_RTCPPacket.h>
 #include <ortc/IRTPTypes.h>
-#include <ortc/ISettings.h>
 
+#include <zsLib/ISettings.h>
+#include <zsLib/IMessageQueueThread.h>
 #include <zsLib/XML.h>
 
 #include "config.h"
@@ -55,7 +54,7 @@ using zsLib::AutoPUID;
 using zsLib::AutoRecursiveLock;
 using namespace zsLib::XML;
 
-ZS_DECLARE_TYPEDEF_PTR(ortc::ISettings, UseSettings)
+ZS_DECLARE_TYPEDEF_PTR(zsLib::ISettings, UseSettings)
 ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHelper, UseServicesHelper)
 
 namespace ortc
@@ -116,7 +115,7 @@ namespace ortc
       {
         AutoRecursiveLock lock(*this);
         if (Milliseconds() != mPacketDelay) {
-          mTimer = Timer::create(mThisWeak.lock(), mPacketDelay);
+          mTimer = ITimer::create(mThisWeak.lock(), mPacketDelay);
         }
       }
 
@@ -258,7 +257,7 @@ namespace ortc
       #pragma mark
 
       //-----------------------------------------------------------------------
-      void FakeICETransport::onTimer(TimerPtr timer)
+      void FakeICETransport::onTimer(ITimerPtr timer)
       {
         FakeSecureTransportPtr transport;
 
@@ -1715,9 +1714,9 @@ void doTestRTPListener()
 
   TESTING_SLEEP(1000)
 
-  ortc::ISettings::applyDefaults();
+  UseSettings::applyDefaults();
 
-  zsLib::MessageQueueThreadPtr thread(zsLib::MessageQueueThread::createBasic());
+  auto thread(zsLib::IMessageQueueThread::createBasic());
 
   RTPListenerTesterPtr testObject1;
   RTPListenerTesterPtr testObject2;

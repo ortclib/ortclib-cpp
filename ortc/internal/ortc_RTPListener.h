@@ -37,9 +37,8 @@
 #include <ortc/IRTPListener.h>
 #include <ortc/IMediaStreamTrack.h>
 
-#include <ortc/services/IWakeDelegate.h>
 #include <zsLib/MessageQueueAssociator.h>
-#include <zsLib/Timer.h>
+#include <zsLib/ITimer.h>
 #include <zsLib/TearAway.h>
 
 #define ORTC_SETTING_RTP_LISTENER_MAX_RTP_PACKETS_IN_BUFFER "ortc/rtp-listener/max-rtp-packets-in-buffer"
@@ -67,22 +66,6 @@ namespace ortc
 
     ZS_DECLARE_INTERACTION_PROXY(IRTPListenerAsyncDelegate)
 
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPListenerForSettings
-    #pragma mark
-
-    interaction IRTPListenerForSettings
-    {
-      ZS_DECLARE_TYPEDEF_PTR(IRTPListenerForSettings, ForSettings)
-
-      static void applyDefaults();
-
-      virtual ~IRTPListenerForSettings() {}
-    };
     
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -213,7 +196,6 @@ namespace ortc
                         public MessageQueueAssociator,
                         public SharedRecursiveLock,
                         public IRTPListener,
-                        public IRTPListenerForSettings,
                         public IRTPListenerForSecureTransport,
                         public IRTPListenerForRTPReceiver,
                         public IRTPListenerForRTPSender,
@@ -227,7 +209,6 @@ namespace ortc
     public:
       friend interaction IRTPListener;
       friend interaction IRTPListenerFactory;
-      friend interaction IRTPListenerForSettings;
       friend interaction IRTPListenerForSecureTransport;
       friend interaction IRTPListenerForRTPReceiver;
       friend interaction IRTPListenerForRTPSender;
@@ -381,7 +362,6 @@ namespace ortc
       virtual ~RTPListener();
 
       static RTPListenerPtr convert(IRTPListenerPtr object);
-      static RTPListenerPtr convert(ForSettingsPtr object);
       static RTPListenerPtr convert(ForSecureTransportPtr object);
       static RTPListenerPtr convert(ForRTPReceiverPtr object);
       static RTPListenerPtr convert(ForRTPSenderPtr object);
@@ -489,7 +469,7 @@ namespace ortc
       #pragma mark RTPListener => ITimerDelegate
       #pragma mark
 
-      virtual void onTimer(TimerPtr timer) override;
+      virtual void onTimer(ITimerPtr timer) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -654,13 +634,13 @@ namespace ortc
 
       MuxIDMap mMuxIDTable;
 
-      TimerPtr mSSRCTableTimer;
+      ITimerPtr mSSRCTableTimer;
       Seconds mSSRCTableExpires {};
 
       bool mReattemptRTPDelivery {};
 
       UnhandledEventMap mUnhandledEvents;
-      TimerPtr mUnhanldedEventsTimer;
+      ITimerPtr mUnhanldedEventsTimer;
       Seconds mUnhandledEventsExpires {};
 
       Milliseconds mAmbiguousPayloadMappingMinDifference {};

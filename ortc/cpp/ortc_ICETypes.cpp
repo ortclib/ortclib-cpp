@@ -34,7 +34,9 @@
 #include <ortc/internal/platform.h>
 #include <ortc/internal/ortc_Helper.h>
 
-#include <ortc/services/IHelper.h>
+#include <ortc/IHelper.h>
+
+#include <zsLib/eventing/IHasher.h>
 
 #include <zsLib/XML.h>
 #include <zsLib/Numeric.h>
@@ -46,11 +48,7 @@ namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
 
 namespace ortc
 {
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHelper, UseServicesHelper);
-
-  ZS_DECLARE_TYPEDEF_PTR(ortc::internal::Helper, UseHelper);
-
-  typedef ortc::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
+  ZS_DECLARE_USING_PTR(zsLib::eventing, IHasher);
 
   using zsLib::Numeric;
   using zsLib::Log;
@@ -259,11 +257,11 @@ namespace ortc
   {
     if (!elem) return;
 
-    UseHelper::getElementValue(elem, "ortc::IICETypes::Candidate", "interfaceType", mInterfaceType);
-    UseHelper::getElementValue(elem, "ortc::IICETypes::Candidate", "foundation", mFoundation);
+    IHelper::getElementValue(elem, "ortc::IICETypes::Candidate", "interfaceType", mInterfaceType);
+    IHelper::getElementValue(elem, "ortc::IICETypes::Candidate", "foundation", mFoundation);
 
     {
-      String str = UseServicesHelper::getElementText(elem->findFirstChildElement("component"));
+      String str = IHelper::getElementText(elem->findFirstChildElement("component"));
       if (str.hasData()) {
         try {
           std::underlying_type<decltype(mComponent)>::type converted = Numeric<std::underlying_type<decltype(mComponent)>::type>(str);
@@ -280,12 +278,12 @@ namespace ortc
       }
     }
 
-    UseHelper::getElementValue(elem, "ortc::IICETypes::Candidate", "priority", mPriority);
-    UseHelper::getElementValue(elem, "ortc::IICETypes::Candidate", "unfreezePriority", mUnfreezePriority);
+    IHelper::getElementValue(elem, "ortc::IICETypes::Candidate", "priority", mPriority);
+    IHelper::getElementValue(elem, "ortc::IICETypes::Candidate", "unfreezePriority", mUnfreezePriority);
 
 
     {
-      String str = UseServicesHelper::getElementText(elem->findFirstChildElement("protocol"));
+      String str = IHelper::getElementText(elem->findFirstChildElement("protocol"));
       if (str.hasData()) {
         try {
           mProtocol = IICETypes::toProtocol(str);
@@ -295,11 +293,11 @@ namespace ortc
       }
     }
 
-    UseHelper::getElementValue(elem, "ortc::IICETypes::Candidate", "ip", mIP);
-    UseHelper::getElementValue(elem, "ortc::IICETypes::Candidate", "port", mPort);
+    IHelper::getElementValue(elem, "ortc::IICETypes::Candidate", "ip", mIP);
+    IHelper::getElementValue(elem, "ortc::IICETypes::Candidate", "port", mPort);
 
     {
-      String str = UseServicesHelper::getElementText(elem->findFirstChildElement("type"));
+      String str = IHelper::getElementText(elem->findFirstChildElement("type"));
       if (str.hasData()) {
         try {
           mCandidateType = IICETypes::toCandidateType(str);
@@ -310,7 +308,7 @@ namespace ortc
     }
 
     {
-      String str = UseServicesHelper::getElementText(elem->findFirstChildElement("tcpType"));
+      String str = IHelper::getElementText(elem->findFirstChildElement("tcpType"));
       if (str.hasData()) {
         try {
           mTCPType = IICETypes::toTCPCandidateType(str);
@@ -320,8 +318,8 @@ namespace ortc
       }
     }
 
-    UseHelper::getElementValue(elem, "ortc::IICETypes::Candidate", "relatedAddress", mRelatedAddress);
-    UseHelper::getElementValue(elem, "ortc::IICETypes::Candidate", "relatedPort", mRelatedPort);
+    IHelper::getElementValue(elem, "ortc::IICETypes::Candidate", "relatedAddress", mRelatedAddress);
+    IHelper::getElementValue(elem, "ortc::IICETypes::Candidate", "relatedPort", mRelatedPort);
   }
 
   //---------------------------------------------------------------------------
@@ -330,18 +328,18 @@ namespace ortc
     if (NULL == objectName) objectName = "candidate";
     ElementPtr elem = Element::create(objectName);
 
-    UseHelper::adoptElementValue(elem, "interfaceType", mInterfaceType, false);
-    UseHelper::adoptElementValue(elem, "foundation", mFoundation, false);
-    UseHelper::adoptElementValue(elem, "component", static_cast<std::underlying_type<IICETypes::Components>::type>(mComponent));
-    UseHelper::adoptElementValue(elem, "priority", mPriority);
-    UseHelper::adoptElementValue(elem, "unfreezePriority", mUnfreezePriority);
-    UseHelper::adoptElementValue(elem, "protocol", IICETypes::toString(mProtocol), false);
-    UseHelper::adoptElementValue(elem, "ip", mIP, false);
-    UseHelper::adoptElementValue(elem, "port", mPort);
-    UseHelper::adoptElementValue(elem, "type", IICETypes::toString(mCandidateType), false);
-    UseHelper::adoptElementValue(elem, "tcpType", IICETypes::toString(mTCPType), false);
-    UseHelper::adoptElementValue(elem, "relatedAddress", mRelatedAddress, false);
-    UseHelper::adoptElementValue(elem, "relatedPort", mRelatedPort);
+    IHelper::adoptElementValue(elem, "interfaceType", mInterfaceType, false);
+    IHelper::adoptElementValue(elem, "foundation", mFoundation, false);
+    IHelper::adoptElementValue(elem, "component", static_cast<std::underlying_type<IICETypes::Components>::type>(mComponent));
+    IHelper::adoptElementValue(elem, "priority", mPriority);
+    IHelper::adoptElementValue(elem, "unfreezePriority", mUnfreezePriority);
+    IHelper::adoptElementValue(elem, "protocol", IICETypes::toString(mProtocol), false);
+    IHelper::adoptElementValue(elem, "ip", mIP, false);
+    IHelper::adoptElementValue(elem, "port", mPort);
+    IHelper::adoptElementValue(elem, "type", IICETypes::toString(mCandidateType), false);
+    IHelper::adoptElementValue(elem, "tcpType", IICETypes::toString(mTCPType), false);
+    IHelper::adoptElementValue(elem, "relatedAddress", mRelatedAddress, false);
+    IHelper::adoptElementValue(elem, "relatedPort", mRelatedPort);
 
     if (!elem->hasChildren()) return ElementPtr();
     
@@ -357,38 +355,38 @@ namespace ortc
   //---------------------------------------------------------------------------
   String IICETypes::Candidate::hash(bool includePriorities) const
   {
-    SHA1Hasher hasher;
+    auto hasher = IHasher::sha1();
 
-    hasher.update("IICETypes::Candidate:");
-    hasher.update(mInterfaceType);
-    hasher.update(":");
-    hasher.update(mFoundation);
-    hasher.update(":");
-    hasher.update(static_cast<std::underlying_type<decltype(mComponent)>::type>(mComponent));
-    hasher.update(":");
+    hasher->update("IICETypes::Candidate:");
+    hasher->update(mInterfaceType);
+    hasher->update(":");
+    hasher->update(mFoundation);
+    hasher->update(":");
+    hasher->update(static_cast<std::underlying_type<decltype(mComponent)>::type>(mComponent));
+    hasher->update(":");
     if (includePriorities) {
-      hasher.update(mPriority);
-      hasher.update(":");
-      hasher.update(mUnfreezePriority);
-      hasher.update(":");
+      hasher->update(mPriority);
+      hasher->update(":");
+      hasher->update(mUnfreezePriority);
+      hasher->update(":");
     }
-    hasher.update(toString(mProtocol));
-    hasher.update(":");
-    hasher.update(mIP);
-    hasher.update(":");
-    hasher.update(mPort);
-    hasher.update(":");
-    hasher.update(toString(mCandidateType));
-    hasher.update(":");
+    hasher->update(toString(mProtocol));
+    hasher->update(":");
+    hasher->update(mIP);
+    hasher->update(":");
+    hasher->update(mPort);
+    hasher->update(":");
+    hasher->update(toString(mCandidateType));
+    hasher->update(":");
     if (Protocol_TCP == mProtocol) {
-      hasher.update(toString(mTCPType));
-      hasher.update(":");
+      hasher->update(toString(mTCPType));
+      hasher->update(":");
     }
-    hasher.update(mRelatedAddress);
-    hasher.update(":");
-    hasher.update(mRelatedPort);
+    hasher->update(mRelatedAddress);
+    hasher->update(":");
+    hasher->update(mRelatedPort);
 
-    return hasher.final();
+    return hasher->finalizeAsString();
   }
 
   //---------------------------------------------------------------------------
@@ -415,36 +413,36 @@ namespace ortc
   {
     if (mFoundation.hasData()) return mFoundation;
 
-    SHA1Hasher hasher;
+    auto hasher = IHasher::sha1();
 
-    hasher.update("foundation:");
-    hasher.update(IICETypes::toString(mCandidateType));
-    hasher.update(":");
+    hasher->update("foundation:");
+    hasher->update(IICETypes::toString(mCandidateType));
+    hasher->update(":");
     switch (mCandidateType) {
-      case CandidateType_Host:    hasher.update(mIP); break;
-      case CandidateType_Prflx:   hasher.update(mIP); break;
+      case CandidateType_Host:    hasher->update(mIP); break;
+      case CandidateType_Prflx:   hasher->update(mIP); break;
       case CandidateType_Relay:   {
         if (baseIP) {
           if (0 != (*baseIP)) {
-            hasher.update(baseIP);
+            hasher->update(baseIP);
             break;
           }
         }
-        hasher.update(mRelatedAddress);
+        hasher->update(mRelatedAddress);
         break;
       }
-      case CandidateType_Srflex:  hasher.update(mRelatedAddress); break;
+      case CandidateType_Srflex:  hasher->update(mRelatedAddress); break;
     }
-    hasher.update(":");
-    hasher.update(IICETypes::toString(mProtocol));
+    hasher->update(":");
+    hasher->update(IICETypes::toString(mProtocol));
     if (relatedServerURL) {
       if (0 != (*relatedServerURL)) {
-        hasher.update(":");
-        hasher.update(relatedServerURL);
+        hasher->update(":");
+        hasher->update(relatedServerURL);
       }
     }
 
-    return hasher.final();
+    return hasher->finalizeAsString();
   }
 
   //---------------------------------------------------------------------------
@@ -467,7 +465,7 @@ namespace ortc
     if (!elem) return;
 
     {
-      String str = UseServicesHelper::getElementText(elem->findFirstChildElement("component"));
+      String str = IHelper::getElementText(elem->findFirstChildElement("component"));
       if (str.hasData()) {
         try {
           std::underlying_type<decltype(mComponent)>::type converted = Numeric<std::underlying_type<decltype(mComponent)>::type>(str);
@@ -484,7 +482,7 @@ namespace ortc
       }
     }
 
-    UseHelper::getElementValue(elem, "ortc::IICETypes::CandidateComplete", "complete", mComplete);
+    IHelper::getElementValue(elem, "ortc::IICETypes::CandidateComplete", "complete", mComplete);
   }
 
   //---------------------------------------------------------------------------
@@ -494,8 +492,8 @@ namespace ortc
 
     ElementPtr elem = Element::create(objectName);
 
-    UseHelper::adoptElementValue(elem, "component", static_cast<std::underlying_type<decltype(mComponent)>::type>(mComponent));
-    UseHelper::adoptElementValue(elem, "complete", mComplete);
+    IHelper::adoptElementValue(elem, "component", static_cast<std::underlying_type<decltype(mComponent)>::type>(mComponent));
+    IHelper::adoptElementValue(elem, "complete", mComplete);
 
     if (!elem->hasChildren()) return ElementPtr();
 
@@ -511,14 +509,14 @@ namespace ortc
   //---------------------------------------------------------------------------
   String IICETypes::CandidateComplete::hash() const
   {
-    SHA1Hasher hasher;
+    auto hasher = IHasher::sha1();
 
-    hasher.update("IICETypes::CandidateComplete:");
-    hasher.update(static_cast<std::underlying_type<decltype(mComponent)>::type>(mComponent));
-    hasher.update(":");
-    hasher.update(mComplete);
+    hasher->update("IICETypes::CandidateComplete:");
+    hasher->update(static_cast<std::underlying_type<decltype(mComponent)>::type>(mComponent));
+    hasher->update(":");
+    hasher->update(mComplete);
 
-    return hasher.final();
+    return hasher->finalizeAsString();
   }
 
   //---------------------------------------------------------------------------
@@ -534,10 +532,10 @@ namespace ortc
   {
     if (!elem) return;
 
-    UseHelper::getElementValue(elem, "ortc::IICETypes::Parameters", "useUnfreezePriority", mUseUnfreezePriority);
-    UseHelper::getElementValue(elem, "ortc::IICETypes::Parameters", "usernameFragment", mUsernameFragment);
-    UseHelper::getElementValue(elem, "ortc::IICETypes::Parameters", "password", mPassword);
-    UseHelper::getElementValue(elem, "ortc::IICETypes::Parameters", "iceLite", mICELite);
+    IHelper::getElementValue(elem, "ortc::IICETypes::Parameters", "useUnfreezePriority", mUseUnfreezePriority);
+    IHelper::getElementValue(elem, "ortc::IICETypes::Parameters", "usernameFragment", mUsernameFragment);
+    IHelper::getElementValue(elem, "ortc::IICETypes::Parameters", "password", mPassword);
+    IHelper::getElementValue(elem, "ortc::IICETypes::Parameters", "iceLite", mICELite);
   }
 
   //---------------------------------------------------------------------------
@@ -545,10 +543,10 @@ namespace ortc
   {
     ElementPtr elem = Element::create(objectName);
 
-    UseHelper::adoptElementValue(elem, "useCandidateFreezePriority", mUseUnfreezePriority);
-    UseHelper::adoptElementValue(elem, "usernameFragment", mUsernameFragment, false);
-    UseHelper::adoptElementValue(elem, "password", mPassword, false);
-    UseHelper::adoptElementValue(elem, "iceLite", mICELite);
+    IHelper::adoptElementValue(elem, "useCandidateFreezePriority", mUseUnfreezePriority);
+    IHelper::adoptElementValue(elem, "usernameFragment", mUsernameFragment, false);
+    IHelper::adoptElementValue(elem, "password", mPassword, false);
+    IHelper::adoptElementValue(elem, "iceLite", mICELite);
 
     if (!elem->hasChildren()) return ElementPtr();
 
@@ -564,12 +562,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   String IICETypes::Parameters::hash() const
   {
-    SHA1Hasher hasher;
+    auto hasher = IHasher::sha1();
 
-    hasher.update(mUseUnfreezePriority ? "Parameters:true:" : "Parameters:false:");
-    hasher.update(mUsernameFragment);
-    hasher.update(":");
-    hasher.update(mPassword);
-    return hasher.final();
+    hasher->update(mUseUnfreezePriority ? "Parameters:true:" : "Parameters:false:");
+    hasher->update(mUsernameFragment);
+    hasher->update(":");
+    hasher->update(mPassword);
+    return hasher->finalizeAsString();
   }
 }

@@ -36,7 +36,8 @@
 #include <ortc/internal/ortc_StatsReport.h>
 #include <ortc/internal/platform.h>
 
-#include <ortc/services/IHelper.h>
+#include <ortc/IHelper.h>
+
 #include <ortc/services/IHTTP.h>
 
 #include <zsLib/Stringize.h>
@@ -49,11 +50,8 @@ namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_icetransport_controller) }
 
 namespace ortc
 {
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHelper, UseServicesHelper);
   ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHTTP, UseHTTP);
   ZS_DECLARE_TYPEDEF_PTR(internal::IStatsReportForInternal, UseStatsReport);
-
-  typedef ortc::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
 
   namespace internal
   {
@@ -427,7 +425,7 @@ namespace ortc
     Log::Params ICETransportController::log(const char *message) const
     {
       ElementPtr objectEl = Element::create("ortc::ICETransportController");
-      UseServicesHelper::debugAppend(objectEl, "id", mID);
+      IHelper::debugAppend(objectEl, "id", mID);
       return Log::Params(message, objectEl);
     }
 
@@ -442,7 +440,7 @@ namespace ortc
     {
       ElementPtr resultEl = Element::create("ortc::ICETransportController");
 
-      UseServicesHelper::debugAppend(resultEl, "id", mID);
+      IHelper::debugAppend(resultEl, "id", mID);
 
       return resultEl;
     }
