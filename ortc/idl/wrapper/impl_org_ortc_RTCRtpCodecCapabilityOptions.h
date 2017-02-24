@@ -17,7 +17,6 @@ namespace wrapper {
 
           RTCRtpCodecCapabilityOptions();
           virtual ~RTCRtpCodecCapabilityOptions();
-          virtual void wrapper_init_org_ortc_RTCRtpCodecCapabilityOptions() override;
         };
 
       } // ortc

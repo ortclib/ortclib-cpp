@@ -38,9 +38,4 @@ wrapper::impl::org::ortc::RTCRtpCodecCapabilityParameters::~RTCRtpCodecCapabilit
 {
 }
 
-//------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCRtpCodecCapabilityParameters::wrapper_init_org_ortc_RTCRtpCodecCapabilityParameters()
-{
-}
-
 
