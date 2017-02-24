@@ -716,7 +716,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPMediaEngine::ntpServerTime(const Milliseconds &value)
     {
-			rtc::SyncWithNtp(value.count());
+      rtc::SyncWithNtp(value.count());
     }
 
     //-------------------------------------------------------------------------
@@ -1979,12 +1979,6 @@ namespace ortc
       auto settings = track->getSettings();
       if (!settings) return;
 
-      /*AutoRecursiveLock lock(*this);
-
-      if (mVideoRendererCallback) {
-        mVideoRendererCallback->RenderFrame(1, *videoFrame);
-      }*/
-
       if (!settings->mWidth.hasValue() || (settings->mWidth != videoFrame->width()))
         settings->mWidth = videoFrame->width();
       if (!settings->mHeight.hasValue() || (settings->mHeight != videoFrame->height()))
@@ -2112,14 +2106,13 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPMediaEngine::DeviceResource::onCapturedVideoFrame(VideoFramePtr frame)
     {
-      UseMediaStreamTrackPtr track = mTrack.lock();
-
       {
         AutoRecursiveLock lock(*this);
 
         if (mVideoRendererCallback) mVideoRendererCallback->RenderFrame(1, *frame);
       }
 
+      auto track = mTrack.lock();
       if (!track) return;
 
       track->sendCapturedVideoFrame(frame);
