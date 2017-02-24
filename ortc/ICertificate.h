@@ -45,7 +45,7 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   #pragma mark
-  #pragma mark IDTLSTransportTypes
+  #pragma mark ICertificateTypes
   #pragma mark
   
   interaction ICertificateTypes

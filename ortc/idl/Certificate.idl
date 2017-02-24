@@ -118,6 +118,9 @@ namespace org
       [static, altname(generateCertificateWithJson)]
       PromiseWithCertificate generateCertificate(Json keygenAlgorithm);
 
+      [constructor, delete]
+      void RTCCertificate();
+
       /// <summary>
       /// Gets the unique object identifier for the certificate object.
       /// </summary>

@@ -353,7 +353,7 @@ namespace ortc
         ElementPtr toDebug() const;
         String hash() const;
 
-        static ICECandidatePtr createFromSDP(ElementPtr rootEl);
+        static ICECandidatePtr createFromJSON(ElementPtr rootEl) { return create(rootEl); }
         static ICECandidatePtr createFromSDP(const char *value);
         String toSDP() const;
         ElementPtr toJSON() const;

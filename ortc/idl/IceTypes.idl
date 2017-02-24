@@ -38,6 +38,9 @@ namespace org
       /// </summary>
     struct RTCIceGathererCandidate
     {
+      [constructor, delete]
+      void RTCIceGathererCandidate();
+
       /// <summary>
       /// Gets or sets the the component of the ICE candidate to indicate
       /// if the candidate is related to RTP or RTCP.
