@@ -39,6 +39,8 @@ namespace org
     [dictionary]
     struct RTCRtpCodecCapabilityOptions
     {
+      [constructor, delete]
+      void RTCRtpCodecCapabilityOptions();
     };
 
     /// <summary>
@@ -47,6 +49,8 @@ namespace org
     [dictionary]
     struct RTCRtpCodecCapabilityParameters
     {
+      [constructor, delete]
+      void RTCRtpCodecCapabilityParameters();
     };
 
     /// <summary>
@@ -794,6 +798,9 @@ namespace org
     struct RTCRtpCodecParameters
     {
       typedef std::list<RTCRtcpFeedback> RtcpFeedbackList;
+
+      [constructor, delete]
+      void RTCRtpCodecParameters();
 
       /// <summary>
       /// Gets or sets the MIME media type. Valid types are listed in
