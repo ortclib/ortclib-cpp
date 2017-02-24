@@ -53,6 +53,13 @@ namespace org
       void RTCRtpCodecCapabilityParameters();
     };
 
+    [dictionary]
+    struct RTCRtpCodecParameterSettings
+    {
+      [constructor, delete]
+      void RTCRtpCodecParameterSettings();
+    };
+
     /// <summary>
     /// RTCRtcpFeedback provides information on RTCP feedback messages.
     /// </summary>
@@ -400,7 +407,6 @@ namespace org
       string hash();
     };
 
-    
     // https://tools.ietf.org/html/rfc7587#section-6.1
     /// <summary>
     /// The following optional capability parameters are defined for "opus",
@@ -492,7 +498,8 @@ namespace org
     /// noted in [RFC7741] Section 6.1:
     /// </summary>
     [dictionary]
-    struct RTCRtpVp8CodecCapabilityParameters : RTCRtpCodecCapabilityParameters
+    struct RTCRtpVp8CodecCapabilityParameters : RTCRtpCodecCapabilityParameters,
+                                                RTCRtpCodecParameterSettings
     {
       /// <summary>
       /// Gets or sets the maximum frame rate in frames per second that the
@@ -539,7 +546,8 @@ namespace org
     /// in [RFC6184] Section 8.1, and [draft-ietf-rtcweb-video] Section 6.2.
     /// </summary>
     [dictionary]
-    struct RTCRtpH264CodecCapabilityParameters : RTCRtpCodecCapabilityParameters
+    struct RTCRtpH264CodecCapabilityParameters : RTCRtpCodecCapabilityParameters,
+                                                 RTCRtpCodecParameterSettings
     {
       typedef std::list<unsigned short>  PacketizationModeList;
 
@@ -630,7 +638,8 @@ namespace org
     /// Section 8.6:
     /// </summary>
     [dictionary]
-    struct RTCRtpRtxCodecCapabilityParameters : RTCRtpCodecCapabilityParameters
+    struct RTCRtpRtxCodecCapabilityParameters : RTCRtpCodecCapabilityParameters,
+                                                RTCRtpCodecParameterSettings
     {
       /// <summary>
       /// Gets or sets the associated payload type of the original stream
@@ -675,7 +684,8 @@ namespace org
     /// The following capabilities are defined for "flexfec", as noted in
     /// [draft-ietf-rtcweb-fec] Section 5.1.1:
     /// </summary>
-    struct RTCRtpFlexFecCodecCapabilityParameters : RTCRtpCodecCapabilityParameters
+    struct RTCRtpFlexFecCodecCapabilityParameters : RTCRtpCodecCapabilityParameters,
+                                                    RTCRtpCodecParameterSettings
     {
       /// <summary>
       /// Gets or sets the default time that spans the source packets and the
@@ -788,8 +798,6 @@ namespace org
       /// </summary>
       string hash();
     };
-
-    typedef RTCRtpCodecCapabilityParameters RTCRtpCodecParameterSettings;
 
     /// <summary>
     /// RTCRtpCodecParameters provides information on codec settings.
@@ -1288,10 +1296,85 @@ namespace org
       string hash();
     };
 
-    typedef RTCRtpVp8CodecCapabilityParameters RTCRtpVp8CodecParameterSettings;
-    typedef RTCRtpH264CodecCapabilityParameters RTCRtpH264CodecParameterSettings;
-    typedef RTCRtpRtxCodecCapabilityParameters RTCRtpRtxCodecParameterSettings;
-    typedef RTCRtpFlexFecCodecCapabilityParameters RTCRtpFlexFecCodecParameterSettings;
+    [dictionary]
+    struct RTCRtpVp8CodecParameterSettings : RTCRtpVp8CodecCapabilityParameters
+    {
+      /// <summary>
+      /// Constructs an empty instance of an RTCRtpVp8CodecParameterSettings object.
+      /// </summary>
+      [constructor, default]
+      void RTCRtpVp8CodecParameterSettings();
+      /// <summary>
+      /// Constructs an instance of an RTCRtpVp8CodecParameterSettings object by cloning object data from an existing object.
+      /// </summary>
+      [constructor, altname(RTCRtpVp8CodecParameterSettingsClone)]
+      void RTCRtpVp8CodecParameterSettings(RTCRtpVp8CodecParameterSettings source);
+      /// <summary>
+      /// Constructs an instance of an RTCRtpVp8CodecParameterSettings object by extrating object data from a JSON object.
+      /// </summary>
+      [constructor, default, altname(RTCRtpVp8CodecParameterSettingsWithJson)]
+      void RTCRtpVp8CodecParameterSettings(Json json);
+    };
+
+    [dictionary]
+    struct RTCRtpH264CodecParameterSettings : RTCRtpH264CodecCapabilityParameters
+    {
+      /// <summary>
+      /// Constructs an empty instance of an RTCRtpH264CodecParameterSettings object.
+      /// </summary>
+      [constructor, default]
+      void RTCRtpH264CodecParameterSettings();
+      /// <summary>
+      /// Constructs an instance of an RTCRtpH264CodecParameterSettings object by cloning object data from an existing object.
+      /// </summary>
+      [constructor, altname(RTCRtpH264CodecParameterSettingsClone)]
+      void RTCRtpH264CodecParameterSettings(RTCRtpH264CodecParameterSettings source);
+      /// <summary>
+      /// Constructs an instance of an RTCRtpH264CodecParameterSettings object by extrating object data from a JSON object.
+      /// </summary>
+      [constructor, default, altname(RTCRtpH264CodecParameterSettingsWithJson)]
+      void RTCRtpH264CodecParameterSettings(Json json);
+    };
+
+    [dictionary]
+    struct RTCRtpRtxCodecParameterSettings : RTCRtpRtxCodecCapabilityParameters
+    {
+      /// <summary>
+      /// Constructs an empty instance of an RTCRtpRtxCodecParameterSettings object.
+      /// </summary>
+      [constructor, default]
+      void RTCRtpRtxCodecParameterSettings();
+      /// <summary>
+      /// Constructs an instance of an RTCRtpRtxCodecParameterSettings object by cloning object data from an existing object.
+      /// </summary>
+      [constructor, altname(RTCRtpRtxCodecParameterSettingsClone)]
+      void RTCRtpRtxCodecParameterSettings(RTCRtpRtxCodecParameterSettings source);
+      /// <summary>
+      /// Constructs an instance of an RTCRtpRtxCodecParameterSettings object by extrating object data from a JSON object.
+      /// </summary>
+      [constructor, default, altname(RTCRtpRtxCodecParameterSettingsWithJson)]
+      void RTCRtpRtxCodecParameterSettings(Json json);
+    };
+
+    [dictionary]
+    struct RTCRtpFlexFecCodecParameterSettings : RTCRtpFlexFecCodecCapabilityParameters
+    {
+      /// <summary>
+      /// Constructs an empty instance of an RTCRtpFlexFecCodecParameterSettings object.
+      /// </summary>
+      [constructor, default]
+      void RTCRtpFlexFecCodecParameterSettings();
+      /// <summary>
+      /// Constructs an instance of an RTCRtpFlexFecCodecParameterSettings object by cloning object data from an existing object.
+      /// </summary>
+      [constructor, altname(RTCRtpFlexFecCodecParameterSettingsClone)]
+      void RTCRtpFlexFecCodecParameterSettings(RTCRtpFlexFecCodecParameterSettings source);
+      /// <summary>
+      /// Constructs an instance of an RTCRtpFlexFecCodecParameterSettings object by extrating object data from a JSON object.
+      /// </summary>
+      [constructor, default, altname(RTCRtpFlexFecCodecParameterSettingsWithJson)]
+      void RTCRtpFlexFecCodecParameterSettings(Json json);
+    };
 
     /// <summary>
     /// The following setting is defined for "red", as noted in [RFC2198]
