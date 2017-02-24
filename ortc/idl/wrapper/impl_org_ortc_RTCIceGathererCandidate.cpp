@@ -39,11 +39,6 @@ wrapper::impl::org::ortc::RTCIceGathererCandidate::~RTCIceGathererCandidate()
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCIceGathererCandidate::wrapper_init_org_ortc_RTCIceGathererCandidate()
-{
-}
-
-//------------------------------------------------------------------------------
 wrapper::org::ortc::RTCIceGathererCandidatePtr wrapper::org::ortc::RTCIceGathererCandidate::create(wrapper::org::ortc::JsonPtr json)
 {
   wrapper::org::ortc::RTCIceGathererCandidatePtr result {};

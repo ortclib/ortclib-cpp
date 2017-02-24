@@ -39,11 +39,6 @@ wrapper::impl::org::ortc::RTCCertificate::~RTCCertificate()
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCCertificate::wrapper_init_org_ortc_RTCCertificate()
-{
-}
-
-//------------------------------------------------------------------------------
 shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCCertificatePtr > > wrapper::org::ortc::RTCCertificate::generateCertificate()
 {
   shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCCertificatePtr > > result {};

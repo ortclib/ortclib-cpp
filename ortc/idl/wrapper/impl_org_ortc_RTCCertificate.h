@@ -17,7 +17,6 @@ namespace wrapper {
 
           RTCCertificate();
           virtual ~RTCCertificate();
-          virtual void wrapper_init_org_ortc_RTCCertificate() override;
 
           // properties RTCCertificate
           virtual uint64_t get_objectId() override;
