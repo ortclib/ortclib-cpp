@@ -1979,11 +1979,11 @@ namespace ortc
       auto settings = track->getSettings();
       if (!settings) return;
 
-      AutoRecursiveLock lock(*this);
+      /*AutoRecursiveLock lock(*this);
 
       if (mVideoRendererCallback) {
         mVideoRendererCallback->RenderFrame(1, *videoFrame);
-      }
+      }*/
 
       if (!settings->mWidth.hasValue() || (settings->mWidth != videoFrame->width()))
         settings->mWidth = videoFrame->width();
