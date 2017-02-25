@@ -189,26 +189,32 @@ namespace org
       /// </summary>
       interface RTCPeerConnectionIceErrorEvent
       {
+        [constructor, delete]
+        void RTCPeerConnectionIceErrorEvent();
+
         /// <summary>
         /// Gets the local candidate used to communicate with the STUN or TURN
         /// server.
         /// </summary>
+        [getter]
         RTCIceCandidate hostCandidate;
         /// <summary>
         /// Gets the STUN or TURN URL that identifies the STUN or TURN server
         /// for which the failure occurred.
         /// </summary>
+        [getter]
         string          url;
         /// <summary>
         /// Gets the errorCode attribute is the numeric STUN error code
         /// returned by the STUN or TURN server.
         /// </summary>
-        [optional]
+        [getter, optional]
         uint16          errorCode;
         /// <summary>
         /// Gets the errorText attribute is the STUN reason text returned by
         /// the STUN or TURN server.
         /// </summary>
+        [getter]
         string          errorText;
       };
 
@@ -217,16 +223,21 @@ namespace org
       /// </summary>
       struct RTCPeerConnectionIceEvent
       {
+        [constructor, delete]
+        void RTCPeerConnectionIceEvent();
+
         /// <summary>
         /// Gets the RTCIceCandidate object with the new ICE candidate that
         /// caused the event.
         /// </summary>
+        [getter]
         RTCIceCandidate candidate;
         /// <summary>
         /// Gets the STUN or TURN URL that identifies the STUN or TURN server
         /// used to gather this candidate. If the candidate was not gathered
         /// from a STUN or TURN server, this parameter will be set to null.
         /// </summary>
+        [getter]
         string uri;
       };
 
@@ -236,10 +247,14 @@ namespace org
       /// </summary>
       struct RTCPeerConnectionIceCompleteEvent
       {
+        [constructor, delete]
+        void RTCPeerConnectionIceCompleteEvent();
+
         /// <summary>
         /// Gets the RTCIceCandidateComplete object with the final ICE
         /// transport candidate that caused the event.
         /// </summary>
+        [getter]
         RTCIceCandidateComplete candidate;
       };
 
@@ -250,19 +265,25 @@ namespace org
       {
         typedef std::list<MediaStream> MediaStreamList;
 
+        [constructor, delete]
+        void RTCTrackEvent();
+
         /// <summary>
         /// Gets the RTCRtpReceiver object associated with the event.
         /// </summary>
+        [getter]
         RTCRtpReceiver receiver;
         /// <summary>
         /// Gets the MediaStreamTrack object that is associated with the
         /// RTCRtpReceiver identified by receiver.
         /// </summary>
+        [getter]
         MediaStreamTrack track;
         /// <summary>
         /// Gets an array of MediaStream objects representing the MediaStreams
         /// that this event's track is a part of.
         /// </summary>
+        [getter]
         MediaStreamList mediaStreams;
       };
 

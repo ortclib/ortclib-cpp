@@ -4106,7 +4106,6 @@ namespace ortc
   const char *IRTPTypes::toString(PriorityTypes type)
   {
     switch (type) {
-      case PriorityType_Unknown:        return "";
       case PriorityType_VeryLow:        return "very-low";
       case PriorityType_Low:            return "low";
       case PriorityType_Medium:         return "medium";
@@ -4125,7 +4124,7 @@ namespace ortc
       if (typeStr == IRTPTypes::toString(index)) return index;
     }
 
-    return PriorityType_Unknown;
+    ORTC_THROW_INVALID_PARAMETERS("unknown priority type");
   }
 
   //---------------------------------------------------------------------------
