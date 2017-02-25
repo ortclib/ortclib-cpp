@@ -22,16 +22,6 @@ namespace wrapper {
           virtual wrapper::org::ortc::JsonPtr toJson() override;
           virtual String hash() override;
 
-          // properties RTCRtpFlexFecCodecCapabilityParameters
-          virtual ::zsLib::Microseconds get_repairWindow() override;
-          virtual void set_repairWindow(::zsLib::Microseconds value) override;
-          virtual Optional< unsigned long > get_l() override;
-          virtual void set_l(Optional< unsigned long > value) override;
-          virtual Optional< unsigned long > get_d() override;
-          virtual void set_d(Optional< unsigned long > value) override;
-          virtual Optional< wrapper::org::ortc::RTCRtpFlexFecCodecCapabilityParametersToP > get_toP() override;
-          virtual void set_toP(Optional< wrapper::org::ortc::RTCRtpFlexFecCodecCapabilityParametersToP > value) override;
-
           // methods RTCRtpFlexFecCodecParameterSettings
           virtual void wrapper_init_org_ortc_RTCRtpFlexFecCodecParameterSettings() override;
           virtual void wrapper_init_org_ortc_RTCRtpFlexFecCodecParameterSettings(wrapper::org::ortc::RTCRtpFlexFecCodecParameterSettingsPtr source) override;

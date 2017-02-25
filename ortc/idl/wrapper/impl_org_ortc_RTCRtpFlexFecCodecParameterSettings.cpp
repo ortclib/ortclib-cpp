@@ -53,54 +53,6 @@ String wrapper::impl::org::ortc::RTCRtpFlexFecCodecParameterSettings::hash()
 }
 
 //------------------------------------------------------------------------------
-::zsLib::Microseconds wrapper::impl::org::ortc::RTCRtpFlexFecCodecParameterSettings::get_repairWindow()
-{
-  ::zsLib::Microseconds result {};
-  return result;
-}
-
-//------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCRtpFlexFecCodecParameterSettings::set_repairWindow(::zsLib::Microseconds value)
-{
-}
-
-//------------------------------------------------------------------------------
-Optional< unsigned long > wrapper::impl::org::ortc::RTCRtpFlexFecCodecParameterSettings::get_l()
-{
-  Optional< unsigned long > result {};
-  return result;
-}
-
-//------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCRtpFlexFecCodecParameterSettings::set_l(Optional< unsigned long > value)
-{
-}
-
-//------------------------------------------------------------------------------
-Optional< unsigned long > wrapper::impl::org::ortc::RTCRtpFlexFecCodecParameterSettings::get_d()
-{
-  Optional< unsigned long > result {};
-  return result;
-}
-
-//------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCRtpFlexFecCodecParameterSettings::set_d(Optional< unsigned long > value)
-{
-}
-
-//------------------------------------------------------------------------------
-Optional< wrapper::org::ortc::RTCRtpFlexFecCodecCapabilityParametersToP > wrapper::impl::org::ortc::RTCRtpFlexFecCodecParameterSettings::get_toP()
-{
-  Optional< wrapper::org::ortc::RTCRtpFlexFecCodecCapabilityParametersToP > result {};
-  return result;
-}
-
-//------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCRtpFlexFecCodecParameterSettings::set_toP(Optional< wrapper::org::ortc::RTCRtpFlexFecCodecCapabilityParametersToP > value)
-{
-}
-
-//------------------------------------------------------------------------------
 void wrapper::impl::org::ortc::RTCRtpFlexFecCodecParameterSettings::wrapper_init_org_ortc_RTCRtpFlexFecCodecParameterSettings()
 {
 }
