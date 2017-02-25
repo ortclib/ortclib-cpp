@@ -684,6 +684,7 @@ namespace org
     /// The following capabilities are defined for "flexfec", as noted in
     /// [draft-ietf-rtcweb-fec] Section 5.1.1:
     /// </summary>
+    [dictionary]
     struct RTCRtpFlexFecCodecCapabilityParameters : RTCRtpCodecCapabilityParameters,
                                                     RTCRtpCodecParameterSettings
     {
