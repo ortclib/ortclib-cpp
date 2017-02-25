@@ -571,7 +571,7 @@ namespace org
       /// rate in units of macroblocks per second.
       /// </summary>
       [optional]
-      unsigned long long maxMnps;
+      unsigned long long maxMbps;
       /// <summary>
       /// Gets or sets an integer indicating the maximum static macroblock
       /// processing rate in units of static macroblocks per second, under the
