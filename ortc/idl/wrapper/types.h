@@ -20,7 +20,6 @@ namespace wrapper {
           ZS_DECLARE_STRUCT_PTR(RTCOfferAnswerOptions);
           ZS_DECLARE_STRUCT_PTR(RTCOfferOptions);
           ZS_DECLARE_STRUCT_PTR(RTCPeerConnection);
-          ZS_DECLARE_STRUCT_PTR(RTCPeerConnectionIceCompleteEvent);
           ZS_DECLARE_STRUCT_PTR(RTCPeerConnectionIceErrorEvent);
           ZS_DECLARE_STRUCT_PTR(RTCPeerConnectionIceEvent);
           ZS_DECLARE_STRUCT_PTR(RTCSessionDescription);

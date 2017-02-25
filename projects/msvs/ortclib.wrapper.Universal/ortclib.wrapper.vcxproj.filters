@@ -36,9 +36,6 @@
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_adapter_RTCPeerConnection.cpp">
       <Filter>ortc\idl\wrapper</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_adapter_RTCPeerConnectionIceCompleteEvent.cpp">
-      <Filter>ortc\idl\wrapper</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_adapter_RTCPeerConnectionIceErrorEvent.cpp">
       <Filter>ortc\idl\wrapper</Filter>
     </ClCompile>
@@ -515,9 +512,6 @@
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_adapter_RTCPeerConnection.h">
       <Filter>ortc\idl\wrapper</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_adapter_RTCPeerConnectionIceCompleteEvent.h">
-      <Filter>ortc\idl\wrapper</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_adapter_RTCPeerConnectionIceErrorEvent.h">
       <Filter>ortc\idl\wrapper</Filter>
     </ClInclude>
@@ -954,9 +948,6 @@
       <Filter>ortc\idl\wrapper\generated</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_adapter_RTCPeerConnection.h">
-      <Filter>ortc\idl\wrapper\generated</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_adapter_RTCPeerConnectionIceCompleteEvent.h">
       <Filter>ortc\idl\wrapper\generated</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_adapter_RTCPeerConnectionIceErrorEvent.h">

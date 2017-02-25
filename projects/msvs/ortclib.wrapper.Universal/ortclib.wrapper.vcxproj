@@ -37,7 +37,6 @@
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_adapter_RTCOfferAnswerOptions.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_adapter_RTCOfferOptions.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_adapter_RTCPeerConnection.cpp" />
-    <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_adapter_RTCPeerConnectionIceCompleteEvent.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_adapter_RTCPeerConnectionIceErrorEvent.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_adapter_RTCPeerConnectionIceEvent.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_adapter_RTCSessionDescription.cpp" />
@@ -197,7 +196,6 @@
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_adapter_RTCOfferAnswerOptions.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_adapter_RTCOfferOptions.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_adapter_RTCPeerConnection.h" />
-    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_adapter_RTCPeerConnectionIceCompleteEvent.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_adapter_RTCPeerConnectionIceErrorEvent.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_adapter_RTCPeerConnectionIceEvent.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_adapter_RTCSessionDescription.h" />
@@ -353,7 +351,6 @@
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_adapter_RTCOfferAnswerOptions.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_adapter_RTCOfferOptions.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_adapter_RTCPeerConnection.h" />
-    <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_adapter_RTCPeerConnectionIceCompleteEvent.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_adapter_RTCPeerConnectionIceErrorEvent.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_adapter_RTCPeerConnectionIceEvent.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_adapter_RTCSessionDescription.h" />
