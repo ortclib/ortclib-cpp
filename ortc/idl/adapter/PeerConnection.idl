@@ -242,23 +242,6 @@ namespace org
       };
 
       /// <summary>
-      /// This event fires whenever the final ICE candidate has been
-      /// discovered for an ICE transport.
-      /// </summary>
-      struct RTCPeerConnectionIceCompleteEvent
-      {
-        [constructor, delete]
-        void RTCPeerConnectionIceCompleteEvent();
-
-        /// <summary>
-        /// Gets the RTCIceCandidateComplete object with the final ICE
-        /// transport candidate that caused the event.
-        /// </summary>
-        [getter]
-        RTCIceCandidateComplete candidate;
-      };
-
-      /// <summary>
       /// The RTCTrackEvent is fired when a new remote track is detected.
       /// </summary>
       struct RTCTrackEvent
@@ -579,12 +562,6 @@ namespace org
         /// </summary>
         [event]
         void onIceCandidate(RTCPeerConnectionIceEvent event);
-
-        /// <summary>
-        /// The final RTCIceCandidateComplete is discovered for a transport.
-        /// </summary>
-        [event]
-        void onIceCandidateComplete(RTCPeerConnectionIceCompleteEvent event);
 
         /// <summary>
         /// A failure occured when gathering ICE candidates.
