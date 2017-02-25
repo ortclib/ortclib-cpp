@@ -39,11 +39,6 @@ wrapper::impl::org::ortc::adapter::RTCPeerConnectionIceEvent::~RTCPeerConnection
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::adapter::RTCPeerConnectionIceEvent::wrapper_init_org_ortc_adapter_RTCPeerConnectionIceEvent()
-{
-}
-
-//------------------------------------------------------------------------------
 wrapper::org::ortc::adapter::RTCIceCandidatePtr wrapper::impl::org::ortc::adapter::RTCPeerConnectionIceEvent::get_candidate()
 {
   wrapper::org::ortc::adapter::RTCIceCandidatePtr result {};
@@ -51,20 +46,10 @@ wrapper::org::ortc::adapter::RTCIceCandidatePtr wrapper::impl::org::ortc::adapte
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::adapter::RTCPeerConnectionIceEvent::set_candidate(wrapper::org::ortc::adapter::RTCIceCandidatePtr value)
-{
-}
-
-//------------------------------------------------------------------------------
 String wrapper::impl::org::ortc::adapter::RTCPeerConnectionIceEvent::get_uri()
 {
   String result {};
   return result;
-}
-
-//------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::adapter::RTCPeerConnectionIceEvent::set_uri(String value)
-{
 }
 
 

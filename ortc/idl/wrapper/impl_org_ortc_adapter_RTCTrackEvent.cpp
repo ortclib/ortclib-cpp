@@ -39,20 +39,10 @@ wrapper::impl::org::ortc::adapter::RTCTrackEvent::~RTCTrackEvent()
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::adapter::RTCTrackEvent::wrapper_init_org_ortc_adapter_RTCTrackEvent()
-{
-}
-
-//------------------------------------------------------------------------------
 wrapper::org::ortc::RTCRtpReceiverPtr wrapper::impl::org::ortc::adapter::RTCTrackEvent::get_receiver()
 {
   wrapper::org::ortc::RTCRtpReceiverPtr result {};
   return result;
-}
-
-//------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::adapter::RTCTrackEvent::set_receiver(wrapper::org::ortc::RTCRtpReceiverPtr value)
-{
 }
 
 //------------------------------------------------------------------------------
@@ -63,20 +53,10 @@ wrapper::org::ortc::MediaStreamTrackPtr wrapper::impl::org::ortc::adapter::RTCTr
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::adapter::RTCTrackEvent::set_track(wrapper::org::ortc::MediaStreamTrackPtr value)
-{
-}
-
-//------------------------------------------------------------------------------
 shared_ptr< list< wrapper::org::ortc::adapter::MediaStreamPtr > > wrapper::impl::org::ortc::adapter::RTCTrackEvent::get_mediaStreams()
 {
   shared_ptr< list< wrapper::org::ortc::adapter::MediaStreamPtr > > result {};
   return result;
-}
-
-//------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::adapter::RTCTrackEvent::set_mediaStreams(shared_ptr< list< wrapper::org::ortc::adapter::MediaStreamPtr > > value)
-{
 }
 
 

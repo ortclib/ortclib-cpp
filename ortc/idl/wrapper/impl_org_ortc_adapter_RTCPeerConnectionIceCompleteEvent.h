@@ -18,11 +18,9 @@ namespace wrapper {
 
             RTCPeerConnectionIceCompleteEvent();
             virtual ~RTCPeerConnectionIceCompleteEvent();
-            virtual void wrapper_init_org_ortc_adapter_RTCPeerConnectionIceCompleteEvent() override;
 
             // properties RTCPeerConnectionIceCompleteEvent
             virtual wrapper::org::ortc::RTCIceCandidateCompletePtr get_candidate() override;
-            virtual void set_candidate(wrapper::org::ortc::RTCIceCandidateCompletePtr value) override;
           };
 
         } // adapter

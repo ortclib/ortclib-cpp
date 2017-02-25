@@ -18,13 +18,10 @@ namespace wrapper {
 
             RTCPeerConnectionIceEvent();
             virtual ~RTCPeerConnectionIceEvent();
-            virtual void wrapper_init_org_ortc_adapter_RTCPeerConnectionIceEvent() override;
 
             // properties RTCPeerConnectionIceEvent
             virtual wrapper::org::ortc::adapter::RTCIceCandidatePtr get_candidate() override;
-            virtual void set_candidate(wrapper::org::ortc::adapter::RTCIceCandidatePtr value) override;
             virtual String get_uri() override;
-            virtual void set_uri(String value) override;
           };
 
         } // adapter

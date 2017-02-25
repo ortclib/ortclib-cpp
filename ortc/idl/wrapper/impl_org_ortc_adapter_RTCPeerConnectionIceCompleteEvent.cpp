@@ -39,20 +39,10 @@ wrapper::impl::org::ortc::adapter::RTCPeerConnectionIceCompleteEvent::~RTCPeerCo
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::adapter::RTCPeerConnectionIceCompleteEvent::wrapper_init_org_ortc_adapter_RTCPeerConnectionIceCompleteEvent()
-{
-}
-
-//------------------------------------------------------------------------------
 wrapper::org::ortc::RTCIceCandidateCompletePtr wrapper::impl::org::ortc::adapter::RTCPeerConnectionIceCompleteEvent::get_candidate()
 {
   wrapper::org::ortc::RTCIceCandidateCompletePtr result {};
   return result;
-}
-
-//------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::adapter::RTCPeerConnectionIceCompleteEvent::set_candidate(wrapper::org::ortc::RTCIceCandidateCompletePtr value)
-{
 }
 
 

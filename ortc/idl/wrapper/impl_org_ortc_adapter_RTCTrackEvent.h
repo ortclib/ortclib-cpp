@@ -18,15 +18,11 @@ namespace wrapper {
 
             RTCTrackEvent();
             virtual ~RTCTrackEvent();
-            virtual void wrapper_init_org_ortc_adapter_RTCTrackEvent() override;
 
             // properties RTCTrackEvent
             virtual wrapper::org::ortc::RTCRtpReceiverPtr get_receiver() override;
-            virtual void set_receiver(wrapper::org::ortc::RTCRtpReceiverPtr value) override;
             virtual wrapper::org::ortc::MediaStreamTrackPtr get_track() override;
-            virtual void set_track(wrapper::org::ortc::MediaStreamTrackPtr value) override;
             virtual shared_ptr< list< wrapper::org::ortc::adapter::MediaStreamPtr > > get_mediaStreams() override;
-            virtual void set_mediaStreams(shared_ptr< list< wrapper::org::ortc::adapter::MediaStreamPtr > > value) override;
           };
 
         } // adapter

@@ -39,20 +39,10 @@ wrapper::impl::org::ortc::adapter::RTCPeerConnectionIceErrorEvent::~RTCPeerConne
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::adapter::RTCPeerConnectionIceErrorEvent::wrapper_init_org_ortc_adapter_RTCPeerConnectionIceErrorEvent()
-{
-}
-
-//------------------------------------------------------------------------------
 wrapper::org::ortc::adapter::RTCIceCandidatePtr wrapper::impl::org::ortc::adapter::RTCPeerConnectionIceErrorEvent::get_hostCandidate()
 {
   wrapper::org::ortc::adapter::RTCIceCandidatePtr result {};
   return result;
-}
-
-//------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::adapter::RTCPeerConnectionIceErrorEvent::set_hostCandidate(wrapper::org::ortc::adapter::RTCIceCandidatePtr value)
-{
 }
 
 //------------------------------------------------------------------------------
@@ -63,11 +53,6 @@ String wrapper::impl::org::ortc::adapter::RTCPeerConnectionIceErrorEvent::get_ur
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::adapter::RTCPeerConnectionIceErrorEvent::set_url(String value)
-{
-}
-
-//------------------------------------------------------------------------------
 Optional< uint16_t > wrapper::impl::org::ortc::adapter::RTCPeerConnectionIceErrorEvent::get_errorCode()
 {
   Optional< uint16_t > result {};
@@ -75,20 +60,10 @@ Optional< uint16_t > wrapper::impl::org::ortc::adapter::RTCPeerConnectionIceErro
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::adapter::RTCPeerConnectionIceErrorEvent::set_errorCode(Optional< uint16_t > value)
-{
-}
-
-//------------------------------------------------------------------------------
 String wrapper::impl::org::ortc::adapter::RTCPeerConnectionIceErrorEvent::get_errorText()
 {
   String result {};
   return result;
-}
-
-//------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::adapter::RTCPeerConnectionIceErrorEvent::set_errorText(String value)
-{
 }
 
 
