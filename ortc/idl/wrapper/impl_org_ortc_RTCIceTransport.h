@@ -56,7 +56,7 @@ namespace wrapper {
           virtual wrapper::org::ortc::RTCIceComponent get_component() override;
           virtual wrapper::org::ortc::RTCIceTransportState get_state() override;
           virtual shared_ptr< list< wrapper::org::ortc::RTCIceCandidatePtr > > get_remoteCandidates() override;
-          virtual shared_ptr< list< wrapper::org::ortc::RTCIceCandidatePtr > > get_selectedCandidatePair() override;
+          virtual wrapper::org::ortc::RTCIceCandidatePairPtr get_selectedCandidatePair() override;
           virtual wrapper::org::ortc::RTCIceParametersPtr get_remoteParameters() override;
 
           virtual void wrapper_onObserverCountChanged(size_t count) override;

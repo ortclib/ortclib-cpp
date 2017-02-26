@@ -164,9 +164,9 @@ shared_ptr< list< wrapper::org::ortc::RTCIceCandidatePtr > > wrapper::impl::org:
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< list< wrapper::org::ortc::RTCIceCandidatePtr > > wrapper::impl::org::ortc::RTCIceTransport::get_selectedCandidatePair()
+wrapper::org::ortc::RTCIceCandidatePairPtr wrapper::impl::org::ortc::RTCIceTransport::get_selectedCandidatePair()
 {
-  shared_ptr< list< wrapper::org::ortc::RTCIceCandidatePtr > > result {};
+  wrapper::org::ortc::RTCIceCandidatePairPtr result {};
   return result;
 }
 

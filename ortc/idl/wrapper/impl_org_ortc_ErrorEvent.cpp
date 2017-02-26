@@ -39,11 +39,6 @@ wrapper::impl::org::ortc::ErrorEvent::~ErrorEvent()
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::ErrorEvent::wrapper_init_org_ortc_ErrorEvent()
-{
-}
-
-//------------------------------------------------------------------------------
 wrapper::org::ortc::ErrorPtr wrapper::impl::org::ortc::ErrorEvent::get_error()
 {
   wrapper::org::ortc::ErrorPtr result {};

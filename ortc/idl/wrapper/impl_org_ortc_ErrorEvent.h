@@ -17,7 +17,6 @@ namespace wrapper {
 
           ErrorEvent();
           virtual ~ErrorEvent();
-          virtual void wrapper_init_org_ortc_ErrorEvent() override;
 
           // properties ErrorEvent
           virtual wrapper::org::ortc::ErrorPtr get_error() override;

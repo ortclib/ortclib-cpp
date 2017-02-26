@@ -39,11 +39,6 @@ wrapper::impl::org::ortc::RTCDtlsTransportStateChangeEvent::~RTCDtlsTransportSta
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCDtlsTransportStateChangeEvent::wrapper_init_org_ortc_RTCDtlsTransportStateChangeEvent()
-{
-}
-
-//------------------------------------------------------------------------------
 wrapper::org::ortc::RTCDtlsTransportState wrapper::impl::org::ortc::RTCDtlsTransportStateChangeEvent::get_state()
 {
   wrapper::org::ortc::RTCDtlsTransportState result {};
