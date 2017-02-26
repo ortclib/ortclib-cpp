@@ -377,6 +377,9 @@ namespace org
       [dictionary]
       struct RTCSessionDescriptionMediaLine
       {
+        [constructor, delete]
+        void RTCSessionDescriptionMediaLine();
+
         /// <summary>
         /// Gets or sets the media identifier for the media line as described
         /// in [RFC5888] Section 4.
@@ -427,22 +430,6 @@ namespace org
         /// must be null.
         /// </summary>
         RTCSessionDescriptionMediaLineDetails details;
-
-        /// <summary>
-        /// Constructs an empty instance of an RTCSessionDescriptionMediaLine object.
-        /// </summary>
-        [constructor, default]
-        void RTCSessionDescriptionMediaLine();
-        /// <summary>
-        /// Constructs an instance of an RTCSessionDescriptionMediaLine object by cloning object data from an existing object.
-        /// </summary>
-        [constructor, altname(RTCSessionDescriptionMediaLineClone)]
-        void RTCSessionDescriptionMediaLine(RTCSessionDescriptionMediaLine source);
-        /// <summary>
-        /// Constructs an instance of an RTCSessionDescriptionMediaLine object by extracting object data from a JSON object.
-        /// </summary>
-        [constructor, default, altname(RTCSessionDescriptionMediaLineWithJson)]
-        void RTCSessionDescriptionMediaLine(Json json);
 
         /// <summary>
         /// A helper routine to convert the object's data to structured JSON object data.
