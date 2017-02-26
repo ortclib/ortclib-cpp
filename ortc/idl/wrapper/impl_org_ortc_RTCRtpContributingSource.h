@@ -20,9 +20,6 @@ namespace wrapper {
 
           // methods RTCRtpContributingSource
           virtual void wrapper_init_org_ortc_RTCRtpContributingSource() override;
-          virtual void wrapper_init_org_ortc_RTCRtpContributingSource(wrapper::org::ortc::RTCRtpContributingSourcePtr source) override;
-          virtual void wrapper_init_org_ortc_RTCRtpContributingSource(wrapper::org::ortc::JsonPtr json) override;
-          virtual wrapper::org::ortc::JsonPtr toJson() override;
           virtual String hash() override;
         };
 

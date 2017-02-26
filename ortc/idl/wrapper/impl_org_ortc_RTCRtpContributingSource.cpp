@@ -44,23 +44,6 @@ void wrapper::impl::org::ortc::RTCRtpContributingSource::wrapper_init_org_ortc_R
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCRtpContributingSource::wrapper_init_org_ortc_RTCRtpContributingSource(wrapper::org::ortc::RTCRtpContributingSourcePtr source)
-{
-}
-
-//------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCRtpContributingSource::wrapper_init_org_ortc_RTCRtpContributingSource(wrapper::org::ortc::JsonPtr json)
-{
-}
-
-//------------------------------------------------------------------------------
-wrapper::org::ortc::JsonPtr wrapper::impl::org::ortc::RTCRtpContributingSource::toJson()
-{
-  wrapper::org::ortc::JsonPtr result {};
-  return result;
-}
-
-//------------------------------------------------------------------------------
 String wrapper::impl::org::ortc::RTCRtpContributingSource::hash()
 {
   String result {};
