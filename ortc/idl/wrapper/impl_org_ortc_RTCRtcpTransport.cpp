@@ -38,9 +38,4 @@ wrapper::impl::org::ortc::RTCRtcpTransport::~RTCRtcpTransport()
 {
 }
 
-//------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCRtcpTransport::wrapper_init_org_ortc_RTCRtcpTransport()
-{
-}
-
 

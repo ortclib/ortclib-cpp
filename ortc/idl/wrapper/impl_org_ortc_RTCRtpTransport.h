@@ -17,7 +17,6 @@ namespace wrapper {
 
           RTCRtpTransport();
           virtual ~RTCRtpTransport();
-          virtual void wrapper_init_org_ortc_RTCRtpTransport() override;
         };
 
       } // ortc
