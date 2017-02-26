@@ -86,21 +86,7 @@ namespace org
       /// </summary>
       [constructor, default]
       void RTCRtpContributingSource();
-      /// <summary>
-      /// Constructs an instance of an RTCRtpContributingSource by cloning object data from an existing object.
-      /// </summary>
-      [constructor, altname(RTCRtpContributingSourceClone)]
-      void RTCRtpContributingSource(RTCRtpContributingSource source);
-      /// <summary>
-      /// Constructs an instance of an RTCRtpContributingSource by extracting object data from a JSON object.
-      /// </summary>
-      [constructor, default, altname(RTCRtpContributingSourceWithJson)]
-      void RTCRtpContributingSource(Json json);
 
-      /// <summary>
-      /// A helper routine to convert the object's data to structured JSON object data.
-      /// </summary>
-      Json toJson();
       /// <summary>
       /// Return a hash of the data contained within the object.
       /// </summary>
