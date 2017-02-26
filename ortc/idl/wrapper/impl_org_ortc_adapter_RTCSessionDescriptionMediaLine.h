@@ -20,9 +20,6 @@ namespace wrapper {
             virtual ~RTCSessionDescriptionMediaLine();
 
             // methods RTCSessionDescriptionMediaLine
-            virtual void wrapper_init_org_ortc_adapter_RTCSessionDescriptionMediaLine() override;
-            virtual void wrapper_init_org_ortc_adapter_RTCSessionDescriptionMediaLine(wrapper::org::ortc::adapter::RTCSessionDescriptionMediaLinePtr source) override;
-            virtual void wrapper_init_org_ortc_adapter_RTCSessionDescriptionMediaLine(wrapper::org::ortc::JsonPtr json) override;
             virtual wrapper::org::ortc::JsonPtr toJson() override;
             virtual String hash() override;
           };

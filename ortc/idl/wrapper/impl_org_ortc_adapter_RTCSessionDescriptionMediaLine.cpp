@@ -39,21 +39,6 @@ wrapper::impl::org::ortc::adapter::RTCSessionDescriptionMediaLine::~RTCSessionDe
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::adapter::RTCSessionDescriptionMediaLine::wrapper_init_org_ortc_adapter_RTCSessionDescriptionMediaLine()
-{
-}
-
-//------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::adapter::RTCSessionDescriptionMediaLine::wrapper_init_org_ortc_adapter_RTCSessionDescriptionMediaLine(wrapper::org::ortc::adapter::RTCSessionDescriptionMediaLinePtr source)
-{
-}
-
-//------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::adapter::RTCSessionDescriptionMediaLine::wrapper_init_org_ortc_adapter_RTCSessionDescriptionMediaLine(wrapper::org::ortc::JsonPtr json)
-{
-}
-
-//------------------------------------------------------------------------------
 wrapper::org::ortc::JsonPtr wrapper::impl::org::ortc::adapter::RTCSessionDescriptionMediaLine::toJson()
 {
   wrapper::org::ortc::JsonPtr result {};
