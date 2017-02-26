@@ -100,6 +100,7 @@ namespace org
                                  RTCStatsProvider
     {
       typedef std::list<RTCCertificate> CertificateList;
+      typedef std::list<binary> BinaryList;
 
       /// <summary>
       /// A RTCDtlsTransport instance is constructed using an RTCIceTransport
@@ -159,7 +160,7 @@ namespace org
       /// selection of the remote certificate, which is completed once
       /// RTCDtlsTransportState transitions to "Connected".
       /// </summary>
-      binary getRemoteCertificates();
+      BinaryList getRemoteCertificates();
 
       /// <summary>
       /// Start DTLS transport negotiation with the parameters of the remote
