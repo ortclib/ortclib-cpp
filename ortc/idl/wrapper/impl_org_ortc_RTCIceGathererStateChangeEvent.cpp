@@ -39,11 +39,6 @@ wrapper::impl::org::ortc::RTCIceGathererStateChangeEvent::~RTCIceGathererStateCh
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCIceGathererStateChangeEvent::wrapper_init_org_ortc_RTCIceGathererStateChangeEvent()
-{
-}
-
-//------------------------------------------------------------------------------
 wrapper::org::ortc::RTCIceGathererState wrapper::impl::org::ortc::RTCIceGathererStateChangeEvent::get_state()
 {
   wrapper::org::ortc::RTCIceGathererState result {};

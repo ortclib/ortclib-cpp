@@ -17,7 +17,6 @@ namespace wrapper {
 
           RTCIceGathererIceErrorEvent();
           virtual ~RTCIceGathererIceErrorEvent();
-          virtual void wrapper_init_org_ortc_RTCIceGathererIceErrorEvent() override;
         };
 
       } // ortc

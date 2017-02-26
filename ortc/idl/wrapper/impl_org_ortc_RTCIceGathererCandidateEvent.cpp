@@ -39,11 +39,6 @@ wrapper::impl::org::ortc::RTCIceGathererCandidateEvent::~RTCIceGathererCandidate
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCIceGathererCandidateEvent::wrapper_init_org_ortc_RTCIceGathererCandidateEvent()
-{
-}
-
-//------------------------------------------------------------------------------
 wrapper::org::ortc::RTCIceCandidatePtr wrapper::impl::org::ortc::RTCIceGathererCandidateEvent::get_candidate()
 {
   wrapper::org::ortc::RTCIceCandidatePtr result {};

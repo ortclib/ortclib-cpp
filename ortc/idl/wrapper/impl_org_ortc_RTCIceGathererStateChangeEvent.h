@@ -17,7 +17,6 @@ namespace wrapper {
 
           RTCIceGathererStateChangeEvent();
           virtual ~RTCIceGathererStateChangeEvent();
-          virtual void wrapper_init_org_ortc_RTCIceGathererStateChangeEvent() override;
 
           // properties RTCIceGathererStateChangeEvent
           virtual wrapper::org::ortc::RTCIceGathererState get_state() override;

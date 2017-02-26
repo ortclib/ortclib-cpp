@@ -17,7 +17,6 @@ namespace wrapper {
 
           RTCIceGathererCandidateEvent();
           virtual ~RTCIceGathererCandidateEvent();
-          virtual void wrapper_init_org_ortc_RTCIceGathererCandidateEvent() override;
 
           // properties RTCIceGathererCandidateEvent
           virtual wrapper::org::ortc::RTCIceCandidatePtr get_candidate() override;

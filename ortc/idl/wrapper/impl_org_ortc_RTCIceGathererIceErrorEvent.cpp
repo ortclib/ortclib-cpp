@@ -38,9 +38,4 @@ wrapper::impl::org::ortc::RTCIceGathererIceErrorEvent::~RTCIceGathererIceErrorEv
 {
 }
 
-//------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCIceGathererIceErrorEvent::wrapper_init_org_ortc_RTCIceGathererIceErrorEvent()
-{
-}
-
 
