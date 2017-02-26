@@ -36,11 +36,19 @@ namespace org
     /// <summary>
     /// An abstract object representing an RTP transport.
     /// </summary>
-    interface RTCRtpTransport {};
+    interface RTCRtpTransport
+    {
+      [constructor, delete]
+      void RTCRtpTransport();
+    };
     /// <summary>
     /// An abstract object representing an RTCP transport.
     /// </summary>
-    interface RTCRtcpTransport {};
+    interface RTCRtcpTransport
+    {
+      [constructor, delete]
+      void RTCRtcpTransport();
+    };
 
     /// <summary>
     /// This object represents the event data associated when the
