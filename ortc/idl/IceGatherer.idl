@@ -202,6 +202,9 @@ namespace org
     [dictionary]
     struct RTCIceGathererIceErrorEvent
     {
+      [constructor, delete]
+      void RTCIceGathererIceErrorEvent();
+
       /// <summary>
       /// Gets the RTCIceCandidate used to communicate with the STUN or TURN
       /// server. On a multihomed system, multiple interfaces may be sed to
@@ -235,6 +238,9 @@ namespace org
     /// </summary>
     struct RTCIceGathererStateChangeEvent
     {
+      [constructor, delete]
+      void RTCIceGathererStateChangeEvent();
+
       /// <summary>
       /// Gets the new RTCIceGathererState that caused the event.
       /// </summary>
@@ -248,6 +254,8 @@ namespace org
     /// </summary>
     struct RTCIceGathererCandidateEvent
     {
+      [constructor, delete]
+      void RTCIceGathererCandidateEvent();
       /// <summary>
       /// Gets the ICE candidate that caused the event.
       /// </summary>
@@ -266,6 +274,9 @@ namespace org
     /// </summary>
     struct RTCIceGathererCandidateCompleteEvent
     {
+      [constructor, delete]
+      void RTCIceGathererCandidateCompleteEvent();
+
       /// <summary>
       /// Gets the ICE candidate that caused the event.
       /// </summary>
