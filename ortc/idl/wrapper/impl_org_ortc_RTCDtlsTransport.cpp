@@ -61,9 +61,9 @@ wrapper::org::ortc::RTCDtlsParametersPtr wrapper::impl::org::ortc::RTCDtlsTransp
 }
 
 //------------------------------------------------------------------------------
-SecureByteBlockPtr wrapper::impl::org::ortc::RTCDtlsTransport::getRemoteCertificates()
+shared_ptr< list< SecureByteBlockPtr > > wrapper::impl::org::ortc::RTCDtlsTransport::getRemoteCertificates()
 {
-  SecureByteBlockPtr result {};
+  shared_ptr< list< SecureByteBlockPtr > > result {};
   return result;
 }
 
