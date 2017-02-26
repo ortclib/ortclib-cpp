@@ -482,7 +482,8 @@ namespace org
       /// a=sendrecv
       /// a=mid:a2
       /// </code>
-      /// </example>      [dictionary]
+      /// </example>      
+      [dictionary]
       struct RTCSessionDescriptionRtpMediaLine : RTCSessionDescriptionMediaLine
       {
         /// <summary>
@@ -542,7 +543,8 @@ namespace org
       /// a=fmtp:webrtc-datachannel max-message-size=65536
       /// a=sctp-port 5000
       /// </code>
-      /// </example>      [dictionary]
+      /// </example>      
+      [dictionary]
       struct RTCSessionDescriptionSctpMediaLine : RTCSessionDescriptionMediaLine
       {
         /// <summary>
