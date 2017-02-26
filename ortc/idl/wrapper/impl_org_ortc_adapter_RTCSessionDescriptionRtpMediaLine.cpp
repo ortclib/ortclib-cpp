@@ -67,28 +67,4 @@ void wrapper::impl::org::ortc::adapter::RTCSessionDescriptionRtpMediaLine::wrapp
 {
 }
 
-//------------------------------------------------------------------------------
-wrapper::org::ortc::RTCRtpCapabilitiesPtr wrapper::impl::org::ortc::adapter::RTCSessionDescriptionRtpMediaLine::get_senderCapabilities()
-{
-  wrapper::org::ortc::RTCRtpCapabilitiesPtr result {};
-  return result;
-}
-
-//------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::adapter::RTCSessionDescriptionRtpMediaLine::set_senderCapabilities(wrapper::org::ortc::RTCRtpCapabilitiesPtr value)
-{
-}
-
-//------------------------------------------------------------------------------
-wrapper::org::ortc::RTCRtpCapabilitiesPtr wrapper::impl::org::ortc::adapter::RTCSessionDescriptionRtpMediaLine::get_receiverCapabilities()
-{
-  wrapper::org::ortc::RTCRtpCapabilitiesPtr result {};
-  return result;
-}
-
-//------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::adapter::RTCSessionDescriptionRtpMediaLine::set_receiverCapabilities(wrapper::org::ortc::RTCRtpCapabilitiesPtr value)
-{
-}
-
 

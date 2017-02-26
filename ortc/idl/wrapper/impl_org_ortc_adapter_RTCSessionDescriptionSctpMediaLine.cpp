@@ -67,28 +67,4 @@ void wrapper::impl::org::ortc::adapter::RTCSessionDescriptionSctpMediaLine::wrap
 {
 }
 
-//------------------------------------------------------------------------------
-wrapper::org::ortc::RTCSctpCapabilitiesPtr wrapper::impl::org::ortc::adapter::RTCSessionDescriptionSctpMediaLine::get_capabilities()
-{
-  wrapper::org::ortc::RTCSctpCapabilitiesPtr result {};
-  return result;
-}
-
-//------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::adapter::RTCSessionDescriptionSctpMediaLine::set_capabilities(wrapper::org::ortc::RTCSctpCapabilitiesPtr value)
-{
-}
-
-//------------------------------------------------------------------------------
-Optional< uint16_t > wrapper::impl::org::ortc::adapter::RTCSessionDescriptionSctpMediaLine::get_port()
-{
-  Optional< uint16_t > result {};
-  return result;
-}
-
-//------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::adapter::RTCSessionDescriptionSctpMediaLine::set_port(Optional< uint16_t > value)
-{
-}
-
 

@@ -27,12 +27,6 @@ namespace wrapper {
             virtual void wrapper_init_org_ortc_adapter_RTCSessionDescriptionRtpMediaLine() override;
             virtual void wrapper_init_org_ortc_adapter_RTCSessionDescriptionRtpMediaLine(wrapper::org::ortc::adapter::RTCSessionDescriptionRtpMediaLinePtr source) override;
             virtual void wrapper_init_org_ortc_adapter_RTCSessionDescriptionRtpMediaLine(wrapper::org::ortc::JsonPtr json) override;
-
-            // properties RTCSessionDescriptionRtpMediaLine
-            virtual wrapper::org::ortc::RTCRtpCapabilitiesPtr get_senderCapabilities() override;
-            virtual void set_senderCapabilities(wrapper::org::ortc::RTCRtpCapabilitiesPtr value) override;
-            virtual wrapper::org::ortc::RTCRtpCapabilitiesPtr get_receiverCapabilities() override;
-            virtual void set_receiverCapabilities(wrapper::org::ortc::RTCRtpCapabilitiesPtr value) override;
           };
 
         } // adapter
