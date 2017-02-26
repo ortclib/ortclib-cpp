@@ -61,6 +61,9 @@ namespace org
     /// </summary>
     interface ErrorEvent
     {
+      [constructor, delete]
+      void ErrorEvent();
+
       /// <summary>
       /// Gets the error information associated with this event (if any).
       /// </summary>

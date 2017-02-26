@@ -150,7 +150,7 @@ namespace org
       /// selected pair, nullptr is returned.
       /// </summary>
       [getter]
-      CandidateList selectedCandidatePair;
+      RTCIceCandidatePair selectedCandidatePair;
 
       /// <summary>
       /// The first time Start() is called, candidate connectivity checks are

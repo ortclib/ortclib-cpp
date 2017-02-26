@@ -83,6 +83,9 @@ namespace org
     /// </summary>
     struct RTCDtlsTransportStateChangeEvent
     {
+      [constructor, delete]
+      void RTCDtlsTransportStateChangeEvent();
+
       /// <summary>
       /// Gets the new RTCDtlsTransportState that caused the event.
       /// </summary>
