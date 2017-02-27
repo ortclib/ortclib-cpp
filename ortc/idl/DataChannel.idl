@@ -35,6 +35,8 @@ namespace org
   {
     interface RTCDataTransport
     {
+      [constructor, delete]
+      void RTCDataTransport();
     };
 
     /// <summary>

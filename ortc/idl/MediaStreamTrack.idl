@@ -565,7 +565,7 @@ namespace org
       /// </summary>
       string message;
     };
-
+    typedef PromiseRejectionReason<OverconstrainedError> PromiseRejectionReasonOverconstrainedError;
 
     /// <summary>
     /// This error event fires for each affected track (when multiple tracks
