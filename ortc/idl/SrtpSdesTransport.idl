@@ -192,32 +192,27 @@ namespace org
       string hash();
     };
 
-    [dictionary]
-    struct RTCSrtpSdesTransportLifetimeRemaining
-    {
-      /// <summary>
-      /// Gets the least percentage remaining of all the keys in the
-      /// SDES/SRTP transport.
-      /// </summary>
-      unsigned long leastLifetimeRemainingPercentageForAllKeys;
-      /// <summary>
-      /// Gets the overall percentage of life remaining of all the keys in the
-      /// SDES/SRTP transport.
-      /// </summary>
-      unsigned long overallLifetimeRemainingPercentage;
-    };
-
     /// <summary>
     /// This is the event data associated with the
     /// transport.OnLifetimeRemaining event handler.
     /// </summary>
     struct RTCSrtpSdesTransportLifetimeRemainingEvent
     {
+      [constructor, delete]
+      void RTCSrtpSdesTransportLifetimeRemainingEvent();
+
       /// <summary>
-      /// Gets the lifetime remaining information associated with the transport.
+      /// Gets the least percentage remaining of all the keys in the
+      /// SDES/SRTP transport.
       /// </summary>
       [getter]
-      RTCSrtpSdesTransportLifetimeRemaining data;
+      unsigned long leastLifetimeRemainingPercentageForAllKeys;
+      /// <summary>
+      /// Gets the overall percentage of life remaining of all the keys in the
+      /// SDES/SRTP transport.
+      /// </summary>
+      [getter]
+      unsigned long overallLifetimeRemainingPercentage;
     };
 
     /// <summary>
