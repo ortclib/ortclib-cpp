@@ -33,7 +33,31 @@ namespace org
 {
   namespace ortc
   {
-    interface RTCSctpTransportListener {};
+    interface RTCSctpTransport;
+
+    /// <summary>
+    /// Event indicating a new incoming SCTP transport.
+    /// </summary>
+    struct RTCSctpTransportListenerEvent
+    {
+      [constructor, delete]
+      void RTCSctpTransportListenerEvent();
+
+      /// <summary>
+      /// Gets the new incoming SCTP transport.
+      /// </summary>
+      [getter]
+      RTCSctpTransport transport;
+    };
+
+    interface RTCSctpTransportListener
+    {
+      [constructor, delete]
+      void RTCSctpTransportListener();
+
+      [event]
+      void onTransport(RTCSctpTransport transport);
+    };
 
     /// <summary>
     /// The RTCSctpCapabilities represents object represents the capabilities
