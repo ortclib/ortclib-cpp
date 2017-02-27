@@ -46,11 +46,6 @@ wrapper::org::ortc::RTCIceCandidatePtr wrapper::impl::org::ortc::RTCIceGathererI
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCIceGathererIceErrorEvent::set_hostCandidate(wrapper::org::ortc::RTCIceCandidatePtr value)
-{
-}
-
-//------------------------------------------------------------------------------
 String wrapper::impl::org::ortc::RTCIceGathererIceErrorEvent::get_url()
 {
   String result {};

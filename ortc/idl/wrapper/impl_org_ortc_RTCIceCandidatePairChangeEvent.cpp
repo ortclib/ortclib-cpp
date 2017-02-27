@@ -39,11 +39,6 @@ wrapper::impl::org::ortc::RTCIceCandidatePairChangeEvent::~RTCIceCandidatePairCh
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCIceCandidatePairChangeEvent::wrapper_init_org_ortc_RTCIceCandidatePairChangeEvent()
-{
-}
-
-//------------------------------------------------------------------------------
 wrapper::org::ortc::RTCIceCandidatePairPtr wrapper::impl::org::ortc::RTCIceCandidatePairChangeEvent::get_candidatePair()
 {
   wrapper::org::ortc::RTCIceCandidatePairPtr result {};

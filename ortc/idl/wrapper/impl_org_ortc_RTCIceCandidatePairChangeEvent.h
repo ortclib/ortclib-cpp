@@ -17,7 +17,6 @@ namespace wrapper {
 
           RTCIceCandidatePairChangeEvent();
           virtual ~RTCIceCandidatePairChangeEvent();
-          virtual void wrapper_init_org_ortc_RTCIceCandidatePairChangeEvent() override;
 
           // properties RTCIceCandidatePairChangeEvent
           virtual wrapper::org::ortc::RTCIceCandidatePairPtr get_candidatePair() override;

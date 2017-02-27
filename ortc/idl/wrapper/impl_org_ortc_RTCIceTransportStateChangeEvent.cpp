@@ -39,11 +39,6 @@ wrapper::impl::org::ortc::RTCIceTransportStateChangeEvent::~RTCIceTransportState
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCIceTransportStateChangeEvent::wrapper_init_org_ortc_RTCIceTransportStateChangeEvent()
-{
-}
-
-//------------------------------------------------------------------------------
 wrapper::org::ortc::RTCIceTransportState wrapper::impl::org::ortc::RTCIceTransportStateChangeEvent::get_state()
 {
   wrapper::org::ortc::RTCIceTransportState result {};

@@ -67,7 +67,7 @@ void wrapper::impl::org::ortc::RTCIceTransport::start(
 void wrapper::impl::org::ortc::RTCIceTransport::start(
   wrapper::org::ortc::RTCIceGathererPtr gatherer,
   wrapper::org::ortc::RTCIceParametersPtr remoteParameters,
-  wrapper::org::ortc::RTCIceRole options
+  wrapper::org::ortc::RTCIceRole role
   )
 {
 }
