@@ -45,27 +45,27 @@ namespace org
         /// <summary>
         /// Do not log any log messages.
         /// </summary>
-        None,
+        none,
         /// <summary>
         /// Log only the most important logger information.
         /// </summary>
-        Basic,
+        basic,
         /// <summary>
         /// Log a few more details from the logger information.
         /// </summary>
-        Detail,
+        detail,
         /// <summary>
         /// Log a level appropriate to debug the engine.
         /// </summary>
-        Debug,
+        debug,
         /// <summary>
         /// Log a level to trace the code path within the engine.
         /// </summary>
-        Trace,
+        trace,
         /// <summary>
         /// Log every possible mundane detail possible.
         /// </summary>
-        Insane
+        insane
       };
 
       /// <summary>
@@ -78,121 +78,122 @@ namespace org
         /// The low level socket, aynchronous eventing, and OS abstraction
         /// library.
         /// </summary>
-        ZsLib,
+        zsLib,
         /// <summary>
         /// The socket monitor within the low level socket abstraction
         /// library.
         /// </summary>
-        ZsLibSocket,
+        zsLibSocket,
         /// <summary>
         /// The servers support library for the ORTC library.
         /// </summary>
-        Services,
+        services,
         /// <summary>
         /// The DNS services support library for the ORTC library.
         /// </summary>
-        ServicesDns,
+        servicesDns,
         /// <summary>
         /// The TURN services support library for the ORTC library.
         /// </summary>
-        ServicesTurn,
+        servicesTurn,
         /// <summary>
         /// The HTTP services support library for the ORTC library.
         /// </summary>
-        ServicesHttp,
+        servicesHttp,
         /// <summary>
         /// The wire level tracing of services support for the ORTC library.
         /// This component also includes the details of the STUN packet(s).
         /// </summary>
-        ServicesWire,
+        servicesWire,
         /// <summary>
         /// All STUN related request processing (minus the STUN on the wire).
         /// </summary>
-        ServicesStun,
+        servicesStun,
         /// <summary>
         /// The C++ ORTC library (for all objects who don't have their own
         /// trace level).
         /// </summary>
-        OrtcLib,
+        ortcLib,
         /// <summary>
         /// The C++ ORTC media area.
         /// </summary>
-        OrtcLibWebrtc,
+        ortcLibWebrtc,
         /// <summary>
         /// The C++ ORTC DTLS transport object.
         /// </summary>
-        OrtcLibDtlsTransport,
+        ortcLibDtlsTransport,
         /// <summary>
         /// The C++ ORTC ICE gatherer object.
         /// </summary>
-        OrtcLibIceGatherer,
+        ortcLibIceGatherer,
         /// <summary>
         /// The C++ ORTC ICE gatherer router object.
         /// </summary>
-        OrtcLibIceGathererRouter,
+        ortcLibIceGathererRouter,
         /// <summary>
         /// The C++ ORTC ICE transport object.
         /// </summary>
-        OrtcLibIceTransport,
+        ortcLibIceTransport,
         /// <summary>
         /// The C++ ORTC ICE transport controller object.
         /// </summary>
-        OrtcLibIceTransportController,
+        ortcLibIceTransportController,
         /// <summary>
         /// The C++ ORTC media devices object.
         /// </summary>
-        OrtcLibMediaDevices,
+        ortcLibMediaDevices,
         /// <summary>
         /// The C++ ORTC media stream track object.
         /// </summary>
-        OrtcLibMediaStreamTrack,
+        ortcLibMediaStreamTrack,
         /// <summary>
         /// The C++ ORTC rtp / rtcp packet related traces.
         /// </summary>
-        OrtcLibRtpRtcpPacket,
+        ortcLibRtpRtcpPacket,
         /// <summary>
         /// The C++ ORTC rtp listener object.
         /// </summary>
-        OrtcLibRtpListener,
+        ortcLibRtpListener,
         /// <summary>
         /// The C++ ORTC rtp listener object.
         /// </summary>
-        OrtcLibRtpMediaEngine,
+        ortcLibRtpMediaEngine,
         /// <summary>
         /// The C++ ORTC rtp receiver object.
         /// </summary>
-        OrtcLibRtpReceiver,
+        ortcLibRtpReceiver,
         /// <summary>
         /// The C++ ORTC rtp sender object.
         /// </summary>
-        OrtcLibRtpSender,
+        ortcLibRtpSender,
         /// <summary>
         /// The C++ ORTC rtp type structure tracing (parsers, helpers and
         /// other).
         /// </summary>
-        OrtcLibRtpTypes,
+        ortcLibRtpTypes,
         /// <summary>
         /// The C++ SCTP and data channel related objects.
         /// </summary>
-        OrtcLibSctpDataChannel,
+        ortcLibSctpDataChannel,
         /// <summary>
         /// The C++ SRTP related objects.
         /// </summary>
-        OrtcLibSrtp,
+        ortcLibSrtp,
         /// <summary>
         /// The C++ SRTP related objects.
         /// </summary>
-        OrtcLibStats,
+        ortcLibStats,
         /// <summary>
         /// The C++ ORTC Adapter library.
         /// </summary>
-        OrtcLibAdapter,
+        ortcLibAdapter,
       };
     }
 
     /// <summary>
     /// An API used to control the logging engine within the ORTC library.
     /// </summary>
+    [static]
     interface Logger
     {
       /// <summary>
