@@ -40,6 +40,9 @@ namespace org
     /// </summary>
     struct RTCSsrcConflictEvent
     {
+      [constructor, delete]
+      void RTCSsrcConflictEvent();
+
       /// <summary>
       /// Gets the ssrc attribute represents the conflicting SSRC that caused
       /// the event.
