@@ -39,11 +39,6 @@ wrapper::impl::org::ortc::RTCDataChannelStateChangeEvent::~RTCDataChannelStateCh
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCDataChannelStateChangeEvent::wrapper_init_org_ortc_RTCDataChannelStateChangeEvent()
-{
-}
-
-//------------------------------------------------------------------------------
 wrapper::org::ortc::RTCDataChannelState wrapper::impl::org::ortc::RTCDataChannelStateChangeEvent::get_state()
 {
   wrapper::org::ortc::RTCDataChannelState result {};

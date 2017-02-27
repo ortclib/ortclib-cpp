@@ -39,14 +39,16 @@ wrapper::impl::org::ortc::RTCMessageEvent::~RTCMessageEvent()
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCMessageEvent::wrapper_init_org_ortc_RTCMessageEvent()
+SecureByteBlockPtr wrapper::impl::org::ortc::RTCMessageEvent::get_binary()
 {
+  SecureByteBlockPtr result {};
+  return result;
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCMessageEventDataPtr wrapper::impl::org::ortc::RTCMessageEvent::get_data()
+String wrapper::impl::org::ortc::RTCMessageEvent::get_text()
 {
-  wrapper::org::ortc::RTCMessageEventDataPtr result {};
+  String result {};
   return result;
 }
 

@@ -129,7 +129,6 @@
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCMediaStreamStats.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCMediaStreamTrackStats.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCMessageEvent.cpp" />
-    <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCMessageEventData.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCOutboundRtpStreamStats.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCRtcpFeedback.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCRtcpParameters.cpp" />
@@ -442,7 +441,6 @@
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCMediaStreamStats.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCMediaStreamTrackStats.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCMessageEvent.h" />
-    <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCMessageEventData.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCOutboundRtpStreamStats.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCRtcpFeedback.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCRtcpParameters.h" />

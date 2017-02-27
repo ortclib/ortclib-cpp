@@ -279,9 +279,6 @@
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCMessageEvent.cpp">
       <Filter>ortc\idl\wrapper</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCMessageEventData.cpp">
-      <Filter>ortc\idl\wrapper</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCRtcpFeedback.cpp">
       <Filter>ortc\idl\wrapper</Filter>
     </ClCompile>
@@ -750,9 +747,6 @@
       <Filter>ortc\idl\wrapper</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCMessageEvent.h">
-      <Filter>ortc\idl\wrapper</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCMessageEventData.h">
       <Filter>ortc\idl\wrapper</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCRtcpFeedback.h">

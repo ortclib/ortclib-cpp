@@ -17,7 +17,6 @@ namespace wrapper {
 
           RTCDataChannelStateChangeEvent();
           virtual ~RTCDataChannelStateChangeEvent();
-          virtual void wrapper_init_org_ortc_RTCDataChannelStateChangeEvent() override;
 
           // properties RTCDataChannelStateChangeEvent
           virtual wrapper::org::ortc::RTCDataChannelState get_state() override;

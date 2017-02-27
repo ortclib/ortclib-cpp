@@ -39,20 +39,10 @@ wrapper::impl::org::ortc::RTCSctpTransportStateChangeEvent::~RTCSctpTransportSta
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCSctpTransportStateChangeEvent::wrapper_init_org_ortc_RTCSctpTransportStateChangeEvent()
-{
-}
-
-//------------------------------------------------------------------------------
 wrapper::org::ortc::RTCSctpTransportState wrapper::impl::org::ortc::RTCSctpTransportStateChangeEvent::get_state()
 {
   wrapper::org::ortc::RTCSctpTransportState result {};
   return result;
-}
-
-//------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCSctpTransportStateChangeEvent::set_state(wrapper::org::ortc::RTCSctpTransportState value)
-{
 }
 
 

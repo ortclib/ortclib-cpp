@@ -17,10 +17,10 @@ namespace wrapper {
 
           RTCMessageEvent();
           virtual ~RTCMessageEvent();
-          virtual void wrapper_init_org_ortc_RTCMessageEvent() override;
 
           // properties RTCMessageEvent
-          virtual wrapper::org::ortc::RTCMessageEventDataPtr get_data() override;
+          virtual SecureByteBlockPtr get_binary() override;
+          virtual String get_text() override;
         };
 
       } // ortc

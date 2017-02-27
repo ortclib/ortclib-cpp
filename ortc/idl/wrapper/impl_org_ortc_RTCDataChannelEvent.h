@@ -17,11 +17,9 @@ namespace wrapper {
 
           RTCDataChannelEvent();
           virtual ~RTCDataChannelEvent();
-          virtual void wrapper_init_org_ortc_RTCDataChannelEvent() override;
 
           // properties RTCDataChannelEvent
           virtual wrapper::org::ortc::RTCDataChannelPtr get_dataChannel() override;
-          virtual void set_dataChannel(wrapper::org::ortc::RTCDataChannelPtr value) override;
         };
 
       } // ortc

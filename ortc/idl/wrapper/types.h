@@ -118,7 +118,6 @@ namespace wrapper {
         ZS_DECLARE_STRUCT_PTR(RTCMediaStreamStats);
         ZS_DECLARE_STRUCT_PTR(RTCMediaStreamTrackStats);
         ZS_DECLARE_STRUCT_PTR(RTCMessageEvent);
-        ZS_DECLARE_STRUCT_PTR(RTCMessageEventData);
         ZS_DECLARE_STRUCT_PTR(RTCOutboundRtpStreamStats);
         ZS_DECLARE_STRUCT_PTR(RTCRtcpFeedback);
         ZS_DECLARE_STRUCT_PTR(RTCRtcpParameters);

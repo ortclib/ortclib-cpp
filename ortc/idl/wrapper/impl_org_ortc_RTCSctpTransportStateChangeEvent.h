@@ -17,11 +17,9 @@ namespace wrapper {
 
           RTCSctpTransportStateChangeEvent();
           virtual ~RTCSctpTransportStateChangeEvent();
-          virtual void wrapper_init_org_ortc_RTCSctpTransportStateChangeEvent() override;
 
           // properties RTCSctpTransportStateChangeEvent
           virtual wrapper::org::ortc::RTCSctpTransportState get_state() override;
-          virtual void set_state(wrapper::org::ortc::RTCSctpTransportState value) override;
         };
 
       } // ortc

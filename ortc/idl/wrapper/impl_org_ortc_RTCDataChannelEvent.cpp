@@ -39,20 +39,10 @@ wrapper::impl::org::ortc::RTCDataChannelEvent::~RTCDataChannelEvent()
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCDataChannelEvent::wrapper_init_org_ortc_RTCDataChannelEvent()
-{
-}
-
-//------------------------------------------------------------------------------
 wrapper::org::ortc::RTCDataChannelPtr wrapper::impl::org::ortc::RTCDataChannelEvent::get_dataChannel()
 {
   wrapper::org::ortc::RTCDataChannelPtr result {};
   return result;
-}
-
-//------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCDataChannelEvent::set_dataChannel(wrapper::org::ortc::RTCDataChannelPtr value)
-{
 }
 
 
