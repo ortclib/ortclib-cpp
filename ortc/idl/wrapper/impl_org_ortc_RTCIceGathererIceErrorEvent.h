@@ -17,6 +17,13 @@ namespace wrapper {
 
           RTCIceGathererIceErrorEvent();
           virtual ~RTCIceGathererIceErrorEvent();
+
+          // properties RTCIceGathererIceErrorEvent
+          virtual wrapper::org::ortc::RTCIceCandidatePtr get_hostCandidate() override;
+          virtual void set_hostCandidate(wrapper::org::ortc::RTCIceCandidatePtr value) override;
+          virtual String get_url() override;
+          virtual uint16_t get_errorCode() override;
+          virtual String get_errorText() override;
         };
 
       } // ortc

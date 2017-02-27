@@ -38,4 +38,37 @@ wrapper::impl::org::ortc::RTCIceGathererIceErrorEvent::~RTCIceGathererIceErrorEv
 {
 }
 
+//------------------------------------------------------------------------------
+wrapper::org::ortc::RTCIceCandidatePtr wrapper::impl::org::ortc::RTCIceGathererIceErrorEvent::get_hostCandidate()
+{
+  wrapper::org::ortc::RTCIceCandidatePtr result {};
+  return result;
+}
+
+//------------------------------------------------------------------------------
+void wrapper::impl::org::ortc::RTCIceGathererIceErrorEvent::set_hostCandidate(wrapper::org::ortc::RTCIceCandidatePtr value)
+{
+}
+
+//------------------------------------------------------------------------------
+String wrapper::impl::org::ortc::RTCIceGathererIceErrorEvent::get_url()
+{
+  String result {};
+  return result;
+}
+
+//------------------------------------------------------------------------------
+uint16_t wrapper::impl::org::ortc::RTCIceGathererIceErrorEvent::get_errorCode()
+{
+  uint16_t result {};
+  return result;
+}
+
+//------------------------------------------------------------------------------
+String wrapper::impl::org::ortc::RTCIceGathererIceErrorEvent::get_errorText()
+{
+  String result {};
+  return result;
+}
+
 
