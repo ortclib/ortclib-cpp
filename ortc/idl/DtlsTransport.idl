@@ -78,6 +78,18 @@ namespace org
     };
 
     /// <summary>
+    /// Contains a single binary array of certificate data.
+    /// </summary>
+    struct RTCDtlsCertificateBinary
+    {
+      [constructor, delete]
+      void RTCDtlsCertificateBinary();
+
+      [getter]
+      binary certificate;
+    };
+
+    /// <summary>
     /// The OnStateChange event of the RTCDtlsTransport object uses the
     /// RTCDtlsTransportStateChangeEvent interface.
     /// </summary>
@@ -103,7 +115,7 @@ namespace org
                                  RTCStatsProvider
     {
       typedef std::list<RTCCertificate> CertificateList;
-      typedef std::list<binary> BinaryList;
+      typedef std::list<RTCDtlsCertificateBinary> BinaryList;
 
       /// <summary>
       /// A RTCDtlsTransport instance is constructed using an RTCIceTransport

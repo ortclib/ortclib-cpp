@@ -48,13 +48,13 @@ namespace ortc
   
   interaction IMediaDevicesTypes : public IMediaStreamTrackTypes
   {
-    ZS_DECLARE_STRUCT_PTR(SupportedConstraints)
-    ZS_DECLARE_STRUCT_PTR(Device)
-    ZS_DECLARE_STRUCT_PTR(DeviceList)
-    ZS_DECLARE_STRUCT_PTR(MediaStreamTrackList)
+    ZS_DECLARE_STRUCT_PTR(SupportedConstraints);
+    ZS_DECLARE_STRUCT_PTR(Device);
+    ZS_DECLARE_STRUCT_PTR(DeviceList);
+    ZS_DECLARE_STRUCT_PTR(MediaStreamTrackList);
 
-    ZS_DECLARE_TYPEDEF_PTR(PromiseWith<MediaStreamTrackListPtr>, PromiseWithMediaStreamTrackList)
-    ZS_DECLARE_TYPEDEF_PTR(PromiseWith<DeviceListPtr>, PromiseWithDeviceList)
+    ZS_DECLARE_TYPEDEF_PTR(zsLib::PromiseWith<MediaStreamTrackList>, PromiseWithMediaStreamTrackList);
+    ZS_DECLARE_TYPEDEF_PTR(zsLib::PromiseWith<DeviceList>, PromiseWithDeviceList);
 
     enum DeviceKinds
     {
@@ -86,6 +86,7 @@ namespace ortc
       bool mSampleSize {false};
       bool mEchoCancellation {false};
       bool mLatency {false};
+      bool mChannelCount {false};
       bool mDeviceID {false};
       bool mGroupID {false};
 
