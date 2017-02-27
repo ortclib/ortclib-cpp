@@ -570,5 +570,8 @@
     <Midl Include="..\..\..\ortc\idl\adapter\MediaStream.idl">
       <Filter>ortc\idl\adapter</Filter>
     </Midl>
+    <Midl Include="..\..\..\ortc\idl\Logger.idl">
+      <Filter>ortc\idl</Filter>
+    </Midl>
   </ItemGroup>
 </Project>
