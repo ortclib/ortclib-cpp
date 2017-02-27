@@ -175,7 +175,6 @@
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCSrtpSdesKeyParameters.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCSrtpSdesParameters.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCSrtpSdesTransport.cpp" />
-    <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCSrtpSdesTransportLifetimeRemaining.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCSrtpSdesTransportLifetimeRemainingEvent.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCSrtpTransportStats.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCSsrcConflictEvent.cpp" />
@@ -489,7 +488,6 @@
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCSrtpSdesKeyParameters.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCSrtpSdesParameters.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCSrtpSdesTransport.h" />
-    <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCSrtpSdesTransportLifetimeRemaining.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCSrtpSdesTransportLifetimeRemainingEvent.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCSrtpTransportStats.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCSsrcConflictEvent.h" />

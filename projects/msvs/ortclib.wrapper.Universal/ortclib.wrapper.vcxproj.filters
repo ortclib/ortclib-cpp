@@ -396,9 +396,6 @@
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCSrtpSdesTransport.cpp">
       <Filter>ortc\idl\wrapper</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCSrtpSdesTransportLifetimeRemaining.cpp">
-      <Filter>ortc\idl\wrapper</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCSrtpSdesTransportLifetimeRemainingEvent.cpp">
       <Filter>ortc\idl\wrapper</Filter>
     </ClCompile>
@@ -870,9 +867,6 @@
       <Filter>ortc\idl\wrapper</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCSrtpSdesTransport.h">
-      <Filter>ortc\idl\wrapper</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCSrtpSdesTransportLifetimeRemaining.h">
       <Filter>ortc\idl\wrapper</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCSrtpSdesTransportLifetimeRemainingEvent.h">

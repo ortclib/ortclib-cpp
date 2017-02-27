@@ -163,7 +163,6 @@ namespace wrapper {
         ZS_DECLARE_STRUCT_PTR(RTCSrtpSdesKeyParameters);
         ZS_DECLARE_STRUCT_PTR(RTCSrtpSdesParameters);
         ZS_DECLARE_STRUCT_PTR(RTCSrtpSdesTransport);
-        ZS_DECLARE_STRUCT_PTR(RTCSrtpSdesTransportLifetimeRemaining);
         ZS_DECLARE_STRUCT_PTR(RTCSrtpSdesTransportLifetimeRemainingEvent);
         ZS_DECLARE_STRUCT_PTR(RTCSrtpTransportStats);
         ZS_DECLARE_STRUCT_PTR(RTCSsrcConflictEvent);

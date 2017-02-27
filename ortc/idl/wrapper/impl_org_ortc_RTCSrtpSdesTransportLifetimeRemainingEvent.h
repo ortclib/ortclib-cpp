@@ -17,10 +17,10 @@ namespace wrapper {
 
           RTCSrtpSdesTransportLifetimeRemainingEvent();
           virtual ~RTCSrtpSdesTransportLifetimeRemainingEvent();
-          virtual void wrapper_init_org_ortc_RTCSrtpSdesTransportLifetimeRemainingEvent() override;
 
           // properties RTCSrtpSdesTransportLifetimeRemainingEvent
-          virtual wrapper::org::ortc::RTCSrtpSdesTransportLifetimeRemainingPtr get_data() override;
+          virtual unsigned long get_leastLifetimeRemainingPercentageForAllKeys() override;
+          virtual unsigned long get_overallLifetimeRemainingPercentage() override;
         };
 
       } // ortc

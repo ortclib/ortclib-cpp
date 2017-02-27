@@ -39,14 +39,16 @@ wrapper::impl::org::ortc::RTCSrtpSdesTransportLifetimeRemainingEvent::~RTCSrtpSd
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCSrtpSdesTransportLifetimeRemainingEvent::wrapper_init_org_ortc_RTCSrtpSdesTransportLifetimeRemainingEvent()
+unsigned long wrapper::impl::org::ortc::RTCSrtpSdesTransportLifetimeRemainingEvent::get_leastLifetimeRemainingPercentageForAllKeys()
 {
+  unsigned long result {};
+  return result;
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCSrtpSdesTransportLifetimeRemainingPtr wrapper::impl::org::ortc::RTCSrtpSdesTransportLifetimeRemainingEvent::get_data()
+unsigned long wrapper::impl::org::ortc::RTCSrtpSdesTransportLifetimeRemainingEvent::get_overallLifetimeRemainingPercentage()
 {
-  wrapper::org::ortc::RTCSrtpSdesTransportLifetimeRemainingPtr result {};
+  unsigned long result {};
   return result;
 }
 
