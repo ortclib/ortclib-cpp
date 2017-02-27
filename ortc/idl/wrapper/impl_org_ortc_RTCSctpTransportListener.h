@@ -17,7 +17,8 @@ namespace wrapper {
 
           RTCSctpTransportListener();
           virtual ~RTCSctpTransportListener();
-          virtual void wrapper_init_org_ortc_RTCSctpTransportListener() override;
+
+          virtual void wrapper_onObserverCountChanged(size_t count) override;
         };
 
       } // ortc

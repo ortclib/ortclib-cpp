@@ -158,6 +158,7 @@ namespace wrapper {
         ZS_DECLARE_STRUCT_PTR(RTCSctpCapabilities);
         ZS_DECLARE_STRUCT_PTR(RTCSctpTransport);
         ZS_DECLARE_STRUCT_PTR(RTCSctpTransportListener);
+        ZS_DECLARE_STRUCT_PTR(RTCSctpTransportListenerEvent);
         ZS_DECLARE_STRUCT_PTR(RTCSctpTransportStateChangeEvent);
         ZS_DECLARE_STRUCT_PTR(RTCSctpTransportStats);
         ZS_DECLARE_STRUCT_PTR(RTCSrtpSdesCryptoParameters);
