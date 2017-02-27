@@ -55,8 +55,11 @@ namespace org
       [constructor, delete]
       void RTCSctpTransportListener();
 
+      /// <summary>
+      /// Events when the a new SCTP transport has arrived.
+      /// </summary>
       [event]
-      void onTransport(RTCSctpTransport transport);
+      void onTransport(RTCSctpTransportListenerEvent event);
     };
 
     /// <summary>
