@@ -157,7 +157,7 @@ namespace org
       /// RTCDtlsTransport transport.
       /// </summary>
       [getter, nullable]
-      RTCRtpTransport rtcpTransport;
+      RTCRtcpTransport rtcpTransport;
 
       /// <summary>
       /// Set the RTP RTCDtlsTransport. If the last call to
