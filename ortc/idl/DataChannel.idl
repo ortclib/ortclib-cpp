@@ -117,30 +117,14 @@ namespace org
     };
 
     /// <summary>
-    /// RTCMessageEventData represents data arriving from the RTCDataChannel.
-    /// </summary>
-    [dictionary]
-    struct RTCMessageEventData
-    {
-      /// <summary>
-      /// Gets the binary message being sent. Only set if the data was binary.
-      /// </summary>
-      [getter]
-      binary binary;
-
-      /// <summary>
-      /// Gets the binary message being sent. Only set if the data was text.
-      /// </summary>
-      [getter]
-      string text;
-    };
-
-    /// <summary>
     /// RTCDataChannelStateChangeEvent represents the ready state event
     /// fired when the RTCDataChannel state is changed.
     /// </summary>
     struct RTCDataChannelStateChangeEvent
     {
+      [constructor, delete]
+      void RTCDataChannelStateChangeEvent();
+
       /// <summary>
       /// The RTCDataChannelState that cased the event to fire.
       /// </summary>
@@ -154,11 +138,20 @@ namespace org
     /// </summary>
     struct RTCMessageEvent
     {
+      [constructor, delete]
+      void RTCMessageEvent();
+
       /// <summary>
-      /// Gets the binary message being sent.
+      /// Gets the binary message being sent. Only set if the data was binary.
       /// </summary>
       [getter]
-      RTCMessageEventData data;
+      binary binary;
+
+      /// <summary>
+      /// Gets the binary message being sent. Only set if the data was text.
+      /// </summary>
+      [getter]
+      string text;
     };
 
     /// <summary>

@@ -123,9 +123,13 @@ namespace org
     /// </summary>
     struct RTCSctpTransportStateChangeEvent
     {
+      [constructor, delete]
+      void RTCSctpTransportStateChangeEvent();
+
       /// <summary>
       /// The RTCSctpTransportState that cased the event to fire.
       /// </summary>
+      [getter]
       RTCSctpTransportState state;
     };
 
@@ -137,10 +141,14 @@ namespace org
     /// </summary>
     struct RTCDataChannelEvent
     {
+      [constructor, delete]
+      void RTCDataChannelEvent();
+
       /// <summary>
       /// Gets the RTCDataChannel that was constructed when upon receiving a
       /// new RTCDataChannel from a remote peer.
       /// </summary>
+      [getter]
       RTCDataChannel dataChannel;
     };
 
