@@ -260,7 +260,7 @@ namespace org
       //// changes.
       /// </summary>
       [event]
-      void onStateChanged(RTCDataChannelStateChangeEvent event);
+      void onStateChange(RTCDataChannelStateChangeEvent event);
 
       /// <summary>
       /// The error event handler for the RTCDataChannel.
