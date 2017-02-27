@@ -306,9 +306,6 @@
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCRtpContributingSource.cpp">
       <Filter>ortc\idl\wrapper</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCRtpDtmfSender.cpp">
-      <Filter>ortc\idl\wrapper</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCRtpEncodingParameters.cpp">
       <Filter>ortc\idl\wrapper</Filter>
     </ClCompile>
@@ -481,6 +478,12 @@
       <Filter>ortc\idl\wrapper</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCRtpVp8CodecParameterSettings.cpp">
+      <Filter>ortc\idl\wrapper</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCDtmfSender.cpp">
+      <Filter>ortc\idl\wrapper</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCDtmfToneChangeEvent.cpp">
       <Filter>ortc\idl\wrapper</Filter>
     </ClCompile>
   </ItemGroup>
@@ -774,9 +777,6 @@
       <Filter>ortc\idl\wrapper</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCRtpContributingSource.h">
-      <Filter>ortc\idl\wrapper</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCRtpDtmfSender.h">
       <Filter>ortc\idl\wrapper</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCRtpEncodingParameters.h">
@@ -1211,9 +1211,6 @@
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_RTCRtpContributingSource.h">
       <Filter>ortc\idl\wrapper\generated</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_RTCRtpDtmfSender.h">
-      <Filter>ortc\idl\wrapper\generated</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_RTCRtpEncodingParameters.h">
       <Filter>ortc\idl\wrapper\generated</Filter>
     </ClInclude>
@@ -1417,6 +1414,18 @@
     </ClInclude>
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_RTCRtpVp8CodecParameterSettings.h">
       <Filter>ortc\idl\wrapper\generated</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCDtmfSender.h">
+      <Filter>ortc\idl\wrapper</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_RTCDtmfSender.h">
+      <Filter>ortc\idl\wrapper\generated</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_RTCDtmfToneChangeEvent.h">
+      <Filter>ortc\idl\wrapper\generated</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCDtmfToneChangeEvent.h">
+      <Filter>ortc\idl\wrapper</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

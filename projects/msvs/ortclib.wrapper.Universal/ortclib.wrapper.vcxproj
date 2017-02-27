@@ -99,6 +99,8 @@
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCDtlsTransport.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCDtlsTransportStateChangeEvent.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCDtlsTransportStats.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCDtmfSender.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCDtmfToneChangeEvent.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCIceCandidate.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCIceCandidateAttributes.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCIceCandidateComplete.cpp" />
@@ -140,7 +142,6 @@
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCRtpCodecParameters.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCRtpCodecParameterSettings.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCRtpContributingSource.cpp" />
-    <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCRtpDtmfSender.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCRtpEncodingParameters.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCRtpFecParameters.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCRtpFlexFecCodecCapabilityParameters.cpp" />
@@ -254,6 +255,8 @@
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_RTCDtlsTransport.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_RTCDtlsTransportStateChangeEvent.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_RTCDtlsTransportStats.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_RTCDtmfSender.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_RTCDtmfToneChangeEvent.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_RTCIceCandidate.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_RTCIceCandidateAttributes.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_RTCIceCandidateComplete.h" />
@@ -295,7 +298,6 @@
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_RTCRtpCodecCapabilityParameters.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_RTCRtpCodecParameters.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_RTCRtpContributingSource.h" />
-    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_RTCRtpDtmfSender.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_RTCRtpEncodingParameters.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_RTCRtpFecParameters.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_RTCRtpFlexFecCodecCapabilityParameters.h" />
@@ -411,6 +413,8 @@
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCDtlsTransport.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCDtlsTransportStateChangeEvent.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCDtlsTransportStats.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCDtmfSender.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCDtmfToneChangeEvent.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCIceCandidate.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCIceCandidateAttributes.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCIceCandidateComplete.h" />
@@ -452,7 +456,6 @@
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCRtpCodecParameters.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCRtpCodecParameterSettings.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCRtpContributingSource.h" />
-    <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCRtpDtmfSender.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCRtpEncodingParameters.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCRtpFecParameters.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCRtpFlexFecCodecCapabilityParameters.h" />
