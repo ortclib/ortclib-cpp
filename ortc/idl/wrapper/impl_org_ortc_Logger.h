@@ -13,11 +13,7 @@ namespace wrapper {
 
         struct Logger : public wrapper::org::ortc::Logger
         {
-          LoggerWeakPtr thisWeak_;
-
-          Logger();
           virtual ~Logger();
-          virtual void wrapper_init_org_ortc_Logger() override;
         };
 
       } // ortc

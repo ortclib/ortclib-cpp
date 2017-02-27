@@ -21,25 +21,7 @@ using ::std::set;
 using ::std::map;
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::Logger::Logger()
-{
-}
-
-//------------------------------------------------------------------------------
-wrapper::org::ortc::LoggerPtr wrapper::org::ortc::Logger::wrapper_create()
-{
-  auto pThis = make_shared<wrapper::impl::org::ortc::Logger>();
-  pThis->thisWeak_ = pThis;
-  return pThis;
-}
-
-//------------------------------------------------------------------------------
 wrapper::impl::org::ortc::Logger::~Logger()
-{
-}
-
-//------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::Logger::wrapper_init_org_ortc_Logger()
 {
 }
 
