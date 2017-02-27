@@ -128,9 +128,9 @@ wrapper::org::ortc::RTCRtpTransportPtr wrapper::impl::org::ortc::RTCRtpReceiver:
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCRtpTransportPtr wrapper::impl::org::ortc::RTCRtpReceiver::get_rtcpTransport()
+wrapper::org::ortc::RTCRtcpTransportPtr wrapper::impl::org::ortc::RTCRtpReceiver::get_rtcpTransport()
 {
-  wrapper::org::ortc::RTCRtpTransportPtr result {};
+  wrapper::org::ortc::RTCRtcpTransportPtr result {};
   return result;
 }
 

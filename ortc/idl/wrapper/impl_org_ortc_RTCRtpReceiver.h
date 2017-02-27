@@ -45,7 +45,7 @@ namespace wrapper {
           virtual uint64_t get_objectId() override;
           virtual wrapper::org::ortc::MediaStreamTrackPtr get_track() override;
           virtual wrapper::org::ortc::RTCRtpTransportPtr get_transport() override;
-          virtual wrapper::org::ortc::RTCRtpTransportPtr get_rtcpTransport() override;
+          virtual wrapper::org::ortc::RTCRtcpTransportPtr get_rtcpTransport() override;
         };
 
       } // ortc
