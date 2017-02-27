@@ -82,6 +82,7 @@ namespace wrapper {
         ZS_DECLARE_STRUCT_PTR(RTCDataChannelStateChangeEvent);
         ZS_DECLARE_STRUCT_PTR(RTCDataChannelStats);
         ZS_DECLARE_STRUCT_PTR(RTCDataTransport);
+        ZS_DECLARE_STRUCT_PTR(RTCDtlsCertificateBinary);
         ZS_DECLARE_STRUCT_PTR(RTCDtlsFingerprint);
         ZS_DECLARE_STRUCT_PTR(RTCDtlsParameters);
         ZS_DECLARE_STRUCT_PTR(RTCDtlsTransport);

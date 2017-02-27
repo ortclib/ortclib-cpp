@@ -27,7 +27,7 @@ namespace wrapper {
             shared_ptr< list< wrapper::org::ortc::RTCCertificatePtr > > certificates
             ) override;
           virtual wrapper::org::ortc::RTCDtlsParametersPtr remoteParameters() override;
-          virtual shared_ptr< list< SecureByteBlockPtr > > getRemoteCertificates() override;
+          virtual shared_ptr< list< wrapper::org::ortc::RTCDtlsCertificateBinaryPtr > > getRemoteCertificates() override;
           virtual void start(wrapper::org::ortc::RTCDtlsParametersPtr remoteParameters) override;
           virtual void stop() override;
 
