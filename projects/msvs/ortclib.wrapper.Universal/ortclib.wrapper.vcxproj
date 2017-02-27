@@ -94,6 +94,7 @@
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCDataChannelStateChangeEvent.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCDataChannelStats.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCDataTransport.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCDtlsCertificateBinary.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCDtlsFingerprint.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCDtlsParameters.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCDtlsTransport.cpp" />
@@ -169,6 +170,7 @@
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCSctpCapabilities.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCSctpTransport.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCSctpTransportListener.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCSctpTransportListenerEvent.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCSctpTransportStateChangeEvent.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCSctpTransportStats.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCSrtpSdesCryptoParameters.cpp" />
@@ -250,6 +252,7 @@
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_RTCDataChannelStateChangeEvent.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_RTCDataChannelStats.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_RTCDataTransport.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_RTCDtlsCertificateBinary.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_RTCDtlsFingerprint.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_RTCDtlsParameters.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_RTCDtlsTransport.h" />
@@ -408,6 +411,7 @@
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCDataChannelStateChangeEvent.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCDataChannelStats.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCDataTransport.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCDtlsCertificateBinary.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCDtlsFingerprint.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCDtlsParameters.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCDtlsTransport.h" />
@@ -483,6 +487,7 @@
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCSctpCapabilities.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCSctpTransport.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCSctpTransportListener.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCSctpTransportListenerEvent.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCSctpTransportStateChangeEvent.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCSctpTransportStats.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCSrtpSdesCryptoParameters.h" />

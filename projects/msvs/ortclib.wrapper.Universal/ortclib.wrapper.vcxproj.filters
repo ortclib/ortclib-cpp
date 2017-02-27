@@ -486,6 +486,12 @@
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCDtmfToneChangeEvent.cpp">
       <Filter>ortc\idl\wrapper</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCDtlsCertificateBinary.cpp">
+      <Filter>ortc\idl\wrapper</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCSctpTransportListenerEvent.cpp">
+      <Filter>ortc\idl\wrapper</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_adapter_RTCCapabilityOptions.h">
@@ -1415,6 +1421,18 @@
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_RTCRtpVp8CodecParameterSettings.h">
       <Filter>ortc\idl\wrapper\generated</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCDtlsCertificateBinary.h">
+      <Filter>ortc\idl\wrapper</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_RTCDtlsCertificateBinary.h">
+      <Filter>ortc\idl\wrapper\generated</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCSctpTransportListenerEvent.h">
+      <Filter>ortc\idl\wrapper</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCDtmfToneChangeEvent.h">
+      <Filter>ortc\idl\wrapper</Filter>
+    </ClInclude>
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCDtmfSender.h">
       <Filter>ortc\idl\wrapper</Filter>
     </ClInclude>
@@ -1423,9 +1441,6 @@
     </ClInclude>
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_RTCDtmfToneChangeEvent.h">
       <Filter>ortc\idl\wrapper\generated</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCDtmfToneChangeEvent.h">
-      <Filter>ortc\idl\wrapper</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>
