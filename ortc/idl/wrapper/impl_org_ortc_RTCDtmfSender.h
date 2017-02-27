@@ -3,7 +3,7 @@
 #pragma once
 
 #include "types.h"
-#include "generated/org_ortc_RTCRtpDtmfSender.h"
+#include "generated/org_ortc_RTCDtmfSender.h"
 
 
 namespace wrapper {
@@ -11,15 +11,15 @@ namespace wrapper {
     namespace org {
       namespace ortc {
 
-        struct RTCRtpDtmfSender : public wrapper::org::ortc::RTCRtpDtmfSender
+        struct RTCDtmfSender : public wrapper::org::ortc::RTCDtmfSender
         {
-          RTCRtpDtmfSenderWeakPtr thisWeak_;
+          RTCDtmfSenderWeakPtr thisWeak_;
 
-          RTCRtpDtmfSender();
-          virtual ~RTCRtpDtmfSender();
+          RTCDtmfSender();
+          virtual ~RTCDtmfSender();
 
-          // methods RTCRtpDtmfSender
-          virtual void wrapper_init_org_ortc_RTCRtpDtmfSender(wrapper::org::ortc::RTCRtpSenderPtr sender) override;
+          // methods RTCDtmfSender
+          virtual void wrapper_init_org_ortc_RTCDtmfSender(wrapper::org::ortc::RTCRtpSenderPtr sender) override;
           virtual bool canInsertDtmf() override;
           virtual void insertDtmf(String tones) override;
           virtual void insertDtmf(
@@ -32,7 +32,7 @@ namespace wrapper {
             ::zsLib::Milliseconds interToneGap
             ) override;
 
-          // properties RTCRtpDtmfSender
+          // properties RTCDtmfSender
           virtual uint64_t get_objectId() override;
           virtual wrapper::org::ortc::RTCRtpSenderPtr get_sender() override;
           virtual String get_toneBuffer() override;

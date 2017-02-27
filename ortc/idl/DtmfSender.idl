@@ -37,10 +37,10 @@ namespace org
     /// <summary>
     /// The RTCDTMFToneChangeEvent dictionary provides information on the DTMF tone causing a tonechange event.
     /// </summary>
-    struct RTCDTMFToneChangeEvent
+    struct RTCDtmfToneChangeEvent
     {
       [constructor, delete]
-      void RTCDTMFToneChangeEvent();
+      void RTCDtmfToneChangeEvent();
 
       /// <summary>
       /// Gets the character for the tone that has just begun playout (see insertDtmf()). If the
@@ -55,14 +55,14 @@ namespace org
     /// An RTCDtmfSender instance allows sending DTMF tones to/from the remote
     /// peer, as per [RFC4733].
     /// </summary>
-    interface RTCRtpDtmfSender
+    interface RTCDtmfSender
     {
       /// <summary>
       /// Construct an instance of the RTCDtmfSender associated to an
       /// RTCRtpSender.
       /// </summary>
       [constructor]
-      void RTCRtpDtmfSender(RTCRtpSender sender) throws (InvalidStateError);
+      void RTCDtmfSender(RTCRtpSender sender) throws (InvalidStateError);
 
       /// <summary>
       /// Gets a unique object instance identifier for this object.
@@ -148,7 +148,7 @@ namespace org
       /// interface to return the character for each tone as it is played out.
       /// </summary>
       [event]
-      void onToneChange(RTCDTMFToneChangeEvent event);
+      void onToneChange(RTCDtmfToneChangeEvent event);
     };
 
   }

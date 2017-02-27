@@ -17,7 +17,6 @@ namespace wrapper {
 
           RTCSsrcConflictEvent();
           virtual ~RTCSsrcConflictEvent();
-          virtual void wrapper_init_org_ortc_RTCSsrcConflictEvent() override;
 
           // properties RTCSsrcConflictEvent
           virtual uint32_t get_ssrc() override;

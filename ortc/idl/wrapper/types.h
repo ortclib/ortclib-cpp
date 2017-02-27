@@ -88,6 +88,8 @@ namespace wrapper {
         ZS_DECLARE_STRUCT_PTR(RTCDtlsTransport);
         ZS_DECLARE_STRUCT_PTR(RTCDtlsTransportStateChangeEvent);
         ZS_DECLARE_STRUCT_PTR(RTCDtlsTransportStats);
+        ZS_DECLARE_STRUCT_PTR(RTCDtmfSender);
+        ZS_DECLARE_STRUCT_PTR(RTCDtmfToneChangeEvent);
         ZS_DECLARE_STRUCT_PTR(RTCIceCandidate);
         ZS_DECLARE_STRUCT_PTR(RTCIceCandidateAttributes);
         ZS_DECLARE_STRUCT_PTR(RTCIceCandidateComplete);
@@ -129,7 +131,6 @@ namespace wrapper {
         ZS_DECLARE_STRUCT_PTR(RTCRtpCodecParameterSettings);
         ZS_DECLARE_STRUCT_PTR(RTCRtpCodecParameters);
         ZS_DECLARE_STRUCT_PTR(RTCRtpContributingSource);
-        ZS_DECLARE_STRUCT_PTR(RTCRtpDtmfSender);
         ZS_DECLARE_STRUCT_PTR(RTCRtpEncodingParameters);
         ZS_DECLARE_STRUCT_PTR(RTCRtpFecParameters);
         ZS_DECLARE_STRUCT_PTR(RTCRtpFlexFecCodecCapabilityParameters);
