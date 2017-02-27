@@ -210,7 +210,7 @@ namespace org
       /// contact the server, and this attribute allows the application to
       /// figure out on which one the failure occurred.
       /// </summary>
-      [nullable]
+      [getter, nullable]
       RTCIceCandidate hostCandidate;
       /// <summary>
       /// Gets the STUN or TURN URL identifying the server on which the

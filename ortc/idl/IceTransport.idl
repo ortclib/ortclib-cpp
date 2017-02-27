@@ -56,6 +56,9 @@ namespace org
     /// </summary>
     struct RTCIceTransportStateChangeEvent
     {
+      [constructor, delete]
+      void RTCIceTransportStateChangeEvent();
+
       /// <summary>
       /// Gets the RTCIceTransportState state at the time the event fired.
       /// </summary>
@@ -70,6 +73,9 @@ namespace org
     /// </summary>
     struct RTCIceCandidatePairChangeEvent
     {
+      [constructor, delete]
+      void RTCIceCandidatePairChangeEvent();
+
       /// <summary>
       /// Gets the selected RTCIceCandidatePair that caused the event.
       /// </summary>
@@ -187,7 +193,7 @@ namespace org
       void start(
                  RTCIceGatherer gatherer,
                  RTCIceParameters remoteParameters,
-                 RTCIceRole options
+                 RTCIceRole role
                  ) throws(InvalidParameters, InvalidStateError);
 
       /// <summary>
