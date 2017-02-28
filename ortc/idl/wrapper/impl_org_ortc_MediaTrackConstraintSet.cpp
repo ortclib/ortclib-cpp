@@ -125,19 +125,45 @@ wrapper::impl::org::ortc::MediaTrackConstraintSet::NativeConstraintSetPtr wrappe
   
   auto result = make_shared<NativeConstraintSet>();
 
-  result->mWidth = *ConstrainLong::toNative(wrapper->width);
-  result->mHeight = *ConstrainLong::toNative(wrapper->height);
-  result->mAspectRatio = *ConstrainDouble::toNative(wrapper->aspectRatio);
-  result->mFrameRate = *ConstrainDouble::toNative(wrapper->frameRate);
-  result->mFacingMode = *ConstrainString::toNative(wrapper->facingMode);
-  result->mVolume = *ConstrainDouble::toNative(wrapper->volume);
-  result->mSampleRate = *ConstrainLong::toNative(wrapper->sampleRate);
-  result->mSampleSize = *ConstrainLong::toNative(wrapper->sampleSize);
-  result->mEchoCancellation = *ConstrainBoolean::toNative(wrapper->echoCancellation);
-  result->mLatency = *ConstrainDouble::toNative(wrapper->latency);
-  result->mChannelCount = *ConstrainLong::toNative(wrapper->channelCount);
-  result->mDeviceID = *ConstrainString::toNative(wrapper->deviceId);
-  result->mGroupID = *ConstrainString::toNative(wrapper->groupId);
+  if (wrapper->width) {
+    result->mWidth = *ConstrainLong::toNative(wrapper->width);
+  }
+  if (wrapper->height) {
+    result->mHeight = *ConstrainLong::toNative(wrapper->height);
+  }
+  if (wrapper->aspectRatio) {
+    result->mAspectRatio = *ConstrainDouble::toNative(wrapper->aspectRatio);
+  }
+  if (wrapper->frameRate) {
+    result->mFrameRate = *ConstrainDouble::toNative(wrapper->frameRate);
+  }
+  if (wrapper->facingMode) {
+    result->mFacingMode = *ConstrainString::toNative(wrapper->facingMode);
+  }
+  if (wrapper->volume) {
+    result->mVolume = *ConstrainDouble::toNative(wrapper->volume);
+  }
+  if (wrapper->sampleRate) {
+    result->mSampleRate = *ConstrainLong::toNative(wrapper->sampleRate);
+  }
+  if (wrapper->sampleSize) {
+    result->mSampleSize = *ConstrainLong::toNative(wrapper->sampleSize);
+  }
+  if (wrapper->echoCancellation) {
+    result->mEchoCancellation = *ConstrainBoolean::toNative(wrapper->echoCancellation);
+  }
+  if (wrapper->latency) {
+    result->mLatency = *ConstrainDouble::toNative(wrapper->latency);
+  }
+  if (wrapper->channelCount) {
+    result->mChannelCount = *ConstrainLong::toNative(wrapper->channelCount);
+  }
+  if (wrapper->deviceId) {
+    result->mDeviceID = *ConstrainString::toNative(wrapper->deviceId);
+  }
+  if (wrapper->groupId) {
+    result->mGroupID = *ConstrainString::toNative(wrapper->groupId);
+  }
 
   return result;
 }
