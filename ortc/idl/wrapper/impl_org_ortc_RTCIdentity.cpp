@@ -94,7 +94,7 @@ shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCIdentityResultPtr > > w
     }
     result->resolve(RTCIdentityResult::toWrapper(promise->value()));
   });
-
+  promise->background();
   return result;
 }
 
@@ -115,6 +115,7 @@ shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCIdentityAssertionPtr > 
     }
     result->resolve(RTCIdentityAssertion::toWrapper(promise->value()));
   });
+  promise->background();
   return result;
 }
 

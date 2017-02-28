@@ -96,7 +96,7 @@ wrapper::impl::org::ortc::RTCCertificate::PromiseWithTypePtr wrapper::impl::org:
 
     result->resolve(toWrapper(promise->value()));
   });
-
+  promise->background();
   return result;
 }
 

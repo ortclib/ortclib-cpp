@@ -67,6 +67,10 @@ namespace wrapper {
           static wrapper::org::ortc::adapter::RTCBundlePolicy toWrapper(::ortc::adapter::IPeerConnectionTypes::BundlePolicies policy);
           static ::ortc::adapter::IPeerConnectionTypes::BundlePolicies toNative(wrapper::org::ortc::adapter::RTCBundlePolicy policy);
 
+          static wrapper::org::ortc::adapter::RTCSignalingState toWrapper(::ortc::adapter::IPeerConnectionTypes::SignalingStates state);
+          static wrapper::org::ortc::adapter::RTCIceConnectionState toPeerConnectionWrapper(::ortc::IICETransportTypes::States state);
+          static wrapper::org::ortc::adapter::RTCPeerConnectionState toWrapper(::ortc::adapter::IPeerConnectionTypes::PeerConnectionStates state);
+
           static wrapper::org::ortc::RTCIceGatherFilterPolicy toWrapper(::ortc::IICEGathererTypes::FilterPolicies policy);
           static ::ortc::IICEGathererTypes::FilterPolicies toNative(wrapper::org::ortc::RTCIceGatherFilterPolicy policy);
 

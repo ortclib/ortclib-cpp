@@ -20,6 +20,9 @@ using ::std::list;
 using ::std::set;
 using ::std::map;
 
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::adapter::RTCPeerConnectionIceEvent::WrapperImplType, WrapperImplType);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::adapter::RTCPeerConnectionIceEvent::WrapperType, WrapperType);
+
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::adapter::RTCPeerConnectionIceEvent::RTCPeerConnectionIceEvent()
 {
@@ -51,3 +54,15 @@ String wrapper::impl::org::ortc::adapter::RTCPeerConnectionIceEvent::get_uri()
 }
 
 
+//------------------------------------------------------------------------------
+WrapperImplTypePtr WrapperImplType::toWrapper(
+  ::ortc::adapter::IPeerConnectionTypes::ICECandidatePtr candidate,
+  const String &uri
+)
+{
+  auto pThis = make_shared<WrapperImplType>();
+  pThis->thisWeak_ = pThis;
+  pThis->candidate_ = RTCIceCandidate::toWrapper(candidate);
+  pThis->uri_ = uri;
+  return pThis;
+}

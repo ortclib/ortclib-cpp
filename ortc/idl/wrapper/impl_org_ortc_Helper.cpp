@@ -331,6 +331,55 @@ namespace wrapper {
         }
 
         //---------------------------------------------------------------------
+        wrapper::org::ortc::adapter::RTCSignalingState Helper::toWrapper(::ortc::adapter::IPeerConnectionTypes::SignalingStates state)
+        {
+          switch (state)
+          {
+            case ::ortc::adapter::IPeerConnectionTypes::SignalingState_Stable:              return wrapper::org::ortc::adapter::RTCSignalingState_stable;
+            case ::ortc::adapter::IPeerConnectionTypes::SignalingState_HaveLocalOffer:      return wrapper::org::ortc::adapter::RTCSignalingState_haveLocalOffer;
+            case ::ortc::adapter::IPeerConnectionTypes::SignalingState_HaveRemoteOffer:     return wrapper::org::ortc::adapter::RTCSignalingState_haveRemoteOffer;
+            case ::ortc::adapter::IPeerConnectionTypes::SignalingState_HaveLocalPranswer:   return wrapper::org::ortc::adapter::RTCSignalingState_haveLocalPranswer;
+            case ::ortc::adapter::IPeerConnectionTypes::SignalingState_HaveRemotePranswer:  return wrapper::org::ortc::adapter::RTCSignalingState_haveRemotePranswer;
+            case ::ortc::adapter::IPeerConnectionTypes::SignalingState_Closed:              return wrapper::org::ortc::adapter::RTCSignalingState_closed;
+           }
+          ZS_THROW_INVALID_ARGUMENT("state is unknown");
+          return toWrapper(::ortc::adapter::IPeerConnectionTypes::SignalingState_First);
+        }
+
+        //---------------------------------------------------------------------
+        wrapper::org::ortc::adapter::RTCIceConnectionState Helper::toPeerConnectionWrapper(::ortc::IICETransportTypes::States state)
+        {
+         switch (state)
+          {
+            case ::ortc::IICETransportTypes::State_New:          return wrapper::org::ortc::adapter::RTCIceConnectionState_new;
+            case ::ortc::IICETransportTypes::State_Checking:   return wrapper::org::ortc::adapter::RTCIceConnectionState_checking;
+            case ::ortc::IICETransportTypes::State_Connected:    return wrapper::org::ortc::adapter::RTCIceConnectionState_connected;
+            case ::ortc::IICETransportTypes::State_Completed: return wrapper::org::ortc::adapter::RTCIceConnectionState_completed;
+            case ::ortc::IICETransportTypes::State_Disconnected:       return wrapper::org::ortc::adapter::RTCIceConnectionState_disconnected;
+            case ::ortc::IICETransportTypes::State_Failed:       return wrapper::org::ortc::adapter::RTCIceConnectionState_failed;
+            case ::ortc::IICETransportTypes::State_Closed:       return wrapper::org::ortc::adapter::RTCIceConnectionState_closed;
+         }
+          ZS_THROW_INVALID_ARGUMENT("state is unknown");
+          return toPeerConnectionWrapper(::ortc::IICETransportTypes::State_First);
+        }
+
+        //---------------------------------------------------------------------
+        wrapper::org::ortc::adapter::RTCPeerConnectionState Helper::toWrapper(::ortc::adapter::IPeerConnectionTypes::PeerConnectionStates state)
+        {
+          switch (state)
+          {
+            case ::ortc::adapter::IPeerConnectionTypes::PeerConnectionState_New:          return wrapper::org::ortc::adapter::RTCPeerConnectionState_new;
+            case ::ortc::adapter::IPeerConnectionTypes::PeerConnectionState_Connecting:   return wrapper::org::ortc::adapter::RTCPeerConnectionState_connecting;
+            case ::ortc::adapter::IPeerConnectionTypes::PeerConnectionState_Connected:    return wrapper::org::ortc::adapter::RTCPeerConnectionState_connected;
+            case ::ortc::adapter::IPeerConnectionTypes::PeerConnectionState_Disconnected: return wrapper::org::ortc::adapter::RTCPeerConnectionState_disconnected;
+            case ::ortc::adapter::IPeerConnectionTypes::PeerConnectionState_Failed:       return wrapper::org::ortc::adapter::RTCPeerConnectionState_failed;
+            case ::ortc::adapter::IPeerConnectionTypes::PeerConnectionState_Closed:       return wrapper::org::ortc::adapter::RTCPeerConnectionState_closed;
+          }
+          ZS_THROW_INVALID_ARGUMENT("state is unknown");
+          return toWrapper(::ortc::adapter::IPeerConnectionTypes::PeerConnectionState_First);
+        }
+
+        //---------------------------------------------------------------------
         wrapper::org::ortc::RTCIceGatherFilterPolicy Helper::toWrapper(::ortc::IICEGathererTypes::FilterPolicies policy)
         {
           return static_cast<wrapper::org::ortc::RTCIceGatherFilterPolicy>(static_cast<std::underlying_type<::ortc::IICEGathererTypes::FilterPolicies>::type>(policy));
@@ -342,7 +391,6 @@ namespace wrapper {
           return static_cast<::ortc::IICEGathererTypes::FilterPolicies>(static_cast<std::underlying_type<wrapper::org::ortc::RTCIceGatherFilterPolicy>::type>(policy));
         }
 
-        
         //---------------------------------------------------------------------
         wrapper::org::ortc::RTCIceCredentialType Helper::toWrapper(::ortc::IICEGathererTypes::CredentialTypes type)
         {
@@ -795,6 +843,7 @@ namespace wrapper {
 
             result->resolve();
           });
+          promise->background();
           return result;
         }
 
@@ -851,6 +900,7 @@ namespace wrapper {
             }
             result->resolve(wrapper::impl::org::ortc::RTCStatsReport::toWrapper(promise->value()));
           });
+          promise->background();
           return result;
         }
 

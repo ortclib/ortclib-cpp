@@ -80,7 +80,7 @@ shared_ptr< PromiseWithHolderPtr< shared_ptr< list< wrapper::org::ortc::MediaDev
 
     result->resolve(wrapperList);
   });
-
+  promise->background();
   return result;
 }
 
@@ -110,7 +110,7 @@ shared_ptr< PromiseWithHolderPtr< shared_ptr< list< wrapper::org::ortc::MediaStr
 
     result->resolve(wrapperList);
   });
-
+  promise->background();
   return result;
 }
 
