@@ -1298,9 +1298,6 @@
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_RTCSrtpSdesTransport.h">
       <Filter>ortc\idl\wrapper\generated</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_RTCSrtpSdesTransportLifetimeRemaining.h">
-      <Filter>ortc\idl\wrapper\generated</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_RTCSrtpSdesTransportLifetimeRemainingEvent.h">
       <Filter>ortc\idl\wrapper\generated</Filter>
     </ClInclude>

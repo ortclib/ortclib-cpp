@@ -333,7 +333,6 @@
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_RTCSrtpSdesKeyParameters.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_RTCSrtpSdesParameters.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_RTCSrtpSdesTransport.h" />
-    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_RTCSrtpSdesTransportLifetimeRemaining.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_RTCSrtpSdesTransportLifetimeRemainingEvent.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_RTCSrtpTransportStats.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_RTCSsrcConflictEvent.h" />
