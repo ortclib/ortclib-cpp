@@ -14,6 +14,10 @@ namespace wrapper {
         struct MediaSource : public wrapper::org::ortc::MediaSource
         {
           MediaSourceWeakPtr thisWeak_;
+          MediaStreamTrackPtr track_;
+
+          zsLib::Lock lock_;
+          AnyPtr source_;
 
           MediaSource();
           virtual ~MediaSource();
@@ -23,6 +27,8 @@ namespace wrapper {
           virtual AnyPtr get_source() override;
           virtual void set_source(AnyPtr value) override;
           virtual AnyPtr get_track() override;
+
+          static MediaSourcePtr createWithTrack(MediaStreamTrackPtr track);
         };
 
       } // ortc

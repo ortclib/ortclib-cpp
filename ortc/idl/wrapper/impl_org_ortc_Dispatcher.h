@@ -14,12 +14,15 @@ namespace wrapper {
         struct Dispatcher : public wrapper::org::ortc::Dispatcher
         {
           DispatcherWeakPtr thisWeak_;
+          AnyPtr native_;
 
           Dispatcher();
           virtual ~Dispatcher();
 
           // methods Dispatcher
           virtual void wrapper_init_org_ortc_Dispatcher(AnyPtr source) override;
+
+          static AnyPtr toNative(wrapper::org::ortc::DispatcherPtr wrapper);
         };
 
       } // ortc

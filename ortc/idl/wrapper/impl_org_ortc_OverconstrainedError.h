@@ -5,6 +5,7 @@
 #include "types.h"
 #include "generated/org_ortc_OverconstrainedError.h"
 
+#include <ortc/IMediaStreamTrack.h>
 
 namespace wrapper {
   namespace impl {
@@ -13,11 +14,16 @@ namespace wrapper {
 
         struct OverconstrainedError : public wrapper::org::ortc::OverconstrainedError
         {
+          ZS_DECLARE_TYPEDEF_PTR(::ortc::IMediaStreamTrackTypes::OverconstrainedError, NativeType);
+          ZS_DECLARE_TYPEDEF_PTR(OverconstrainedError, WrapperImplType);
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::org::ortc::OverconstrainedError, WrapperType);
           OverconstrainedErrorWeakPtr thisWeak_;
 
           OverconstrainedError();
           virtual ~OverconstrainedError();
           virtual void wrapper_init_org_ortc_OverconstrainedError() override;
+
+          static WrapperImplTypePtr toWrapper(NativeTypePtr native);
         };
 
       } // ortc

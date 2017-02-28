@@ -46,20 +46,31 @@ void wrapper::impl::org::ortc::MediaSource::wrapper_init_org_ortc_MediaSource()
 //------------------------------------------------------------------------------
 AnyPtr wrapper::impl::org::ortc::MediaSource::get_source()
 {
-  AnyPtr result {};
-  return result;
+  zsLib::AutoLock lock(lock_);
+  return source_;
 }
 
 //------------------------------------------------------------------------------
 void wrapper::impl::org::ortc::MediaSource::set_source(AnyPtr value)
 {
+  zsLib::AutoLock lock(lock_);
+  source_ = value;
 }
 
 //------------------------------------------------------------------------------
 AnyPtr wrapper::impl::org::ortc::MediaSource::get_track()
 {
-  AnyPtr result {};
-  return result;
+  auto holder = make_shared< AnyHolder<MediaStreamTrackPtr> >();
+  holder->value_ = track_;
+  return holder;
 }
 
-
+//------------------------------------------------------------------------------
+wrapper::impl::org::ortc::MediaSourcePtr wrapper::impl::org::ortc::MediaSource::createWithTrack(MediaStreamTrackPtr track)
+{
+  auto pThis = make_shared<wrapper::impl::org::ortc::MediaSource>();
+  pThis->thisWeak_ = pThis;
+  pThis->track_ = track;
+  pThis->wrapper_init_org_ortc_MediaSource();
+  return pThis;
+}
