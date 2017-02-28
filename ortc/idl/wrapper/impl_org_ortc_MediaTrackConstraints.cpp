@@ -128,7 +128,7 @@ wrapper::impl::org::ortc::MediaTrackConstraintsPtr wrapper::impl::org::ortc::Med
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::MediaTrackConstraints::NativeTrackConstraintsPtr wrapper::impl::org::ortc::MediaTrackConstraints::toNative(wrapper::org::ortc::MediaTrackConstraintsPtr wrapper)
 {
-  if (wrapper) return NativeTrackConstraintsPtr();
+  if (!wrapper) return NativeTrackConstraintsPtr();
 
   auto result = make_shared<NativeTrackConstraints>();
 
