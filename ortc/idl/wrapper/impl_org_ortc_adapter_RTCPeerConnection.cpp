@@ -495,6 +495,7 @@ WrapperImplType::WrapperPromiseWithSessionDescriptionPtr WrapperImplType::toWrap
     }
     result->resolve(RTCSessionDescription::toWrapper(promise->value()));
   });
+  promise->background();
   return result;
 }
 
@@ -511,6 +512,7 @@ WrapperImplType::WrapperPromiseWithSenderPtr WrapperImplType::toWrapper(NativePr
     }
     result->resolve(RTCRtpSender::toWrapper(promise->value()));
   });
+  promise->background();
   return result;
 }
 
@@ -527,5 +529,6 @@ WrapperImplType::WrapperPromiseWithDataChannelPtr WrapperImplType::toWrapper(Nat
     }
     result->resolve(RTCDataChannel::toWrapper(promise->value()));
   });
+  promise->background();
   return result;
 }

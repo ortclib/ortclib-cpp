@@ -1187,9 +1187,6 @@
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_RTCMessageEvent.h">
       <Filter>ortc\idl\wrapper\generated</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_RTCMessageEventData.h">
-      <Filter>ortc\idl\wrapper\generated</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_RTCRtcpFeedback.h">
       <Filter>ortc\idl\wrapper\generated</Filter>
     </ClInclude>

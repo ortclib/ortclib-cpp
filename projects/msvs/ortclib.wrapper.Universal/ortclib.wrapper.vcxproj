@@ -290,7 +290,6 @@
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_RTCMediaStreamStats.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_RTCMediaStreamTrackStats.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_RTCMessageEvent.h" />
-    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_RTCMessageEventData.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_RTCOutboundRtpStreamStats.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_RTCRtcpFeedback.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_RTCRtcpParameters.h" />
