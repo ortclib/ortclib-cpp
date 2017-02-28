@@ -78,8 +78,7 @@ wrapper::org::ortc::JsonPtr wrapper::impl::org::ortc::MediaStreamConstraints::to
 //------------------------------------------------------------------------------
 String wrapper::impl::org::ortc::MediaStreamConstraints::hash()
 {
-  String result {};
-  return result;
+  return toNative(thisWeak_.lock())->hash();
 }
 
 //------------------------------------------------------------------------------
