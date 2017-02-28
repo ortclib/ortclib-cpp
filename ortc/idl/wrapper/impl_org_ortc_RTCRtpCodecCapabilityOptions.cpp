@@ -62,6 +62,16 @@ WrapperTypePtr WrapperImplType::toWrapper(NativeTypePtr native)
 NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper)
 {
   if (!wrapper) return NativeTypePtr();
+  
+  {
+    auto impl = std::dynamic_pointer_cast<RTCRtpOpusCodecCapabilityOptions>(wrapper);
+    if (impl) return RTCRtpOpusCodecCapabilityOptions::toNative(impl);
+  }
 
-  return std::dynamic_pointer_cast<WrapperImplType>(wrapper)->native_;
+  {
+    auto impl = std::dynamic_pointer_cast<WrapperImplType>(wrapper);
+    if (impl) return impl->native_;
+  }
+
+  return NativeTypePtr();
 }

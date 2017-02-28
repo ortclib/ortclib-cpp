@@ -88,5 +88,35 @@ NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper)
 {
   if (!wrapper) return NativeTypePtr();
 
-  return std::dynamic_pointer_cast<WrapperImplType>(wrapper)->native_;
+  {
+    auto impl = std::dynamic_pointer_cast<RTCRtpOpusCodecParameterSettings>(wrapper);
+    if (impl) return RTCRtpOpusCodecParameterSettings::toNative(impl);
+  }
+  {
+    auto impl = std::dynamic_pointer_cast<RTCRtpVp8CodecParameterSettings>(wrapper);
+    if (impl) return RTCRtpVp8CodecParameterSettings::toNative(impl);
+  }
+  {
+    auto impl = std::dynamic_pointer_cast<RTCRtpH264CodecParameterSettings>(wrapper);
+    if (impl) return RTCRtpH264CodecParameterSettings::toNative(impl);
+  }
+  {
+    auto impl = std::dynamic_pointer_cast<RTCRtpRtxCodecParameterSettings>(wrapper);
+    if (impl) return RTCRtpRtxCodecParameterSettings::toNative(impl);
+  }
+  {
+    auto impl = std::dynamic_pointer_cast<RTCRtpFlexFecCodecParameterSettings>(wrapper);
+    if (impl) return RTCRtpFlexFecCodecParameterSettings::toNative(impl);
+  }
+  {
+    auto impl = std::dynamic_pointer_cast<RTCRtpRedCodecParameterSettings>(wrapper);
+    if (impl) return RTCRtpRedCodecParameterSettings::toNative(impl);
+  }
+
+  {
+    auto impl = std::dynamic_pointer_cast<WrapperImplType>(wrapper);
+    if (impl) return impl->native_;
+  }
+
+  return NativeTypePtr();
 }
