@@ -97,7 +97,6 @@ PromisePtr wrapper::org::ortc::OrtcLib::notifyGoingToBackground()
   observer->promise_ = Promise::create(wrapper::impl::org::ortc::Helper::getGuiQueue());
   observer->promise_->setReferenceHolder(observer);
   observer->query_ = ::ortc::services::IBackgrounding::notifyGoingToBackground();
-  observer->promise_->background();
   return observer->promise_;
 }
 
