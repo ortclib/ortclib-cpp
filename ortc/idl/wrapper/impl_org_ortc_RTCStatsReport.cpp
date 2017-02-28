@@ -1,5 +1,6 @@
 
 #include "impl_org_ortc_RTCStatsReport.h"
+#include "impl_org_ortc_RTCStats.h"
 
 using ::zsLib::String;
 using ::zsLib::Optional;
@@ -40,8 +41,7 @@ wrapper::impl::org::ortc::RTCStatsReport::~RTCStatsReport()
 //------------------------------------------------------------------------------
 wrapper::org::ortc::RTCStatsPtr wrapper::impl::org::ortc::RTCStatsReport::getStats(String id)
 {
-  wrapper::org::ortc::RTCStatsPtr result {};
-  return result;
+  return RTCStats::toWrapper(native_->getStats(id));
 }
 
 //------------------------------------------------------------------------------

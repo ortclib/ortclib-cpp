@@ -351,13 +351,13 @@ namespace wrapper {
         {
          switch (state)
           {
-            case ::ortc::IICETransportTypes::State_New:          return wrapper::org::ortc::adapter::RTCIceConnectionState_new;
-            case ::ortc::IICETransportTypes::State_Checking:   return wrapper::org::ortc::adapter::RTCIceConnectionState_checking;
-            case ::ortc::IICETransportTypes::State_Connected:    return wrapper::org::ortc::adapter::RTCIceConnectionState_connected;
-            case ::ortc::IICETransportTypes::State_Completed: return wrapper::org::ortc::adapter::RTCIceConnectionState_completed;
-            case ::ortc::IICETransportTypes::State_Disconnected:       return wrapper::org::ortc::adapter::RTCIceConnectionState_disconnected;
-            case ::ortc::IICETransportTypes::State_Failed:       return wrapper::org::ortc::adapter::RTCIceConnectionState_failed;
-            case ::ortc::IICETransportTypes::State_Closed:       return wrapper::org::ortc::adapter::RTCIceConnectionState_closed;
+            case ::ortc::IICETransportTypes::State_New:           return wrapper::org::ortc::adapter::RTCIceConnectionState_new;
+            case ::ortc::IICETransportTypes::State_Checking:      return wrapper::org::ortc::adapter::RTCIceConnectionState_checking;
+            case ::ortc::IICETransportTypes::State_Connected:     return wrapper::org::ortc::adapter::RTCIceConnectionState_connected;
+            case ::ortc::IICETransportTypes::State_Completed:     return wrapper::org::ortc::adapter::RTCIceConnectionState_completed;
+            case ::ortc::IICETransportTypes::State_Disconnected:  return wrapper::org::ortc::adapter::RTCIceConnectionState_disconnected;
+            case ::ortc::IICETransportTypes::State_Failed:        return wrapper::org::ortc::adapter::RTCIceConnectionState_failed;
+            case ::ortc::IICETransportTypes::State_Closed:        return wrapper::org::ortc::adapter::RTCIceConnectionState_closed;
          }
           ZS_THROW_INVALID_ARGUMENT("state is unknown");
           return toPeerConnectionWrapper(::ortc::IICETransportTypes::State_First);
