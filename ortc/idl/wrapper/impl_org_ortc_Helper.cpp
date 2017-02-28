@@ -804,6 +804,7 @@ namespace wrapper {
         Helper::WrapperMediaStreamTrackListPtr Helper::toWrapper(MediaStreamTrackListPtr tracks)
         {
           auto result = make_shared<WrapperMediaStreamTrackList>();
+          if (!tracks) return result;
           for (auto iter = tracks->begin(); iter != tracks->end(); ++iter)
           {
             auto native = wrapper::impl::org::ortc::MediaStreamTrack::toWrapper(*iter);
