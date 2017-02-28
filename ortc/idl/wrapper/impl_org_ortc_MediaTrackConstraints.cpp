@@ -120,7 +120,9 @@ wrapper::impl::org::ortc::MediaTrackConstraintsPtr wrapper::impl::org::ortc::Med
 
   for (auto iter = native.mAdvanced.begin(); iter != native.mAdvanced.end(); ++iter)
   {
-    pThis->advanced->push_back(wrapper::impl::org::ortc::MediaTrackConstraintSet::toWrapper(*iter));
+    auto wrapper = wrapper::impl::org::ortc::MediaTrackConstraintSet::toWrapper(*iter);
+    if (!wrapper) continue;
+    pThis->advanced->push_back(wrapper);
   }
 
   return pThis;
@@ -175,7 +177,9 @@ wrapper::impl::org::ortc::MediaTrackConstraints::NativeTrackConstraintsPtr wrapp
   if (wrapper->advanced) {
     for (auto iter = wrapper->advanced->begin(); iter != wrapper->advanced->end(); ++iter)
     {
-      result->mAdvanced.push_back(wrapper::impl::org::ortc::MediaTrackConstraintSet::toNative(*iter));
+      auto native = wrapper::impl::org::ortc::MediaTrackConstraintSet::toNative(*iter);
+      if (!native) continue;
+      result->mAdvanced.push_back(native);
     }
   }
 
