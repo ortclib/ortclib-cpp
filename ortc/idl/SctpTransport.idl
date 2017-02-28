@@ -183,7 +183,7 @@ namespace org
       RTCSctpTransportListener listen(
                                       RTCDtlsTransport transport,
                                       RTCSctpCapabilities remoteCapabilities
-                                      );
+                                      ) throws(InvalidParameters);
 
       /// <summary>
       /// Gets a unique object instance identifier for this object.

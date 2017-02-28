@@ -302,7 +302,7 @@ namespace org
       /// Constructs an instance of an RTCIceGatherer.
       /// </summary>
       [constructor]
-      void RTCIceGatherer(RTCIceGatherOptions options);
+      void RTCIceGatherer(RTCIceGatherOptions options) throws(InvalidParameters);
 
       /// <summary>
       /// Gets a unique object instance identifier for this object.

@@ -734,7 +734,7 @@ namespace org
       /// properties of the object at any time. When it does so it must
       /// attempt to satisfy the current Constraints
       /// </summary>
-      zs::Promise applyConstraints(MediaTrackConstraints constraints);
+      zs::Promise applyConstraints(MediaTrackConstraints constraints) throws(InvalidParameters);
 
       /// <summary>
       /// The MediaStreamTrack object's source is temporarily unable to
