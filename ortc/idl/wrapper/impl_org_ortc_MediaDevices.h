@@ -23,7 +23,6 @@ namespace wrapper {
           //NativeTypePtr native_;
           zsLib::Lock lock_;
           std::atomic<size_t> subscriptionCount_{};
-          bool defaultSubscription_{ true };
           NativeTypeSubscriptionPtr subscription_;
 
           MediaDevices();

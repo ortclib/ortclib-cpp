@@ -139,8 +139,6 @@ void WrapperImplType::onMediaDevicesChanged()
 //------------------------------------------------------------------------------
 void WrapperImplType::subscribe()
 {
-  if (defaultSubscription_) return;
-
   zsLib::AutoLock lock(lock_);
   if (subscriptionCount_ < 1) {
     if (!subscription_) return;
