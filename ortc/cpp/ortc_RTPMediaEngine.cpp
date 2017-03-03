@@ -3995,8 +3995,12 @@ namespace ortc
 
         mCallStats->DeregisterStatsObserver(mCongestionController.get());
 
-        if (mSendStream)
-          delete reinterpret_cast<webrtc::internal::AudioSendStream*>(mSendStream);
+        if (mSendStream) {
+					webrtc::AudioSendStream *temp = mSendStream;
+					mWorkerQueue.PostTask([temp]() {delete reinterpret_cast<webrtc::internal::AudioSendStream*>(temp); });
+					mSendStream = NULL;
+				}
+
         mCongestionController.reset();
         mCallStats.reset();
         mBitrateAllocator.reset();
@@ -5300,8 +5304,11 @@ namespace ortc
 
         mCallStats->DeregisterStatsObserver(mCongestionController.get());
 
-        if (mSendStream)
-          delete reinterpret_cast<webrtc::internal::VideoSendStream*>(mSendStream);
+				if (mSendStream) {
+					webrtc::VideoSendStream *temp = mSendStream;
+					mWorkerQueue.PostTask([temp]() {delete reinterpret_cast<webrtc::internal::VideoSendStream*>(temp); });
+					mSendStream = NULL;
+				}
         mCongestionController.reset();
         mCallStats.reset();
         mBitrateAllocator.reset();
