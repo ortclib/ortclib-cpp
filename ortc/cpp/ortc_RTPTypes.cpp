@@ -1366,11 +1366,11 @@ namespace ortc
         auto check = pending.begin();
         String encodingID = check->first;
         EncodingParameters *encoding = check->second;
-        pending.erase(check);
 
         if (encoding->mDependencyEncodingIDs.size() < 1) return encoding;
 
         previouslyChecked[check->first] = check->second;
+        pending.erase(check);
 
         for (auto iter = encoding->mDependencyEncodingIDs.begin(); iter != encoding->mDependencyEncodingIDs.end(); ++iter) {
           auto &dependencyID = (*iter);

@@ -4603,7 +4603,7 @@ namespace ortc
         new webrtc::internal::VideoReceiveStream(
                                                  numCpuCores,
                                                  mCongestionController.get(),
-                                                 config.Copy(),
+                                                 std::move(config),
                                                  NULL,
                                                  mModuleProcessThread.get(),
                                                  mCallStats.get(),
@@ -5146,6 +5146,12 @@ namespace ortc
       int totalMinBitrate = 0;
       int totalMaxBitrate = 0;
       int totalTargetBitrate = 0;
+      int numberOfTemporalLayers[webrtc::kMaxSimulcastStreams] = {};
+      int numberOfSpatialLayers[webrtc::kMaxSimulcastStreams] = {};
+      int streamIndex = 0;
+      // Vectors of both spatial and temporal layer encoding IDs, one vector per each simulcast stream.
+      // Base layer is first in a row and enhancement layers are positioned after.
+      std::vector<std::vector<String>> encodingIDs;
       for (auto encodingParamIter = parameters->mEncodings.begin(); encodingParamIter != parameters->mEncodings.end(); encodingParamIter++) {
 
         IRTPTypes::PayloadType codecPayloadType{};
@@ -5154,37 +5160,96 @@ namespace ortc
         else
           codecPayloadType = (BYTE)config.encoder_settings.payload_type;
 
-        if (codecPayloadType == config.encoder_settings.payload_type) {
-          uint32_t ssrc = 0;
-          if (encodingParamIter->mSSRC.hasValue())
-            ssrc = encodingParamIter->mSSRC;
-          if (encodingParamIter->mFEC.hasValue()) {
-            IRTPTypes::FECParameters fec = encodingParamIter->mFEC;
-            if (fec.mSSRC.hasValue()) {
-              ssrc = encodingParamIter->mSSRC;
-            }
-          }
-          if (ssrc == 0)
-            ssrc = SafeInt<uint32_t>(ortc::services::IHelper::random(1, 0xFFFFFFFF));
-          config.rtp.ssrcs.push_back(ssrc);
-          if (encodingParamIter->mRTX.hasValue()) {
-            IRTPTypes::RTXParameters rtx = encodingParamIter->mRTX;
-            if (rtx.mSSRC.hasValue())
-              config.rtp.rtx.ssrcs.push_back(rtx.mSSRC);
-          }
-          webrtc::VideoStream stream;
-          stream.width = encodingParamIter->mResolutionScale.hasValue() ? (size_t)(sourceWidth / encodingParamIter->mResolutionScale) : sourceWidth;
-          stream.height = encodingParamIter->mResolutionScale.hasValue() ? (size_t)(sourceHeight / encodingParamIter->mResolutionScale) : sourceHeight;
-          stream.max_framerate = encodingParamIter->mFramerateScale.hasValue() ? (int)(sourceMaxFramerate / encodingParamIter->mResolutionScale) : sourceMaxFramerate;
-          stream.min_bitrate_bps = 30000;
-          stream.max_bitrate_bps = encodingParamIter->mMaxBitrate.hasValue() ? (int)encodingParamIter->mMaxBitrate : 2000000;
-          stream.target_bitrate_bps = stream.max_bitrate_bps / 2;
-          stream.max_qp = 56;
-          encoderConfig.streams.push_back(stream);
-          totalMinBitrate += stream.min_bitrate_bps;
-          totalMaxBitrate += stream.max_bitrate_bps;
-          totalTargetBitrate += stream.target_bitrate_bps;
+        if (codecPayloadType != config.encoder_settings.payload_type)
+          continue;
+
+        if (encodingParamIter->mDependencyEncodingIDs.size() == 0) {
+          encodingIDs.push_back(std::vector<String>());
+          numberOfTemporalLayers[streamIndex] = 1;
+          numberOfSpatialLayers[streamIndex] = 1;
+          if (!encodingParamIter->mEncodingID.empty())
+            encodingIDs[streamIndex].push_back(encodingParamIter->mEncodingID);
         }
+        int dependencyStreamIndex = 0;
+        bool isTemporalLayer = false;
+        bool isSpatialLayer = false;
+        for (auto dependencyEncodingIDIter = encodingParamIter->mDependencyEncodingIDs.begin(); dependencyEncodingIDIter != encodingParamIter->mDependencyEncodingIDs.end(); dependencyEncodingIDIter++) {
+          dependencyStreamIndex = 0;
+          for (auto encodingIDVectorIter = encodingIDs.begin(); encodingIDVectorIter != encodingIDs.end(); encodingIDVectorIter++) {
+            for (auto encodingIDStringIter = encodingIDVectorIter->begin(); encodingIDStringIter != encodingIDVectorIter->end(); encodingIDStringIter++) {
+              if (encodingIDStringIter->compare(*dependencyEncodingIDIter) != 0)
+                continue;
+              for (auto dependencyEncodingParamIter = parameters->mEncodings.begin(); dependencyEncodingParamIter != encodingParamIter; dependencyEncodingParamIter++) {
+                if (dependencyEncodingParamIter->mEncodingID.compare(*dependencyEncodingIDIter) != 0)
+                  continue;
+                if (encodingParamIter->mFramerateScale.hasValue() && dependencyEncodingParamIter->mFramerateScale.hasValue() &&
+                  encodingParamIter->mFramerateScale.value() != dependencyEncodingParamIter->mFramerateScale.value() ||
+                  !encodingParamIter->mFramerateScale.hasValue() && dependencyEncodingParamIter->mFramerateScale.hasValue() &&
+                  dependencyEncodingParamIter->mFramerateScale.value() != 1.0 ||
+                  encodingParamIter->mFramerateScale.hasValue() && !dependencyEncodingParamIter->mFramerateScale.hasValue() &&
+                  encodingParamIter->mFramerateScale.value() != 1.0
+                  ) {
+                  isTemporalLayer = true;
+                }
+                if (encodingParamIter->mResolutionScale.hasValue() && dependencyEncodingParamIter->mResolutionScale.hasValue() &&
+                  encodingParamIter->mResolutionScale.value() != dependencyEncodingParamIter->mResolutionScale.value() ||
+                  !encodingParamIter->mResolutionScale.hasValue() && dependencyEncodingParamIter->mResolutionScale.hasValue() &&
+                  dependencyEncodingParamIter->mResolutionScale.value() != 1.0 ||
+                  encodingParamIter->mResolutionScale.hasValue() && !dependencyEncodingParamIter->mResolutionScale.hasValue() &&
+                  encodingParamIter->mResolutionScale.value() != 1.0
+                  ) {
+                  isSpatialLayer = true;
+                }
+                break;
+              }
+              break;
+            }
+            if (isTemporalLayer || isSpatialLayer)
+              break;
+            dependencyStreamIndex++;
+          }
+        }
+        if (isTemporalLayer)
+          numberOfTemporalLayers[dependencyStreamIndex]++;
+        if (isSpatialLayer)
+          numberOfSpatialLayers[dependencyStreamIndex]++;
+        if ((isTemporalLayer || isSpatialLayer) && !encodingParamIter->mEncodingID.empty())
+          encodingIDs[dependencyStreamIndex].push_back(encodingParamIter->mEncodingID);
+
+        if (encodingParamIter->mDependencyEncodingIDs.size() == 0)
+          streamIndex++;
+        else
+          continue;
+
+        uint32_t ssrc = 0;
+        if (encodingParamIter->mSSRC.hasValue())
+          ssrc = encodingParamIter->mSSRC;
+        if (encodingParamIter->mFEC.hasValue()) {
+          IRTPTypes::FECParameters fec = encodingParamIter->mFEC;
+          if (fec.mSSRC.hasValue()) {
+            ssrc = encodingParamIter->mSSRC;
+          }
+        }
+        if (ssrc == 0)
+          ssrc = SafeInt<uint32_t>(ortc::services::IHelper::random(1, 0xFFFFFFFF));
+        config.rtp.ssrcs.push_back(ssrc);
+        if (encodingParamIter->mRTX.hasValue()) {
+          IRTPTypes::RTXParameters rtx = encodingParamIter->mRTX;
+          if (rtx.mSSRC.hasValue())
+            config.rtp.rtx.ssrcs.push_back(rtx.mSSRC);
+        }
+        webrtc::VideoStream stream;
+        stream.width = encodingParamIter->mResolutionScale.hasValue() ? (size_t)(sourceWidth / encodingParamIter->mResolutionScale) : sourceWidth;
+        stream.height = encodingParamIter->mResolutionScale.hasValue() ? (size_t)(sourceHeight / encodingParamIter->mResolutionScale) : sourceHeight;
+        stream.max_framerate = encodingParamIter->mFramerateScale.hasValue() ? (int)(sourceMaxFramerate / encodingParamIter->mFramerateScale) : sourceMaxFramerate;
+        stream.min_bitrate_bps = 30000;
+        stream.max_bitrate_bps = encodingParamIter->mMaxBitrate.hasValue() ? (int)encodingParamIter->mMaxBitrate : 2000000;
+        stream.target_bitrate_bps = stream.max_bitrate_bps / 2;
+        stream.max_qp = 56;
+        encoderConfig.streams.push_back(stream);
+        totalMinBitrate += stream.min_bitrate_bps;
+        totalMaxBitrate += stream.max_bitrate_bps;
+        totalTargetBitrate += stream.target_bitrate_bps;
       }
       if (encoderConfig.streams.size() == 0) {
         config.rtp.ssrcs.push_back(SafeInt<uint32_t>(ortc::services::IHelper::random(1, 0xFFFFFFFF)));
@@ -5201,8 +5266,21 @@ namespace ortc
         totalMaxBitrate = stream.max_bitrate_bps;
         totalTargetBitrate = stream.target_bitrate_bps;
       }
-      if (encoderConfig.streams.size() > 1)
-        mVideoEncoderSettings.mVp8.automaticResizeOn = false;
+      auto supportedCodec = IRTPTypes::toSupportedCodec(codecPayloadName);
+      if (supportedCodec == IRTPTypes::SupportedCodec_VP8) {
+        if (encoderConfig.streams.size() > 1)
+          mVideoEncoderSettings.mVp8.automaticResizeOn = false;
+        for (size_t i = 0; i < encoderConfig.streams.size(); i++) {
+          if (numberOfTemporalLayers[i] > 0)
+            encoderConfig.streams[i].temporal_layer_thresholds_bps.resize(numberOfTemporalLayers[i] - 1);
+        }
+      } else if (supportedCodec == IRTPTypes::SupportedCodec_VP9) {
+        for (size_t i = 0; i < encoderConfig.streams.size(); i++) {
+          if (numberOfTemporalLayers[i] > 0)
+            encoderConfig.streams[i].temporal_layer_thresholds_bps.resize(numberOfTemporalLayers[i] - 1);
+        }
+        mVideoEncoderSettings.mVp9.numberOfSpatialLayers = (unsigned char)numberOfSpatialLayers[0];
+      }
 
       for (auto headerExtensionIter = parameters->mHeaderExtensions.begin(); headerExtensionIter != parameters->mHeaderExtensions.end(); headerExtensionIter++) {
         IRTPTypes::HeaderExtensionURIs headerExtensionURI = IRTPTypes::toHeaderExtensionURI(headerExtensionIter->mURI);
@@ -5253,8 +5331,8 @@ namespace ortc
                                               mVideoSendDelayStats.get(),
                                               &mRemb,
                                               mEventLog.get(),
-                                              config.Copy(),
-                                              encoderConfig.Copy(),
+                                              std::move(config),
+                                              std::move(encoderConfig),
                                               suspendedSSRCs
                                               );
 

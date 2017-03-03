@@ -42,6 +42,8 @@
 #include <zsLib/Stringize.h>
 //#include <zsLib/XML.h>
 
+//#define USE_TEMPORAL_LAYERS
+//#define USE_SPATIAL_LAYERS
 
 namespace ortc { namespace adapter { ZS_DECLARE_SUBSYSTEM(ortclib_adapter) } }
 
@@ -1345,7 +1347,46 @@ namespace ortc
             }
           }
         }
+#ifdef USE_TEMPORAL_LAYERS
+        auto kind = UseRTPTypesHelper::getCodecsKind(parameters);
+        if (kind == ortc::IMediaStreamTrackTypes::Kind_Video) {
+          encoding.mEncodingID = "1";
+          encoding.mFramerateScale = 0.25;
+        }
+#endif
+#ifdef USE_SPATIAL_LAYERS
+        auto kind = UseRTPTypesHelper::getCodecsKind(parameters);
+        if (kind == ortc::IMediaStreamTrackTypes::Kind_Video) {
+          encoding.mEncodingID = "1";
+          encoding.mResolutionScale = 0.5;
+        }
+#endif
         parameters.mEncodings.push_back(encoding);
+#ifdef USE_TEMPORAL_LAYERS
+        if (kind == ortc::IMediaStreamTrackTypes::Kind_Video) {
+          IRTPTypes::EncodingParameters encoding;
+          encoding.mActive = true;
+          encoding.mEncodingID = "2";
+          encoding.mFramerateScale = 0.5;
+          encoding.mDependencyEncodingIDs.push_back("1");
+          parameters.mEncodings.push_back(encoding);
+          encoding.mActive = true;
+          encoding.mEncodingID = "3";
+          encoding.mFramerateScale = 1.0;
+          encoding.mDependencyEncodingIDs.push_back("2");
+          parameters.mEncodings.push_back(encoding);
+        }
+#endif
+#ifdef USE_SPATIAL_LAYERS
+        if (kind == ortc::IMediaStreamTrackTypes::Kind_Video) {
+          IRTPTypes::EncodingParameters encoding;
+          encoding.mActive = true;
+          encoding.mEncodingID = "2";
+          encoding.mResolutionScale = 1.0;
+          encoding.mDependencyEncodingIDs.push_back("1");
+          parameters.mEncodings.push_back(encoding);
+        }
+#endif
       }
     }
 
