@@ -76,7 +76,7 @@ namespace org
       /// rtcpTransport.State "closed", or if track.readyState is "ended",
       /// throw an InvalidStateError exception.
       /// </summary>
-      [constructor]
+      [constructor, altname(RTCRtpSenderWithRtcpTransport)]
       void RTCRtpSender(
                         MediaStreamTrack track,
                         RTCRtpTransport transport,
@@ -130,6 +130,7 @@ namespace org
       /// SetTransport() is called when transport.State or rtcpTransport.State
       /// is "closed", throw an InvalidStateError exception.
       /// </summary>
+      [altname(setTransportWithRtcpTransport)]
       void setTransport(
                         RTCRtpTransport transport,
                         RTCRtcpTransport rtcpTransport

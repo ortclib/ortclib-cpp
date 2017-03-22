@@ -121,7 +121,7 @@ namespace org
       /// Track is set, and the value of track.Kind is determined based on
       /// the value of kind passed in the constructor.      
       /// </summary>
-      [constructor]
+      [constructor, altname(RTCRtpReceiverWithRtcpTransport)]
       void RTCRtpReceiver(
                           MediaStreamTrackKind kind,
                           RTCRtpTransport transport,
