@@ -358,6 +358,7 @@ namespace org
       /// <summary>
       /// Gather ICE candidates with the options specified.
       /// </summary>
+      [altname(gatherWithOptions)]
       void gather(RTCIceGatherOptions options);
 
       /// <summary>

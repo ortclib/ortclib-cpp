@@ -547,7 +547,7 @@ namespace org
       /// <summary>
       /// Constructs an instance of an RTCMediaStreamTrackStats object by cloning object data from an existing object.
       /// </summary>
-      [constructor, altname(RTCMediaStreamTrackStats)]
+      [constructor, altname(RTCMediaStreamTrackStatsClone)]
       void RTCMediaStreamTrackStats(RTCMediaStreamTrackStats source);
       /// <summary>
       /// Constructs an instance of an RTCMediaStreamTrackStats object by extracting object data from a JSON object.

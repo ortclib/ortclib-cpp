@@ -80,6 +80,7 @@ namespace org
       /// current number of RTCIceTransports with a component of "RTP",
       /// throw an InvalidParameters exception.
       /// </summary>
+      [altname(addTransportWithIndex)]
       void addTransport(
                         RTCIceTransport transport,
                         size_t index

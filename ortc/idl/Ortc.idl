@@ -148,7 +148,7 @@ namespace org
       /// <summary>
       /// Sends all traced data to TCP listener specified by host name and port.
       /// </summary>
-      [static]
+      [static, altname(saveMediaTraceWithHostPort)]
       bool saveMediaTrace(string host, int port);
 
       /// <summary>

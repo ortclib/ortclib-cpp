@@ -197,7 +197,7 @@ namespace org
       /// <summary>
       /// Constructs a new constrainable long value by cloning existing constrainable value.
       /// </summary>
-      [constructor]
+      [constructor, altname(ConstrainLongClone)]
       void ConstrainLong(ConstrainLong source);
       /// <summary>
       /// Constructs a new constrainable long value from a JSON object.

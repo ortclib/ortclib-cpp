@@ -170,7 +170,7 @@ namespace org
       /// Constructs an instance of RTCSctpTransport from an RTCDtlsTransport
       /// object, and a port number.
       /// </summary>
-      [constructor]
+      [constructor, altname(RTCSctpTransportWithLocalPort)]
       void RTCSctpTransport(
                             RTCDtlsTransport transport,
                             uint16 localPort
