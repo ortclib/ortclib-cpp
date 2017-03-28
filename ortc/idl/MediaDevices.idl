@@ -263,7 +263,7 @@ namespace org
     /// <summary>
     /// Interface for controlling the behaviour of media.
     /// </summary>
-    [special]
+    [special, static]
     interface MediaControl
     {
       /// <summary>
