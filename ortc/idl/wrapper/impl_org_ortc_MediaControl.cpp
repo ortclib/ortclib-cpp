@@ -21,25 +21,7 @@ using ::std::set;
 using ::std::map;
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::MediaControl::MediaControl()
-{
-}
-
-//------------------------------------------------------------------------------
-wrapper::org::ortc::MediaControlPtr wrapper::org::ortc::MediaControl::wrapper_create()
-{
-  auto pThis = make_shared<wrapper::impl::org::ortc::MediaControl>();
-  pThis->thisWeak_ = pThis;
-  return pThis;
-}
-
-//------------------------------------------------------------------------------
 wrapper::impl::org::ortc::MediaControl::~MediaControl()
-{
-}
-
-//------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::MediaControl::wrapper_init_org_ortc_MediaControl()
 {
 }
 
