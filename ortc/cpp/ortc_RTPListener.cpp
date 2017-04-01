@@ -1102,7 +1102,7 @@ namespace ortc
                                      )
     {
       ZS_EVENTING_2(
-                    x, i, Debug, cRtpListenerRegisterSender, ol, RtpListener, Info,
+                    x, i, Debug, RtpListenerRegisterSender, ol, RtpListener, Info,
                     puid, id, mID,
                     puid, senderId, inSender->getID()
                     );
