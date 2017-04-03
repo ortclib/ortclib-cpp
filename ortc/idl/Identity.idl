@@ -1,0 +1,145 @@
+/*
+
+ Copyright (c) 2017, Optical Tone Ltd.
+ All rights reserved.
+
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+
+ 1. Redistributions of source code must retain the above copyright notice, this
+ list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright notice,
+ this list of conditions and the following disclaimer in the documentation
+ and/or other materials provided with the distribution.
+
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+ The views and conclusions contained in the software and documentation are those
+ of the authors and should not be interpreted as representing official policies,
+ either expressed or implied, of the FreeBSD Project.
+ 
+ */
+
+namespace org
+{
+  namespace ortc
+  {
+    /// <summary>
+    /// The RTCIdentityAssertion dictionary provides information about an identity assertion.
+    /// </summary>
+    [dictionary]
+    struct RTCIdentityAssertion
+    {
+      /// <summary>
+      /// Gets or sets a domain name representing the identity provider. 
+      /// </summary>
+      string idp;
+      /// <summary>
+      /// Gets or sets a representation of the verified peer identity conforming to [RFC5322].
+      /// This identity will have been verified via the procedures described in [RTCWEB-SECURITY-ARCH].
+      /// See https://tools.ietf.org/html/draft-ietf-rtcweb-security-arch-12 for more information.
+      /// </summary>
+      string name;
+    };
+
+    /// <summary>
+    /// The RTCIdentityResult is a base64 JSON encoded assertion.
+    /// </summary>
+    [dictionary]
+    struct RTCIdentityResult
+    {
+      /// <summary>
+      /// Gets or sets the base64 and JSON encoded assertion.
+      /// </summary>
+      string assertion;
+    };
+
+    /// <summary>
+    /// The RTCIdentityError dictionary provides information relating to error responses.
+    /// </summary>
+    [dictionary]
+    struct RTCIdentityError
+    {
+      /// <summary>
+      /// Gets or sets the domain name of the identity provider that is providing the error response.
+      /// </summary>
+      string        idp;
+      /// <summary>
+      /// Gets or sets the IdP protocol that is in use.
+      /// </summary>
+      string        protocol;
+      /// <summary>
+      /// Gets or sets an IdP that is unable to generate an identity assertion due to a lack of sufficient
+      /// user authentication information can provide a URL to a page where the user can complete
+      /// authentication. If the IdP provides this URL, this attribute includes the value provided by the IdP.
+      /// </summary>
+      string        loginUrl;
+    };
+
+    typedef zs::PromiseRejectionReason<RTCIdentityError> PromiseRejectionIdentityError;
+
+    interface RTCIdentity
+    {
+      typedef PromiseWith<RTCIdentityResult> PromiseWithResult;
+      typedef PromiseWith<RTCIdentityAssertion> PromiseWithAssertion;
+
+      [constructor]
+      void RTCIdentity(RTCDtlsTransport transport);
+
+      /// <summary>
+      /// Gets a unique object instance identifier for this object.
+      /// </summary>
+      [getter]
+      puid objectId;
+
+      /// <summary>
+      /// Gets the peer identity assertion information if an identity assertion was provided and verified.
+      /// Once this value is set to a value, it cannot change.
+      /// </summary>
+      [getter]
+      RTCIdentityAssertion peerIdentity;
+
+      /// <summary>
+      /// Sets the identity provider to be used for a given RTCIdentity object, and initiates the process of
+      /// obtaining an identity assertion.
+      /// </summary>
+      [default]
+      PromiseWithResult getIdentityAssertion(string provider);
+
+      /// <summary>
+      /// Sets the identity provider to be used for a given RTCIdentity object, and initiates the process of
+      /// obtaining an identity assertion.
+      /// </summary>
+      [altname(getIdentityAssertionWithProtocol)]
+      PromiseWithResult getIdentityAssertion(
+                                             string provider,
+                                             string protocol
+                                             );
+
+      /// <summary>
+      /// Sets the identity provider to be used for a given RTCIdentity object, and initiates the process of
+      /// obtaining an identity assertion.
+      /// </summary>
+      [altname(getIdentityAssertionWithProtocolAndUsername)]
+      PromiseWithResult getIdentityAssertion(
+                                             string provider,
+                                             string protocol,
+                                             string username
+                                             );
+
+      /// <summary>
+      /// Salidates the identity assertion. 
+      /// </summary>
+      PromiseWithAssertion setIdentityAssertion(string assertion);
+    };
+  }
+}

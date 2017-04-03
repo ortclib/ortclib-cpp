@@ -1,0 +1,277 @@
+/*
+ 
+ Copyright (c) 2017, Optical Tone Ltd.
+ All rights reserved.
+ 
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+ 
+ 1. Redistributions of source code must retain the above copyright notice, this
+ list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright notice,
+ this list of conditions and the following disclaimer in the documentation
+ and/or other materials provided with the distribution.
+ 
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ 
+ The views and conclusions contained in the software and documentation are those
+ of the authors and should not be interpreted as representing official policies,
+ either expressed or implied, of the FreeBSD Project.
+ 
+ */
+
+namespace org
+{
+  namespace ortc
+  {
+    /// <summary>
+    /// MediaTrackSupportedConstraints represents the list of constraints
+    /// recognized by a User Agent for controlling the Capabilities of a
+    /// MediaStreamTrack object.This dictionary is used as a function return
+    /// value, and never as an operation argument.
+    /// </summary>
+    [dictionary]
+    struct MediaTrackSupportedConstraints
+    {
+      /// <summary>
+      /// The width or width range, in pixels. As a capability, the range should span the
+      /// video source's pre-set width values with min being the smallest width and max
+      /// being the largest width.
+      /// </summary>
+      bool width;
+      /// <summary>
+      /// The height or height range, in pixels. As a capability, the range should span
+      /// the video source's pre-set height values with min being the smallest height and
+      /// max being the largest height.
+      /// </summary>
+      bool height;
+      /// <summary>
+      /// The exact aspect ratio (width in pixels divided by height in pixels, represented
+      /// as a double rounded to the tenth decimal place) or aspect ratio range.
+      /// </summary>
+      bool aspectRatio;
+      /// <summary>
+      /// The exact frame rate (frames per second) or frame rate range. If this frame
+      /// rate cannot be determined (e.g. the source does not natively provide a frame rate,
+      /// or the frame rate cannot be determined from the source stream), then this value
+      /// must refer to the User Agent's vsync display rate.
+      /// </summary>
+      bool frameRate;
+      /// <summary>
+      /// This string (or each string, when a list) should be one of the members of
+      /// VideoFacingMode. The members describe the directions that the camera can
+      /// face, as seen from the user's perspective. Note that getConstraints may
+      /// not return exactly the same string for strings not in this enum. This
+      /// preserves the possibility of using a future version of enum for
+      /// this property.
+      /// </summary>
+      bool facingMode;
+      /// <summary>
+      /// The volume or volume range, as a multiplier of the linear audio sample
+      /// values. A volume of 0.0 is silence, while a volume of 1.0 is the maximum
+      /// supported volume. A volume of 0.5 will result in an approximately 6 dBSPL
+      /// change in the sound pressure level from the maximum volume. Note that any
+      /// ConstraintSet that specifies values outside of this range of 0 to 1 can
+      /// never be satisfied.
+      /// </summary>
+      bool volume;
+      /// <summary>
+      /// The sample rate in samples per second for the audio data.
+      /// </summary>
+      bool sampleRate;
+      /// <summary>
+      /// The linear sample size in bits. This constraint can only be satisfied for
+      /// audio devices that produce linear samples.
+      /// </summary>
+      bool sampleSize;
+      /// <summary>
+      /// When one or more audio streams is being played in the processes of
+      /// various microphones, it is often desirable to attempt to remove the
+      /// sound being played from the input signals recorded by the microphones.
+      /// This is referred to as echo cancellation. There are cases where it is
+      /// not needed and it is desirable to turn it off so that no audio artifacts
+      /// are introduced. This allows applications to control this behavior.
+      /// </summary>
+      bool echoCancellation;
+      /// <summary>
+      /// The latency or latency range, in seconds. The latency is the time
+      /// between start of processing (for instance, when sound occurs in
+      /// the real world) to the data being available to the next step in
+      /// the process. Low latency is critical for some applications; high
+      /// latency may be acceptable for other applications because it helps
+      /// with power constraints. The number is expected to be the target
+      /// latency of the configuration; the actual latency may show some
+      /// variation from that.
+      /// </summary>
+      bool latency;
+      /// <summary>
+      /// The number of independent channels of sound that the audio data contains,
+      /// i.e. the number of audio samples per sample frame.
+      /// </summary>
+      bool channelCount;
+      /// <summary>
+      /// The origin-unique identifier for the source of the MediaStreamTrack.
+      /// </summary>
+      bool deviceId;
+      /// <summary>
+      /// The browsing session-unique group identifier for the source of the MediaStreamTrack.
+      /// </summary>
+      bool groupId;
+
+      /// <summary>
+      /// Constructs an empty instance of a MediaTrackSupportedConstraints object.
+      /// </summary>
+      [constructor, default]
+      void MediaTrackSupportedConstraints();
+      /// <summary>
+      /// Constructs an instance of a MediaTrackSupportedConstraints object by cloning an existing object.
+      /// </summary>
+      [constructor, altname(MediaTrackSupportedConstraintsClone)]
+      void MediaTrackSupportedConstraints(MediaTrackSupportedConstraints  source);
+      /// <summary>
+      /// Constructs an instance of a MediaTrackSupportedConstraints object by extracting object data from a JSON object.
+      /// </summary>
+      [constructor, default, altname(MediaTrackSupportedConstraintsWithJson)]
+      void MediaTrackSupportedConstraints(Json json);
+
+      /// <summary>
+      /// A helper routine to convert the object's data to structured JSON object data.
+      /// </summary>
+      Json toJson();
+      /// <summary>
+      /// Return a hash of the data contained within the object.
+      /// </summary>
+      string hash();
+    };
+
+    /// <summary>
+    /// Media device information representing the User Agent's available
+    /// media input and output devices.
+    /// </summary>
+    [dictionary]
+    struct MediaDeviceInfo
+    {
+      /// <summary>
+      /// Describes the kind of the represented device.
+      /// </summary>
+      MediaDeviceKind kind = audioInput;
+      /// <summary>
+      /// A label describing this device (for example "External USB Webcam").
+      /// If the device has no associated label, then this attribute must
+      /// return the empty string.
+      /// </summary>
+      string label;
+      /// <summary>
+      /// A unique identifier for the represented device.
+      /// </summary>
+      string deviceId;
+      /// <summary>
+      /// Returns the group identifier of the represented device. Two devices
+      /// have the same group identifier if they belong to the same physical
+      /// device; for example a monitor with a built-in camera and microphone.
+      /// </summary>
+      string groupId;
+
+      /// <summary>
+      /// Constructs an empty instance of a MediaDeviceInfo object.
+      /// </summary>
+      [constructor, default]
+      void MediaDeviceInfo();
+      /// <summary>
+      /// Constructs an instance of a MediaDeviceInfo object by cloning object data from an existing object.
+      /// </summary>
+      [constructor, altname(MediaDeviceInfoClone)]
+      void MediaDeviceInfo(MediaDeviceInfo source);
+      /// <summary>
+      /// Constructs an instance of a MediaDeviceInfo object by extracting object data from a JSON object.
+      /// </summary>
+      [constructor, default, altname(MediaDeviceInfoWithJson)]
+      void MediaDeviceInfo(Json json);
+
+      /// <summary>
+      /// A helper routine to convert the object's data to structured JSON object data.
+      /// </summary>
+      Json toJson();
+      /// <summary>
+      /// Return a hash of the data contained within the object.
+      /// </summary>
+      string hash();
+    };
+
+    interface MediaDevices
+    {
+      typedef std::list<MediaDeviceInfo> DeviceList;
+      typedef std::list<MediaStreamTrack> TrackList;
+      typedef zs::PromiseWith<DeviceList> PromiseWithDeviceList;
+      typedef zs::PromiseWith<TrackList> PromiseWithTrackList;
+
+      [constructor, delete]
+      void MediaDevices();
+
+      /// <summary>
+      /// Gets the media devices singleton object.
+      /// </summary>
+      [static, getter]
+      MediaDevices singleton;
+
+      /// <summary>
+      /// Returns a dictionary whose members are the constrainable properties
+      /// known to the User Agent. A supported constrainable property must be
+      /// represented and any constrainable properties not supported by the
+      /// User Agent must not be present in the returned dictionary. The
+      /// values returned represent what the browser implements and will not
+      /// change during a browsing session.
+      /// </summary>
+      /// <returns>MediaTrackSupportedConstraints</returns>
+      [static]
+      MediaTrackSupportedConstraints getSupportedConstraints();
+
+      /// <summary>
+      /// Collects information about the User Agent's available media input
+      /// and output devices.
+      /// </summary>
+      /// <returns>IAsyncOperation vector list of MediaDeviceInfo</returns>
+      [static]
+      PromiseWithDeviceList enumerateDevices();
+
+      /// <summary>
+      /// Grant access to the user for permission to use their Web cam or
+      /// other video or audio input.
+      /// </summary>
+      [static]
+      PromiseWithTrackList getUserMedia(MediaStreamConstraints constraints);
+
+      /// <summary>
+      /// The set of media devices, available to the User Agent, has changed.
+      /// The current list devices can be retrieved with the
+      /// EnumerateDevices() method.
+      /// </summary>
+      /// <see cref="EnumerateDevices" />
+      [event]
+      void onDeviceChange();
+    };
+
+    /// <summary>
+    /// Interface for controlling the behaviour of media.
+    /// </summary>
+    [special, static]
+    interface MediaControl
+    {
+      /// <summary>
+      /// Gets or sets the media engine the application orientation has changed.
+      /// </summary>
+      [static, getter, setter]
+      Any displayOrientation;
+    };
+
+  }
+}

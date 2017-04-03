@@ -1,0 +1,1031 @@
+/*
+
+ Copyright (c) 2017, Optical Tone Ltd.
+ All rights reserved.
+
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+
+ 1. Redistributions of source code must retain the above copyright notice, this
+ list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright notice,
+ this list of conditions and the following disclaimer in the documentation
+ and/or other materials provided with the distribution.
+
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+ The views and conclusions contained in the software and documentation are those
+ of the authors and should not be interpreted as representing official policies,
+ either expressed or implied, of the FreeBSD Project.
+ 
+ */
+
+namespace org
+{
+  namespace ortc
+  {
+    typedef uint32 SsrcType;
+    typedef uint8 PayloadType;
+    typedef std::list<SsrcType> SsrcTypeList;
+
+    /// <summary>
+    /// The RTCStatsTypeSet contains a list of stats types to be collected.
+    /// </summary>
+    struct RTCStatsTypeSet
+    {
+      typedef std::set<RTCStatsType> EnumSet;
+
+      /// <summary>
+      /// Constructs an empty instance of an RTCStatsTypeSet object.
+      /// </summary>
+      [constructor, default]
+      void RTCStatsTypeSet();
+      /// <summary>
+      /// Constructs an instance of an RTCStatsTypeSet object given a set of types types to collect.
+      /// </summary>
+      [constructor, altname(RTCStatsTypeSetWithValues)]
+      void RTCStatsTypeSet(EnumSet values);
+
+      bool hasStatType(RTCStatsType type);
+    };
+
+    /// <summary>
+    /// The RTCStats contains statistics information related to an inspected
+    /// object.
+    /// </summary>
+    struct RTCStats
+    {
+      /// <summary>
+      /// Gets or sets the timestamp when this statistic object was generated.
+      /// </summary>
+      [getter]
+      Time                timestamp;
+      /// <summary>
+      /// Gets or sets the type of statistics object contained within this
+      /// RTCStats object.
+      /// </summary>
+      [optional, getter]
+      RTCStatsType        statsType;
+      /// <summary>
+      /// Gets or sets the type of statistics object when the type is not a
+      /// pre-known type.
+      /// </summary>
+      [getter]
+      string              statsTypeOther;
+      /// <summary>
+      /// Gets or sets the identifer for the RTCStats object. The identifer
+      /// is unique within a RTCStatsReport but is not guarenteed to be unique
+      /// across RTCStatsReports.
+      /// </summary>
+      [getter]
+      string              id;
+
+      /// <summary>
+      /// Constructs an empty instance of an RTCStats object.
+      /// </summary>
+      [constructor, default]
+      void RTCStats();
+      /// <summary>
+      /// Constructs an instance of an RTCStats object by cloning object data from an existing object.
+      /// </summary>
+      [constructor, altname(RTCStatsClone)]
+      void RTCStats(RTCStats source);
+      /// <summary>
+      /// Constructs an instance of an RTCStats object by extracting object data from a JSON object.
+      /// </summary>
+      [constructor, default, altname(RTCStatsWithJson)]
+      void RTCStats(Json json);
+
+      /// <summary>
+      /// A helper routine to convert the object's data to structured JSON object data.
+      /// </summary>
+      Json toJson();
+      /// <summary>
+      /// Return a hash of the data contained within the object.
+      /// </summary>
+      string hash();
+    };
+
+
+    struct RTCRtpStreamStats : RTCStats
+    {
+      /// <summary>
+      /// Gets or sets the SSRC for the RTP stream.
+      /// </summary>
+      [optional, getter]
+      SsrcType            ssrc;
+      /// <summary>
+      /// Gets or sets the associated stats identifier for looking up the
+      /// corresponding (local/remote) RTCStats object for a given SSRC.
+      /// </summary>
+      [getter]
+      string              associatedStatId;
+      /// <summary>
+      /// Gets or sets if the measurements are calculated locally ore
+      /// remotely. false indicates that the statistics are measured
+      /// locally, while true indicates that the measurements were done
+      /// at the remote endpoint and reported in an RTCP RR/XR.
+      /// </summary>
+      [getter]
+      bool                isRemote;
+      /// <summary>
+      /// Gets or sets the media type, either "audio" or "video". This must
+      /// match the media type part of the information in the corresponding
+      /// codec member of RTCCodec.
+      /// </summary>
+      [getter]
+      string              mediaType;
+      /// <summary>
+      /// Gets or sets the media stream tracks ID associated with this RTP
+      /// stream stats object.
+      /// </summary>
+      [getter]
+      string              mediaTrackId;
+      /// <summary>
+      /// Gets or sets the transport ID associated with this RTP media
+      /// stream stats object. It is a unique identifier that is associated
+      /// to the object that was inspected to produce the RTCTransportStats
+      /// associated with this RTP stream.
+      /// </summary>
+      [getter]
+      string              transportId;
+      /// <summary>
+      /// Gets or set the codec ID associated with this RTP media stream stats
+      /// object.
+      /// </summary>
+      [getter]
+      string              codecId;
+      /// <summary>
+      /// Gets or sets the total number of Full Intra Request (FIR) packets
+      /// received by the sender. This metric is only valid for video and is
+      /// sent by receiver. Calculated as defined in [RFC5104] section 4.3.1.
+      /// and does not use the metric indicated in [RFC2032], because it was
+      /// deprecated by [RFC4587].
+      /// </summary>
+      [getter]
+      unsigned long       firCount;
+      /// <summary>
+      /// Gets or sets the total number of Packet Loss Indication (PLI)
+      /// packets received by the sender and is sent by receiver. Calculated
+      /// as defined in [RFC4585] section 6.3.1.
+      /// </summary>
+      [getter]
+      unsigned long       pliCount;
+      /// <summary>
+      /// Gets or sets the total number of Negative ACKnowledgement (NACK)
+      /// packets received by the sender and is sent by receiver. Calculated
+      /// as defined in [RFC4585] section 6.2.1.
+      /// </summary>
+      [getter]
+      unsigned long       nackCount;
+      /// <summary>
+      /// Gets or sets the total number of Slice Loss Indication (SLI) packets
+      /// received by the sender. This metric is only valid for video and is
+      /// sent by receiver. Calculated as defined in [RFC4585] section 6.3.2.
+      /// </summary>
+      [getter]
+      unsigned long       sliCount;
+
+      /// <summary>
+      /// Constructs an empty instance of an RTCRtpStreamStats object.
+      /// </summary>
+      [constructor, default]
+      void RTCRtpStreamStats();
+      /// <summary>
+      /// Constructs an instance of an RTCRtpStreamStats object by cloning object data from an existing object.
+      /// </summary>
+      [constructor, altname(RTCRtpStreamStatsClone)]
+      void RTCRtpStreamStats(RTCRtpStreamStats source);
+      /// <summary>
+      /// Constructs an instance of an RTCRtpStreamStats object by extracting object data from a JSON object.
+      /// </summary>
+      [constructor, default, altname(RTCRtpStreamStatsWithJson)]
+      void RTCRtpStreamStats(Json json);
+    };
+
+    /// <summary>
+    /// The RTCCodec object contains information about the codec associated
+    /// with an RTP stream.
+    /// </summary>
+    struct RTCCodec : RTCStats
+    {
+      /// <summary>
+      /// Gets or sets the payload type as used in RTP encoding.
+      /// </summary>
+      [optional, getter]
+      PayloadType      payloadType;
+      /// <summary>
+      /// Gets or sets the IANA name of the codec associated with the RTP
+      /// stream. For example, "vp8" for "video/vp8" or equivalent.
+      /// </summary>
+      [getter]
+      string           codec;
+      /// <summary>
+      /// Gets or sets the media sampling rate.
+      /// </summary>
+      [getter]
+      unsigned long    clockRate;
+      /// <summary>
+      /// Gets or sets the number of audio channels used by the codec. For
+      /// example, 2 for stereo, 1 for mono, and missing for non-audio codecs.
+      /// </summary>
+      [optional, getter]
+      unsigned long    channels;
+      /// <summary>
+      /// Gets or sets the SDP description line.
+      /// </summary>
+      [getter]
+      string           parameters;
+
+      /// <summary>
+      /// Constructs an empty instance of an RTCCodec object.
+      /// </summary>
+      [constructor, default]
+      void RTCCodec();
+      /// <summary>
+      /// Constructs an instance of an RTCCodec object by cloning object data from an existing object.
+      /// </summary>
+      [constructor, altname(RTCCodecClone)]
+      void RTCCodec(RTCCodec source);
+      /// <summary>
+      /// Constructs an instance of an RTCCodec object by extracting object data from a JSON object.
+      /// </summary>
+      [constructor, default, altname(RTCCodecWithJson)]
+      void RTCCodec(Json json);
+    };
+
+    /// <summary>
+    /// The RTCInboundRTPStreamStats object represents the measurement metrics
+    /// for the incoming RTP media stream.
+    /// </summary>
+    struct RTCInboundRtpStreamStats : RTCRtpStreamStats
+    {
+      /// <summary>
+      /// Gets or sets the total number of RTP packets received for this SSRC.
+      /// Calculated as defined in [RFC3550] section 6.4.1.
+      /// </summary>
+      [getter]
+      unsigned long       packetsReceived;
+      [getter]
+      /// <summary>
+      /// Gets or sets the total number of bytes received for this SSRC.
+      /// Calculated as defined in [RFC3550] section 6.4.1.
+      /// </summary>
+      unsigned long long  bytesReceived;
+      /// <summary>
+      /// Gets or sets the total number of RTP packets lost for this SSRC.
+      /// Calculated as defined in [RFC3550] section 6.4.1.
+      /// </summary>
+      [getter]
+      unsigned long       packetsLost;
+      /// <summary>
+      /// Gets or sets the packet jitter measured in seconds for this SSRC.
+      /// Calculated as defined in [RFC3550] section 6.4.1.
+      /// </summary>
+      [getter]
+      double              jitter;
+      /// <summary>
+      /// Gets or sets the fraction packet loss reported for this SSRC.
+      /// Calculated as defined in [RFC3550] section 6.4.1 and Appendix A.3.
+      /// </summary>
+      [getter]
+      double              fractionLost;
+      /// <summary>
+      /// Gets or sets the end to end media delay in milliseconds. This value
+      /// represents the total duration between the time the media sampling was
+      /// captured to the time the media sampling was rendered.
+      /// </summary>
+      [getter]
+      Milliseconds        endToEndDelay;
+
+      /// <summary>
+      /// Constructs an empty instance of an RTCInboundRtpStreamStats object.
+      /// </summary>
+      [constructor, default]
+      void RTCInboundRtpStreamStats();
+      /// <summary>
+      /// Constructs an instance of an RTCInboundRtpStreamStats object by cloning object data from an existing object.
+      /// </summary>
+      [constructor, altname(RTCInboundRtpStreamStatsClone)]
+      void RTCInboundRtpStreamStats(RTCInboundRtpStreamStats source);
+      /// <summary>
+      /// Constructs an instance of an RTCInboundRtpStreamStats object by extracting object data from a JSON object.
+      /// </summary>
+      [constructor, default, altname(RTCInboundRtpStreamStatsWithJson)]
+      void RTCInboundRtpStreamStats(Json json);
+    };
+
+    /// <summary>
+    /// The RTCOutboundRTPStreamStats object represents the measurement
+    /// metrics for the outgoing media stream.
+    /// </summary>
+    struct RTCOutboundRtpStreamStats : RTCRtpStreamStats
+    {
+      /// <summary>
+      /// Gets or sets the total number of RTP packets sent for this SSRC.
+      /// Calculated as defined in [RFC3550] section 6.4.1.
+      /// </summary>
+      [getter]
+      unsigned long       packetsSent;
+      /// <summary>
+      /// Gets or sets the total number of bytes sent for this SSRC.
+      /// Calculated as defined in [RFC3550] section 6.4.1.
+      /// </summary>
+      [getter]
+      unsigned long long  bytesSent;
+      /// <summary>
+      /// Gets or sets the presently configured bitrate target of this SSRC,
+      /// in bits per second. Typically this is a configuration parameter
+      /// provided to the codec's encoder.
+      /// </summary>
+      [getter]
+      double              targetBitrate;
+      /// <summary>
+      /// Gets or sets the estimated round trip time (seconds) for this SSRC
+      /// based on the RTCP timestamp. Calculated as defined in [RFC3550]
+      /// section 6.4.1.
+      /// </summary>
+      [getter]
+      double              roundTripTime;
+
+      /// <summary>
+      /// Constructs an empty instance of an RTCOutboundRtpStreamStats object.
+      /// </summary>
+      [constructor, default]
+      void RTCOutboundRtpStreamStats();
+      /// <summary>
+      /// Constructs an instance of an RTCOutboundRtpStreamStats object by cloning object data from an existing object.
+      /// </summary>
+      [constructor, altname(RTCOutboundRtpStreamStatsClone)]
+      void RTCOutboundRtpStreamStats(RTCOutboundRtpStreamStats source);
+      /// <summary>
+      /// Constructs an instance of an RTCOutboundRtpStreamStats object by extracting object data from a JSON object.
+      /// </summary>
+      [constructor, default, altname(RTCOutboundRtpStreamStatsWithJson)]
+      void RTCOutboundRtpStreamStats(Json json);
+    };
+
+    struct RTCSctpTransportStats : RTCStats
+    {
+      /// <summary>
+      /// Gets or sets the number of unique datachannels opened.
+      /// </summary>
+      [getter]
+      unsigned long dataChannelsOpened;
+      /// <summary>
+      /// Gets or sets the number of unique datachannels closed.
+      /// </summary>
+      [getter]
+      unsigned long dataChannelsClosed;
+
+      /// <summary>
+      /// Constructs an empty instance of an RTCSctpTransportStats object.
+      /// </summary>
+      [constructor, default]
+      void RTCSctpTransportStats();
+      /// <summary>
+      /// Constructs an instance of an RTCSctpTransportStats object by cloning object data from an existing object.
+      /// </summary>
+      [constructor, altname(RTCSctpTransportStatsClone)]
+      void RTCSctpTransportStats(RTCSctpTransportStats source);
+      /// <summary>
+      /// Constructs an instance of an RTCSctpTransportStats object by extracting object data from a JSON object.
+      /// </summary>
+      [constructor, default, altname(RTCSctpTransportStatsWithJson)]
+      void RTCSctpTransportStats(Json json);
+    };
+
+    /// <summary>
+    /// The RTCMediaStreamStats object contains the stastics for the
+    /// RTCMediaStream object.
+    /// </summary>
+    struct RTCMediaStreamStats : RTCStats
+    {
+      /// <summary>
+      /// Gets or sets the stream.id property.
+      /// </summary>
+      [getter]
+      string      streamId;
+      /// <summary>
+      /// Gets or sets the the id of the media stream track stats object, not
+      /// the track.id.
+      /// </summary>
+      [getter]
+      StringList  trackIds;
+
+      /// <summary>
+      /// Constructs an empty instance of an RTCMediaStreamStats object.
+      /// </summary>
+      [constructor, default]
+      void RTCMediaStreamStats();
+      /// <summary>
+      /// Constructs an instance of an RTCMediaStreamStats object by cloning object data from an existing object.
+      /// </summary>
+      [constructor, altname(RTCMediaStreamStatsClone)]
+      void RTCMediaStreamStats(RTCMediaStreamStats source);
+      /// <summary>
+      /// Constructs an instance of an RTCMediaStreamStats object by extracting object data from a JSON object.
+      /// </summary>
+      [constructor, default, altname(RTCMediaStreamStatsWithJson)]
+      void RTCMediaStreamStats(Json json);
+    };
+
+
+    /// <summary>
+    /// The RTCMediaStreamTrackStats object contains the stastics for the
+    /// RTCMediaStreamTrack object.
+    /// </summary>
+    struct RTCMediaStreamTrackStats : RTCStats
+    {
+      /// <summary>
+      /// Gets or sets the track.id property.
+      /// </summary>
+      [getter]
+      string          trackId;
+      /// <summary>
+      /// Gets or sets if this source represents a local or remote media
+      /// stream track source. The value is true for remote, false for local.
+      /// </summary>
+      [getter]
+      bool            remoteSource;
+      /// <summary>
+      /// Gets or sets the SSRCs associated with this media stream track stats
+      /// object.
+      /// </summary>
+      [getter]
+      SsrcTypeList    ssrcIds;
+      /// <summary>
+      /// Gets or sets the width value for video. The property only makes
+      /// sense for video media streams and represents the width of the video
+      /// frame for this SSRC.
+      /// </summary>
+      [getter]
+      unsigned long   frameWidth;
+      /// <summary>
+      /// Gets or sets the height value for video. The property only makes
+      /// sense for video media streams and represents the height of the video
+      /// frame for this SSRC.
+      /// </summary>
+      [getter]
+      unsigned long   frameHeight;
+      /// <summary>
+      /// Gets or sets the video frames per second. Only valid for video.
+      /// </summary>
+      [getter]
+      double          framesPerSecond;
+      /// <summary>
+      /// Gets or sets the total number of frames sent for this SSRC. Only
+      /// valid for video. 
+      /// </summary>
+      [getter]
+      unsigned long   framesSent;
+      /// <summary>
+      /// Gets or sets the total number of frames received for this SSRC. Only
+      /// valid for video and when RemoteSource is set to true.
+      /// </summary>
+      [getter]
+      unsigned long   framesReceived;
+      /// <summary>
+      /// Gets or sets the total number of frames correctly decoded for this
+      /// SSRC. Only valid for video. Same definition as totalVideoFrames in
+      /// Section 5 of [http://www.w3.org/TR/media-source/].
+      /// </summary>
+      [getter]
+      unsigned long   framesDecoded;
+      /// <summary>
+      /// Gets or sets the total number of frames dropped. Only valid for
+      /// video. Same definition as droppedVideoFrames in Section 5 of
+      /// [http://www.w3.org/TR/media-source/].
+      /// </summary>
+      [getter]
+      unsigned long   framesDropped;
+      /// <summary>
+      /// Gets or sets the total number of frames determined to be corrupted.
+      /// Only valid for video. Same definition as corruptedVideoFrames in
+      /// Section 5 of [http://www.w3.org/TR/media-source/].
+      /// </summary>
+      [getter]
+      unsigned long   framesCorrupted;
+      /// <summary>
+      /// Gets or sets the audio level. Only valid for audio, and the value is
+      /// between 0..1 (linear), where 1.0 represents 0 dBov. Calculated as
+      /// defined in [RFC6464].
+      /// </summary>
+      [getter]
+      double          audioLevel;
+      /// <summary>
+      /// Gets or sets the echo return loss calculated in decibels, as defined
+      /// in [https://www.itu.int/rec/T-REC-G.168/en] (2012) section 3.14.
+      /// Only present on audio tracks sourced from a microphone where echo
+      /// cancellation is applied. 
+      /// </summary>
+      [getter]
+      double          echoReturnLoss;
+      /// <summary>
+      /// Gets or sets the echo return loss enhancement as calculated in
+      /// decibels, as defined in [https://www.itu.int/rec/T-REC-G.168/en]
+      /// (2012) section 3.15.Only present on audio tracks sourced from a
+      /// microphone where echo cancellation is applied. 
+      /// </summary>
+      [getter]
+      double          echoReturnLossEnhancement;
+
+      /// <summary>
+      /// Constructs an empty instance of an RTCMediaStreamTrackStats object.
+      /// </summary>
+      [constructor, default]
+      void RTCMediaStreamTrackStats();
+      /// <summary>
+      /// Constructs an instance of an RTCMediaStreamTrackStats object by cloning object data from an existing object.
+      /// </summary>
+      [constructor, altname(RTCMediaStreamTrackStatsClone)]
+      void RTCMediaStreamTrackStats(RTCMediaStreamTrackStats source);
+      /// <summary>
+      /// Constructs an instance of an RTCMediaStreamTrackStats object by extracting object data from a JSON object.
+      /// </summary>
+      [constructor, default, altname(RTCMediaStreamTrackStatsWithJson)]
+      void RTCMediaStreamTrackStats(Json json);
+    };
+
+    /// <summary>
+    /// The RTCDataChannelStats object contains the statistics related to the
+    /// associated RTCDataChannel object.
+    /// </summary>
+    struct RTCDataChannelStats : RTCStats
+    {
+      /// <summary>
+      /// Gets or sets the data channle label.
+      /// </summary>
+      [getter]
+      string                    label;
+      /// <summary>
+      /// Gets or sets the data channel protocol.
+      /// </summary>
+      [getter]
+      string                    protocol;
+      /// <summary>
+      /// Gets or sets the "id" of the RTCDataChannel object.
+      /// </summary>
+      [getter]
+      long                      dataChannelId;
+      /// <summary>
+      /// Gets or sets the RTCDataChannelState for the RTCDataChannel object.
+      /// </summary>
+      [getter]
+      RTCDataChannelState       state;
+      /// <summary>
+      /// Gets or sets the total number of API "message" events sent.
+      /// </summary>
+      [getter]
+      unsigned long             messagesSent;
+      /// <summary>
+      /// Gets or sets the total number of payload bytes sent on this
+      /// RTCDatachannel, i.e., not including headers or padding.
+      /// </summary>
+      [getter]
+      unsigned long long        bytesSent;
+      /// <summary>
+      /// Gets or sets the total number of bytes received on this
+      /// RTCDatachannel, i.e., not including headers or padding.
+      /// </summary>
+      [getter]
+      unsigned long             messagesReceived;
+      /// <summary>
+      /// Gets or sets the total number of bytes received on this
+      /// RTCDatachannel, i.e., not including headers or padding.
+      /// </summary>
+      [getter]
+      unsigned long long        bytesReceived;
+
+      /// <summary>
+      /// Constructs an empty instance of an RTCDataChannelStats object.
+      /// </summary>
+      [constructor, default]
+      void RTCDataChannelStats();
+      /// <summary>
+      /// Constructs an instance of an RTCDataChannelStats object by cloning object data from an existing object.
+      /// </summary>
+      [constructor, altname(RTCDataChannelStatsClone)]
+      void RTCDataChannelStats(RTCDataChannelStats source);
+      /// <summary>
+      /// Constructs an instance of an RTCDataChannelStats object by extracting object data from a JSON object.
+      /// </summary>
+      [constructor, default, altname(RTCDataChannelStatsWithJson)]
+      void RTCDataChannelStats(Json json);
+    };
+
+    /// <summary>
+    /// The RTCIceGathererStats object contains the stastics information
+    /// related to the RTCIceGatherer object.
+    /// </summary>
+    struct RTCIceGathererStats : RTCStats
+    {
+      /// <summary>
+      /// Gets or sets the total number of bytes received on this
+      /// RTCIceGatherer, i.e., not including headers or padding.
+      /// </summary>
+      [getter]
+      unsigned long long  bytesSent;
+      /// <summary>
+      /// Gets or sets the total number of payload bytes sent on this
+      /// RTCIceGatherer, i.e., not including headers or padding.
+      /// </summary>
+      [getter]
+      unsigned long long  bytesReceived;
+      /// <summary>
+      /// Gets or sets the RTCIceGathererStats identifier for the associated
+      /// RTCP RTCIceGatherer (if applicable).
+      /// </summary>
+      [getter]
+      string              rtcpGathererStatsId;
+
+      /// <summary>
+      /// Constructs an empty instance of an RTCIceGathererStats object.
+      /// </summary>
+      [constructor, default]
+      void RTCIceGathererStats();
+      /// <summary>
+      /// Constructs an instance of an RTCIceGathererStats object by cloning object data from an existing object.
+      /// </summary>
+      [constructor, altname(RTCIceGathererStatsClone)]
+      void RTCIceGathererStats(RTCIceGathererStats source);
+      /// <summary>
+      /// Constructs an instance of an RTCIceGathererStats object by extracting object data from a JSON object.
+      /// </summary>
+      [constructor, default, altname(RTCIceGathererStatsWithJson)]
+      void RTCIceGathererStats(Json json);
+    };
+
+    /// <summary>
+    /// The RTCIceTransportStats object contains the statistics related to the
+    /// RTCIceTransport object.
+    /// </summary>
+    struct RTCIceTransportStats : RTCStats
+    {
+      /// <summary>
+      /// Gets or sets the total number of bytes received on this
+      /// RTCIceTransport, i.e., not including headers or padding.
+      /// </summary>
+      [getter]
+      unsigned long long  bytesSent;
+      /// <summary>
+      /// Gets or sets the total number of payload bytes sent on this
+      /// RTCIceTransport, i.e., not including headers or padding.
+      /// </summary>
+      [getter]
+      unsigned long long  bytesReceived;
+      /// <summary>
+      /// Gets or sets the RTCIceGathererStats identifier for the associated
+      /// RTCP RTCIceTransport (if applicable).
+      /// </summary>
+      [getter]
+      string              rtcpTransportStatsId;
+      /// <summary>
+      /// Gets or sets if the connection is active. Set to true when transport
+      /// is active.
+      /// </summary>
+      [getter]
+      bool                activeConnection;
+      /// <summary>
+      /// Gets or sets a unique identifier that is associated to the object
+      /// that was inspected to produce the RTCIceCandidatePairStats
+      /// associated with this transport.
+      /// </summary>
+      [getter]
+      string              selectedCandidatePairId;
+
+      /// <summary>
+      /// Constructs an empty instance of an RTCIceTransportStats object.
+      /// </summary>
+      [constructor, default]
+      void RTCIceTransportStats();
+      /// <summary>
+      /// Constructs an instance of an RTCIceTransportStats object by cloning object data from an existing object.
+      /// </summary>
+      [constructor, altname(RTCIceTransportStatsClone)]
+      void RTCIceTransportStats(RTCIceTransportStats source);
+      /// <summary>
+      /// Constructs an instance of an RTCIceTransportStats object by extracting object data from a JSON object.
+      /// </summary>
+      [constructor, default, altname(RTCIceTransportStatsWithJson)]
+      void RTCIceTransportStats(Json json);
+    };
+
+    /// <summary>
+    /// The RTCDtlsTransportStats object contains the statistics related to the
+    /// RTCDtlsTransport object.
+    /// </summary>
+    struct RTCDtlsTransportStats : RTCStats
+    {
+      /// <summary>
+      /// Gets or sets the local certificate stats object identifier.
+      /// </summary>
+      [getter]
+      string localCertificateId;
+      /// <summary>
+      /// Gets or sets the remote certificate stats object identifier.
+      /// </summary>
+      [getter]
+      string remoteCertificateId;
+
+      /// <summary>
+      /// Constructs an empty instance of an RTCDtlsTransportStats object.
+      /// </summary>
+      [constructor, default]
+      void RTCDtlsTransportStats();
+      /// <summary>
+      /// Constructs an instance of an RTCDtlsTransportStats object by cloning object data from an existing object.
+      /// </summary>
+      [constructor, altname(RTCDtlsTransportStatsClone)]
+      void RTCDtlsTransportStats(RTCDtlsTransportStats source);
+      /// <summary>
+      /// Constructs an instance of an RTCDtlsTransportStats object by extracting object data from a JSON object.
+      /// </summary>
+      [constructor, default, altname(RTCDtlsTransportStatsWithJson)]
+      void RTCDtlsTransportStats(Json json);
+    };
+
+    /// <summary>
+    /// The RTCSrtpTransportStats object contains the statistics related to the
+    /// RTCSrtpSdesTransport object.
+    /// </summary>
+    struct RTCSrtpTransportStats : RTCStats
+    {
+      /// <summary>
+      /// Constructs an empty instance of an RTCInboundRtpStreamStats object.
+      /// </summary>
+      [constructor, default]
+      void RTCSrtpTransportStats();
+      /// <summary>
+      /// Constructs an instance of an RTCSrtpTransportStats object by cloning object data from an existing object.
+      /// </summary>
+      [constructor, altname(RTCSrtpTransportStatsClone)]
+      void RTCSrtpTransportStats(RTCSrtpTransportStats source);
+      /// <summary>
+      /// Constructs an instance of an RTCSrtpTransportStats object by extracting object data from a JSON object.
+      /// </summary>
+      [constructor, default, altname(RTCSrtpTransportStatsWithJson)]
+      void RTCSrtpTransportStats(Json json);
+    };
+
+    /// <summary>
+    /// RTCIceCandidateAttributes reflects the properties of a candidate in
+    /// Section 15.1 of [RFC5245].
+    /// </summary>
+    struct RTCIceCandidateAttributes : RTCStats
+    {
+      /// <summary>
+      /// Gets or sets a unique identifier that is associated to the object
+      /// that was inspected to produce the RTCTransportStats associated with
+      /// this candidate.
+      /// </summary>
+      [getter]
+      string                  relatedId;
+      /// <summary>
+      /// Gets or sets the IP address of the candidate, allowing for IPv4
+      /// addresses, IPv6 addresses, and fully qualified domain names
+      /// (FQDNs). See [RFC5245] section 15.1 for details.
+      /// </summary>
+      [getter]
+      string                  ipAddress;
+      /// <summary>
+      /// Gets or sets the port number of the candidate.
+      /// </summary>
+      [getter]
+      unsigned long           portNumber;
+      /// <summary>
+      /// Gets or sets the transport type. Valid values for transport is one o
+      /// udp and tcp. Based on the "transport" defined in [RFC5245] section
+      /// 15.1.
+      /// </summary>
+      [getter]
+      string                  transport;
+      /// <summary>
+      /// Gets or sets the enumeration RTCStatsIceCandidateType based on the
+      /// cand-type defined in [RFC5245] section 15.1.
+      /// </summary>
+      [getter]
+      RTCIceCandidateType     candidateType;
+      /// <summary>
+      /// Gets or sets the candidate priority as calculated as defined in 
+      /// [RFC5245] section 15.1.
+      /// </summary>
+      [getter]
+      unsigned long           priority;
+      /// <summary>
+      /// Gets or sets the URL of the TURN or STUN server indicated in the
+      /// RTCIceServers that translated this IP address.
+      /// </summary>
+      [getter]
+      string                  addressSourceUrl;
+
+      /// <summary>
+      /// Constructs an empty instance of an RTCIceCandidateAttributes object.
+      /// </summary>
+      [constructor, default]
+      void RTCIceCandidateAttributes();
+      /// <summary>
+      /// Constructs an instance of an RTCIceCandidateAttributes object by cloning object data from an existing object.
+      /// </summary>
+      [constructor, altname(RTCIceCandidateAttributesClone)]
+      void RTCIceCandidateAttributes(RTCIceCandidateAttributes source);
+      /// <summary>
+      /// Constructs an instance of an RTCIceCandidateAttributes object by extracting object data from a JSON object.
+      /// </summary>
+      [constructor, default, altname(RTCIceCandidateAttributesWithJson)]
+      void RTCIceCandidateAttributes(Json json);
+    };
+
+    /// <summary>
+    /// </summary>
+    struct RTCIceCandidatePairStats : RTCStats
+    {
+      /// <summary>
+      /// Gets or sets a unique identifier that is associated to the object
+      /// that was inspected to produce the RTCTransportStats associated with
+      /// this candidate pair.
+      /// </summary>
+      [getter]
+      string                          transportId;
+      /// <summary>
+      /// Gets or sets a unique identifier that is associated to the object
+      /// that was inspected to produce the RTCIceCandidateAttributes for the
+      /// local candidate associated with this candidate pair.
+      /// </summary>
+      [getter]
+      string                          localCandidateId;
+      /// <summary>
+      /// Gets or sets a unique identifier that is associated to the object
+      /// that was inspected to produce the RTCIceCandidateAttributes for the
+      /// remote candidate associated with this candidate pair.
+      /// </summary>
+      [getter]
+      string                          remoteCandidateId;
+      /// <summary>
+      /// Gets or sets the state of the checklist for the local and remote
+      /// candidates in a pair.
+      /// </summary>
+      [getter]
+      RTCIceCandidatePairState        state;
+      /// <summary>
+      /// Gets or sets the calculated candidate pair priority as as defined in
+      /// [RFC5245] section 5.7.2.
+      /// </summary>
+      [getter]
+      unsigned long long              priority;
+      /// <summary>
+      /// Gets or sets the nominated flag described in Section 7.1.3.2.4 of [RFC5245].
+      /// </summary>
+      [getter]
+      bool                            nominated;
+      /// <summary>
+      /// Gets or sets if the candidate pair has received an ACK to an ICE
+      /// request.
+      /// </summary>
+      [getter]
+      bool                            writable;
+      /// <summary>
+      /// Gets or sets if the candidate pair has received a valid incoming
+      /// ICE request.
+      /// </summary>
+      [getter]
+      bool                            readable;
+      /// <summary>
+      /// Gets or sets the total number of payload bytes sent on this
+      /// candidate pair, i.e., not including headers or padding.
+      /// </summary>
+      [getter]
+      unsigned long long              bytesSent;
+      /// <summary>
+      /// Gets or sets the total number of payload bytes received on this
+      /// candidate pair, i.e., not including headers or padding.
+      /// </summary>
+      [getter]
+      unsigned long long              bytesReceived;
+      /// <summary>
+      /// Gets or sets the RTT computed by the STUN connectivity checks
+      /// [draft-reddy-tram-stun-path-data].
+      /// </summary>
+      [getter]
+      double                          roundTripTime;
+      /// <summary>
+      /// Gets or sets the available outgoing bitrate measured in Bits per
+      /// second, and is implementation dependent. It may be calculated by the
+      /// underlying congestion control.
+      /// </summary>
+      [getter]
+      double                          availableOutgoingBitrate;
+      /// <summary>
+      /// Gets or sets the available incoming bitrate measured in Bits per
+      /// second, and is implementation dependent. It may be calculated by the
+      /// underlying congestion control.
+      /// </summary>
+      [getter]
+      double                          availableIncomingBitrate;
+
+      /// <summary>
+      /// Constructs an empty instance of an RTCIceCandidatePairStats object.
+      /// </summary>
+      [constructor, default]
+      void RTCIceCandidatePairStats();
+      /// <summary>
+      /// Constructs an instance of an RTCIceCandidatePairStats object by cloning object data from an existing object.
+      /// </summary>
+      [constructor, altname(RTCIceCandidatePairStatsClone)]
+      void RTCIceCandidatePairStats(RTCIceCandidatePairStats source);
+      /// <summary>
+      /// Constructs an instance of an RTCIceCandidatePairStats object by extracting object data from a JSON object.
+      /// </summary>
+      [constructor, default, altname(RTCIceCandidatePairStatsWithJson)]
+      void RTCIceCandidatePairStats(Json json);
+    };
+
+
+    /// <summary>
+    /// The RTCCertificateStats contains the statistics information related
+    /// to an RTCCertificate object.
+    /// </summary>
+    struct RTCCertificateStats : RTCStats
+    {
+      /// <summary>
+      /// Gets or sets the the fingerprint value as defined in Section 5 of
+      /// [RFC4572].
+      /// </summary>
+      [getter]
+      string fingerprint;
+      /// <summary>
+      /// Gets or sets the fingerprint algorithm used with this certificate.
+      /// For instance, "sha-256".
+      /// </summary>
+      [getter]
+      string fingerprintAlgorithm;
+      /// <summary>
+      /// Gets or sets the DER-encoded, base-64 representation of a
+      /// certifiate.
+      /// </summary>
+      [getter]
+      string base64Certificate;
+      /// <summary>
+      /// Gets or sets the issuer certificate identifier associates with this
+      /// RTCCertificateStats object.
+      /// </summary>
+      [getter]
+      string issuerCertificateId;
+
+      /// <summary>
+      /// Constructs an empty instance of an RTCCertificateStats object.
+      /// </summary>
+      [constructor, default]
+      void RTCCertificateStats();
+      /// <summary>
+      /// Constructs an instance of an RTCCertificateStats object by cloning object data from an existing object.
+      /// </summary>
+      [constructor, altname(RTCCertificateStatsClone)]
+      void RTCCertificateStats(RTCCertificateStats source);
+      /// <summary>
+      /// Constructs an instance of an RTCCertificateStats object by extracting object data from a JSON object.
+      /// </summary>
+      [constructor, default, altname(RTCCertificateStatsWithJson)]
+      void RTCCertificateStats(Json json);
+    };
+
+    /// <summary>
+    /// The RTCStatsReport contains a collection of statistic object for
+    /// statistics for the inspected objects.
+    /// </summary>
+    interaction RTCStatsReport
+    {
+      typedef StringList IdList;
+
+      [constructor, delete]
+      void RTCStatsReport();
+
+      /// <summary>
+      /// Gets a unique object instance identifier for this object.
+      /// </summary>
+      [getter]
+      puid objectId;
+
+      /// <summary>
+      /// Gets the list of statistics object identifiers contained within this
+      /// stats report.
+      /// </summary>
+      [getter]
+      IdList statsIds;
+      /// <summary>
+      /// Gets an RTCStats object for the specified statistic object
+      /// identifier.
+      /// </summary>
+      RTCStats getStats(string id);
+    };
+  }
+}

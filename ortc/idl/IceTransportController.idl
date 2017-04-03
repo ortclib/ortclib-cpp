@@ -1,0 +1,90 @@
+/*
+
+ Copyright (c) 2017, Optical Tone Ltd.
+ All rights reserved.
+
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+
+ 1. Redistributions of source code must retain the above copyright notice, this
+ list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright notice,
+ this list of conditions and the following disclaimer in the documentation
+ and/or other materials provided with the distribution.
+
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+ The views and conclusions contained in the software and documentation are those
+ of the authors and should not be interpreted as representing official policies,
+ either expressed or implied, of the FreeBSD Project.
+ 
+ */
+
+namespace org
+{
+  namespace ortc
+  {
+    /// <summmary>
+    /// The RTCIceTransportController object assists in the managing of ICE
+    /// freezing and bandwidth estimation.
+    /// </summmary>
+    interface RTCIceTransportController
+    {
+      typedef std::list<RTCIceTransport> IceTransportList;
+
+      /// <summmary>
+      /// Constructs an instance of the RTCIceTransportController.
+      /// </summmary>
+      [constructor]
+      void RTCIceTransportController();
+
+      /// <summmary>
+      /// Get a unique object instance identifier for this object.
+      /// </summmary>
+      [getter]
+      puid objectId;
+
+      /// <summary>
+      /// Gets the RTCIceTransport with a component of "RTP". If
+      /// addTransport() has not been called, an empty list is returned.
+      /// </summary>
+      [getter]
+      IceTransportList transports;
+
+      /// <summary>
+      /// Adds transport to the RTCIceTransportController object for the
+      /// purposes of managing ICE freezing and sharing bandwidth estimation.
+      /// Since addTransport manages ICE freezing, candidate pairs that are
+      /// not in the frozen state maintain their state when
+      /// AddTransport(transport) is called. RTCIceTransport objects will be
+      /// unfrozen according to their index. The added transport is inserted
+      /// as the final index.
+      ///
+      ///  If transport.state is "closed", throw an InvalidStateError
+      /// exception. If transport has already been added to another
+      /// RTCIceTransportController object, or if transport.component is
+      /// "RTCP", throw an InvalidStateError exception.
+      /// </summary>
+      void addTransport(RTCIceTransport transport) throws (InvalidParameters, InvalidStateError);
+      /// <summary>
+      /// The transport is inserted at index. If index is greater than the
+      /// current number of RTCIceTransports with a component of "RTP",
+      /// throw an InvalidParameters exception.
+      /// </summary>
+      [altname(addTransportWithIndex)]
+      void addTransport(
+                        RTCIceTransport transport,
+                        size_t index
+                        ) throws (InvalidParameters, InvalidStateError);
+    };
+  }
+}

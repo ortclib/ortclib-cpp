@@ -375,6 +375,8 @@ namespace ortc
                                         const Optional<Configuration> &configuration = Optional<Configuration>()
                                         );
 
+        virtual PUID getID() const override { return mID; }
+
         virtual IPeerConnectionSubscriptionPtr subscribe(IPeerConnectionDelegatePtr delegate) override;
 
         virtual PromiseWithDescriptionPtr createOffer(const Optional<OfferOptions> &configuration = Optional<OfferOptions>()) override;

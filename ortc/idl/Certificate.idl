@@ -1,0 +1,147 @@
+/*
+
+ Copyright (c) 2017, Optical Tone Ltd.
+ All rights reserved.
+
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+
+ 1. Redistributions of source code must retain the above copyright notice, this
+ list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright notice,
+ this list of conditions and the following disclaimer in the documentation
+ and/or other materials provided with the distribution.
+
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+ The views and conclusions contained in the software and documentation are those
+ of the authors and should not be interpreted as representing official policies,
+ either expressed or implied, of the FreeBSD Project.
+ 
+ */
+
+namespace org
+{
+  namespace ortc
+  {
+    /// <summary>
+    /// The RTCDtlsFingerprint object includes the hash function algorithm and
+    /// certificate fingerprint as described in [RFC4572].
+    /// </summary>
+    [dictionary]
+    struct RTCDtlsFingerprint
+    {
+      /// <summary>
+      /// Gets or sets one of the the hash function algorithms defined in the
+      /// 'Hash function Textual Names' registry, initially specified in
+      /// [RFC4572] Section 8. As noted in [draft-ietf-rtcweb-jsep] Section
+      /// 5.2.1, the digest algorithm used for the fingerprint matches that
+      /// used in the certificate signature.
+      /// </summary>
+      string algorithm;
+      /// <summary>
+      /// The value of the certificate fingerprint in lowercase hex string as
+      /// expressed utilizing the syntax of 'fingerprint' in [RFC4572] Section
+      /// 5.
+      /// </summary>
+      string value;
+
+      /// <summary>
+      /// Construct a new empty fingerprint instance.
+      /// </summary>
+      [constructor]
+      void RTCDtlsFingerprint();
+
+      /// <summary>
+      /// Construct a new fingerprint instance by cloning existing fingerprint.
+      /// </summary>
+      [constructor, altname(RTCDtlsFingerprintClone)]
+      void RTCDtlsFingerprint(RTCDtlsFingerprint source);
+
+      /// <summary>
+      /// Construct a new fingerprint instance from a JSON object.
+      /// </summary>
+      [constructor, default, altname(RTCDtlsFingerprintWithJson)]
+      void RTCDtlsFingerprint(Json json);
+
+      /// <summary>
+      /// Convert a fingerprint to a JSON object.
+      /// </summary>
+      Json toJson();
+      /// <summary>
+      /// Get a hash of the fingerprint.
+      /// </summary>
+      string hash();
+    };
+
+    /// <summary>
+    /// The RTCCertificate interface enables the certificates used by an
+    /// RTCDtlsTransport in its constructor. 
+    /// </summary>
+    interface RTCCertificate
+    {
+      typedef zs::PromiseWith<RTCCertificate> PromiseWithCertificate;
+
+      /// <summary>
+      /// The GenerateCertificate method causes the user agent to create and
+      /// store an X.509 certificate [ISO/IEC 9594-8:1997] and corresponding
+      /// private key. 
+      /// </summary>
+      /// <returns>An awaitable newly generated certificate.</returns>
+      [static]
+      PromiseWithCertificate generateCertificate() throws (NotImplemented);
+
+      /// <summary>
+      /// The GenerateCertificate method causes the user agent to create and
+      /// store an X.509 certificate [ISO/IEC 9594-8:1997] and corresponding
+      /// private key. 
+      /// </summary>
+      /// <returns>An awaitable newly generated certificate.</returns>
+      [static, default, altname(generateCertificateWithAlgorithm)]
+      PromiseWithCertificate generateCertificate(
+        /// <param name='keygenAlgorithm'>
+        //// This argument is used to control how the private key associated
+        /// with the certificate is generated.
+        /// </param>
+        string keygenAlgorithm
+        ) throws(NotImplemented);
+
+      [static, altname(generateCertificateWithJson)]
+      PromiseWithCertificate generateCertificate(Json keygenAlgorithm);
+
+      [constructor, delete]
+      void RTCCertificate();
+
+      /// <summary>
+      /// Gets the unique object identifier for the certificate object.
+      /// </summary>
+      [getter]
+      puid objectId;
+
+      /// <summary>
+      /// Gets the expiry after which the certificate will be considered
+      /// invalid by the browser. After this time, attempts to construct an
+      /// RTCDtlsTransport object using this certificate will fail.
+      /// </summary>
+      [getter]
+      Time expires;
+
+      /// <summary>
+      /// Gets the fingerprint of the certificate. As noted in
+      /// [draft-ietf-rtcweb-jsep] Section 5.2.1, the digest algorithm used
+      /// for the fingerprint matches that used in the certificate signature.
+      /// </summary>
+      [getter]
+      RTCDtlsFingerprint fingerprint;
+    };
+  }
+}

@@ -645,9 +645,7 @@ namespace ortc
     enum PriorityTypes {
       PriorityType_First,
 
-      PriorityType_Unknown =        PriorityType_First,
-
-      PriorityType_VeryLow,
+      PriorityType_VeryLow =        PriorityType_First,
       PriorityType_Low,
       PriorityType_Medium,
       PriorityType_High,
@@ -668,7 +666,7 @@ namespace ortc
       Optional<PayloadType>   mCodecPayloadType;
       Optional<FECParameters> mFEC;
       Optional<RTXParameters> mRTX;
-      PriorityTypes           mPriority {PriorityType_Unknown};
+      Optional<PriorityTypes> mPriority;
       Optional<ULONGLONG>     mMaxBitrate {};
       Optional<double>        mMinQuality {0};
       Optional<double>        mResolutionScale {};

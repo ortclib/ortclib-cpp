@@ -1,0 +1,969 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tga;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="c">
+      <UniqueIdentifier>{6c756899-f026-418e-9288-8899d3d12eff}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_adapter_RTCAnswerOptions.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_adapter_RTCCapabilityOptions.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_adapter_RTCConfiguration.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_adapter_RTCIceCandidate.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_adapter_RTCMediaStreamTrackConfiguration.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_adapter_RTCOfferAnswerOptions.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_adapter_RTCOfferOptions.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_adapter_RTCPeerConnection.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_adapter_RTCPeerConnectionIceErrorEvent.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_adapter_RTCPeerConnectionIceEvent.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_adapter_RTCSessionDescription.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_adapter_RTCSessionDescriptionConnectionData.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_adapter_RTCSessionDescriptionConnectionDataDetails.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_adapter_RTCSessionDescriptionDescription.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_adapter_RTCSessionDescriptionDescriptionDetails.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_adapter_RTCSessionDescriptionMediaLine.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_adapter_RTCSessionDescriptionMediaLineDetails.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_adapter_RTCSessionDescriptionRtpMediaLine.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_adapter_RTCSessionDescriptionRtpSender.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_adapter_RTCSessionDescriptionRtpSenderDetails.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_adapter_RTCSessionDescriptionSctpMediaLine.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_adapter_RTCSessionDescriptionTransport.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_adapter_RTCSessionDescriptionTransportParameters.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_adapter_RTCTrackEvent.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_ConstrainBoolean.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_ConstrainBooleanParameters.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_ConstrainDouble.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_ConstrainDoubleRange.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_ConstrainLong.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_ConstrainLongRange.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_ConstrainString.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_ConstrainStringParameters.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_Dispatcher.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_DoubleRange.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_Error.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_ErrorEvent.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_Json.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_Logger.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_LongRange.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_MediaControl.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_MediaDeviceInfo.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_MediaDevices.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_MediaSource.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_MediaStreamConstraints.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_MediaStreamTrack.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_MediaTrackCapabilities.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_MediaTrackConstraints.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_MediaTrackConstraintSet.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_MediaTrackSettings.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_MediaTrackSupportedConstraints.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_MessageQueue.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_OrtcLib.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_OrtcLibWithDispatcher.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_OverconstrainedError.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_OverconstrainedErrorEvent.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCCertificate.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCCertificateStats.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCCodec.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCDataChannel.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCDataChannelEvent.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCDataChannelParameters.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCDataChannelStateChangeEvent.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCDataChannelStats.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCDataTransport.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCDtlsCertificateBinary.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCDtlsFingerprint.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCDtlsParameters.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCDtlsTransport.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCDtlsTransportStateChangeEvent.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCDtlsTransportStats.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCDtmfSender.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCDtmfToneChangeEvent.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCIceCandidate.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCIceCandidateAttributes.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCIceCandidateComplete.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCIceCandidatePair.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCIceCandidatePairChangeEvent.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCIceCandidatePairStats.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCIceGatherer.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCIceGathererCandidate.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCIceGathererCandidateCompleteEvent.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCIceGathererCandidateEvent.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCIceGathererIceErrorEvent.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCIceGathererStateChangeEvent.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCIceGathererStats.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCIceGatherInterfacePolicy.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCIceGatherOptions.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCIceParameters.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCIceServer.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCIceTransport.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCIceTransportController.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCIceTransportOptions.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCIceTransportStateChangeEvent.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCIceTransportStats.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCIdentity.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCIdentityAssertion.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCIdentityError.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCIdentityResult.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCInboundRtpStreamStats.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCMediaStreamStats.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCMediaStreamTrackStats.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCMessageEvent.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCOutboundRtpStreamStats.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtcpFeedback.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtcpParameters.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtcpTransport.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpCapabilities.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpCodecCapability.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpCodecCapabilityOptions.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpCodecCapabilityParameters.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpCodecParameters.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpCodecParameterSettings.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpContributingSource.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpEncodingParameters.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpFecParameters.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpFlexFecCodecCapabilityParameters.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpFlexFecCodecParameterSettings.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpH264CodecCapabilityParameters.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpH264CodecParameterSettings.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpHeaderExtension.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpHeaderExtensionParameters.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpListener.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpOpusCodecCapabilityOptions.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpOpusCodecCapabilityParameters.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpOpusCodecParameterSettings.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpParameters.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpReceiver.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpRedCodecParameterSettings.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpRtxCodecCapabilityParameters.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpRtxCodecParameterSettings.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpRtxParameters.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpSender.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpStreamStats.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpTransport.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpUnhandledEvent.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpVp8CodecCapabilityParameters.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpVp8CodecParameterSettings.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCSctpCapabilities.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCSctpTransport.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCSctpTransportListener.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCSctpTransportListenerEvent.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCSctpTransportStateChangeEvent.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCSctpTransportStats.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCSrtpSdesCryptoParameters.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCSrtpSdesKeyParameters.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCSrtpSdesParameters.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCSrtpSdesTransport.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCSrtpSdesTransportLifetimeRemainingEvent.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCSrtpTransportStats.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCSsrcConflictEvent.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCStats.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCStatsProvider.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCStatsReport.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCStatsTypeSet.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_Settings.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_StringOrStringList.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_helpers.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_adapter_MediaStream.cpp">
+      <Filter>c</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="targetver.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_adapter_MediaStream.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_adapter_RTCAnswerOptions.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_adapter_RTCCapabilityOptions.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_adapter_RTCConfiguration.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_adapter_RTCIceCandidate.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_adapter_RTCMediaStreamTrackConfiguration.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_adapter_RTCOfferAnswerOptions.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_adapter_RTCOfferOptions.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_adapter_RTCPeerConnection.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_adapter_RTCPeerConnectionIceErrorEvent.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_adapter_RTCPeerConnectionIceEvent.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_adapter_RTCSessionDescription.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_adapter_RTCSessionDescriptionConnectionData.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_adapter_RTCSessionDescriptionConnectionDataDetails.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_adapter_RTCSessionDescriptionDescription.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_adapter_RTCSessionDescriptionDescriptionDetails.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_adapter_RTCSessionDescriptionMediaLine.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_adapter_RTCSessionDescriptionMediaLineDetails.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_adapter_RTCSessionDescriptionRtpMediaLine.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_adapter_RTCSessionDescriptionRtpSender.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_adapter_RTCSessionDescriptionRtpSenderDetails.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_adapter_RTCSessionDescriptionSctpMediaLine.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_adapter_RTCSessionDescriptionTransport.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_adapter_RTCSessionDescriptionTransportParameters.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_adapter_RTCTrackEvent.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_ConstrainBoolean.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_ConstrainBooleanParameters.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_ConstrainDouble.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_ConstrainDoubleRange.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_ConstrainLong.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_ConstrainLongRange.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_ConstrainString.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_ConstrainStringParameters.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_Dispatcher.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_DoubleRange.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_Error.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_ErrorEvent.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_Json.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_Logger.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_LongRange.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_MediaControl.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_MediaDeviceInfo.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_MediaDevices.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_MediaSource.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_MediaStreamConstraints.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_MediaStreamTrack.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_MediaTrackCapabilities.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_MediaTrackConstraints.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_MediaTrackConstraintSet.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_MediaTrackSettings.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_MediaTrackSupportedConstraints.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_MessageQueue.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_OrtcLib.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_OrtcLibWithDispatcher.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_OverconstrainedError.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_OverconstrainedErrorEvent.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCCertificate.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCCertificateStats.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCCodec.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCDataChannel.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCDataChannelEvent.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCDataChannelParameters.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCDataChannelStateChangeEvent.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCDataChannelStats.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCDataTransport.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCDtlsCertificateBinary.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCDtlsFingerprint.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCDtlsParameters.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCDtlsTransport.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCDtlsTransportStateChangeEvent.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCDtlsTransportStats.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCDtmfSender.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCDtmfToneChangeEvent.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCIceCandidate.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCIceCandidateAttributes.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCIceCandidateComplete.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCIceCandidatePair.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCIceCandidatePairChangeEvent.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCIceCandidatePairStats.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCIceGatherer.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCIceGathererCandidate.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCIceGathererCandidateCompleteEvent.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCIceGathererCandidateEvent.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCIceGathererIceErrorEvent.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCIceGathererStateChangeEvent.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCIceGathererStats.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCIceGatherInterfacePolicy.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCIceGatherOptions.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCIceParameters.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCIceServer.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCIceTransport.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCIceTransportController.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCIceTransportOptions.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCIceTransportStateChangeEvent.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCIceTransportStats.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCIdentity.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCIdentityAssertion.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCIdentityError.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCIdentityResult.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCInboundRtpStreamStats.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCMediaStreamStats.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCMediaStreamTrackStats.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCMessageEvent.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCOutboundRtpStreamStats.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtcpFeedback.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtcpParameters.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtcpTransport.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpCapabilities.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpCodecCapability.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpCodecCapabilityOptions.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpCodecCapabilityParameters.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpCodecParameters.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpCodecParameterSettings.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpContributingSource.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpEncodingParameters.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpFecParameters.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpFlexFecCodecCapabilityParameters.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpFlexFecCodecParameterSettings.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpH264CodecCapabilityParameters.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpH264CodecParameterSettings.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpHeaderExtension.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpHeaderExtensionParameters.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpListener.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpOpusCodecCapabilityOptions.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpOpusCodecCapabilityParameters.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpOpusCodecParameterSettings.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpParameters.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpReceiver.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpRedCodecParameterSettings.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpRtxCodecCapabilityParameters.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpRtxCodecParameterSettings.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpRtxParameters.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpSender.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpStreamStats.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpTransport.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpUnhandledEvent.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpVp8CodecCapabilityParameters.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCRtpVp8CodecParameterSettings.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCSctpCapabilities.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCSctpTransport.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCSctpTransportListener.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCSctpTransportListenerEvent.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCSctpTransportStateChangeEvent.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCSctpTransportStats.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCSrtpSdesCryptoParameters.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCSrtpSdesKeyParameters.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCSrtpSdesParameters.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCSrtpSdesTransport.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCSrtpSdesTransportLifetimeRemainingEvent.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCSrtpTransportStats.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCSsrcConflictEvent.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCStats.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCStatsProvider.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCStatsReport.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCStatsTypeSet.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_Settings.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_StringOrStringList.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\types.h">
+      <Filter>c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_helpers.h">
+      <Filter>c</Filter>
+    </ClInclude>
+  </ItemGroup>
+</Project>

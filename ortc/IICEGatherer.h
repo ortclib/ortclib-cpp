@@ -101,7 +101,7 @@ namespace ortc
       FilterPolicy_NoPrflx             = (FilterPolicy_NoIPv4Prflx | FilterPolicy_NoIPv6Prflx),
       FilterPolicy_NoRelay             = (FilterPolicy_NoIPv4Relay | FilterPolicy_NoIPv6Relay),
       FilterPolicy_NoPrivate           = (FilterPolicy_NoIPv4Private | FilterPolicy_NoIPv6Private),
-      FilterPolicy_RelayOnly           = (FilterPolicy_NoIPv4Host | FilterPolicy_NoSrflx | FilterPolicy_NoPrflx),
+      FilterPolicy_RelayOnly           = (FilterPolicy_NoHost | FilterPolicy_NoSrflx | FilterPolicy_NoPrflx),
       FilterPolicy_NoCandidates        = (0x7FFFFFFF)
     };
 

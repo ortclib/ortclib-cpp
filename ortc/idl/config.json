@@ -1,0 +1,57 @@
+{
+  "project": {
+    "name": "ortc",
+    "aliases": {
+      "alias": [
+        {
+          "in": "bogus_ortc_test_alias",
+          "out": "bogus"
+        }
+      ]
+    },
+    "exclusives": {
+      "exclusive": [
+        "xplatform"
+      ]
+    },
+    "includes": {
+      "include": [
+        "../../../zsLib/zsLib/idl/config.json"
+      ]
+    },
+    "sources": {
+      "source": [
+        "Ortc.idl",
+        "Logger.idl",
+        "Settings.idl",
+        "error.idl",
+        "enums.idl",
+        "Capabilities.idl",
+        "Certificate.idl",
+        "Constraints.idl",
+        "StatsReport.idl",
+        "StatsProvider.idl",
+        "DataChannel.idl",
+        "IceTypes.idl",
+        "IceGatherer.idl",
+        "IceTransport.idl",
+        "IceTransportController.idl",
+        "DtlsTransport.idl",
+        "Identity.idl",
+        "MediaStreamTrack.idl",
+        "MediaDevices.idl",
+        "RtpTypes.idl",
+        "RtpListener.idl",
+        "RtpReceiver.idl",
+        "RtpSender.idl",
+        "DtmfSender.idl",
+        "SctpTransport.idl",
+        "SrtpSdesTransport.idl",
+        "adapter/enums.idl",
+        "adapter/SessionDescription.idl",
+        "adapter/MediaStream.idl",
+        "adapter/PeerConnection.idl"
+      ]
+    }
+  }
+}

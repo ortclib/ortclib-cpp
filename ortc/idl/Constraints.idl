@@ -1,0 +1,444 @@
+/*
+ 
+ Copyright (c) 2017, Optical Tone Ltd.
+ All rights reserved.
+ 
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+ 
+ 1. Redistributions of source code must retain the above copyright notice, this
+ list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright notice,
+ this list of conditions and the following disclaimer in the documentation
+ and/or other materials provided with the distribution.
+ 
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+ 
+ The views and conclusions contained in the software and documentation are those
+ of the authors and should not be interpreted as representing official policies,
+ either expressed or implied, of the FreeBSD Project.
+ 
+ */
+
+namespace org
+{
+  namespace ortc
+  {
+    /// <summary>
+    /// This object represents the constrainable boolean parameters.
+    /// </summary>
+    [dictionary]
+    struct ConstrainBooleanParameters {
+      /// <summary>
+      /// Gets or sets the exact required value for this property.
+      /// </summary>
+      [optional]
+      bool exact;
+      /// <summary>
+      /// Gets or sets the ideal (target) value for this property.
+      /// </summary>
+      [optional]
+      bool ideal;
+
+      /// <summary>
+      /// Constructs a new constrainable boolean parameters.
+      /// </summary>
+      [constructor, default]
+      void ConstrainBooleanParameters();
+      /// <summary>
+      /// Constructs a new constrainable boolean parameters by cloning existing constrainable parameters.
+      /// </summary>
+      [constructor, altname(ConstrainBooleanParametersClone)]
+      void ConstrainBooleanParameters(ConstrainBooleanParameters source);
+      /// <summary>
+      /// Constructs a new constrainable boolean parameters from a JSON object.
+      /// </summary>
+      [constructor, default, altname(ConstrainBooleanParametersWithJson)]
+      void ConstrainBooleanParameters(Json json);
+
+      /// <summary>
+      /// Convert the constrainable boolean parameters into a JSON object.
+      /// </summary>
+      Json toJson();
+      /// <summary>
+      /// Get a hash value of the contrainable boolean parameters.
+      /// </summary>
+      string hash();
+    };
+
+    /// <summary>
+    /// This object represents the constrainable boolean values.
+    /// </summary>
+    [dictionary]
+    struct ConstrainBoolean
+    {
+      /// <summary>
+      /// Gets or sets the exact boolean value requried. Use this value must
+      /// be mutually exclusively set from Parameters.
+      /// </summary>
+      [optional]
+      bool value;
+      /// <summary>
+      /// Gets or sets the boolean constrainable value parameters.
+      /// </summary>
+      [optional]
+      ConstrainBooleanParameters parameters;
+
+      /// <summary>
+      /// Constructs a new constrainable boolean value.
+      /// </summary>
+      [constructor, default]
+      void ConstrainBoolean();
+      /// <summary>
+      /// Constructs a new constrainable boolean value by cloning existing constrainable parameters.
+      /// </summary>
+      [constructor, altname(ConstrainBooleanClone)]
+      void ConstrainBoolean(ConstrainBoolean source);
+      /// <summary>
+      /// Constructs a new constrainable boolean value from a JSON object.
+      /// </summary>
+      [constructor, default, altname(ConstrainBooleanWithJson)]
+      void ConstrainBoolean(Json json);
+
+      /// <summary>
+      /// Convert the constrainable boolean value into a JSON object.
+      /// </summary>
+      Json toJson();
+      /// <summary>
+      /// Get a hash value of the contrainable boolean value.
+      /// </summary>
+      string hash();
+    };
+
+    /// <summary>
+    /// This object represents the constrainable minimum, maximum, exact, or
+    /// ideal integer values.
+    /// </summary>
+    [dictionary]
+    struct ConstrainLongRange {
+      /// <summary>
+      /// Gets or sets the minimum value of this property.
+      /// </summary>
+      [optional]
+      long min;
+      /// <summary>
+      /// Gets or sets the maximum legal value of this property.
+      /// </summary>
+      [optional]
+      long max;
+      /// <summary>
+      /// Gets or sets the exact required value for this property.
+      /// </summary>
+      [optional]
+      long exact;
+      /// <summary>
+      /// Gets or sets the ideal (target) value for this property.
+      /// </summary>
+      [optional]
+      long ideal;
+
+      /// <summary>
+      /// Constructs a new constrainable long range.
+      /// </summary>
+      [constructor, default]
+      void ConstrainLongRange();
+      /// <summary>
+      /// Constructs a new constrainable long range by cloning existing constrainable range.
+      /// </summary>
+      [constructor, altname(ConstrainLongRangeClone)]
+      void ConstrainLongRange(ConstrainLongRange source);
+      /// <summary>
+      /// Constructs a new constrainable long range from a JSON object.
+      /// </summary>
+      [constructor, default, altname(ConstrainLongRangeWithJson)]
+      void ConstrainLongRange(Json json);
+
+      /// <summary>
+      /// Convert the constrainable long range into a JSON object.
+      /// </summary>
+      Json toJson();
+      /// <summary>
+      /// Get a hash value of the contrainable long range.
+      /// </summary>
+      string hash();
+    };
+
+    /// <summary>
+    /// This object represents the constrainable integer values.
+    /// </summary>
+    [dictionary]
+    struct ConstrainLong {
+      /// <summary>
+      /// Gets or sets the exact integer value requried. This value must be
+      /// mutually exclusively set from Range.
+      /// </summary>
+      [optional]
+      long value;
+      /// <summary>
+      /// Gets or sets the constrainable integer range values.
+      /// </summary>
+      [optional]
+      ConstrainLongRange range;
+
+      /// <summary>
+      /// Constructs a new constrainable long value.
+      /// </summary>
+      [constructor, default]
+      void ConstrainLong();
+      /// <summary>
+      /// Constructs a new constrainable long value by cloning existing constrainable value.
+      /// </summary>
+      [constructor, altname(ConstrainLongClone)]
+      void ConstrainLong(ConstrainLong source);
+      /// <summary>
+      /// Constructs a new constrainable long value from a JSON object.
+      /// </summary>
+      [constructor, default, altname(ConstrainLongWithJson)]
+      void ConstrainLong(Json json);
+
+      /// <summary>
+      /// Convert the constrainable long value into a JSON object.
+      /// </summary>
+      Json toJson();
+      /// <summary>
+      /// Get a hash value of the contrainable long value.
+      /// </summary>
+      string hash();
+    };
+
+    /// <summary>
+    /// This object represents the constrainable minimum, maximum, exact, or
+    /// ideal real values.
+    /// </summary>
+    [dictionary]
+    struct ConstrainDoubleRange {
+      /// <summary>
+      /// Gets or sets the minimum value of this property.
+      /// </summary>
+      [optional]
+      double min;
+      /// <summary>
+      /// Gets or sets the maximum legal value of this property.
+      /// </summary>
+      [optional]
+      double max;
+      /// <summary>
+      /// Gets or sets the exact required value for this property.
+      /// </summary>
+      [optional]
+      double exact;
+      /// <summary>
+      /// Gets or sets the ideal (target) value for this property.
+      /// </summary>
+      [optional]
+      double ideal;
+
+      /// <summary>
+      /// Constructs a new constrainable real range.
+      /// </summary>
+      [constructor, default]
+      void ConstrainDoubleRange();
+      /// <summary>
+      /// Constructs a new constrainable real range by cloning existing constrainable range.
+      /// </summary>
+      [constructor, altname(ConstrainDoubleRangeClone)]
+      void ConstrainDoubleRange(ConstrainDoubleRange source);
+      /// <summary>
+      /// Constructs a new constrainable real range from a JSON object.
+      /// </summary>
+      [constructor, default, altname(ConstrainDoubleRangeWithJson)]
+      void ConstrainDoubleRange(Json json);
+
+      /// <summary>
+      /// Convert the constrainable real range into a JSON object.
+      /// </summary>
+      Json toJson();
+      /// <summary>
+      /// Get a hash value of the contrainable real range.
+      /// </summary>
+      string hash();
+    };
+
+    /// <summary>
+    /// This object represents the constrainable real values.
+    /// </summary>
+    [dictionary]
+    struct ConstrainDouble {
+      /// <summary>
+      /// Gets or sets the exact real value requried. This value must be
+      /// mutually exclusively set from Range.
+      /// </summary>
+      [optional]
+      double value;
+      /// <summary>
+      /// Gets or sets the constrainable real range values.
+      /// </summary>
+      [optional]
+      ConstrainDoubleRange range;
+
+      /// <summary>
+      /// Constructs a new constrainable real value.
+      /// </summary>
+      [constructor, default]
+      void ConstrainDouble();
+      /// <summary>
+      /// Constructs a new constrainable real value by cloning existing constrainable value.
+      /// </summary>
+      [constructor, altname(ConstrainDoubleClone)]
+      void ConstrainDouble(ConstrainDouble source);
+      /// <summary>
+      /// Constructs a new constrainable real value from a JSON object.
+      /// </summary>
+      [constructor, default, altname(ConstrainDoubleWithJson)]
+      void ConstrainDouble(Json json);
+
+      /// <summary>
+      /// Convert the constrainable real value into a JSON object.
+      /// </summary>
+      Json toJson();
+      /// <summary>
+      /// Get a hash value of the contrainable real value.
+      /// </summary>
+      string hash();
+    };
+
+    /// <summary>
+    /// This object represents a single string value or a list of string
+    /// values.
+    /// </summary>
+    [dictionary]
+    struct StringOrStringList {
+      /// <summary>
+      /// Gets or sets a specific constrainable string value. This value must
+      /// be mutally exclusively set from Values;
+      /// </summary>
+      [optional]
+      string value;
+      /// <summary>
+      /// Gets or sets the constrainable string values.
+      /// </summary>
+      [optional]
+      StringList values;
+
+      /// <summary>
+      /// Constructs a new string or string list.
+      /// </summary>
+      [constructor, default]
+      void StringOrStringList();
+      /// <summary>
+      /// Constructs a new string or string list from an existing string or string list.
+      /// </summary>
+      [constructor, altname(StringOrStringListClone)]
+      void StringOrStringList(StringOrStringList source);
+      /// <summary>
+      /// Constructs a new string or string list from a JSON object.
+      /// </summary>
+      [constructor, default, altname(StringOrStringListWithJson)]
+      void StringOrStringList(Json json);
+
+      /// <summary>
+      /// Convert the string or string list into a JSON object.
+      /// </summary>
+      Json toJson();
+      /// <summary>
+      /// Get a hash value of the string or string list.
+      /// </summary>
+      string hash();
+    };
+
+    /// <summary>
+    /// This object represents the constrainable string parameters.
+    /// </summary>
+    [dictionary]
+    struct ConstrainStringParameters {
+      /// <summary>
+      /// Gets or sets the exact required value for this property.
+      /// </summary>
+      [optional]
+      StringOrStringList exact;
+      /// <summary>
+      /// Gets or sets the ideal (target) value for this property.
+      /// </summary>
+      [optional]
+      StringOrStringList ideal;
+
+      /// <summary>
+      /// Constructs a new constrainable string parameters.
+      /// </summary>
+      [constructor, default]
+      void ConstrainStringParameters();
+      /// <summary>
+      /// Constructs a new constrainable string parameters from an existing constrainable parameters.
+      /// </summary>
+      [constructor, altname(ConstrainStringParametersClone)]
+      void ConstrainStringParameters(ConstrainStringParameters source);
+      /// <summary>
+      /// Constructs a new constrainable string parameters from a JSON object.
+      /// </summary>
+      [constructor, default, altname(ConstrainStringParametersWithJson)]
+      void ConstrainStringParameters(Json json);
+
+      /// <summary>
+      /// Convert the constrainable string parameters into a JSON object.
+      /// </summary>
+      Json toJson();
+      /// <summary>
+      /// Get a hash value of the constrainable string parameters.
+      /// </summary>
+      string hash();
+    };
+
+    /// <summary>
+    /// This object represents the constrainable string values.
+    /// </summary>
+    [dictionary]
+    struct ConstrainString {
+      /// <summary>
+      /// Gets or sets the exact string value(s) requried. This value must be
+      /// mutually exclusively set from Parameters.
+      /// </summary>
+      [optional]
+      StringOrStringList value;
+      /// <summary>
+      /// Gets or sets the string constrainable value parameters.
+      /// </summary>
+      [optional]
+      ConstrainStringParameters parameters;
+
+      /// <summary>
+      /// Constructs a new constrainable string value.
+      /// </summary>
+      [constructor, default]
+      void ConstrainString();
+      /// <summary>
+      /// Constructs a new constrainable string value from an existing constrainable value.
+      /// </summary>
+      [constructor, altname(ConstrainStringClone)]
+      void ConstrainString(ConstrainString source);
+      /// <summary>
+      /// Constructs a new constrainable string value from a JSON object.
+      /// </summary>
+      [constructor, default, altname(ConstrainStringWithJson)]
+      void ConstrainString(Json json);
+
+      /// <summary>
+      /// Convert the constrainable string value into a JSON object.
+      /// </summary>
+      Json toJson();
+      /// <summary>
+      /// Get a hash value of the constrainable string value.
+      /// </summary>
+      string hash();
+    };
+
+  }
+}

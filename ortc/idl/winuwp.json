@@ -1,0 +1,9 @@
+{
+  "project": {
+    "exclusives": {
+      "exclusive": [
+        "WINUWP"
+      ]
+    }
+  }
+}

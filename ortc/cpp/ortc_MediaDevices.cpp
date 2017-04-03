@@ -848,6 +848,7 @@ namespace ortc
     IHelper::adoptElementValue(elem, "sampleSize", mSampleSize);
     IHelper::adoptElementValue(elem, "echoCancellation", mEchoCancellation);
     IHelper::adoptElementValue(elem, "latency", mLatency);
+    IHelper::adoptElementValue(elem, "channelCount", mChannelCount);
     IHelper::adoptElementValue(elem, "deviceId", mDeviceID);
     IHelper::adoptElementValue(elem, "groupId", mGroupID);
 
@@ -870,6 +871,7 @@ namespace ortc
     IHelper::debugAppend(resultEl, "sample rate", mSampleRate);
     IHelper::debugAppend(resultEl, "echo cancellation", mEchoCancellation);
     IHelper::debugAppend(resultEl, "latency", mLatency);
+    IHelper::debugAppend(resultEl, "channel count", mChannelCount);
     IHelper::debugAppend(resultEl, "device id", mDeviceID);
     IHelper::debugAppend(resultEl, "group id", mGroupID);
 
@@ -899,6 +901,8 @@ namespace ortc
     hasher->update(mEchoCancellation);
     hasher->update(":");
     hasher->update(mLatency);
+    hasher->update(":");
+    hasher->update(mChannelCount);
     hasher->update(":");
     hasher->update(mDeviceID);
     hasher->update(":");

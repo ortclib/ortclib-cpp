@@ -1,0 +1,294 @@
+/*
+
+ Copyright (c) 2017, Optical Tone Ltd.
+ All rights reserved.
+
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+
+ 1. Redistributions of source code must retain the above copyright notice, this
+ list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright notice,
+ this list of conditions and the following disclaimer in the documentation
+ and/or other materials provided with the distribution.
+
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+ The views and conclusions contained in the software and documentation are those
+ of the authors and should not be interpreted as representing official policies,
+ either expressed or implied, of the FreeBSD Project.
+ 
+ */
+
+namespace org
+{
+  namespace ortc
+  {
+    /// <summary>
+    /// An abstract object representing an RTP transport.
+    /// </summary>
+    interface RTCRtpTransport
+    {
+      [constructor, delete]
+      void RTCRtpTransport();
+    };
+    /// <summary>
+    /// An abstract object representing an RTCP transport.
+    /// </summary>
+    interface RTCRtcpTransport
+    {
+      [constructor, delete]
+      void RTCRtcpTransport();
+    };
+
+    /// <summary>
+    /// This object represents the event data associated when the
+    /// RTCIceTransportState changes.
+    /// </summary>
+    struct RTCIceTransportStateChangeEvent
+    {
+      [constructor, delete]
+      void RTCIceTransportStateChangeEvent();
+
+      /// <summary>
+      /// Gets the RTCIceTransportState state at the time the event fired.
+      /// </summary>
+      [getter]
+      RTCIceTransportState state;
+    };
+
+    /// <summary>
+    /// This object represents the candidate pair events changes the
+    /// RTCIceTransport object uses the RTCIceCandidatePairChangeEvent
+    /// interface.
+    /// </summary>
+    struct RTCIceCandidatePairChangeEvent
+    {
+      [constructor, delete]
+      void RTCIceCandidatePairChangeEvent();
+
+      /// <summary>
+      /// Gets the selected RTCIceCandidatePair that caused the event.
+      /// </summary>
+      [getter]
+      RTCIceCandidatePair candidatePair;
+    };
+
+    /// <summary>
+    /// The RTCIceTransport allows an application access to information about
+    /// the Interactive Connectivity Establishment(ICE) transport over which
+    /// packets are sent and received. In particular, ICE manages
+    /// peer - to - peer connections which involve state which the
+    /// application may want to access.
+    /// </summary>
+    interface RTCIceTransport : RTCRtcpTransport,
+                                RTCStatsProvider
+    {
+      typedef std::list<RTCIceCandidate> CandidateList;
+
+      /// <summary>
+      /// Constructs an instance of the RTCIceTransport object.
+      /// </summary>
+      [constructor, default]
+      void RTCIceTransport();
+
+      /// <summary>
+      /// Constructs an instance of the RTCIceTransport object using the
+      /// specified RTCIceGatherer. 
+      /// </summary>
+      [constructor, altname(RTCIceTransportWithGatherer)]
+      void RTCIceTransport(RTCIceGatherer gatherer) throws (InvalidStateError);
+
+      /// <summary>
+      /// Gets an unique object instance identifier for this object.
+      /// </summary>
+      [getter]
+      puid objectId;
+
+      /// <summary>
+      /// Gets the iceGatherer attribute is set to the value of gatherer if
+      /// passed in the constructor or in the latest call to Start().
+      /// </summary>
+      [getter]
+      RTCIceGatherer gatherer;
+
+      /// <summary>
+      /// Gets the current role of the ICE transport.
+      /// </summary>
+      [getter]
+      RTCIceRole role;
+
+      /// <summary>
+      /// Gets the component-id of the RTCIceTransport object. In
+      /// RTCIceTransport objects returned by CreateAssociatedTransport(), the
+      /// value of component is "RTCP". In all other RTCIceTransport objects,
+      /// the value of component is "RTP".
+      /// </summary>
+      [getter]
+      RTCIceComponent component;
+
+      /// <summary>
+      /// Gets the current state of the ICE transport.
+      /// </summary>
+      [getter]
+      RTCIceTransportState state;
+
+      /// <summary>
+      /// Gets the sequence of candidates associated with the remote
+      /// RTCIceTransport. Only returns the candidates previously added using
+      /// SetRemoteCandidates() or AddRemoteCandidate(). If there are no
+      /// remote candidates, an empty list is returned.
+      /// </summary>
+      [getter]
+      CandidateList remoteCandidates;
+      /// <summary>
+      /// Gets the selected candidate pair on which packets are sent. If
+      /// there is no selected pair yet, or consent [RFC7675] is lost on the
+      /// selected pair, nullptr is returned.
+      /// </summary>
+      [getter]
+      RTCIceCandidatePair selectedCandidatePair;
+
+      /// <summary>
+      /// The first time Start() is called, candidate connectivity checks are
+      /// started and the ICE transport attempts to connect to the remote
+      /// RTCIceTransport. If start() is called with invalid parameters, throw
+      /// an InvalidParameters exception. For example, if gatherer.component
+      /// has a value different from iceTransport.component, throw an
+      /// InvalidParameters exception. If state or gatherer.state is "closed",
+      /// throw an InvalidStateError exception. When start() is called again,
+      /// RTCIceTransportState transitions to the "connected" state, all
+      /// remote candidates are flushed, and AddRemoteCandidate() or
+      /// SetRemoteCandidates() must be called to add the remote candidates
+      /// back or replace them.
+      /// </summary>
+      void start(
+                 RTCIceGatherer gatherer,
+                 RTCIceParameters remoteParameters,
+                 ) throws (InvalidParameters, InvalidStateError);
+
+      /// <summary>
+      /// The first time Start() is called, candidate connectivity checks are
+      /// started and the ICE transport attempts to connect to the remote
+      /// RTCIceTransport. If start() is called with invalid parameters, throw
+      /// an InvalidParameters exception. For example, if gatherer.component
+      /// has a value different from iceTransport.component, throw an
+      /// InvalidParameters exception. If state or gatherer.state is "closed",
+      /// throw an InvalidStateError exception. When start() is called again,
+      /// RTCIceTransportState transitions to the "connected" state, all
+      /// remote candidates are flushed, and AddRemoteCandidate() or
+      /// SetRemoteCandidates() must be called to add the remote candidates
+      /// back or replace them.
+      /// </summary>
+      [default, altname(startWithRole)]
+      void start(
+                 RTCIceGatherer gatherer,
+                 RTCIceParameters remoteParameters,
+                 RTCIceRole role
+                 ) throws(InvalidParameters, InvalidStateError);
+
+      /// <summary>
+      /// The first time Start() is called, candidate connectivity checks are
+      /// started and the ICE transport attempts to connect to the remote
+      /// RTCIceTransport. If start() is called with invalid parameters, throw
+      /// an InvalidParameters exception. For example, if gatherer.component
+      /// has a value different from iceTransport.component, throw an
+      /// InvalidParameters exception. If state or gatherer.state is "closed",
+      /// throw an InvalidStateError exception. When start() is called again,
+      /// RTCIceTransportState transitions to the "connected" state, all
+      /// remote candidates are flushed, and AddRemoteCandidate() or
+      /// SetRemoteCandidates() must be called to add the remote candidates
+      /// back or replace them.
+      /// </summary>
+      [altname(startWithOptions)]
+      void start(
+                 RTCIceGatherer gatherer,
+                 RTCIceParameters remoteParameters,
+                 RTCIceTransportOptions options
+                 ) throws(InvalidParameters, InvalidStateError);
+
+      /// <summary>
+      /// Stops and closes the current object. Also removes the object from
+      /// the RTCIceTransportController. Calling stop() when state is "closed"
+      /// has no effect.
+      /// </summary>
+      void stop();
+
+      /// <summary>
+      /// Get the current ICE parameters of the remote RTCIceTransport.
+      /// </summary>
+      [getter]
+      RTCIceParameters remoteParameters;
+
+      /// <summary>
+      /// Create an associated RTCIceTransport for RTCP. If called more than
+      /// once for the same component, or if state is "closed", throw an
+      /// InvalidStateError exception. If called when component is "RTCP",
+      /// throw an InvalidStateError exception.
+      /// </summary>
+      RTCIceTransport createAssociatedTransport();
+
+      /// <summary>
+      /// Add a remote candidate associated with the remote RTCIceTransport.
+      /// If state is "closed", throw an InvalidStateError exception.
+      /// </summary>
+      void addRemoteCandidate(RTCIceGathererCandidate remoteCandidate) throws (InvalidStateError, InvalidParameters);
+      /// <summary>
+      /// Set the sequence of candidates associated with the remote
+      /// RTCIceTransport. If state is "closed", throw an InvalidStateError
+      /// exception.
+      /// </summary>
+      void setRemoteCandidates(CandidateList remoteCandidates) throws (InvalidStateError, InvalidParameters);
+      void removeRemoteCandidate(RTCIceGathererCandidate remoteCandidate) throws (InvalidStateError, InvalidParameters);
+
+      /// <summary>
+      /// Keep a particular local/remote canadidate path alive with keep alives to ensure the path is always kept alive.
+      /// </summary>
+      [default]
+      void keepWarm(RTCIceCandidatePair candidatePair) throws (InvalidStateError);
+      /// <summary>
+      /// Tell engine to keep a particular local/remote canadidate path alive or not to ensure the path is always kept alive.
+      /// </summary>
+      [altname(setKeepWarm)]
+      void keepWarm(
+                    RTCIceCandidatePair candidatePair,
+                    bool keepWarm
+                    ) throws (InvalidStateError);
+
+      /// <summary>
+      /// The RTCIceTransportState changed.
+      /// </summary>
+      [event]
+      void onStateChange(RTCIceTransportStateChangeEvent event);
+
+      /// <summary>
+      /// A new RTCIceCandidatePair is available.
+      /// </summary>
+      [event]
+      void onCandidatePairAvailable(RTCIceCandidatePairChangeEvent event);
+
+      /// <summary>
+      /// A previous RTCIceCandidatePair is gone.
+      /// </summary>
+      [event]
+      void onCandidatePairGone(RTCIceCandidatePairChangeEvent event);
+
+      /// <summary>
+      /// The selected RTCIceCandidatePair changed.
+      /// </summary>
+      [event]
+      void onCandidatePairChange(RTCIceCandidatePairChangeEvent event);
+    };
+
+  }
+}
+

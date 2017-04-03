@@ -1,0 +1,621 @@
+/*
+
+ Copyright (c) 2017, Optical Tone Ltd.
+ All rights reserved.
+
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+
+ 1. Redistributions of source code must retain the above copyright notice, this
+ list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright notice,
+ this list of conditions and the following disclaimer in the documentation
+ and/or other materials provided with the distribution.
+
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+ The views and conclusions contained in the software and documentation are those
+ of the authors and should not be interpreted as representing official policies,
+ either expressed or implied, of the FreeBSD Project.
+ 
+ */
+
+namespace org
+{
+  namespace ortc
+  {
+    namespace adapter
+    {
+      /// <summary>
+      /// The RTCConfiguration defines a set of parameters to configure how
+      /// the peer to peer communication established via RTCPeerConnection is
+      /// established or re-established.
+      /// </summary>
+      [dictionary]
+      struct RTCConfiguration
+      {
+        typedef std::list<RTCCertificate> CertificateList;
+
+        /// <summary>
+        /// Gets or sets the ice gatherer policy as well as an array of
+        /// objects describing servers available to be used by ICE, such as
+        /// STUN and TURN server.
+        /// </summary>
+        RTCIceGatherOptions gatherOptions;
+        /// <summary>
+        /// Gets or sets the signaling mode as either JSON based or SDP based.
+        /// The signaling type must be specified as Json, SdpOffer, or
+        /// SdpAnswer.
+        /// </summary>
+        RTCPeerConnectionSignalingMode signalingMode = json;
+        /// <summary>
+        /// Gets or sets if the SRTP/SDES should be used with the peer
+        /// connection.
+        /// </summary>
+        bool negotiateSrtpSdes;
+
+        /// <summary>
+        /// Gets or sets a media-bundling policy to use when gathering ICE.
+        /// candidates.
+        /// </summary>
+        RTCBundlePolicy bundlePolicy = balanced;
+        /// <summary>
+        /// Gets or sets rtcp-mux policy to use when gathering ICE candidates.
+        /// </summary>
+        RTCRtcpMuxPolicy rtcpMuxPolicy = require;
+        /// <summary>
+        /// Gets or sets a list of certificates that the RTCPeerConnection
+        /// uses to authenticate.
+        /// </summary>
+        CertificateList certificates;
+        /// <summary>
+        /// Gets or sets the size of the prefetched ICE pool as defined in
+        /// [draft-ietf-rtcweb-jsep-14] (section 3.4.4. and section 4.1.1.).
+        /// </summary>
+        size_t iceCandidatePoolSize;
+
+        /// <summary>
+        /// Consturcts an instance of an RTCConfiguration object.
+        /// authenticate.
+        /// </summary>
+        [constructor, default]
+        void RTCConfiguration();
+        /// <summary>
+        /// Constructs an instance of an RTCConfiguration object by cloning object data from an existing object.
+        /// </summary>
+        [constructor, altname(RTCConfigurationClone)]
+        void RTCConfiguration(RTCConfiguration source);
+      };
+
+      /// <summary>
+      /// Base object for offer, answer and capability options during RTCPeerConnection exchanges.
+      /// </summary>
+      [dictionary]
+      struct RTCOfferAnswerOptions
+      {
+        [constructor, delete]
+        void RTCOfferAnswerOptions();
+
+        /// <summary>
+        /// Gets or sets if VAD is enabled. Many codecs and systems are
+        /// capable of detecting "silence" and changing their behavior in this
+        /// case by doing things such as not transmitting any media. In many
+        /// cases, such as when dealing with emergency calling or sounds other
+        /// than spoken voice, it is desirable to be able to turn off this
+        /// behavior. This option allows the application to provide
+        /// information about whether it wishes this type of processing
+        /// enabled or disabled.
+        /// </summary>
+        bool voiceActivityDetection = true;
+      };
+
+      /// <summary>
+      /// The RTCOfferOptions object contains configuration options related
+      /// to an offer.
+      /// </summary>
+      [dictionary]
+      struct RTCOfferOptions : RTCOfferAnswerOptions
+      {
+        /// <summary>
+        /// Gets or sets if the ice gatherer should be restarted. When the
+        /// value of this dictionary member is true, the generated description
+        /// will have ICE credentials that are different from the current
+        /// credentials(as visible in the localDescription attribute's SDP).
+        /// Applying the generated description will restart ICE.
+        /// </summary>
+        bool iceRestart;
+      };
+
+      /// <summary>
+      /// The RTCAnswerOptions object contains configuration options related
+      /// to an answer.
+      /// </summary>
+      [dictionary]
+      struct RTCAnswerOptions : RTCOfferAnswerOptions
+      {
+      };
+
+      /// <summary>
+      /// The RTCCapabilityOptions object contains configuration options related
+      /// to capability options as part of a capabilities signaling exchange.
+      /// </summary>
+      [dictionary]
+      struct RTCCapabilityOptions : RTCOfferAnswerOptions
+      {
+      };
+
+      /// <summary>
+      /// The RTCMediaStreamTrackConfiguration contains the information needed
+      /// to configure the tracks to send over the RTP transport.
+      /// </summary>
+      [dictionary]
+      struct RTCMediaStreamTrackConfiguration
+      {
+        /// <summary>
+        /// Gets or sets the RTP capabilities associated with the media
+        /// stream track configuration.
+        /// </summary>
+        RTCRtpCapabilities capabilities;
+        /// <summary>
+        /// Gets or sets the RTP parameters associated with the media
+        /// stream track configuration.
+        /// </summary>
+        RTCRtpParameters parameters;
+
+        /// <summary>
+        /// Constructs an empty instance of an RTCMediaStreamTrackConfiguration object.
+        /// </summary>
+        [constructor, default]
+        void RTCMediaStreamTrackConfiguration();
+        /// <summary>
+        /// Constructs an instance of an RTCMediaStreamTrackConfiguration object by cloning object data from an existing object.
+        /// </summary>
+        [constructor, altname(RTCMediaStreamTrackConfigurationClone)]
+        void RTCMediaStreamTrackConfiguration(RTCMediaStreamTrackConfiguration source);
+      };
+
+      /// <summary>
+      /// The RTCPeerConnectionIceErrorEvent object is fired when an error
+      /// connecting to a STUN or TURN server is detected.
+      /// </summary>
+      interface RTCPeerConnectionIceErrorEvent
+      {
+        [constructor, delete]
+        void RTCPeerConnectionIceErrorEvent();
+
+        /// <summary>
+        /// Gets the local candidate used to communicate with the STUN or TURN
+        /// server.
+        /// </summary>
+        [getter]
+        RTCIceCandidate hostCandidate;
+        /// <summary>
+        /// Gets the STUN or TURN URL that identifies the STUN or TURN server
+        /// for which the failure occurred.
+        /// </summary>
+        [getter]
+        string          url;
+        /// <summary>
+        /// Gets the errorCode attribute is the numeric STUN error code
+        /// returned by the STUN or TURN server.
+        /// </summary>
+        [getter, optional]
+        uint16          errorCode;
+        /// <summary>
+        /// Gets the errorText attribute is the STUN reason text returned by
+        /// the STUN or TURN server.
+        /// </summary>
+        [getter]
+        string          errorText;
+      };
+
+      /// <summary>
+      /// This event fires whenever a new ICE candidate has been discovered.
+      /// </summary>
+      struct RTCPeerConnectionIceEvent
+      {
+        [constructor, delete]
+        void RTCPeerConnectionIceEvent();
+
+        /// <summary>
+        /// Gets the RTCIceCandidate object with the new ICE candidate that
+        /// caused the event.
+        /// </summary>
+        [getter]
+        RTCIceCandidate candidate;
+        /// <summary>
+        /// Gets the STUN or TURN URL that identifies the STUN or TURN server
+        /// used to gather this candidate. If the candidate was not gathered
+        /// from a STUN or TURN server, this parameter will be set to null.
+        /// </summary>
+        [getter]
+        string uri;
+      };
+
+      /// <summary>
+      /// The RTCTrackEvent is fired when a new remote track is detected.
+      /// </summary>
+      struct RTCTrackEvent
+      {
+        typedef std::list<MediaStream> MediaStreamList;
+
+        [constructor, delete]
+        void RTCTrackEvent();
+
+        /// <summary>
+        /// Gets the RTCRtpReceiver object associated with the event.
+        /// </summary>
+        [getter]
+        RTCRtpReceiver receiver;
+        /// <summary>
+        /// Gets the MediaStreamTrack object that is associated with the
+        /// RTCRtpReceiver identified by receiver.
+        /// </summary>
+        [getter]
+        MediaStreamTrack track;
+        /// <summary>
+        /// Gets an array of MediaStream objects representing the MediaStreams
+        /// that this event's track is a part of.
+        /// </summary>
+        [getter]
+        MediaStreamList mediaStreams;
+      };
+
+      /// <summary>
+      /// The general operation of the RTCPeerConnection is described in
+      /// [draft-ietf-rtcweb-jsep].
+      /// </summary>
+      interface RTCPeerConnection : RTCStatsProvider
+      {
+        typedef std::list<MediaStream> MediaStreamList;
+        typedef PromiseWith<RTCSessionDescription> PromiseWithDescription;
+        typedef std::list<RTCIceServer> ServerList;
+        typedef std::list<RTCRtpSender> SenderList;
+        typedef std::list<RTCRtpReceiver> ReceiverList;
+        typedef PromiseWith<RTCRtpSender> PromiseWithSender;
+        typedef PromiseWith<RTCDataChannel> PromiseWithDataChannel;
+
+        /// <summary>
+        /// Constructs an instance of an RTCPeerConnection object. 
+        /// </summary>
+        [default, constructor]
+        void RTCPeerConnection();
+
+        /// <summary>
+        /// Constructs an instance of an RTCPeerConnection object with 
+        /// configuration options specified.
+        /// </summary>
+        [constructor, altname(RTCPeerConnectionWithConfiguration)]
+        void RTCPeerConnection(RTCConfiguration configuration);
+
+        /// <summary>
+        /// Gets a unique object instance identifier for this object.
+        /// </summary>
+        [getter]
+        puid objectId;
+
+        /// <summary>
+        /// The CreateOffer method generates a blob of SDP that contains an
+        /// [RFC3264] offer with the supported configurations for the session,
+        /// including descriptions of the local MediaStreamTracks attached to
+        /// this RTCPeerConnection, the codec/RTP/RTCP options supported by
+        /// this implementation, and any candidates that have been gathered by
+        /// the ICE Agent. The options parameter may be supplied to provide
+        /// additional control over the offer generated.
+        /// </summary>
+        [default]
+        PromiseWithDescription createOffer();
+        /// <summary>
+        /// The CreateOffer method generates a blob of SDP that contains an
+        /// [RFC3264] offer with the supported configurations for the session,
+        /// including descriptions of the local MediaStreamTracks attached to
+        /// this RTCPeerConnection, the codec/RTP/RTCP options supported by
+        /// this implementation, and any candidates that have been gathered by
+        /// the ICE Agent. The options parameter may be supplied to provide
+        /// additional control over the offer generated.
+        /// </summary>
+        [altname(createOfferWithOptions)]
+        PromiseWithDescription createOffer(RTCOfferOptions options);
+        /// <summary>
+        /// The CreateAnswer method generates an [RFC3264] answer with the
+        /// supported configuration for the session that is compatible with
+        /// the parameters in the remote configuration. Like createOffer, the
+        /// returned blob contains descriptions of the local MediaStreamTracks
+        /// attached to this RTCPeerConnection, the codec/RTP/RTCP options
+        /// negotiated for this session, and any candidates that have been
+        /// gathered by the ICE Agent. The options parameter may be supplied
+        /// to provide additional control over the generated answer.
+        /// </summary>
+        [default]
+        PromiseWithDescription createAnswer();
+        /// <summary>
+        /// The CreateAnswer method generates an [RFC3264] answer with the
+        /// supported configuration for the session that is compatible with
+        /// the parameters in the remote configuration. Like createOffer, the
+        /// returned blob contains descriptions of the local MediaStreamTracks
+        /// attached to this RTCPeerConnection, the codec/RTP/RTCP options
+        /// negotiated for this session, and any candidates that have been
+        /// gathered by the ICE Agent. The options parameter may be supplied
+        /// to provide additional control over the generated answer.
+        /// </summary>
+        [altname(createAnswerWithOptions)]
+        PromiseWithDescription createAnswer(RTCAnswerOptions options);
+
+        /// <summary>
+        /// When operating in JSON signaling type, this method gets the local
+        /// description which consists of ICE transport parameters, secure
+        /// transport parameters, and RTP/RTCP capabilities without needing
+        /// shared negioated state with an offer answer exchange. In this
+        /// signaling model, each side creates it's capabilities (and
+        /// parameters) and exchanges with the remote party.
+        /// </summary>
+        [default]
+        PromiseWithDescription createCapabilities();
+        /// <summary>
+        /// When operating in JSON signaling type, this method gets the local
+        /// description which consists of ICE transport parameters, secure
+        /// transport parameters, and RTP/RTCP capabilities without needing
+        /// shared negioated state with an offer answer exchange. In this
+        /// signaling model, each side creates it's capabilities (and
+        /// parameters) and exchanges with the remote party.
+        /// </summary>
+        [altname(createCapabilitiesWithOptions)]
+        PromiseWithDescription createCapabilities(RTCCapabilityOptions options);
+
+        /// <summary>
+        /// The SetLocalDescription() method instructs the RTCPeerConnection
+        /// to apply the supplied RTCSessionDescriptionInit as the local
+        /// description.
+        /// </summary>
+        Promise setLocalDescription(RTCSessionDescription description);
+
+        /// <summary>
+        /// Gets the PendingLocalDescription if it is not null and otherwise
+        /// it must return CurrentLocalDescription.
+        /// </summary>
+        [getter]
+        RTCSessionDescription localDescription;
+        /// <summary>
+        /// Gets the local RTCSessionDescription that was successfully
+        /// negotiated the last time theRTCPeerConnection transitioned into
+        /// the stable state plus any local candidates that have been
+        /// generated by the ICE Agent since the offer or answer was created.
+        /// This attribute is updated by SetLocalDescription().
+        /// </summary>
+        [getter]
+        RTCSessionDescription currentDescription;
+        /// <summary>
+        /// Gets a local RTCSessionDescription that is in the process of being
+        /// negotiated plus any local candidates that have been generated by
+        /// the ICE Agent since the offer or answer was created. If the
+        /// RTCPeerConnection is in the stable state, the value is null. This
+        /// attribute is updated by setLocalDescription().
+        /// </summary>
+        [getter]
+        RTCSessionDescription pendingDescription;
+
+        /// <summary>
+        /// The SetRemoteDescription() method instructs the RTCPeerConnection
+        /// to apply the supplied RTCSessionDescriptionInit as the remote
+        /// offer or answer (or remote description if in JSON signalling).
+        /// This API may change the local media state.
+        /// </summary>
+        Promise setRemoteDescription(RTCSessionDescription description);
+        /// <summary>
+        /// Gets the PendingRemoteDescription if it is not null and otherwise
+        /// it must return currentRemoteDescription.
+        /// </summary>
+        [getter]
+        RTCSessionDescription remoteDescription;
+        /// <summary>
+        /// Gets the last remote RTCSessionDescription that was successfully
+        /// negotiated the last time theRTCPeerConnection transitioned into
+        /// the stable state plus any remote candidates that have been
+        /// supplied via AddIceCandidate() since the offer or answer was
+        /// created. This attribute is updated by SetRemoteDescription().
+        /// </summary>
+        [getter]
+        RTCSessionDescription currentRemoteDescription;
+        /// <summary>
+        /// Gets a remote RTCSessionDescription that is in the process of
+        /// being negotiated, completed with any remote candidates that have
+        /// been supplied via AddIceCandidate() since the offer or answer was
+        /// created. If the RTCPeerConnection is in the stable state, the
+        /// value is null. This attribute is updated by
+        /// SetRemoteDescription().
+        /// </summary>
+        [getter]
+        RTCSessionDescription pendingRemoteDescription;
+        /// <summary>
+        /// The AddIceCandidate() method provides a remote candidate to the
+        /// ICE Agent. In addition to being added to the remote description,
+        /// connectivity checks will be sent to the new candidates as long as
+        /// the ICE Transports setting is not set to none. This call will
+        /// result in a change to the ICE connection state, and may result in
+        /// a change to media state if it results in different connectivity
+        /// being established. The only members of candidate used by this
+        /// method are candidate, sdpMid and sdpMLineIndex; the rest are
+        /// ignored.
+        /// </summary>
+        void addIceCandidate(RTCIceCandidate candidate);
+
+        /// <summary>
+        /// Gets the RTCPeerConnection object's signaling state.
+        /// </summary>
+        [getter]
+        RTCSignalingState signalingState;
+        /// <summary>
+        /// Gets the ICE gathering state of the RTCPeerConnection instance.
+        /// </summary>
+        [getter]
+        RTCIceGathererState iceGatheringState;
+
+        /// <summary>
+        /// Gets the ICE connection state of the RTCPeerConnection instance.
+        /// </summary>
+        [getter]
+        RTCIceConnectionState iceConnectionState;
+        /// <summary>
+        /// Gets the aggregate of the states of the DtlsTransports and
+        /// IceTransports of the RTCPeerConnection, as describe in the values
+        /// of the RTCPeerConnectionState enum.
+        /// </summary>
+        [getter]
+        RTCPeerConnectionState connectionState;
+        /// <summary>
+        /// Gets whether the remote peer is able to accept trickled ICE
+        /// candidates [draft-ietf-ice-trickle-01].
+        /// </summary>
+        [getter]
+        bool canTrickleCandidates;
+
+        /// <summary>
+        /// Gets a list of ICE servers that are configured into the engine.
+        /// An engine/browser might be configured to use local or private
+        /// STUN or TURN servers. This method allows an application to learn
+        /// about these servers and optionally use them.
+        /// </summary>
+        ServerList getDefaultIceServers();
+
+        /// <summary>
+        /// Gets or sets an RTCConfiguration object representing the current
+        /// configuration of this RTCPeerConnection object.
+        /// </summary>
+        [getter, setter]
+        RTCConfiguration getConfiguration;
+
+        /// <summary>
+        /// Closes the RTCPeerConnection object.
+        /// </summary>
+        void close();
+
+        /// <summary>
+        /// Returns a sequence of RTCRtpSender objects representing the RTP
+        /// senders that are currently attached to this RTCPeerConnection
+        /// object.
+        /// </summary>
+        SenderList getSenders();
+        /// <summary>
+        /// Returns a sequence of RTCRtpReceiver objects representing the RTP
+        /// receivers that are currently attached to this RTCPeerConnection
+        /// object.
+        /// </summary>
+        ReceiverList getReceivers();
+
+        /// <summary>
+        /// Adds a new track to the RTCPeerConnection.
+        /// </summary>
+        [default]
+        PromiseWithSender addTrack(MediaStreamTrack track);
+        /// <summary>
+        /// Adds a new track to the RTCPeerConnection and specifies how the
+        /// track must be encoded.
+        /// </summary>
+        [altname(addTrackWithConfiguration)]
+        PromiseWithSender addTrack(
+                                   MediaStreamTrack track,
+                                   RTCMediaStreamTrackConfiguration config
+                                   );
+        /// <summary>
+        /// Adds a new track to the RTCPeerConnection, and indicates that it
+        /// is contained in the specified MediaStreams.
+        /// </summary>
+        [altname(addTrackWithStreams)]
+        PromiseWithSender addTrack(
+                                   MediaStreamTrack track,
+                                   MediaStreamList mediaStreams,
+                                   RTCMediaStreamTrackConfiguration config
+                                   );
+
+        /// <summary>
+        /// Stops sending media from sender. The RTCRtpSender will still
+        /// appear in GetSenders().
+        /// </summary>
+        void removeTrack(RTCRtpSender sender);
+
+        /// <summary>
+        /// Creates a new RTCDataChannel object with the given data channel
+        /// parameters.
+        /// </summary>
+        PromiseWithDataChannel createDataChannel(RTCDataChannelParameters parameters);
+
+        /// <summary>
+        /// The engine wishes to inform the application that session
+        /// negotiation needs to be done (e.g. a CreateOffer() call followed
+        /// by SetLocalDescription). Alternatively, CreateCapabilities() can
+        /// be called for JSON style signaling.
+        /// </summary>
+        [event]
+        void onNegotiationNeeded();
+
+        /// <summary>
+        /// A new RTCIceCandidate is made available to the script.
+        /// </summary>
+        [event]
+        void onIceCandidate(RTCPeerConnectionIceEvent event);
+
+        /// <summary>
+        /// A failure occured when gathering ICE candidates.
+        /// </summary>
+        [event]
+        void onIceCandidateError(RTCPeerConnectionIceErrorEvent event);
+
+        /// <summary>
+        /// The signaling state has changed. This state change is the result
+        /// of either setLocalDescription() or setRemoteDescription() being
+        /// invoked.
+        /// </summary>
+        [event]
+        void onSignalingStateChange();
+
+        /// <summary>
+        /// The RTCPeerConnection's ICE connection state has changed.
+        /// </summary>
+        [event]
+        void onIceConnectionStateChange();
+
+        /// <summary>
+        /// The RTCPeerConnection's ICE gathering state has changed.
+        /// </summary>
+        [event]
+        void onIceGatheringStateChange();
+
+        /// <summary>
+        /// The RTCPeerConnection ConnectionState has changed.
+        /// </summary>
+        [event]
+        void onConnectionStateChange();
+
+        /// <summary>
+        /// A new incoming MediaStreamTrack has been created, and an
+        /// associated RTCRtpReceiver has been added to the set of receivers.
+        /// </summary>
+        [event]
+        void onTrack(RTCTrackEvent event);
+
+        /// <summary>
+        /// An incoming MediaStreamTrack has disappeared, and the associated
+        /// RTCRtpReceiver is now removed.
+        /// </summary>
+        [event]
+        void onTrackGone(RTCTrackEvent event);
+
+        /// <summary>
+        /// A new RTCDataChannel is dispatched to the script in response to
+        /// the other peer creating a channel.
+        /// </summary>
+        [event]
+        void onDataChannel(RTCDataChannelEvent event);
+      };
+    }
+  }
+}

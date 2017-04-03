@@ -179,7 +179,7 @@ namespace ortc
 
     virtual void onSRTPSDESTransportError(
                                           ISRTPSDESTransportPtr transport,
-                                          ErrorAnyPtr errorCode
+                                          ErrorAnyPtr error
                                           ) = 0;
   };
 

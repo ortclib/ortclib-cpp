@@ -1,0 +1,268 @@
+/*
+
+ Copyright (c) 2017, Optical Tone Ltd.
+ All rights reserved.
+
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+
+ 1. Redistributions of source code must retain the above copyright notice, this
+ list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright notice,
+ this list of conditions and the following disclaimer in the documentation
+ and/or other materials provided with the distribution.
+
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+ The views and conclusions contained in the software and documentation are those
+ of the authors and should not be interpreted as representing official policies,
+ either expressed or implied, of the FreeBSD Project.
+ 
+ */
+
+namespace org
+{
+  namespace ortc
+  {
+    interface RTCSctpTransport;
+
+    /// <summary>
+    /// Event indicating a new incoming SCTP transport.
+    /// </summary>
+    struct RTCSctpTransportListenerEvent
+    {
+      [constructor, delete]
+      void RTCSctpTransportListenerEvent();
+
+      /// <summary>
+      /// Gets the new incoming SCTP transport.
+      /// </summary>
+      [getter]
+      RTCSctpTransport transport;
+    };
+
+    interface RTCSctpTransportListener
+    {
+      [constructor, delete]
+      void RTCSctpTransportListener();
+
+      /// <summary>
+      /// Events when the a new SCTP transport has arrived.
+      /// </summary>
+      [event]
+      void onTransport(RTCSctpTransportListenerEvent event);
+    };
+
+    /// <summary>
+    /// The RTCSctpCapabilities represents object represents the capabilities
+    /// of SCTP transport.
+    /// </summary>
+    [dictionary]
+    struct RTCSctpCapabilities
+    {
+      /// <summary>
+      /// Gets or sets the maximum message size.
+      /// </summary>
+      size_t maxMessageSize;
+
+      /// <summary>
+      /// Gets or sets the minimum SCTP port.
+      /// </summary>
+      uint16 minPort;
+      /// <summary>
+      /// Gets or sets the maximum SCTP port.
+      /// </summary>
+      uint16 maxPort;
+      /// <summary>
+      /// Gets or sets the maximum SCTP ports that can be used simultaneously.
+      /// </summary>
+      uint16 maxUsablePorts;
+      /// <summary>
+      /// Gets or sets the maximum sessions allowed per port.
+      /// </summary>
+      uint16 maxSessionsPerPort;
+
+      /// <summary>
+      /// Constructs an empty instance of an RTCSctpCapabilities object.
+      /// </summary>
+      [constructor, default]
+      void RTCSctpCapabilities();
+      /// <summary>
+      /// Constructs an instance of an RTCSctpCapabilities object by cloning object data from an existing object.
+      /// </summary>
+      [constructor, altname(RTCSctpCapabilitiesClone)]
+      void RTCSctpCapabilities(RTCSctpCapabilities source);
+      /// <summary>
+      /// Constructs an instance of an RTCSctpCapabilities object by extracting object data from a JSON object.
+      /// </summary>
+      [constructor, default, altname(RTCSctpCapabilitiesWithJson)]
+      void RTCSctpCapabilities(Json json);
+
+      /// <summary>
+      /// A helper routine to convert the object's data to structured JSON object data.
+      /// </summary>
+      Json toJson();
+      /// <summary>
+      /// Return a hash of the data contained within the object.
+      /// </summary>
+      string hash();
+    };
+
+    /// <summary>
+    /// RTCSctpTransportStateChangeEvent represents the state event
+    /// fired when the RTCSctpTransport state is changed.
+    /// </summary>
+    struct RTCSctpTransportStateChangeEvent
+    {
+      [constructor, delete]
+      void RTCSctpTransportStateChangeEvent();
+
+      /// <summary>
+      /// The RTCSctpTransportState that cased the event to fire.
+      /// </summary>
+      [getter]
+      RTCSctpTransportState state;
+    };
+
+    /// <summary>
+    /// If the remote peers sets RTCDataChannelParameters.Negotiated to false,
+    /// then the event will fire indicating a new RTCDataChannel object has
+    /// been constructed to connect with the RTCDataChannel constructed by the
+    /// remote peer.
+    /// </summary>
+    struct RTCDataChannelEvent
+    {
+      [constructor, delete]
+      void RTCDataChannelEvent();
+
+      /// <summary>
+      /// Gets the RTCDataChannel that was constructed when upon receiving a
+      /// new RTCDataChannel from a remote peer.
+      /// </summary>
+      [getter]
+      RTCDataChannel dataChannel;
+    };
+
+    /// <summary>
+    /// The RTCSctpTransport includes information relating to Stream Control
+    /// Transmission Protocol (SCTP) transport.
+    /// </summary>
+    interface RTCSctpTransport : RTCStatsProvider,
+                                 RTCDataTransport
+    {
+      /// <summary>
+      /// Constructs an instance of RTCSctpTransport from an RTCDtlsTransport
+      /// object (with a default of 5000, or the next unused port).
+      /// </summary>
+      [constructor]
+      void RTCSctpTransport(RTCDtlsTransport transport) throws (InvalidParameters, InvalidStateError);
+
+      /// <summary>
+      /// Constructs an instance of RTCSctpTransport from an RTCDtlsTransport
+      /// object, and a port number.
+      /// </summary>
+      [constructor, altname(RTCSctpTransportWithLocalPort)]
+      void RTCSctpTransport(
+                            RTCDtlsTransport transport,
+                            uint16 localPort
+                            ) throws (InvalidParameters, InvalidStateError);
+
+      /// <summary>
+      /// Listen for incoming RTCSctpTransport objects port mappings for new SCTP transports.
+      /// </summary>
+      [static]
+      RTCSctpTransportListener listen(
+                                      RTCDtlsTransport transport,
+                                      RTCSctpCapabilities remoteCapabilities
+                                      ) throws(InvalidParameters);
+
+      /// <summary>
+      /// Gets a unique object instance identifier for this object.
+      /// </summary>
+      [getter]
+      puid objectId;
+
+      /// <summary>
+      /// Retrieves the RTCSctpCapabilities of the RTCSctpTransport instance.
+      /// </summary>
+      [static]
+      RTCSctpCapabilities getCapabilities();
+
+      /// <summary>
+      /// Gets the RTCDtlsTransport instance the RTCSctpTransport object is
+      /// sending over.
+      /// </summary>
+      [getter]
+      RTCDtlsTransport transport;
+
+      /// <summary>
+      /// Gets the current state of the RTCSctpTransport object.
+      /// </summary>
+      [getter]
+      RTCSctpTransportState state;
+
+      /// <summary>
+      /// Gets the SCTP local port number used by the data channel.
+      /// </summary>
+      [getter]
+      uint16 port;
+
+      /// <summary>
+      /// Gets the SCTP local port number used by the data channel.
+      /// </summary>
+      [getter]
+      uint16 localPort;
+
+      /// <summary>
+      /// Gets the SCTP remote port number used by the data channel if available.
+      /// </summary>
+      [getter, optional]
+      uint16 remotePort;
+
+      /// <summary>
+      /// Starts the SCTP transport providing the capabilities of remote
+      /// SCTP transport.
+      /// </summary>
+      [default]
+      void start(RTCSctpCapabilities remoteCapabilities) throws (InvalidStateError, InvalidParameters);
+      /// <summary>
+      /// Starts the SCTP transport providing the capabilities of remote
+      /// SCTP transport and remote port.
+      /// </summary>
+      [altname(startWithPort)]
+      void start(
+                 RTCSctpCapabilities remoteCapabilities,
+                 uint16 remotePort
+                 ) throws (InvalidStateError, InvalidParameters);
+
+      /// <summary>
+      /// Stops the RTCSctpTransport instance.
+      /// </summary>
+      void stop();
+
+      /// <summary>
+      /// Events when the state of the RTCSctpTransport state changes.
+      /// </summary>
+      [event]
+      void onStateChange(RTCSctpTransportStateChangeEvent state);
+
+      /// <summary>
+      /// If the remote peers sets RTCDataChannelParameters.negotiated to
+      /// false, then this event will fire indicating a new RTCDataChannel
+      /// object has been constructed to connect with the RTCDataChannel
+      /// constructed by the remote peer.
+      /// </summary>
+      [event]
+      void onDataChannel(RTCDataChannelEvent dataChannel);
+    };
+  }
+}

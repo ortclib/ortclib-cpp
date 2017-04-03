@@ -21,3 +21,4 @@ ortc/internal/ortc.events_win_etw.man
 .vs/
 ipch/
 *.user
+ortc/idl/wrapper/generated/

@@ -1,0 +1,155 @@
+/*
+
+Copyright (c) 2017, Optical Tone Ltd.
+All rights reserved.
+
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+
+ 1. Redistributions of source code must retain the above copyright notice, this
+ list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright notice,
+ this list of conditions and the following disclaimer in the documentation
+ and/or other materials provided with the distribution.
+
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+ The views and conclusions contained in the software and documentation are those
+ of the authors and should not be interpreted as representing official policies,
+ either expressed or implied, of the FreeBSD Project.
+ 
+ */
+
+
+namespace org
+{
+  namespace ortc
+  {
+    /// <summary>
+    /// The RTCDTMFToneChangeEvent dictionary provides information on the DTMF tone causing a tonechange event.
+    /// </summary>
+    struct RTCDtmfToneChangeEvent
+    {
+      [constructor, delete]
+      void RTCDtmfToneChangeEvent();
+
+      /// <summary>
+      /// Gets the character for the tone that has just begun playout (see insertDtmf()). If the
+      /// value is the empty string, it indicates that the toneBuffer is an empty string and that
+      /// the previous tones have completed playback.
+      /// </summary>
+      [getter]
+      string tone;
+    };
+
+    /// <summary>
+    /// An RTCDtmfSender instance allows sending DTMF tones to/from the remote
+    /// peer, as per [RFC4733].
+    /// </summary>
+    interface RTCDtmfSender
+    {
+      /// <summary>
+      /// Construct an instance of the RTCDtmfSender associated to an
+      /// RTCRtpSender.
+      /// </summary>
+      [constructor]
+      void RTCDtmfSender(RTCRtpSender sender) throws (InvalidStateError);
+
+      /// <summary>
+      /// Gets a unique object instance identifier for this object.
+      /// </summary>
+      [getter]
+      puid objectId;
+
+      /// <summary>
+      /// Gets whether the RTCDtmfSender is capable of sending DTMF.
+      /// </summary>
+      bool canInsertDtmf();
+
+      /// <summary>
+      /// The InsertDTMF() method is used to send DTMF tones. Since DTMF tones
+      /// cannot be sent without configuring the DTMF codec, if InsertDTMF()
+      /// is called prior to sender.Send(parameters), or if
+      /// sender.Send(parameters) was called but parameters did not include
+      /// the DTMF codec, throw an InvalidStateError exception.
+      /// </summary>
+      [default]
+      void insertDtmf(string tones) throws(InvalidStateError, InvalidParameters);
+
+      /// <summary>
+      /// The InsertDTMF() method is used to send DTMF tones. Since DTMF tones
+      /// cannot be sent without configuring the DTMF codec, if InsertDTMF()
+      /// is called prior to sender.Send(parameters), or if
+      /// sender.Send(parameters) was called but parameters did not include
+      /// the DTMF codec, throw an InvalidStateError exception.
+      /// </summary>
+      [altname(insertDtmfWithDuration)]
+      void insertDtmf(
+                      string tones,
+                      Milliseconds duration
+                      ) throws (InvalidStateError, InvalidParameters);
+
+      /// <summary>
+      /// The InsertDTMF() method is used to send DTMF tones. Since DTMF tones
+      /// cannot be sent without configuring the DTMF codec, if InsertDTMF()
+      /// is called prior to sender.Send(parameters), or if
+      /// sender.Send(parameters) was called but parameters did not include
+      /// the DTMF codec, throw an InvalidStateError exception.
+      /// </summary>
+      [altname(insertDtmfWithDurationAndGap)]
+      void insertDtmf(
+                      string tones,
+                      Milliseconds duration,
+                      Milliseconds interToneGap
+                      ) throws (InvalidStateError, InvalidParameters);
+
+      /// <summary>
+      /// Gets the RTCRtpSender instance.
+      /// </summary>
+      [getter]
+      RTCRtpSender sender;
+
+      /// <summary>
+      /// Gets the toneBuffer attribute returns a list of the tones remaining
+      /// to be played out.
+      /// </summary>
+      [getter]
+      string toneBuffer;
+
+      /// <summary>
+      /// Get the duration attribute returns the current tone duration value
+      /// in milliseconds. This value will be the value last set via the
+      /// InsertDTMF() method, or the default value of 100 ms if
+      /// InsertDTMF() was called without specifying the duration.
+      /// </summary>
+      [getter]
+      Milliseconds duration;
+
+      /// <summary>
+      /// Gets the interToneGap attribute returns the current value of the
+      /// between-tone gap. This value will be the value last set via the
+      /// InsertDTMF() method, or the default value of 70 ms if InsertDTMF()
+      /// was called without specifying the interToneGap.
+      /// </summary>
+      [getter]
+      Milliseconds interToneGap;
+
+      /// <summary>
+      /// The OnToneChange event handler uses the RTCDTMFToneChangeEvent
+      /// interface to return the character for each tone as it is played out.
+      /// </summary>
+      [event]
+      void onToneChange(RTCDtmfToneChangeEvent event);
+    };
+
+  }
+}

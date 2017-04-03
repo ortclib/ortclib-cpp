@@ -252,6 +252,8 @@ namespace ortc
                                        const Optional<Configuration> &configuration = Optional<Configuration>()
                                        );
 
+      virtual PUID getID() const = 0;
+
       virtual IPeerConnectionSubscriptionPtr subscribe(IPeerConnectionDelegatePtr delegate) = 0;
 
       virtual PromiseWithDescriptionPtr createOffer(const Optional<OfferOptions> &configuration = Optional<OfferOptions>()) = 0;
