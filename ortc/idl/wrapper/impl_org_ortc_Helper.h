@@ -132,7 +132,7 @@ namespace wrapper {
           template <typename optionalType1, typename optionalType2>
           static void optionalSafeIntConvert(const optionalType1 &inputType, optionalType2 &outputType)
           {
-            outputType = inputType.hasValue() ? optionalType2(SafeInt<optionalType2::UseType>(inputType.value())) : optionalType2();
+            outputType = inputType.hasValue() ? optionalType2(SafeInt<typename optionalType2::UseType>(inputType.value())) : optionalType2();
           }
 
         };

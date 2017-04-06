@@ -14,6 +14,7 @@ namespace wrapper {
         struct RTCSrtpSdesTransport : public wrapper::org::ortc::RTCSrtpSdesTransport,
                                       public ::ortc::ISRTPSDESTransportDelegate
         {
+          typedef unsigned long ULONG;
           ZS_DECLARE_TYPEDEF_PTR(::ortc::ISRTPSDESTransport, NativeType);
           ZS_DECLARE_TYPEDEF_PTR(::ortc::ISRTPSDESTransport, ISRTPSDESTransport);
           ZS_DECLARE_TYPEDEF_PTR(::ortc::ISRTPSDESTransportSubscription, NativeTypeSubscription);

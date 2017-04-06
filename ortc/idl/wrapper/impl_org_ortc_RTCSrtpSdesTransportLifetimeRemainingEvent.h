@@ -11,6 +11,7 @@ namespace wrapper {
 
         struct RTCSrtpSdesTransportLifetimeRemainingEvent : public wrapper::org::ortc::RTCSrtpSdesTransportLifetimeRemainingEvent
         {
+          typedef unsigned long ULONG;
           ZS_DECLARE_TYPEDEF_PTR(RTCSrtpSdesTransportLifetimeRemainingEvent, WrapperImplType);
           ZS_DECLARE_TYPEDEF_PTR(wrapper::org::ortc::RTCSrtpSdesTransportLifetimeRemainingEvent, WrapperType);
           RTCSrtpSdesTransportLifetimeRemainingEventWeakPtr thisWeak_;

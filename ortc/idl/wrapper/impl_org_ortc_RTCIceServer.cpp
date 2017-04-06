@@ -94,12 +94,6 @@ wrapper::impl::org::ortc::RTCIceServer::WrapperImplTypePtr wrapper::impl::org::o
   pThis->credential = native.mCredential;
   pThis->credentialType = Helper::toWrapper(native.mCredentialType);
   return pThis;
-
-
-  shared_ptr< list< String > > urls{};
-  String username{};
-  String credential{};
-  wrapper::org::ortc::RTCIceCredentialType credentialType{ wrapper::org::ortc::RTCIceCredentialType_password };
 }
 
 //------------------------------------------------------------------------------

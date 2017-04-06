@@ -30,7 +30,7 @@ namespace wrapper {
 
           virtual void wrapper_onObserverCountChanged(size_t count) override;
 
-          virtual void onMediaDevicesChanged();
+          virtual void onMediaDevicesChanged() override;
 
           void subscribe();
         };
