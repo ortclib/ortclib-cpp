@@ -453,7 +453,6 @@ namespace ortc
         channels = mChannels; // obtain pointer to COW list while inside a lock
       }
 
-      bool result = false;
       for (auto iter = channels->begin(); iter != channels->end(); ++iter)
       {
         auto channel = (*iter).second;

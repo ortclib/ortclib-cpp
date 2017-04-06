@@ -291,7 +291,6 @@ namespace ortc
         AutoRecursiveLock(*this);
         mNTPServerTime = value;
       }
-      auto totalMilliseconds = value.count();
       IRTPMediaEngineForORTC::ntpServerTime(value);
     }
 

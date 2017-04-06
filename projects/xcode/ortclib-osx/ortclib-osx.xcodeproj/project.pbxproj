@@ -55,7 +55,7 @@
 		009D180D1DE5285800D139FF /* ortc_SCTPTransport.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D17601DE5285700D139FF /* ortc_SCTPTransport.cpp */; };
 		009D180E1DE5285800D139FF /* ortc_SCTPTransportListener.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D17611DE5285700D139FF /* ortc_SCTPTransportListener.cpp */; };
 		009D18101DE5285800D139FF /* ortc_SRTPSDESTransport.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D17631DE5285700D139FF /* ortc_SRTPSDESTransport.cpp */; };
-		009D18111DE5285800D139FF /* ortc_SRTPTransport.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D17641DE5285700D139FF /* ortc_SRTPTransport.cpp */; };
+		009D18111DE5285800D139FF /* ortc_SRTPTransport.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D17641DE5285700D139FF /* ortc_SRTPTransport.cpp */; settings = {COMPILER_FLAGS = "-Wno-documentation"; }; };
 		009D18121DE5285800D139FF /* ortc_StatsReport.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D17651DE5285700D139FF /* ortc_StatsReport.cpp */; };
 		009D18131DE5285800D139FF /* ortc_webrtc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 009D17661DE5285700D139FF /* ortc_webrtc.cpp */; };
 /* End PBXBuildFile section */
@@ -577,14 +577,17 @@
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = YES;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
 					"$(inherited)",
 				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_SHADOW = YES;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
@@ -636,9 +639,12 @@
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_INLINES_ARE_PRIVATE_EXTERN = YES;
 				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_SHADOW = YES;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;

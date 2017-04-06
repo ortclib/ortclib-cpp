@@ -278,8 +278,6 @@ namespace ortc
       //-----------------------------------------------------------------------
       void SDPParser::parseLinesDetails(SDP &sdp)
       {
-        AttributeLevels currentLevel = AttributeLevel_Session;
-
         MLinePtr currentMLine;
         ASSRCLinePtr currentSourceLine;
 

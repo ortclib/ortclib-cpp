@@ -145,8 +145,6 @@ namespace ortc
 
       static ElementPtr toDebug(ForDTMFSenderPtr transport);
 
-      virtual PUID getID() const = 0;
-
       virtual IDTMFSenderSubscriptionPtr subscribe(IDTMFSenderDelegatePtr delegate) override { return subscribeDTMF(delegate); }
 
       virtual IDTMFSenderSubscriptionPtr subscribeDTMF(IDTMFSenderDelegatePtr delegate) = 0;

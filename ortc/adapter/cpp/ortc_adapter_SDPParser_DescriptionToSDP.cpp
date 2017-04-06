@@ -142,7 +142,6 @@ namespace ortc
         }
 
         for (auto iter = bundles.begin(); iter != bundles.end(); ++iter) {
-          auto &bundleID = (*iter).first;
           auto &bundleSet = (*iter).second;
 
           if (bundleSet.size() < 2) continue;
@@ -167,7 +166,6 @@ namespace ortc
                                          ISDPTypes::MLine &ioMLine
                                          )
       {
-        auto &result = ioSDP;
         auto &mline = ioMLine;
 
         ORTC_THROW_INVALID_PARAMETERS_IF(!mediaLine.mDetails);
@@ -203,7 +201,6 @@ namespace ortc
                                         ISDPTypes::MLine &ioMLine
                                         )
       {
-        auto &result = ioSDP;
         auto &mline = ioMLine;
 
         createSDPMediaLineBase(description, mediaLine, ioSDP, ioMLine);
@@ -226,7 +223,6 @@ namespace ortc
                                          ISDPTypes::MLine &ioMLine
                                          )
       {
-        auto &result = ioSDP;
         auto &mline = ioMLine;
 
         createSDPMediaLineBase(description, mediaLine, ioSDP, ioMLine);
@@ -652,7 +648,6 @@ namespace ortc
                                    ISDPTypes::MLine &ioMLine
                                    )
       {
-        auto &result = ioSDP;
         auto &mline = ioMLine;
 
         if (mediaLine.mReceiverCapabilities) {

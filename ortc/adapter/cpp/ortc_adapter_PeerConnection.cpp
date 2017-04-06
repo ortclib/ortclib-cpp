@@ -1023,9 +1023,9 @@ namespace ortc
           auto &info = *((*iter).second);
 
           if (stats.hasStatType(IStatsReportTypes::StatsType_DataChannel)) {
-            for (auto iter = info.mDataChannels.begin(); iter != info.mDataChannels.end(); ++iter)
+            for (auto iterChannel = info.mDataChannels.begin(); iterChannel != info.mDataChannels.end(); ++iterChannel)
             {
-              auto dataChannelInfo = (*iter).second;
+              auto dataChannelInfo = (*iterChannel).second;
               promises.push_back(dataChannelInfo->mDataChannel->getStats(stats));
             }
           }
@@ -2438,8 +2438,8 @@ namespace ortc
 
             calculateDelta(*existingSet, sender.mMediaStreamIDs, added, removed);
 
-            for (auto iter = added.begin(); iter != added.end(); ++iter) {
-              auto &id = (*iter);
+            for (auto iterAdded = added.begin(); iterAdded != added.end(); ++iterAdded) {
+              auto &id = (*iterAdded);
 
               UseMediaStreamPtr stream;
 
@@ -2456,8 +2456,8 @@ namespace ortc
               stream->notifyAddTrack(receiverInfo->mReceiver->track());
             }
 
-            for (auto iter = removed.begin(); iter != removed.end(); ++iter) {
-              auto &id = (*iter);
+            for (auto iterRemoved = removed.begin(); iterRemoved != removed.end(); ++iterRemoved) {
+              auto &id = (*iterRemoved);
 
               UseMediaStreamPtr stream;
 
@@ -4028,9 +4028,9 @@ namespace ortc
               (0 == iceTransportStateCount[IICETransportTypes::State_Failed]) &&
               (0 == dtlsTranportStateCount[IDTLSTransportTypes::State_Failed]) &&
               (0 == iceTransportStateCount[IICETransportTypes::State_Disconnected]) &&
-              ((0 > iceTransportStateCount[IICETransportTypes::State_Closed]) ||
-               (0 > dtlsTranportStateCount[IDTLSTransportTypes::State_Closed]))) {
-            peerConnectionState = IPeerConnectionTypes::PeerConnectionState_New;
+              ((iceTransportStateCount[IICETransportTypes::State_Closed] > 0) ||
+               (dtlsTranportStateCount[IDTLSTransportTypes::State_Closed] > 0))) {
+            peerConnectionState = IPeerConnectionTypes::PeerConnectionState_Closed;
           }
 
           if (((iceTransportStateCount[IICETransportTypes::State_Checking] > 0) ||
@@ -4088,7 +4088,7 @@ namespace ortc
       //-----------------------------------------------------------------------
       void PeerConnection::setState(SignalingStates state)
       {
-        if (state == mState) return;
+        if (state == mLastSignalingState) return;
 
         ZS_LOG_DEBUG(log("signaling state changed") + ZS_PARAM("new state", IPeerConnectionTypes::toString(state)) + ZS_PARAM("old state", IPeerConnectionTypes::toString(mLastSignalingState)));
 
@@ -4103,7 +4103,7 @@ namespace ortc
       //-----------------------------------------------------------------------
       void PeerConnection::setState(ICEGatheringStates state)
       {
-        if (state == mState) return;
+        if (state == mLastICEGatheringStates) return;
 
         ZS_LOG_DEBUG(log("ice gatherer state changed") + ZS_PARAM("new state", IICEGathererTypes::toString(state)) + ZS_PARAM("old state", IICEGathererTypes::toString(mLastICEGatheringStates)));
 
@@ -4118,7 +4118,7 @@ namespace ortc
       //-----------------------------------------------------------------------
       void PeerConnection::setState(ICEConnectionStates state)
       {
-        if (state == mState) return;
+        if (state == mLastICEConnectionState) return;
 
         ZS_LOG_DEBUG(log("ice connection state changed") + ZS_PARAM("new state", IICETransportTypes::toString(state)) + ZS_PARAM("old state", IICETransportTypes::toString(mLastICEConnectionState)));
 
@@ -4133,7 +4133,7 @@ namespace ortc
       //-----------------------------------------------------------------------
       void PeerConnection::setState(PeerConnectionStates state)
       {
-        if (state == mState) return;
+        if (state == mLastPeerConnectionState) return;
 
         ZS_LOG_DEBUG(log("peer connection state changed") + ZS_PARAM("new state", IPeerConnectionTypes::toString(state)) + ZS_PARAM("old state", IPeerConnectionTypes::toString(mLastPeerConnectionState)));
 

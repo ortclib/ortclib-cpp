@@ -857,7 +857,6 @@ namespace ortc
           if (!rtpMap) {
             auto reservedType = IRTPTypes::toReservedCodec(pt);
             auto supportedType = IRTPTypes::toSupportedCodec(reservedType);
-            auto codecKind = IRTPTypes::getCodecKind(supportedType);
 
             if (IRTPTypes::SupportedCodec_Unknown == supportedType) {
               ZS_LOG_WARNING(Debug, internal::slog("codec payload type is not understood") + ZS_PARAM("payload type", pt));

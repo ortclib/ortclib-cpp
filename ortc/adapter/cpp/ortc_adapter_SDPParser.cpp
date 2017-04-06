@@ -896,7 +896,6 @@ namespace ortc
         ORTC_THROW_INVALID_PARAMETERS_IF(split.size() < 1);
 
         for (auto iter = split.begin(); iter != split.end(); ++iter) {
-          auto &value = (*iter).second;
           mTags.push_back(value);
         }
       }
@@ -953,21 +952,21 @@ namespace ortc
         if (split.size() > 8) {
           for (size_t index = 10; index < split.size(); index += 2)
           {
-            ExtensionPair value(split[index], split[index + 1]);
-            if (0 == value.first.compareNoCase("raddr")) {
-              mRelAddr = value.second;
+            ExtensionPair valuePair(split[index], split[index + 1]);
+            if (0 == valuePair.first.compareNoCase("raddr")) {
+              mRelAddr = valuePair.second;
               continue;
             }
-            if (0 == value.first.compareNoCase("rport")) {
+            if (0 == valuePair.first.compareNoCase("rport")) {
               try {
-                mRelPort = Numeric<decltype(mRelPort.mType)>(value.second);
+                mRelPort = Numeric<decltype(mRelPort.mType)>(valuePair.second);
               } catch (const Numeric<decltype(mRelPort.mType)>::ValueOutOfRange &) {
                 ORTC_THROW_INVALID_PARAMETERS("rel port value out of range: " + split[9]);
               }
               continue;
             }
 
-            mExtensionPairs.push_back(value);
+            mExtensionPairs.push_back(valuePair);
           }
         }
       }

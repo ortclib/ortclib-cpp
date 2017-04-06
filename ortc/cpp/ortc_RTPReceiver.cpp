@@ -642,7 +642,6 @@ namespace ortc
         channels = mChannels; // obtain pointer to COW list while inside a lock
       }
 
-      bool result = false;
       for (auto iter = channels->begin(); iter != channels->end(); ++iter)
       {
         auto channel = (*iter).second.lock();
@@ -1402,9 +1401,9 @@ namespace ortc
 
           if (CodecType_RTX != info.mCodecType) continue;
 
-          for (auto iter = parameters->mCodecs.begin(); iter != parameters->mCodecs.end(); ++iter)
+          for (auto iterCodecs = parameters->mCodecs.begin(); iterCodecs != parameters->mCodecs.end(); ++iterCodecs)
           {
-            auto &codec = (*iter);
+            auto &codec = (*iterCodecs);
             if (codec.mPayloadType != info.mPayloadType) continue;
 
             RTXCodecParametersPtr rtxParam = RTXCodecParameters::convert(codec.mParameters);
@@ -1436,6 +1435,7 @@ namespace ortc
           case SupportedCodec_H264:
             mTrack->setH264Rendering(true);
             goto end_codec_loop;
+          default: break;
         }
         continue;
 

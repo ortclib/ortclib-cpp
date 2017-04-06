@@ -647,7 +647,7 @@ namespace ortc
       Log::Params log(const char *message) const;
       static Log::Params slog(const char *message);
       Log::Params debug(const char *message) const;
-      virtual ElementPtr toDebug() const;
+      virtual ElementPtr toDebug() const override;
 
       bool isShuttingDown() const;
       bool isShutdown() const;

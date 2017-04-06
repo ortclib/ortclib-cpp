@@ -372,8 +372,6 @@ namespace ortc
       result->mRTCPFeedback = parameters.mRTCPFeedback;
       
       if (parameters.mParameters) {
-        auto supportedCodec = IRTPTypes::toSupportedCodec(parameters.mName);
-
         switch (supportedCodec)
         {
           case IRTPTypes::SupportedCodec_Unknown:         break;
@@ -871,8 +869,6 @@ namespace ortc
       for (auto iterPrimary = primaryList.begin(); iterPrimary != primaryList.end(); ++iterPrimary) {
         auto &primaryCodec = (*iterPrimary);
 
-        auto supportedType = IRTPTypes::toSupportedCodec(primaryCodec.mName);
-
         const RTPCodecCapability *foundSecondaryExact = nullptr;
         const RTPCodecCapability *foundSecondaryInexact = nullptr;
 
@@ -1050,8 +1046,6 @@ namespace ortc
 
       for (auto iterCodecParams = codecParameters.begin(); iterCodecParams != codecParameters.end(); ++iterCodecParams) {
         auto &codecParam = (*iterCodecParams);
-
-        auto supportedType = IRTPTypes::toSupportedCodec(codecParam.mName);
 
         const RTPCodecCapability *foundSecondaryExact = nullptr;
         const RTPCodecCapability *foundSecondaryInexact = nullptr;

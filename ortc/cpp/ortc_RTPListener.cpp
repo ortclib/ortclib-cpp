@@ -94,10 +94,12 @@ namespace ortc
         case IRTPTypes::HeaderExtensionURI_RID:                               return false;
         case IRTPTypes::HeaderExtensionURI_3gpp_VideoOrientation:             return true;
         case IRTPTypes::HeaderExtensionURI_3gpp_VideoOrientation6:            return true;
+        case IRTPTypes::HeaderExtensionURI_TransmissionTimeOffsets:           return true;
+        case IRTPTypes::HeaderExtensionURI_AbsoluteSendTime:                  return true;
+        case IRTPTypes::HeaderExtensionURI_TransportSequenceNumber:           return true;
       }
       return true;
     }
-    
     
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -781,12 +783,12 @@ namespace ortc
       {
         for (auto iter = receivers->begin(); iter != receivers->end(); ++iter) {
           ReceiverID receiverID = (*iter).first;
-          auto receiverInfo = (*iter).second;
+          auto currentReceiverInfo = (*iter).second;
 
           auto receiver = (*iter).second->mReceiver.lock();
 
           if (!receiver) {
-            ZS_LOG_WARNING(Trace, log("receiver is gone") + ZS_PARAM("receiver ID", receiverID) + receiverInfo->toDebug())
+            ZS_LOG_WARNING(Trace, log("receiver is gone") + ZS_PARAM("receiver ID", receiverID) + currentReceiverInfo->toDebug())
             continue;
           }
 

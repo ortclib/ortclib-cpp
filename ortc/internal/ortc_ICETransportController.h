@@ -161,16 +161,16 @@ namespace ortc
 
       static ICETransportControllerPtr create();
 
-      virtual PUID getID() const;
+      virtual PUID getID() const override;
 
-      virtual ICETransportList getTransports() const;
+      virtual ICETransportList getTransports() const override;
       virtual void addTransport(
                                 IICETransportPtr transport,
                                 Optional<size_t> index = Optional<size_t>()
                                 ) throw(
                                         InvalidParameters,
                                         InvalidStateError
-                                        );
+                                        ) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -190,9 +190,9 @@ namespace ortc
                                             ICETransportPtr transport,
                                             const String &localFoundation,
                                             const String &remoteFoundation
-                                            );
+                                            ) override;
 
-      virtual void notifyDetached(ICETransportPtr transport);
+      virtual void notifyDetached(ICETransportPtr transport) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -204,19 +204,19 @@ namespace ortc
                                                            UseICETransportPtr transport,
                                                            const char *localFoundation,
                                                            const char *remoteFoundation
-                                                           );
+                                                           ) override;
 
       virtual void onTransportControllerNotifyDetached(
                                                        UseICETransportPtr transport,
                                                        AttachedOrderID detachedOrder
-                                                       );
+                                                       ) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark ICETransportController => IWakeDelegate
       #pragma mark
 
-      virtual void onWake();
+      virtual void onWake() override;
 
     protected:
       //-----------------------------------------------------------------------

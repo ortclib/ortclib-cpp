@@ -5269,11 +5269,11 @@ namespace ortc
             setState(InternalState_Gathering);
           }
 
-          CandidatePtr sendCandidate(make_shared<Candidate>(*otherCandidate));
+          CandidatePtr sendNotifyCandidate(make_shared<Candidate>(*otherCandidate));
 
           ZS_LOG_DEBUG(log("notify replacement local candidate") + otherCandidate->toDebug())
           if (pThis) {
-            mSubscriptions.delegate()->onICEGathererLocalCandidate(mThisWeak.lock(), sendCandidate);
+            mSubscriptions.delegate()->onICEGathererLocalCandidate(mThisWeak.lock(), sendNotifyCandidate);
           }
           return;
         }
@@ -5839,10 +5839,10 @@ namespace ortc
 
             // scope: search for existing route
             {
-              auto route = installRoute(localCandidate, remoteIP, UseICETransportPtr());
-              if (route) {
-                routerRoute = route->mRouterRoute;
-                transport = route->mTransport.lock();
+              auto routeInstalled = installRoute(localCandidate, remoteIP, UseICETransportPtr());
+              if (routeInstalled) {
+                routerRoute = routeInstalled->mRouterRoute;
+                transport = routeInstalled->mTransport.lock();
 
                 if (transport) goto found_transport;
               }
@@ -6271,8 +6271,8 @@ namespace ortc
               if ((hostPort->mCandidateTCPPassive == sentFromLocalCandidate) ||
                   (hostPort->mCandidateTCPActive == sentFromLocalCandidate)) {
                 // search for an incoming or outgoing TCP connection that satisfies the requirement
-                for (auto iter = hostPort->mTCPPorts.begin(); iter != hostPort->mTCPPorts.end(); ++iter) {
-                  auto tcpPort = (*iter).second.second;
+                for (auto iterTcpPorts = hostPort->mTCPPorts.begin(); iterTcpPorts != hostPort->mTCPPorts.end(); ++iterTcpPorts) {
+                  auto tcpPort = (*iterTcpPorts).second.second;
                   auto tcpPortTransport = tcpPort->mTransport.lock();
 
                   if (tcpPort->mRemoteIP != remoteIP) continue; // must be connecting to/from same remote location
