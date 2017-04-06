@@ -3310,8 +3310,11 @@ namespace ortc
 
         mCallStats->DeregisterStatsObserver(mCongestionController.get());
 
-        if (mReceiveStream)
+        if (mReceiveStream) {
           delete reinterpret_cast<webrtc::internal::AudioReceiveStream*>(mReceiveStream);
+          mReceiveStream = NULL;
+        }
+
         mCongestionController.reset();
         mCallStats.reset();
         mBitrateAllocator.reset();
@@ -3996,10 +3999,9 @@ namespace ortc
         mCallStats->DeregisterStatsObserver(mCongestionController.get());
 
         if (mSendStream) {
-					webrtc::AudioSendStream *temp = mSendStream;
-					mWorkerQueue.PostTask([temp]() {delete reinterpret_cast<webrtc::internal::AudioSendStream*>(temp); });
-					mSendStream = NULL;
-				}
+          delete reinterpret_cast<webrtc::internal::AudioSendStream*>(mSendStream);
+          mSendStream = NULL;
+        }
 
         mCongestionController.reset();
         mCallStats.reset();
@@ -4656,8 +4658,11 @@ namespace ortc
 
         mCallStats->DeregisterStatsObserver(mCongestionController.get());
 
-        if (mReceiveStream)
+        if (mReceiveStream) {
           delete reinterpret_cast<webrtc::internal::VideoReceiveStream*>(mReceiveStream);
+          mReceiveStream = NULL;
+        }
+
         mCongestionController.reset();
         mCallStats.reset();
         mBitrateAllocator.reset();
@@ -5367,8 +5372,11 @@ namespace ortc
         sendStream = mSendStream;
       }
 
-      if (sendStream && mTransportState == ISecureTransport::State_Connected)
-        sendStream->Stop();
+      if (sendStream) {
+        if (mTransportState == ISecureTransport::State_Connected)
+          sendStream->Stop();
+        reinterpret_cast<webrtc::internal::VideoSendStream*>(sendStream)->StopPermanentlyAndGetRtpStates();
+      }
 
       {
         AutoRecursiveLock lock(*this);
@@ -5382,11 +5390,11 @@ namespace ortc
 
         mCallStats->DeregisterStatsObserver(mCongestionController.get());
 
-				if (mSendStream) {
-					webrtc::VideoSendStream *temp = mSendStream;
-					mWorkerQueue.PostTask([temp]() {delete reinterpret_cast<webrtc::internal::VideoSendStream*>(temp); });
-					mSendStream = NULL;
-				}
+        if (mSendStream) {
+          delete reinterpret_cast<webrtc::internal::VideoSendStream*>(mSendStream);
+          mSendStream = NULL;
+        }
+
         mCongestionController.reset();
         mCallStats.reset();
         mBitrateAllocator.reset();
