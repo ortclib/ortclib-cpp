@@ -2155,7 +2155,8 @@ namespace ortc
 
       while (mWaitingToSend.size() > 0) {
         auto promise = mWaitingToSend.front();
-        promise->reject();
+        auto reason = make_shared<RejectReason>(mLastError, mLastErrorReason);
+        promise->reject(reason);
         mWaitingToSend.pop();
       }
 
