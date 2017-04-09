@@ -373,6 +373,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     void MediaDevices::onEnumerateDevices(PromiseWithDeviceListPtr promise)
     {
+#ifndef WIN32_RX64
       AutoRecursiveLock lock(*this);
 
       DeviceListPtr value(std::make_shared<DeviceList>());
@@ -438,6 +439,10 @@ namespace ortc
       audioDevice->Terminate();
 
       promise->resolve(value);
+#else
+      DeviceListPtr value(std::make_shared<DeviceList>());
+      promise->resolve(value);
+#endif //ndef WIN32_RX64
     }
 
     //-------------------------------------------------------------------------

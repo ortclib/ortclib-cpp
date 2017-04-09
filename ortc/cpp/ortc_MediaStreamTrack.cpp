@@ -461,8 +461,10 @@ namespace ortc
     void MediaStreamTrack::stop()
     {
       AutoRecursiveLock lock(*this);
+#ifndef WIN32_RX64
       if (mDeviceResource)
         mDeviceResource->stop();
+#endif //ndef WIN32_RX64
     }
 
     //-------------------------------------------------------------------------
@@ -503,8 +505,10 @@ namespace ortc
       AutoRecursiveLock lock(*this);
 
       mVideoRendererCallback = callback;
+#ifndef WIN32_RX64
       if (mDeviceResource)
         mDeviceResource->setVideoRenderCallback(callback);
+#endif //ndef WIN32_RX64
     }
 
     //-------------------------------------------------------------------------
@@ -648,7 +652,9 @@ namespace ortc
     {
       AutoRecursiveLock lock(*this);
 
+#ifndef WIN32_RX64
       if (mDeviceResource) mDeviceResource->renderVideoFrame(videoFrame);
+#endif //ndef WIN32_RX64
     }
 
     //-------------------------------------------------------------------------
@@ -740,7 +746,9 @@ namespace ortc
 
       if (mStatsTimer) {
         if (mDeviceResource && timer->getID() == mStatsTimer->getID()) {
+#ifndef WIN32_RX64
           mDeviceResource->setFrameCount();
+#endif //ndef WIN32_RX64
         }
       }
     }
@@ -775,8 +783,10 @@ namespace ortc
     {
       AutoRecursiveLock lock(*this);
 
+#ifndef WIN32_RX64
       if (mDeviceResource)
         mDeviceResource->requestStats(promise, stats);
+#endif //ndef WIN32_RX64
     }
 
     //-------------------------------------------------------------------------
@@ -787,8 +797,10 @@ namespace ortc
     {
       AutoRecursiveLock lock(*this);
         
+#ifndef WIN32_RX64
       if (mDeviceResource)
         mDeviceResource->updateConstraints(promise, constraints);
+#endif //ndef WIN32_RX64
     }
 
     //-------------------------------------------------------------------------
@@ -940,7 +952,9 @@ namespace ortc
           return true;
       }
 
+#ifndef WIN32_RX64
       mDeviceResourceLifetimeHolderPromise = UseMediaEngine::setupDevice(mThisWeak.lock());
+#endif //ndef WIN32_RX64
 
       mDeviceResourceLifetimeHolderPromise->thenWeak(mThisWeak.lock());
 
@@ -974,10 +988,12 @@ namespace ortc
         return false;
       }
 
+#ifndef WIN32_RX64
       if (mVideoRendererCallback)
         mDeviceResource->setVideoRenderCallback(mVideoRendererCallback);
 
       ZS_LOG_DEBUG(log("media device is setup") + ZS_PARAM("device", mDeviceResource->getID()))
+#endif //ndef WIN32_RX64
 
       return true;
     }
@@ -994,7 +1010,9 @@ namespace ortc
 
       if (!mCloseDevicePromise) {
         if (mDeviceResource) {
+#ifndef WIN32_RX64
           mCloseDevicePromise = mDeviceResource->shutdown();
+#endif //ndef //WIN32_RX64
           mCloseDevicePromise->thenWeak(mGracefulShutdownReference);
         }
       }

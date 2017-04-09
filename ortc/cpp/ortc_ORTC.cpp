@@ -66,6 +66,9 @@ namespace ortc
     void installMediaStreamTrackSettingsDefaults();
     void installRTPListenerSettingsDefaults();
     void installRTPMediaEngineSettingsDefaults();
+#ifdef WIN32_RX64
+    inline void installRTPMediaEngineSettingsDefaults() {}
+#endif //ndef WIN32_RX64
     void installRTPReceiverSettingsDefaults();
     void installRTPReceiverChannelAudioSettingsDefaults();
     void installRTPReceiverChannelSettingsDefaults();

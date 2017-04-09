@@ -685,7 +685,9 @@ namespace ortc
     void RTPSenderChannel::sendVideoFrame(VideoFramePtr videoFrame)
     {
       if (!mVideo) return;
+#ifndef WIN32_RX64
       mVideo->sendVideoFrame(videoFrame);
+#endif //ndef WIN32_RX64
     }
     
     //-------------------------------------------------------------------------

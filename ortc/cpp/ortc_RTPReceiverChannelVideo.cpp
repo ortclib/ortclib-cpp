@@ -300,7 +300,11 @@ namespace ortc
       }
 
       if (!channelResource) return false;
+#ifndef WIN32_RX64
       return channelResource->handlePacket(*packet);
+#else
+      return true;
+#endif //ndef WIN32_RX64
     }
 
     //-------------------------------------------------------------------------
@@ -317,7 +321,11 @@ namespace ortc
       }
 
       if (!channelResource) return false;
+#ifndef WIN32_RX64
       return channelResource->handlePacket(*packet);
+#else
+      return true;
+#endif //ndef WIN32_RX64
     }
 
     //-------------------------------------------------------------------------
@@ -333,7 +341,10 @@ namespace ortc
         promise->reject();
         return;
       }
-      return channelResource->requestStats(promise, stats);
+
+#ifndef WIN32_RX64
+      channelResource->requestStats(promise, stats);
+#endif //ndef WIN32_RX64
     }
 
 
@@ -449,13 +460,17 @@ namespace ortc
 
       while (rtpPackets.size() > 0) {
         auto packet = rtpPackets.front();
+#ifndef WIN32_RX64
         channelResource->handlePacket(*packet);
+#endif //ndef WIN32_RX64
         rtpPackets.pop();
       }
 
       while (rtcpPackets.size() > 0) {
         auto packet = rtcpPackets.front();
+#ifndef WIN32_RX64
         channelResource->handlePacket(*packet);
+#endif //ndef WIN32_RX64
         rtcpPackets.pop();
       }
     }
@@ -469,8 +484,10 @@ namespace ortc
 
       mTransportState = state;
 
+#ifndef WIN32_RX64
       if (mChannelResource)
         mChannelResource->notifyTransportState(state);
+#endif //ndef WIN32_RX64
     }
 
     //-------------------------------------------------------------------------
@@ -485,8 +502,10 @@ namespace ortc
         channelResource = mChannelResource;
       }
 
+#ifndef WIN32_RX64
       if (channelResource)
         channelResource->notifyUpdate(params);
+#endif //ndef WIN32_RX64
     }
 
     //-------------------------------------------------------------------------
@@ -671,13 +690,15 @@ namespace ortc
 
       auto packet = mQueuedRTP.front();
 
+#ifndef WIN32_RX64
       mChannelResourceLifetimeHolderPromise = UseMediaEngine::setupChannel(
-                                                          mThisWeak.lock(),
-                                                          mTransport,
-                                                          MediaStreamTrack::convert(mTrack),
-                                                          mParameters,
-                                                          packet
-                                                          );
+                                                                           mThisWeak.lock(),
+                                                                           mTransport,
+                                                                           MediaStreamTrack::convert(mTrack),
+                                                                           mParameters,
+                                                                           packet
+                                                                           );
+#endif //ndef WIN32_RX64
 
       mChannelResourceLifetimeHolderPromise->thenWeak(mThisWeak.lock());
 
@@ -711,11 +732,15 @@ namespace ortc
         return false;
       }
 
+#ifndef WIN32_RX64
       ZS_LOG_DEBUG(log("media channel is setup") + ZS_PARAM("channel", mChannelResource->getID()))
+#endif // ndef WIN32_RX64
 
       IRTPReceiverChannelVideoAsyncDelegateProxy::create(mThisWeak.lock())->onReceiverChannelVideoDeliverPackets();
 
+#ifndef WIN32_RX64
       mChannelResource->notifyTransportState(mTransportState);
+#endif //ndef WIN32_RX64
 
       return true;
     }
@@ -737,7 +762,9 @@ namespace ortc
 
       if (!mCloseChannelPromise) {
         if (mChannelResource) {
+#ifndef WIN32_RX64
           mCloseChannelPromise = mChannelResource->shutdown();
+#endif //ndef WIN32_RX64
           mCloseChannelPromise->thenWeak(mGracefulShutdownReference);
         }
       }

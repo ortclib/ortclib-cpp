@@ -209,9 +209,11 @@ namespace ortc
 
       struct VoiceEngineDeleter {
         VoiceEngineDeleter() {}
+#ifndef WIN32_RX64
         inline void operator()(webrtc::VoiceEngine* ptr) const {
           webrtc::VoiceEngine::Delete(ptr);
         }
+#endif //ndef WIN32_RX64
       };
 
     public:
