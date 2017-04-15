@@ -382,6 +382,33 @@ namespace ortc
       static const char *toString(InternalStates state);
       ISCTPTransportTypes::States toState(InternalStates state);
 
+      enum SCTPChunkTypes
+      {
+        SCTPChunkType_First = 0,
+
+        SCTPChunkType_Data = SCTPChunkType_First,
+        SCTPChunkType_Init = 1,
+        SCTPChunkType_InitAck = 2,
+        SCTPChunkType_Sack = 3,
+        SCTPChunkType_Heartbeat = 4,
+        SCTPChunkType_HeartbeatAck = 5,
+        SCTPChunkType_Abort = 6,
+        SCTPChunkType_Shutdown = 7,
+        SCTPChunkType_ShutdownAck = 8,
+        SCTPChunkType_Error = 9,
+        SCTPChunkType_CookieEcho = 10,
+        SCTPChunkType_CookieAck = 11,
+        SCTPChunkType_ECNE = 12,
+        SCTPChunkType_CWD = 13,
+        SCTPChunkType_ShutdownComplete = 14,
+
+        SCTPChunkType_Last = SCTPChunkType_ShutdownComplete,
+        SCTPChunkType_Other = 0xFF,
+      };
+      static SCTPChunkTypes getFirstSCTPChunkType(const BYTE* sctpPacket, size_t sizeInBytes);
+      static SCTPChunkTypes toSCTPChunkType(BYTE chunkType);
+      static const char *toString(SCTPChunkTypes type);
+
     public:
       SCTPTransport(
                     const make_private &,
@@ -667,6 +694,10 @@ namespace ortc
       bool mWriteReady {false};
 
       BufferQueue mPendingIncomingBuffers;
+
+      bool mReceivedInit {false};
+      bool mReceivedAck {false};
+      SecureByteBlockPtr mPreviouslySentInitAckPacket;
     };
 
     //-------------------------------------------------------------------------

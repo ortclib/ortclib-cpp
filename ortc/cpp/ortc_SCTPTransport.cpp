@@ -120,6 +120,7 @@ namespace ortc
 
     const uint32_t kMaxSctpSid = 1023;
     static const size_t kSctpMtu = 1200;
+    const size_t kSCTPFirstChunkTypePos = 12;
 
     enum PreservedErrno {
       SCTP_EINPROGRESS = EINPROGRESS,
@@ -691,6 +692,44 @@ namespace ortc
       }
       ZS_THROW_NOT_IMPLEMENTED(String("state is not implemented:") + toString(state))
       return ISCTPTransportTypes::State_Closed;
+    }
+
+    //-------------------------------------------------------------------------
+    SCTPTransport::SCTPChunkTypes SCTPTransport::getFirstSCTPChunkType(const BYTE* sctpPacket, size_t sizeInBytes)
+    {
+      if (NULL == sctpPacket) return SCTPChunkType_Other;
+      if (sizeInBytes <= kSCTPFirstChunkTypePos) return SCTPChunkType_Other;
+      return toSCTPChunkType(sctpPacket[kSCTPFirstChunkTypePos]);
+    }
+
+    //-------------------------------------------------------------------------
+    SCTPTransport::SCTPChunkTypes SCTPTransport::toSCTPChunkType(BYTE chunkType)
+    {
+      if ((chunkType >= SCTPChunkType_First) && (chunkType <= SCTPChunkType_Last)) return static_cast<SCTPTransport::SCTPChunkTypes>(static_cast<std::underlying_type<SCTPTransport::SCTPChunkTypes>::type>(chunkType));
+      return SCTPChunkType_Other;
+    }
+
+    //-------------------------------------------------------------------------
+    const char *SCTPTransport::toString(SCTPChunkTypes type)
+    {
+      switch (type) {
+        case SCTPChunkType_Data:              return "DATA";
+        case SCTPChunkType_Init:              return "INIT";
+        case SCTPChunkType_InitAck:           return "INIT ACK";
+        case SCTPChunkType_Sack:              return "SACK";
+        case SCTPChunkType_Heartbeat:         return "HEARTBEAT";
+        case SCTPChunkType_HeartbeatAck:      return "HEARTBEAT ACK";
+        case SCTPChunkType_Abort:             return "ABORT";
+        case SCTPChunkType_Shutdown:          return "SHUTDOWN";
+        case SCTPChunkType_ShutdownAck:       return "SHUTDOWN ACK";
+        case SCTPChunkType_Error:             return "ERROR";
+        case SCTPChunkType_CookieEcho:        return "COOKIE ECHO";
+        case SCTPChunkType_CookieAck:         return "COOKIE ACK";
+        case SCTPChunkType_ECNE:              return "ECNE";
+        case SCTPChunkType_CWD:               return "CWD";
+        case SCTPChunkType_ShutdownComplete:  return "SHUTDOWN COMPLETE";
+      }
+      return "OTHER";
     }
 
     //-------------------------------------------------------------------------
@@ -1404,12 +1443,64 @@ namespace ortc
             return false;
           }
 
+          auto chunkType = getFirstSCTPChunkType(buffer, bufferLengthInBytes);
+
           if (!mCapabilities) goto queue_packet;
-          if (mPendingIncomingBuffers.size() > 0) goto queue_packet;
           if (!mSocket) goto queue_packet;
 
-          usrsctp_conninput(mThisSocket, buffer, bufferLengthInBytes, 0);
+          ZS_LOG_TRACE(log("handle incoming packet from secure transport") + ZS_PARAM("first chunk type", toString(chunkType)) + ZS_PARAM("length", bufferLengthInBytes));
 
+          switch (chunkType)
+          {
+            case SCTPChunkType_Init:
+            {
+              if (mReceivedInit) {
+                auto pThis = mThisWeak.lock();
+
+                postClosure([pThis]() {
+                  // The response must be performed asynchronously because the notify send packet cannot be called from within an existing
+                  // lock and the previous ack packet is stored asynchronously into a member variable so it might not be available until
+                  // the message queue has fully processed.
+                  SecureByteBlockPtr packet;
+
+                  {
+                    AutoRecursiveLock lock(*pThis);
+                    packet = pThis->mPreviouslySentInitAckPacket;
+                  }
+
+                  if (!packet) {
+                    ZS_LOG_WARNING(Debug, pThis->log("previous sent ack packet is not available"));
+                    return;
+                  }
+                  pThis->notifySendSCTPPacket(packet->BytePtr(), packet->SizeInBytes());
+                  ZS_LOG_TRACE(pThis->log("responding with previous ack packet") + ZS_PARAM("length", packet->SizeInBytes()));
+                });
+
+                ZS_LOG_WARNING(Debug, log("discarding duplicate INIT packaget but responding with existing packet (if available)") + ZS_PARAM("has existing", ((bool)mPreviouslySentInitAckPacket)));
+                return true;
+              }
+
+              mReceivedInit = true;
+              break;
+            }
+            case SCTPChunkType_InitAck:
+            {
+              if (!mReceivedAck) {
+                // must receive the ACK state before data channels can send data
+                IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
+              }
+              mReceivedAck = true;
+              break;
+            }
+            default:
+            {
+              if (mPendingIncomingBuffers.size() > 0) goto queue_packet;
+              if (!mReceivedAck) goto queue_packet;
+              break;
+            }
+          }
+
+          usrsctp_conninput(mThisSocket, buffer, bufferLengthInBytes, 0);
           return true;
         }
 
@@ -1421,6 +1512,8 @@ namespace ortc
                         buffer, data, buffer,
                         size, size, bufferLengthInBytes
                         );
+
+          ZS_LOG_TRACE(log("handle incoming packet is being queued") + ZS_PARAM("length", bufferLengthInBytes) + ZS_PARAM("current queue size", mPendingIncomingBuffers.size()));
 
           mPendingIncomingBuffers.push(make_shared<SecureByteBlock>(buffer, bufferLengthInBytes));
           return true;
@@ -1471,6 +1564,21 @@ namespace ortc
                     buffer, data, buffer,
                     size, size, bufferLengthInBytes
                     );
+
+      auto chunkType = getFirstSCTPChunkType(buffer, bufferLengthInBytes);
+
+      ZS_LOG_TRACE(log("forwarding packet to secure transport") + ZS_PARAM("first chunk type", toString(chunkType)) +ZS_PARAM("length", bufferLengthInBytes));
+
+      if (SCTPChunkType_InitAck == chunkType) {
+        auto pThis = mThisWeak.lock();
+        auto packet = make_shared<SecureByteBlock>(buffer, bufferLengthInBytes);
+
+        postClosure([pThis, packet]() {
+          AutoRecursiveLock lock(*pThis); // lock okay here as this will be processed asynchronously and not within the context of outer notify send method
+          if (pThis->mPreviouslySentInitAckPacket) return;
+          pThis->mPreviouslySentInitAckPacket = packet;
+        });
+      }
 
       return transport->sendDataPacket(buffer, bufferLengthInBytes);
     }
@@ -1948,7 +2056,12 @@ namespace ortc
       ZS_EVENTING_1(x, i, Debug, SctpTransportStep, ol, SctpTransport, Step, puid, id, mID);
 
       if (!mConnected) {
-        ZS_LOG_TRACE(log("waiting to be connected"))
+        ZS_LOG_TRACE(log("waiting to be connected"));
+        return false;
+      }
+
+      if (!mReceivedAck) {
+        ZS_LOG_TRACE(log("waiting to receive ACK"));
         return false;
       }
 
