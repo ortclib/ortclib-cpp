@@ -1485,6 +1485,10 @@ namespace ortc
             }
             case SCTPChunkType_InitAck:
             {
+              if (!mReceivedInit) {
+                ZS_LOG_TRACE(log("do not handle ACK until INIT is received") + ZS_PARAM("length", bufferLengthInBytes));
+                goto queue_packet;
+              }
               if (!mReceivedAck) {
                 // must receive the ACK state before data channels can send data
                 IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
