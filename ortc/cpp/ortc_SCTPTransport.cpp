@@ -555,7 +555,9 @@ namespace ortc
           return -1;
         }
 
-        ISCTPTransportAsyncDelegateProxy::create(transport)->onIncomingPacket(packet);
+        transport->postClosure([transport, packet]() {
+          transport->onIncomingPacket(packet);
+        });
         return 0;
       }
       
@@ -2184,6 +2186,10 @@ namespace ortc
       mCurrentState = state;
       ZS_EVENTING_2(x, i, Detail, SctpTransportStateChangedEvent, ol, SctpTransport, StateEvent, puid, id, mID, string, state, toString(state));
       mDataChannelSubscriptions.delegate()->onSCTPTransportStateChanged();
+
+      if (InternalState_Ready == state) {
+        notifyWriteReady();
+      }
 
       auto newState = toState(mCurrentState);
       if (newState != mLastReportedState)
