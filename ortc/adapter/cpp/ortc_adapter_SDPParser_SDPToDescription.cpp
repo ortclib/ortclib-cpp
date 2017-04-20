@@ -314,7 +314,7 @@ namespace ortc
           auto &acandidate = *(*iter);
           auto candidate = convertCandidate(acandidate);
 
-          if (0 == acandidate.mComponentID) {
+          if (acandidate.mComponentID < 2) {
             outRTPCandidates.push_back(candidate);
           } else {
             if (!ioRTCPTransport) {

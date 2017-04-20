@@ -82,7 +82,7 @@ namespace ortc
 
         UseServicesHelper::debugAppend(resultEl, "ice gatherer", mGatherer ? mGatherer->getID() : 0);
         UseServicesHelper::debugAppend(resultEl, "ice transort", mTransport ? mTransport->getID() : 0);
-        UseServicesHelper::debugAppend(resultEl, "end of candidates", mRTPEndOfCandidates);
+        UseServicesHelper::debugAppend(resultEl, "end of candidates", mICEEndOfCandidates);
         UseServicesHelper::debugAppend(resultEl, "dtls transport", mDTLSTransport ? mDTLSTransport->getID() : 0);
         UseServicesHelper::debugAppend(resultEl, "srtp/sdes transport", mSRTPSDESTransport ? mSRTPSDESTransport->getID() : 0);
 
@@ -2076,6 +2076,44 @@ namespace ortc
             try {
               // scope: setup ICE
               {
+                for (auto iterCandidates = transport.mRTP->mICECandidates.begin(); iterCandidates != transport.mRTP->mICECandidates.end(); ++iterCandidates)
+                {
+                  auto &candidate = (*iterCandidates);
+                  if (!candidate) continue;
+                  auto hash = candidate->hash();
+                  if (transportInfo->mRTP.mProcessedICECandidates.end() != transportInfo->mRTP.mProcessedICECandidates.find(hash)) {
+                    transportInfo->mRTP.mProcessedICECandidates.insert(hash);
+                    transportInfo->mRTP.mTransport->addRemoteCandidate(*candidate);
+                  }
+                }
+                if (transport.mRTP->mEndOfCandidates) {
+                  if (!transportInfo->mRTP.mICEEndOfCandidates) {
+                    IICEGathererTypes::CandidateComplete complete;
+                    transportInfo->mRTP.mTransport->addRemoteCandidate(complete);
+                    transportInfo->mRTP.mICEEndOfCandidates = true;
+                  }
+                }
+
+                if (hasRTCPICE) {
+                  for (auto iterCandidates = transport.mRTCP->mICECandidates.begin(); iterCandidates != transport.mRTCP->mICECandidates.end(); ++iterCandidates)
+                  {
+                    auto &candidate = (*iterCandidates);
+                    if (!candidate) continue;
+                    auto hash = candidate->hash();
+                    if (transportInfo->mRTCP.mProcessedICECandidates.end() != transportInfo->mRTCP.mProcessedICECandidates.find(hash)) {
+                      transportInfo->mRTCP.mProcessedICECandidates.insert(hash);
+                      transportInfo->mRTCP.mTransport->addRemoteCandidate(*candidate);
+                    }
+                  }
+                  if (transport.mRTCP->mEndOfCandidates) {
+                    if (!transportInfo->mRTCP.mICEEndOfCandidates) {
+                      IICEGathererTypes::CandidateComplete complete;
+                      transportInfo->mRTCP.mTransport->addRemoteCandidate(complete);
+                      transportInfo->mRTCP.mICEEndOfCandidates = true;
+                    }
+                  }
+                }
+
                 transportInfo->mRTP.mTransport->start(transportInfo->mRTP.mGatherer, *(transport.mRTP->mICEParameters), options);
                 if (hasRTCPICE) {
                   transportInfo->mRTCP.mTransport->start(transportInfo->mRTCP.mGatherer, *useRTCPICEParams, options);
