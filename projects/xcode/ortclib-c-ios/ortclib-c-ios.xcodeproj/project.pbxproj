@@ -726,7 +726,7 @@
 		52BFF6321E9CFC5500DF88A1 /* VideoToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = VideoToolbox.framework; path = System/Library/Frameworks/VideoToolbox.framework; sourceTree = SDKROOT; };
 		52BFF63D1E9D053900DF88A1 /* libcurl.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libcurl.a; path = "../../../../curl/curl/ios-appstore/lib/libcurl.a"; sourceTree = "<group>"; };
 		52BFF63F1E9D0A1800DF88A1 /* webrtc.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = webrtc.a; path = ../../../../../../webrtc/xplatform/webrtc/out_ios/webrtc.a; sourceTree = "<group>"; };
-		52BFF6451E9D0B9200DF88A1 /* libortclib-c-ios-wrapper.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = "libortclib-c-ios-wrapper.dylib"; sourceTree = BUILT_PRODUCTS_DIR; };
+		52BFF6451E9D0B9200DF88A1 /* libOrtc.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libOrtc.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		52BFF6EF1E9D0D6F00DF88A1 /* libcryptopp-ios.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libcryptopp-ios.a"; path = "../../../../cryptopp/projects/xcode/cryptopp-ios/build/Debug-iphoneos/libcryptopp-ios.a"; sourceTree = "<group>"; };
 		52BFF6F01E9D0D6F00DF88A1 /* libidnkit-ios.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libidnkit-ios.a"; path = "../../../../idnkit/projects/xcode/idnkit-ios/build/Debug-iphoneos/libidnkit-ios.a"; sourceTree = "<group>"; };
 		52BFF6F11E9D0D6F00DF88A1 /* libortclib-ios.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = "libortclib-ios.a"; path = "../ortclib-ios/build/Debug-iphoneos/libortclib-ios.a"; sourceTree = "<group>"; };
@@ -809,7 +809,7 @@
 			isa = PBXGroup;
 			children = (
 				00216CCF1E96E939008204EA /* libortclib-c-ios.a */,
-				52BFF6451E9D0B9200DF88A1 /* libortclib-c-ios-wrapper.dylib */,
+				52BFF6451E9D0B9200DF88A1 /* libOrtc.dylib */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -1208,9 +1208,9 @@
 			productReference = 00216CCF1E96E939008204EA /* libortclib-c-ios.a */;
 			productType = "com.apple.product-type.library.static";
 		};
-		52BFF6441E9D0B9200DF88A1 /* ortclib-c-ios-wrapper */ = {
+		52BFF6441E9D0B9200DF88A1 /* Ortc */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 52BFF6461E9D0B9200DF88A1 /* Build configuration list for PBXNativeTarget "ortclib-c-ios-wrapper" */;
+			buildConfigurationList = 52BFF6461E9D0B9200DF88A1 /* Build configuration list for PBXNativeTarget "Ortc" */;
 			buildPhases = (
 				52BFF6411E9D0B9200DF88A1 /* Sources */,
 				52BFF6421E9D0B9200DF88A1 /* Frameworks */,
@@ -1221,9 +1221,9 @@
 			dependencies = (
 				529AA6521E9F90C0007ACFD2 /* PBXTargetDependency */,
 			);
-			name = "ortclib-c-ios-wrapper";
+			name = Ortc;
 			productName = "ortclib-c-ios-wrapper";
-			productReference = 52BFF6451E9D0B9200DF88A1 /* libortclib-c-ios-wrapper.dylib */;
+			productReference = 52BFF6451E9D0B9200DF88A1 /* libOrtc.dylib */;
 			productType = "com.apple.product-type.library.dynamic";
 		};
 /* End PBXNativeTarget section */
@@ -1241,6 +1241,7 @@
 					};
 					52BFF6441E9D0B9200DF88A1 = {
 						CreatedOnToolsVersion = 8.3.1;
+						DevelopmentTeam = QE9E5R8GUP;
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -1264,7 +1265,7 @@
 			projectRoot = "";
 			targets = (
 				00216CCE1E96E939008204EA /* ortclib-c-ios */,
-				52BFF6441E9D0B9200DF88A1 /* ortclib-c-ios-wrapper */,
+				52BFF6441E9D0B9200DF88A1 /* Ortc */,
 			);
 		};
 /* End PBXProject section */
@@ -1751,11 +1752,12 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = QE9E5R8GUP;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				ENABLE_BITCODE = NO;
 				EXECUTABLE_PREFIX = lib;
+				LD_DYLIB_INSTALL_NAME = "$(DYLIB_INSTALL_NAME_BASE:standardizepath)/$(EXECUTABLE_PATH)";
 				LIBRARY_SEARCH_PATHS = "../../../../curl/curl/ios-appstore/lib";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1768,11 +1770,12 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = QE9E5R8GUP;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
 				ENABLE_BITCODE = NO;
 				EXECUTABLE_PREFIX = lib;
+				LD_DYLIB_INSTALL_NAME = "$(DYLIB_INSTALL_NAME_BASE:standardizepath)/$(EXECUTABLE_PATH)";
 				LIBRARY_SEARCH_PATHS = "../../../../curl/curl/ios-appstore/lib";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1802,7 +1805,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		52BFF6461E9D0B9200DF88A1 /* Build configuration list for PBXNativeTarget "ortclib-c-ios-wrapper" */ = {
+		52BFF6461E9D0B9200DF88A1 /* Build configuration list for PBXNativeTarget "Ortc" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				52BFF6471E9D0B9200DF88A1 /* Debug */,
