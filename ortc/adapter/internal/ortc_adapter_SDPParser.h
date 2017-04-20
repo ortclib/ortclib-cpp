@@ -240,7 +240,8 @@ namespace ortc
           Direction_SendReceive = Direction_Send | Direction_Receive,
         };
 
-        static const char *toString(Directions direction);
+        static const char *toStringForA(Directions direction);
+        static const char *toStringForRID(Directions direction);
         static Directions toDirection(const char *direction);
         static bool isValid(
                             Directions direction,
@@ -492,12 +493,12 @@ namespace ortc
         };
 
         // https://tools.ietf.org/html/rfc5245#section-15.5
-        struct AICEOptionsLine : public ALine
+        struct AICEOptionsLine : public AMediaLine
         {
           StringList mTags;
 
-          AICEOptionsLine(const Noop &) {}
-          AICEOptionsLine(const char *value);
+          AICEOptionsLine(const Noop &) : AMediaLine(nullptr) {}
+          AICEOptionsLine(MLinePtr mline, const char *value);
           String toString() const;
           static String toString(const AICEOptionsLinePtr &line) { if (!line) return String(); return line->toString(); }
         };

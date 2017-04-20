@@ -336,7 +336,7 @@ namespace ortc
             case Attribute_MSIDSemantic:      info.mLineValue = make_shared<AMSIDSemanticLine>(info.mValue); break;
             case Attribute_ICEUFrag:          info.mLineValue = make_shared<AICEUFragLine>(currentMLine, info.mValue); break;
             case Attribute_ICEPwd:            info.mLineValue = make_shared<AICEPwdLine>(currentMLine, info.mValue); break;
-            case Attribute_ICEOptions:        info.mLineValue = make_shared<AICEOptionsLine>(info.mValue); break;
+            case Attribute_ICEOptions:        info.mLineValue = make_shared<AICEOptionsLine>(currentMLine, info.mValue); break;
             case Attribute_ICELite:           break;  // session level flag; struct not needed
             case Attribute_Candidate:         info.mLineValue = make_shared<ACandidateLine>(currentMLine, info.mValue); break;
             case Attribute_EndOfCandidates:   info.mLineValue = make_shared<AMediaFlagLine>(currentMLine); break;
