@@ -3155,8 +3155,8 @@ namespace ortc
             setState(IICETransport::State_Connected);
             return true;
           }
-          ZS_LOG_INSANE(debug("state is disconnected (local and remote complete, pending checks, no active route found)"))
-          setState(IICETransport::State_Disconnected);
+          ZS_LOG_INSANE(debug("state is checking (not complete, has pending checks, no active route found)"));
+          setState(IICETransport::State_Checking);
           return true;
         }
 
