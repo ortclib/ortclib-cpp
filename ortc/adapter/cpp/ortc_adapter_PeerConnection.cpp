@@ -31,6 +31,7 @@
 
 #include <ortc/adapter/internal/ortc_adapter_PeerConnection.h>
 #include <ortc/adapter/internal/ortc_adapter_MediaStream.h>
+#include <ortc/adapter/internal/ortc_adapter_SDPParser.h>
 
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/ortc_RTPTypes.h>
@@ -1979,6 +1980,55 @@ namespace ortc
             {
               auto found = mTransports.find(transport.mID);
               if (found == mTransports.end()) {
+
+                bool foundUsage = false;
+
+                // remote offered - but is it needed? if the remote bundles another transport then this one is not needed
+                for (auto iterLines = description->mRTPMediaLines.begin(); iterLines != description->mRTPMediaLines.end(); ++iterLines)
+                {
+                  auto &mediaLine = (*iterLines);
+                  if (mediaLine->mTransportID.hasData()) {
+                    if (mediaLine->mTransportID == transport.mID) foundUsage = true;
+
+                    auto foundExistingTransport = mTransports.find(mediaLine->mTransportID);
+                    if (foundExistingTransport != mTransports.end()) continue;
+                  }
+
+                  if (mediaLine->mDetails) {
+                    if (mediaLine->mDetails->mPrivateTransportID.hasData()) {
+                      if (transport.mID == mediaLine->mDetails->mPrivateTransportID) {
+                        foundUsage = true;
+                        break;
+                      }
+                    }
+                  }
+                }
+
+                for (auto iterLines = description->mSCTPMediaLines.begin(); iterLines != description->mSCTPMediaLines.end(); ++iterLines)
+                {
+                  auto &mediaLine = (*iterLines);
+                  if (mediaLine->mTransportID.hasData()) {
+                    if (mediaLine->mTransportID == transport.mID) foundUsage = true;
+
+                    auto foundExistingTransport = mTransports.find(mediaLine->mTransportID);
+                    if (foundExistingTransport != mTransports.end()) continue;
+                  }
+
+                  if (mediaLine->mDetails) {
+                    if (mediaLine->mDetails->mPrivateTransportID.hasData()) {
+                      if (transport.mID == mediaLine->mDetails->mPrivateTransportID) {
+                        foundUsage = true;
+                        break;
+                      }
+                    }
+                  }
+                }
+
+                if (!foundUsage) {
+                  ZS_LOG_DEBUG(log("transport offered but media lines only use bundled usages thus transport offered is not needed") + transportInfo->toDebug());
+                  continue;
+                }
+
                 // no matching local transport, create one
                 transportInfo = getTransportFromPool(transport.mID);
                 transportInfo->mNegotiationState = NegotiationState_RemoteOffered;
@@ -2276,13 +2326,20 @@ namespace ortc
               }
             }
 
+            if (mediaLine.mDetails) {
+              switch (mediaLine.mDetails->mMediaDirection)
+              {
+                case ISDPTypes::Direction_SendReceive: mediaLineInfo->mDirection = ISessionDescriptionTypes::MediaDirection_SendReceive; break;
+                case ISDPTypes::Direction_None:
+                case ISDPTypes::Direction_Send:        mediaLineInfo->mDirection = ISessionDescriptionTypes::MediaDirection_ReceiveOnly; break;
+                case ISDPTypes::Direction_Receive:     mediaLineInfo->mDirection = ISessionDescriptionTypes::MediaDirection_SendOnly; break;
+              }
+            }
             mediaLineInfo->mMediaType = mediaLine.mMediaType;
             mediaLineInfo->mBundledTransportID = mediaLine.mTransportID;
             mediaLineInfo->mPrivateTransportID = mediaLine.mDetails ? mediaLine.mDetails->mPrivateTransportID : String();
             mediaLineInfo->mRemoteSenderCapabilities = make_shared<IRTPTypes::Capabilities>(*mediaLine.mSenderCapabilities);
             mediaLineInfo->mRemoteReceiverCapabilities = make_shared<IRTPTypes::Capabilities>(*mediaLine.mReceiverCapabilities);
-            mediaLineInfo->mBundledTransportID = mediaLine.mTransportID;
-            mediaLineInfo->mPrivateTransportID = mediaLine.mDetails ? mediaLine.mDetails->mPrivateTransportID : String();
 
             if ((!mediaLineInfo->mRemoteSenderCapabilities) ||
                 (!mediaLineInfo->mRemoteReceiverCapabilities)) {
@@ -2447,14 +2504,24 @@ namespace ortc
               goto reject_sender;
             }
 
+            IRTPTransportPtr useRtpTransport = (transportInfo->mRTP.mDTLSTransport ? IRTPTransportPtr(transportInfo->mRTP.mDTLSTransport) : IRTPTransportPtr(transportInfo->mRTP.mSRTPSDESTransport));
+            IRTCPTransportPtr useRtcpTransport = (transportInfo->mRTP.mDTLSTransport ? IRTCPTransportPtr(transportInfo->mRTCP.mDTLSTransport) : IRTCPTransportPtr(transportInfo->mRTCP.mTransport));
+
             if (!receiverInfo->mReceiver) {
               receiverInfo->mReceiver = IRTPReceiver::create(
                                                              mThisWeak.lock(),
                                                              IMediaStreamTrackTypes::toKind(mediaLine->mMediaType),
-                                                             transportInfo->mRTP.mDTLSTransport ? IRTPTransportPtr(transportInfo->mRTP.mDTLSTransport) : IRTPTransportPtr(transportInfo->mRTP.mSRTPSDESTransport),
-                                                             transportInfo->mRTP.mDTLSTransport ? IRTCPTransportPtr(transportInfo->mRTCP.mDTLSTransport) : IRTCPTransportPtr(transportInfo->mRTCP.mTransport)
+                                                             useRtpTransport,
+                                                             useRtcpTransport
                                                              );
               eventReceiver = true;
+            }
+
+            auto existingTransport = receiverInfo->mReceiver->transport();
+            PUID existingTransportID = (existingTransport ? existingTransport->getID() : 0);
+            PUID useTransportID = (useRtpTransport ? useRtpTransport->getID() : 0);
+            if (existingTransportID != useTransportID) {
+              receiverInfo->mReceiver->setTransport(useRtpTransport, useRtcpTransport);
             }
 
             try {
@@ -2467,7 +2534,6 @@ namespace ortc
               ZS_LOG_WARNING(Debug, log("invalid state when calling receiver.receive()"));
               goto reject_sender;
             }
-
 
             auto existingSet = convertToSet(receiverInfo->mMediaStreams);
 
@@ -2639,6 +2705,7 @@ namespace ortc
                 }
                 mediaLineInfo->mSCTPTransport = ISCTPTransport::create(mThisWeak.lock(), transportInfo->mRTP.mDTLSTransport, mediaLine.mPort);
               }
+
               if (!mediaLineInfo->mRemotePort.hasValue()) {
                 mediaLineInfo->mRemotePort = mediaLine.mPort;
                 mediaLineInfo->mSCTPTransport->start(*mediaLine.mCapabilities, mediaLine.mPort);
@@ -3450,7 +3517,7 @@ namespace ortc
         ZS_LOG_TRACE(log("step - create offer"));
 
         if (mPendingMethods.size() < 1) {
-          ZS_LOG_TRACE(log("skipping step to creeate offer (no pending methods)"));
+          ZS_LOG_TRACE(log("skipping step to create offer (no pending methods)"));
           return true;
         }
 
@@ -3523,8 +3590,8 @@ namespace ortc
             transport->mRTCP = make_shared<ISessionDescription::Transport::Parameters>();
 
             // always get end of candidates state before candidates
-            transport->mRTP->mEndOfCandidates = (IICEGathererTypes::State_Complete == transportInfo->mRTCP.mGatherer->state());
-            transport->mRTP->mICECandidates = *convertCandidateList(*(transportInfo->mRTCP.mGatherer->getLocalCandidates()));
+            transport->mRTCP->mEndOfCandidates = (IICEGathererTypes::State_Complete == transportInfo->mRTCP.mGatherer->state());
+            transport->mRTCP->mICECandidates = *convertCandidateList(*(transportInfo->mRTCP.mGatherer->getLocalCandidates()));
           }
           transport->mUseMux = true;
 
@@ -3542,6 +3609,7 @@ namespace ortc
           if ((isSDP) ||
               (mediaInfo->mPrivateTransportID.hasData())) {
             mediaLine->mDetails = make_shared<ISessionDescriptionTypes::RTPMediaLine::Details>();
+            mediaLine->mDetails->mMediaDirection = mediaInfo->mDirection;
             mediaLine->mDetails->mPrivateTransportID = mediaInfo->mPrivateTransportID;
             if (isSDP) {
               mediaLine->mDetails->mInternalIndex = mediaInfo->mLineIndex;
@@ -3971,6 +4039,15 @@ namespace ortc
 
         for (auto iter = mTransports.begin(); iter != mTransports.end(); ++iter) {
           auto &transportInfo = (*iter).second;
+          
+          switch (transportInfo->mNegotiationState)
+          {
+            case NegotiationState_PendingOffer:
+            case NegotiationState_Agreed:
+            case NegotiationState_LocalOffered:
+            case NegotiationState_RemoteOffered:    break;
+            case NegotiationState_Rejected:         continue;
+          }
 
           figureOutState(iceTransportStateCount, transportInfo->mRTP.mTransport);
           figureOutState(iceTransportStateCount, transportInfo->mRTCP.mTransport);

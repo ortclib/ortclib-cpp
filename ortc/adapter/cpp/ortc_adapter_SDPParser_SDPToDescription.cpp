@@ -473,7 +473,7 @@ namespace ortc
           bool found = false;
           for (auto iter = description.mTransports.begin(); iter != description.mTransports.end(); ++iter) {
             auto &transport = *(*iter);
-            if (transport.mID != foundBundleID) continue;
+            if (transport.mID != searchForTransportID) continue;
             mediaLine.mTransportID = foundBundleID;
             found = true;
           }

@@ -226,6 +226,8 @@ namespace ortc
         {
           String mMediaType;
 
+          ISessionDescriptionTypes::MediaDirections mDirection {ISessionDescriptionTypes::MediaDirection_SendReceive};
+           
           IHelper::IDPreferences mIDPreference {IHelper::IDPreference_First};
           IRTPTypes::CapabilitiesPtr mLocalSenderCapabilities;
           IRTPTypes::CapabilitiesPtr mLocalReceiverCapabilities;
