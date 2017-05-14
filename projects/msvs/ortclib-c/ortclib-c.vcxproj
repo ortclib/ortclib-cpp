@@ -185,9 +185,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <Text Include="ReadMe.txt" />
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_helpers.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_adapter_MediaStream.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_adapter_RTCAnswerOptions.h" />
