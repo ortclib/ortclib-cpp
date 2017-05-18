@@ -398,13 +398,15 @@ namespace ortc
       }
       delete info;
 
+      webrtc::AudioDeviceModule::AudioLayer audioLayer;
 #ifdef WINRT
-      rtc::scoped_refptr<webrtc::AudioDeviceModule> audioDevice =
-        webrtc::AudioDeviceModuleImpl::Create(1, webrtc::AudioDeviceModule::kWindowsWasapiAudio);
+      audioLayer = webrtc::AudioDeviceModule::kWindowsWasapiAudio;
 #else
-      rtc::scoped_refptr<webrtc::AudioDeviceModule> audioDevice =
-        webrtc::AudioDeviceModuleImpl::Create(1, webrtc::AudioDeviceModule::kWindowsCoreAudio);
+      audioLayer = webrtc::AudioDeviceModule::kPlatformDefaultAudio;
 #endif
+
+      rtc::scoped_refptr<webrtc::AudioDeviceModule> audioDevice =
+        webrtc::AudioDeviceModuleImpl::Create(1, audioLayer);
       if (!audioDevice) {
         promise->reject();
         return;
