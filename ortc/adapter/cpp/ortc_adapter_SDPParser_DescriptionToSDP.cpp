@@ -170,26 +170,42 @@ namespace ortc
 
         ORTC_THROW_INVALID_PARAMETERS_IF(!mediaLine.mDetails);
 
+        bool foundPort = false;
+
         mline.mMedia = mediaLine.mMediaType;
         mline.mPort = 9;
         mline.mProtoStr = mediaLine.mDetails->mProtocol;
         mline.mProto = ISDPTypes::toProtocolType(mline.mProtoStr);
 
-        // figure out the port based upon the associated transport's ICE candidates
-        for (auto iter = description.mTransports.begin(); iter != description.mTransports.end(); ++iter) {
-          auto &transport = *(*iter);
-          if (0 != transport.mID.compareNoCase(mediaLine.mTransportID)) continue;
-
-          if (!transport.mRTP) break;
-          if (transport.mRTP->mICECandidates.size() < 1) break;
-
-          for (auto iterCandidate = transport.mRTP->mICECandidates.begin(); iterCandidate != transport.mRTP->mICECandidates.end(); ++iterCandidate) {
-            auto &candidate = *(*iterCandidate);
-            if (IICETypes::CandidateType_Host != candidate.mCandidateType) continue;
-            mline.mPort = candidate.mPort;
+        if (mediaLine.mDetails) {
+          if (mediaLine.mDetails->mConnectionData) {
+            if (mediaLine.mDetails->mConnectionData->mRTP) {
+              if (mediaLine.mDetails->mConnectionData->mRTP->mPort.hasValue()) {
+                mline.mPort = mediaLine.mDetails->mConnectionData->mRTP->mPort.value();
+                foundPort = true;
+              }
+            }
           }
+        }
 
-          if (9 != mline.mPort) break;
+        if (!foundPort) {
+          // figure out the port based upon the associated transport's ICE candidates
+          for (auto iter = description.mTransports.begin(); iter != description.mTransports.end(); ++iter) {
+            auto &transport = *(*iter);
+            if (0 != transport.mID.compareNoCase(mediaLine.mTransportID)) continue;
+
+            if (!transport.mRTP) break;
+            if (transport.mRTP->mICECandidates.size() < 1) break;
+
+            for (auto iterCandidate = transport.mRTP->mICECandidates.begin(); iterCandidate != transport.mRTP->mICECandidates.end(); ++iterCandidate) {
+              auto &candidate = *(*iterCandidate);
+              if (IICETypes::CandidateType_Host != candidate.mCandidateType) continue;
+              mline.mPort = candidate.mPort;
+              break;
+            }
+
+            if (9 != mline.mPort) break;
+          }
         }
       }
 

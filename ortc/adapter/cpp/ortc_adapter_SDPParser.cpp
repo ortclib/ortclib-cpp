@@ -363,7 +363,7 @@ namespace ortc
           case Attribute_MSIDSemantic:      return AttributeLevel_Session;
           case Attribute_ICEUFrag:          return AttributeLevel_SessionAndMedia;
           case Attribute_ICEPwd:            return AttributeLevel_SessionAndMedia;
-          case Attribute_ICEOptions:        return AttributeLevel_Session;
+          case Attribute_ICEOptions:        return AttributeLevel_SessionAndMedia;
           case Attribute_ICELite:           return AttributeLevel_Session;
           case Attribute_Candidate:         return AttributeLevel_Media;
           case Attribute_EndOfCandidates:   return AttributeLevel_Media;
@@ -436,7 +436,21 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      const char *ISDPTypes::toString(Directions direction)
+      const char *ISDPTypes::toStringForA(Directions direction)
+      {
+        switch (direction)
+        {
+        case Direction_None:        return "inactive";
+        case Direction_Send:        return "sendonly";
+        case Direction_Receive:     return "recvonly";
+        case Direction_SendReceive: return "sendrecv";
+        }
+
+        ORTC_THROW_NOT_SUPPORTED_ERRROR("unknown direction");
+      }
+
+      //-----------------------------------------------------------------------
+      const char *ISDPTypes::toStringForRID(Directions direction)
       {
         switch (direction)
         {
@@ -464,7 +478,10 @@ namespace ortc
         if (str.isEmpty()) return Direction_None;
 
         for (size_t index = 0; index <= (sizeof(check)/sizeof(check[0])); ++index) {
-          if (0 == str.compareNoCase(toString(check[index]))) return check[index];
+          if (0 == str.compareNoCase(toStringForA(check[index]))) return check[index];
+        }
+        for (size_t index = 0; index <= (sizeof(check) / sizeof(check[0])); ++index) {
+          if (0 == str.compareNoCase(toStringForRID(check[index]))) return check[index];
         }
 
         ORTC_THROW_INVALID_PARAMETERS("Invalid parameter value: " + str);
@@ -887,7 +904,8 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      ISDPTypes::AICEOptionsLine::AICEOptionsLine(const char *value)
+      ISDPTypes::AICEOptionsLine::AICEOptionsLine(MLinePtr mline, const char *value) :
+        AMediaLine(mline)
       {
         IHelper::SplitMap split;
         IHelper::split(String(value), split, " ");
@@ -1187,7 +1205,7 @@ namespace ortc
           case Direction_Send:
           case Direction_Receive:       {
             result.append("/");
-            result.append(ISDPTypes::toString(mDirection));
+            result.append(ISDPTypes::toStringForA(mDirection));
             break;
           }
         }
@@ -1583,7 +1601,7 @@ namespace ortc
           case ISDPTypes::Direction_None:
           case ISDPTypes::Direction_SendReceive:  return String();
           case ISDPTypes::Direction_Send:         
-          case ISDPTypes::Direction_Receive:      result.append(ISDPTypes::toString(mDirection)); break;
+          case ISDPTypes::Direction_Receive:      result.append(ISDPTypes::toStringForRID(mDirection)); break;
         }
         bool inserted = false;
         if (mPayloadTypes.size() > 0) {

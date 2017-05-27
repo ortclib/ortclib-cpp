@@ -179,13 +179,16 @@ namespace ortc
         typedef std::map<PUID, DataChannelInfoPtr> DataChannelMap;
         ZS_DECLARE_PTR(DataChannelMap);
 
+        typedef std::set<String> HashSet;
+
         struct TransportInfo
         {
           struct Details
           {
             IICEGathererPtr mGatherer;
             IICETransportPtr mTransport;
-            bool mRTPEndOfCandidates {false};
+            HashSet mProcessedICECandidates;
+            bool mICEEndOfCandidates {false};
 
             IDTLSTransportPtr mDTLSTransport;
             ISRTPSDESTransportPtr mSRTPSDESTransport;
@@ -223,6 +226,8 @@ namespace ortc
         {
           String mMediaType;
 
+          ISessionDescriptionTypes::MediaDirections mDirection {ISessionDescriptionTypes::MediaDirection_SendReceive};
+           
           IHelper::IDPreferences mIDPreference {IHelper::IDPreference_First};
           IRTPTypes::CapabilitiesPtr mLocalSenderCapabilities;
           IRTPTypes::CapabilitiesPtr mLocalReceiverCapabilities;
