@@ -340,6 +340,12 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    bool ORTC::isMRPInstalled()
+    {
+      return IRTPMediaEngineForORTC::isMRPInstalled();
+    }
+
+    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -560,6 +566,14 @@ namespace ortc
     auto singleton = internal::ORTC::singleton();
     if (!singleton) return false;
     return singleton->saveMediaTrace(host, port);
+  }
+
+  //-------------------------------------------------------------------------
+  bool IORTC::isMRPInstalled()
+  {
+    auto singleton = internal::ORTC::singleton();
+    if (!singleton) return false;
+    return singleton->isMRPInstalled();
   }
 
 }

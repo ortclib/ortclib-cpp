@@ -59,6 +59,8 @@
 #include <float.h>
 #include <math.h>
 
+#include <mfapi.h>
+
 #include <webrtc/base/timeutils.h>
 #include <webrtc/base/event_tracer.h>
 #include <webrtc/voice_engine/include/voe_codec.h>
@@ -72,6 +74,8 @@
 #ifdef WINRT
 #include <third_party/h264_winrt/h264_winrt_factory.h>
 #endif
+
+#pragma comment(lib, "mfplat")
 
 #ifdef _DEBUG
 #define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))
@@ -378,6 +382,12 @@ namespace ortc
     bool IRTPMediaEngineForORTC::saveMediaTrace(String host, int port)
     {
       return RTPMediaEngine::saveMediaTrace(host, port);
+    }
+
+    //-------------------------------------------------------------------------
+    bool IRTPMediaEngineForORTC::isMRPInstalled()
+    {
+      return RTPMediaEngine::isMRPInstalled();
     }
 
     //-------------------------------------------------------------------------
@@ -763,6 +773,16 @@ namespace ortc
       auto engine = RTPMediaEngineSingleton::getEngineIfAlive();
       if (engine) {
         return engine->internalSaveMediaTrace(host, port);
+      }
+      return false;
+    }
+
+    //-------------------------------------------------------------------------
+    bool RTPMediaEngine::isMRPInstalled()
+    {
+      auto engine = RTPMediaEngineSingleton::getEngineIfAlive();
+      if (engine) {
+        return engine->internalIsMRPInstalled();
       }
       return false;
     }
@@ -1279,6 +1299,25 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    bool RTPMediaEngine::internalIsMRPInstalled()
+    {
+      static bool isMRPInstalledValueSet = false;
+      static bool isMRPInstalled = false;
+
+      if (isMRPInstalledValueSet)
+        return isMRPInstalled;
+
+      // MFStartup fails when Media Resource Pack is not installed.
+      if (SUCCEEDED(MFStartup(MF_VERSION)))
+      {
+        MFShutdown();
+        isMRPInstalled = true;
+        isMRPInstalledValueSet = true;
+      }
+      return isMRPInstalled;
+    }
+
+    //-------------------------------------------------------------------------
     bool RTPMediaEngine::isReady() const
     {
       return State_Ready == mCurrentState;
@@ -1338,6 +1377,9 @@ namespace ortc
         return true;
       }
 
+      if (!isMRPInstalled())
+        return true;
+
       mVoiceEngine = rtc::scoped_ptr<webrtc::VoiceEngine, VoiceEngineDeleter>(webrtc::VoiceEngine::Create());
 
       webrtc::VoEBase::GetInterface(mVoiceEngine.get())->Init();
@@ -1379,6 +1421,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool RTPMediaEngine::stepSetupDevices()
     {
+      if (!isMRPInstalled())
+        return true;
+
       while (mPendingSetupDeviceResources.size() > 0) {
         auto deviceResource = mPendingSetupDeviceResources.front();
 
@@ -1393,6 +1438,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool RTPMediaEngine::stepCloseDevices()
     {
+      if (!isMRPInstalled())
+        return true;
+
       while (mPendingCloseDeviceResources.size() > 0) {
         auto deviceResource = mPendingCloseDeviceResources.front();
 
@@ -1407,6 +1455,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool RTPMediaEngine::stepSetupChannels()
     {
+      if (!isMRPInstalled())
+        return true;
+
       while (mPendingSetupChannelResources.size() > 0) {
         auto channelResource = mPendingSetupChannelResources.front();
 
@@ -1421,6 +1472,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool RTPMediaEngine::stepCloseChannels()
     {
+      if (!isMRPInstalled())
+        return true;
+
       while (mPendingCloseChannelResources.size() > 0) {
         auto channelResource = mPendingCloseChannelResources.front();
 
