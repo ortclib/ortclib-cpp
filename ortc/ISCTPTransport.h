@@ -46,7 +46,9 @@ namespace ortc
   
   interaction ISCTPTransportTypes
   {
-    ZS_DECLARE_STRUCT_PTR(Capabilities)
+    ZS_DECLARE_STRUCT_PTR(Capabilities);
+    ZS_DECLARE_STRUCT_PTR(SocketOptions);
+    ZS_DECLARE_TYPEDEF_PTR(zsLib::PromiseWith<SocketOptions>, PromiseWithSocketOptions);
 
     enum States
     {
@@ -83,6 +85,89 @@ namespace ortc
 
       ElementPtr toDebug() const;
       String hash() const;
+    };
+
+    // Example set:
+    // ISCTPTransportTypes::SocketOptions options;
+    // ISCTPTransportTypes::SocketOptions::RTO rto;
+    // rto.initial = Milliseconds(1000);
+    // options.mRTO = rto;
+    // transport->setOptions(options);
+    //
+    // Example get:
+    // ISCTPTransportTypes::SocketOptions options;
+    // ISCTPTransportTypes::SocketOptions::RTO rto;
+    // options.mRTO = rto; // set the structure of interest
+    // transport->getOptions(options);
+    // auto min = options.mRTO.value().min;
+    struct SocketOptions : public Any
+    {
+      // see SCTP_RTOINFO / sctp_rtoinfo
+      struct RTO
+      {
+        Milliseconds initial_ {3000};
+        Milliseconds max_ {60000};
+        Milliseconds min_ {1000};
+      };
+
+      // see SCTP_ASSOCINFO / sctp_assocparams
+      struct AssocParams
+      {
+        uint32_t peer_rwnd_ {};
+        uint32_t local_rwnd_ {};
+        uint32_t cookie_life_ {};
+        uint16_t asocmaxrxt_ {};
+        uint16_t number_peer_destinations_ {};
+      };
+
+      // see SCTP_INITMSG / sctp_initmsg
+      struct InitMsg {
+        uint16_t num_ostreams_ {};
+        uint16_t max_instreams_ {};
+        uint16_t max_attempts_ {};
+        Milliseconds max_init_timeo_ {};
+      };
+
+      // see SCTP_PEER_ADDR_PARAMS / sctp_peer_addr_params
+      struct PAddrParams {
+        Optional<bool> hb_demand_;    // send user heartbeat immediately
+        Optional<bool> hb_enabled_;   // heartbeat enabled
+        Optional<bool> hb_is_zero_;   // heartbeat delay is zero
+        Milliseconds hbinterval_;     // heartbeat interval
+        uint16_t pathmaxrxt_ {};      // max number of retransmissions before this address is considered unreachable 
+      };
+
+      // see SCTP_DELAYED_SACK / sctp_sack_info
+      struct SackInfo {
+        Milliseconds delay_ {};
+        uint32_t freq_ {};
+      };
+
+      // see SCTP_STATUS / sctp_status
+      struct Status {
+        int32_t  state_ {};
+        uint32_t rwnd_ {};
+        uint16_t unackdata_ {};
+        uint16_t penddata_ {};
+        uint16_t instrms_ {};
+        uint16_t outstrms_ {};
+        uint32_t fragmentation_point_ {};
+      };
+
+      Optional<RTO> mRTO;
+      Optional<AssocParams> mAssocParams;
+      Optional<InitMsg> mInitMsg;
+      Optional<Seconds> mAutoClose;  // see SCTP_AUTOCLOSE (0 seconds = no auto close)
+      Optional<bool> mDisableFragments; // see SCTP_DISABLE_FRAGMENTS
+      Optional<PAddrParams> mPAddrParams;
+      Optional<uint32_t> mMaxSeg; // see SCTP_MAXSEG
+      Optional<int> mFragmentInterleave; // see SCTP_FRAGMENT_INTERLEAVE
+      Optional<uint32_t> mPartialDeliveryPoint; // see SCTP_PARTIAL_DELIVERY_POINT
+      Optional<bool> mAutoASCONF; // see SCTP_AUTO_ASCONF
+      Optional<uint32_t> mMaximumBurst; // see SCTP_MAX_BURST
+      Optional<uint32_t> mContext; // see SCTP_CONTEXT
+      Optional<SackInfo> mSackInfo;
+      Optional<Status> mStatus;
     };
   };
 
@@ -124,6 +209,9 @@ namespace ortc
 
     virtual WORD localPort() const = 0;
     virtual Optional<WORD> remotePort() const = 0;
+
+    virtual PromiseWithSocketOptionsPtr getOptions(const SocketOptions &inWhichOptions) = 0;
+    virtual PromisePtr setOptions(const SocketOptions &inOptions) = 0;
 
     virtual void start(
                        const Capabilities &remoteCapabilities,
