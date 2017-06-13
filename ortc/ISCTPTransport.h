@@ -168,6 +168,8 @@ namespace ortc
       Optional<uint32_t> mContext; // see SCTP_CONTEXT
       Optional<SackInfo> mSackInfo;
       Optional<Status> mStatus;
+
+      bool hasValue() const;
     };
   };
 

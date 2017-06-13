@@ -114,9 +114,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-#pragma mark
-#pragma mark (helpers)
-#pragma mark
+    #pragma mark
+    #pragma mark (helpers)
+    #pragma mark
 
     const uint32_t kMaxSctpSid = 1023;
     static const size_t kSctpMtu = 1200;
@@ -146,11 +146,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-#pragma mark
-#pragma mark SCTPPacketIncoming
-#pragma mark
+    #pragma mark
+    #pragma mark SCTPPacketIncoming
+    #pragma mark
 
-//---------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
     ElementPtr SCTPPacketIncoming::toDebug() const
     {
       ElementPtr resultEl = Element::create("ortc::SCTPPacketIncoming");
@@ -169,11 +169,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-#pragma mark
-#pragma mark SCTPPacketOutgoing
-#pragma mark
+    #pragma mark
+    #pragma mark SCTPPacketOutgoing
+    #pragma mark
 
-//---------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
     ElementPtr SCTPPacketOutgoing::toDebug() const
     {
       ElementPtr resultEl = Element::create("ortc::SCTPPacketOutgoing");
@@ -192,9 +192,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-#pragma mark
-#pragma mark SCTPHelper
-#pragma mark
+    #pragma mark
+    #pragma mark SCTPHelper
+    #pragma mark
 
     struct SCTPHelper
     {
@@ -3143,6 +3143,35 @@ namespace ortc
     hasher->update(":");
     hasher->update(mMaxSessionsPerPort);
     return hasher->finalizeAsString();
+  }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark ISCTPTransportTypes::SocketOptions
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  bool ISCTPTransportTypes::SocketOptions::hasValue() const
+  {
+    if (mRTO.hasValue() ||
+        mAssocParams.hasValue() ||
+        mInitMsg.hasValue() ||
+        mAutoClose.hasValue() ||
+        mDisableFragments.hasValue() ||
+        mPAddrParams.hasValue() ||
+        mMaxSeg.hasValue() ||
+        mFragmentInterleave.hasValue() ||
+        mPartialDeliveryPoint.hasValue() ||
+        mAutoASCONF.hasValue() ||
+        mMaximumBurst.hasValue() ||
+        mContext.hasValue() ||
+        mSackInfo.hasValue() ||
+        mStatus.hasValue()) return true;
+
+    return false;
   }
 
   //---------------------------------------------------------------------------
