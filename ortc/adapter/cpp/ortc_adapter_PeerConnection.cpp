@@ -2601,8 +2601,7 @@ namespace ortc
                 }
                 mediaLineInfo->mSCTPTransport = ISCTPTransport::create(mThisWeak.lock(), transportInfo->mRTP.mDTLSTransport, mediaLine.mPort);
                 if (mConfiguration.mSCTPSocketOptions.hasValue()) {
-                  auto promise = mediaLineInfo->mSCTPTransport->setOptions(mConfiguration.mSCTPSocketOptions);
-                  promise->background();
+                  mediaLineInfo->mSCTPTransport->setOptions(mConfiguration.mSCTPSocketOptions);
                 }
               }
               if (!mediaLineInfo->mRemotePort.hasValue()) {
