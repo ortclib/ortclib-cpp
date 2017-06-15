@@ -38,6 +38,7 @@
 #include <ortc/IICEGatherer.h>
 #include <ortc/IICETransport.h>
 #include <ortc/IDataChannel.h>
+#include <ortc/ISCTPTransport.h>
 
 namespace ortc
 {
@@ -163,6 +164,8 @@ namespace ortc
         RTCPMuxPolicies mRTCPMuxPolicy {RTCPMuxPolicy_Require};
         CertificateList mCertificates;
         size_t mICECandidatePoolSize {};
+
+        ISCTPTransportTypes::SocketOptions mSCTPSocketOptions;
 
         Configuration() {}
         Configuration(const Configuration &op2);

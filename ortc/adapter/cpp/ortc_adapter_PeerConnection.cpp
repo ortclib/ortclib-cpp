@@ -2600,6 +2600,9 @@ namespace ortc
                   mExistingLocalPorts.insert(mediaLine.mPort);
                 }
                 mediaLineInfo->mSCTPTransport = ISCTPTransport::create(mThisWeak.lock(), transportInfo->mRTP.mDTLSTransport, mediaLine.mPort);
+                if (mConfiguration.mSCTPSocketOptions.hasValue()) {
+                  mediaLineInfo->mSCTPTransport->setOptions(mConfiguration.mSCTPSocketOptions);
+                }
               }
               if (!mediaLineInfo->mRemotePort.hasValue()) {
                 mediaLineInfo->mRemotePort = mediaLine.mPort;
@@ -4919,7 +4922,8 @@ namespace ortc
       mSignalingMode(op2.mSignalingMode),
       mBundlePolicy(op2.mBundlePolicy),
       mRTCPMuxPolicy(op2.mRTCPMuxPolicy),
-      mCertificates(op2.mCertificates)
+      mCertificates(op2.mCertificates),
+      mSCTPSocketOptions(op2.mSCTPSocketOptions)
     {
     }
 
