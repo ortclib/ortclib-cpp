@@ -943,7 +943,7 @@ namespace ortc
       #pragma mark RTPMediaEngine => webrtc::SetupEventTracer
       #pragma mark
 
-#if defined(WINRT)
+#if defined(WINUWP)
       static const unsigned char *GetCategoryGroupEnabled(const char *categoryGroup);
 
       static void __cdecl AddTraceEvent(

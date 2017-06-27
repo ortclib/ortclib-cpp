@@ -84,9 +84,9 @@
 #pragma comment(lib, "Iphlpapi.lib")
 #endif //HAVE_IPHLPAPI_H
 
-#ifdef WINRT
+#ifdef WINUWP
 using namespace Windows::Networking::Connectivity;
-#endif //WINRT
+#endif //WINUWP
 
 #ifdef __APPLE__
 #include <TargetConditionals.h>
@@ -2681,7 +2681,7 @@ namespace ortc
 
       mResolvedHostIPs.clear();
 
-      stepGetHostIPs_WinRT();
+      stepGetHostIPs_WinUWP();
       stepGetHostIPs_Win32();
       stepGetHostIPs_ifaddr();
 
@@ -2696,14 +2696,14 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void ICEGatherer::stepGetHostIPs_WinRT()
+    void ICEGatherer::stepGetHostIPs_WinUWP()
     {
-#if defined(WINRT) && !defined(HAVE_GETADAPTERADDRESSES)
+#if defined(WINUWP) && !defined(HAVE_GETADAPTERADDRESSES)
       ZS_EVENTING_1(x, i, Debug, IceGathererStep, ol, IceGatherer, Step, puid, id, mID);
 
       // http://stackoverflow.com/questions/10336521/query-local-ip-address
 
-      // Use WinRT GetHostNames to search for IP addresses
+      // Use WinUWP GetHostNames to search for IP addresses
       {
         typedef std::map<String, bool> HostNameMap;
         typedef std::list<ConnectionProfile ^> ConnectionProfileList;
@@ -2823,7 +2823,7 @@ namespace ortc
           }
         }
       }
-#endif //defined(WINRT) && !defined(HAVE_GETADAPTERADDRESSES)
+#endif //defined(WINUWP) && !defined(HAVE_GETADAPTERADDRESSES)
     }
     
     //-------------------------------------------------------------------------

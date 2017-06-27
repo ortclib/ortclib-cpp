@@ -58,20 +58,20 @@
 #include <Iphlpapi.h>
 #endif //HAVE_IPHLPAPI_H
 
-#ifdef WINRT
+#ifdef WINUWP
 using namespace Windows::Networking::Connectivity;
-#endif //WINRT
+#endif //WINUWP
 
-#ifdef WINRT
+#ifdef WINUWP
 #include <ppltasks.h>
-#endif //WINRT
+#endif //WINUWP
 
-#if defined(WINRT) && !defined(HAVE_GETADAPTERADDRESSES)
+#if defined(WINUWP) && !defined(HAVE_GETADAPTERADDRESSES)
 using Windows::Foundation::Collections::IVectorView;
 using namespace concurrency;
 using Windows::Networking::HostNameType;
 using namespace Windows::UI::Core;
-#endif //defined(WINRT) && !defined(HAVE_GETADAPTERADDRESSES)
+#endif //defined(WINUWP) && !defined(HAVE_GETADAPTERADDRESSES)
 
 
 namespace ortc { namespace test { ZS_DECLARE_SUBSYSTEM(ortc_test) } }
@@ -109,7 +109,7 @@ namespace ortc
         {
           calculateInterfaces_ifaddr();
           calculateInterfaces_Win32();
-          calculateInterfaces_WinRT();
+          calculateInterfaces_WinUWP();
 
           UseSettings::setUInt("tester/total-host-ips", mTotalHostIPs);
         }
@@ -278,16 +278,16 @@ namespace ortc
         }
 
         //-------------------------------------------------------------------------
-        void calculateInterfaces_WinRT()
+        void calculateInterfaces_WinUWP()
         {
-#if defined(WINRT) && !defined(HAVE_GETADAPTERADDRESSES)
+#if defined(WINUWP) && !defined(HAVE_GETADAPTERADDRESSES)
           typedef Windows::Networking::Sockets::DatagramSocket DatagramSocket;
           typedef Windows::Networking::HostName HostName;
           typedef Windows::Networking::EndpointPair EndpointPair;
 
           // http://stackoverflow.com/questions/10336521/query-local-ip-address
 
-          // Use WinRT GetHostNames to search for IP addresses
+          // Use WinUWP GetHostNames to search for IP addresses
       {
         typedef std::map<String, bool> HostNameMap;
         typedef std::list<ConnectionProfile ^> ConnectionProfileList;
@@ -533,7 +533,7 @@ namespace ortc
 
         mTotalHostIPs = mFoundIPs.size();
       }
-#endif //defined(WINRT) && !defined(HAVE_GETADAPTERADDRESSES)
+#endif //defined(WINUWP) && !defined(HAVE_GETADAPTERADDRESSES)
         }
 
 
@@ -564,9 +564,9 @@ namespace ortc
         std::atomic<size_t> mDone {};
         std::atomic<size_t> mTotalHostIPs {};
 
-#if defined(WINRT) && !defined(HAVE_GETADAPTERADDRESSES)
+#if defined(WINUWP) && !defined(HAVE_GETADAPTERADDRESSES)
         concurrency::cancellation_token_source mCancellationTokenSource;
-#endif //defined(WINRT) && !defined(HAVE_GETADAPTERADDRESSES)
+#endif //defined(WINUWP) && !defined(HAVE_GETADAPTERADDRESSES)
       };
 
     }

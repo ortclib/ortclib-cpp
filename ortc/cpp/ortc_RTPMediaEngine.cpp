@@ -70,8 +70,8 @@
 #include <webrtc/voice_engine/include/voe_audio_processing.h>
 #include <webrtc/modules/video_capture/video_capture_factory.h>
 #include <webrtc/modules/audio_coding/codecs/builtin_audio_decoder_factory.h>
-#ifdef WINRT
-#include <third_party/h264_winrt/h264_winrt_factory.h>
+#ifdef WINUWP
+#include <third_party/winuwp_h264/winuwp_h264_factory.h>
 #endif
 
 #ifdef _DEBUG
@@ -550,7 +550,7 @@ namespace ortc
         internalSetLogLevel(level);
       }
 
-#if defined(WINRT)
+#if defined(WINUWP)
       webrtc::SetupEventTracer(&GetCategoryGroupEnabled, &AddTraceEvent);
 #endif
 
@@ -1130,7 +1130,7 @@ namespace ortc
     #pragma mark RTPMediaEngine => webrtc::SetupEventTracer
     #pragma mark
 
-#if defined(WINRT)
+#if defined(WINUWP)
     const unsigned char *RTPMediaEngine::GetCategoryGroupEnabled(const char *categoryGroup)
     {
       return reinterpret_cast<const unsigned char*>("webrtc");
@@ -1384,14 +1384,14 @@ namespace ortc
       webrtc::AecmModes aecmMode = webrtc::kAecmSpeakerphone;
       webrtc::AgcModes agcMode = webrtc::kAgcAdaptiveAnalog;
       webrtc::NsModes nsMode = webrtc::kNsHighSuppression;
-#if defined(WINRT)
+#if defined(WINUWP)
       ecMode = webrtc::kEcAecm;
 #endif
 
       if (webrtc::VoEHardware::GetInterface(mVoiceEngine.get())->BuiltInAECIsAvailable())
         webrtc::VoEHardware::GetInterface(mVoiceEngine.get())->EnableBuiltInAEC(true);
       webrtc::VoEAudioProcessing::GetInterface(mVoiceEngine.get())->SetEcStatus(true, ecMode);
-#if !defined(WINRT)
+#if !defined(WINUWP)
       webrtc::VoEAudioProcessing::GetInterface(mVoiceEngine.get())->SetEcMetricsStatus(true);
 #endif
       if (ecMode == webrtc::kEcAecm)
@@ -2937,9 +2937,7 @@ namespace ortc
         report->mPacketsLost = receiveStreamStats.packets_lost;
         report->mJitter = receiveStreamStats.jitter_ms;
         report->mFractionLost = receiveStreamStats.fraction_lost;
-#ifdef WINRT
         report->mEndToEndDelay = Milliseconds(receiveStreamStats.end_to_end_delay_ms);
-#endif
         reportStats[report->mID] = report;
       }
 
@@ -4257,9 +4255,9 @@ namespace ortc
         report->mPacketsLost = receiveStreamStats.rtp_stats.retransmitted.packets;
         report->mJitter = receiveStreamStats.rtcp_stats.jitter;
         report->mFractionLost = receiveStreamStats.rtcp_stats.fraction_lost;
-#ifdef WINRT
+#ifdef WEBRTC_FEATURE_END_TO_END_DELAY
         report->mEndToEndDelay = Milliseconds(receiveStreamStats.current_endtoend_delay_ms);
-#endif
+#endif // WEBRTC_FEATURE_END_TO_END_DELAY
         reportStats[report->mID] = report;
       }
 
@@ -4467,10 +4465,10 @@ namespace ortc
           {
             if (videoCodecSet)
               continue;
-#ifndef WINRT
+#ifndef WINUWP
             webrtc::VideoDecoder* videoDecoder = webrtc::VideoDecoder::Create(webrtc::VideoDecoder::kH264);
 #else
-            std::unique_ptr<cricket::WebRtcVideoDecoderFactory> decoderFactory = std::make_unique<webrtc::H264WinRTDecoderFactory>();
+            std::unique_ptr<cricket::WebRtcVideoDecoderFactory> decoderFactory = std::make_unique<webrtc::WinUWPH264DecoderFactory>();
             webrtc::VideoDecoder* videoDecoder = decoderFactory->CreateVideoDecoder(webrtc::VideoCodecType::kVideoCodecH264);
 #endif
             decoder.decoder = videoDecoder;
@@ -5089,10 +5087,10 @@ namespace ortc
           {
             if (videoCodecSet)
               continue;
-#ifndef WINRT
+#ifndef WINUWP
             webrtc::VideoEncoder* videoEncoder = webrtc::VideoEncoder::Create(webrtc::VideoEncoder::kH264);
 #else
-            std::unique_ptr<cricket::WebRtcVideoEncoderFactory> encoderFactory = std::make_unique<webrtc::H264WinRTEncoderFactory>();
+            std::unique_ptr<cricket::WebRtcVideoEncoderFactory> encoderFactory = std::make_unique<webrtc::WinUWPH264EncoderFactory>();
             webrtc::VideoEncoder* videoEncoder = encoderFactory->CreateVideoEncoder(webrtc::VideoCodecType::kVideoCodecH264);
 #endif
             config.encoder_settings.encoder = videoEncoder;

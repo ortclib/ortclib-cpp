@@ -48,9 +48,9 @@ namespace ortc
     typedef zsLib::Log Log;
 
     static void setup(IMessageQueuePtr defaultDelegateMessageQueue);
-#ifdef WINRT
+#ifdef WINUWP
     static void setup(Windows::UI::Core::CoreDispatcher ^dispatcher);
-#endif //WINRT
+#endif //WINUWP
     
     static Milliseconds ntpServerTime();
     static void ntpServerTime(const Milliseconds &value);

@@ -267,7 +267,7 @@ namespace ortc
       ISettings::applyDefaults();
     }
 
-#ifdef WINRT
+#ifdef WINUWP
     //-------------------------------------------------------------------------
     void ORTC::setup(Windows::UI::Core::CoreDispatcher ^dispatcher)
     {
@@ -275,7 +275,7 @@ namespace ortc
       installAllDefaults();
       ISettings::applyDefaults();
     }
-#endif //WINRT
+#endif //WINUWP
 
     //-------------------------------------------------------------------------
     Milliseconds ORTC::ntpServerTime() const
@@ -459,14 +459,14 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-#ifdef WINRT
+#ifdef WINUWP
   void IORTC::setup(Windows::UI::Core::CoreDispatcher ^dispatcher)
   {
     auto singleton = internal::ORTC::singleton();
     if (!singleton) return;
     singleton->setup(dispatcher);
   }
-#endif //WINRT
+#endif //WINUWP
 
   //-------------------------------------------------------------------------
   Milliseconds IORTC::ntpServerTime()

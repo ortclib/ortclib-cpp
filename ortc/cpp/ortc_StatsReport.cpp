@@ -1114,7 +1114,7 @@ namespace ortc
     internal::reportFloat(mID, timestamp, "fractionLost", static_cast<float>(mFractionLost));
     internal::reportInt64(mID, timestamp, "endToEndDelay", SafeInt<int64_t>(mEndToEndDelay.count()));
 #ifndef ORTC_EXCLUDE_WEBRTC_COMPATIBILITY_STATS
-    internal::reportInt64(mID, timestamp, "winrtEndToEndDelayMs", SafeInt<int64_t>(mEndToEndDelay.count()));
+    internal::reportInt64(mID, timestamp, "winuwpEndToEndDelayMs", SafeInt<int64_t>(mEndToEndDelay.count()));
     internal::reportInt32(mID, timestamp, "googFirsReceived", SafeInt<int32_t>(mFIRCount));
     internal::reportInt32(mID, timestamp, "googPlisReceived", SafeInt<int32_t>(mPLICount));
     internal::reportInt32(mID, timestamp, "googNacksReceived", SafeInt<int32_t>(mNACKCount));
