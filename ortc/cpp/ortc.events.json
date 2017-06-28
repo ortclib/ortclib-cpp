@@ -73,14 +73,23 @@
         "ortc_ICETransportController.cpp",
         "ortc_ORTC.cpp",
         "ortc_RTPListener.cpp",
-        "ortc_RTPMediaEngine.cpp",
+        "ortc_MediaEngine.cpp",
+        "ortc_MediaDeviceCaptureAudio.cpp",
+        "ortc_MediaDeviceCaptureVideo.cpp",
+        "ortc_MediaDeviceRenderAudio.cpp",
+        "ortc_RTPEncoderAudio.cpp",
+        "ortc_RTPEncoderVideo.cpp",
+        "ortc_RTPDecoderAudio.cpp",
+        "ortc_RTPDecoderVideo.cpp",
         "ortc_RTPReceiver.cpp",
         "ortc_RTPReceiverChannel.cpp",
         "ortc_RTPSender.cpp",
         "ortc_RTPSenderChannel.cpp",
         "ortc_SCTPTransport.cpp",
         "ortc_SCTPTransportListener.cpp",
-        "ortc_SRTPTransport.cpp"
+        "ortc_SRTPTransport.cpp",
+        "ortc_RTPPacket.cpp",
+        "ortc_RTCPPacket.cpp"
       ]
     },
     "channels": {
@@ -135,6 +144,15 @@
         },
         {
           "name": "IceTransportController"
+        },
+        {
+          "name": "MediaEngine"
+        },
+        {
+          "name":  "RtpPacket"
+        },
+        {
+          "name":  "RtcpPacket"
         },
         {
           "name": "RtpListener"
@@ -207,6 +225,9 @@
         },
         {
           "name": "Deliver"
+        },
+        {
+          "name": "Parse"
         },
         {
           "name": "Event"

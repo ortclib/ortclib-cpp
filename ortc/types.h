@@ -126,6 +126,9 @@ namespace ortc
   #pragma mark (forwards)
   #pragma mark
 
+  ZS_DECLARE_CLASS_PTR(RTPPacket);
+  ZS_DECLARE_CLASS_PTR(RTCPPacket);
+
   interaction IRTPTransport
   {
     virtual PUID getID() const = 0;
@@ -148,8 +151,9 @@ namespace ortc
   ZS_DECLARE_INTERACTION_PTR(IICETransport);
   ZS_DECLARE_INTERACTION_PTR(IICETransportController);
   ZS_DECLARE_INTERACTION_PTR(IMediaDevices);
-  ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrackRenderCallback);
+  ZS_DECLARE_INTERACTION_PTR(IMediaElement);
   ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrack);
+  ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrackSelector);
   ZS_DECLARE_INTERACTION_PTR(IRTPListener);
   ZS_DECLARE_INTERACTION_PTR(IRTPSender);
   ZS_DECLARE_INTERACTION_PTR(IRTPReceiver);
@@ -168,7 +172,11 @@ namespace ortc
   ZS_DECLARE_INTERACTION_PROXY(IICETransportDelegate);
   ZS_DECLARE_INTERACTION_PROXY(IRTPListenerDelegate);
   ZS_DECLARE_INTERACTION_PROXY(IMediaDevicesDelegate);
+  ZS_DECLARE_INTERACTION_PROXY(IMediaElementDelegate);
   ZS_DECLARE_INTERACTION_PROXY(IMediaStreamTrackDelegate);
+  ZS_DECLARE_INTERACTION_PROXY(IMediaStreamTrackSyncMediaDelegate);
+  ZS_DECLARE_INTERACTION_PROXY(IMediaStreamTrackAsyncMediaDelegate);
+  ZS_DECLARE_INTERACTION_PROXY(IMediaStreamTrackSelectorDelegate);
   ZS_DECLARE_INTERACTION_PROXY(IRTPSenderDelegate);
   ZS_DECLARE_INTERACTION_PROXY(IRTPReceiverDelegate);
   ZS_DECLARE_INTERACTION_PROXY(ISCTPTransportDelegate);
@@ -182,6 +190,10 @@ namespace ortc
   ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(IICETransportSubscription, IICETransportDelegate);
   ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(IMediaDevicesSubscription, IMediaDevicesDelegate);
   ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(IMediaStreamTrackSubscription, IMediaStreamTrackDelegate);
+  ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(IMediaStreamTrackMediaSubscription, IMediaStreamTrackSyncMediaDelegate);
+  ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(IMediaStreamTrackMediaSubscription, IMediaStreamTrackAsyncMediaDelegate);
+  ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(IMediaStreamTrackSelectorSubscription, IMediaStreamTrackSelectorDelegate);
+  ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(IMediaElementSubscription, IMediaElementDelegate);
   ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(IRTPListenerSubscription, IRTPListenerDelegate);
   ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(IRTPSenderSubscription, IRTPSenderDelegate);
   ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(IRTPReceiverSubscription, IRTPReceiverDelegate);
@@ -197,42 +209,4 @@ namespace ortc
   #pragma mark
   #pragma mark (mixed case versions of interfaces are available externally)
   #pragma mark
-
-#ifndef ORTCLIB_INTERNAL
-#if 0
-  ZS_DECLARE_TYPEDEF_PTR(IDTLSTransport, IDtlsTransport);
-  ZS_DECLARE_TYPEDEF_PTR(IDTMFSender, IDtmfSender);
-  ZS_DECLARE_TYPEDEF_PTR(IORTC, IOrtc);
-  ZS_DECLARE_TYPEDEF_PTR(IICEGatherer, IIceGatherer);
-  ZS_DECLARE_TYPEDEF_PTR(IICETransport, IIceTransport);
-  ZS_DECLARE_TYPEDEF_PTR(IICETransportController, IIceTransportController);
-  ZS_DECLARE_TYPEDEF_PTR(IRTPListener, IRtpListener);
-  ZS_DECLARE_TYPEDEF_PTR(IRTPSender, IRtpSender);
-  ZS_DECLARE_TYPEDEF_PTR(IRTPReceiver, IRtpReceiver);
-  ZS_DECLARE_TYPEDEF_PTR(IRTPTransport, IRtpTransport);
-  ZS_DECLARE_TYPEDEF_PTR(IRTCPTransport, IRtcpTransport);
-  ZS_DECLARE_TYPEDEF_PTR(ISCTPTransport, ISctpTransport);
-  ZS_DECLARE_TYPEDEF_PTR(ISRTPSDESTransport, ISrtpSdesTransport);
-
-  ZS_DECLARE_TYPEDEF_PTR(IDTLSTransportDelegate, IDtlsTransportDelegate);
-  ZS_DECLARE_TYPEDEF_PTR(IDTMFSenderDelegate, IDtmfSenderDelegate);
-  ZS_DECLARE_TYPEDEF_PTR(IICEGathererDelegate, IIceGathererDelegate);
-  ZS_DECLARE_TYPEDEF_PTR(IICETransportDelegate, IIceTransportDelegate);
-  ZS_DECLARE_TYPEDEF_PTR(IRTPListenerDelegate, IRtpListenerDelegate);
-  ZS_DECLARE_TYPEDEF_PTR(IRTPSenderDelegate, IRtpSenderDelegate);
-  ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverDelegate, IRtpReceiverDelegate);
-  ZS_DECLARE_TYPEDEF_PTR(ISCTPTransportDelegate, ISctpTransportDelegate);
-  ZS_DECLARE_TYPEDEF_PTR(ISRTPSDESTransportDelegate, ISrtpSdesTransportDelegate);
-
-  ZS_DECLARE_TYPEDEF_PTR(IDTLSTransportSubscription, IDtlsTransportSubscription);
-  ZS_DECLARE_TYPEDEF_PTR(IDTMFSenderSubscription, IDtmfSenderSubscription);
-  ZS_DECLARE_TYPEDEF_PTR(IICEGathererSubscription, IIceGathererSubscription);
-  ZS_DECLARE_TYPEDEF_PTR(IICETransportSubscription, IIceTransportSubscription);
-  ZS_DECLARE_TYPEDEF_PTR(IRTPListenerSubscription, IRtpListenerSubscription);
-  ZS_DECLARE_TYPEDEF_PTR(IRTPSenderSubscription, IRtpSenderSubscription);
-  ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverSubscription, IRtpReceiverSubscription);
-  ZS_DECLARE_TYPEDEF_PTR(ISCTPTransportSubscription, ISctpTransportSubscription);
-  ZS_DECLARE_TYPEDEF_PTR(ISRTPSDESTransportSubscription, ISrtpSdesTransportSubscription);
-#endif //0
-#endif //ORTCLIB_INTERNAL
 }

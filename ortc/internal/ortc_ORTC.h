@@ -34,11 +34,18 @@
 #include <ortc/internal/types.h>
 #include <ortc/IORTC.h>
 
-#define ORTC_QUEUE_MAIN_THREAD_NAME "org.ortc.ortcLibMainThread"
-#define ORTC_QUEUE_BLOCKING_MEDIA_STARTUP_THREAD_NAME "org.ortc.ortcLibBlockingMedia"
-#define ORTC_QUEUE_CERTIFICATE_GENERATION_NAME "org.ortc.ortcLibCertificateGeneration"
-#define ORTC_QUEUE_PACKET_THREAD_NAME "org.ortc.ortcLibPacketThread."
-#define ORTC_QUEUE_TOTAL_PACKET_THREADS 4
+#define ORTC_QUEUE_MAIN_THREAD_NAME "org.ortc.ortcLib.MainThread"
+#define ORTC_QUEUE_BLOCKING_MEDIA_STARTUP_THREAD_NAME "org.ortc.ortcLib.BlockingMedia"
+#define ORTC_QUEUE_CERTIFICATE_GENERATION_NAME "org.ortc.ortcLib.CertificateGeneration"
+#define ORTC_QUEUE_MEDIA_DEVICE_THREAD_NAME "org.ortc.ortcLib.MediaDeviceThread."
+#define ORTC_QUEUE_RTP_THREAD_NAME "org.ortc.ortcLib.RTP."
+#define ORTC_QUEUE_TOTAL_MEDIA_DEVICE_THREADS 4
+#define ORTC_QUEUE_TOTAL_RTP_THREADS 4
+
+#define ORTC_SETTING_ORTC_QUEUE_BLOCKING_MEDIA_STARTUP_THREAD_NAME "ortc/ortc/" ORTC_QUEUE_BLOCKING_MEDIA_STARTUP_THREAD_NAME
+#define ORTC_SETTING_ORTC_QUEUE_CERTIFICATE_GENERATION_NAME "ortc/ortc/" ORTC_QUEUE_CERTIFICATE_GENERATION_NAME
+#define ORTC_SETTING_ORTC_QUEUE_MEDIA_DEVICE_THREAD_NAME "ortc/ortc/" ORTC_QUEUE_MEDIA_DEVICE_THREAD_NAME
+#define ORTC_SETTING_ORTC_QUEUE_RTP_THREAD_NAME "ortc/ortc/" ORTC_QUEUE_RTP_THREAD_NAME
 
 namespace ortc
 {
@@ -59,8 +66,9 @@ namespace ortc
       static void overrideQueueDelegate(IMessageQueuePtr queue);
       static IMessageQueuePtr queueDelegate();
       static IMessageQueuePtr queueORTC();
-      static IMessageQueuePtr queuePacket();
       static IMessageQueuePtr queueBlockingMediaStartStopThread();
+      static IMessageQueuePtr queueMediaDevices();
+      static IMessageQueuePtr queueRTP();
       static IMessageQueuePtr queueCertificateGeneration();
 
       static Optional<Log::Level> webrtcLogLevel();
@@ -132,7 +140,8 @@ namespace ortc
       virtual void overrideQueueDelegate(IMessageQueuePtr queue);
       virtual IMessageQueuePtr queueDelegate() const;
       virtual IMessageQueuePtr queueORTC() const;
-      virtual IMessageQueuePtr queuePacket() const;
+      virtual IMessageQueuePtr queueMediaDevices() const;
+      virtual IMessageQueuePtr queueRTP() const;
       virtual IMessageQueuePtr queueBlockingMediaStartStopThread() const;
       virtual IMessageQueuePtr queueCertificateGeneration() const;
 
@@ -145,6 +154,8 @@ namespace ortc
 
       Log::Params log(const char *message) const;
       static Log::Params slog(const char *message);
+
+      void internalSetup();
 
     protected:
       //---------------------------------------------------------------------
@@ -161,8 +172,10 @@ namespace ortc
       mutable IMessageQueuePtr mBlockingMediaStartStopThread;
       mutable IMessageQueuePtr mCertificateGeneration;
 
-      mutable IMessageQueuePtr mPacketQueues[ORTC_QUEUE_TOTAL_PACKET_THREADS];
-      mutable size_t mNextPacketQueueThread {};
+      mutable IMessageQueuePtr mMediaDeviceQueues[ORTC_QUEUE_TOTAL_MEDIA_DEVICE_THREADS];
+      mutable IMessageQueuePtr mRTPQueues[ORTC_QUEUE_TOTAL_RTP_THREADS];
+      mutable size_t mNextMediaQueueThread {};
+      mutable size_t mNextRTPQueueThread {};
 
       Milliseconds mNTPServerTime {};
 

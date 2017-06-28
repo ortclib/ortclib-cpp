@@ -46,6 +46,7 @@
 #include <ortc/IICETransport.h>
 #include <ortc/IICETransportController.h>
 #include <ortc/IMediaDevices.h>
+#include <ortc/IMediaElement.h>
 #include <ortc/IMediaStreamTrack.h>
 #include <ortc/IRTPTypes.h>
 #include <ortc/IRTPListener.h>

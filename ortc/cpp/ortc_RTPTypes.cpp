@@ -33,11 +33,11 @@
 #include <ortc/internal/platform.h>
 #include <ortc/internal/ortc_RTPTypes.h>
 #include <ortc/internal/ortc_RTPUtils.h>
-#include <ortc/internal/ortc_RTPPacket.h>
 #include <ortc/internal/ortc_Helper.h>
 
 #include <ortc/IRTPTypes.h>
 #include <ortc/IHelper.h>
+#include <ortc/RTPPacket.h>
 
 #include <zsLib/eventing/IHasher.h>
 

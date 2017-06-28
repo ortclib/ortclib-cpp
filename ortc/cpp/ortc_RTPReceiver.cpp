@@ -35,8 +35,6 @@
 #include <ortc/internal/ortc_RTPListener.h>
 #include <ortc/internal/ortc_MediaStreamTrack.h>
 #include <ortc/internal/ortc_RTPUtils.h>
-#include <ortc/internal/ortc_RTPPacket.h>
-#include <ortc/internal/ortc_RTCPPacket.h>
 #include <ortc/internal/ortc_RTPTypes.h>
 #include <ortc/internal/ortc_SRTPSDESTransport.h>
 #include <ortc/internal/ortc_ORTC.h>
@@ -45,6 +43,8 @@
 #include <ortc/internal/platform.h>
 
 #include <ortc/IHelper.h>
+#include <ortc/RTPPacket.h>
+#include <ortc/RTCPPacket.h>
 
 #include <ortc/services/IHTTP.h>
 
@@ -538,7 +538,9 @@ namespace ortc
 
       ZS_LOG_DEBUG(log("creating media stream track") + ZS_PARAM("kind", IMediaStreamTrack::toString(mKind)))
       
+#if 0
       mTrack = UseMediaStreamTrack::create(mKind);
+#endif //0
 
       ZS_LOG_DEBUG(log("created media stream track") + ZS_PARAM("kind", IMediaStreamTrack::toString(mKind)) + ZS_PARAM("track", mTrack ? mTrack->getID() : 0));
       
@@ -709,7 +711,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    IMediaStreamTrackPtr RTPReceiver::track() const
+    ortc::IMediaStreamTrackPtr RTPReceiver::track() const
     {
       return IMediaStreamTrackPtr(MediaStreamTrack::convert(mTrack));
     }
@@ -1430,10 +1432,14 @@ namespace ortc
         {
           case SupportedCodec_VP8:
           case SupportedCodec_VP9:
+#if 0
             mTrack->setH264Rendering(false);
+#endif //0
             goto end_codec_loop;
           case SupportedCodec_H264:
+#if 0
             mTrack->setH264Rendering(true);
+#endif //0
             goto end_codec_loop;
           default: break;
         }
@@ -1617,7 +1623,8 @@ namespace ortc
                     );
 
 
-      ZS_LOG_TRACE(log("received packet") + ZS_PARAM("via", IICETypes::toString(viaTransport)) + packet->toDebug())
+      ZS_LOG_TRACE(log("received packet") + ZS_PARAM("via", IICETypes::toString(viaTransport)));
+      packet->trace("received packet");
 
       ChannelHolderPtr channelHolder;
 
@@ -1687,7 +1694,8 @@ namespace ortc
                     size, size, packet->buffer()->SizeInBytes()
                     );
 
-      ZS_LOG_TRACE(log("received packet") + ZS_PARAM("via", IICETypes::toString(viaTransport)) + packet->toDebug());
+      ZS_LOG_TRACE(log("received packet") + ZS_PARAM("via", IICETypes::toString(viaTransport)));
+      packet->trace("received packet");
 
       ChannelWeakMapPtr channels;
 
@@ -4025,7 +4033,9 @@ namespace ortc
                     puid, trackId, mTrack->getID(),
                     puid, channelObjectId, channelHolder->getID()
                     );
+#if 0
       mTrack->notifyActiveReceiverChannel(RTPReceiverChannel::convert(channelHolder->mChannel));
+#endif //0
     }
 
     //-------------------------------------------------------------------------
@@ -4042,8 +4052,9 @@ namespace ortc
                     puid, trackId, mTrack->getID(),
                     puid, channelObjectId, 0
                     );
-
+#if 0
       mTrack->notifyActiveReceiverChannel(RTPReceiverChannelPtr());
+#endif //0
     }
 
     //-------------------------------------------------------------------------

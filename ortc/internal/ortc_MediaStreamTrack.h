@@ -33,257 +33,33 @@
 
 #include <ortc/internal/types.h>
 
-#include <ortc/IMediaStreamTrack.h>
-#include <ortc/internal/ortc_RTPMediaEngine.h>
+#include <ortc/internal/ortc_IMediaDeviceCapture.h>
+#include <ortc/internal/ortc_IMediaStreamTrack.h>
+#include <ortc/internal/ortc_IMediaStreamTrackChannel.h>
+#include <ortc/internal/ortc_IMediaStreamTrackSubscriber.h>
+
+#include <ortc/IRTPTypes.h>
 
 #include <zsLib/MessageQueueAssociator.h>
 #include <zsLib/ITimer.h>
 
 #include <zsLib/WeightedMovingAverage.h>
 
-#include <webrtc/video_frame.h>
+#include <unordered_map>
 
 namespace ortc
 {
   namespace internal
   {
     ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrackForSettings);
-    ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrackForRTPSender);
-    ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrackForRTPSenderChannel);
-    ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrackForRTPSenderChannelMediaBase);
-    ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrackForRTPSenderChannelAudio);
-    ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrackForRTPSenderChannelVideo);
-    ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrackForRTPReceiver);
-    ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrackForRTPReceiverChannel);
-    ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrackForRTPReceiverChannelMediaBase);
-    ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrackForRTPReceiverChannelAudio);
-    ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrackForRTPReceiverChannelVideo);
-    ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrackForMediaDevices);
-
-    ZS_DECLARE_INTERACTION_PTR(IRTPSenderForMediaStreamTrack);
-    ZS_DECLARE_INTERACTION_PTR(IRTPSenderChannelForMediaStreamTrack);
-    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverForMediaStreamTrack);
-    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelForMediaStreamTrack);
-    ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineForMediaStreamTrack);
+    ZS_DECLARE_INTERACTION_PTR(IMediaEngineForMediaStreamTrack);
 
     ZS_DECLARE_INTERACTION_PROXY(IMediaStreamTrackAsyncDelegate);
-    
+
+    ZS_DECLARE_INTERACTION_PTR(IMediaChannelForMediaStreamTrack);
+
     using zsLib::FLOAT;
     using zsLib::INT;
-
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrackForRTPSender
-    #pragma mark
-
-    interaction IMediaStreamTrackForRTPSender
-    {
-      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPSender, ForSender)
-
-      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::Kinds, Kinds)
-
-      virtual PUID getID() const = 0;
-
-      virtual void setSender(IRTPSenderPtr sender) = 0;
-
-      virtual Kinds kind() const = 0;
-
-      virtual void notifyAttachSenderChannel(RTPSenderChannelPtr channel) = 0;
-      virtual void notifyDetachSenderChannel(RTPSenderChannelPtr channel) = 0;
-    };
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrackForRTPSenderChannel
-    #pragma mark
-
-    interaction IMediaStreamTrackForRTPSenderChannel
-    {
-      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPSenderChannel, ForSenderChannel)
-
-      virtual PUID getID() const = 0;
-    };
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrackForRTPSenderChannelMediaBase
-    #pragma mark
-
-    interaction IMediaStreamTrackForRTPSenderChannelMediaBase
-    {
-      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPSenderChannelMediaBase, ForSenderChannelMediaBase)
-
-      virtual PUID getID() const = 0;
-    };
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrackForRTPSenderChannelAudio
-    #pragma mark
-
-    interaction IMediaStreamTrackForRTPSenderChannelAudio : public IMediaStreamTrackForRTPSenderChannelMediaBase
-    {
-      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPSenderChannelAudio, ForSenderChannelAudio)
-
-      virtual ~IMediaStreamTrackForRTPSenderChannelAudio() {}
-    };
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrackForRTPSenderChannelVideo
-    #pragma mark
-
-    interaction IMediaStreamTrackForRTPSenderChannelVideo : public IMediaStreamTrackForRTPSenderChannelMediaBase
-    {
-      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPSenderChannelVideo, ForSenderChannelVideo)
-
-      virtual ~IMediaStreamTrackForRTPSenderChannelVideo() {}
-    };
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrackForRTPReceiver
-    #pragma mark
-
-    interaction IMediaStreamTrackForRTPReceiver
-    {
-      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPReceiver, ForReceiver)
-
-      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::Kinds, Kinds)
-
-      static MediaStreamTrackPtr create(Kinds kind);
-
-      virtual PUID getID() const = 0;
-
-      virtual void setReceiver(IRTPReceiverPtr receiver) = 0;
-
-      virtual void notifyActiveReceiverChannel(RTPReceiverChannelPtr channel) = 0;
-
-      virtual void setH264Rendering(bool h264Rendering) = 0;
-      virtual bool isH264Rendering() = 0;
-    };
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrackForRTPReceiverChannel
-    #pragma mark
-
-    interaction IMediaStreamTrackForRTPReceiverChannel
-    {
-      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPReceiverChannel, ForReceiverChannel)
-
-      virtual PUID getID() const = 0;
-    };
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrackForRTPReceiverChannelMediabase
-    #pragma mark
-
-    interaction IMediaStreamTrackForRTPReceiverChannelMediabase
-    {
-      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPReceiverChannelMediabase, ForReceiverChannelMediaBase)
-
-      virtual PUID getID() const = 0;
-    };
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrackForRTPReceiverChannelAudio
-    #pragma mark
-
-    interaction IMediaStreamTrackForRTPReceiverChannelAudio : public IMediaStreamTrackForRTPReceiverChannelMediabase
-    {
-      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPReceiverChannelAudio, ForReceiverChannelAudio)
-
-      virtual ~IMediaStreamTrackForRTPReceiverChannelAudio() {}
-    };
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrackForRTPReceiverChannelVideo
-    #pragma mark
-
-    interaction IMediaStreamTrackForRTPReceiverChannelVideo : public IMediaStreamTrackForRTPReceiverChannelMediabase
-    {
-      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPReceiverChannelVideo, ForReceiverChannelVideo)
-      ZS_DECLARE_TYPEDEF_PTR(webrtc::VideoFrame, VideoFrame);
-
-      virtual void renderVideoFrame(VideoFramePtr videoFrame) = 0;
-    };
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrackForMediaDevices
-    #pragma mark
-
-    interaction IMediaStreamTrackForMediaDevices
-    {
-      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForMediaDevices, ForMediaDevices)
-
-      virtual ~IMediaStreamTrackForMediaDevices() {}
-    };
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrackForRTPMediaEngine
-    #pragma mark
-
-    interaction IMediaStreamTrackForRTPMediaEngine
-    {
-      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPMediaEngine, ForMediaEngine)
-      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::Kinds, Kinds)
-      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::TrackConstraints, TrackConstraints)
-      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::Settings, Settings)
-      ZS_DECLARE_TYPEDEF_PTR(webrtc::VideoFrame, VideoFrame)
-
-      virtual Kinds kind() const = 0;
-      virtual String id() const = 0;
-      virtual bool remote() const = 0;
-
-      virtual TrackConstraintsPtr getConstraints() const = 0;
-      virtual SettingsPtr getSettings() const = 0;
-
-      virtual void renderVideoFrame(VideoFramePtr videoFrame) = 0;
-      virtual void sendCapturedVideoFrame(VideoFramePtr videoFrame) = 0;
-    };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -306,7 +82,6 @@ namespace ortc
       virtual ElementPtr toDebug() const = 0;
     };
 
-
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -318,8 +93,6 @@ namespace ortc
     interaction IMediaStreamTrackAsyncDelegate
     {
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::TrackConstraints, TrackConstraints);
-      ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverChannelForMediaStreamTrack, UseReceiverChannel);
-      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelForMediaStreamTrack, UseSenderChannel);
 
       virtual void onResolveStatsPromise(IStatsProvider::PromiseWithStatsReportPtr promise, IStatsReportTypes::StatsTypeSet stats) = 0;
 
@@ -327,11 +100,6 @@ namespace ortc
                                       PromisePtr promise,
                                       TrackConstraintsPtr constraints
                                       ) = 0;
-
-      virtual void onSetActiveReceiverChannel(UseReceiverChannelPtr channel) = 0;
-      
-      virtual void onAttachSenderChannel(UseSenderChannelPtr channel) = 0;
-      virtual void onDetachSenderChannel(UseSenderChannelPtr channel) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -345,18 +113,15 @@ namespace ortc
     class MediaStreamTrack : public Noop,
                              public MessageQueueAssociator,
                              public SharedRecursiveLock,
-                             public IMediaStreamTrack,
-                             public IMediaStreamTrackForRTPSender,
-                             public IMediaStreamTrackForRTPSenderChannel,
-                             public IMediaStreamTrackForRTPSenderChannelAudio,
-                             public IMediaStreamTrackForRTPSenderChannelVideo,
+                             public internal::IMediaStreamTrack,
+                             public IMediaStreamTrackForMediaStream,
+                             public IMediaStreamTrackForMediaStreamTrackChannel,
+                             public IMediaStreamTrackForMediaStreamTrackSubscriberMedia,
+                             public IMediaStreamTrackForMediaStreamTrackSubscriberRTP,
                              public IMediaStreamTrackForRTPReceiver,
                              public IMediaStreamTrackForRTPReceiverChannel,
-                             public IMediaStreamTrackForRTPReceiverChannelAudio,
-                             public IMediaStreamTrackForRTPReceiverChannelVideo,
-                             public IMediaStreamTrackForMediaDevices,
-                             public IMediaStreamTrackForRTPMediaEngine,
-                             public IMediaStreamTrackForMediaStream,
+                             public IMediaStreamTrackForRTPSender,
+                             public IMediaStreamTrackForRTPSenderChannel,
                              public IWakeDelegate,
                              public zsLib::ITimerDelegate,
                              public zsLib::IPromiseSettledDelegate,
@@ -366,37 +131,55 @@ namespace ortc
       struct make_private {};
 
     public:
-      friend interaction IMediaStreamTrack;
+      friend interaction ortc::IMediaStreamTrack;
+      friend interaction internal::IMediaStreamTrack;
       friend interaction IMediaStreamTrackFactory;
-      friend interaction IMediaStreamTrackForRTPSender;
-      friend interaction IMediaStreamTrackForRTPSenderChannel;
-      friend interaction IMediaStreamTrackForRTPSenderChannelAudio;
-      friend interaction IMediaStreamTrackForRTPSenderChannelVideo;
+      friend interaction IMediaStreamTrackForMediaStream;
+      friend interaction IMediaStreamTrackForMediaStreamTrackChannel;
+      friend interaction IMediaStreamTrackForMediaStreamTrackSubscriberMedia;
+      friend interaction IMediaStreamTrackForMediaStreamTrackSubscriberRTP;
       friend interaction IMediaStreamTrackForRTPReceiver;
       friend interaction IMediaStreamTrackForRTPReceiverChannel;
-      friend interaction IMediaStreamTrackForRTPReceiverChannelMediaBase;
-      friend interaction IMediaStreamTrackForRTPReceiverChannelAudio;
-      friend interaction IMediaStreamTrackForRTPReceiverChannelVideo;
-      friend interaction IMediaStreamTrackForMediaDevices;
-      friend interaction IMediaStreamTrackForRTPMediaEngine;
-      friend interaction IMediaStreamTrackForMediaStream;
+      friend interaction IMediaStreamTrackForRTPSender;
+      friend interaction IMediaStreamTrackForRTPSenderChannel;
 
-      ZS_DECLARE_CLASS_PTR(Transport)
-      friend class Transport;
+      enum MediaStreamTrackTypes
+      {
+        MediaStreamTrackType_First,
+
+        MediaStreamTrackType_Capture = MediaStreamTrackType_First,
+        MediaStreamTrackType_Receiver,
+        MediaStreamTrackType_Selector,
+
+        MediaStreamTrackType_Last = MediaStreamTrackType_Selector,
+      };
+
+      const char *toString(MediaStreamTrackTypes type);
       
-      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderForMediaStreamTrack, UseSender)
-      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelForMediaStreamTrack, UseSenderChannel)
-      ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverForMediaStreamTrack, UseReceiver)
-      ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverChannelForMediaStreamTrack, UseReceiverChannel)
-      ZS_DECLARE_TYPEDEF_PTR(IRTPMediaEngineForMediaStreamTrack, UseMediaEngine)
-      ZS_DECLARE_TYPEDEF_PTR(IRTPMediaEngineDeviceResource, UseDeviceResource)
+      ZS_DECLARE_TYPEDEF_PTR(IMediaEngineForMediaStreamTrack, UseMediaEngine);
 
-      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::TrackConstraints, TrackConstraints)
-      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::Constraints, Constraints)
-      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::Settings, Settings)
+      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::ImmutableMediaChannelTrace, ImmutableMediaChannelTrace);
+      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::AudioFrame, AudioFrame);
+      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::VideoFrame, VideoFrame);
+      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::TrackConstraints, TrackConstraints);
+      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::Constraints, Constraints);
+      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::Settings, Settings);
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters);
 
-      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::Kinds, Kinds)
-      ZS_DECLARE_TYPEDEF_PTR(webrtc::VideoFrame, VideoFrame)
+      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackChannelForMediaStreamTrack, UseChannel);
+      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackSubscriberForMediaStreamTrack, UseSubscriber);
+      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackSubscriberMediaForMediaStreamTrack, UseSubscriberMedia);
+      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackSubscriberRTPForMediaStreamTrack, UseSubscriberRTP);
+
+      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::Kinds, Kinds);
+
+      ZS_DECLARE_TYPEDEF_PTR(IMediaDeviceCapture::MediaDeviceCapturePromise, MediaDeviceCapturePromise);
+
+      typedef std::unordered_map<PUID, UseSubscriberPtr> SubscriberMap;
+      ZS_DECLARE_PTR(SubscriberMap);
+
+      typedef std::unordered_map<MediaChannelID, UseChannelPtr> ChannelMap;
+      ZS_DECLARE_PTR(ChannelMap);
 
     public:
       MediaStreamTrack(
@@ -421,24 +204,21 @@ namespace ortc
 
       static MediaStreamTrackPtr create(
                                         Kinds kind,
-                                        bool remote,
+                                        MediaStreamTrackTypes type,
                                         TrackConstraintsPtr constraints
                                         );
 
-      static MediaStreamTrackPtr convert(IMediaStreamTrackPtr object);
-      static MediaStreamTrackPtr convert(ForSenderPtr object);
-      static MediaStreamTrackPtr convert(ForSenderChannelPtr object);
-      static MediaStreamTrackPtr convert(ForSenderChannelMediaBasePtr object);
-      static MediaStreamTrackPtr convert(ForSenderChannelAudioPtr object);
-      static MediaStreamTrackPtr convert(ForSenderChannelVideoPtr object);
+      static MediaStreamTrackPtr convert(ortc::IMediaStreamTrackPtr object);
+      static MediaStreamTrackPtr convert(internal::IMediaStreamTrackPtr object);
+      static MediaStreamTrackPtr convert(ForMediaStreamPtr object);
+      static MediaStreamTrackPtr convert(ForMediaStreamTrackChannelPtr object);
+      static MediaStreamTrackPtr convert(ForMediaStreamTrackSubscriberPtr object);
+      static MediaStreamTrackPtr convert(ForMediaStreamTrackSubscriberMediaPtr object);
+      static MediaStreamTrackPtr convert(ForMediaStreamTrackSubscriberRTPPtr object);
       static MediaStreamTrackPtr convert(ForReceiverPtr object);
       static MediaStreamTrackPtr convert(ForReceiverChannelPtr object);
-      static MediaStreamTrackPtr convert(ForReceiverChannelMediaBasePtr object);
-      static MediaStreamTrackPtr convert(ForReceiverChannelAudioPtr object);
-      static MediaStreamTrackPtr convert(ForReceiverChannelVideoPtr object);
-      static MediaStreamTrackPtr convert(ForMediaDevicesPtr object);
-      static MediaStreamTrackPtr convert(ForMediaEnginePtr object);
-      static MediaStreamTrackPtr convert(ForMediaStreamPtr object);
+      static MediaStreamTrackPtr convert(ForSenderPtr object);
+      static MediaStreamTrackPtr convert(ForSenderChannelPtr object);
 
     protected:
       //-----------------------------------------------------------------------
@@ -450,10 +230,13 @@ namespace ortc
 
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark MediaStreamTrack => IMediaStreamTrack
+      #pragma mark MediaStreamTrack => ortc::IMediaStreamTrack
       #pragma mark
 
-      static ElementPtr toDebug(MediaStreamTrackPtr object);
+      static void trace(
+                        IMediaStreamTrackPtr object,
+                        const char *message = NULL
+                        );
 
       virtual PUID getID() const override {return mID;}
 
@@ -470,7 +253,7 @@ namespace ortc
       virtual bool remote() const override;
       virtual States readyState() const override;
 
-      virtual IMediaStreamTrackPtr clone() const override;
+      virtual ortc::IMediaStreamTrackPtr clone() const override;
 
       virtual void stop() override;
 
@@ -480,9 +263,19 @@ namespace ortc
 
       virtual PromisePtr applyConstraints(const TrackConstraints &constraints) override;
 
-      virtual void setVideoRenderCallback(IMediaStreamTrackRenderCallbackPtr callback) override;
-      virtual void setH264Rendering(bool h264Rendering) override;
-      virtual bool isH264Rendering() override;
+      virtual IMediaStreamTrackMediaSubscriptionPtr subscribeMedia(IMediaStreamTrackSyncMediaDelegatePtr delegate) override;
+
+      virtual IMediaStreamTrackMediaSubscriptionPtr subscribeMedia(IMediaStreamTrackAsyncMediaDelegatePtr delegate) override;
+
+      virtual IMediaStreamTrackRTPSubscriptionPtr subscribeRTP(
+                                                               const Parameters &rtpEncodingParams,
+                                                               IMediaStreamTrackRTPDelegatePtr delegate
+                                                               ) override;
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark MediaStreamTrack => internal::IMediaStreamTrack
+      #pragma mark
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -491,57 +284,43 @@ namespace ortc
 
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPSender
+      #pragma mark MediaStreamTrack => IMediaStreamTrackForMediaStream
       #pragma mark
 
-      // (duplicate) virtual PUID getID() const = 0;
-
+      virtual bool isEnded() const override;
       // (duplicate) virtual Kinds kind() const = 0;
-
-      virtual void setSender(IRTPSenderPtr sender) override;
-
-      virtual void notifyAttachSenderChannel(RTPSenderChannelPtr channel) override;
-      virtual void notifyDetachSenderChannel(RTPSenderChannelPtr channel) override;
+      // (duplicate) virtual String id() const = 0;
+      // (duplicate) virtual ElementPtr toDebug() const = 0;
 
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPSenderChannel
-      #pragma mark
-
-      // (duplicate) virtual PUID getID() const = 0;
-
-      //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPSenderChannelMediaBase
-      #pragma mark
-
-      // (duplicate) virtual PUID getID() const = 0;
-
-      //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPSenderChannelAudio
+      #pragma mark MediaStreamTrack => IMediaStreamTrackForMediaStreamTrackChannel
       #pragma mark
 
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPSenderChannelVideo
+      #pragma mark MediaStreamTrack => IMediaStreamTrackForMediaStreamTrackSubscriber
       #pragma mark
+
+      virtual void notifySubscriberCancelled(UseSubscriberPtr subscriber) override;
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark MediaStreamTrack => IMediaStreamTrackForMediaStreamTrackSubscriberMedia
+      #pragma mark
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark MediaStreamTrack => IMediaStreamTrackForMediaStreamTrackSubscriberRTP
+      #pragma mark
+
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPReceiver
       #pragma mark
 
-      static MediaStreamTrackPtr create(Kinds kind);
-
       // (duplicate) virtual PUID getID() const = 0;
-
-      virtual void setReceiver(IRTPReceiverPtr receiver) override;
-
-      virtual void notifyActiveReceiverChannel(RTPReceiverChannelPtr channel) override;
-
-      // (duplicate) virtual void setH264Rendering(bool h264Rendering) = 0;
-      // (duplicate) virtual bool isH264Rendering() = 0;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -552,53 +331,19 @@ namespace ortc
 
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPReceiverChannelMediaBase
+      #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPSender
       #pragma mark
-
+      
       // (duplicate) virtual PUID getID() const = 0;
-
-      //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPReceiverChannelAudio
-      #pragma mark
-
-      //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPReceiverChannelVideo
-      #pragma mark
-
-      virtual void renderVideoFrame(VideoFramePtr videoFrame) override;
-
-      //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaStreamTrack => IMediaStreamTrackForMediaDevices
-      #pragma mark
-
-      //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaStreamTrack => IMediaStreamTrackForMediaEngine
-      #pragma mark
-
       // (duplicate) virtual Kinds kind() const = 0;
-      // (duplicate) virtual String id() const = 0;
-      // (duplicate) virtual bool remote() const = 0;
-
-      // (duplicate) virtual TrackConstraintsPtr getConstraints() const = 0;
-      // (duplicate) virtual SettingsPtr getSettings() const = 0;
-
-      // (duplicate) virtual void renderVideoFrame(const webrtc::VideoFrame& videoFrame) = 0;
-
-      virtual void sendCapturedVideoFrame(VideoFramePtr videoFrame) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
-      #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPMediaEngine
+      #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPSenderChannel
       #pragma mark
-
-      virtual bool isEnded() const override;
+      
+      // (duplicate) virtual PUID getID() const = 0;
       // (duplicate) virtual Kinds kind() const = 0;
-      // (duplicate) virtual String id() const = 0;
-      // (duplicate) virtual ElementPtr toDebug() const = 0;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -633,21 +378,11 @@ namespace ortc
                                       TrackConstraintsPtr constraints
                                       ) override;
 
-      virtual void onSetActiveReceiverChannel(UseReceiverChannelPtr channel) override;
-
-      virtual void onAttachSenderChannel(UseSenderChannelPtr channel) override;
-      virtual void onDetachSenderChannel(UseSenderChannelPtr channel) override;
-
     protected:
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark MediaStreamTrack => (internal)
       #pragma mark
-
-      Log::Params log(const char *message) const;
-      static Log::Params slog(const char *message);
-      Log::Params debug(const char *message) const;
-      virtual ElementPtr toDebug() const override;
 
       bool isShuttingDown() const;
       bool isShutdown() const;
@@ -660,7 +395,7 @@ namespace ortc
 
       void setState(States state);
       void setError(WORD error, const char *reason = NULL);
- 
+
     protected:
       //-----------------------------------------------------------------------
       #pragma mark
@@ -673,33 +408,26 @@ namespace ortc
 
       IMediaStreamTrackDelegateSubscriptions mSubscriptions;
 
-      States mCurrentState {State_Live};
+      States currentState_ {State_Live};
 
-      WORD mLastError {};
-      String mLastErrorReason;
+      WORD lastError_ {};
+      String lastErrorReason_;
 
-      String mTrackID;
-      Kinds mKind {Kind_First};
-      bool mRemote {false};
-      String mDeviceID;
-      bool mH264Rendering {false};
+      String trackID_;
+      String label_;
+      Kinds kind_ {Kind_First};
+      bool muted_ {false};
+      MediaStreamTrackTypes type_ {};
+      String deviceID_;
 
-      UseSenderWeakPtr mSender;
-      UseSenderChannelWeakPtr mSenderChannel;
-      UseReceiverWeakPtr mReceiver;
-      UseReceiverChannelWeakPtr mReceiverChannel;
+      CapabilitiesPtr capabilities_;
+      TrackConstraintsPtr constraints_;
+      SettingsPtr settings_;
 
-      CapabilitiesPtr mCapabilities;
-      TrackConstraintsPtr mConstraints;
-      SettingsPtr mSettings;
+      SubscriberMapPtr subscribers_;
+      ChannelMapPtr channels_;
 
-      PromiseWithRTPMediaEngineDeviceResourcePtr mDeviceResourceLifetimeHolderPromise;
-      UseDeviceResourcePtr mDeviceResource;
-      IMediaStreamTrackRenderCallbackPtr mVideoRendererCallback;
-
-      PromisePtr mCloseDevicePromise;
-
-      ITimerPtr mStatsTimer;
+      ITimerPtr statsTimer_;
     };
 
     //-------------------------------------------------------------------------
@@ -733,11 +461,6 @@ ZS_DECLARE_PROXY_TYPEDEF(ortc::IStatsProvider::PromiseWithStatsReportPtr, Promis
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IStatsReportTypes::StatsTypeSet, StatsTypeSet)
 ZS_DECLARE_PROXY_TYPEDEF(zsLib::PromisePtr, PromisePtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IMediaStreamTrackTypes::TrackConstraintsPtr, TrackConstraintsPtr)
-ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::IMediaStreamTrackAsyncDelegate::UseReceiverChannelPtr, UseReceiverChannelPtr)
-ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::IMediaStreamTrackAsyncDelegate::UseSenderChannelPtr, UseSenderChannelPtr)
 ZS_DECLARE_PROXY_METHOD_2(onResolveStatsPromise, PromiseWithStatsReportPtr, StatsTypeSet)
 ZS_DECLARE_PROXY_METHOD_2(onApplyConstraints, PromisePtr, TrackConstraintsPtr)
-ZS_DECLARE_PROXY_METHOD_1(onSetActiveReceiverChannel, UseReceiverChannelPtr)
-ZS_DECLARE_PROXY_METHOD_1(onAttachSenderChannel, UseSenderChannelPtr)
-ZS_DECLARE_PROXY_METHOD_1(onDetachSenderChannel, UseSenderChannelPtr)
 ZS_DECLARE_PROXY_END()

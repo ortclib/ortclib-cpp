@@ -33,6 +33,7 @@
 
 #include <ortc/internal/types.h>
 #include <ortc/internal/ortc_ISecureTransport.h>
+#include <ortc/internal/ortc_IMediaStreamTrack.h>
 
 #include <ortc/IICETransport.h>
 #include <ortc/IDTLSTransport.h>
@@ -52,15 +53,8 @@ namespace ortc
   {
     ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelForRTPReceiver);
     ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelForMediaStreamTrack);
-    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelForRTPReceiverChannelMediaBase);
-    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelForRTPReceiverChannelAudio);
-    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelForRTPReceiverChannelVideo);
 
     ZS_DECLARE_INTERACTION_PTR(IRTPReceiverForRTPReceiverChannel);
-    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelMediaBaseForRTPReceiverChannel);
-    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelAudioForRTPReceiverChannel);
-    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverChannelVideoForRTPReceiverChannel);
-    ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrackForRTPReceiverChannel);
 
     ZS_DECLARE_INTERACTION_PROXY(IRTPReceiverChannelAsyncDelegate);
 
@@ -235,10 +229,6 @@ namespace ortc
 
       ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverForRTPReceiverChannel, UseReceiver)
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPReceiverChannel, UseMediaStreamTrack)
-
-      ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverChannelMediaBaseForRTPReceiverChannel, UseMediaBase)
-      ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverChannelAudioForRTPReceiverChannel, UseAudio)
-      ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverChannelVideoForRTPReceiverChannel, UseVideo)
 
       ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
       typedef std::list<RTCPPacketPtr> RTCPPacketList;
@@ -419,10 +409,12 @@ namespace ortc
       Optional<IMediaStreamTrackTypes::Kinds> mKind;
       UseMediaStreamTrackPtr mTrack;
 
-      // NO lockk is needed:
+      // NO lock is needed:
+#if 0
       UseMediaBasePtr mMediaBase; // valid
       UseAudioPtr mAudio; // either
       UseVideoPtr mVideo; // or valid
+#endif //0
     };
 
     //-------------------------------------------------------------------------
@@ -455,7 +447,7 @@ namespace ortc
 ZS_DECLARE_PROXY_BEGIN(ortc::internal::IRTPReceiverChannelAsyncDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::ISecureTransport::States, States)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::IRTPReceiverChannelAsyncDelegate::RTCPPacketListPtr, RTCPPacketListPtr)
-ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::RTPPacketPtr, RTPPacketPtr)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::RTPPacketPtr, RTPPacketPtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::IRTPReceiverChannelAsyncDelegate::ParametersPtr, ParametersPtr)
 ZS_DECLARE_PROXY_METHOD_1(onSecureTransportState, States)
 ZS_DECLARE_PROXY_METHOD_1(onNotifyPacket, RTPPacketPtr)

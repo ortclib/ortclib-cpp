@@ -33,8 +33,6 @@
 #include <ortc/internal/ortc_RTPReceiver.h>
 #include <ortc/internal/ortc_RTPSender.h>
 #include <ortc/internal/ortc_DTLSTransport.h>
-#include <ortc/internal/ortc_RTPPacket.h>
-#include <ortc/internal/ortc_RTCPPacket.h>
 #include <ortc/internal/ortc_SRTPSDESTransport.h>
 #include <ortc/internal/ortc_RTPTypes.h>
 #include <ortc/internal/ortc_ORTC.h>
@@ -42,6 +40,9 @@
 #include <ortc/internal/platform.h>
 
 #include <ortc/IHelper.h>
+#include <ortc/RTPPacket.h>
+#include <ortc/RTCPPacket.h>
+
 #include <ortc/services/IHTTP.h>
 
 #include <zsLib/ISettings.h>

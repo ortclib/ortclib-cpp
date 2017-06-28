@@ -48,45 +48,46 @@ namespace ortc
   
   interaction IRTPTypes
   {
-    ZS_DECLARE_STRUCT_PTR(Capabilities)
-    ZS_DECLARE_STRUCT_PTR(CodecCapability)
-    ZS_DECLARE_STRUCT_PTR(OpusCodecCapabilityOptions)
-    ZS_DECLARE_STRUCT_PTR(OpusCodecCapabilityParameters)
-    ZS_DECLARE_STRUCT_PTR(VP8CodecCapabilityParameters)
-    ZS_DECLARE_STRUCT_PTR(H264CodecCapabilityParameters)
-    ZS_DECLARE_STRUCT_PTR(RTXCodecCapabilityParameters)
-    ZS_DECLARE_STRUCT_PTR(FlexFECCodecCapabilityParameters)
-    ZS_DECLARE_STRUCT_PTR(HeaderExtension)
-    ZS_DECLARE_STRUCT_PTR(RTCPFeedback)
-    ZS_DECLARE_STRUCT_PTR(Parameters)
-    ZS_DECLARE_STRUCT_PTR(CodecParameters)
-    ZS_DECLARE_STRUCT_PTR(OpusCodecParameters)
-    ZS_DECLARE_TYPEDEF_PTR(VP8CodecCapabilityParameters, VP8CodecParameters)
-    ZS_DECLARE_TYPEDEF_PTR(H264CodecCapabilityParameters, H264CodecParameters)
-    ZS_DECLARE_TYPEDEF_PTR(RTXCodecCapabilityParameters, RTXCodecParameters)
-    ZS_DECLARE_TYPEDEF_PTR(FlexFECCodecCapabilityParameters, FlexFECCodecParameters)
-    ZS_DECLARE_STRUCT_PTR(REDCodecParameters)
-    ZS_DECLARE_STRUCT_PTR(HeaderExtensionParameters)
-    ZS_DECLARE_STRUCT_PTR(EncodingParameters)
-    ZS_DECLARE_STRUCT_PTR(RTCPParameters)
-    ZS_DECLARE_STRUCT_PTR(FECParameters)
-    ZS_DECLARE_STRUCT_PTR(RTXParameters)
+    ZS_DECLARE_STRUCT_PTR(Capabilities);
+    ZS_DECLARE_STRUCT_PTR(CodecCapability);
+    ZS_DECLARE_STRUCT_PTR(OpusCodecCapabilityOptions);
+    ZS_DECLARE_STRUCT_PTR(OpusCodecCapabilityParameters);
+    ZS_DECLARE_STRUCT_PTR(VP8CodecCapabilityParameters);
+    ZS_DECLARE_STRUCT_PTR(H264CodecCapabilityParameters);
+    ZS_DECLARE_STRUCT_PTR(RTXCodecCapabilityParameters);
+    ZS_DECLARE_STRUCT_PTR(FlexFECCodecCapabilityParameters);
+    ZS_DECLARE_STRUCT_PTR(HeaderExtension);
+    ZS_DECLARE_STRUCT_PTR(RTCPFeedback);
+    ZS_DECLARE_STRUCT_PTR(Parameters);
+    ZS_DECLARE_TYPEDEF_PTR(Parameters, ImmutableParameters);
+    ZS_DECLARE_STRUCT_PTR(CodecParameters);
+    ZS_DECLARE_STRUCT_PTR(OpusCodecParameters);
+    ZS_DECLARE_TYPEDEF_PTR(VP8CodecCapabilityParameters, VP8CodecParameters);
+    ZS_DECLARE_TYPEDEF_PTR(H264CodecCapabilityParameters, H264CodecParameters);
+    ZS_DECLARE_TYPEDEF_PTR(RTXCodecCapabilityParameters, RTXCodecParameters);
+    ZS_DECLARE_TYPEDEF_PTR(FlexFECCodecCapabilityParameters, FlexFECCodecParameters);
+    ZS_DECLARE_STRUCT_PTR(REDCodecParameters);
+    ZS_DECLARE_STRUCT_PTR(HeaderExtensionParameters);
+    ZS_DECLARE_STRUCT_PTR(EncodingParameters);
+    ZS_DECLARE_STRUCT_PTR(RTCPParameters);
+    ZS_DECLARE_STRUCT_PTR(FECParameters);
+    ZS_DECLARE_STRUCT_PTR(RTXParameters);
 
-    ZS_DECLARE_TYPEDEF_PTR(std::list<CodecCapability>, CodecCapabilitiesList)
-    ZS_DECLARE_TYPEDEF_PTR(std::list<HeaderExtension>, HeaderExtensionsList)
-    ZS_DECLARE_TYPEDEF_PTR(std::list<RTCPFeedback>, RTCPFeedbackList)
-    ZS_DECLARE_TYPEDEF_PTR(std::list<CodecParameters>, CodecParametersList)
-    ZS_DECLARE_TYPEDEF_PTR(std::list<HeaderExtensionParameters>, HeaderExtensionParametersList)
-    ZS_DECLARE_TYPEDEF_PTR(std::list<EncodingParameters>, EncodingParametersList)
+    ZS_DECLARE_TYPEDEF_PTR(std::list<CodecCapability>, CodecCapabilitiesList);
+    ZS_DECLARE_TYPEDEF_PTR(std::list<HeaderExtension>, HeaderExtensionsList);
+    ZS_DECLARE_TYPEDEF_PTR(std::list<RTCPFeedback>, RTCPFeedbackList);
+    ZS_DECLARE_TYPEDEF_PTR(std::list<CodecParameters>, CodecParametersList);
+    ZS_DECLARE_TYPEDEF_PTR(std::list<HeaderExtensionParameters>, HeaderExtensionParametersList);
+    ZS_DECLARE_TYPEDEF_PTR(std::list<EncodingParameters>, EncodingParametersList);
 
     typedef String FECMechanism;
-    ZS_DECLARE_TYPEDEF_PTR(std::list<FECMechanism>, FECMechanismList)
+    ZS_DECLARE_TYPEDEF_PTR(std::list<FECMechanism>, FECMechanismList);
 
     typedef BYTE PayloadType;
     typedef DWORD SSRCType;
-    ZS_DECLARE_TYPEDEF_PTR(std::list<PayloadType>, PayloadTypeList)
+    ZS_DECLARE_TYPEDEF_PTR(std::list<PayloadType>, PayloadTypeList);
     typedef String EncodingID;
-    ZS_DECLARE_TYPEDEF_PTR(std::list<EncodingID>, EncodingIDList)
+    ZS_DECLARE_TYPEDEF_PTR(std::list<EncodingID>, EncodingIDList);
 
     //-------------------------------------------------------------------------
     #pragma mark

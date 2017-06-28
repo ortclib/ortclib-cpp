@@ -1,6 +1,7 @@
 /*
 
  Copyright (c) 2015, Hookflash Inc. / Hookflash Inc.
+ Copyright (c) 2017, Optical Tone Ltd.
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -31,18 +32,12 @@
 
 #include <ortc/internal/ortc_MediaStreamTrack.h>
 #include <ortc/internal/ortc_DTLSTransport.h>
-#include <ortc/internal/ortc_RTPSender.h>
-#include <ortc/internal/ortc_RTPSenderChannel.h>
-#include <ortc/internal/ortc_RTPSenderChannelAudio.h>
-#include <ortc/internal/ortc_RTPSenderChannelVideo.h>
-#include <ortc/internal/ortc_RTPReceiver.h>
-#include <ortc/internal/ortc_RTPReceiverChannel.h>
-#include <ortc/internal/ortc_RTPReceiverChannelAudio.h>
-#include <ortc/internal/ortc_RTPReceiverChannelVideo.h>
 #include <ortc/internal/ortc_Helper.h>
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/ortc_StatsReport.h>
 #include <ortc/internal/platform.h>
+
+#include <ortc/internal/ortc_IMediaStreamTrackMonitor.h>
 
 #include <ortc/IHelper.h>
 
@@ -143,6 +138,7 @@ namespace ortc
       MediaStreamTrackSettingsDefaults::singleton();
     }
 
+#if 0
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -461,8 +457,6 @@ namespace ortc
     void MediaStreamTrack::stop()
     {
       AutoRecursiveLock lock(*this);
-      if (mDeviceResource)
-        mDeviceResource->stop();
     }
 
     //-------------------------------------------------------------------------
@@ -498,29 +492,11 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void MediaStreamTrack::setVideoRenderCallback(IMediaStreamTrackRenderCallbackPtr callback)
+    IMediaStreamTrackMediaSubscriptionPtr MediaStreamTrack::installMediaDelegate(IMediaStreamTrackMediaDelegatePtr delegate)
     {
-      AutoRecursiveLock lock(*this);
-
-      mVideoRendererCallback = callback;
-      if (mDeviceResource)
-        mDeviceResource->setVideoRenderCallback(callback);
-    }
-
-    //-------------------------------------------------------------------------
-    void MediaStreamTrack::setH264Rendering(bool h264Rendering)
-    {
-      AutoRecursiveLock lock(*this);
-
-      mH264Rendering = h264Rendering;
-    }
-
-    //-------------------------------------------------------------------------
-    bool MediaStreamTrack::isH264Rendering()
-    {
-      AutoRecursiveLock lock(*this);
-
-      return mH264Rendering;
+#define TODO 1
+#define TODO 2
+      return IMediaStreamTrackMediaSubscriptionPtr();
     }
 
     //-------------------------------------------------------------------------
@@ -647,8 +623,6 @@ namespace ortc
     void MediaStreamTrack::renderVideoFrame(VideoFramePtr videoFrame)
     {
       AutoRecursiveLock lock(*this);
-
-      if (mDeviceResource) mDeviceResource->renderVideoFrame(videoFrame);
     }
 
     //-------------------------------------------------------------------------
@@ -674,14 +648,6 @@ namespace ortc
 
       channel->sendVideoFrame(videoFrame);
     }
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaStreamTrack => IMediaStreamTrackForMediaDevices
-    #pragma mark
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -739,9 +705,6 @@ namespace ortc
       AutoRecursiveLock lock(*this);
 
       if (mStatsTimer) {
-        if (mDeviceResource && timer->getID() == mStatsTimer->getID()) {
-          mDeviceResource->setFrameCount();
-        }
       }
     }
 
@@ -774,9 +737,6 @@ namespace ortc
     void MediaStreamTrack::onResolveStatsPromise(IStatsProvider::PromiseWithStatsReportPtr promise, IStatsReportTypes::StatsTypeSet stats)
     {
       AutoRecursiveLock lock(*this);
-
-      if (mDeviceResource)
-        mDeviceResource->requestStats(promise, stats);
     }
 
     //-------------------------------------------------------------------------
@@ -786,9 +746,6 @@ namespace ortc
                                               )
     {
       AutoRecursiveLock lock(*this);
-        
-      if (mDeviceResource)
-        mDeviceResource->updateConstraints(promise, constraints);
     }
 
     //-------------------------------------------------------------------------
@@ -935,50 +892,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool MediaStreamTrack::stepDevicePromise()
     {
-      if (mDeviceResourceLifetimeHolderPromise) {
-        ZS_LOG_TRACE(log("already setup device promise"))
-          return true;
-      }
-
-      mDeviceResourceLifetimeHolderPromise = UseMediaEngine::setupDevice(mThisWeak.lock());
-
-      mDeviceResourceLifetimeHolderPromise->thenWeak(mThisWeak.lock());
-
       return true;
     }
 
     //-------------------------------------------------------------------------
     bool MediaStreamTrack::stepSetupDevice()
     {
-      if (mDeviceResource) {
-        ZS_LOG_TRACE(log("already setup device resource"))
-        return true;
-      }
-
-      if (!mDeviceResourceLifetimeHolderPromise->isSettled()) {
-        ZS_LOG_TRACE(log("waiting for setup device promise to be set up"))
-        return false;
-      }
-
-      if (mDeviceResourceLifetimeHolderPromise->isRejected()) {
-        ZS_LOG_WARNING(Debug, log("media engine rejected device setup"))
-        cancel();
-        return false;
-      }
-
-      mDeviceResource = ZS_DYNAMIC_PTR_CAST(UseDeviceResource, mDeviceResourceLifetimeHolderPromise->value());
-
-      if (!mDeviceResource) {
-        ZS_LOG_WARNING(Detail, log("failed to initialize device resource"))
-        cancel();
-        return false;
-      }
-
-      if (mVideoRendererCallback)
-        mDeviceResource->setVideoRenderCallback(mVideoRendererCallback);
-
-      ZS_LOG_DEBUG(log("media device is setup") + ZS_PARAM("device", mDeviceResource->getID()))
-
       return true;
     }
 
@@ -992,22 +911,6 @@ namespace ortc
 
       if (!mGracefulShutdownReference) mGracefulShutdownReference = mThisWeak.lock();
 
-      if (!mCloseDevicePromise) {
-        if (mDeviceResource) {
-          mCloseDevicePromise = mDeviceResource->shutdown();
-          mCloseDevicePromise->thenWeak(mGracefulShutdownReference);
-        }
-      }
-
-      if (mGracefulShutdownReference) {
-        if (mCloseDevicePromise) {
-          if (!mCloseDevicePromise->isSettled()) {
-            ZS_LOG_DEBUG(log("waiting for close device promise"))
-            return;
-          }
-        }
-      }
-
       //.......................................................................
       // final cleanup
 
@@ -1019,11 +922,6 @@ namespace ortc
         mStatsTimer->cancel();
         mStatsTimer.reset();
       }
-
-      mDeviceResourceLifetimeHolderPromise.reset();
-
-      mDeviceResource.reset();
-      mCloseDevicePromise.reset();
 
       // make sure to cleanup any final reference to self
       mGracefulShutdownReference.reset();
@@ -1095,6 +993,7 @@ namespace ortc
       return internal::MediaStreamTrack::create(kind);
     }
 
+#endif //0
 
   } // internal namespace
 
@@ -1344,6 +1243,7 @@ namespace ortc
     IHelper::debugAppend(resultEl, "channel acount", mChannelCount.hasValue() ? mChannelCount.value().toDebug() : ElementPtr());
     IHelper::debugAppend(resultEl, "device id", mDeviceID);
     IHelper::debugAppend(resultEl, "group id", mGroupID);
+    IHelper::debugAppend(resultEl, "encodingFormat", mEncodingFormat.hasValue() ? mEncodingFormat.value().toDebug() : ElementPtr());
 
     return resultEl;
   }
@@ -1377,6 +1277,8 @@ namespace ortc
     hasher->update(mDeviceID);
     hasher->update(":");
     hasher->update(mGroupID);
+    hasher->update(":");
+    hasher->update(mEncodingFormat.hasValue() ? mEncodingFormat.value().hash() : String());
 
     return hasher->finalizeAsString();
   }
@@ -1408,6 +1310,7 @@ namespace ortc
     IHelper::getElementValue(elem, "ortc::IMediaStreamTrackTypes::Settings", "channelCount", mChannelCount);
     IHelper::getElementValue(elem, "ortc::IMediaStreamTrackTypes::Settings", "deviceId", mDeviceID);
     IHelper::getElementValue(elem, "ortc::IMediaStreamTrackTypes::Settings", "groupId", mGroupID);
+    IHelper::getElementValue(elem, "ortc::IMediaStreamTrackTypes::Settings", "encodingFormat", mEncodingFormat);
   }
 
   //---------------------------------------------------------------------------
@@ -1429,6 +1332,7 @@ namespace ortc
     IHelper::adoptElementValue(elem, "channelCount", mChannelCount);
     IHelper::adoptElementValue(elem, "deviceId", mDeviceID);
     IHelper::adoptElementValue(elem, "groupId", mGroupID);
+    IHelper::adoptElementValue(elem, "encodingFormat", mEncodingFormat);
 
     if (!elem->hasChildren()) return ElementPtr();
 
@@ -1479,6 +1383,7 @@ namespace ortc
     IHelper::debugAppend(resultEl, "channel count", mChannelCount);
     IHelper::debugAppend(resultEl, "device id", mDeviceID);
     IHelper::debugAppend(resultEl, "group id", mGroupID);
+    IHelper::debugAppend(resultEl, "encoding format", mEncodingFormat);
 
     return resultEl;
   }
@@ -1517,6 +1422,8 @@ namespace ortc
     hasher->update(mDeviceID, "bogus99255cc407eaf6f82b33a94ab86f588581df9000");
     hasher->update(":");
     hasher->update(mGroupID, "bogus99255cc407eaf6f82b33a94ab86f588581df9000");
+    hasher->update(":");
+    hasher->update(mEncodingFormat, "bogus99255cc407eaf6f82b33a94ab86f588581df9000");
 
     return hasher->finalizeAsString();
   }
@@ -1618,6 +1525,12 @@ namespace ortc
         mGroupID = ConstrainString(entryEl);
       }
     }
+    {
+      ElementPtr entryEl = elem->findFirstChildElement("encodingFormat");
+      if (entryEl) {
+        mEncodingFormat = ConstrainString(entryEl);
+      }
+    }
   }
 
   //---------------------------------------------------------------------------
@@ -1639,6 +1552,7 @@ namespace ortc
     elem->adoptAsLastChild(mChannelCount.createElement("channelCount"));
     elem->adoptAsLastChild(mDeviceID.createElement("deviceId"));
     elem->adoptAsLastChild(mGroupID.createElement("groupId"));
+    elem->adoptAsLastChild(mEncodingFormat.createElement("encodingFormat"));
 
     if (!elem->hasChildren()) return ElementPtr();
 
@@ -1681,6 +1595,7 @@ namespace ortc
     IHelper::debugAppend(resultEl, "channel count", mChannelCount.toDebug());
     IHelper::debugAppend(resultEl, "device id", mDeviceID.toDebug());
     IHelper::debugAppend(resultEl, "group id", mGroupID.toDebug());
+    IHelper::debugAppend(resultEl, "encoding format", mEncodingFormat.toDebug());
 
     return resultEl;
   }
@@ -1715,6 +1630,8 @@ namespace ortc
     hasher->update(mDeviceID.hash());
     hasher->update(":");
     hasher->update(mGroupID.hash());
+    hasher->update(":");
+    hasher->update(mEncodingFormat.hash());
 
     return hasher->finalizeAsString();
   }
@@ -1930,9 +1847,12 @@ namespace ortc
   #pragma mark
 
   //---------------------------------------------------------------------------
-  ElementPtr IMediaStreamTrack::toDebug(IMediaStreamTrackPtr object)
+  void IMediaStreamTrack::trace(
+                                IMediaStreamTrackPtr object,
+                                const char *message
+                                )
   {
-    return internal::MediaStreamTrack::toDebug(internal::MediaStreamTrack::convert(object));
+    internal::MediaStreamTrack::trace(internal::MediaStreamTrack::convert(object), message);
   }
 
   //---------------------------------------------------------------------------

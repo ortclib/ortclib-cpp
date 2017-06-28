@@ -263,10 +263,26 @@ namespace ortc
       }
 
       IMediaDevicesAsyncDelegateProxy::create(pThis)->onEnumerateDevices(promise);
-
       return promise;
     }
 
+
+    //-------------------------------------------------------------------------
+    IMediaDevicesTypes::PromiseWithSettingsListPtr MediaDevices::enumerateDefaultModes(const char *deviceID)
+    {
+      PromiseWithSettingsListPtr promise = PromiseWithSettingsList::create(IORTCForInternal::queueDelegate());
+
+      MediaDevicesPtr pThis(MediaDevices::singleton());
+
+      if (!pThis) {
+        ZS_LOG_WARNING(Basic, slog("media devices singleton is gone"))
+        promise->reject();
+        return promise;
+      }
+
+      IMediaDevicesAsyncDelegateProxy::create(pThis)->onEnumerateDefaultModes(promise, deviceID);
+      return promise;
+    }
 
     //-------------------------------------------------------------------------
     IMediaDevicesTypes::PromiseWithMediaStreamTrackListPtr MediaDevices::getUserMedia(const Constraints &constraints)
@@ -443,6 +459,18 @@ namespace ortc
       audioDevice->Terminate();
 
       promise->resolve(value);
+    }
+
+    //-------------------------------------------------------------------------
+    void MediaDevices::onEnumerateDefaultModes(
+                                               PromiseWithSettingsListPtr promise,
+                                               const char *deviceID
+                                               )
+    {
+      AutoRecursiveLock lock(*this);
+#define TODO_ENUMERATE_MODES 1
+#define TODO_ENUMERATE_MODES 2
+      promise->reject(ErrorAny::create(UseHTTP::HTTPStatusCode_NotImplemented, "method not implemented"));
     }
 
     //-------------------------------------------------------------------------
@@ -1027,7 +1055,7 @@ namespace ortc
     for (auto iter = begin(); iter != end(); ++iter)
     {
       auto &track = (*iter);
-      IHelper::debugAppend(resultEl, IMediaStreamTrack::toDebug(track));
+      IMediaStreamTrack::trace(track);
     }
 
     return resultEl;

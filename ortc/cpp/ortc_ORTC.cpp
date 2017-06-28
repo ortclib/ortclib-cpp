@@ -32,7 +32,7 @@
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/ortc.events.h>
 #include <ortc/internal/ortc.stats.events.h>
-#include <ortc/internal/ortc_RTPMediaEngine.h>
+#include <ortc/internal/ortc_MediaEngine.h>
 
 #include <ortc/services/IHelper.h>
 #include <ortc/services/ILogger.h>
@@ -52,9 +52,11 @@ namespace ortc
 
   namespace internal
   {
-    ZS_DECLARE_TYPEDEF_PTR(zsLib::IMessageQueueManager, UseMessageQueueManager)
+    ZS_DECLARE_CLASS_PTR(ORTCSettingsDefaults);
+    ZS_DECLARE_TYPEDEF_PTR(zsLib::IMessageQueueManager, UseMessageQueueManager);
 
     void initSubsystems();
+    void installORTCSettingsDefaults();
     void installCertificateSettingsDefaults();
     void installDataChannelSettingsDefaults();
     void installDTMFSenderSettingsDefaults();
@@ -65,7 +67,14 @@ namespace ortc
     void installMediaDevicesSettingsDefaults();
     void installMediaStreamTrackSettingsDefaults();
     void installRTPListenerSettingsDefaults();
-    void installRTPMediaEngineSettingsDefaults();
+    void installMediaChannelTraceHelperDefaults();
+    void installMediaDeviceCaptureAudioSettingsDefaults();
+    void installMediaDeviceCaptureVideoSettingsDefaults();
+    void installRTPDecoderAudioSettingsDefaults();
+    void installRTPDecoderVideoSettingsDefaults();
+    void installRTPEncoderAudioSettingsDefaults();
+    void installRTPEncoderVideoSettingsDefaults();
+    void installMediaEngineSettingsDefaults();
     void installRTPReceiverSettingsDefaults();
     void installRTPReceiverChannelAudioSettingsDefaults();
     void installRTPReceiverChannelSettingsDefaults();
@@ -83,6 +92,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     static void installAllDefaults()
     {
+      installORTCSettingsDefaults();
       installCertificateSettingsDefaults();
       installDataChannelSettingsDefaults();
       installDTMFSenderSettingsDefaults();
@@ -91,9 +101,16 @@ namespace ortc
       installICETransportSettingsDefaults();
       installIdentitySettingsDefaults();
       installMediaDevicesSettingsDefaults();
+      installMediaChannelTraceHelperDefaults();
       installMediaStreamTrackSettingsDefaults();
       installRTPListenerSettingsDefaults();
-      installRTPMediaEngineSettingsDefaults();
+      installMediaDeviceCaptureAudioSettingsDefaults();
+      installMediaDeviceCaptureVideoSettingsDefaults();
+      installRTPDecoderAudioSettingsDefaults();
+      installRTPDecoderVideoSettingsDefaults();
+      installRTPEncoderAudioSettingsDefaults();
+      installRTPEncoderVideoSettingsDefaults();
+      installMediaEngineSettingsDefaults();
       installRTPReceiverSettingsDefaults();
       installRTPReceiverChannelAudioSettingsDefaults();
       installRTPReceiverChannelSettingsDefaults();
@@ -107,6 +124,61 @@ namespace ortc
       installSCTPTransportListenerSettingsDefaults();
       installSRTPTransportSettingsDefaults();
       installSRTPSDESTransportSettingsDefaults();
+    }
+
+    
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark ORTCSettingsDefaults
+    #pragma mark
+
+    class ORTCSettingsDefaults : public ISettingsApplyDefaultsDelegate
+    {
+    public:
+      //-----------------------------------------------------------------------
+      ~ORTCSettingsDefaults()
+      {
+        ISettings::removeDefaults(*this);
+      }
+
+      //-----------------------------------------------------------------------
+      static ORTCSettingsDefaultsPtr singleton()
+      {
+        static SingletonLazySharedPtr<ORTCSettingsDefaults> singleton(create());
+        return singleton.singleton();
+      }
+
+      //-----------------------------------------------------------------------
+      static ORTCSettingsDefaultsPtr create()
+      {
+        auto pThis(make_shared<ORTCSettingsDefaults>());
+        ISettings::installDefaults(pThis);
+        return pThis;
+      }
+
+      //-----------------------------------------------------------------------
+      virtual void notifySettingsApplyDefaults() override
+      {
+        ISettings::setString(ORTC_SETTING_ORTC_QUEUE_BLOCKING_MEDIA_STARTUP_THREAD_NAME, "normal");
+        ISettings::setString(ORTC_SETTING_ORTC_QUEUE_CERTIFICATE_GENERATION_NAME, "low");
+
+        for (size_t index = 0; index < ORTC_QUEUE_TOTAL_MEDIA_DEVICE_THREADS; ++index) {
+          ISettings::setString((String(ORTC_SETTING_ORTC_QUEUE_MEDIA_DEVICE_THREAD_NAME) + string(index)).c_str(), "higest");
+        }
+        for (size_t index = 0; index < ORTC_QUEUE_TOTAL_RTP_THREADS; ++index) {
+          ISettings::setString((String(ORTC_SETTING_ORTC_QUEUE_RTP_THREAD_NAME) + string(index)).c_str(), "higest");
+        }
+      }
+      
+    };
+
+    //-------------------------------------------------------------------------
+    void installORTCSettingsDefaults()
+    {
+      ORTCSettingsDefaults::singleton();
     }
 
     //-------------------------------------------------------------------------
@@ -136,15 +208,21 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    IMessageQueuePtr IORTCForInternal::queuePacket()
-    {
-      return (ORTC::singleton())->queuePacket();
-    }
-
-    //-------------------------------------------------------------------------
     IMessageQueuePtr IORTCForInternal::queueBlockingMediaStartStopThread()
     {
       return (ORTC::singleton())->queueBlockingMediaStartStopThread();
+    }
+
+    //-------------------------------------------------------------------------
+    IMessageQueuePtr IORTCForInternal::queueMediaDevices()
+    {
+      return (ORTC::singleton())->queueMediaDevices();
+    }
+
+    //-------------------------------------------------------------------------
+    IMessageQueuePtr IORTCForInternal::queueRTP()
+    {
+      return (ORTC::singleton())->queueRTP();
     }
 
     //-------------------------------------------------------------------------
@@ -263,8 +341,7 @@ namespace ortc
       }
 
       UseServicesHelper::setup();
-      installAllDefaults();
-      ISettings::applyDefaults();
+      internalSetup();
     }
 
 #ifdef WINRT
@@ -272,8 +349,7 @@ namespace ortc
     void ORTC::setup(Windows::UI::Core::CoreDispatcher ^dispatcher)
     {
       UseServicesHelper::setup(dispatcher);
-      installAllDefaults();
-      ISettings::applyDefaults();
+      internalSetup();
     }
 #endif //WINRT
 
@@ -291,7 +367,7 @@ namespace ortc
         AutoRecursiveLock(*this);
         mNTPServerTime = value;
       }
-      IRTPMediaEngineForORTC::ntpServerTime(value);
+      IMediaEngineForORTC::ntpServerTime(value);
     }
 
     //-------------------------------------------------------------------------
@@ -311,31 +387,31 @@ namespace ortc
     //-------------------------------------------------------------------------
     void ORTC::startMediaTracing()
     {
-      IRTPMediaEngineForORTC::startMediaTracing();
+      IMediaEngineForORTC::startMediaTracing();
     }
 
     //-------------------------------------------------------------------------
     void ORTC::stopMediaTracing()
     {
-      IRTPMediaEngineForORTC::stopMediaTracing();
+      IMediaEngineForORTC::stopMediaTracing();
     }
 
     //-------------------------------------------------------------------------
     bool ORTC::isMediaTracing()
     {
-      return IRTPMediaEngineForORTC::isMediaTracing();
+      return IMediaEngineForORTC::isMediaTracing();
     }
 
     //-------------------------------------------------------------------------
     bool ORTC::saveMediaTrace(String filename)
     {
-      return IRTPMediaEngineForORTC::saveMediaTrace(filename);
+      return IMediaEngineForORTC::saveMediaTrace(filename);
     }
 
     //-------------------------------------------------------------------------
     bool ORTC::saveMediaTrace(String host, int port)
     {
-      return IRTPMediaEngineForORTC::saveMediaTrace(host, port);
+      return IMediaEngineForORTC::saveMediaTrace(host, port);
     }
 
     //-------------------------------------------------------------------------
@@ -374,21 +450,6 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    IMessageQueuePtr ORTC::queuePacket() const
-    {
-      AutoRecursiveLock lock(*this);
-
-      size_t index = mNextPacketQueueThread % ORTC_QUEUE_TOTAL_PACKET_THREADS;
-
-      if (!mPacketQueues[index]) {
-        mPacketQueues[index] = UseMessageQueueManager::getMessageQueue((String(ORTC_QUEUE_PACKET_THREAD_NAME) + string(index)).c_str());
-      }
-
-      ++mNextPacketQueueThread;
-      return mPacketQueues[index];
-    }
-
-    //-------------------------------------------------------------------------
     IMessageQueuePtr ORTC::queueBlockingMediaStartStopThread() const
     {
       AutoRecursiveLock lock(*this);
@@ -396,6 +457,36 @@ namespace ortc
         mBlockingMediaStartStopThread = UseMessageQueueManager::getMessageQueue(ORTC_QUEUE_BLOCKING_MEDIA_STARTUP_THREAD_NAME);
       }
       return mBlockingMediaStartStopThread;
+    }
+
+    //-------------------------------------------------------------------------
+    IMessageQueuePtr ORTC::queueMediaDevices() const
+    {
+      AutoRecursiveLock lock(*this);
+
+      size_t index = mNextMediaQueueThread % ORTC_QUEUE_TOTAL_MEDIA_DEVICE_THREADS;
+
+      if (!mMediaDeviceQueues[index]) {
+        mMediaDeviceQueues[index] = UseMessageQueueManager::getMessageQueue((String(ORTC_QUEUE_MEDIA_DEVICE_THREAD_NAME) + string(index)).c_str());
+      }
+
+      ++mNextMediaQueueThread;
+      return mMediaDeviceQueues[index];
+    }
+
+    //-------------------------------------------------------------------------
+    IMessageQueuePtr ORTC::queueRTP() const
+    {
+      AutoRecursiveLock lock(*this);
+
+      size_t index = mNextRTPQueueThread % ORTC_QUEUE_TOTAL_RTP_THREADS;
+
+      if (!mRTPQueues[index]) {
+        mRTPQueues[index] = UseMessageQueueManager::getMessageQueue((String(ORTC_QUEUE_RTP_THREAD_NAME) + string(index)).c_str());
+      }
+
+      ++mNextRTPQueueThread;
+      return mRTPQueues[index];
     }
 
     //-------------------------------------------------------------------------
@@ -437,6 +528,29 @@ namespace ortc
     {
       ElementPtr objectEl = Element::create("ortc::ORTC");
       return Log::Params(message, objectEl);
+    }
+
+    //-------------------------------------------------------------------------
+    void ORTC::internalSetup()
+    {
+      installAllDefaults();
+      ISettings::applyDefaults();
+
+      UseMessageQueueManager::registerMessageQueueThreadPriority(ORTC_QUEUE_BLOCKING_MEDIA_STARTUP_THREAD_NAME, zsLib::threadPriorityFromString(ISettings::getString(ORTC_SETTING_ORTC_QUEUE_BLOCKING_MEDIA_STARTUP_THREAD_NAME)));
+      UseMessageQueueManager::registerMessageQueueThreadPriority(ORTC_QUEUE_CERTIFICATE_GENERATION_NAME, zsLib::threadPriorityFromString(ISettings::getString(ORTC_SETTING_ORTC_QUEUE_CERTIFICATE_GENERATION_NAME)));
+
+      for (size_t index = 0; index < ORTC_QUEUE_TOTAL_MEDIA_DEVICE_THREADS; ++index) {
+        UseMessageQueueManager::registerMessageQueueThreadPriority(
+          (String(ORTC_QUEUE_MEDIA_DEVICE_THREAD_NAME) + string(index)).c_str(),
+          zsLib::threadPriorityFromString(ISettings::getString((String(ORTC_SETTING_ORTC_QUEUE_MEDIA_DEVICE_THREAD_NAME) + string(index)).c_str()))
+        );
+      }
+      for (size_t index = 0; index < ORTC_QUEUE_TOTAL_RTP_THREADS; ++index) {
+        UseMessageQueueManager::registerMessageQueueThreadPriority(
+          (String(ORTC_QUEUE_RTP_THREAD_NAME) + string(index)).c_str(),
+          zsLib::threadPriorityFromString(ISettings::getString((String(ORTC_SETTING_ORTC_QUEUE_RTP_THREAD_NAME) + string(index)).c_str()))
+        );
+      }
     }
 
   } // namespace internal

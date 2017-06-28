@@ -33,6 +33,7 @@
 
 #include <ortc/internal/types.h>
 #include <ortc/internal/ortc_ISecureTransport.h>
+#include <ortc/internal/ortc_IMediaStreamTrack.h>
 
 #include <ortc/IRTPSender.h>
 #include <ortc/IDTLSTransport.h>
@@ -58,7 +59,6 @@ namespace ortc
     ZS_DECLARE_INTERACTION_PTR(ISecureTransportForRTPSender);
     ZS_DECLARE_INTERACTION_PTR(IRTPListenerForRTPSender);
     ZS_DECLARE_INTERACTION_PTR(IRTPSenderChannelForRTPSender);
-    ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrackForRTPSender);
 
     ZS_DECLARE_INTERACTION_PROXY(IRTPSenderAsyncDelegate)
 
@@ -292,7 +292,7 @@ namespace ortc
                 const make_private &,
                 IMessageQueuePtr queue,
                 IRTPSenderDelegatePtr delegate,
-                IMediaStreamTrackPtr track,
+                ortc::IMediaStreamTrackPtr track,
                 IRTPTransportPtr transport,
                 IRTCPTransportPtr rtcpTransport = IRTCPTransportPtr()
                 );
@@ -333,7 +333,7 @@ namespace ortc
 
       static RTPSenderPtr create(
                                  IRTPSenderDelegatePtr delegate,
-                                 IMediaStreamTrackPtr track,
+                                 ortc::IMediaStreamTrackPtr track,
                                  IRTPTransportPtr transport,
                                  IRTCPTransportPtr rtcpTransport = IRTCPTransportPtr()
                                  );
@@ -342,7 +342,7 @@ namespace ortc
 
       virtual IRTPSenderSubscriptionPtr subscribe(IRTPSenderDelegatePtr delegate) override;
 
-      virtual IMediaStreamTrackPtr track() const override;
+      virtual ortc::IMediaStreamTrackPtr track() const override;
       virtual IRTPTransportPtr transport() const override;
       virtual IRTCPTransportPtr rtcpTransport() const override;
 
@@ -350,7 +350,7 @@ namespace ortc
                                 IRTPTransportPtr transport,
                                 IRTCPTransportPtr rtcpTransport = IRTCPTransportPtr()
                                 ) override;
-      virtual PromisePtr setTrack(IMediaStreamTrackPtr track) override;
+      virtual PromisePtr setTrack(ortc::IMediaStreamTrackPtr track) override;
 
       static CapabilitiesPtr getCapabilities(Optional<Kinds> kind);
 
@@ -562,7 +562,7 @@ namespace ortc
 
       virtual RTPSenderPtr create(
                                   IRTPSenderDelegatePtr delegate,
-                                  IMediaStreamTrackPtr track,
+                                  ortc::IMediaStreamTrackPtr track,
                                   IRTPTransportPtr transport,
                                   IRTCPTransportPtr rtcpTransport = IRTCPTransportPtr()
                                   );

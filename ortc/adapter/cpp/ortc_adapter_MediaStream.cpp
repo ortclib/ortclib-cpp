@@ -325,7 +325,8 @@ namespace ortc
         AutoRecursiveLock lock(*this);
         auto result = getTrackByID(track->id());
         if (nullptr != result) {
-          ZS_LOG_WARNING(Debug, log("already added track (not added again)") + IMediaStreamTrack::toDebug(track));
+          IMediaStreamTrack::trace(track, "already added track (not added again)");
+          ZS_LOG_WARNING(Debug, log("already added track (not added again)"));
           return;
         }
         mTracks.push_back(MediaStreamTrack::convert(track));

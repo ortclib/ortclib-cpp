@@ -109,9 +109,6 @@ namespace ortc
     #pragma mark (forwards)
     #pragma mark
 
-    ZS_DECLARE_CLASS_PTR(RTPPacket);
-    ZS_DECLARE_CLASS_PTR(RTCPPacket);
-
     ZS_DECLARE_INTERACTION_PTR(IDataTransportForSecureTransport);
     ZS_DECLARE_INTERACTION_PTR(ISecureTransport);
     ZS_DECLARE_INTERACTION_PTR(ISecureTransportForRTPSender);
@@ -119,6 +116,20 @@ namespace ortc
     ZS_DECLARE_INTERACTION_PTR(ISecureTransportForICETransport);
     ZS_DECLARE_INTERACTION_PTR(ISecureTransportForRTPListener);
     ZS_DECLARE_INTERACTION_PTR(ISRTPTransport);
+    ZS_DECLARE_INTERACTION_PTR(IMediaDevice);
+    ZS_DECLARE_INTERACTION_PTR(IMediaDeviceCapture);
+    ZS_DECLARE_INTERACTION_PTR(IMediaDeviceCaptureAudio);
+    ZS_DECLARE_INTERACTION_PTR(IMediaDeviceCaptureVideo);
+    ZS_DECLARE_INTERACTION_PTR(IMediaDeviceRender);
+    ZS_DECLARE_INTERACTION_PTR(IMediaDeviceRenderAudio);
+    ZS_DECLARE_INTERACTION_PTR(IMediaDeviceRenderVideo);
+    ZS_DECLARE_INTERACTION_PTR(IRTP);
+    ZS_DECLARE_INTERACTION_PTR(IRTPDecoder);
+    ZS_DECLARE_INTERACTION_PTR(IRTPDecoderAudio);
+    ZS_DECLARE_INTERACTION_PTR(IRTPDecoderVideo);
+    ZS_DECLARE_INTERACTION_PTR(IRTPEncoder);
+    ZS_DECLARE_INTERACTION_PTR(IRTPEncoderAudio);
+    ZS_DECLARE_INTERACTION_PTR(IRTPEncoderVideo);
 
     ZS_DECLARE_CLASS_PTR(ORTC);
     ZS_DECLARE_CLASS_PTR(Certificate);
@@ -130,8 +141,20 @@ namespace ortc
     ZS_DECLARE_CLASS_PTR(ICETransport);
     ZS_DECLARE_CLASS_PTR(ICETransportController);
     ZS_DECLARE_CLASS_PTR(Identity);
+    ZS_DECLARE_CLASS_PTR(MediaChannelTraceHelper);
+    ZS_DECLARE_CLASS_PTR(MediaDeviceCaptureAudio);
+    ZS_DECLARE_CLASS_PTR(MediaDeviceCaptureVideo);
+    ZS_DECLARE_CLASS_PTR(MediaDeviceRenderAudio);
     ZS_DECLARE_CLASS_PTR(MediaDevices);
     ZS_DECLARE_CLASS_PTR(MediaStreamTrack);
+    ZS_DECLARE_CLASS_PTR(MediaStreamTrackChannel);
+    ZS_DECLARE_CLASS_PTR(MediaStreamTrackSubscriberMedia);
+    ZS_DECLARE_CLASS_PTR(MediaStreamTrackSubscriberRTP);
+    ZS_DECLARE_CLASS_PTR(MediaEngine);
+    ZS_DECLARE_CLASS_PTR(RTPDecoderAudio);
+    ZS_DECLARE_CLASS_PTR(RTPDecoderVideo);
+    ZS_DECLARE_CLASS_PTR(RTPEncoderAudio);
+    ZS_DECLARE_CLASS_PTR(RTPEncoderVideo);
     ZS_DECLARE_CLASS_PTR(RTPListener);
     ZS_DECLARE_CLASS_PTR(RTPMediaEngine);
     ZS_DECLARE_CLASS_PTR(RTPReceiver);
@@ -149,7 +172,22 @@ namespace ortc
 
     ZS_DECLARE_INTERACTION_PROXY(ISecureTransportDelegate);
     ZS_DECLARE_INTERACTION_PROXY(ISRTPTransportDelegate);
+    ZS_DECLARE_INTERACTION_PROXY(ISecureTransportDelegate);
 
+    ZS_DECLARE_INTERACTION_PROXY(IMediaDeviceCaptureDelegate);
+    ZS_DECLARE_INTERACTION_PROXY(IMediaDeviceRenderDelegate);
+    ZS_DECLARE_INTERACTION_PROXY(IRTPDecoderDelegate);
+    ZS_DECLARE_INTERACTION_PROXY(IRTPEncoderDelegate);
+
+    ZS_DECLARE_INTERACTION_PROXY(IMediaStreamTrackFeedbackDelegate);
+    ZS_DECLARE_INTERACTION_PROXY(IMediaStreamTrackRTPDelegate);
+
+    ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(IMediaDeviceCaptureSubscription, IMediaDeviceCaptureDelegate);
+    ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(IMediaDeviceRenderSubscription, IMediaDeviceRenderDelegate);
+    ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(IMediaStreamTrackFeedbackSubscription, IMediaStreamTrackFeedbackDelegate);
+    ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(IMediaStreamTrackRTPSubscription, IMediaStreamTrackRTPDelegate);
+    ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(IRTPDecoderSubscription, IRTPDecoderDelegate);
+    ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(IRTPEncoderSubscription, IRTPEncoderDelegate);
     ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(ISRTPTransportSubscription, ISRTPTransportDelegate);
     ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(ISecureTransportSubscription, ISecureTransportDelegate);
   }

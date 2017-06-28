@@ -36,8 +36,6 @@
 #include <ortc/internal/ortc_RTPListener.h>
 #include <ortc/internal/ortc_MediaStreamTrack.h>
 #include <ortc/internal/ortc_SRTPSDESTransport.h>
-#include <ortc/internal/ortc_RTPPacket.h>
-#include <ortc/internal/ortc_RTCPPacket.h>
 #include <ortc/internal/ortc_RTPTypes.h>
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/ortc_StatsReport.h>
@@ -46,6 +44,8 @@
 
 #include <ortc/IRTPReceiver.h>
 #include <ortc/IHelper.h>
+#include <ortc/RTPPacket.h>
+#include <ortc/RTCPPacket.h>
 
 #include <ortc/services/IHTTP.h>
 
@@ -345,7 +345,7 @@ namespace ortc
                          const make_private &,
                          IMessageQueuePtr queue,
                          IRTPSenderDelegatePtr delegate,
-                         IMediaStreamTrackPtr track,
+                         ortc::IMediaStreamTrackPtr track,
                          IRTPTransportPtr transport,
                          IRTCPTransportPtr rtcpTransport
                          ) :
@@ -483,7 +483,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     RTPSenderPtr RTPSender::create(
                                    IRTPSenderDelegatePtr delegate,
-                                   IMediaStreamTrackPtr track,
+                                   ortc::IMediaStreamTrackPtr track,
                                    IRTPTransportPtr transport,
                                    IRTCPTransportPtr rtcpTransport
                                    )
@@ -526,7 +526,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    IMediaStreamTrackPtr RTPSender::track() const
+    ortc::IMediaStreamTrackPtr RTPSender::track() const
     {
       AutoRecursiveLock lock(*this);
       return MediaStreamTrack::convert(mTrack);
@@ -633,7 +633,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    PromisePtr RTPSender::setTrack(IMediaStreamTrackPtr inTrack)
+    PromisePtr RTPSender::setTrack(ortc::IMediaStreamTrackPtr inTrack)
     {
       UseMediaStreamTrackPtr track = MediaStreamTrack::convert(inTrack);
 
@@ -676,7 +676,9 @@ namespace ortc
                           puid, trackId, mTrack->getID(),
                           puid, channelId, channel->getID()
                           );
+#if 0
             mTrack->notifyDetachSenderChannel(RTPSenderChannel::convert(channel->mChannel));
+#endif //0
           }
         }
 
@@ -691,7 +693,9 @@ namespace ortc
                           puid, trackId, mTrack->getID(),
                           puid, channelId, channel->getID()
                           );
+#if 0
             mTrack->notifyAttachSenderChannel(RTPSenderChannel::convert(channel->mChannel));
+#endif //0
           }
         }
 
@@ -876,7 +880,8 @@ namespace ortc
                     size, size, packet->buffer()->SizeInBytes()
                     );
 
-      ZS_LOG_TRACE(log("received packet") + ZS_PARAM("via", IICETypes::toString(viaTransport)) + packet->toDebug())
+      ZS_LOG_TRACE(log("received packet") + ZS_PARAM("via", IICETypes::toString(viaTransport)))
+      packet->trace("received packet");
 
       ParametersToChannelHolderMapPtr channels;
 
@@ -1329,7 +1334,9 @@ namespace ortc
                         puid, trackId, mTrack->getID(),
                         puid, channelId, existingChannel->getID()
                         );
+#if 0
           mTrack->notifyDetachSenderChannel(RTPSenderChannel::convert(existingChannel->mChannel));
+#endif //0
         }
 
         replacementChannels->erase(current);
@@ -1559,8 +1566,9 @@ namespace ortc
                       puid, trackId, mTrack->getID(),
                       puid, channelId, channel->getID()
                       );
-
+#if 0
         mTrack->notifyAttachSenderChannel(RTPSenderChannel::convert(channel->mChannel));
+#endif //0
       }
       ZS_EVENTING_2(
                     x, i, Debug, RtpSenderAddChannel, ol, RtpSender, Info,
@@ -1601,7 +1609,9 @@ namespace ortc
                       puid, trackId, mTrack->getID(),
                       puid, channelId, channel->getID()
                       );
+#if 0
         mTrack->notifyDetachSenderChannel(RTPSenderChannel::convert(channel->mChannel));
+#endif //0
       }
     }
 
@@ -1666,7 +1676,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     RTPSenderPtr IRTPSenderFactory::create(
                                            IRTPSenderDelegatePtr delegate,
-                                           IMediaStreamTrackPtr track,
+                                           ortc::IMediaStreamTrackPtr track,
                                            IRTPTransportPtr transport,
                                            IRTCPTransportPtr rtcpTransport
                                            )
@@ -1717,7 +1727,7 @@ namespace ortc
   //---------------------------------------------------------------------------
   IRTPSenderPtr IRTPSender::create(
                                    IRTPSenderDelegatePtr delegate,
-                                   IMediaStreamTrackPtr track,
+                                   ortc::IMediaStreamTrackPtr track,
                                    IRTPTransportPtr transport,
                                    IRTCPTransportPtr rtcpTransport
                                    )

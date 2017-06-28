@@ -33,13 +33,13 @@
 
 #include <ortc/internal/types.h>
 #include <ortc/internal/ortc_ISecureTransport.h>
-#include <ortc/internal/ortc_RTPPacket.h>
 
 #include <ortc/IDTLSTransport.h>
 #include <ortc/IICETransport.h>
 #include <ortc/IRTPTypes.h>
 #include <ortc/IMediaStreamTrack.h>
 #include <ortc/IStatsProvider.h>
+#include <ortc/RTPPacket.h>
 
 #include <zsLib/MessageQueueAssociator.h>
 #include <zsLib/ITimer.h>
@@ -478,7 +478,7 @@ namespace ortc
       Optional<IMediaStreamTrackTypes::Kinds> mKind;
       UseMediaStreamTrackPtr mTrack;
 
-      // NO lockk is needed:
+      // NO lock is needed:
       UseMediaBasePtr mMediaBase; // valid
       UseAudioPtr mAudio; // either
       UseVideoPtr mVideo; // or valid
