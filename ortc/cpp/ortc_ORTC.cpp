@@ -375,7 +375,7 @@ namespace ortc
     {
       AutoRecursiveLock lock(*this);
       if (!mORTCQueue) {
-        mORTCQueue = UseMessageQueueManager::getThreadPoolQueue(ORTC_QUEUE_MAIN_THREAD_NAME);
+        mORTCQueue = UseMessageQueueManager::getThreadPoolQueue(ORTC_QUEUE_MAIN_THREAD_NAME, NULL, 8);
       }
       return mORTCQueue;
     }
@@ -410,7 +410,7 @@ namespace ortc
     {
       AutoRecursiveLock lock(*this);
       if (!mCertificateGeneration) {
-        mCertificateGeneration = UseMessageQueueManager::getMessageQueue(ORTC_QUEUE_CERTIFICATE_GENERATION_NAME);
+        mCertificateGeneration = UseMessageQueueManager::getThreadPoolQueue(ORTC_QUEUE_CERTIFICATE_GENERATION_NAME);
       }
       return mCertificateGeneration;
     }
