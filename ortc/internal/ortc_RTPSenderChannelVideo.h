@@ -80,7 +80,9 @@ namespace ortc
       ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelVideoForRTPSenderChannel, ForRTPSenderChannel)
 
       ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
+#ifndef WIN32_RX64
       ZS_DECLARE_TYPEDEF_PTR(webrtc::VideoFrame, VideoFrame);
+#endif //ndef WIN32_RX64
 
       static RTPSenderChannelVideoPtr create(
                                              RTPSenderChannelPtr senderChannel,
@@ -88,7 +90,9 @@ namespace ortc
                                              const Parameters &params
                                              );
 
+#ifndef WIN32_RX64
       virtual void sendVideoFrame(VideoFramePtr videoFrame) = 0;
+#endif //ndef WIN32_RX64
     };
 
     //-------------------------------------------------------------------------
@@ -192,7 +196,9 @@ namespace ortc
       ZS_DECLARE_PTR(RTCPPacketList);
       ZS_DECLARE_TYPEDEF_PTR(IStatsProviderTypes::PromiseWithStatsReport, PromiseWithStatsReport);
       ZS_DECLARE_TYPEDEF_PTR(IStatsReportTypes::StatsTypeSet, StatsTypeSet)
+#ifndef WIN32_RX64
       ZS_DECLARE_TYPEDEF_PTR(webrtc::VideoFrame, VideoFrame);
+#endif //ndef WIN32_RX64
 
       enum States
       {
@@ -269,7 +275,9 @@ namespace ortc
                                              const Parameters &params
                                              );
 
+#ifndef WIN32_RX64
       virtual void sendVideoFrame(VideoFramePtr videoFrame) override;
+#endif //ndef WIN32_RX64
       
       //-----------------------------------------------------------------------
       #pragma mark

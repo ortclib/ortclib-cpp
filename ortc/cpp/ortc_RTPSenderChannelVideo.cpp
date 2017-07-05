@@ -185,6 +185,7 @@ namespace ortc
     {
       TransportPtr transport = Transport::create(mThisWeak.lock());
 
+#ifndef WIN32_RX64
       PromiseWithRTPMediaEngineChannelResourcePtr setupChannelPromise = UseMediaEngine::setupChannel(
                                                                                                      mThisWeak.lock(),
                                                                                                      transport,
@@ -192,6 +193,9 @@ namespace ortc
                                                                                                      mParameters,
                                                                                                      IDTMFSenderDelegatePtr()
                                                                                                      );
+#else 
+      PromiseWithRTPMediaEngineChannelResourcePtr setupChannelPromise;
+#endif //ndef WIN32_RX64
       {
         AutoRecursiveLock lock(*this);
         mChannelResourceLifetimeHolderPromise = setupChannelPromise;
@@ -283,7 +287,11 @@ namespace ortc
       }
 
       if (!channelResource) return true;
+#ifndef WIN32_RX64
       return channelResource->handlePacket(*packet);
+#else
+      return true;
+#endif //ndef WIN32_RX64
     }
 
     //-------------------------------------------------------------------------
@@ -300,7 +308,9 @@ namespace ortc
         promise->reject();
         return;
       }
-      return channelResource->requestStats(promise, stats);
+#ifndef WIN32_RX64
+      channelResource->requestStats(promise, stats);
+#endif //ndef WIN32_RX64
     }
 
     //-------------------------------------------------------------------------
@@ -332,6 +342,7 @@ namespace ortc
     #pragma mark RTPSenderChannelVideo => IRTPSenderChannelVideoForMediaStreamTrack
     #pragma mark
 
+#ifndef WIN32_RX64
     //-------------------------------------------------------------------------
     void RTPSenderChannelVideo::sendVideoFrame(VideoFramePtr videoFrame)
     {
@@ -343,8 +354,11 @@ namespace ortc
       }
 
       if (!channelResource) return;
+#ifndef WIN32_RX64
       channelResource->sendVideoFrame(videoFrame);
+#endif //ndef WIN32_RX64
     }
+#endif //ndef WIN32_RX64
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -423,8 +437,10 @@ namespace ortc
 
       mTransportState = state;
 
+#ifndef WIN32_RX64
       if (mChannelResource)
         mChannelResource->notifyTransportState(state);
+#endif //ndef WIN32_RX64
     }
 
     //-------------------------------------------------------------------------
@@ -439,8 +455,10 @@ namespace ortc
         channelResource = mChannelResource;
       }
 
+#ifndef WIN32_RX64
       if (channelResource)
         channelResource->notifyUpdate(params);
+#endif //ndef WIN32_RX64
     }
 
     //-------------------------------------------------------------------------
@@ -650,9 +668,11 @@ namespace ortc
         return false;
       }
 
+#ifndef WIN32_RX64
       ZS_LOG_DEBUG(log("media channel is setup") + ZS_PARAM("channel", mChannelResource->getID()))
 
       mChannelResource->notifyTransportState(mTransportState);
+#endif //ndef WIN32_RX64
 
       return true;
     }
@@ -671,7 +691,9 @@ namespace ortc
 
       if (!mCloseChannelPromise) {
         if (mChannelResource) {
+#ifndef WIN32_RX64
           mCloseChannelPromise = mChannelResource->shutdown();
+#endif //ndef WIN32_RX64
           mCloseChannelPromise->thenWeak(mGracefulShutdownReference);
         }
       }

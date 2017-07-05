@@ -45,6 +45,10 @@
 #include <zsLib/MessageQueueAssociator.h>
 #include <zsLib/ITimer.h>
 
+
+#ifndef WIN32_RX64
+
+#include "webrtc/base/scoped_ptr.h"
 #include <webrtc/base/logging.h>
 #include <webrtc/system_wrappers/include/trace.h>
 #include <webrtc/base/tracelog.h>
@@ -2075,3 +2079,64 @@ ZS_DECLARE_PROXY_METHOD_2(onHandleRTPPacket, DWORD, SecureByteBlockPtr)
 ZS_DECLARE_PROXY_METHOD_1(onHandleRTCPPacket, SecureByteBlockPtr)
 ZS_DECLARE_PROXY_METHOD_1(onSendVideoFrame, VideoFramePtr)
 ZS_DECLARE_PROXY_END()
+
+#else
+
+namespace ortc
+{
+  namespace internal
+  {
+    ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrack::Settings, TrackSettings);
+    ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineDeviceResource);
+    ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineForRTPReceiverChannelMediaBase);
+    ZS_DECLARE_INTERACTION_PTR(IRTPMediaEngineForRTPReceiverChannelAudio);
+
+    interaction IRTPMediaEngineDeviceResource : public Any
+    {
+    };
+
+    ZS_DECLARE_TYPEDEF_PTR(zsLib::PromiseWith<IRTPMediaEngineDeviceResource>, PromiseWithRTPMediaEngineDeviceResource);
+
+    interaction IRTPMediaEngineForRTPReceiverChannelMediaBase
+    {
+      virtual ~IRTPMediaEngineForRTPReceiverChannelMediaBase() {}
+    };
+
+    interaction IRTPMediaEngineForRTPReceiverChannelAudio : public IRTPMediaEngineForRTPReceiverChannelMediaBase {};
+
+    interaction IRTPMediaEngineChannelResource : public Any {};
+
+    interaction IRTPMediaEngineAudioReceiverChannelResource : public IRTPMediaEngineChannelResource {};
+
+    ZS_DECLARE_TYPEDEF_PTR(zsLib::PromiseWith<IRTPMediaEngineChannelResource>, PromiseWithRTPMediaEngineChannelResource);
+
+    interaction IRTPMediaEngineForRTPReceiverChannelVideo : public IRTPMediaEngineForRTPReceiverChannelMediaBase {};
+
+    interaction IRTPMediaEngineVideoReceiverChannelResource : public IRTPMediaEngineChannelResource {};
+
+    interaction IRTPMediaEngineForRTPSenderChannelMediaBase
+    {
+      virtual ~IRTPMediaEngineForRTPSenderChannelMediaBase() {}
+    };
+
+    interaction IRTPMediaEngineForRTPSenderChannelAudio : public IRTPMediaEngineForRTPSenderChannelMediaBase {};
+
+    interaction IRTPMediaEngineAudioSenderChannelResource : public IRTPMediaEngineChannelResource {};
+
+    interaction IRTPMediaEngineVideoSenderChannelResource : public IRTPMediaEngineChannelResource {};
+
+    interaction IRTPMediaEngineForORTC
+    {
+      static void setLogLevel(Log::Level level) {}
+      static void ntpServerTime(const Milliseconds &value) {}
+      static void startMediaTracing() {}
+      static void stopMediaTracing() {}
+      static bool isMediaTracing() { return false; }
+      static bool saveMediaTrace(String filename) { return true; }
+      static bool saveMediaTrace(String host, int port) { return true; }
+    };
+
+  }
+}
+
+#endif //ndef WIN32_RX64

@@ -66,7 +66,7 @@
 // WINRT does not support these features (but WIN32 does)
 #undef HAVE_GETADAPTERADDRESSES
 
-#if defined(WINAPI_FAMILY) && WINAPI_FAMILY == WINAPI_FAMILY_PHONE_APP
+#if defined(WIN32_RX64) || (defined(WINAPI_FAMILY) && WINAPI_FAMILY == WINAPI_FAMILY_PHONE_APP)
 
 // WINRT phone has these defined
 
@@ -74,6 +74,9 @@
 #undef HAVE_IPHLPAPI_H
 #endif //defined(WINAPI_FAMILY) && WINAPI_FAMILY == WINAPI_FAMILY_PHONE_APP
 
+#elif defined(WIN32_RX64)
+#undef HAVE_GETADAPTERADDRESSES
+#undef HAVE_IPHLPAPI_H
 #endif //WINRT
 
 #endif //_WIN32

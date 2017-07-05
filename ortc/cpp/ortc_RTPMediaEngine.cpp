@@ -59,6 +59,8 @@
 #include <float.h>
 #include <math.h>
 
+#ifndef WIN32_RX64
+
 #include <webrtc/base/timeutils.h>
 #include <webrtc/base/event_tracer.h>
 #include <webrtc/call/rtc_event_log.h>
@@ -5429,3 +5431,5 @@ namespace ortc
 
   } // internal namespace
 }
+
+#endif //ndef WIN32_RX64

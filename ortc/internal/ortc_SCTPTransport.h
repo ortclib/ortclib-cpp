@@ -364,6 +364,10 @@ namespace ortc
       typedef std::queue<PromisePtr> PromiseQueue;
 
       typedef std::queue<SecureByteBlockPtr> BufferQueue;
+      typedef std::pair<PromiseWithSocketOptionsPtr, SocketOptionsPtr> PromiseWithSocketOptionsPair;
+      typedef std::list<PromiseWithSocketOptionsPair> PromiseWithSocketOptionsList;
+      typedef std::pair<PromisePtr, SocketOptionsPtr> PromiseSocketOptionsPair;
+      typedef std::list<PromiseSocketOptionsPair> PromiseSocketOptionsList;
 
       enum InternalStates
       {
@@ -440,6 +444,9 @@ namespace ortc
 
       virtual WORD localPort() const override;
       virtual Optional<WORD> remotePort() const override;
+
+      virtual PromiseWithSocketOptionsPtr getOptions(const SocketOptions &inWhichOptions);
+      virtual PromisePtr setOptions(const SocketOptions &inOptions);
 
       virtual void start(
                          const Capabilities &remoteCapabilities,
@@ -592,6 +599,9 @@ namespace ortc
       void handleNotificationAssocChange(const sctp_assoc_change &change);
       void handleStreamResetEvent(const sctp_stream_reset_event &event);
 
+      virtual bool internalGetOptions(SocketOptions &ioOptions) const;
+      virtual bool internalSetOptions(const SocketOptions &inOptions);
+
     public:
 
       //-----------------------------------------------------------------------
@@ -641,7 +651,7 @@ namespace ortc
 
       bool mIncoming {false};
 
-      struct socket *mSocket {};
+      mutable struct socket *mSocket {};
 
       WORD mLocalPort {};
       Optional<WORD> mAllocatedLocalPort {};
@@ -660,6 +670,9 @@ namespace ortc
       WORD mMinAllocationSessionID {0};
       WORD mMaxAllocationSessionID {65534};
       WORD mNextAllocationIncrement {2};
+
+      PromiseWithSocketOptionsList mGetSocketOptions;
+      PromiseSocketOptionsList mSetSocketOptions;
 
       PromiseQueue mWaitingToSend;
 
@@ -720,6 +733,14 @@ ZS_DECLARE_TEAR_AWAY_METHOD_CONST_RETURN_0(state, States)
 ZS_DECLARE_TEAR_AWAY_METHOD_CONST_RETURN_0(port, WORD)
 ZS_DECLARE_TEAR_AWAY_METHOD_CONST_RETURN_0(localPort, WORD)
 ZS_DECLARE_TEAR_AWAY_METHOD_CONST_RETURN_0(remotePort, Optional<WORD>)
+  virtual PromiseWithSocketOptionsPtr getOptions(const SocketOptions &inWhichOptions)
+  {
+    return getDelegate()->getOptions(inWhichOptions);
+  }
+  virtual PromisePtr setOptions(const SocketOptions &inOptions)
+  {
+    return getDelegate()->setOptions(inOptions);
+  }
   virtual void start(const Capabilities & v1, WORD v2) throw (ortc::InvalidStateError, ortc::InvalidParameters) override {
     getDelegate()->start(v1, v2);
   }
