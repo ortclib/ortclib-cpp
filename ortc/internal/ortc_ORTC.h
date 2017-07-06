@@ -123,6 +123,7 @@ namespace ortc
       virtual bool isMediaTracing();
       virtual bool saveMediaTrace(String filename);
       virtual bool saveMediaTrace(String host, int port);
+      virtual bool isMRPInstalled();
 
       //---------------------------------------------------------------------
       #pragma mark
