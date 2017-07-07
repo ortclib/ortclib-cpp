@@ -344,6 +344,7 @@ namespace ortc
       static bool isMediaTracing();
       static bool saveMediaTrace(String filename);
       static bool saveMediaTrace(String host, int port);
+      static bool isMRPInstalled();
     };
 
     //-------------------------------------------------------------------------
@@ -808,6 +809,7 @@ namespace ortc
       static bool isMediaTracing();
       static bool saveMediaTrace(String filename);
       static bool saveMediaTrace(String host, int port);
+      static bool isMRPInstalled();
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -993,6 +995,7 @@ namespace ortc
                                          const uint64_t *argValues,
                                          unsigned char flags
                                          );
+      virtual bool internalIsMRPInstalled();
 
       bool isReady() const;
       bool isShuttingDown() const;

@@ -66,6 +66,7 @@ namespace ortc
     static bool isMediaTracing();
     static bool saveMediaTrace(String filename);
     static bool saveMediaTrace(String host, int port);
+    static bool isMRPInstalled();
 
     virtual ~IORTC() {} // make polymorphic
   };

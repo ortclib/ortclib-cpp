@@ -96,7 +96,7 @@ namespace ortc
         if (found == ioBundle.end()) {
           ISDPTypes::BundledSet bundles;
           bundles.insert(mediaLine.mID);
-          ioBundle[mediaLine.mID] = bundles;
+          ioBundle[mediaLine.mTransportID] = bundles;
           return;
         }
 
