@@ -345,7 +345,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool ORTC::isMRPInstalled()
     {
+#ifndef WIN32_RX64
       return IRTPMediaEngineForORTC::isMRPInstalled();
+#else
+      return false;
+#endif //ndef WIN32_RX64
     }
 
     //-------------------------------------------------------------------------
