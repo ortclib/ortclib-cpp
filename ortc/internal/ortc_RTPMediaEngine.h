@@ -48,7 +48,6 @@
 
 #ifndef WIN32_RX64
 
-#include "webrtc/base/scoped_ptr.h"
 #include <webrtc/base/logging.h>
 #include <webrtc/system_wrappers/include/trace.h>
 #include <webrtc/base/tracelog.h>
