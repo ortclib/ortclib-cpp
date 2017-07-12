@@ -343,6 +343,16 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    bool ORTC::isMRPInstalled()
+    {
+#ifndef WIN32_RX64
+      return IRTPMediaEngineForORTC::isMRPInstalled();
+#else
+      return false;
+#endif //ndef WIN32_RX64
+    }
+
+    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -563,6 +573,14 @@ namespace ortc
     auto singleton = internal::ORTC::singleton();
     if (!singleton) return false;
     return singleton->saveMediaTrace(host, port);
+  }
+
+  //-------------------------------------------------------------------------
+  bool IORTC::isMRPInstalled()
+  {
+    auto singleton = internal::ORTC::singleton();
+    if (!singleton) return false;
+    return singleton->isMRPInstalled();
   }
 
 }

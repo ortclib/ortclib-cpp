@@ -4091,7 +4091,7 @@ namespace ortc
       //-----------------------------------------------------------------------
       void PeerConnection::setState(SignalingStates state)
       {
-        if (state == mState) return;
+        if (state == mLastSignalingState) return;
 
         ZS_LOG_DEBUG(log("signaling state changed") + ZS_PARAM("new state", IPeerConnectionTypes::toString(state)) + ZS_PARAM("old state", IPeerConnectionTypes::toString(mLastSignalingState)));
 
@@ -4106,7 +4106,7 @@ namespace ortc
       //-----------------------------------------------------------------------
       void PeerConnection::setState(ICEGatheringStates state)
       {
-        if (state == mState) return;
+        if (state == mLastICEGatheringStates) return;
 
         ZS_LOG_DEBUG(log("ice gatherer state changed") + ZS_PARAM("new state", IICEGathererTypes::toString(state)) + ZS_PARAM("old state", IICEGathererTypes::toString(mLastICEGatheringStates)));
 
@@ -4121,7 +4121,7 @@ namespace ortc
       //-----------------------------------------------------------------------
       void PeerConnection::setState(ICEConnectionStates state)
       {
-        if (state == mState) return;
+        if (state == mLastICEConnectionState) return;
 
         ZS_LOG_DEBUG(log("ice connection state changed") + ZS_PARAM("new state", IICETransportTypes::toString(state)) + ZS_PARAM("old state", IICETransportTypes::toString(mLastICEConnectionState)));
 
@@ -4136,7 +4136,7 @@ namespace ortc
       //-----------------------------------------------------------------------
       void PeerConnection::setState(PeerConnectionStates state)
       {
-        if (state == mState) return;
+        if (state == mLastPeerConnectionState) return;
 
         ZS_LOG_DEBUG(log("peer connection state changed") + ZS_PARAM("new state", IPeerConnectionTypes::toString(state)) + ZS_PARAM("old state", IPeerConnectionTypes::toString(mLastPeerConnectionState)));
 
