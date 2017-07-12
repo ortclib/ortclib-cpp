@@ -1413,7 +1413,7 @@ namespace ortc
 
 	  if (!isMRPInstalled())
         return true;
-	
+
       mVoiceEngine = std::unique_ptr<webrtc::VoiceEngine, VoiceEngineDeleter>(webrtc::VoiceEngine::Create());
 
       mAudioDecoderFactory = webrtc::CreateBuiltinAudioDecoderFactory();
@@ -1492,7 +1492,7 @@ namespace ortc
         return true;
 
       while (pendingCloseDeviceResources.size() > 0) {
-        auto deviceResource = mPendingCloseDeviceResources.front();
+        auto deviceResource = pendingCloseDeviceResources.front();
 
         deviceResource->stepShutdown();
 
