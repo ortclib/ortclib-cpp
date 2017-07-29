@@ -6021,6 +6021,7 @@ namespace ortc
                       size, size, bufferSizeInBytes
                       );
         transport->notifyPacket(routerRoute, buffer, bufferSizeInBytes);
+        return;
       }
 
     buffer_data_now:
