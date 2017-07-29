@@ -4531,7 +4531,7 @@ namespace ortc
             return true;
           }
         }
-        if (0 == (FilterPolicy_NoIPv4Srflx & policy)) {
+        if (0 == (FilterPolicy_NoIPv4Relay & policy)) {
           if (hasTURNServers()) {
             ZS_LOG_TRACE(log("host port needed because relay ports are not filtered"))
             return true;
@@ -4571,7 +4571,7 @@ namespace ortc
             return true;
           }
         }
-        if (0 == (FilterPolicy_NoIPv6Srflx & policy)) {
+        if (0 == (FilterPolicy_NoIPv6Relay & policy)) {
           if (hasTURNServers()) {
             ZS_LOG_TRACE(log("host port needed because relay ports are not filtered"))
             return true;
