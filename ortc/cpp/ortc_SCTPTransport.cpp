@@ -2585,7 +2585,21 @@ namespace ortc
           ZS_LOG_TRACE(log("SCTP_NOTIFICATIONS_STOPPED_EVENT"))
           break;
         case SCTP_SEND_FAILED_EVENT:
-          ZS_LOG_TRACE(log("SCTP_SEND_FAILED_EVENT"))
+          {
+            auto &failure = notification.sn_send_failed_event;
+            ZS_LOG_ERROR(Debug, log("SCTP_SEND_FAILED_EVENT") + 
+              ZS_PARAM("ssfe_assoc_id", failure.ssfe_assoc_id) + 
+              ZS_PARAM("ssfe_type", failure.ssfe_type) + 
+              ZS_PARAM("ssfe_flags", failure.ssfe_flags) +
+              ZS_PARAM("ssfe_length", failure.ssfe_length) +
+              ZS_PARAM("ssfe_error", failure.ssfe_error) +
+              ZS_PARAM("ssfe_info_snd_sid", failure.ssfe_info.snd_sid) +
+              ZS_PARAM("ssfe_info_snd_flags", failure.ssfe_info.snd_flags) +
+              ZS_PARAM("ssfe_info_snd_ppid", failure.ssfe_info.snd_ppid) +
+              ZS_PARAM("ssfe_info_snd_context", failure.ssfe_info.snd_context) +
+              ZS_PARAM("ssfe_info_snd_assoc_id", failure.ssfe_info.snd_assoc_id)
+            );
+          }
           break;
         case SCTP_STREAM_RESET_EVENT:
           ZS_LOG_TRACE(log("SCTP_STREAM_RESET_EVENT"))
