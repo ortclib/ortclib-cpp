@@ -34,25 +34,13 @@
 #include <ortc/types.h>
 #include <ortc/ICapabilities.h>
 #include <ortc/IConstraints.h>
+#include <ortc/IRTPTypes.h>
 #include <ortc/IStatsProvider.h>
-#include <webrtc/video_frame.h>
+
+#include <queue>
 
 namespace ortc
 {
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IMediaStreamTrackRenderCallback
-  #pragma mark
-
-  interaction IMediaStreamTrackRenderCallback
-  {
-    virtual int32_t RenderFrame(const uint32_t streamId, const webrtc::VideoFrame& videoFrame) = 0;
-    virtual ~IMediaStreamTrackRenderCallback() {}
-  };
-
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
@@ -64,14 +52,30 @@ namespace ortc
   interaction IMediaStreamTrackTypes : public ICapabilities,
                                        public IConstraints
   {
+    typedef PUID MediaChannelID;
+    typedef std::list<MediaChannelID> MediaChannelIDList;
+    typedef std::set<MediaChannelID> MediaChannelIDSet;
+    
     ZS_DECLARE_STRUCT_PTR(Capabilities);
     ZS_DECLARE_STRUCT_PTR(Settings);
+    ZS_DECLARE_TYPEDEF_PTR(Settings, ImmutableSettings);
     ZS_DECLARE_STRUCT_PTR(ConstraintSet);
     ZS_DECLARE_STRUCT_PTR(TrackConstraints);
     ZS_DECLARE_STRUCT_PTR(Constraints);
     ZS_DECLARE_STRUCT_PTR(OverconstrainedError);
 
+    ZS_DECLARE_STRUCT_PTR(MediaChannelTrace);
+    ZS_DECLARE_TYPEDEF_PTR(MediaChannelTrace, ImmutableMediaChannelTrace);
+    ZS_DECLARE_STRUCT_PTR(Frame);
+    ZS_DECLARE_STRUCT_PTR(AudioFrame);
+    ZS_DECLARE_STRUCT_PTR(VideoFrame);
+
+    ZS_DECLARE_PTR(MediaChannelIDList);
+    ZS_DECLARE_PTR(MediaChannelIDSet);
+
     ZS_DECLARE_TYPEDEF_PTR(std::list<ConstraintSetPtr>, ConstraintSetList);
+    ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters);
+    ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::ImmutableParameters, ImmutableParameters);
 
     enum Kinds
     {
@@ -106,6 +110,27 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     #pragma mark
+    #pragma mark IMediaStreamTrackTypes::MediaActivityStates
+    #pragma mark
+    
+    enum MediaActivityStates
+    {
+      MediaActivityState_First,
+
+      MediaActivityState_Muted = MediaActivityState_First,
+      MediaActivityState_Inactive,          // media source is not active
+      MediaActivityState_ActiveButUnknown,  // media source is active but the active speaker state is unknown
+      MediaActivityState_Background,        // the media is identified as being background (e.g. background noise, and no active speaker)
+      MediaActivityState_Active,            // the media is identified as containing activity (e.g. active speaker / active face detected)
+
+      MediaActivityState_Last = MediaActivityState_Active,
+    };
+
+    static const char *toString(MediaActivityStates state);
+    static MediaActivityStates toMediaActivityState(const char *state);
+
+    //-------------------------------------------------------------------------
+    #pragma mark
     #pragma mark IMediaStreamTrackTypes::Capabilities
     #pragma mark
 
@@ -125,6 +150,8 @@ namespace ortc
 
       String                      mDeviceID;
       String                      mGroupID;
+
+      Optional<CapabilityString>  mEncodingFormat;
 
       Capabilities() {}
       Capabilities(const Capabilities &op2) {(*this) = op2;}
@@ -160,6 +187,7 @@ namespace ortc
       Optional<LONG>     mChannelCount;
       Optional<String>   mDeviceID;
       Optional<String>   mGroupID;
+      Optional<String>   mEncodingFormat;
 
       Settings() {}
       Settings(const Settings &op2) {(*this) = op2;}
@@ -195,6 +223,7 @@ namespace ortc
       ConstrainLong     mChannelCount;
       ConstrainString   mDeviceID;
       ConstrainString   mGroupID;
+      ConstrainString   mEncodingFormat;
 
       ConstraintSet() {}
       ConstraintSet(const ConstraintSet &op2) {(*this) = op2;}
@@ -252,6 +281,11 @@ namespace ortc
       String hash() const;
     };
 
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IMediaStreamTrackTypes::OverconstrainedError
+    #pragma mark
+
     struct OverconstrainedError : public Any {
       String mName;
       String mConstraint;
@@ -261,6 +295,105 @@ namespace ortc
       OverconstrainedError(const OverconstrainedError &op2) { *this = (op2); }
     };
 
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IMediaStreamTrackTypes::MediaChannelTrace
+    #pragma mark
+
+    struct MediaChannelTrace
+    {
+      MediaChannelTrace(MediaChannelID mediaChannelID)                          { mMediaChannelIDTracked.push_back(mediaChannelID); mMediaChannelIDs.insert(mediaChannelID); }
+      MediaChannelTrace(
+                        const ImmutableMediaChannelTrace &op2,
+                        MediaChannelID mediaChannelID = 0
+                        ) :                                             
+                                                                                 mMediaChannelIDTracked(op2.mMediaChannelIDTracked),
+                                                                                 mMediaChannelIDs(op2.mMediaChannelIDs),
+                                                                                 mKind(op2.mKind),
+                                                                                 mSettings(op2.mSettings),
+                                                                                 mParameters(op2.mParameters)
+                                                                                 { if (0 == mediaChannelID) return; mMediaChannelIDTracked.push_back(mediaChannelID); mMediaChannelIDs.insert(mediaChannelID); }
+
+      static MediaChannelTracePtr create(MediaChannelID mediaChannelID)          { return make_shared<MediaChannelTrace>(mediaChannelID); }
+      static MediaChannelTracePtr create(
+                                         const MediaChannelTrace &op2,
+                                         MediaChannelID mediaChannelID = 0
+                                         )                                       { return make_shared<MediaChannelTrace>(op2, mediaChannelID); }
+
+      bool hasChannel(MediaChannelID mediaChannelID) const                       { auto found = mMediaChannelIDs.find(mediaChannelID); return found != mMediaChannelIDs.end(); }
+
+      PUID id() const                                                            { return mID; }
+      Kinds kind() const                                                         { return mKind; }
+      ImmutableSettingsPtr settings() const                                      { return mSettings; }
+      ImmutableParametersPtr parameters() const                                  { return mParameters; }
+      MediaChannelID frontMediaChannelID() const                                 { return mMediaChannelIDTracked.front(); }
+      MediaChannelID endMediaChannelID() const                                   { return mMediaChannelIDTracked.back(); }
+      MediaChannelIDList::const_iterator begin() const                           { return mMediaChannelIDTracked.begin(); }
+      MediaChannelIDList::const_iterator end() const                             { return mMediaChannelIDTracked.end(); }
+
+    public:
+      zsLib::AutoPUID mID;
+      MediaChannelIDList mMediaChannelIDTracked;
+      MediaChannelIDSet mMediaChannelIDs;
+      Kinds mKind {Kind_First};
+      ImmutableSettingsPtr mSettings;
+      ImmutableParametersPtr mParameters;
+    };
+
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IMediaStreamTrackTypes::Frame
+    #pragma mark
+
+    struct Frame : public Any
+    {
+      virtual Kinds getKind() const = 0;
+
+      virtual MediaActivityStates getMediaActivityState() const = 0;
+      virtual uint64_t getTimestamp() const = 0;    // get the timestamp relative to the clock/sample rate
+      virtual Milliseconds getNTPTime() const = 0;  // get the NTP time
+      virtual Time getTime() const = 0;             // get the absolute time
+
+      virtual const BYTE *getData() const = 0;      // get the pointer to the raw buffer
+      virtual size_t getDataSize() const = 0;       // get the number of bytes contained within the raw buffer
+    };
+
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IMediaStreamTrackTypes::AudioFrame
+    #pragma mark
+
+    struct AudioFrame : public Frame
+    {
+      virtual Kinds getKind() const override { return Kind_Audio; }
+    };
+
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IMediaStreamTrackTypes::VideoFrame
+    #pragma mark
+
+    struct VideoFrame : public Frame
+    {
+      enum DataFormats
+      {
+        DataFormat_NativeTexture,
+        DataFormat_Packed,
+
+        DataFormat_Y,
+        DataFormat_U,
+        DataFormat_V,
+      };
+
+      virtual Kinds getKind() const override { return Kind_Video; }
+
+      // returns true of available otherwise false
+      virtual bool getEncodedData(
+                                  DataFormats encodedDataFormat,
+                                  const void * &outData,     // set to NULL if not available
+                                  size_t &outDataSizeIfKnown // set to 0 if not available
+                                  ) = 0;      // get the pointer to the raw buffer
+    };
   };
 
   //---------------------------------------------------------------------------
@@ -275,11 +408,14 @@ namespace ortc
                                   public IMediaStreamTrackTypes,
                                   public IStatsProvider
   {
-    static ElementPtr toDebug(IMediaStreamTrackPtr object);
+    static void trace(
+                      IMediaStreamTrackPtr object,
+                      const char *message = NULL
+                      );
 
     static IMediaStreamTrackPtr convert(AnyPtr any);
 
-    virtual PUID getID() const = 0;
+    virtual MediaChannelID getID() const = 0;
 
     virtual IMediaStreamTrackSubscriptionPtr subscribe(IMediaStreamTrackDelegatePtr delegate) = 0;
 
@@ -304,9 +440,11 @@ namespace ortc
 
     virtual PromisePtr applyConstraints(const TrackConstraints &constraints) = 0;
 
-    virtual void setVideoRenderCallback(IMediaStreamTrackRenderCallbackPtr callback) = 0;
-    virtual void setH264Rendering(bool h264Rendering) = 0;
-    virtual bool isH264Rendering() = 0;
+    virtual IMediaStreamTrackMediaSubscriptionPtr subscribeMedia(IMediaStreamTrackSyncMediaDelegatePtr delegate) = 0;
+
+    // WARNING: extreme caution must be done not to cause a deadlock or delaying media by blocking. Gather information
+    // needed within a lock but do any operations outside a lock as fast as possible.
+    virtual IMediaStreamTrackMediaSubscriptionPtr subscribeMedia(IMediaStreamTrackAsyncMediaDelegatePtr delegate) = 0;
   };
 
   //-------------------------------------------------------------------------
@@ -349,6 +487,71 @@ namespace ortc
 
     virtual void background() = 0;
   };
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IMediaStreamTrackSyncMediaDelegate
+  #pragma mark
+
+  interaction IMediaStreamTrackSyncMediaDelegate : public IMediaStreamTrackDelegate
+  {
+    ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::ImmutableMediaChannelTrace, ImmutableMediaChannelTrace);
+    ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::AudioFrame, AudioFrame);
+    ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::VideoFrame, VideoFrame);
+
+    virtual void notifyMediaStreamTrackMediaAudioFrame(
+                                                       ImmutableMediaChannelTracePtr trace,
+                                                       AudioFramePtr frame
+                                                       ) = 0;
+    virtual void notifyMediaStreamTrackMediaVideoFrame(
+                                                       ImmutableMediaChannelTracePtr trace,
+                                                       VideoFramePtr frame
+                                                       ) = 0;
+  };
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IMediaStreamTrackAsyncMediaDelegate
+  #pragma mark
+
+  interaction IMediaStreamTrackAsyncMediaDelegate : public IMediaStreamTrackDelegate
+  {
+    ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::ImmutableMediaChannelTrace, ImmutableMediaChannelTrace);
+    ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::AudioFrame, AudioFrame);
+    ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::VideoFrame, VideoFrame);
+
+    virtual void onMediaStreamTrackMediaAudioFrame(
+                                                   ImmutableMediaChannelTracePtr trace,
+                                                   AudioFramePtr frame
+                                                   ) = 0;
+    virtual void onMediaStreamTrackMediaVideoFrame(
+                                                   ImmutableMediaChannelTracePtr trace,
+                                                   VideoFramePtr frame
+                                                   ) = 0;
+  };
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark IMediaStreamTrackMediaSubscription
+  #pragma mark
+  
+  interaction IMediaStreamTrackMediaSubscription
+  {
+    virtual PUID getID() const = 0;
+    
+    virtual void cancel() = 0;
+
+    virtual void background() = 0;
+  };
 }
 
 ZS_DECLARE_PROXY_BEGIN(ortc::IMediaStreamTrackDelegate)
@@ -366,3 +569,56 @@ ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onMediaStreamTrackMute, IMediaStreamTrac
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_1(onMediaStreamTrackEnded, IMediaStreamTrackPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onMediaStreamTrackOverConstrained, IMediaStreamTrackPtr, OverconstrainedErrorPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()
+
+ZS_DECLARE_PROXY_BEGIN(ortc::IMediaStreamTrackAsyncMediaDelegate)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::IMediaStreamTrackPtr, IMediaStreamTrackPtr)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::IMediaStreamTrackTypes::OverconstrainedErrorPtr, OverconstrainedErrorPtr)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::IMediaStreamTrackTypes::ImmutableMediaChannelTracePtr, ImmutableMediaChannelTracePtr)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::IMediaStreamTrackTypes::AudioFramePtr, AudioFramePtr)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::IMediaStreamTrackTypes::VideoFramePtr, VideoFramePtr)
+ZS_DECLARE_PROXY_METHOD_2(onMediaStreamTrackMute, IMediaStreamTrackPtr, bool)
+ZS_DECLARE_PROXY_METHOD_1(onMediaStreamTrackEnded, IMediaStreamTrackPtr)
+ZS_DECLARE_PROXY_METHOD_2(onMediaStreamTrackOverConstrained, IMediaStreamTrackPtr, OverconstrainedErrorPtr)
+ZS_DECLARE_PROXY_METHOD_2(onMediaStreamTrackMediaAudioFrame, ImmutableMediaChannelTracePtr, AudioFramePtr)
+ZS_DECLARE_PROXY_METHOD_2(onMediaStreamTrackMediaVideoFrame, ImmutableMediaChannelTracePtr, VideoFramePtr)
+ZS_DECLARE_PROXY_END()
+
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_BEGIN(ortc::IMediaStreamTrackAsyncMediaDelegate, ortc::IMediaStreamTrackMediaSubscription)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IMediaStreamTrackPtr, IMediaStreamTrackPtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IMediaStreamTrackTypes::OverconstrainedErrorPtr, OverconstrainedErrorPtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IMediaStreamTrackTypes::ImmutableMediaChannelTracePtr, ImmutableMediaChannelTracePtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IMediaStreamTrackTypes::AudioFramePtr, AudioFramePtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IMediaStreamTrackTypes::VideoFramePtr, VideoFramePtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onMediaStreamTrackMute, IMediaStreamTrackPtr, bool)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_1(onMediaStreamTrackEnded, IMediaStreamTrackPtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onMediaStreamTrackOverConstrained, IMediaStreamTrackPtr, OverconstrainedErrorPtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onMediaStreamTrackMediaAudioFrame, ImmutableMediaChannelTracePtr, AudioFramePtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onMediaStreamTrackMediaVideoFrame, ImmutableMediaChannelTracePtr, VideoFramePtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()
+
+ZS_DECLARE_PROXY_BEGIN(ortc::IMediaStreamTrackSyncMediaDelegate)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::IMediaStreamTrackPtr, IMediaStreamTrackPtr)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::IMediaStreamTrackTypes::OverconstrainedErrorPtr, OverconstrainedErrorPtr)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::IMediaStreamTrackTypes::ImmutableMediaChannelTracePtr, ImmutableMediaChannelTracePtr)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::IMediaStreamTrackTypes::AudioFramePtr, AudioFramePtr)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::IMediaStreamTrackTypes::VideoFramePtr, VideoFramePtr)
+ZS_DECLARE_PROXY_METHOD_2(onMediaStreamTrackMute, IMediaStreamTrackPtr, bool)
+ZS_DECLARE_PROXY_METHOD_1(onMediaStreamTrackEnded, IMediaStreamTrackPtr)
+ZS_DECLARE_PROXY_METHOD_2(onMediaStreamTrackOverConstrained, IMediaStreamTrackPtr, OverconstrainedErrorPtr)
+ZS_DECLARE_PROXY_METHOD_SYNC_2(notifyMediaStreamTrackMediaAudioFrame, ImmutableMediaChannelTracePtr, AudioFramePtr)
+ZS_DECLARE_PROXY_METHOD_SYNC_2(notifyMediaStreamTrackMediaVideoFrame, ImmutableMediaChannelTracePtr, VideoFramePtr)
+ZS_DECLARE_PROXY_END()
+
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_BEGIN(ortc::IMediaStreamTrackSyncMediaDelegate, ortc::IMediaStreamTrackMediaSubscription)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IMediaStreamTrackPtr, IMediaStreamTrackPtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IMediaStreamTrackTypes::OverconstrainedErrorPtr, OverconstrainedErrorPtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IMediaStreamTrackTypes::ImmutableMediaChannelTracePtr, ImmutableMediaChannelTracePtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IMediaStreamTrackTypes::AudioFramePtr, AudioFramePtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IMediaStreamTrackTypes::VideoFramePtr, VideoFramePtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onMediaStreamTrackMute, IMediaStreamTrackPtr, bool)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_1(onMediaStreamTrackEnded, IMediaStreamTrackPtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onMediaStreamTrackOverConstrained, IMediaStreamTrackPtr, OverconstrainedErrorPtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_SYNC_2(notifyMediaStreamTrackMediaAudioFrame, ImmutableMediaChannelTracePtr, AudioFramePtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_SYNC_2(notifyMediaStreamTrackMediaVideoFrame, ImmutableMediaChannelTracePtr, VideoFramePtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()
+

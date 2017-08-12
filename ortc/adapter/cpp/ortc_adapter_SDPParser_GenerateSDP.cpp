@@ -151,7 +151,7 @@ namespace ortc
         appendLine(ioResult, 'c', ISDPTypes::CLine::toString(sdp.mCLine));
 
         if (sdp.mMediaDirection.hasValue()) {
-          appendLine(ioResult, 'a', ISDPTypes::toString(sdp.mMediaDirection.value()));
+          appendLine(ioResult, 'a', ISDPTypes::toStringForA(sdp.mMediaDirection.value()));
         }
 
         if ((sdp.mICELite.hasValue()) &&
@@ -202,7 +202,7 @@ namespace ortc
           appendLine(ioResult, 'a', ISDPTypes::AMaxMessageSizeLine::toString(mline.mAMaxMessageSize));
 
           if (mline.mMediaDirection.hasValue()) {
-            appendLine(ioResult, 'a', ISDPTypes::toString(mline.mMediaDirection.value()));
+            appendLine(ioResult, 'a', ISDPTypes::toStringForA(mline.mMediaDirection.value()));
           }
           if ((mline.mRTCPMux.hasValue()) &&
               (mline.mRTCPMux.value())) {

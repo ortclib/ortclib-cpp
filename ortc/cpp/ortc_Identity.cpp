@@ -209,7 +209,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     IIdentityTypes::PromiseWithResultPtr Identity::getIdentityAssertion(
                                                                         const char *provider,
-                                                                        const char *protoocl,
+                                                                        const char *protoocol,
                                                                         const char *username
                                                                         ) throw (InvalidStateError)
     {

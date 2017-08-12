@@ -1,0 +1,1136 @@
+/*
+
+ Copyright (c) 2017, Optical Tone Ltd.
+ All rights reserved.
+
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+
+ 1. Redistributions of source code must retain the above copyright notice, this
+ list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright notice,
+ this list of conditions and the following disclaimer in the documentation
+ and/or other materials provided with the distribution.
+
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+ The views and conclusions contained in the software and documentation are those
+ of the authors and should not be interpreted as representing official policies,
+ either expressed or implied, of the FreeBSD Project.
+ 
+ */
+
+namespace org
+{
+  namespace ortc
+  {
+    namespace adapter
+    {
+      /// <summary>
+      /// The RTCSessionDescriptionConnectionDataDetails object describes the
+      /// RTP/RTCP connection data at the session or media level or the
+      /// unicast address information for the origin at the session level as
+      /// described in [RFC4566] Section 5.7 for RTP and [RFC3605] Section 2.1
+      /// for RTCP and [RFC4566] Section 5.2 for the origin's unicast address.
+      /// </summary>
+      /// <example>
+      /// <code>
+      /// o=jdoe 2890844526 2890842807 IN IP4 10.47.16.5
+      /// </code>
+      /// <code>
+      /// c=IN IP4 224.2.17.12/127
+      /// </code>
+      /// <code>
+      /// a=rtcp:53020
+      /// </code>
+      /// <code>
+      /// a=rtcp:53020 IN IP4 126.16.64.4
+      /// </code>
+      /// </example>
+      [dictionary]
+      struct RTCSessionDescriptionConnectionDataDetails
+      {
+        /// <summary>
+        /// Gets or sets the port for RTP or RTCP. For RTP at the media level
+        /// this is the media description's port as described in [RFC4566]
+        /// Section 5.14. For RTCP, the port is the RTCP port to use for the
+        /// connection as described in [RFC3605] Section 2.1. This value is
+        /// null and not used for origin unicast address or at the session
+        /// level's connection address.
+        /// </summary>
+        [optional]
+        uint16 port;
+        /// <summary>
+        /// Gets or sets the network type as described in [RFC4566] Section
+        /// 8.2.6. The value "IN" represents the Internet.
+        /// </summary>
+        string netType;
+        /// <summary>
+        /// Gets or sets the address type as described in [RFC4566] Section
+        /// 8.2.7. The value "IP4" represents the IPv4 and "IP6" represents
+        /// IPv6.
+        /// </summary>
+        string addrType;
+        /// <summary>
+        /// Gets or sets the connection address as described in [RFC4566]
+        /// Section 5.7 for session or media level connection data or the
+        /// unicast address for the session level origin as describe in 
+        /// [RFC4566] Section 5.2
+        /// </summary>
+        string connectionAddress;
+
+        /// <summary>
+        /// Constructs an empty instance of an RTCSessionDescriptionConnectionDataDetails object.
+        /// </summary>
+        [constructor, default]
+        void RTCSessionDescriptionConnectionDataDetails();
+        /// <summary>
+        /// Constructs an instance of an RTCSessionDescriptionConnectionDataDetails object by cloning object data from an existing object.
+        /// </summary>
+        [constructor, altname(RTCSessionDescriptionConnectionDataDetailsClone)]
+        void RTCSessionDescriptionConnectionDataDetails(RTCSessionDescriptionConnectionDataDetails source);
+        /// <summary>
+        /// Constructs an instance of an RTCSessionDescriptionConnectionDataDetails object by extracting object data from a JSON object.
+        /// </summary>
+        [constructor, default, altname(RTCSessionDescriptionConnectionDataDetailsWithJson)]
+        void RTCSessionDescriptionConnectionDataDetails(Json json);
+
+        /// <summary>
+        /// A helper routine to convert the object's data to structured JSON object data.
+        /// </summary>
+        Json toJson();
+        /// <summary>
+        /// Return a hash of the data contained within the object.
+        /// </summary>
+        string hash();
+      };
+
+      /// <summary>
+      /// The RTCSessionDescriptionConnectionData object describes the
+      /// connection data information as described in [RFC4566] Section 5.7
+      /// for RTP and [RFC3605] Section 2.1 for RTCP (at either the session
+      /// level or the media level).
+      /// </summary>
+      [dictionary]
+      struct RTCSessionDescriptionConnectionData
+      {
+        /// <summary>
+        /// Gets or sets the RTP connection data information "c=" as described
+        /// in [RFC4566] Section 5.7.
+        /// </summary>
+        RTCSessionDescriptionConnectionDataDetails rtp;
+        /// <summary>
+        /// Gets or sets the RTCP connection data information "a=rtcp" as
+        /// described in [RFC3605] Section 2.1.
+        /// </summary>
+        RTCSessionDescriptionConnectionDataDetails rtcp;
+
+        /// <summary>
+        /// Constructs an empty instance of an RTCSessionDescriptionConnectionData object.
+        /// </summary>
+        [constructor, default]
+        void RTCSessionDescriptionConnectionData();
+        /// <summary>
+        /// Constructs an instance of an RTCSessionDescriptionConnectionData object by cloning object data from an existing object.
+        /// </summary>
+        [constructor, altname(RTCSessionDescriptionConnectionDataClone)]
+        void RTCSessionDescriptionConnectionData(RTCSessionDescriptionConnectionData source);
+        /// <summary>
+        /// Constructs an instance of an RTCSessionDescriptionConnectionData object by extracting object data from a JSON object.
+        /// </summary>
+        [constructor, default, altname(RTCSessionDescriptionConnectionDataWithJson)]
+        void RTCSessionDescriptionConnectionData(Json json);
+
+        /// <summary>
+        /// A helper routine to convert the object's data to structured JSON object data.
+        /// </summary>
+        Json toJson();
+        /// <summary>
+        /// Return a hash of the data contained within the object.
+        /// </summary>
+        string hash();
+      };
+
+      /// <summary>
+      /// The RTCSessionDescriptionTransportParameters represents the ICE
+      /// and secure transport parameters for a transport as well as any
+      /// candidates that are signaled as part of the session description for
+      /// a given transport.
+      /// </summary>
+      [dictionary]
+      struct RTCSessionDescriptionTransportParameters
+      {
+        typedef std::list<RTCIceCandidate> CandidateList;
+
+        /// <summary>
+        /// Gets or sets all the ICE parameters needed to configure the ICE
+        /// ICE transport as described in [RFC5245].
+        /// </summary>
+        RTCIceParameters iceParameters;
+        /// <summary>
+        /// Gets or sets the DTLS parameters need to configure the DTLS 
+        /// transport as described in [RFC4572] and [RFC5763].
+        /// </summary>
+        RTCDtlsParameters dtlsParameters;
+        /// <summary>
+        /// Gets or sets the SRTP/SDES parameters as described in [RFC4568].
+        /// This transport is mutually exclusive with the DTLS transport and
+        /// must always be set null for RTCP transports.
+        /// </summary>
+        RTCSrtpSdesParameters srtpSdesParameters;
+        /// <summary>
+        /// Gets or sets the list of ICE candidates as described in [RFC5245].
+        /// </summary>
+        CandidateList iceCandidates;
+        /// <summary>
+        /// Gets or sets if the end-of-candidates flag as described in
+        /// [draft-ietf-ice-trickle] Section 10.
+        /// </summary>
+        bool endOfCandidates;
+
+        /// <summary>
+        /// Constructs an empty instance of an RTCSessionDescriptionTransportParameters object.
+        /// </summary>
+        [constructor, default]
+        void RTCSessionDescriptionTransportParameters();
+        /// <summary>
+        /// Constructs an instance of an RTCSessionDescriptionTransportParameters object by cloning object data from an existing object.
+        /// </summary>
+        [constructor, altname(RTCSessionDescriptionTransportParametersClone)]
+        void RTCSessionDescriptionTransportParameters(RTCSessionDescriptionTransportParameters source);
+        /// <summary>
+        /// Constructs an instance of an RTCSessionDescriptionTransportParameters object by extracting object data from a JSON object.
+        /// </summary>
+        [constructor, default, altname(RTCSessionDescriptionTransportParametersWithJson)]
+        void RTCSessionDescriptionTransportParameters(Json json);
+
+        /// <summary>
+        /// A helper routine to convert the object's data to structured JSON object data.
+        /// </summary>
+        Json toJson();
+        /// <summary>
+        /// Return a hash of the data contained within the object.
+        /// </summary>
+        string hash();
+      };
+
+      /// <summary>
+      /// The RTCSessionDescriptionTransport object represents the ICE and
+      /// secure transport parameters for RTP and optionally RTCP if non-muxed
+      /// RTP/RTCP data is used.
+      /// </summary>
+      [dictionary]
+      struct RTCSessionDescriptionTransport
+      {
+        /// <summary>
+        /// Gets or sets a unique identifier for the transport. For SDP,
+        /// this is the mid identification tag as defined in [RFC5888] Section
+        /// 4 for the media line's transport or the primary bundled transport
+        /// transport media line identifier.
+        /// </summary>
+        /// <example>
+        /// <code>
+        /// m=audio 30000 RTP/AVP 0
+        /// a=mid:1
+        /// m=video 30002 RTP/AVP 31
+        /// a=mid:2
+        /// </code>
+        /// </example>
+        string transportId;
+        /// <summary>
+        /// Gets or sets the RTP transport information for use with RTP and
+        /// RTCP media in the case of muxed RTP/RTCP and only the RTP media
+        /// in the non-muxed scenario. This contains the information for ICE
+        /// and the secure transport.
+        /// </summary>
+        RTCSessionDescriptionTransportParameters rtp;
+        /// <summary>
+        /// Gets or sets the RTCP transport information for use with RTCP if
+        /// non-muxed RTCP data is used otherwise the value is null. This
+        /// contains the ICE transport information and secure transport
+        /// information for use with RTCP.
+        /// </summary>
+        RTCSessionDescriptionTransportParameters rtcp;
+        /// <summary>
+        /// Gets or sets the mux policy for the transport. Mux is preferred
+        /// when possible.
+        /// </summary>
+        bool useMux;
+
+        /// <summary>
+        /// Constructs an empty instance of an RTCSessionDescriptionTransport object.
+        /// object.
+        /// </summary>
+        [constructor, default]
+        void RTCSessionDescriptionTransport();
+        /// <summary>
+        /// Constructs an instance of an RTCSessionDescriptionTransport object by cloning object data from an existing object.
+        /// </summary>
+        [constructor, altname(RTCSessionDescriptionTransportClone)]
+        void RTCSessionDescriptionTransport(RTCSessionDescriptionTransport source);
+        /// <summary>
+        /// Constructs an instance of an RTCSessionDescriptionTransport object by extracting object data from a JSON object.
+        /// </summary>
+        [constructor, default, altname(RTCSessionDescriptionTransportWithJson)]
+        void RTCSessionDescriptionTransport(Json json);
+
+        /// <summary>
+        /// A helper routine to convert the object's data to structured JSON object data.
+        /// </summary>
+        Json toJson();
+        /// <summary>
+        /// Return a hash of the data contained within the object.
+        /// </summary>
+        string hash();
+      };
+
+      /// <summary>
+      /// Gets or sets the media line detailed information associated with a
+      /// type of media and related capabilities for the media on a particular
+      /// transport as describe in [RFC4566] Section 5.14 as well as in
+      /// [draft-ietf-rtcweb-jsep-14].
+      /// </summary>
+      [dictionary]
+      struct RTCSessionDescriptionMediaLineDetails
+      {
+        /// <summary>
+        /// Gets or sets the internal index of a media line based upon its
+        /// order within the entire session. This is used only when the
+        /// media line has no identifier. This value is used internally
+        /// to coordinate matching m lines for SDP negotiation but otherwise
+        /// is not recommended.
+        /// </summary>
+        [optional]
+        size_t internalIndex;
+        /// <summary>
+        /// Gets or sets the private transport to use when the media line
+        /// cannot be bundled withinn the session. This is allows a legacy
+        /// systems that are not capable of bundling media lines together an
+        /// option of including their own private alternative non-bundled
+        /// transport as described in
+        /// [draft-ietf-mmusic-sdp-bundle-negotiation]. If the media line's
+        /// TransportId and PrivateTransportId are identical then this
+        /// transport either is part of a bundle or the transport will be used
+        /// privately and exclusively by this transport depending on what is
+        /// negotiated. If these values differ then the media line will be
+        /// either bundled into a single transport or use a private transport.
+        /// </summary>
+        string privateTransportID;
+
+        /// <summary>
+        /// Gets or sets the protocol for use with DTLS and RTP as descibed in
+        /// [RFC5764] Section 8 or for DTLS and SCTP as described in
+        /// [draft-ietf-mmusic-sctp-sdp] Section 7 and 8. The following values
+        /// match any values are are legal for RTP "RTP/[S]AVP[F]" and
+        /// "(UDP/TCP)/TLS/RTP/SAVP[F]" and for SCTP the values are
+        /// "UDP/DTLS/SCTP", "TCP/DTLS/SCTP", or "DTLS/SCTP
+        /// </summary>
+        string protocol;
+
+        /// <summary>
+        /// Gets or sets the media line connection information as described in
+        /// [RFC4566] Section 5.7 for RTP and [RFC3605] Section 2.1 for RTCP.
+        /// </summary>
+        RTCSessionDescriptionConnectionData connectionData;
+        /// <summary>
+        /// Gets or sets the media direction flow expectations for the media
+        /// line as described in [RFC4566] Section 6.
+        /// </summary>
+        RTCSessionDescriptionMediaDirection mediaDirection = sendReceive;
+
+        /// <summary>
+        /// Constructs and instance of an
+        /// RTCSessionDescriptionMediaLineDetails object.
+        /// </summary>
+        [constructor, default]
+        void RTCSessionDescriptionMediaLineDetails();
+        /// <summary>
+        /// Constructs an instance of an RTCSessionDescriptionMediaLineDetails object by cloning object data from an existing object.
+        /// </summary>
+        [constructor, altname(RTCSessionDescriptionMediaLineDetailsClone)]
+        void RTCSessionDescriptionMediaLineDetails(RTCSessionDescriptionMediaLineDetails source);
+        /// <summary>
+        /// Constructs an instance of an RTCSessionDescriptionMediaLineDetails object by extracting object data from a JSON object.
+        /// </summary>
+        [constructor, default, altname(RTCSessionDescriptionMediaLineDetailsWithJson)]
+        void RTCSessionDescriptionMediaLineDetails(Json json);
+
+        /// <summary>
+        /// A helper routine to convert the object's data to structured JSON object data.
+        /// </summary>
+        Json toJson();
+        /// <summary>
+        /// Return a hash of the data contained within the object.
+        /// </summary>
+        string hash();
+      };
+
+      [dictionary]
+      struct RTCSessionDescriptionMediaLine
+      {
+        [constructor, delete]
+        void RTCSessionDescriptionMediaLine();
+
+        /// <summary>
+        /// Gets or sets the media identifier for the media line as described
+        /// in [RFC5888] Section 4.
+        /// </summary>
+        string id;
+        /// <summary>
+        /// Gets or sets the transport identifier for the media line. Multiple
+        /// media lines can point to the same transport id so long as the
+        /// payload type or RTP header extension IDs are not redefined within
+        /// the same transport in the same direction for JSON or any direction
+        /// for SDP. All media lines that share the same transport id are
+        /// grouped together into the same bundle as described in
+        /// [draft-ietf-mmusic-sdp-bundle-negotiation].
+        /// </summary>
+        /// <example>
+        /// <code>
+        /// v=0
+        /// o=alice 2890844526 2890844526 IN IP4 atlanta.example.com
+        /// s=
+        /// c=IN IP4 atlanta.example.com
+        /// t=0 0
+        /// a=group:BUNDLE foo bar
+        /// m=audio 10000 RTP/AVP 0 8 97
+        /// b=AS:200
+        /// a=mid:foo
+        /// a=rtpmap:0 PCMU/8000
+        /// a=rtpmap:8 PCMA/8000
+        /// a=rtpmap:97 iLBC/8000
+        /// a=extmap 1 urn:ietf:params:rtp-hdrext:sdes:mid
+        /// m=video 10002 RTP/AVP 31 32
+        /// b=AS:1000
+        /// a=mid:bar
+        /// a=rtpmap:31 H261/90000
+        /// a=rtpmap:32 MPV/90000
+        /// a=extmap 1 urn:ietf:params:rtp-hdrext:sdes:mid
+        /// </code>
+        /// </example>
+        string transportId;
+
+        /// <summary>
+        /// Gets or sets the RTP media type. This value must be either "audio"
+        /// or "video".
+        /// </summary>
+        string mediaType;
+        /// <summary>
+        /// Gets or sets the details of the media line which are required for
+        /// SDP but optional for JSON based signalling. If not usedt his value
+        /// must be null.
+        /// </summary>
+        RTCSessionDescriptionMediaLineDetails details;
+
+        /// <summary>
+        /// A helper routine to convert the object's data to structured JSON object data.
+        /// </summary>
+        Json toJson();
+        /// <summary>
+        /// Return a hash of the data contained within the object.
+        /// </summary>
+        string hash();
+      };
+
+      /// <summary>
+      /// The RTCSessionDescriptionRtpMediaLine object represents the media
+      /// capabilities and properties associated with a particular media type
+      /// on a given transport. Multiple media lines are legally allowed to
+      /// be bundled within the same transport so long as the payload type
+      /// and/or RTP header extension IDs are not remapped to mean
+      /// different codecs or header extension URIs within the same transport
+      /// for the same direction for JSOn or any direction for SDP. In SDP,
+      /// a media line is required per sender and the if the media line is
+      /// send receive the both sides should attempt to map their respective
+      /// senders to the same media line.
+      /// </summary>
+      /// <example>
+      /// <code>
+      /// m=audio 56500 UDP/TLS/RTP/SAVPF 96 0 8 97 98
+      /// c=IN IP4 192.0.2.1
+      /// a=sendrecv
+      /// a=mid:a1
+      /// m=video 56502 UDP/TLS/RTP/SAVPF 100 101
+      /// c=IN IP4 192.0.2.1
+      /// a=rtcp:56503 IN IP4 192.0.2.1
+      /// a=sendonly
+      /// a=mid:v1
+      /// m=audio 56500 TCP/DTLS/RTP/SAVPF 96 0 8 97 98
+      /// c=IN IP4 192.0.2.1
+      /// a=sendrecv
+      /// a=mid:a2
+      /// </code>
+      /// </example>      
+      [dictionary]
+      struct RTCSessionDescriptionRtpMediaLine : RTCSessionDescriptionMediaLine
+      {
+        /// <summary>
+        /// Gets or sets the sender RTP capabilities described for this media
+        /// line. The usage of each codec is optional within the parameters of
+        /// a sender within the media line but the payload type must not
+        /// be changed within the same media line. The RTP header extension
+        /// IDs specified within the capabilies do not need to be used within
+        /// the RTP parameters but the mapping between RTP header extension
+        /// ID and header extension value must not be changed within the RTP
+        /// parameters.
+        /// </summary>
+        RTCRtpCapabilities senderCapabilities;
+        /// <summary>
+        /// Gets or sets the sender RTP capabilities described for this media
+        /// line. The usage of each codec is optional within the parameters of
+        /// a sender within the media line but the payload type must not
+        /// be changed within the same media line. The RTP header extension
+        /// IDs specified within the capabilies do not need to be used within
+        /// the RTP parameters but the mapping between RTP header extension
+        /// ID and header extension value must not be changed within the RTP
+        /// parameters.
+        /// </summary>
+        RTCRtpCapabilities receiverCapabilities;
+
+        /// <summary>
+        /// Constructs an empty instance of an RTCSessionDescriptionRtpMediaLine object.
+        /// </summary>
+        [constructor, default]
+        void RTCSessionDescriptionRtpMediaLine();
+        /// <summary>
+        /// Constructs an instance of an RTCSessionDescriptionRtpMediaLine object by cloning object data from an existing object.
+        /// </summary>
+        [constructor, altname(RTCSessionDescriptionRtpMediaLineClone)]
+        void RTCSessionDescriptionRtpMediaLine(RTCSessionDescriptionRtpMediaLine source);
+        /// <summary>
+        /// Constructs an instance of an RTCSessionDescriptionRtpMediaLine object by extracting object data from a JSON object.
+        /// </summary>
+        [constructor, default, altname(RTCSessionDescriptionRtpMediaLineWithJson)]
+        void RTCSessionDescriptionRtpMediaLine(Json json);
+      };
+
+      /// <summary>
+      /// The RTCSessionDescriptionSctpMediaLine object represents the media
+      /// lines related to an SCTP transport assoacated to an ICE/secure
+      /// transport on a given SCTP port. Multiple data channels can
+      /// operate over the same SCTP transport thus creating multiple
+      /// SCTP transports is not needed unless for application specific logic
+      /// reasons.
+      /// </summary>
+      /// <example>
+      /// <code>
+      /// m=application 0 UDP/DTLS/SCTP webrtc-datachannel
+      /// c=IN IP4 0.0.0.0
+      /// a=bundle-only
+      /// a=mid:d1
+      /// a=fmtp:webrtc-datachannel max-message-size=65536
+      /// a=sctp-port 5000
+      /// </code>
+      /// </example>      
+      [dictionary]
+      struct RTCSessionDescriptionSctpMediaLine : RTCSessionDescriptionMediaLine
+      {
+        /// <summary>
+        /// Gets or sets the SCTP transport's capabilities associated with
+        /// the SCTP transport.
+        /// </summary>
+        RTCSctpCapabilities capabilities;
+        /// <summary>
+        /// Gets or sets the SCTP transport port associated with the SCTP
+        /// transport. This is required for SDP based singaling but is
+        /// optional for JSON based signaling but requires the engine support
+        /// listening for incoming SCTP transports on any port within the
+        /// transport. Only one non-specified port (null value) is allowed per
+        /// transport and all non-signaled SCTP transport must share the same
+        /// SCTP capabilities for the transport. Setting to null implies
+        /// the SCTP transport is capable of listening for incoming SCTP
+        /// transport connections.
+        /// </summary>
+        [optional]
+        uint16 port;
+
+        /// <summary>
+        /// Constructs an empty instance of an RTCSessionDescriptionSctpMediaLine object.
+        /// </summary>
+        [constructor, default]
+        void RTCSessionDescriptionSctpMediaLine();
+        /// <summary>
+        /// Constructs an instance of an RTCSessionDescriptionSctpMediaLine object by cloning object data from an existing object.
+        /// </summary>
+        [constructor, altname(RTCSessionDescriptionSctpMediaLineClone)]
+        void RTCSessionDescriptionSctpMediaLine(RTCSessionDescriptionSctpMediaLine source);
+        /// <summary>
+        /// Constructs an instance of an RTCSessionDescriptionSctpMediaLine object by extracting object data from a JSON object.
+        /// </summary>
+        [constructor, default, altname(RTCSessionDescriptionSctpMediaLineWithJson)]
+        void RTCSessionDescriptionSctpMediaLine(Json json);
+      };
+
+      /// <summary>
+      /// The RTCSessionDescriptionRtpSenderDetails object represents the
+      /// sender details that are typically only related to SDP properties for
+      /// a specific sender.
+      /// </summary>
+      [dictionary]
+      struct RTCSessionDescriptionRtpSenderDetails
+      {
+        /// <summary>
+        /// Gets or sets the associated internal index of a media line
+        /// associated with a sender based upon the media line order within
+        /// the entire session. This is used only when the media line has no
+        /// identifier. This value is used internally to coordinate matching
+        /// m (media) lines for SDP negotiation but otherwise is not
+        /// recommended.
+        /// </summary>
+        [optional]
+        size_t internalRtpMediaLineIndex;
+
+        /// <summary>
+        /// Constructs an empty instance of an RTCSessionDescriptionRtpSenderDetails object.
+        /// </summary>
+        [constructor, default]
+        void RTCSessionDescriptionRtpSenderDetails();
+        /// <summary>
+        /// Constructs an instance of an RTCSessionDescriptionRtpSenderDetails object by cloning object data from an existing object.
+        /// </summary>
+        [constructor, altname(RTCSessionDescriptionRtpSenderDetailsClone)]
+        void RTCSessionDescriptionRtpSenderDetails(RTCSessionDescriptionRtpSenderDetails source);
+        /// <summary>
+        /// Constructs an instance of an RTCSessionDescriptionRtpSenderDetails object by extracting object data from a JSON object.
+        /// </summary>
+        [constructor, default, altname(RTCSessionDescriptionRtpSenderDetailsWithJson)]
+        void RTCSessionDescriptionRtpSenderDetails(Json json);
+
+        /// <summary>
+        /// A helper routine to convert the object's data to structured JSON object data.
+        /// </summary>
+        Json toJson();
+        /// <summary>
+        /// Return a hash of the data contained within the object.
+        /// </summary>
+        string hash();
+      };
+
+      /// <summary>
+      /// The RTCSessionDescriptionRtpSender object represents the sender
+      /// parameters for an encoded audio or video media stream track.
+      /// </summary>
+      [dictionary]
+      struct RTCSessionDescriptionRtpSender
+      {
+        typedef string MediaStreamId;
+        typedef std::set<MediaStreamId> MediaStreamSet;
+
+        /// <summary>
+        /// Gets or sets the sender identifier. In the case of SDP based
+        /// signaling this value must correspond to the media stream track
+        /// identifier that the remote party will adopt as it's media
+        /// stream track identification as described in
+        /// [draft-ietf-mmusic-msid] Section 2, i.e. the "msid-appdata" value.
+        /// </summary>
+        string id;
+        /// <summary>
+        /// Gets or sets the sender details associated with this sender. These
+        /// values are typically only used within the context of SDP and
+        /// thus property may be null if unused.
+        /// </summary>
+        RTCSessionDescriptionRtpSenderDetails details;
+        /// <summary>
+        /// Gets or sets the associated media line. In the case of SDP
+        /// signaling only one sender is allowed to be associated to a single
+        /// media line at a time. In the case of JSON, multiple senders are
+        /// allowed to be associated to a single media line. The sender media
+        /// type and media line media type must be identical.
+        /// </summary>
+        string rtpMediaLineId;
+        /// <summary>
+        /// Gets or sets the configuration parameters associated with the
+        /// RTCRtpSender.
+        /// </summary>
+        RTCRtpParameters parameters;
+        /// <summary>
+        /// Gets or sets the media stream track id associated with the
+        /// sender. This property should match the media stream track object
+        /// associated with the RTCRtpSender unless the RTCRtpSender's
+        /// track was chaneged without informing the associated
+        /// RTCRtpPeerConnection object.
+        /// </summary>
+        string mediaStreamTrackId;
+        /// <summary>
+        /// Gets or sets the media stream group IDs associated with the media
+        /// line [RFC5888]  Section 5. All media lines that share the same
+        /// group identification are considered part of the same group and
+        /// thus are part of the same media stream.
+        /// </summary>
+        /// <example>
+        /// <code>
+        /// v=0
+        /// o=- 6729291447651054566 1 IN IP4 0.0.0.0
+        /// s=-
+        /// t=0 0
+        /// a=group:BUNDLE a1 v1
+        /// m=audio 20000 UDP/TLS/RTP/SAVPF 96 0 8 97 98
+        /// c=IN IP4 192.0.2.2
+        /// a=mid:a1
+        /// a=rtcp:20000 IN IP4 192.0.2.2
+        /// a=msid:PI39StLS8W7ZbQl1sJsWUXkr3Zf12fJUvzQ1
+        ///        PI39StLS8W7ZbQl1sJsWUXkr3Zf12fJUvzQ1a0
+        /// a=msid:fdsafjdksajlfEjalkfjDlskajaflJakfjd1
+        ///        PI39StLS8W7ZbQl1sJsWUXkr3Zf12fJUvzQ1a0
+        /// ...
+        /// m=video 20000 UDP/TLS/RTP/SAVPF 100 101
+        /// c=IN IP4 192.0.2.2
+        /// a=rtcp 20001 IN IP4 192.0.2.2
+        /// a=mid:v1
+        /// a=msid:PI39StLS8W7ZbQl1sJsWUXkr3Zf12fJUvzQ1
+        ///        PI39StLS8W7ZbQl1sJsWUXkr3Zf12fJUvzQ1v0
+        /// </code>
+        /// </example>
+        MediaStreamSet mediaStreamIds;
+
+        /// <summary>
+        /// Constructs an empty instance of an RTCSessionDescriptionRtpSender object.
+        /// </summary>
+        [constructor, default]
+        void RTCSessionDescriptionRtpSender();
+        /// <summary>
+        /// Constructs an instance of an RTCSessionDescriptionRtpSender object by cloning object data from an existing object.
+        /// </summary>
+        [constructor, altname(RTCSessionDescriptionRtpSenderClone)]
+        void RTCSessionDescriptionRtpSender(RTCSessionDescriptionRtpSender source);
+        /// <summary>
+        /// Constructs an instance of an RTCSessionDescriptionRtpSender object by extracting object data from a JSON object.
+        /// </summary>
+        [constructor, default, altname(RTCSessionDescriptionRtpSenderWithJson)]
+        void RTCSessionDescriptionRtpSender(Json json);
+
+        /// <summary>
+        /// A helper routine to convert the object's data to structured JSON object data.
+        /// </summary>
+        Json toJson();
+        /// <summary>
+        /// Return a hash of the data contained within the object.
+        /// </summary>
+        string hash();
+      };
+
+      /// <summary>
+      /// The Session description version of an RTCIceCandidate object
+      /// includes information relating to an ICE candidate.
+      /// </summary>
+      [dictionary]
+      struct RTCIceCandidate
+      {
+        /// <summary>
+        /// Gets or sets the identifier of the "media stream identification"
+        /// as defined in [RFC5888] for the media component this candidate is
+        /// associated with.
+        /// </summary>
+        string mid;
+        /// <summary>
+        /// Gets or sets the identifier of the "media stream identification"
+        /// as defined in [RFC5888] for the media component this candidate is
+        /// associated with.
+        /// </summary>
+        [getter, setter]
+        string sdpMid;
+        /// <summary>
+        /// Gets or sets the index (starting at zero) of the media description
+        /// in the SDP this candidate is associated with.
+        /// </summary>
+        [optional]
+        size_t sdpMLineIndex;
+        /// <summary>
+        /// Gets or sets the candidate-attribute as defined in section 15.1 of
+        /// [RFC5245].
+        /// </summary>
+        RTCIceGathererCandidate candidate;
+
+        /// <summary>
+        /// Constructs an empty instance of an RTCIceCandidate object.
+        /// </summary>
+        [constructor, default]
+        void RTCIceCandidate();
+        /// <summary>
+        /// Constructs an instance of an RTCIceCandidate object by cloning object data from an existing object.
+        /// </summary>
+        [constructor, altname(RTCIceCandidateClone)]
+        void RTCIceCandidate(RTCIceCandidate source);
+        /// <summary>
+        /// Constructs an instance of an RTCIceCandidate object by extracting object data from a JSON object.
+        /// </summary>
+        [constructor, altname(RTCIceCandidateWithJson)]
+        void RTCIceCandidate(Json json) throws (InvalidParameters);
+
+        /// <summary>
+        /// A helper routine to easily converty from a SDP-candidate string to
+        /// an RTCIceCandidate object.
+        /// </summary>
+        [static, obsolete("Use FromSdpStringWithMid instead.")]
+        RTCIceCandidate fromSdpStringWithMLineIndex(
+                                                   string sdp,
+                                                   size_t mlineIndex
+                                                   ) throws (InvalidParameters);
+        /// <summary>
+        /// A helper routine to easily converty from a SDP-candidate string to
+        /// an RTCIceCandidate object.
+        /// </summary>
+        [static]
+        RTCIceCandidate fromSdpStringWithMid(
+                                             string sdp,
+                                             string mid
+                                             ) throws (InvalidParameters);
+
+        /// <summary>
+        /// A helper routine to easily convert to a SDP-candidate string.
+        /// </summary>
+        string toSdp();
+
+        /// <summary>
+        /// A helper routine to convert the object's data to structured JSON object data.
+        /// </summary>
+        Json toJson();
+        /// <summary>
+        /// Return a hash of the data contained within the object.
+        /// </summary>
+        string hash();
+      };
+
+
+      /// <summary>
+      /// The RTCSessionDescriptionDescriptionDetails represents the session
+      /// level properties typically contained within an SDP origin or
+      /// other session level properties.
+      /// </summary>
+      /// <example>
+      /// <code>
+      /// o=jdoe 2890844526 2890842807 IN IP4 10.47.16.5
+      /// t=3034423619 3042462419
+      /// s=SDP Seminar
+      /// c=IN IP4 224.2.17.12/127
+      /// a=rtcp:53020
+      /// </code>
+      /// <code>
+      /// o=jdoe 2890844526 2890842807 IN IP4 10.47.16.5
+      /// t=0 0
+      /// s=-
+      /// c=IN IP4 224.2.17.12/127
+      /// a=rtcp:53020 IN IP4 126.16.64.4
+      /// </code>
+      /// </example>
+      [dictionary]
+      struct RTCSessionDescriptionDescriptionDetails
+      {
+        /// <summary>
+        /// Gets or sets the user's login on the originating host, or it is "-"
+        /// if the originating host does not support the concept of user IDs.
+        /// This is the origin's username as described in [RFC4566] Section
+        /// 5.2.
+        /// </summary>
+        string username = "-";
+        /// <summary>
+        /// Gets or sets a numeric string such that the tuple of username,
+        /// sess - id, nettype, addrtype, and unicast - address forms a
+        /// globally unique identifier for the session. This is the origin's
+        /// sess-id as described in [RFC4566] Section 5.2.
+        /// </summary>
+        unsigned long long sessionId;
+        /// <summary>
+        /// Gets or sets a version number for this session description. This
+        /// is the origin's sess-version as described in [RFC4566] Section
+        /// 5.2.
+        /// </summary>
+        unsigned long long sessionVersion;
+        /// <summary>
+        /// Gets or sets the unicast address information for a session. This
+        /// represents the origin's nettype, addrtype, unicast-address as
+        /// described in [RFC4566] Section 5.2.
+        /// </summary>
+        RTCSessionDescriptionConnectionDataDetails unicaseAddress;
+        /// <summary>
+        /// Gets or sets the textual session name as described in [RFC4566]
+        /// Section 5.3.
+        /// </summary>
+        string sessionName;
+        /// <summary>
+        /// Gets or sets the start time of the session in NTP format as
+        /// described in [RFC4566] Section 5.9. A value of 0 has an unknown
+        /// start time.
+        /// </summary>
+        uint64 startTime;
+        /// <summary>
+        /// Gets or sets the start end of the session in NTP format as
+        /// described in [RFC4566] Section 5.9. A value of 0 has an unbounded
+        /// end time.
+        /// </summary>
+        uint64 endTime;
+        /// <summary>
+        /// Gets or sets the connection data associated with the session as 
+        /// described in [RFC4566] Section 5.7 for RTP and [RFC3605]
+        /// Section 2.1 for RTCP (at the session level).
+        /// </summary>
+        RTCSessionDescriptionConnectionData connectionData;  // optional; can be null;
+
+        /// <summary>
+        /// Constructs an empty instance of an RTCSessionDescriptionDescriptionDetails object.
+        /// </summary>
+        [constructor, default]
+        void RTCSessionDescriptionDescriptionDetails();
+        /// <summary>
+        /// Constructs an instance of an RTCSessionDescriptionDescriptionDetails object by cloning object data from an existing object.
+        /// </summary>
+        [constructor, altname(RTCSessionDescriptionDescriptionDetailsClone)]
+        void RTCSessionDescriptionDescriptionDetails(RTCSessionDescriptionDescriptionDetails source);
+        /// <summary>
+        /// Constructs an instance of an RTCSessionDescriptionDescriptionDetails object by extracting object data from a JSON object.
+        /// </summary>
+        [constructor, default, altname(RTCSessionDescriptionDescriptionDetailsWithJson)]
+        void RTCSessionDescriptionDescriptionDetails(Json json);
+
+        /// <summary>
+        /// A helper routine to convert the object's data to structured JSON object data.
+        /// </summary>
+        Json toJson();
+        /// <summary>
+        /// Return a hash of the data contained within the object.
+        /// </summary>
+        string hash();
+      };
+
+
+      /// <summary>
+      /// The RTCSessionDescriptionDescription represents a descriptive
+      /// format capable of carrying either media SDP [RFC4566] or JSON-style
+      /// media descriptions. The media descriptions contain information about
+      /// the session, all transports, media lines with media capabilities,
+      /// and senders related to the media lines. This format can be
+      /// converted to/from SDP and JSON.
+      /// </summary>
+      /// <example>
+      /// <code>
+      /// {
+      ///  "session": {
+      ///    "transports": {
+      ///      "transport": {
+      ///        "id": "transport1",
+      ///        "rtp": {
+      ///          "ice": {
+      ///            "parameters": {
+      ///              "usernameFragment": "ufrag1",
+      ///              "password": "password1",
+      ///              "useUnfreezePriority": "true",
+      ///              "iceLite": "false"
+      ///            }
+      ///          },
+      ///          "dtls": {
+      ///            "parameters": {
+      ///              "role": "auto",
+      ///              "fingerprints": {
+      ///                "fingerprint": [
+      ///                  "AB:32:...",
+      ///                  "FF:EE:..."
+      ///                ]
+      ///              }
+      ///            }
+      ///          },
+      ///          "sdesSrtp": { "parameters": "..." },
+      ///          "iceCandidates": {
+      ///            "iceCandidate": [
+      ///              {
+      ///                "mid": "a1",
+      ///                "index": "0",
+      ///                "component": "rtp",
+      ///                "candidate": {...}
+      ///              },
+      ///              { 
+      ///                "mid": "a1",
+      ///                "index": "0",
+      ///                "component": "rtp",
+      ///                "candidateComplete": { complete: "true" }
+      ///              }
+      ///            ]
+      ///          }
+      ///        },
+      ///        "rtcp": {...}
+      ///      }
+      ///    }
+      ///  },
+      ///  "rtpMediaLines" : {
+      ///    "rtpMediaLine": {
+      ///    },
+      ///    ...
+      ///  },
+      ///  "sctpMediaLines" : {
+      ///    "sctpMediaLine": {
+      ///    },
+      ///    ...
+      ///  },
+      ///  "rtpSenders" : {
+      ///    "rtpSender": {
+      ///    },
+      ///    ...
+      ///  },
+      /// }
+      /// </code>
+      /// </example>
+      [dictionary]
+      struct RTCSessionDescriptionDescription
+      {
+        typedef std::list<RTCSessionDescriptionTransport> TransportList;
+        typedef std::list<RTCSessionDescriptionRtpMediaLine> RtpMediaList;
+        typedef std::list<RTCSessionDescriptionSctpMediaLine> SctpMediaList;
+        typedef std::list<RTCSessionDescriptionRtpSender> RtpSenderList;
+
+        /// <summary>
+        /// Gets or sets the detailed session information (which is typically
+        /// related to SDP-only [RFC4566]. This value can be null if is it
+        /// not needed.
+        /// </summary>
+        RTCSessionDescriptionDescriptionDetails details;
+
+        /// <summary>
+        /// Gets or sets a list of transports associated with the session.
+        /// These transports include the ICE and secure transport properties.
+        /// </summary>
+        TransportList transports;
+        /// <summary>
+        /// Gets or sets a list of media capabilities which are associated
+        /// with transports. These media lines describe the intention of the
+        /// media flow and the capabilities and configuration expectations of
+        /// the media.
+        /// </summary>
+        RtpMediaList rtpMediaLines;
+        /// <summary>
+        /// Gets or sets a list of SCTP data transports associated with
+        /// the wire transports.
+        /// </summary>
+        SctpMediaList sctpMediaLines;
+        /// <summary>
+        /// Gets or sets a list of RTP senders associated with a
+        /// configurated media line.
+        /// </summary>
+        RtpSenderList rtpSenders;
+
+        /// <summary>
+        /// Constructs an empty instance of an RTCSessionDescriptionDescription object.
+        /// </summary>
+        [constructor, default]
+        void RTCSessionDescriptionDescription();
+        /// <summary>
+        /// Constructs an instance of an RTCSessionDescriptionDescription object by cloning object data from an existing object.
+        /// </summary>
+        [constructor, altname(RTCSessionDescriptionDescriptionClone)]
+        void RTCSessionDescriptionDescription(RTCSessionDescriptionDescription source);
+        /// <summary>
+        /// Constructs an instance of an RTCSessionDescriptionDescription object by extracting object data from a JSON object.
+        /// </summary>
+        [constructor, default, altname(RTCSessionDescriptionDescriptionWithJson)]
+        void RTCSessionDescriptionDescription(Json json);
+
+        /// <summary>
+        /// A helper routine to convert the object's data to structured JSON object data.
+        /// </summary>
+        Json toJson();
+        /// <summary>
+        /// Return a hash of the data contained within the object.
+        /// </summary>
+        string hash();
+      };
+
+      /// <summary>
+      /// The RTCSessionDescription class is used by RTCPeerConnection to
+      /// expose local and remote session descriptions.
+      /// </summary>
+      interface RTCSessionDescription
+      {
+        /// <summary>
+        /// Constructs an instance of an RTCSessionDescription from a string
+        /// representation of the session description.
+        /// </summary>
+        [constructor, default, altname(RTCSessionDescriptionWithString)]
+        void RTCSessionDescription(
+                                   RTCSessionDescriptionSignalingType type,
+                                   string description
+                                   ) throws (InvalidParameters, InvalidStateError);
+
+        /// <summary>
+        /// Constructs an instance of an RTCSessionDescription from a
+        /// structured session description.
+        /// </summary>
+        [constructor, altname(RTCSessionDescriptionWithDescription)]
+        void RTCSessionDescription(
+                                   RTCSessionDescriptionSignalingType type,
+                                   RTCSessionDescriptionDescription description
+                                   ) throws(InvalidParameters, InvalidStateError);
+
+        /// <summary>
+        /// Helper routine to convert RTP capabilities into the appropriate
+        /// matching RTP parameters.
+        /// </summary>
+        [static]
+        RTCRtpParameters convertCapabilitiesToParameters(RTCRtpCapabilities capabilitites);
+        /// <summary>
+        /// Helper routine to convert existing RTP parameters into the RTP
+        /// capabilities.
+        /// </summary>
+        [static]
+        RTCRtpCapabilities ConvertParametersToCapabilitites(RTCRtpParameters parameters);
+
+        /// <summary>
+        /// Gets a unique object instance identifier for this object.
+        /// </summary>
+        [getter]
+        puid objectId;
+
+        /// <summary>
+        /// Gets the SDP type of this RTCSessionDescription. This property
+        /// may only be obtained if the signaling type is SDP.
+        /// </summary>
+        [getter]
+        RTCSessionDescriptionSignalingType type;
+
+        /// <summary>
+        /// Gets the SDP type of this RTCSessionDescription. This property
+        /// may only be obtained if the signaling type is SDP.
+        /// </summary>
+        [getter, obsolete("Use Type or SignalingType instead.")]
+        RTCSdpType sdpType;
+
+        /// <summary>
+        /// Gets a indiciation if the signaling type is JSON based.
+        /// </summary>
+        [getter]
+        bool isJsonSignalling;
+
+        /// <summary>
+        /// Gets a indiciation if the signaling type is SDP based.
+        /// </summary>
+        [getter]
+        bool isSdpSignaling;
+
+        /// <summary>
+        /// Gets the structured representation of the SDP [RFC3264] or JSON
+        /// contents.
+        /// </summary>
+        [getter]
+        RTCSessionDescriptionDescription description;
+
+        /// <summary>
+        /// Gets the string representation of the SDP [RFC3264] or JSON.
+        /// </summary>
+        [getter]
+        string formattedDescription;
+
+        /// <summary>
+        /// Gets the string representation of the SDP [RFC3264] or JSON.
+        /// </summary>
+        [getter, obsolete("Use FormattedDescription instead.")]
+        string sdp;
+      };
+    }
+  }
+}

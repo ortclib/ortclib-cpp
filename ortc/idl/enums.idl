@@ -1,0 +1,825 @@
+/*
+
+ Copyright (c) 2017, Optical Tone Ltd.
+ All rights reserved.
+
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+
+ 1. Redistributions of source code must retain the above copyright notice, this
+ list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright notice,
+ this list of conditions and the following disclaimer in the documentation
+ and/or other materials provided with the distribution.
+
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+ The views and conclusions contained in the software and documentation are those
+ of the authors and should not be interpreted as representing official policies,
+ either expressed or implied, of the FreeBSD Project.
+ 
+ */
+
+namespace org
+{
+  namespace ortc
+  {
+    /// <summary>
+    /// RTCDataChannelState represents the state of the RTCDataChannel object. 
+    /// </summary>
+    enum RTCDataChannelState
+    {
+      /// <summary>
+      /// The user agent is attempting to establish the underlying data
+      /// transport. This is the initial state of an RTCDataChannel object.
+      /// </summary>
+      connecting,
+      /// <summary>
+      /// The underlying data transport is established and communication is
+      /// possible. This is the initial state of an RTCDataChannel object
+      /// dispatched as a part of an RTCDataChannelEvent.
+      /// </summary>
+      open,
+      /// <summary>
+      /// The procedure to close down the underlying data transport has
+      /// started.
+      /// </summary>
+      closing,
+      /// <summary>
+      /// The underlying data transport has been closed or could not be
+      /// established.
+      /// </summary>
+      closed,
+    };
+
+    /// <summary>
+    /// RTCSctpTransportState indicates the state of the SCTP transport.
+    /// </summary>
+    enum RTCSctpTransportState
+    {
+      /// <summary>
+      /// The RTCSctpTransport object has been created and has not started
+      /// negotiating yet.
+      /// </summary>
+      new,
+      /// <summary>
+      /// SCTP is in the process of negotiating an association.
+      /// </summary>
+      connecting,
+      /// <summary>
+      /// SCTP has completed negotiation of an association.
+      /// </summary>
+      connected,
+      /// <summary>
+      /// The SCTP association has been closed intentionally via a call to
+      /// Stop() or receipt of a SHUTDOWN or ABORT chunk.
+      /// </summary>
+      closed,
+    };
+
+    /// <summary>
+    /// RTCIceRole contains the current role of the ICE transport.
+    /// </summary>
+    enum RTCIceRole
+    {
+      /// <summary>
+      /// The controlling state, defined in [RFC5245] Section 3.
+      /// </summary>
+      controlling,
+      /// <summary>
+      /// The controlled state, defined in [RFC5245] Section 3.
+      /// </summary>
+      controlled,
+    };
+
+    /// <summary>
+    /// RTCIceComponent contains the component-id of the RTCIceTransport,
+    /// which will be "RTP" unless RTP and RTCP are not multiplexed and the
+    /// RTCIceTransport object was returned by createAssociatedTransport().
+    /// </summary>
+    enum RTCIceComponent
+    {
+      /// <summary>
+      /// The RTP component ID, defined (as '1') in [RFC5245] Section 4.1.1.1.
+      /// Protocols multiplexed with RTP (e.g. SCTP data channel) share its
+      /// component ID.
+      /// </summary>
+      rtp = 1,
+      /// <summary>
+      /// The RTCP component ID, defined (as '2') in [RFC5245] Section
+      /// 4.1.1.1.
+      /// </summary>
+      rtcp = 2,
+    };
+
+    enum RTCIceProtocol
+    {
+      /// <summary>
+      /// A UDP candidate, as described in [RFC5245].
+      /// </summary>
+      udp,
+      /// <summary>
+      /// A TCP candidate, as described in [RFC5245].
+      /// </summary>
+      tcp,
+    };
+
+    /// <summary>
+    /// The RTCIceCandidateType includes the type of the ICE candidate.
+    /// </summary>
+    enum RTCIceCandidateType
+    {
+      /// <summary>
+      /// A host candidate, defined in [RFC5245] Section 3.
+      /// </summary>
+      host,
+      /// <summary>
+      /// A server reflexive candidate, defined in [RFC5245] Section 3.
+      /// </summary>
+      srflex,
+      /// <summary>
+      /// A peer reflexive candidate, defined in [RFC5245] Section 3.
+      /// </summary>
+      prflx,
+      /// <summary>
+      /// A relay candidate, defined in [RFC5245] Section 3.
+      /// </summary>
+      relay,
+    };
+
+    /// <summary>
+    /// The RTCIceTcpCandidateType includes the type of the ICE TCP candidate,
+    /// as described in [RFC6544]. 
+    /// </summary>
+    enum RTCIceTcpCandidateType
+    {
+      /// <summary>
+      /// An active TCP candidate is one for which the transport will attempt
+      /// to open an outbound connection but will not receive incoming
+      /// connection requests.
+      /// </summary>
+      active,
+      /// <summary>
+      /// A passive TCP candidate is one for which the transport will receive
+      /// incoming connection attempts but not attempt a connection.
+      /// </summary>
+      passive,
+      /// <summary>
+      /// An so candidate is one for which the transport will attempt to open
+      /// a connection simultaneously with its peer.
+      /// </summary>
+      so,
+    };
+
+    /// <summary>
+    /// RTCIceGathererState represents the current state of the ICE gatherer.
+    /// </summary>
+    enum RTCIceGathererState
+    {
+      /// <summary>
+      /// The object has been created but Gather() has not been called.
+      /// </summary>
+      new,
+      /// <summary>
+      /// Gather() has been called, and the RTCIceGatherer is in the process
+      /// of gathering candidates (which includes adding new candidates and
+      /// removing invalidated candidates).
+      /// </summary>
+      gathering,
+      /// <summary>
+      /// The RTCIceGatherer has completed gathering. Events such as adding,
+      /// updating or removing an interface, or adding, changing or removing a
+      /// TURN server will cause the state to go back to gathering before
+      /// re-entering "complete" once all candidate changes are finalized.
+      /// </summary>
+      complete,
+      /// <summary>
+      /// The RTCIceGatherer has been closed intentionally (by calling
+      /// Close()) or as the result of an error.
+      /// </summary>
+      closed,
+    };
+
+    /// <summary>
+    /// RTCIceGatherFilterPolicy represents the detailed gatherer filter
+    /// options to restrict ICE candidate discovery.
+    /// </summary>
+    enum RTCIceGatherFilterPolicy : uint64
+    {
+      /// <summary>
+      /// No gatherer filtering is required.
+      /// </summary>
+      none = 0,
+      /// <summary>
+      /// Filter all IPv4 host candidates.
+      /// </summary>
+      noIPv4Host = 0x00000001,
+      /// <summary>
+      /// Filter all IPv4 server reflexive candidates.
+      /// </summary>
+      noIPv4Srflx = 0x00000002,
+      /// <summary>
+      /// Filter all IPv4 peer reflexive candidates.
+      /// </summary>
+      noIPv4Prflx = 0x00000004,
+      /// <summary>
+      /// Filter all IPv4 relay candidates.
+      /// </summary>
+      noIPv4Relay = 0x00000008,
+      /// <summary>
+      /// Filter all IPv4 private candidates.
+      /// See: https://en.wikipedia.org/wiki/Private_network
+      /// </summary>
+      noIPv4Private = 0x00000010,
+      /// <summary>
+      /// Filter all IPv4 candidates.
+      /// </summary>
+      noIPv4 = 0x000000FF,
+      /// <summary>
+      /// Filter all IPv6 host candidates.
+      /// </summary>
+      noIPv6Host = 0x00000100,
+      /// <summary>
+      /// Filter all IPv6 server reflexive candidates.
+      /// </summary>
+      noIPv6Srflx = 0x00000200,
+      /// <summary>
+      /// Filter all IPv6 peer reflexive candidates.
+      /// </summary>
+      noIPv6Prflx = 0x00000400,
+      /// <summary>
+      /// Filter all IPv6 relay candidates.
+      /// </summary>
+      noIPv6Relay = 0x00000800,
+      /// <summary>
+      /// Filter all IPv6 private candidates.
+      /// See: https://en.wikipedia.org/wiki/Private_network
+      /// </summary>
+      noIPv6Private = 0x00001000,
+      /// <summary>
+      /// Filter all IPv6 Teredo tunnel or other tunneled candidates.
+      /// </summary>
+      noIPv6Tunnel = 0x00002000,
+      /// <summary>
+      /// Filter all IPv6 permanent candidates.
+      /// </summary>
+      noIPv6Permanent = 0x00004000,
+      /// <summary>
+      /// Filter all IPv6 candidates.
+      /// </summary>
+      noIPv6 = 0x0000FF00,
+      /// <summary>
+      /// Filter all host candidates.
+      /// </summary>
+      noHost = 0x00000101,
+      /// <summary>
+      /// Filter all server reflexive candidates.
+      /// </summary>
+      noSrflx = 0x00000202,
+      /// <summary>
+      /// Filter all server peer reflexive candidates.
+      /// </summary>
+      noPrflx = 0x00000404,
+      /// <summary>
+      /// Filter all relay candidates.
+      /// </summary>
+      noRelay = 0x00000808,
+      /// <summary>
+      /// Filter all private candidates.
+      /// See: https://en.wikipedia.org/wiki/Private_network
+      /// </summary>
+      noPrivate = 0x00001010,
+      /// <summary>
+      /// Filter all but relay candidates.
+      /// </summary>
+      relayOnly = 0x00000707,
+      /// <summary>
+      /// Filter all candidates.
+      /// </summary>
+      noCandidates = 0x7FFFFFFF,
+    };
+
+    /// <summary>
+    /// Use the string form of these enums with the RTCIceInterfacePolicy
+    /// Interface type variable to specify per interface type policies.
+    /// </summary>
+    enum RTCIceGatherInterfaceType
+    {
+      /// <summary>
+      /// Applies to all unknown interface types.
+      /// </summary>
+      Unknown,
+      /// <summary>
+      /// Applies to all interface types where there is no specific interface
+      /// type policy was specified.
+      /// </summary>
+      Default,
+      /// <summary>
+      /// Applies to all Local Area Network interface types.
+      /// </summary>
+      Lan,
+      /// <summary>
+      /// Applies to all Tunnel interface types.
+      /// </summary>
+      Tunnel,
+      /// <summary>
+      /// Applies to all Wireless Local Area Network interface types.
+      /// </summary>
+      Wlan,
+      /// <summary>
+      /// Applies to all Wireless Wide Area Network interface types.
+      /// </summary>
+      Wwan,
+      /// <summary>
+      /// Applies to all Virtual Private Network interface types.
+      /// </summary>
+      Vpn
+    };
+
+    /// <summary>
+    /// RTCIceCredentialType represents the type of credential used by a TURN
+    /// server.
+    /// </summary>
+    enum RTCIceCredentialType
+    {
+      /// <summary>
+      /// The credential is a long-term authentication password.
+      /// </summary>
+      password,
+      /// <summary>
+      /// The credential is an access token.
+      /// </summary>
+      token,
+    };
+
+    /// <summary>
+    /// RTCIceTransportState represents the current state of the ICE
+    /// transport.
+    /// </summary>
+    enum RTCIceTransportState
+    {
+      /// <summary>
+      /// The RTCIceTransport object is waiting for remote candidates to be
+      /// supplied. In this state the object can respond to incoming
+      /// connectivity checks.
+      /// </summary>
+      new,
+      /// <summary>
+      /// The RTCIceTransport has received at least one remote candidate, and
+      /// a local and remote RTCIceCandidateComplete dictionary was not added
+      /// as the last candidate. In this state the RTCIceTransport is checking
+      /// candidate pairs but has not yet found a successful candidate pair,
+      /// or consent checks [RFC7675] have failed on a previously successful
+      /// candidate pair.
+      /// </summary>
+      checking,
+      /// <summary>
+      /// The RTCIceTransport has received a response to an outgoing
+      /// connectivity check, or has received incoming DTLS/media after a
+      /// successful response to an incoming connectivity check, but is still
+      /// checking other candidate pairs to see if there is a better
+      /// connection. In this state outgoing media is permitted.
+      /// </summary>
+      connected,
+      /// <summary>
+      /// A local and remote RTCIceCandidateComplete dictionary was added as
+      /// the last candidate to the RTCIceTransport and all appropriate
+      /// candidate pairs have been tested and at least one functioning
+      /// candidate pair has been found.
+      /// </summary>
+      completed,
+      /// <summary>
+      /// The RTCIceTransport has received at least one local and remote
+      /// candidate, and a local and remote RTCIceCandidateComplete dictionary
+      /// was not added as the last candidate, but all appropriate candidate
+      /// pairs thus far have been tested and failed (or consent checks
+      /// [RFC7675] once successful, have now failed). Other candidate pairs
+      /// may become available for testing as new candidates are trickled, and
+      /// therefore the "failed" state has not been reached.
+      /// </summary>
+      disconnected,
+      /// <summary>
+      /// A local and remote RTCIceCandidateComplete dictionary was added as
+      /// the last candidate to the RTCIceTransport and all appropriate
+      /// candidate pairs have been tested and failed.
+      /// </summary>
+      failed,
+      /// <summary>
+      /// The RTCIceTransport has shut down and is no longer responding to
+      /// STUN requests.
+      /// </summary>
+      closed,
+    };
+
+    /// <summary>
+    /// RTCDtlsTransportState indicates the state of the DTLS transport.
+    /// </summary>
+    enum RTCDtlsTransportState
+    {
+      /// <summary>
+      /// The RTCDtlsTransport object has been created and has not started
+      /// negotiating yet.
+      /// </summary>
+      new,
+      /// <summary>
+      /// DTLS is in the process of negotiating a secure connection and
+      /// verifying the remote fingerprint. Once a secure connection is
+      /// negotiated (but prior to verification of the remote fingerprint,
+      /// enabled by calling start()), incoming data can flow through (and
+      /// media, once DTLS-SRTP key derivation is completed).
+      /// </summary>
+      connecting,
+      /// <summary>
+      /// DTLS has completed negotiation of a secure connection but the
+      /// fingerprint has not been verified.
+      /// </summary>
+      connected,
+      /// <summary>
+      /// The DTLS connection has been closed intentionally via a call to
+      /// Stop() or receipt of a close_notify alert. Calling transport.Stop()
+      /// will also result in a transition to the "closed" state.
+      /// </summary>
+      closed,
+      /// <summary>
+      /// The DTLS connection has been closed as the result of an error
+      /// (such as receipt of an error alert or a failure to validate the
+      /// remote fingerprint).
+      /// </summary>
+      failed,
+    };
+
+    /// <summary>
+    /// RTCDtlsRole indicates the role of the DTLS transport.
+    /// </summary>
+    enum RTCDtlsRole
+    {
+      /// <summary>
+      /// The DTLS role is determined based on the resolved ICE role: the
+      /// "Controlled" role acts as the DTLS client, the "Controlling" role
+      /// acts as the DTLS server. Since RTCDtlsRole is initialized to "Auto"
+      /// on construction of an RTCDtlsTransport object,
+      /// transport.GetLocalParameters().RTCDtlsRole will have an initial
+      /// value of "Auto".
+      /// </summary>
+      auto,
+      /// <summary>
+      /// The DTLS client role. A transition to "Client" will occur if
+      /// Start(remoteParameters) is called with remoteParameters.RTCDtlsRole
+      /// having a value of "Server". If RTCDtlsRole had previously had a
+      /// value of "Server" (e.g. due to the RTCDtlsTransport having
+      /// previously received packets from a DTLS client), then the DTLS
+      /// session is reset prior to transitioning to the "client" role.
+      /// </summary>
+      client,
+      /// <summary>
+      /// The DTLS server role. If RTCDtlsRole has a value of "Auto" and the
+      /// RTCDtlsTransport receives a DTLS client_hello packet, RTCDtlsRole
+      /// will transition to "Server", even before start() is called. A
+      /// transition from "Auto" to "Server" will also occur if
+      /// Start(remoteParameters) is called with remoteParameters.RTCDtlsRole
+      /// having a value of "Client".
+      /// </summary>
+      server,
+    };
+
+    /// <summary>
+    /// RTCStatsType object is initialized to the name of the dictionary that
+    /// the RTCStats represents.
+    /// </summary>
+    enum RTCStatsType
+    {
+      /// <summary>
+      /// Statistics for the inbound RTP stream that is currently received
+      /// with this RTCRtpReceiver object. It is accessed by the
+      /// RTCInboundRtpStreamStats.
+      /// </summary>
+      inboundRtp,
+      /// <summary>
+      /// Statistics for the outbound RTP stream that is currently sent with
+      /// this RTCRtpSender object. It is accessed by the
+      /// RTCOutboundRtpStreamStats.
+      /// </summary>
+      outboundRtp,
+      /// <summary>
+      /// Codec information for the RTCRtpReceiver or RTCRtpSender objects. It
+      /// is accessed by the RTCCodec.
+      /// </summary>
+      codec,
+      /// <summary>
+      /// Statistics for the RTCSctpTransport object. It is accessed by the
+      /// RTCSctpTransportStats.
+      /// </summary>
+      sctpTransport,
+      /// <summary>
+      /// Statistics for the RTCDataChannel object. It is accessed by the
+      /// RTCDataChannelStats.
+      /// </summary>
+      dataChannel,
+      /// <summary>
+      /// Statistics for the RTCMediaStream object. It is accessed by the
+      /// RTCMediaStreamStats.
+      /// </summary>
+      stream,
+      /// <summary>
+      /// Statistics for the RTCMediaStreamTrack object. It is accessed by the
+      /// RTCMediaStreamTrackStats.
+      /// </summary>
+      track,
+      /// <summary>
+      /// Statistics for the RTCIceGatherer object. It is accessed by the
+      /// RTCIceGathererStats.
+      /// </summary>
+      iceGatherer,
+      /// <summary>
+      /// Statistics for the RTCIceTransport object. It is accessed by the
+      /// RTCIceTransportStats.
+      /// </summary>
+      iceTransport,
+      /// <summary>
+      /// Statistics for the RTCDtlsTransport object. It is accessed by the
+      /// RTCDtlsTransportStats.
+      /// </summary>
+      dtlsTransport,
+      /// <summary>
+      /// Statistics for the RTCSrtpTransport object. It is accessed by the
+      /// RTCSrtpTransportStats.
+      /// </summary>
+      srtpTransport,
+      /// <summary>
+      /// Statistics for the RTCCertificate object. It is accessed by the
+      /// RTCCertificateStats.
+      /// </summary>
+      certificate,
+      /// <summary>
+      /// Statistics for the RTCIceGatherer or RTCIceTransport object. It is
+      /// accessed by the RTCIceCandidateAttributes.
+      /// </summary>
+      candidate,
+      /// <summary>
+      /// Statistics for the RTCIceCandidate object from the RTCIceGatherer
+      /// object. It is accessed by the RTCIceCandidatePairStats.
+      /// </summary>
+      candidatePair,
+      /// <summary>
+      /// Statistics for the local RTCIceCandidate from the RTCIceTransport
+      /// object. It is accessed by the RTCIceCandidateAttributes.
+      /// </summary>
+      localCandidate,
+      /// <summary>
+      /// Statistics for the remote RTCIceCandidate from the RTCIceTransport
+      /// object. It is accessed by the RTCIceCandidateAttributes.
+      /// </summary>
+      remoteCandidate,
+    };
+
+    /// <summary>
+    /// Canadidate pair state is defined in Section 5.7.4 of [RFC5245].
+    /// </summary>
+    enum RTCIceCandidatePairState
+    {
+      /// <summary>
+      /// Defined in Section 5.7.4 of [RFC5245].
+      /// </summary>
+      frozen,
+      /// <summary>
+      /// Defined in Section 5.7.4 of [RFC5245].
+      /// </summary>
+      waiting,
+      /// <summary>
+      /// Defined in Section 5.7.4 of [RFC5245].
+      /// </summary>
+      inProgress,
+      /// <summary>
+      /// Defined in Section 5.7.4 of [RFC5245].
+      /// </summary>
+      failed,
+      /// <summary>
+      /// Defined in Section 5.7.4 of [RFC5245].
+      /// </summary>
+      succeeded,
+      /// <summary>
+      /// Defined in Section 5.7.4 of [RFC5245].
+      /// </summary>
+      cancelled,
+    };
+
+    /// <summary>
+    /// The kind attribute must represent either an audio or video track.
+    /// </summary>
+    enum MediaStreamTrackKind
+    {
+      /// <summary>
+      /// This object represents an audio track.
+      /// </summary>
+      audio,
+      /// <summary>
+      /// This object represents an video track.
+      /// </summary>
+      video
+    };
+
+    /// <summary>
+    /// The state attribute represents the state of the track. 
+    /// </summary>
+    enum MediaStreamTrackState
+    {
+      /// <summary>
+      /// The track is active (the track's underlying media source is making a
+      /// best-effort attempt to provide data in real time).
+      ///
+      /// The output of a track in the live state can be switched on and off
+      /// with the enabled attribute.
+      /// </summary>
+      live,
+      /// <summary>
+      /// The track has ended (the track's underlying media source is no longer
+      /// providing data, and will never provide more data for this track).
+      /// Once a track enters this state, it never exits it.
+      ///
+      /// For example, a video track ends when the user unplugs the USB web
+      /// camera that acts as the track's media source.
+      /// </summary>
+      ended,
+    };
+
+    /// <summary>
+    /// Facing mode enum (as string) to be used in facing mode of the media stream track settings.
+    /// </summary>
+    enum VideoFacingMode
+    {
+      /// <summary>
+      /// The source is facing toward the user (a self-view camera).
+      /// </summary>
+      user,
+      /// <summary>
+      /// The source is facing away from the user (viewing the environment).
+      /// </summary>
+      environment,
+      /// <summary>
+      /// The source is facing to the left of the user.
+      /// </summary>
+      left,
+      /// <summary>
+      /// The source is facing to the right of the user.
+      /// </summary>
+      right,
+    };
+
+    /// <summary>
+    /// The type of the source of the MediaStreamTrack.
+    /// </summary>
+    enum SourceType
+    {
+      /// <summary>
+      /// A valid source type only for video MediaStreamTrack s. The source is
+      /// a local video-producing camera source.
+      /// </summary>
+      Camera,
+      /// <summary>
+      /// A valid source type only for audio MediaStreamTrack s. The source is
+      /// a local audio-producing microphone source.
+      /// </summary>
+      Microphone,
+    };
+
+    /// <summary>
+    /// Describes the kind of the represented device.
+    /// </summary>
+    enum MediaDeviceKind
+    {
+      /// <summary>
+      /// Represents an audio input device; for example a microphone.
+      /// </summary>
+      audioInput,
+      /// <summary>
+      /// Represents an audio output device; for example a pair of headphones.
+      /// </summary>
+      audioOutput,
+      /// <summary>
+      /// Represents a video input device; for example a webcam.
+      /// </summary>
+      videoInput,
+    };
+
+
+    /// <summary>
+    /// RTCRtpDegradationPreference can be used to indicate the desired choice
+    /// between degrading resolution and degrading framerate when bandwidth is
+    /// constrained.
+    /// </summary>
+    enum RTCRtpDegradationPreference
+    {
+      /// <summary>
+      /// Degrade resolution in order to maintain framerate.
+      /// </summary>
+      maintainFramerate,
+      /// <summary>
+      /// Degrade framerate in order to maintain resolution.
+      /// </summary>
+      maintainResolution,
+      /// <summary>
+      /// Degrade a balance of framerate and resolution.
+      /// </summary>
+      balanced,
+    };
+
+    /// <summary>
+    /// RTCPriorityType can be used to indicate the relative priority of
+    /// various flows.
+    /// </summary>
+    enum RTCRtpPriorityType
+    {
+      /// <summary>
+      /// See [draft-ietf-rtcweb-transports], Section 4.
+      /// </summary>
+      veryLow,
+      /// <summary>
+      /// See [draft-ietf-rtcweb-transports], Section 4.
+      /// </summary>
+      low,
+      /// <summary>
+      /// See [draft-ietf-rtcweb-transports], Section 4.
+      /// </summary>
+      medium,
+      /// <summary>
+      /// See [draft-ietf-rtcweb-transports], Section 4.
+      /// </summary>
+      high,
+    };
+
+    /// <summary>
+    /// Configures the type of signal being encoded.
+    /// </summary>
+    enum RTCRtpOpusCodecCapabilityOptionsSignal
+    {
+      /// <summary>
+      /// (default)
+      /// </summary>
+      auto,
+      /// <summary>
+      /// Bias thresholds towards choosing MDCT modes.
+      /// </summary>
+      music,
+      /// <summary>
+      /// Bias thresholds towards choosing LPC or Hybrid modes.
+      /// </summary>
+      voice,
+    };
+
+
+    /// <summary>
+    /// Opus coding mode.
+    /// </summary>
+    enum RTCRtpOpusCodecCapabilityOptionsApplication
+    {
+      /// <summary>
+      /// Gives best quality at a given bitrate for voice signals.
+      /// </summary>
+      voip,
+      /// <summary>
+      /// Gives best quality at a given bitrate for most non-voice signals
+      /// like music. 
+      /// </summary>
+      audio,
+      /// <summary>
+      /// Configures low-delay mode that disables the speech-optimized mode in
+      /// exchange for slightly reduced delay. 
+      /// </summary>
+      lowDelay,
+    };
+
+    /// <summary>
+    /// The type of protection for FlexFEC. See https://tools.ietf.org/html/draft-ietf-payload-flexible-fec-scheme-03
+    /// for more details.
+    /// </summary>
+    enum RTCRtpFlexFecCodecCapabilityParametersToP
+    {
+      /// <summary>
+      /// 1-D interleaved FEC protection.
+      /// </summary>
+      n1DInterleavedFEC = 0,
+      /// <summary>
+      /// 1 for 1-D non-interleaved FEC protection.
+      /// </summary>
+      n1DNonInterleavedFEC = 1,
+      /// <summary>
+      /// 2 for 2-D parity FEC protection.
+      /// </summary>
+      n2DParityFEEC = 2,
+      /// <summary>
+      ///  The value of 3 is reserved for future use.
+      /// </summary>
+      reserved = 3,
+    };
+
+  }
+}

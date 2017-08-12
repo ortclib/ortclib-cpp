@@ -153,6 +153,7 @@ namespace ortc
 
       String statsType() const { if (mStatsType.hasValue()) return IStatsReportTypes::toString(mStatsType); return mStatsTypeOther; }
 
+      static StatsPtr create(const Stats &source);
       static StatsPtr create(ElementPtr rootEl);
 
       static StatsPtr convert(AnyPtr any);
@@ -197,6 +198,7 @@ namespace ortc
       RTPStreamStats(ElementPtr rootEl);
 
       static RTPStreamStatsPtr create(ElementPtr rootEl);
+      static RTPStreamStatsPtr create(const RTPStreamStats &op2) { return std::dynamic_pointer_cast<RTPStreamStats>(Stats::create(op2)); }
 
       static RTPStreamStatsPtr convert(AnyPtr any);
 
@@ -232,6 +234,7 @@ namespace ortc
       Codec(ElementPtr rootEl);
 
       static CodecPtr create(ElementPtr rootEl);
+      static CodecPtr create(const Codec &op2) { return std::make_shared<Codec>(op2); }
 
       static CodecPtr convert(AnyPtr any);
 
@@ -268,6 +271,7 @@ namespace ortc
       InboundRTPStreamStats(ElementPtr rootEl);
 
       static InboundRTPStreamStatsPtr create(ElementPtr rootEl);
+      static InboundRTPStreamStatsPtr create(const InboundRTPStreamStats &op2) { return std::make_shared<InboundRTPStreamStats>(op2); }
 
       static InboundRTPStreamStatsPtr convert(AnyPtr any);
 
@@ -302,6 +306,7 @@ namespace ortc
       OutboundRTPStreamStats(ElementPtr rootEl);
 
       static OutboundRTPStreamStatsPtr create(ElementPtr rootEl);
+      static OutboundRTPStreamStatsPtr create(const OutboundRTPStreamStats &op2) { return std::make_shared<OutboundRTPStreamStats>(op2); }
 
       static OutboundRTPStreamStatsPtr convert(AnyPtr any);
 
@@ -334,6 +339,7 @@ namespace ortc
       SCTPTransportStats(ElementPtr rootEl);
 
       static SCTPTransportStatsPtr create(ElementPtr rootEl);
+      static SCTPTransportStatsPtr create(const SCTPTransportStats &op2) { return std::make_shared<SCTPTransportStats>(op2); }
 
       static SCTPTransportStatsPtr convert(AnyPtr any);
 
@@ -366,6 +372,7 @@ namespace ortc
       MediaStreamStats(ElementPtr rootEl);
 
       static MediaStreamStatsPtr create(ElementPtr rootEl);
+      static MediaStreamStatsPtr create(const MediaStreamStats &op2) { return std::make_shared<MediaStreamStats>(op2); }
 
       static MediaStreamStatsPtr convert(AnyPtr any);
 
@@ -410,6 +417,7 @@ namespace ortc
       MediaStreamTrackStats(ElementPtr rootEl);
 
       static MediaStreamTrackStatsPtr create(ElementPtr rootEl);
+      static MediaStreamTrackStatsPtr create(const MediaStreamTrackStats &op2) { return std::make_shared<MediaStreamTrackStats>(op2); }
 
       static MediaStreamTrackStatsPtr convert(AnyPtr any);
 
@@ -448,6 +456,7 @@ namespace ortc
       DataChannelStats(ElementPtr rootEl);
 
       static DataChannelStatsPtr create(ElementPtr rootEl);
+      static DataChannelStatsPtr create(const DataChannelStats &op2) { return std::make_shared<DataChannelStats>(op2); }
 
       static DataChannelStatsPtr convert(AnyPtr any);
 
@@ -481,6 +490,7 @@ namespace ortc
       ICEGathererStats(ElementPtr rootEl);
 
       static ICEGathererStatsPtr create(ElementPtr rootEl);
+      static ICEGathererStatsPtr create(const ICEGathererStats &op2) { return std::make_shared<ICEGathererStats>(op2); }
 
       static ICEGathererStatsPtr convert(AnyPtr any);
 
@@ -517,6 +527,7 @@ namespace ortc
       ICETransportStats(ElementPtr rootEl);
 
       static ICETransportStatsPtr create(ElementPtr rootEl);
+      static ICETransportStatsPtr create(const ICETransportStats &op2) { return std::make_shared<ICETransportStats>(op2); }
 
       static ICETransportStatsPtr convert(AnyPtr any);
 
@@ -549,6 +560,7 @@ namespace ortc
       DTLSTransportStats(ElementPtr rootEl);
 
       static DTLSTransportStatsPtr create(ElementPtr rootEl);
+      static DTLSTransportStatsPtr create(const DTLSTransportStats &op2) { return std::make_shared<DTLSTransportStats>(op2); }
 
       static DTLSTransportStatsPtr convert(AnyPtr any);
 
@@ -578,6 +590,7 @@ namespace ortc
       SRTPTransportStats(ElementPtr rootEl);
 
       static SRTPTransportStatsPtr create(ElementPtr rootEl);
+      static SRTPTransportStatsPtr create(const SRTPTransportStats &op2) { return std::make_shared<SRTPTransportStats>(op2); }
 
       static SRTPTransportStatsPtr convert(AnyPtr any);
 
@@ -615,6 +628,7 @@ namespace ortc
       ICECandidateAttributes(ElementPtr rootEl);
 
       static ICECandidateAttributesPtr create(ElementPtr rootEl);
+      static ICECandidateAttributesPtr create(const ICECandidateAttributes &op2) { return std::make_shared<ICECandidateAttributes>(op2); }
 
       static ICECandidateAttributesPtr convert(AnyPtr any);
 
@@ -658,6 +672,7 @@ namespace ortc
       ICECandidatePairStats(ElementPtr rootEl);
 
       static ICECandidatePairStatsPtr create(ElementPtr rootEl);
+      static ICECandidatePairStatsPtr create(const ICECandidatePairStats &op2) { return std::make_shared<ICECandidatePairStats>(op2); }
 
       static ICECandidatePairStatsPtr convert(AnyPtr any);
 
@@ -692,6 +707,7 @@ namespace ortc
       CertificateStats(ElementPtr rootEl);
 
       static CertificateStatsPtr create(ElementPtr rootEl);
+      static CertificateStatsPtr create(const CertificateStats &op2) { return std::make_shared<CertificateStats>(op2); }
 
       static CertificateStatsPtr convert(AnyPtr any);
 

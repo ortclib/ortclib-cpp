@@ -48,22 +48,22 @@ namespace ortc
   
   interaction IConstraints
   {
-    ZS_DECLARE_STRUCT_PTR(ConstrainBoolean)
-    ZS_DECLARE_STRUCT_PTR(ConstrainBooleanParameters)
-    ZS_DECLARE_STRUCT_PTR(ConstrainLong)
-    ZS_DECLARE_STRUCT_PTR(ConstrainLongRange)
-    ZS_DECLARE_STRUCT_PTR(ConstrainDouble)
-    ZS_DECLARE_STRUCT_PTR(ConstrainDoubleRange)
-    ZS_DECLARE_STRUCT_PTR(ConstrainString)
-    ZS_DECLARE_STRUCT_PTR(ConstrainStringParameters)
-    ZS_DECLARE_STRUCT_PTR(StringOrStringList)
+    ZS_DECLARE_STRUCT_PTR(ConstrainBoolean);
+    ZS_DECLARE_STRUCT_PTR(ConstrainBooleanParameters);
+    ZS_DECLARE_STRUCT_PTR(ConstrainLong);
+    ZS_DECLARE_STRUCT_PTR(ConstrainLongRange);
+    ZS_DECLARE_STRUCT_PTR(ConstrainDouble);
+    ZS_DECLARE_STRUCT_PTR(ConstrainDoubleRange);
+    ZS_DECLARE_STRUCT_PTR(ConstrainString);
+    ZS_DECLARE_STRUCT_PTR(ConstrainStringParameters);
+    ZS_DECLARE_STRUCT_PTR(StringOrStringList);
 
-    ZS_DECLARE_TYPEDEF_PTR(zsLib::LONG, Long)
-    ZS_DECLARE_TYPEDEF_PTR(bool, Bool)
-    ZS_DECLARE_TYPEDEF_PTR(double, Double)
-    ZS_DECLARE_TYPEDEF_PTR(String, String)
+    ZS_DECLARE_TYPEDEF_PTR(zsLib::LONG, Long);
+    ZS_DECLARE_TYPEDEF_PTR(bool, Bool);
+    ZS_DECLARE_TYPEDEF_PTR(double, Double);
+    ZS_DECLARE_TYPEDEF_PTR(String, String);
 
-    ZS_DECLARE_TYPEDEF_PTR(std::list<String>, StringList)
+    ZS_DECLARE_TYPEDEF_PTR(std::list<String>, StringList);
 
     //-------------------------------------------------------------------------
     #pragma mark
@@ -252,6 +252,9 @@ namespace ortc
 
       ElementPtr toDebug() const;
       String hash() const;
+
+      void exact(StringList &values) const;
+      void ideal(StringList &values) const;
     };
 
   };

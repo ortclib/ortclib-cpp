@@ -1,0 +1,209 @@
+/*
+
+ Copyright (c) 2017, Optical Tone Ltd.
+ All rights reserved.
+
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+
+ 1. Redistributions of source code must retain the above copyright notice, this
+ list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright notice,
+ this list of conditions and the following disclaimer in the documentation
+ and/or other materials provided with the distribution.
+
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+ The views and conclusions contained in the software and documentation are those
+ of the authors and should not be interpreted as representing official policies,
+ either expressed or implied, of the FreeBSD Project.
+ 
+ */
+
+namespace org
+{
+  namespace ortc
+  {
+    /// <summary>
+    /// The RTCDtlsParameters object includes information relating to DTLS
+    /// configuration.
+    /// </summary>
+    [dictionary]
+    struct RTCDtlsParameters
+    {
+      typedef std::list<RTCDtlsFingerprint> FingerprintList;
+
+      /// <summary>
+      /// The DTLS role, with a default of Auto.
+      /// </summary>
+      RTCDtlsRole role = auto;
+      /// <summary>
+      /// Sequence of fingerprints, one fingerprint for each certificate.
+      /// </summary>
+      FingerprintList fingerprints;
+
+      /// <summary>
+      /// Construct a new empty RTCDtlsParameters object.
+      /// </summary>
+      [constructor, default]
+      void RTCDtlsParameters();
+      /// <summary>
+      /// Construct a new RTCDtlsParameters object by cloning the contents of an existing object.
+      /// </summary>
+      [constructor, altname(RTCDtlsParametersClone)]
+      void RTCDtlsParameters(RTCDtlsParameters source);
+      /// <summary>
+      /// Construct an RTCDtlsParameters from a JSON object.
+      /// </summary>
+      [constructor, default, altname(RTCDtlsParametersWithJson)]
+      void RTCDtlsParameters(Json json);
+
+      /// <summary>
+      /// A helper routine to convert the object's data to structured JSON object data.
+      /// </summary>
+      Json toJson();
+      /// <summary>
+      /// Return a hash of the data contained within the object.
+      /// </summary>
+      string hash();
+    };
+
+    /// <summary>
+    /// Contains a single binary array of certificate data.
+    /// </summary>
+    struct RTCDtlsCertificateBinary
+    {
+      [constructor, delete]
+      void RTCDtlsCertificateBinary();
+
+      [getter]
+      binary certificate;
+    };
+
+    /// <summary>
+    /// The OnStateChange event of the RTCDtlsTransport object uses the
+    /// RTCDtlsTransportStateChangeEvent interface.
+    /// </summary>
+    struct RTCDtlsTransportStateChangeEvent
+    {
+      [constructor, delete]
+      void RTCDtlsTransportStateChangeEvent();
+
+      /// <summary>
+      /// Gets the new RTCDtlsTransportState that caused the event.
+      /// </summary>
+      [getter]
+      RTCDtlsTransportState state;
+    };
+
+    /// <summary>
+    /// The RTCDtlsTransport object includes information relating to Datagram
+    /// Transport Layer Security (DTLS) transport.
+    /// </summary>
+    interface RTCDtlsTransport : RTCDataTransport,
+                                 RTCRtpTransport,
+                                 RTCRtcpTransport,
+                                 RTCStatsProvider
+    {
+      typedef std::list<RTCCertificate> CertificateList;
+      typedef std::list<RTCDtlsCertificateBinary> BinaryList;
+
+      /// <summary>
+      /// A RTCDtlsTransport instance is constructed using an RTCIceTransport
+      /// and a sequence of RTCCertificate objects. If certificates is
+      /// non-empty, check that the expires attribute of each RTCCertificate
+      /// object is in the future. If a certificate has expired, throw an
+      /// InvalidParameter exception; otherwise, store the certificates.
+      /// </summary>
+      [constructor]
+      void RTCDtlsTransport(
+                            RTCIceTransport iceTransport,
+                            CertificateList certificates
+                            ) throws (InvalidParameters, InvalidStateError);
+
+      /// <summary>
+      /// Gets a unique object instance identifier for this object.
+      /// </summary>
+      [getter]
+      puid objectId;
+
+      /// <summary>
+      /// Gets the certificates provided in the constructor.
+      /// </summary>
+      [getter]
+      CertificateList certificates;
+
+      /// <summary>
+      /// The associated RTCIceTransport instance.
+      /// </summary>
+      [getter]
+      RTCIceTransport transport;
+
+      /// <summary>
+      /// The current state of the DTLS transport.
+      /// </summary>
+      [getter]
+      RTCDtlsTransportState state;
+
+      /// <summary>
+      /// Gets the DTLS parameters of the local RTCDtlsTransport. If multiple
+      /// certificates were provided in the constructor, then multiple
+      /// fingerprints will be returned, one for each certificate.
+      /// </summary>
+      [getter]
+      RTCDtlsParameters localParameters;
+      /// <summary>
+      /// Gets the remote DTLS parameters passed in the Start() method.
+      /// Prior to calling start(), null is returned.
+      /// </summary>
+      [getter]
+      RTCDtlsParameters remoteParameters();
+
+      /// <summary>
+      /// Returns the certificate chain in use by the remote side, with each
+      /// certificate encoded in binary Distinguished Encoding Rules (DER)
+      /// [X690]. GetRemoteCertificates() returns an empty list prior to
+      /// selection of the remote certificate, which is completed once
+      /// RTCDtlsTransportState transitions to "Connected".
+      /// </summary>
+      BinaryList getRemoteCertificates();
+
+      /// <summary>
+      /// Start DTLS transport negotiation with the parameters of the remote
+      /// DTLS transport, including verification of the remote fingerprint,
+      /// then once the DTLS transport session is established, negotiate a
+      /// DTLS-SRTP [RFC5764] session to establish keys so as protect media
+      /// using SRTP [RFC3711]. Since symmetric RTP [RFC4961] is utilized,
+      /// the DTLS-SRTP session is bi-directional.
+      /// </summary>
+      void start(RTCDtlsParameters remoteParameters) throws (InvalidStateError, InvalidParameters);
+      /// <summary>
+      /// Stops and closes the RTCDtlsTransport object. Calling stop() when
+      /// state is "closed" has no effect.
+      /// </summary>
+      void stop();
+
+      /// <summary>
+      /// This event handler, uses the RTCDtlsTransportStateChangedEvent
+      /// interface. It is called any time the RTCDtlsTransportState changes.
+      /// </summary>
+      [event]
+      void onStateChange(RTCDtlsTransportStateChangeEvent event);
+
+      /// <summary>
+      /// This event is fired on reception of a DTLS error alert.
+      /// </summary>
+      [event]
+      void onError(ErrorEvent event);
+    };
+  }
+}

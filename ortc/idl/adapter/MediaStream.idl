@@ -1,0 +1,156 @@
+/*
+
+ Copyright (c) 2017, Optical Tone Ltd.
+ All rights reserved.
+
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+
+ 1. Redistributions of source code must retain the above copyright notice, this
+ list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright notice,
+ this list of conditions and the following disclaimer in the documentation
+ and/or other materials provided with the distribution.
+
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+ The views and conclusions contained in the software and documentation are those
+ of the authors and should not be interpreted as representing official policies,
+ either expressed or implied, of the FreeBSD Project.
+ 
+ */
+
+namespace org
+{
+  namespace ortc
+  {
+    namespace adapter
+    {  
+      /// <summary>
+      /// The two main components in the MediaStream API are the
+      /// MediaStreamTrack and MediaStream interfaces. The MediaStreamTrack
+      /// object represents media of a single type that originates from one
+      /// media source in the User Agent, e.g. video produced by a web camera.
+      /// A MediaStream is used to group several MediaStreamTrack objects into
+      /// one unit that can be recorded or rendered in a media element.
+      /// </summary>
+      interface MediaStream : RTCStatsProvider
+      {
+        typedef std::list<MediaStreamTrack> MediaStreamTrackList;
+
+        /// <summary>
+        /// Constructs an empty MediaStream object.
+        /// </summary>
+        [constructor, default]
+        void MediaStream();
+        /// <summary>
+        /// Constructs an instance of an MediaStream and clones the tracks
+        /// from the original MediaStream.
+        /// </summary>
+        [constructor, altname(MediaStreamClone)]
+        void MediaStream(MediaStream source);
+        /// <summary>
+        /// Constructs an instance of an MediaStream containing a list of
+        /// MediaStreamTracks supplied.
+        /// </summary>
+        [constructor, default, altname(MediaStreamWithTracks)]
+        void MediaStream(MediaStreamTrackList tracks);
+
+        /// <summary>
+        /// Gets a unique object instance identifier for this object.
+        /// </summary>
+        [getter]
+        puid objectId;
+
+        /// <summary>
+        /// Gets the media stream identifier. When a MediaStream object is
+        /// created, the engine must generate an identifier string, and must
+        /// initialize the object's id attribute to that string. A good
+        /// practice is to use a UUID [RFC4122], which is 36 characters long
+        /// in its canonical form. To avoid fingerprinting, implementations
+        /// should use the forms in section 4.4 or 4.5 of [RFC4122] when
+        /// generating UUIDs.
+        /// </summary>
+        [getter]
+        string id;
+
+        /// <summary>
+        /// Gets an indicator if this MediaStream is active.
+        /// </summary>
+        [getter]
+        bool active;
+
+        /// <summary>
+        /// Returns a sequence of MediaStreamTrack objects representing all
+        /// the tracks in this stream.
+        /// </summary>
+        [getter]
+        MediaStreamTrackList tracks;
+        /// <summary>
+        /// Gets a sequence of MediaStreamTrack objects representing the
+        /// audio tracks in this stream.
+        /// </summary>
+        [getter]
+        MediaStreamTrackList audioTracks;
+        [getter]
+        /// <summary>
+        /// Gets a sequence of MediaStreamTrack objects representing the
+        /// video tracks in this stream.
+        /// </summary>
+        MediaStreamTrackList videoTracks;
+        /// <summary>
+        /// The GetTrackById() method must return either a MediaStreamTrack
+        /// object from this stream's track set whose id is equal to trackId,
+        /// or null, if no such track exists.
+        /// </summary>
+        MediaStreamTrack getTrackById(string id);
+
+        /// <summary>
+        /// Gets the number of media stream tracks contained within the media
+        /// stream.
+        /// </summary>
+        [getter]
+        size_t count;
+
+        /// <summary>
+        /// Adds the given MediaStreamTrack to this MediaStream.
+        /// </summary>
+        void addTrack(MediaStreamTrack track) throws (InvalidParameters);
+        /// <summary>
+        /// Removes the given MediaStreamTrack object from this MediaStream.
+        /// </summary>
+        void removeTrack(MediaStreamTrack track);
+
+        /// <summary>
+        /// Clones the given MediaStream and all its tracks.
+        /// </summary>
+        MediaStream clone();
+
+        /// <summary>
+        /// This event fires when a new MediaStreamTrack has been added to
+        /// this stream. Note that this event is not fired when the script
+        /// directly modifies the tracks of a MediaStream.
+        /// </summary>
+        [event]
+        void onAddTrack(MediaStreamTrack track);
+        /// <summary>
+        /// This event fires when a MediaStreamTrack has been removed from
+        /// this stream. Note that this event is not fired when the script
+        /// directly modifies the tracks of a MediaStream.
+        /// </summary>
+        [event]
+        void onRemoveTrack(MediaStreamTrack track);
+      };
+
+    }
+  }
+}

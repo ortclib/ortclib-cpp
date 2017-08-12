@@ -1,0 +1,350 @@
+/*
+
+ Copyright (c) 2017, Optical Tone Ltd.
+ All rights reserved.
+
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+
+ 1. Redistributions of source code must retain the above copyright notice, this
+ list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright notice,
+ this list of conditions and the following disclaimer in the documentation
+ and/or other materials provided with the distribution.
+
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+ The views and conclusions contained in the software and documentation are those
+ of the authors and should not be interpreted as representing official policies,
+ either expressed or implied, of the FreeBSD Project.
+ 
+ */
+
+namespace org
+{
+  namespace ortc
+  {
+    using namespace zs;
+
+    namespace log
+    {
+      /// <summary>
+      /// The level represents the detail level used when logging.
+      /// </summary>
+      enum Level
+      {
+        /// <summary>
+        /// Do not log any log messages.
+        /// </summary>
+        none,
+        /// <summary>
+        /// Log only the most important logger information.
+        /// </summary>
+        basic,
+        /// <summary>
+        /// Log a few more details from the logger information.
+        /// </summary>
+        detail,
+        /// <summary>
+        /// Log a level appropriate to debug the engine.
+        /// </summary>
+        debug,
+        /// <summary>
+        /// Log a level to trace the code path within the engine.
+        /// </summary>
+        trace,
+        /// <summary>
+        /// Log every possible mundane detail possible.
+        /// </summary>
+        insane
+      };
+
+      /// <summary>
+      /// The component represents the area of code that is capable of
+      /// logging.
+      /// </summary>
+      enum Component
+      {
+        /// <summary>
+        /// The low level socket, aynchronous eventing, and OS abstraction
+        /// library.
+        /// </summary>
+        zsLib,
+        /// <summary>
+        /// The socket monitor within the low level socket abstraction
+        /// library.
+        /// </summary>
+        zsLibSocket,
+        /// <summary>
+        /// The servers support library for the ORTC library.
+        /// </summary>
+        services,
+        /// <summary>
+        /// The DNS services support library for the ORTC library.
+        /// </summary>
+        servicesDns,
+        /// <summary>
+        /// The TURN services support library for the ORTC library.
+        /// </summary>
+        servicesTurn,
+        /// <summary>
+        /// The HTTP services support library for the ORTC library.
+        /// </summary>
+        servicesHttp,
+        /// <summary>
+        /// The wire level tracing of services support for the ORTC library.
+        /// This component also includes the details of the STUN packet(s).
+        /// </summary>
+        servicesWire,
+        /// <summary>
+        /// All STUN related request processing (minus the STUN on the wire).
+        /// </summary>
+        servicesStun,
+        /// <summary>
+        /// The C++ ORTC library (for all objects who don't have their own
+        /// trace level).
+        /// </summary>
+        ortcLib,
+        /// <summary>
+        /// The C++ ORTC media area.
+        /// </summary>
+        ortcLibWebrtc,
+        /// <summary>
+        /// The C++ ORTC DTLS transport object.
+        /// </summary>
+        ortcLibDtlsTransport,
+        /// <summary>
+        /// The C++ ORTC ICE gatherer object.
+        /// </summary>
+        ortcLibIceGatherer,
+        /// <summary>
+        /// The C++ ORTC ICE gatherer router object.
+        /// </summary>
+        ortcLibIceGathererRouter,
+        /// <summary>
+        /// The C++ ORTC ICE transport object.
+        /// </summary>
+        ortcLibIceTransport,
+        /// <summary>
+        /// The C++ ORTC ICE transport controller object.
+        /// </summary>
+        ortcLibIceTransportController,
+        /// <summary>
+        /// The C++ ORTC media devices object.
+        /// </summary>
+        ortcLibMediaDevices,
+        /// <summary>
+        /// The C++ ORTC media stream track object.
+        /// </summary>
+        ortcLibMediaStreamTrack,
+        /// <summary>
+        /// The C++ ORTC rtp / rtcp packet related traces.
+        /// </summary>
+        ortcLibRtpRtcpPacket,
+        /// <summary>
+        /// The C++ ORTC rtp listener object.
+        /// </summary>
+        ortcLibRtpListener,
+        /// <summary>
+        /// The C++ ORTC rtp listener object.
+        /// </summary>
+        ortcLibRtpMediaEngine,
+        /// <summary>
+        /// The C++ ORTC rtp receiver object.
+        /// </summary>
+        ortcLibRtpReceiver,
+        /// <summary>
+        /// The C++ ORTC rtp sender object.
+        /// </summary>
+        ortcLibRtpSender,
+        /// <summary>
+        /// The C++ ORTC rtp type structure tracing (parsers, helpers and
+        /// other).
+        /// </summary>
+        ortcLibRtpTypes,
+        /// <summary>
+        /// The C++ SCTP and data channel related objects.
+        /// </summary>
+        ortcLibSctpDataChannel,
+        /// <summary>
+        /// The C++ SRTP related objects.
+        /// </summary>
+        ortcLibSrtp,
+        /// <summary>
+        /// The C++ SRTP related objects.
+        /// </summary>
+        ortcLibStats,
+        /// <summary>
+        /// The C++ ORTC Adapter library.
+        /// </summary>
+        ortcLibAdapter,
+      };
+    }
+
+    /// <summary>
+    /// An API used to control the logging engine within the ORTC library.
+    /// </summary>
+    [static]
+    interface Logger
+    {
+      /// <summary>
+      /// Set the default log level for all componenets.
+      /// </summary>
+      [static]
+      void setDefaultLogLevel(log::Level level);
+      /// <summary>
+      /// Set the log level for a specific component.
+      /// </summary>
+      [static, default]
+      void setLogLevel(log::Component component, log::Level level);
+      /// <summary>
+      /// Sets the log level for a component by its component string name.
+      /// </summary>
+      [static, altname(setLogLevelByName)]
+      void setLogLevel(string component, log::Level level);
+
+      /// <summary>
+      /// Output log information to the standard out and optionally colorize
+      /// the output using ANSI color codes.
+      /// </summary>
+      [static]
+      void installStdOutLogger(bool colorizeOutput);
+      /// <summary>
+      /// Output the log information to a file and optional colorize the
+      /// file output using ANSI color codes.
+      /// </summary>
+      [static]
+      void installFileLogger(string fileName, bool colorizeOutput);
+      /// <summary>
+      /// Listen for an incoming telnet connections and output the logging
+      /// information to the incoming telnet connection.
+      /// </summary>
+      [static]
+      void installTelnetLogger(
+        uint16 listenPort,
+        Seconds maxWaitForSocketToBeAvailable,
+        bool colorizeOutput
+        );
+
+      /// <summary>
+      /// Create an outgoing telnet connection to connect to a telnet server
+      /// and output the logging information to the telnet server.
+      /// </summary>
+      [static]
+      void installOutgoingTelnetLogger(
+        string serverHostWithPort,
+        bool colorizeOutput,
+        string sendStringUponConnection
+        );
+      /// <summary>
+      /// Log to the connected debugger logger instance.
+      /// </summary>
+      [static]
+      void installDebuggerLogger();
+
+      /// <summary>
+      /// Returns true if the telnet logger is listening.
+      /// </summary>
+      [static]
+      bool isTelnetLoggerListening();
+      /// <summary>
+      /// Returns true if a telnet logger client is connected.
+      /// </summary>
+      [static]
+      bool isTelnetLoggerConnected();
+      /// <summary>
+      /// Returns true if the telnet logger has an outgoing client connected
+      /// telnet logger session.
+      /// </summary>
+      [static]
+      bool isOutgoingTelnetLoggerConnected();
+
+      /// <summary>
+      /// Uninstall the logger outputing to standard out.
+      /// </summary>
+      [static]
+      void uninstallStdOutLogger();
+      /// <summary>
+      /// Uninstall the logger outputing to a file.
+      /// </summary>
+      [static]
+      void uninstallFileLogger();
+      /// <summary>
+      /// Uninstall the telnet listening logger.
+      /// </summary>
+      [static]
+      void uninstallTelnetLogger();
+      /// <summary>
+      /// Uninstall the outgoing client telnet logger.
+      /// </summary>
+      [static]
+      void uninstallOutgoingTelnetLogger();
+      /// <summary>
+      /// Uninstall the logger outputting to a connected debugger.
+      /// </summary>
+      [static]
+      void uninstallDebuggerLogger();
+
+      /// <summary>
+      /// Set the default eventing level for all componenets.
+      /// </summary>
+      [static]
+      void setDefaultEventingLevel(log::Level level);
+      /// <summary>
+      /// Set the eventing level for a specific component.
+      /// </summary>
+      [static, default]
+      void setEventingLevel(log::Component component, log::Level level);
+      /// <summary>
+      /// Sets the log eventing for a component by its component string name.
+      /// </summary>
+      [static, altname(setEventingLevelByName)]
+      void setEventingLevel(string component, log::Level level);
+
+      /// <summary>
+      /// Listen for an incoming eventing connection and output the eventing
+      /// information to the incoming eventing connection. Both the eventing
+      /// listener and connecting to an eventing server cannot be enabled
+      /// at the same time.
+      /// </summary>
+      [static]
+      void installEventingListener(
+        string sharedSecret,
+        uint16 listenPort,
+        Seconds maxWaitForSocketToBeAvailable
+      );
+
+      /// <summary>
+      /// Create an outgoing eventing connection to an eventing server and
+      /// output the eventing information to the server. Both the eventing
+      /// listener and connecting to an eventing server cannot be enabled
+      /// at the same time.
+      /// </summary>
+      [static]
+      void connectToEventingServer(
+        string sharedSecret,
+        string serverHostWithPort
+      );
+
+      /// <summary>
+      /// Uninstall the eventing listener.
+      /// </summary>
+      [static]
+      void uninstallEventingListener();
+      /// <summary>
+      /// Uninstall the outgoing client telnet logger.
+      /// </summary>
+      [static]
+      void disconnectEventingServer();
+    };
+  }
+}

@@ -30,21 +30,19 @@
  */
 
 #include <ortc/internal/ortc_RTPReceiverChannel.h>
-#include <ortc/internal/ortc_RTPReceiverChannelMediaBase.h>
-#include <ortc/internal/ortc_RTPReceiverChannelAudio.h>
-#include <ortc/internal/ortc_RTPReceiverChannelVideo.h>
 #include <ortc/internal/ortc_RTPReceiver.h>
 #include <ortc/internal/ortc_DTLSTransport.h>
 #include <ortc/internal/ortc_RTPListener.h>
 #include <ortc/internal/ortc_MediaStreamTrack.h>
-#include <ortc/internal/ortc_RTPPacket.h>
-#include <ortc/internal/ortc_RTCPPacket.h>
 #include <ortc/internal/ortc_RTPTypes.h>
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/ortc.events.h>
 #include <ortc/internal/platform.h>
 
 #include <ortc/IHelper.h>
+#include <ortc/RTPPacket.h>
+#include <ortc/RTCPPacket.h>
+
 #include <ortc/services/IHTTP.h>
 
 #include <zsLib/ISettings.h>
@@ -63,6 +61,7 @@
 #define ASSERT(x)
 #endif //_DEBUG
 
+#if 0
 
 namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_rtpreceiver) }
 
@@ -767,3 +766,5 @@ namespace ortc
 
   } // internal namespace
 }
+
+#endif //0

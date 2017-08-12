@@ -1,0 +1,1424 @@
+/*
+
+ Copyright (c) 2017, Optical Tone Ltd.
+ All rights reserved.
+
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+
+ 1. Redistributions of source code must retain the above copyright notice, this
+ list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright notice,
+ this list of conditions and the following disclaimer in the documentation
+ and/or other materials provided with the distribution.
+
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+ The views and conclusions contained in the software and documentation are those
+ of the authors and should not be interpreted as representing official policies,
+ either expressed or implied, of the FreeBSD Project.
+ 
+ */
+
+namespace org
+{
+  namespace ortc
+  {
+    /// <summary>
+    /// A base object type representing codec capability objects available for a given codec.
+    /// </summary>
+    [dictionary]
+    struct RTCRtpCodecCapabilityOptions
+    {
+      [constructor, delete]
+      void RTCRtpCodecCapabilityOptions();
+    };
+
+    /// <summary>
+    /// A base object type representing codec capability parameters for a given object.
+    /// </summary>
+    [dictionary]
+    struct RTCRtpCodecCapabilityParameters
+    {
+      [constructor, delete]
+      void RTCRtpCodecCapabilityParameters();
+    };
+
+    [dictionary]
+    struct RTCRtpCodecParameterSettings
+    {
+      [constructor, delete]
+      void RTCRtpCodecParameterSettings();
+    };
+
+    /// <summary>
+    /// RTCRtcpFeedback provides information on RTCP feedback messages.
+    /// </summary>
+    [dictionary]
+    struct RTCRtcpFeedback
+    {
+      /// <summary>
+      /// Gets or sets valid values for type are the "RTCP Feedback" Attribute
+      /// Values enumerated in [iana.org/assignments/sdp-parameters/sdp-parameters.xhtml#sdp-parameters-14]
+      /// ("ack", "ccm", "nack", etc.), as well as "goog-remb"
+      /// [draft-alvestrand-rmcat-remb] and "transport-cc"
+      /// [draft-holmer-rmcat-transport-wide-cc-extensions].
+      /// </summary>
+      string type;
+      /// <summary>
+      /// Gets or sets the parameters associated with the Type. For a type of
+      /// "ack" or "nack", valid values for parameter are the "ack" and "nack"
+      /// Attribute Values enumerated in
+      /// [iana.org/assignments/sdp-parameters/sdp-parameters.xhtml#sdp-parameters-15]
+      /// ("sli", "rpsi", etc.). For the Generic NACK feedback message defined
+      /// in [RFC4585] Section 6.2.1, the type attribute is set to "nack" and
+      /// the parameter attribute is unset. For a type of "ccm", valid values
+      /// for parameter are the "Codec Control Messages" enumerated in
+      /// [iana.org/assignments/sdp-parameters/sdp-parameters.xhtml#sdp-parameters-19]
+      /// ("fir", "tmmbr" (includes "tmmbn"), etc.).
+      /// </summary>
+      string parameter;
+
+      /// <summary>
+      /// Constructs an empty instance of a RTCRtcpFeedback object.
+      /// </summary>
+      [constructor, default]
+      void RTCRtcpFeedback();
+      /// <summary>
+      /// Constructs an instance of a RTCRtcpFeedback object by cloning object data from an existing object.
+      /// </summary>
+      [constructor, altname(RTCRtcpFeedbackClone)]
+      void RTCRtcpFeedback(RTCRtcpFeedback source);
+      /// <summary>
+      /// Constructs an instance of a RTCRtcpFeedback object by extracting object data from a JSON object.
+      /// </summary>
+      [constructor, default, altname(RTCRtcpFeedbackWithJson)]
+      void RTCRtcpFeedback(Json json);
+
+      /// <summary>
+      /// A helper routine to convert the object's data to structured JSON object data.
+      /// </summary>
+      Json toJson();
+      /// <summary>
+      /// Return a hash of the data contained within the object.
+      /// </summary>
+      string hash();
+    };
+
+    /// <summary>
+    /// RTCRtpCodecCapability provides information on the capabilities of a
+    /// codec.
+    /// </summary>
+    [dictionary]
+    struct RTCRtpCodecCapability
+    {
+      typedef std::list<RTCRtcpFeedback> RtcpFeedbackList;
+
+      /// <summary>
+      /// Gets or sets the MIME media type. Valid types are listed in
+      /// [iana.org/assignments/rtp-parameters/rtp-parameters.xhtml#rtp-parameters-2].
+      /// </summary>
+      string                          name;
+      /// <summary>
+      /// Gets or sets the media supported by the codec: "audio", "video" or
+      /// "" for both.
+      /// </summary>
+      string                          kind;
+      /// <summary>
+      /// Gets or sets the codec clock rate expressed in Hertz. If unset, the
+      /// codec is applicable to any clock rate.
+      /// </summary>
+      [optional]
+      unsigned long                   clockRate;
+      /// <summary>
+      /// Gets or sets the preferred RTP payload type for the codec denoted by
+      /// RTCRtpCodecCapability.name. This attribute was added to make it
+      /// possible for the sender and receiver to pick a matching payload type
+      /// when creating sender and receiver parameters. When returned by
+      /// RTCRtpSender.GetCapabilities(),
+      /// RTCRtpCapabilities.Codecs.PreferredPayloadtype represents the
+      /// preferred RTP payload type for sending. When returned by
+      /// RTCRtpReceiver.GetCapabilities(),
+      /// RTCRtpCapabilities.Codecs.PreferredPayloadtype represents the
+      /// preferred RTP payload type for receiving. To avoid payload type
+      /// conflicts, each value of preferredPayloadType must be unique.
+      /// </summary>
+      PayloadType                     preferredPayloadType;
+      /// <summary>
+      /// Gets or sets the preferred duration of media represented by a packet
+      /// in milliseconds for the RTCRtpSender or RTCRtpReceiver.
+      /// </summary>
+      Milliseconds                    pTime;
+      /// <summary>
+      /// Gets or sets the maximum packetization time supported by the
+      /// RTCRtpReceiver.
+      /// </summary>
+      Milliseconds                    maxPTime;
+      /// <summary>
+      /// Gets or sets the number of channels supported (e.g. two for stereo).
+      /// For video, this attribute is unset.
+      /// </summary>
+      [optional]
+      unsigned long                   numChannels;
+      /// <summary>
+      /// Gets or sets the transport layer and codec-specific feedback
+      /// messages for this codec.
+      /// </summary>
+      RtcpFeedbackList                rtcpFeedback;
+      /// <summary>
+      /// Gets or sets the codec-specific parameters that must be signaled to
+      /// the remote party.
+      /// </summary>
+      [dynamic]
+      RTCRtpCodecCapabilityParameters parameters;        // OpusCodecCapabilityParameters, VP8CodecCapabilityParameters, H264CodecCapabilityParameters, RTXCodecCapabilityParameters, FlexFECCodecCapabilityParameters
+      /// <summary>
+      /// Gets or sets the codec-specific parameters available for signaling.
+      /// </summary>
+      [dynamic]
+      RTCRtpCodecCapabilityOptions    options;                 // OpusCodecCapabilityOptions
+      /// <summary>
+      /// Gets or sets the maximum number of temporal layer extensions
+      /// supported by this codec (e.g. a value of 1 indicates support for up
+      /// to 2 temporal layers). A value of 0 indicates no support for
+      /// temporal scalability.
+      /// </summary>
+      unsigned short                  maxTemporalLayers;
+      /// <summary>
+      /// Gets or sets the maximum number of spatial layer extensions
+      /// supported by this codec (e.g. a value of 1 indicates support for up
+      /// to 2 spatial layers). A value of 0 indicates no support for spatial
+      /// scalability.
+      /// </summary>
+      unsigned short                  maxSpatialLayers;
+      /// <summary>
+      /// Gets or sets whether the implementation can send SVC layers
+      /// utilizing distinct SSRCs. Unset for audio codecs. For video codecs,
+      /// only set if the codec supports scalable video coding with multiple
+      /// streams.
+      /// </summary>
+      bool                            svcMultiStreamSupport;
+
+      /// <summary>
+      /// Constructs an empty instance of an RTCRtpCodecCapability object.
+      /// </summary>
+      [constructor, default]
+      void RTCRtpCodecCapability();
+      /// <summary>
+      /// Constructs an instance of an RTCRtpCodecCapability object by cloning object data from an existing object.
+      /// </summary>
+      [constructor, altname(RTCRtpCodecCapabilityClone)]
+      void RTCRtpCodecCapability(RTCRtpCodecCapability source);
+      /// <summary>
+      /// Constructs an instance of an RTCRtpCodecCapability object by extracting object data from a JSON object.
+      /// </summary>
+      [constructor, default, altname(RTCRtpCodecCapabilityWithJson)]
+      void RTCRtpCodecCapability(Json json);
+
+      /// <summary>
+      /// A helper routine to convert the object's data to structured JSON object data.
+      /// </summary>
+      Json toJson();
+      /// <summary>
+      /// Return a hash of the data contained within the object.
+      /// </summary>
+      string hash();
+    };
+
+    /// <summary>
+    /// The RTCRtpHeaderExtension dictionary enables a header extension to be
+    /// configured for use within an RTCRtpSender or RTCRtpReceiver.
+    /// </summary>
+    [dictionary]
+    struct RTCRtpHeaderExtension
+    {
+      /// <summary>
+      /// Gets or sets the media supported by the header extension: "audio"
+      /// for an audio codec, "video" for a video codec, and "" for both.
+      /// </summary>
+      string kind;
+      /// <summary>
+      /// Gets or sets the URI of the RTP header extension, as defined in
+      /// [RFC5285].
+      /// </summary>
+      string uri;
+      /// <summary>
+      /// Gets or sets the preferred ID value that goes in the packet.
+      /// </summary>
+      uint16 preferredId;
+      /// <summary>
+      /// Gets or sets if it is preferred that the value in the header be
+      /// encrypted as per [RFC6904] if true. Default is to prefer
+      /// unencrypted.
+      /// </summary>
+      bool   preferredEncrypt;
+
+      /// <summary>
+      /// Constructs an empty instance of an RTCRtpHeaderExtension object.
+      /// </summary>
+      [constructor, default]
+      void RTCRtpHeaderExtension();
+      /// <summary>
+      /// Constructs an instance of an RTCRtpHeaderExtension object by cloning object data from an existing object.
+      /// </summary>
+      [constructor, altname(RTCRtpHeaderExtensionClone)]
+      void RTCRtpHeaderExtension(RTCRtpHeaderExtension source);
+      /// <summary>
+      /// Constructs an instance of an RTCRtpHeaderExtension object by extracting object data from a JSON object.
+      /// </summary>
+      [constructor, default, altname(RTCRtpHeaderExtensionWithJson)]
+      void RTCRtpHeaderExtension(Json json);
+
+      /// <summary>
+      /// A helper routine to convert the object's data to structured JSON object data.
+      /// </summary>
+      Json toJson();
+      /// <summary>
+      /// Return a hash of the data contained within the object.
+      /// </summary>
+      string hash();
+    };
+
+
+    /// <summary>
+    /// The RTCRtpCapabilities object expresses the capabilities of
+    /// RTCRtpSender and RTCRtpReceiver objects. 
+    /// </summary>
+    [dictionary]
+    struct RTCRtpCapabilities
+    {
+      typedef string FecMechanism;
+      typedef std::list<RTCRtpCodecCapability> CodecCapabilityList;
+      typedef std::list<RTCRtpHeaderExtension> HeaderExtensionsList;
+      typedef std::list<FecMechanism> FecMechanismList;
+
+      /// <summary>
+      /// Gets or sets the supported codecs.
+      /// </summary>
+      CodecCapabilityList   codecs;
+      /// <summary>
+      /// </summary>
+      HeaderExtensionsList  headerExtensions;
+      /// <summary>
+      /// Gets or sets the supported Forward Error Correction (FEC)
+      /// mechanisms. Values include "red", "red+ulpfec" and "flexfec".
+      /// [draft-ietf-rtcweb-fec] summarizes requirements relating to FEC
+      /// mechanisms.
+      /// </summary>
+      FecMechanismList      fecMechanisms;
+
+      /// <summary>
+      /// Constructs an empty instance of an RTCRtpCapabilities object.
+      /// </summary>
+      [constructor, default]
+      void RTCRtpCapabilities();
+      /// <summary>
+      /// Constructs an instance of an RTCRtpCapabilities object by cloning object data from an existing object.
+      /// </summary>
+      [constructor, altname(RTCRtpCapabilitiesClone)]
+      void RTCRtpCapabilities(RTCRtpCapabilities source);
+      /// <summary>
+      /// Constructs an instance of an RTCRtpCapabilities object by extracting object data from a JSON object.
+      /// </summary>
+      [constructor, default, altname(RTCRtpCapabilitiesWithJson)]
+      void RTCRtpCapabilities(Json json);
+
+      /// <summary>
+      /// A helper routine to convert the object's data to structured JSON object data.
+      /// </summary>
+      Json toJson();
+      /// <summary>
+      /// Return a hash of the data contained within the object.
+      /// </summary>
+      string hash();
+    };
+
+    /// <summary>
+    /// The following capability options are defined for Opus:
+    /// </summary>
+    [dictionary]
+    struct RTCRtpOpusCodecCapabilityOptions : RTCRtpCodecCapabilityOptions
+    {
+      // sender capabilities
+      /// <summary>
+      /// Gets or sets the default value for the encoder's computational
+      /// complexity. The supported range is 0-10 with 10 representing the
+      /// highest complexity.
+      /// </summary>
+      [optional]
+      unsigned long complexity;
+      /// <summary>
+      /// Gets or sets the default value for the type of signal being encoded.
+      /// Possible values are string version of enum OpusCodecSignal.
+      /// </summary>
+      [optional]
+      RTCRtpOpusCodecCapabilityOptionsSignal signal;
+      /// <summary>
+      /// Gets or sets the default value for the encoder's intended
+      /// application. Possible values are string version of enum
+      /// OpusCodecApplication.
+      /// </summary>
+      [optional]
+      RTCRtpOpusCodecCapabilityOptionsApplication application;
+      /// <summary>
+      /// Gets or sets the default value for the encoder's expected packet
+      /// loss percentage. Possible values are 0-100.
+      /// </summary>
+      [optional]
+      unsigned long packetLossPerc;
+      /// <summary>
+      /// Gets or sets the default value for whether prediction is disabled,
+      /// making frames almost complete independent (if true) or not (if false).
+      /// </summary>
+      [optional]
+      bool predictionDisabled;
+
+      /// <summary>
+      /// Constructs an empty instance of an RTCRtpOpusCodecCapabilityOptions object.
+      /// </summary>
+      [constructor, default]
+      void RTCRtpOpusCodecCapabilityOptions();
+      /// <summary>
+      /// Constructs an instance of an RTCRtpOpusCodecCapabilityOptions object by cloning object data from an existing object.
+      /// </summary>
+      [constructor, altname(RTCRtpOpusCodecCapabilityOptionsClone)]
+      void RTCRtpOpusCodecCapabilityOptions(RTCRtpOpusCodecCapabilityOptions source);
+      /// <summary>
+      /// Constructs an instance of an RTCRtpOpusCodecCapabilityOptions object by extracting object data from a JSON object.
+      /// </summary>
+      [constructor, default, altname(RTCRtpOpusCodecCapabilityOptionsWithJson)]
+      void RTCRtpOpusCodecCapabilityOptions(Json json);
+
+      /// <summary>
+      /// A helper routine to convert the object's data to structured JSON object data.
+      /// </summary>
+      Json toJson();
+      /// <summary>
+      /// Return a hash of the data contained within the object.
+      /// </summary>
+      string hash();
+    };
+
+    // https://tools.ietf.org/html/rfc7587#section-6.1
+    /// <summary>
+    /// The following optional capability parameters are defined for "opus",
+    /// as noted in [RFC7587] Section 6.1:
+    /// </summary>
+    [dictionary]
+    struct RTCRtpOpusCodecCapabilityParameters : RTCRtpCodecCapabilityParameters
+    {
+      /// <summary>
+      /// Gets or sets a hint about the maximum output sampling rate that the
+      /// receiver is capable of rendering in Hz.
+      /// </summary>
+      [optional]
+      unsigned long maxPlaybackRate;
+      /// <summary>
+      /// Gets or sets the maximum average receive bitrate of a session in
+      /// bits per second (bits/s).
+      /// </summary>
+      [optional]
+      unsigned long maxAverageBitrate;
+      /// <summary>
+      /// Gets or sets of whether the decoder prefers receiving stereo or
+      /// mono signals.
+      /// </summary>
+      [optional]
+      bool stereo;
+      /// <summary>
+      /// Gets or sets if the decoder prefers the use of constant bitrate (if
+      /// true) or variable bitrate (if false).
+      /// </summary>
+      [optional]
+      bool cbr;
+      /// <summary>
+      /// Gets or sets if the decoder has the capability to take advantage of
+      /// Opus in-band fec (if true) or not (if false).
+      /// </summary>
+      [optional]
+      bool useInbandFec;
+      /// <summary>
+      /// Gets or sets if the decoder prefers the use of DTX (if true) or not
+      /// (if false).
+      /// </summary>
+      [optional]
+      bool useDtx;
+
+      // sender capability parameters
+
+      /// <summary>
+      /// A hint about the maximum input sampling rate that the sender is
+      /// likely to produce.
+      /// </summary>
+      [optional]
+      unsigned long sPropMaxCaptureRate;
+      /// <summary>
+      /// Gets or sets whether the sender is likely to produce stereo audio.
+      /// </summary>
+      [optional]
+      bool sPropStereo;
+
+      /// <summary>
+      /// Constructs an empty instance of an RTCRtpOpusCodecCapabilityParameters object.
+      /// </summary>
+      [constructor, default]
+      void RTCRtpOpusCodecCapabilityParameters();
+      /// <summary>
+      /// Constructs an instance of an RTCRtpOpusCodecCapabilityParameters object by cloning object data from an existing object.
+      /// </summary>
+      [constructor, altname(RTCRtpOpusCodecCapabilityParametersSource)]
+      void RTCRtpOpusCodecCapabilityParameters(RTCRtpOpusCodecCapabilityParameters source);
+      /// <summary>
+      /// Constructs an instance of an RTCRtpOpusCodecCapabilityParameters object by extracting object data from a JSON object.
+      /// </summary>
+      [constructor, default, altname(RTCRtpOpusCodecCapabilityParametersWithJson)]
+      void RTCRtpOpusCodecCapabilityParameters(Json json);
+
+      /// <summary>
+      /// A helper routine to convert the object's data to structured JSON object data.
+      /// </summary>
+      Json toJson();
+      /// <summary>
+      /// Return a hash of the data contained within the object.
+      /// </summary>
+      string hash();
+    };
+
+    // https://tools.ietf.org/html/rfc7741#section-6.1
+    /// <summary>
+    /// The following receiver capability parameters are defined for "vp8", as
+    /// noted in [RFC7741] Section 6.1:
+    /// </summary>
+    [dictionary]
+    struct RTCRtpVp8CodecCapabilityParameters : RTCRtpCodecCapabilityParameters,
+                                                RTCRtpCodecParameterSettings
+    {
+      /// <summary>
+      /// Gets or sets the maximum frame rate in frames per second that the
+      /// decoder is capable of decoding.
+      /// </summary>
+      [optional]
+      unsigned long maxFr;
+      /// <summary>
+      /// Gets or sets the maximum frame size in macroblocks that the decoder
+      /// is capable of decoding.
+      /// </summary>
+      [optional]
+      unsigned long long maxFs;
+
+      /// <summary>
+      /// Constructs an empty instance of an RTCRtpVp8CodecCapabilityParameters object.
+      /// </summary>
+      [constructor, default]
+      void RTCRtpVp8CodecCapabilityParameters();
+      /// <summary>
+      /// Constructs an instance of an RTCRtpVp8CodecCapabilityParameters object by cloning object data from an existing object.
+      /// </summary>
+      [constructor, altname(RTCRtpVp8CodecCapabilityParametersClone)]
+      void RTCRtpVp8CodecCapabilityParameters(RTCRtpVp8CodecCapabilityParameters source);
+      /// <summary>
+      /// Constructs an instance of an RTCRtpVp8CodecCapabilityParameters object by extrating object data from a JSON object.
+      /// </summary>
+      [constructor, default, altname(RTCRtpVp8CodecCapabilityParametersWithJson)]
+      void RTCRtpVp8CodecCapabilityParameters(Json json);
+
+      /// <summary>
+      /// A helper routine to convert the object's data to structured JSON object data.
+      /// </summary>
+      Json toJson();
+      /// <summary>
+      /// Return a hash of the data contained within the object.
+      /// </summary>
+      string hash();
+    };
+
+    // https://tools.ietf.org/html/rfc7742#section-6.2
+    /// <summary>
+    /// The following capability parameters are defined for "h264", as noted
+    /// in [RFC6184] Section 8.1, and [draft-ietf-rtcweb-video] Section 6.2.
+    /// </summary>
+    [dictionary]
+    struct RTCRtpH264CodecCapabilityParameters : RTCRtpCodecCapabilityParameters,
+                                                 RTCRtpCodecParameterSettings
+    {
+      typedef std::list<unsigned short>  PacketizationModeList;
+
+      /// <summary>
+      /// Gets or sets the maximum capability of the decoder (for an
+      /// RTCRtpReceiver) or the encoder (for an RTCRtpSender). It must be
+      /// supported, as noted in [draft-ietf-rtcweb-video] Section 6.2.
+      /// </summary>
+      [optional]
+      unsigned long profileLevelId;
+      /// <summary>
+      /// A sequence of unsigned shorts, each ranging from 0 to 2, indicating
+      /// supported packetizationMode values. As noted in
+      /// [draft-ietf-rtcweb-video] Section 6.2, support for packetization
+      /// mode 1 is mandatory.
+      /// </summary>
+      PacketizationModeList packetizationModes;
+
+      /// <summary>
+      /// Gets or sets an integer indicating the maximum macroblock processing
+      /// rate in units of macroblocks per second.
+      /// </summary>
+      [optional]
+      unsigned long long maxMbps;
+      /// <summary>
+      /// Gets or sets an integer indicating the maximum static macroblock
+      /// processing rate in units of static macroblocks per second, under the
+      /// hypothetical assumption that all macroblocks are static macroblocks.
+      /// </summary>
+      [optional]
+      unsigned long long maxSMbps;
+      /// <summary>
+      /// Gets or sets an integer indicating the maximum frame size in units
+      /// of macroblocks.
+      /// </summary>
+      [optional]
+      unsigned long long maxFs;
+      /// <summary>
+      /// Gets or sets an integer indicating the maximum coded picture buffer
+      /// size in units of 1000 bits for the VCL HRD parameters and in units
+      /// of 1200 bits for the NAL HRD parameters.
+      /// </summary>
+      [optional]
+      unsigned long long maxCpb;
+      /// <summary>
+      /// Gets or sets an integer indicating the maximum decoded picture
+      /// buffer size in units of 8 / 3 macroblocks.
+      /// </summary>
+      [optional]
+      unsigned long long maxDpb;
+      /// <summary>
+      /// Gets or sets an integer indicating the maximum video bitrate in
+      /// units of 1000 bits per second for the VCL HRD parameters and in
+      /// units of 1200 bits per second for the NAL HRD parameters.
+      /// </summary>
+      [optional]
+      unsigned long long maxBr;
+
+      /// <summary>
+      /// Constructs an empty instance of an RTCRtpH264CodecCapabilityParameters object.
+      /// </summary>
+      [constructor, default]
+      void RTCRtpH264CodecCapabilityParameters();
+      /// <summary>
+      /// Constructs an instance of an RTCRtpH264CodecCapabilityParameters object by cloning object data from an existing object.
+      /// </summary>
+      [constructor, altname(RTCRtpH264CodecCapabilityParametersClone)]
+      void RTCRtpH264CodecCapabilityParameters(RTCRtpH264CodecCapabilityParameters source);
+      /// <summary>
+      /// Constructs an instance of an RTCRtpH264CodecCapabilityParameters object by extrating object data from a JSON object.
+      /// </summary>
+      [constructor, default, altname(RTCRtpH264CodecCapabilityParametersWithJson)]
+      void RTCRtpH264CodecCapabilityParameters(Json json);
+
+      /// <summary>
+      /// A helper routine to convert the object's data to structured JSON object data.
+      /// </summary>
+      Json toJson();
+      /// <summary>
+      /// Return a hash of the data contained within the object.
+      /// </summary>
+      string hash();
+    };
+    
+    // https://tools.ietf.org/html/rfc4588#section-8.1
+    /// <summary>
+    /// The following capability is defined for "rtx", as noted in [RFC4588]
+    /// Section 8.6:
+    /// </summary>
+    [dictionary]
+    struct RTCRtpRtxCodecCapabilityParameters : RTCRtpCodecCapabilityParameters,
+                                                RTCRtpCodecParameterSettings
+    {
+      /// <summary>
+      /// Gets or sets the associated payload type of the original stream
+      /// being retransmitted, as defined in [RFC4588].
+      /// </summary>
+      PayloadType apt;
+      /// <summary>
+      /// Gets or sets the default time in milliseconds (measured from the
+      /// time a packet was first sent) that the sender keeps an RTP packet
+      /// in its buffers available for retransmission, as defined in
+      /// [RFC4588].
+      /// </summary>
+      Milliseconds rtxTime;
+
+      /// <summary>
+      /// Constructs an empty instance of an RTCRtpRtxCodecCapabilityParameters object.
+      /// </summary>
+      [constructor, default]
+      void RTCRtpRtxCodecCapabilityParameters();
+      /// <summary>
+      /// Constructs an instance of an RTCRtpRtxCodecCapabilityParameters object by cloning object data from an existing object.
+      /// </summary>
+      [constructor, altname(RTCRtpRtxCodecCapabilityParametersClone)]
+      void RTCRtpRtxCodecCapabilityParameters(RTCRtpRtxCodecCapabilityParameters source);
+      /// <summary>
+      /// Constructs an instance of an RTCRtpRtxCodecCapabilityParameters object by extracting object data from a JSON object.
+      /// </summary>
+      [constructor, default, altname(RTCRtpRtxCodecCapabilityParametersWithJson)]
+      void RTCRtpRtxCodecCapabilityParameters(Json json);
+
+      /// <summary>
+      /// A helper routine to convert the object's data to structured JSON object data.
+      /// </summary>
+      Json toJson();
+      /// <summary>
+      /// Return a hash of the data contained within the object.
+      /// </summary>
+      string hash();
+    };
+
+    /// <summary>
+    /// The following capabilities are defined for "flexfec", as noted in
+    /// [draft-ietf-rtcweb-fec] Section 5.1.1:
+    /// </summary>
+    [dictionary]
+    struct RTCRtpFlexFecCodecCapabilityParameters : RTCRtpCodecCapabilityParameters,
+                                                    RTCRtpCodecParameterSettings
+    {
+      /// <summary>
+      /// Gets or sets the default time that spans the source packets and the
+      /// corresponding repair packets, in microseconds.
+      /// </summary>
+      Microseconds repairWindow;
+
+      /// <summary>
+      /// Gets or sets the default number of columns of the source block that
+      /// are protected by this FEC block.
+      /// </summary>
+      [optional]
+      unsigned long l;
+      /// <summary>
+      /// Gets or sets the default number of rows of the source block that are
+      /// protected by this FEC block.
+      /// </summary>
+      [optional]
+      unsigned long d;
+      /// <summary>
+      /// Gets or sets the default type of protection for the sender: 0 for
+      /// 1-D interleaved FEC protection, 1 for 1-D non-interleaved FEC
+      /// protection, and 2 for 2-D parity FEC protection. The value of 3 is
+      /// reserved for future use.
+      /// </summary>
+      [optional]
+      RTCRtpFlexFecCodecCapabilityParametersToP toP;
+
+      /// <summary>
+      /// Constructs an empty instance of an RTCRtpFlexFecCodecCapabilityParameters object.
+      /// </summary>
+      [constructor, default]
+      void RTCRtpFlexFecCodecCapabilityParameters();
+      /// <summary>
+      /// Constructs an instance of an RTCRtpFlexFecCodecCapabilityParameters object by cloning object data from an existing object.
+      /// </summary>
+      [constructor, altname(RTCRtpFlexFecCodecCapabilityParametersClone)]
+      void RTCRtpFlexFecCodecCapabilityParameters(RTCRtpFlexFecCodecCapabilityParameters source);
+      /// <summary>
+      /// Constructs an instance of an RTCRtpFlexFecCodecCapabilityParameters object by extracting object data from a JSON object.
+      /// </summary>
+      [constructor, default, altname(RTCRtpFlexFecCodecCapabilityParametersWithJson)]
+      void RTCRtpFlexFecCodecCapabilityParameters(Json json);
+
+      /// <summary>
+      /// A helper routine to convert the object's data to structured JSON object data.
+      /// </summary>
+      Json toJson();
+      /// <summary>
+      /// Return a hash of the data contained within the object.
+      /// </summary>
+      string hash();
+    };
+
+    /// <summary>
+    /// RTCRtcpParameters provides information on RTCP settings.
+    /// </summary>
+    [dictionary]
+    struct RTCRtcpParameters {
+      /// <summary>
+      /// Gets or sets the SSRC to be used in the "SSRC of packet sender"
+      /// field defined in [RFC3550] Section 6.4.2 (Receiver Report) and
+      /// [RFC4585] Section 6.1 (Feedback Messages), as well as the "SSRC"
+      /// field defined in [RFC3611] Section 2 (Extended Reports). It can only
+      /// be set for an RTCRtpReceiver.
+      /// </summary>
+      SsrcType  ssrc;
+      /// <summary>
+      /// Gets or sets the Canonical Name (CNAME) used by RTCP (e.g. in SDES
+      /// messages). Guidelines for CNAME generation are provided in
+      /// [draft-ietf-rtcweb-rtp-usage] Section 4.9 and [RFC7022].
+      /// </summary>
+      string    cName;
+      /// <summary>
+      /// Gets or sets whether reduced size RTCP [RFC5506] is configured
+      /// (if true) or compound RTCP as specified in [RFC3550] (if false).
+      /// </summary>
+      bool      reducedSize;
+      /// <summary>
+      /// Gets or sets whether RTP and RTCP are multiplexed, as specified in
+      /// [RFC5761]. The default is true. If set to false, the RTCIceTransport
+      /// must have an associated RTCIceTransport object with a component of
+      /// "RTCP", in which case RTCP will be sent on the associated
+      /// RTCIceTransport.
+      /// </summary>
+      bool      mux = true;
+
+      /// <summary>
+      /// Creates an empty instance of an RTCRtcpParameters object.
+      /// </summary>
+      [constructor, default]
+      void RTCRtcpParameters();
+      /// <summary>
+      /// Constructs an instance of an RTCRtcpParameters object by cloning object data from an existing object.
+      /// </summary>
+      [constructor, altname(RTCRtcpParametersClone)]
+      void RTCRtcpParameters(RTCRtcpParameters source);
+      /// <summary>
+      /// Constructs an instance of an RTCRtcpParameters object by extracting object data from a JSON object.
+      /// </summary>
+      [constructor, default, altname(RTCRtcpParametersWithJson)]
+      void RTCRtcpParameters(Json json);
+
+      /// <summary>
+      /// A helper routine to convert the object's data to structured JSON object data.
+      /// </summary>
+      Json toJson();
+      /// <summary>
+      /// Return a hash of the data contained within the object.
+      /// </summary>
+      string hash();
+    };
+
+    /// <summary>
+    /// RTCRtpCodecParameters provides information on codec settings.
+    /// </summary>
+    [dictionary]
+    struct RTCRtpCodecParameters
+    {
+      typedef std::list<RTCRtcpFeedback> RtcpFeedbackList;
+
+      [constructor, delete]
+      void RTCRtpCodecParameters();
+
+      /// <summary>
+      /// Gets or sets the MIME media type. Valid types are listed in
+      /// [www.iana.org/assignments/rtp-parameters/rtp-parameters.xhtml#rtp-parameters-2].
+      /// The name must always be provided.
+      /// </summary>
+      string                        name;
+      /// <summary>
+      /// Gets or sets the value that goes in the RTP Payload Type Field
+      /// [RFC3550]. The payloadType must always be provided, and must be
+      /// unique.
+      /// </summary>
+      PayloadType                   payloadType;
+      /// <summary>
+      /// Gets or sets the codec clock rate expressed in Hertz, null if unset.
+      /// </summary>
+      [optional]
+      unsigned long                 clockRate;
+      /// <summary>
+      /// Gets or sets the duration of media represented by a packet in
+      /// milliseconds for the RTCRtpSender. If unset, the RTCRtpSender may
+      /// select any value up to maxptime.
+      /// </summary>
+      Milliseconds                  pTime;
+      /// <summary>
+      /// Gets or sets the maximum packetization time set on the RTCRtpSender.
+      /// Not specified if unset. If Ptime is also set, Maxptime is ignored.
+      /// </summary>
+      Milliseconds                  maxPTime;
+      /// <summary>
+      /// Gets or sets the number of channels supported (e.g. two for stereo).
+      /// If unset for audio, use the codec default. For video, this can be
+      /// left unset.
+      /// </summary>
+      [optional]
+      unsigned long                 numChannels;
+      /// <summary>
+      /// </summary>
+      RtcpFeedbackList              rtcpFeedback;
+      /// <summary>
+      /// Gets or sets the codec-specific parameters available for signaling.
+      /// </summary>
+      [dynamic]
+      RTCRtpCodecParameterSettings  parameters;  // see OpusCodecParameters, RTXCodecParameters, REDCodecParameters, FlexFECCodecParameters for definitions
+
+      /// <summary>
+      /// Constructs an empty instance of an RTCRtpCodecParameters object.
+      /// </summary>
+      [constructor, default]
+      void RTCRtpCodecParameters();
+      /// <summary>
+      /// Constructs an instance of an RTCRtpCodecParameters object by cloning object data from an existing object.
+      /// </summary>
+      [constructor, altname(RTCRtpCodecParametersClone)]
+      void RTCRtpCodecParameters(RTCRtpCodecParameters source);
+      /// <summary>
+      /// Constructs an instance of an RTCRtpCodecParameters object by extracting object data from a JSON object.
+      /// </summary>
+      [constructor, default, altname(RTCRtpCodecParametersWithJson)]
+      void RTCRtpCodecParameters(Json json);
+
+      /// <summary>
+      /// A helper routine to convert the object's data to structured JSON object data.
+      /// </summary>
+      Json toJson();
+      /// <summary>
+      /// Return a hash of the data contained within the object.
+      /// </summary>
+      string hash();
+    };
+
+    /// <summary>
+    /// The RTCRtpHeaderExtension dictionary configers the header extensions
+    /// for use within an RTCRtpSender or RTCRtpReceiver.
+    /// </summary>
+    [dictionary]
+    struct RTCRtpHeaderExtensionParameters
+    {
+      /// <summary>
+      /// Gets or sets the URI of the RTP header extension, as defined in
+      /// [RFC5285].
+      /// </summary>
+      string  uri;
+      /// <summary>
+      /// Gets or sets the value that goes in the packet.
+      /// </summary>
+      uint16  id;
+      /// <summary>
+      /// Gets or sets the value in the header is encrypted as per [RFC6904],
+      /// if true. Default is unencrypted.
+      /// </summary>
+      bool    encrypt;
+
+      /// <summary>
+      /// Constructs an empty instance of an RTCRtpHeaderExtensionParameters object.
+      /// </summary>
+      [constructor, default]
+      void RTCRtpHeaderExtensionParameters();
+      /// <summary>
+      /// Constructs an instance of an RTCRtpHeaderExtensionParameters object by cloning object data from an existing object.
+      /// </summary>
+      [constructor, altname(RTCRtpHeaderExtensionParametersClone)]
+      void RTCRtpHeaderExtensionParameters(RTCRtpHeaderExtensionParameters source);
+      /// <summary>
+      /// Constructs an instance of an RTCRtpHeaderExtensionParameters object by extracting object data from a JSON object.
+      /// </summary>
+      [constructor, default, altname(RTCRtpHeaderExtensionParametersWithJson)]
+      void RTCRtpHeaderExtensionParameters(Json json);
+
+      /// <summary>
+      /// A helper routine to convert the object's data to structured JSON object data.
+      /// </summary>
+      Json toJson();
+      /// <summary>
+      /// Return a hash of the data contained within the object.
+      /// </summary>
+      string hash();
+    };
+
+    /// <summary>
+    /// The RTCRtpFecParameters represents the FEC sets for a particular
+    /// encoding.
+    /// </summary>
+    [dictionary]
+    struct RTCRtpFecParameters
+    {
+      /// <summary>
+      /// Gets or sets the SSRC to use for FEC. If unset in an RTCRtpSender
+      /// object, the ORTC engine will choose.
+      /// </summary>
+      [optional]
+      SsrcType  ssrc;
+      /// <summary>
+      /// Gets or sets the Forward Error Correction (FEC) mechanism to use:
+      /// "red", "red+ulpfec" or "flexfec".
+      /// </summary>
+      string    mechanism;
+
+      /// <summary>
+      /// Constructs an empty instance of an RTCRtpFecParameters object.
+      /// </summary>
+      [constructor, default]
+      void RTCRtpFecParameters();
+      /// <summary>
+      /// Constructs an instance of an RTCRtpFecParameters object by cloning object data from an existing object.
+      /// </summary>
+      [constructor, altname(RTCRtpFecParametersClone)]
+      void RTCRtpFecParameters(RTCRtpFecParameters source);
+      /// <summary>
+      /// Constructs an instance of an RTCRtpFecParameters object by extracting object data from a JSON object.
+      /// </summary>
+      [constructor, default, altname(RTCRtpFecParametersWithJson)]
+      void RTCRtpFecParameters(Json json);
+
+      /// <summary>
+      /// A helper routine to convert the object's data to structured JSON object data.
+      /// </summary>
+      Json toJson();
+      /// <summary>
+      /// Return a hash of the data contained within the object.
+      /// </summary>
+      string hash();
+    };
+
+    /// <summary>
+    /// The RTCRtpRtxParameters represents the RTX sets for a particular
+    /// encoding.
+    /// </summary>
+    [dictionary]
+    struct RTCRtpRtxParameters
+    {
+      /// <summary>
+      /// Gets or sets the SSRC to use for retransmission, as specified in
+      /// [RFC4588]. If unset when passed to RTCRtpSender.Send(), the
+      /// ORTC engine will choose.
+      /// </summary>
+      [optional]
+      SsrcType ssrc;
+
+      /// <summary>
+      /// Constructs an empty instance of an RTCRtpRtxParameters object.
+      /// </summary>
+      [constructor, default]
+      void RTCRtpRtxParameters();
+      /// <summary>
+      /// Constructs an instance of an RTCRtpRtxParameters object by cloning object data from an existing object.
+      /// </summary>
+      [constructor, altname(RTCRtpRtxParametersClone)]
+      void RTCRtpRtxParameters(RTCRtpRtxParameters source);
+      /// <summary>
+      /// Constructs an instance of an RTCRtpRtxParameters object by extracting object data from a JSON object.
+      /// </summary>
+      [constructor, default, altname(RTCRtpRtxParametersWithJson)]
+      void RTCRtpRtxParameters(Json json);
+
+      /// <summary>
+      /// A helper routine to convert the object's data to structured JSON object data.
+      /// </summary>
+      Json toJson();
+      /// <summary>
+      /// Return a hash of the data contained within the object.
+      /// </summary>
+      string hash();
+    };
+
+    /// <summary>
+    /// RTCRtpEncodingParameters provides information relating to the
+    /// encoding.
+    /// </summary>
+    [dictionary]
+    struct RTCRtpEncodingParameters
+    {
+      typedef string EncodingId;
+      typedef std::list<EncodingId> EncodingIdList;
+
+      /// <summary>
+      /// Gets or sets the SSRC for this layering/encoding.
+      /// </summary>
+      [optional]
+      SsrcType                ssrc;
+      /// <summary>
+      /// Gets or sets the codec payload type per-encoding. If unset, the
+      /// ORTC engine will choose the first codec in parameters.Codecs[] of
+      /// the appropriate kind.
+      /// </summary>
+      [optional]
+      PayloadType             codecPayloadType;
+      /// <summary>
+      /// Gets or sets the FEC mechanism.
+      /// </summary>
+      [optional]
+      RTCRtpFecParameters     fec;
+      /// <summary>
+      /// Gets or sets the RTX [RFC4588] parameters.
+      /// </summary>
+      [optional]
+      RTCRtpRtxParameters     rtx;
+      /// <summary>
+      /// Gets or sets the priority of this encoding.
+      /// </summary>
+      [optional]
+      RTCRtpPriorityType      priority;
+      /// <summary>
+      /// Gets or sets the maximum bitrate ramp up for resolution/quality/
+      /// framerate, if set.
+      /// </summary>
+      [optional]
+      unsigned long long      maxBitrate;
+      /// <summary>
+      /// Gets or sets the minimum quality to never send less than.
+      /// </summary>
+      [optional]
+      double                  minQuality;
+      /// <summary>
+      /// Gets or sets the video's resolution will be scaled down in each
+      /// dimension by the given value before sending, if the sender's kind is
+      /// "video".
+      /// </summary>
+      [optional]
+      double                  resolutionScale;
+      /// <summary>
+      /// Gets or sets the inverse of the input framerate fraction to be
+      /// encoded.
+      /// </summary>
+      [optional]
+      double                  framerateScale;
+      /// <summary>
+      /// Gets or sets an indicates whether this encoding is actively being
+      /// sent for the RTCRtpSender. Setting it to false causes this
+      /// encoding to no longer be sent.
+      /// </summary>
+      bool                    active = true;
+      /// <summary>
+      /// Gets or sets an identifier for the encoding object.
+      /// </summary>
+      EncodingId              encodingId;
+      /// <summary>
+      /// Gets or sets the EncodingIds on which this layer depends.
+      /// </summary>
+      EncodingIdList          dependencyEncodingIds;
+
+      /// <summary>
+      /// Constructs an empty instance of the RTCRtpEncodingParameters.
+      /// </summary>
+      [constructor, default]
+      void RTCRtpEncodingParameters();
+      /// <summary>
+      /// Constructs an instance of an RTCRtpEncodingParameters object by cloning object data from an existing object.
+      /// </summary>
+      [constructor, altname(RTCRtpEncodingParametersClone)]
+      void RTCRtpEncodingParameters(RTCRtpEncodingParameters source);
+      /// <summary>
+      /// Constructs an instance of an RTCRtpEncodingParameters object by extracting object data from a JSON object.
+      /// </summary>
+      [constructor, default, altname(RTCRtpEncodingParametersWithJson)]
+      void RTCRtpEncodingParameters(Json json);
+
+      /// <summary>
+      /// A helper routine to convert the object's data to structured JSON object data.
+      /// </summary>
+      Json toJson();
+      /// <summary>
+      /// Return a hash of the data contained within the object.
+      /// </summary>
+      string hash();
+    };
+
+    /// <summary>
+    /// RTCRtpParameters contains the RTP stack settings.
+    /// </summary>
+    [dictionary]
+    struct RTCRtpParameters
+    {
+      typedef std::list<RTCRtpCodecParameters> CodecParametersList;
+      typedef std::list<RTCRtpHeaderExtensionParameters> HeaderExtensionParametersList;
+      typedef std::list<RTCRtpEncodingParameters> EncodingParametersList;
+
+      /// <summary>
+      /// Gets or sets the muxId assigned to the RTP stream, if any.
+      /// </summary>
+      string                        muxId;
+      /// <summary>
+      /// Gets or sets the codecs to send or receive (could include RED
+      /// [RFC2198], RTX [RFC4588] and CN [RFC3389]). codecs must be set for
+      /// an RTCRtpParameters object to be a valid argument passed to Send()
+      /// or Receive().
+      /// </summary>
+      CodecParametersList           codecs;
+      /// <summary>
+      /// Gets or sets the header extensions. If unset, no header extensions
+      /// are configured.
+      /// </summary>
+      HeaderExtensionParametersList headerExtensions;
+      /// <summary>
+      /// Gets or sets the "encodings" or "layers" to be used for things like
+      /// simulcast, Scalable Video Coding, RTX, FEC, etc. 
+      /// </summary>
+      EncodingParametersList        encodings;
+      /// <summary>
+      /// Gets or sets the parameters to configure RTCP. 
+      /// </summary>
+      RTCRtcpParameters             rtcp;
+      /// <summary>
+      /// Gets or sets the degradation preference when bandwidth is
+      /// constrained and the RTCRtpSender needs to choose between degrading
+      /// resolution or degrading framerate.
+      /// </summary>
+      RTCRtpDegradationPreference   degredationPreference = balanced;
+
+      /// <summary>
+      /// Constructs an empty instance of an RTCRtpParameters object.
+      /// </summary>
+      [constructor, default]
+      void RTCRtpParameters();
+      /// <summary>
+      /// Constructs an instance of an RTCRtpParameters object by cloning object data from an existing object.
+      /// </summary>
+      [constructor, altname(RTCRtpParametersClone)]
+      void RTCRtpParameters(RTCRtpParameters source);
+      /// <summary>
+      /// Constructs an instance of an RTCRtpParameters object by extracting object data from a JSON object.
+      /// </summary>
+      [constructor, default, altname(RTCRtpParametersWithJson)]
+      void RTCRtpParameters(Json json);
+
+      /// <summary>
+      /// A helper routine to convert the object's data to structured JSON object data.
+      /// </summary>
+      Json toJson();
+      /// <summary>
+      /// Return a hash of the data contained within the object.
+      /// </summary>
+      string hash();
+    };
+
+    /// <summary>
+    /// The following settings are defined for "opus".
+    /// </summary>
+    [dictionary]
+    struct RTCRtpOpusCodecParameterSettings : RTCRtpCodecParameterSettings
+    {
+      // sender parameters
+
+      /// <summary>
+      /// Gets or sets the maximum output sampling rate of the encoder in Hz.
+      /// </summary>
+      [optional]
+      unsigned long maxPlaybackRate;
+      /// <summary>
+      /// Gets or sets the maximum average receive bitrate of a session in bits
+      /// per second (bits/s).
+      /// </summary>
+      [optional]
+      unsigned long maxAverageBitrate;
+      /// <summary>
+      /// </summary>
+      [optional]
+      bool stereo;
+      /// <summary>
+      /// Gets or sets if the encoder is configured to generate constant
+      /// bitrate (if true) or variable bitrate (if false).
+      /// </summary>
+      [optional]
+      bool cbr;
+      /// <summary>
+      /// Gets or sets if the encoder is configured to generate Opus in-band
+      /// fec (if true) or not (if false).
+      /// </summary>
+      [optional]
+      bool useInbandFec;
+      /// <summary>
+      /// Gets or sets if the encoder is configured to use DTX (if true) or
+      /// not (if false).
+      /// </summary>
+      [optional]
+      bool useDtx;
+
+      /// <summary>
+      /// Gets or sets the encoder's computational complexity. The supported
+      // range is 0-10 with 10 representing the highest complexity.
+      /// </summary>
+      [optional]
+      unsigned long complexity;
+      /// <summary>
+      /// Gets or sets the type of signal being encoded. Possible values are
+      /// the string form of the enum OpusCodecSignal.
+      /// </summary>
+      [optional]
+      RTCRtpOpusCodecCapabilityOptionsSignal signal;
+      /// <summary>
+      /// Gets or sets the encoder's intended application. Possible values are
+      /// the string form of the enum OpusCodecApplication.
+      /// </summary>
+      [optional]
+      RTCRtpOpusCodecCapabilityOptionsApplication application;
+      /// <summary>
+      /// Gets or sets the encoder's expected packet loss percentage. Possible
+      /// values are 0-100.
+      /// </summary>
+      [optional]
+      unsigned long packetLossPerc;
+      /// <summary>
+      /// Gets or sests whether prediction is disabled, making frames almost
+      /// complete independent (if true) or not (if false).
+      /// </summary>
+      [optional]
+      bool predictionDisabled;
+
+      // receiver parameters
+
+      /// <summary>
+      /// Gets or sets the maximum input sampling rate produced by the sender.
+      /// </summary>
+      [optional]
+      unsigned long sPropMaxCaptureRate;
+      /// <summary>
+      /// Gets or sets whether the sender is likely to produce stereo audio.
+      /// </summary>
+      [optional]
+      bool sPropStereo;
+
+      /// <summary>
+      /// Constructs an empty instance of an RTCRtpOpusCodecParameterSettings object.
+      /// </summary>
+      [constructor, default]
+      void RTCRtpOpusCodecParameterSettings();
+      /// <summary>
+      /// Constructs an instance of an RTCRtpOpusCodecParameterSettings object by cloning object data from an existing object.
+      /// </summary>
+      [constructor, altname(RTCRtpOpusCodecParameterSettingsClone)]
+      void RTCRtpOpusCodecParameterSettings(RTCRtpOpusCodecParameterSettings source);
+      /// <summary>
+      /// Constructs an instance of an RTCRtpOpusCodecParameterSettings object by extracting object data from a JSON object.
+      /// </summary>
+      [constructor, default, altname(RTCRtpOpusCodecParameterSettingsWithJson)]
+      void RTCRtpOpusCodecParameterSettings(Json json);
+
+      /// <summary>
+      /// A helper routine to convert the object's data to structured JSON object data.
+      /// </summary>
+      Json toJson();
+      /// <summary>
+      /// Return a hash of the data contained within the object.
+      /// </summary>
+      string hash();
+    };
+
+    [dictionary]
+    struct RTCRtpVp8CodecParameterSettings : RTCRtpVp8CodecCapabilityParameters
+    {
+      /// <summary>
+      /// Constructs an empty instance of an RTCRtpVp8CodecParameterSettings object.
+      /// </summary>
+      [constructor, default]
+      void RTCRtpVp8CodecParameterSettings();
+      /// <summary>
+      /// Constructs an instance of an RTCRtpVp8CodecParameterSettings object by cloning object data from an existing object.
+      /// </summary>
+      [constructor, altname(RTCRtpVp8CodecParameterSettingsClone)]
+      void RTCRtpVp8CodecParameterSettings(RTCRtpVp8CodecParameterSettings source);
+      /// <summary>
+      /// Constructs an instance of an RTCRtpVp8CodecParameterSettings object by extrating object data from a JSON object.
+      /// </summary>
+      [constructor, default, altname(RTCRtpVp8CodecParameterSettingsWithJson)]
+      void RTCRtpVp8CodecParameterSettings(Json json);
+    };
+
+    [dictionary]
+    struct RTCRtpH264CodecParameterSettings : RTCRtpH264CodecCapabilityParameters
+    {
+      /// <summary>
+      /// Constructs an empty instance of an RTCRtpH264CodecParameterSettings object.
+      /// </summary>
+      [constructor, default]
+      void RTCRtpH264CodecParameterSettings();
+      /// <summary>
+      /// Constructs an instance of an RTCRtpH264CodecParameterSettings object by cloning object data from an existing object.
+      /// </summary>
+      [constructor, altname(RTCRtpH264CodecParameterSettingsClone)]
+      void RTCRtpH264CodecParameterSettings(RTCRtpH264CodecParameterSettings source);
+      /// <summary>
+      /// Constructs an instance of an RTCRtpH264CodecParameterSettings object by extrating object data from a JSON object.
+      /// </summary>
+      [constructor, default, altname(RTCRtpH264CodecParameterSettingsWithJson)]
+      void RTCRtpH264CodecParameterSettings(Json json);
+    };
+
+    [dictionary]
+    struct RTCRtpRtxCodecParameterSettings : RTCRtpRtxCodecCapabilityParameters
+    {
+      /// <summary>
+      /// Constructs an empty instance of an RTCRtpRtxCodecParameterSettings object.
+      /// </summary>
+      [constructor, default]
+      void RTCRtpRtxCodecParameterSettings();
+      /// <summary>
+      /// Constructs an instance of an RTCRtpRtxCodecParameterSettings object by cloning object data from an existing object.
+      /// </summary>
+      [constructor, altname(RTCRtpRtxCodecParameterSettingsClone)]
+      void RTCRtpRtxCodecParameterSettings(RTCRtpRtxCodecParameterSettings source);
+      /// <summary>
+      /// Constructs an instance of an RTCRtpRtxCodecParameterSettings object by extrating object data from a JSON object.
+      /// </summary>
+      [constructor, default, altname(RTCRtpRtxCodecParameterSettingsWithJson)]
+      void RTCRtpRtxCodecParameterSettings(Json json);
+    };
+
+    [dictionary]
+    struct RTCRtpFlexFecCodecParameterSettings : RTCRtpFlexFecCodecCapabilityParameters
+    {
+      /// <summary>
+      /// Constructs an empty instance of an RTCRtpFlexFecCodecParameterSettings object.
+      /// </summary>
+      [constructor, default]
+      void RTCRtpFlexFecCodecParameterSettings();
+      /// <summary>
+      /// Constructs an instance of an RTCRtpFlexFecCodecParameterSettings object by cloning object data from an existing object.
+      /// </summary>
+      [constructor, altname(RTCRtpFlexFecCodecParameterSettingsClone)]
+      void RTCRtpFlexFecCodecParameterSettings(RTCRtpFlexFecCodecParameterSettings source);
+      /// <summary>
+      /// Constructs an instance of an RTCRtpFlexFecCodecParameterSettings object by extrating object data from a JSON object.
+      /// </summary>
+      [constructor, default, altname(RTCRtpFlexFecCodecParameterSettingsWithJson)]
+      void RTCRtpFlexFecCodecParameterSettings(Json json);
+    };
+
+    /// <summary>
+    /// The following setting is defined for "red", as noted in [RFC2198]
+    /// Section 5.
+    /// </summary>
+    [dictionary]
+    struct RTCRtpRedCodecParameterSettings : RTCRtpCodecParameterSettings
+    {
+      typedef std::list<PayloadType> PayloadTypeList;
+
+      /// <summary>
+      /// Gets or sets sequence of payload types to be encapsulated in RED,
+      /// each of which must be unique. If payloadTypes is unset, this means
+      /// that any codec other than "red" or "rtx" can be encapsulsated in
+      /// RED.
+      /// </summary>
+      PayloadTypeList payloadTypes;
+
+      /// <summary>
+      /// Constructs an empty instance of an RTCRtpRedCodecParameterSettings object.
+      /// </summary>
+      [constructor, default]
+      void RTCRtpRedCodecParameterSettings();
+      /// <summary>
+      /// Constructs an instance of an RTCRtpRedCodecParameterSettings object by cloning object data from an existing object.
+      /// </summary>
+      [constructor, altname(RTCRtpRedCodecParameterSettingsClone)]
+      void RTCRtpRedCodecParameterSettings(RTCRtpRedCodecParameterSettings source);
+      /// <summary>
+      /// Constructs an instance of an RTCRtpRedCodecParameterSettings object by extracting object data from a JSON object.
+      /// </summary>
+      [constructor, default, altname(RTCRtpRedCodecParameterSettingsWithJson)]
+      void RTCRtpRedCodecParameterSettings(Json json);
+
+      /// <summary>
+      /// A helper routine to convert the object's data to structured JSON object data.
+      /// </summary>
+      Json toJson();
+      /// <summary>
+      /// Return a hash of the data contained within the object.
+      /// </summary>
+      string hash();
+    };
+
+  }
+}

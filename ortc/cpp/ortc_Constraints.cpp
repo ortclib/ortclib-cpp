@@ -710,4 +710,44 @@ namespace ortc
     return hasher->finalizeAsString();
   }
 
+  //---------------------------------------------------------------------------
+  void IConstraints::ConstrainString::exact(StringList &values) const
+  {
+    if (mValue.hasValue()) {
+      if (mValue.value().mValue.hasValue()) {
+        values.push_back(mValue.value().mValue.value());
+        return;
+      }
+      if (mValue.value().mValues.hasValue()) {
+        auto &source = mValue.value().mValues.value();
+        values.insert(values.end(), source.begin(), source.end());
+        return;
+      }
+    }
+
+    if (!mParameters.hasValue()) return;
+    if (!mParameters.value().mExact.hasValue()) return;
+    if (mParameters.value().mExact.value().mValue.hasValue()) {
+      values.push_back(mValue.value().mValue.value());
+      return;
+    }
+    if (!mParameters.value().mExact.value().mValues.hasValue()) return;
+    auto &source = mParameters.value().mExact.value().mValues.value();
+    values.insert(values.end(), source.begin(), source.end());
+  }
+
+  //---------------------------------------------------------------------------
+  void IConstraints::ConstrainString::ideal(StringList &values) const
+  {
+    if (!mParameters.hasValue()) return;
+    if (!mParameters.value().mIdeal.hasValue()) return;
+    if (mParameters.value().mIdeal.value().mValue.hasValue()) {
+      values.push_back(mValue.value().mValue.value());
+      return;
+    }
+    if (!mParameters.value().mIdeal.value().mValues.hasValue()) return;
+    auto &source = mParameters.value().mIdeal.value().mValues.value();
+    values.insert(values.end(), source.begin(), source.end());
+  }
+
 }

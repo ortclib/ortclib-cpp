@@ -29,7 +29,9 @@
  
  */
 
-#include <ortc/internal/ortc_RTCPPacket.h>
+#include <ortc/RTCPPacket.h>
+#include <ortc/internal/ortc.events.h>
+
 #include <ortc/internal/ortc_Helper.h>
 #include <ortc/internal/ortc_RTPUtils.h>
 #include <ortc/internal/platform.h>
@@ -48,7 +50,6 @@
 #define ASSERT(x)
 #endif //_DEBUG
 
-
 #define RTCP_IS_FLAG_SET(xByte, xBitPos) (0 != ((xByte) & (1 << xBitPos)))
 #define RTCP_GET_BITS(xByte, xBitPattern, xLowestBit) (((xByte) >> (xLowestBit)) & (xBitPattern))
 #define RTCP_PACK_BITS(xByte, xBitPattern, xLowestBit) (((xByte) & (xBitPattern)) << (xLowestBit))
@@ -57,14 +58,18 @@ namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_rtp_rtcp_packet) }
 
 namespace ortc
 {
-  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHelper, UseServicesHelper)
+  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHelper, UseServicesHelper);
+  ZS_DECLARE_TYPEDEF_PTR(ortc::internal::Helper, UseHelper);
+  ZS_DECLARE_TYPEDEF_PTR(ortc::internal::RTPUtils, UseRTPUtils);
+
+  using zsLib::PTRNUMBER;
+
 //  ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHTTP, UseHTTP)
 //
 //  typedef ortc::services::Hasher<CryptoPP::SHA1> SHA1Hasher;
 
   namespace internal
   {
-    ZS_DECLARE_TYPEDEF_PTR(ortc::internal::Helper, UseHelper)
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -157,4395 +162,6 @@ namespace ortc
       return true;
     }
 
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTCPPacket::SenderReport
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    const char *RTCPPacket::Report::ptToString(BYTE pt)
-    {
-      switch (pt) {
-        case SenderReport::kPayloadType:                    return "SenderReport";
-        case ReceiverReport::kPayloadType:                  return "ReceiverReport";
-        case SDES::kPayloadType:                            return "SDES";
-        case Bye::kPayloadType:                             return "Bye";
-        case App::kPayloadType:                             return "App";
-        case TransportLayerFeedbackMessage::kPayloadType:   return "TransportLayerFeedbackMessage";
-        case PayloadSpecificFeedbackMessage::kPayloadType:  return "PayloadSpecificFeedbackMessage";
-        case XR::kPayloadType:                              return "XR";
-        default:  {
-        }
-      }
-      return "Uknown";
-    }
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTCPPacket::SenderReport
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    Time RTCPPacket::SenderReport::ntpTimestamp() const
-    {
-      return RTPUtils::ntpToTime(mNTPTimestampMS, mNTPTimestampLS);
-    }
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTCPPacket::SDES::Chunk::StringItem
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    const char *RTCPPacket::SDES::Chunk::StringItem::typeToString(BYTE type)
-    {
-      switch (type) {
-        case CName::kItemType:  return "CName";
-        case Name::kItemType:   return "Name";
-        case Email::kItemType:  return "Email";
-        case Phone::kItemType:  return "Phone";
-        case Loc::kItemType:    return "Loc";
-        case Tool::kItemType:   return "Tool";
-        case Note::kItemType:   return "Note";
-        case Priv::kItemType:   return "Priv";
-        case Mid::kItemType:    return "Mid";
-        case Rid::kItemType:    return "Rid";
-        default: {
-          break;
-        }
-      }
-      return "Unknown";
-    }
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTCPPacket::SDES::Chunk
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    RTCPPacket::SDES::Chunk::CName *RTCPPacket::SDES::Chunk::cNameAtIndex(size_t index) const
-    {
-      ASSERT(index < mCNameCount)
-      return &(mFirstCName[index]);
-    }
-
-    //-------------------------------------------------------------------------
-    RTCPPacket::SDES::Chunk::Name *RTCPPacket::SDES::Chunk::nameAtIndex(size_t index) const
-    {
-      ASSERT(index < mNameCount)
-      return &(mFirstName[index]);
-    }
-
-    //-------------------------------------------------------------------------
-    RTCPPacket::SDES::Chunk::Email *RTCPPacket::SDES::Chunk::emailAtIndex(size_t index) const
-    {
-      ASSERT(index < mEmailCount)
-      return &(mFirstEmail[index]);
-    }
-
-    //-------------------------------------------------------------------------
-    RTCPPacket::SDES::Chunk::Phone *RTCPPacket::SDES::Chunk::phoneAtIndex(size_t index) const
-    {
-      ASSERT(index < mPhoneCount)
-      return &(mFirstPhone[index]);
-    }
-
-    //-------------------------------------------------------------------------
-    RTCPPacket::SDES::Chunk::Loc *RTCPPacket::SDES::Chunk::locAtIndex(size_t index) const
-    {
-      ASSERT(index < mLocCount)
-      return &(mFirstLoc[index]);
-    }
-
-    //-------------------------------------------------------------------------
-    RTCPPacket::SDES::Chunk::Tool *RTCPPacket::SDES::Chunk::toolAtIndex(size_t index) const
-    {
-      ASSERT(index < mToolCount)
-      return &(mFirstTool[index]);
-    }
-
-    //-------------------------------------------------------------------------
-    RTCPPacket::SDES::Chunk::Note *RTCPPacket::SDES::Chunk::noteAtIndex(size_t index) const
-    {
-      ASSERT(index < mNoteCount)
-      return &(mFirstNote[index]);
-    }
-
-    //-------------------------------------------------------------------------
-    RTCPPacket::SDES::Chunk::Priv *RTCPPacket::SDES::Chunk::privAtIndex(size_t index) const
-    {
-      ASSERT(index < mPrivCount)
-      return &(mFirstPriv[index]);
-    }
-
-    //-------------------------------------------------------------------------
-    RTCPPacket::SDES::Chunk::Mid *RTCPPacket::SDES::Chunk::midAtIndex(size_t index) const
-    {
-      ASSERT(index < mMidCount)
-      return &(mFirstMid[index]);
-    }
-
-    //-------------------------------------------------------------------------
-    RTCPPacket::SDES::Chunk::Rid *RTCPPacket::SDES::Chunk::ridAtIndex(size_t index) const
-    {
-      ASSERT(index < mRidCount)
-      return &(mFirstRid[index]);
-    }
-
-    //-------------------------------------------------------------------------
-    RTCPPacket::SDES::Chunk::Unknown *RTCPPacket::SDES::Chunk::unknownAtIndex(size_t index) const
-    {
-      ASSERT(index < mUnknownCount)
-      return &(mFirstUnknown[index]);
-    }
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTCPPacket::Bye
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    DWORD RTCPPacket::Bye::ssrc(size_t index) const
-    {
-      ASSERT(index < sc())
-      return mSSRCs[index];
-    }
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTCPPacket::FeedbackMessage
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    const char *RTCPPacket::FeedbackMessage::fmtToString(BYTE pt, BYTE fmt, DWORD subFmt)
-    {
-      switch (pt) {
-        case TransportLayerFeedbackMessage::kPayloadType:     {
-          switch (fmt) {
-            case TransportLayerFeedbackMessage::GenericNACK::kFmt:  return "GenericNACK";
-            case TransportLayerFeedbackMessage::TMMBR::kFmt:        return "TMMBR";
-            case TransportLayerFeedbackMessage::TMMBN::kFmt:        return "TMMBN";
-            default:                                                break;
-          }
-          break;
-        }
-        case PayloadSpecificFeedbackMessage::kPayloadType:    {
-          switch (fmt) {
-            case PayloadSpecificFeedbackMessage::PLI::kFmt:         return "PLI";
-            case PayloadSpecificFeedbackMessage::SLI::kFmt:         return "SLI";
-            case PayloadSpecificFeedbackMessage::RPSI::kFmt:        return "RPSI";
-            case PayloadSpecificFeedbackMessage::FIR::kFmt:         return "FIR";
-            case PayloadSpecificFeedbackMessage::TSTR::kFmt:        return "TSTR";
-            case PayloadSpecificFeedbackMessage::TSTN::kFmt:        return "TSTN";
-            case PayloadSpecificFeedbackMessage::VBCM::kFmt:        return "VBCM";
-            case PayloadSpecificFeedbackMessage::AFB::kFmt:         {
-              const char *tmp = "REMB";
-              if (subFmt == *(reinterpret_cast<const DWORD *>(tmp))) return "REMB";
-              return "AFB";
-            }
-            default:                                                break;
-          }
-          break;
-        }
-        default:                                              {
-          break;
-        }
-      }
-      return "Unknown";
-    }
-
-    //-------------------------------------------------------------------------
-    const char *RTCPPacket::FeedbackMessage::fmtToString() const
-    {
-      if (PayloadSpecificFeedbackMessage::kPayloadType == mPT) {
-        if (PayloadSpecificFeedbackMessage::AFB::kFmt == mReportSpecific) {
-          auto result = reinterpret_cast<const PayloadSpecificFeedbackMessage *>(this);
-          const char tmp1[sizeof(DWORD)] {};
-          const char *tmp2 = "REMB";
-          const char *usingTmp = (result->mHasREMB ? tmp2 : (&(tmp1[0])));
-
-          return fmtToString(mPT, mReportSpecific, *(reinterpret_cast<const DWORD *>(usingTmp)));
-        }
-      }
-      return fmtToString(mPT, mReportSpecific);
-    }
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTCPPacket::TransportLayerFeedbackMessage
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    RTCPPacket::TransportLayerFeedbackMessage::GenericNACK *RTCPPacket::TransportLayerFeedbackMessage::genericNACKAtIndex(size_t index) const
-    {
-      ASSERT(index < mGenericNACKCount)
-      return &(mFirstGenericNACK[index]);
-    }
-
-    //-------------------------------------------------------------------------
-    RTCPPacket::TransportLayerFeedbackMessage::TMMBR *RTCPPacket::TransportLayerFeedbackMessage::tmmbrAtIndex(size_t index) const
-    {
-      ASSERT(index < mTMMBRCount)
-      return &(mFirstTMMBR[index]);
-    }
-
-    //-------------------------------------------------------------------------
-    RTCPPacket::TransportLayerFeedbackMessage::TMMBN *RTCPPacket::TransportLayerFeedbackMessage::tmmbnAtIndex(size_t index) const
-    {
-      ASSERT(index < mTMMBNCount)
-      return &(mFirstTMMBN[index]);
-    }
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTCPPacket::PayloadSpecificFeedbackMessage::VBCM
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    BYTE RTCPPacket::PayloadSpecificFeedbackMessage::VBCM::zeroBit() const
-    {
-      return RTCP_GET_BITS(mControlSpecific, 0x1, 23);
-    }
-
-    //-------------------------------------------------------------------------
-    BYTE RTCPPacket::PayloadSpecificFeedbackMessage::VBCM::payloadType() const
-    {
-      return RTCP_GET_BITS(mControlSpecific, 0x7F, 16);
-    }
-
-    //-------------------------------------------------------------------------
-    size_t RTCPPacket::PayloadSpecificFeedbackMessage::VBCM::vbcmOctetStringSize() const
-    {
-      return RTCP_GET_BITS(mControlSpecific, 0xFFFF, 0);
-    }
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTCPPacket::PayloadSpecificFeedbackMessage::REMB
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    DWORD RTCPPacket::PayloadSpecificFeedbackMessage::REMB::ssrcAtIndex(size_t index) const
-    {
-      ASSERT(index < numSSRC())
-      return mSSRCs[index];
-    }
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTCPPacket::PayloadSpecificFeedbackMessage
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    RTCPPacket::PayloadSpecificFeedbackMessage::PLI *RTCPPacket::PayloadSpecificFeedbackMessage::pli() const
-    {
-      if (PLI::kFmt != fmt()) return NULL;
-      return const_cast<PLI *>(&mPLI);
-    }
-
-    //-------------------------------------------------------------------------
-    RTCPPacket::PayloadSpecificFeedbackMessage::SLI *RTCPPacket::PayloadSpecificFeedbackMessage::sliAtIndex(size_t index) const
-    {
-      ASSERT(index < mSLICount)
-      return &(mFirstSLI[index]);
-    }
-
-    //-------------------------------------------------------------------------
-    RTCPPacket::PayloadSpecificFeedbackMessage::FIR *RTCPPacket::PayloadSpecificFeedbackMessage::firAtIndex(size_t index) const
-    {
-      ASSERT(index < mFIRCount)
-      return &(mFirstFIR[index]);
-    }
-
-    //-------------------------------------------------------------------------
-    RTCPPacket::PayloadSpecificFeedbackMessage::TSTR *RTCPPacket::PayloadSpecificFeedbackMessage::tstrAtIndex(size_t index) const
-    {
-      ASSERT(index < mTSTRCount)
-      return &(mFirstTSTR[index]);
-    }
-
-    //-------------------------------------------------------------------------
-    RTCPPacket::PayloadSpecificFeedbackMessage::TSTN *RTCPPacket::PayloadSpecificFeedbackMessage::tstnAtIndex(size_t index) const
-    {
-      ASSERT(index < mTSTNCount)
-      return &(mFirstTSTN[index]);
-    }
-
-    //-------------------------------------------------------------------------
-    RTCPPacket::PayloadSpecificFeedbackMessage::VBCM *RTCPPacket::PayloadSpecificFeedbackMessage::vbcmAtIndex(size_t index) const
-    {
-      ASSERT(index < mVBCMCount)
-      return &(mFirstVBCM[index]);
-    }
-
-    //-------------------------------------------------------------------------
-    RTCPPacket::PayloadSpecificFeedbackMessage::RPSI *RTCPPacket::PayloadSpecificFeedbackMessage::rpsi() const
-    {
-      if (RPSI::kFmt != fmt()) return NULL;
-      return const_cast<RPSI *>(&mRPSI);
-    }
-
-    //-------------------------------------------------------------------------
-    RTCPPacket::PayloadSpecificFeedbackMessage::AFB *RTCPPacket::PayloadSpecificFeedbackMessage::afb() const
-    {
-      if (AFB::kFmt != fmt()) return NULL;
-      if (mHasREMB) return NULL;
-      return const_cast<AFB *>(&mAFB);
-    }
-
-    //-------------------------------------------------------------------------
-    RTCPPacket::PayloadSpecificFeedbackMessage::REMB *RTCPPacket::PayloadSpecificFeedbackMessage::remb() const
-    {
-      if (REMB::kFmt != fmt()) return NULL;
-      if (!mHasREMB) return NULL;
-      return const_cast<REMB *>(&mREMB);
-    }
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTCPPacket::XR::ReportBlock
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    const char *RTCPPacket::XR::ReportBlock::blockTypeToString(BYTE blockType)
-    {
-      switch (blockType) {
-        case LossRLEReportBlock::kBlockType:                return "LossRLEReportBlock";
-        case DuplicateRLEReportBlock::kBlockType:           return "DuplicateRLEReportBlock";
-        case PacketReceiptTimesReportBlock::kBlockType:     return "PacketReceiptTimesReportBlock";
-        case ReceiverReferenceTimeReportBlock::kBlockType:  return "ReceiverReferenceTimeReportBlock";
-        case DLRRReportBlock::kBlockType:                   return "DLRRReportBlock";
-        case StatisticsSummaryReportBlock::kBlockType:      return "StatisticsSummaryReportBlock";
-        case VoIPMetricsReportBlock::kBlockType:            return "VoIPMetricsReportBlock";
-        default: {
-          break;
-        }
-      }
-
-      return "UnknownReportBlock";
-    }
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTCPPacket::XR::ReportBlockRange
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    BYTE RTCPPacket::XR::ReportBlockRange::reserved() const
-    {
-      return RTCP_GET_BITS(mTypeSpecific, 0xF, 4);
-    }
-
-    //-------------------------------------------------------------------------
-    BYTE RTCPPacket::XR::ReportBlockRange::thinning() const
-    {
-      return RTCP_GET_BITS(mTypeSpecific, 0xF, 0);
-    }
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTCPPacket::XR::RLEReportBlock
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    RTCPPacket::XR::RLEChunk RTCPPacket::XR::RLEReportBlock::chunkAtIndex(size_t index) const
-    {
-      ASSERT(index < chunkCount())
-      return mChunks[index];
-    }
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTCPPacket::XR::PacketReceiptTimesReportBlock
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    DWORD RTCPPacket::XR::PacketReceiptTimesReportBlock::receiptTimeAtIndex(size_t index) const
-    {
-      ASSERT(index < receiptTimeCount())
-      return mReceiptTimes[index];
-    }
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTCPPacket::XR::ReceiverReferenceTimeReportBlock
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    Time RTCPPacket::XR::ReceiverReferenceTimeReportBlock::ntpTimestamp() const
-    {
-      return RTPUtils::ntpToTime(mNTPTimestampMS, mNTPTimestampLS);
-    }
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTCPPacket::XR::DLRRReportBlock
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    RTCPPacket::XR::DLRRReportBlock::SubBlock *RTCPPacket::XR::DLRRReportBlock::subBlockAtIndex(size_t index) const
-    {
-      ASSERT(index < subBlockCount())
-      return &(mSubBlocks[index]);
-    }
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTCPPacket::XR::StatisticsSummaryReportBlock
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::XR::StatisticsSummaryReportBlock::lossReportFlag() const
-    {
-      return RTCP_IS_FLAG_SET(mTypeSpecific, 7);
-    }
-
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::XR::StatisticsSummaryReportBlock::duplicateReportFlag() const
-    {
-      return RTCP_IS_FLAG_SET(mTypeSpecific, 6);
-    }
-
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::XR::StatisticsSummaryReportBlock::jitterFlag() const
-    {
-      return RTCP_IS_FLAG_SET(mTypeSpecific, 5);
-    }
-
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::XR::StatisticsSummaryReportBlock::ttlFlag() const
-    {
-      return (1 == RTCP_GET_BITS(mTypeSpecific, 0x3, 3));
-    }
-
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::XR::StatisticsSummaryReportBlock::hopLimitFlag() const
-    {
-      return (2 == RTCP_GET_BITS(mTypeSpecific, 0x3, 3));
-    }
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTCPPacket::XR::VoIPMetricsReportBlock
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    BYTE RTCPPacket::XR::VoIPMetricsReportBlock::plc() const
-    {
-      return RTCP_GET_BITS(mRXConfig, 0x3, 6);
-    }
-
-    //-------------------------------------------------------------------------
-    BYTE RTCPPacket::XR::VoIPMetricsReportBlock::jba() const
-    {
-      return RTCP_GET_BITS(mRXConfig, 0x3, 4);
-    }
-
-    //-------------------------------------------------------------------------
-    BYTE RTCPPacket::XR::VoIPMetricsReportBlock::jbRate() const
-    {
-      return RTCP_GET_BITS(mRXConfig, 0xF, 0);
-    }
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTCPPacket::XR::RunLength
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    RTCPPacket::XR::RunLength::RunLength(RLEChunk chunk) :
-      mRunType(RTCP_GET_BITS(chunk, 0x1, 14)),
-      mRunLength(RTCP_GET_BITS(chunk, 0x3FFF, 0))
-    {
-    }
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTCPPacket::XR::BitVector
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    RTCPPacket::XR::BitVector::BitVector(RLEChunk chunk) :
-      mBitVector(RTCP_GET_BITS(chunk, 0x7FFF, 0))
-    {
-    }
-
-    //-------------------------------------------------------------------------
-    BYTE RTCPPacket::XR::BitVector::bitAtIndex(size_t index) const
-    {
-      ASSERT(index < (sizeof(WORD)*8))
-      return (mBitVector >> ((sizeof(WORD)*8)-index-1)) & 0x1;
-    }
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTCPPacket::XR
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    RTCPPacket::XR::LossRLEReportBlock *RTCPPacket::XR::lossRLEReportBlockAtIndex(size_t index) const
-    {
-      ASSERT(index < mLossRLEReportBlockCount)
-      return &(mFirstLossRLEReportBlock[index]);
-    }
-
-    //-------------------------------------------------------------------------
-    RTCPPacket::XR::DuplicateRLEReportBlock *RTCPPacket::XR::duplicateRLEReportBlockAtIndex(size_t index) const
-    {
-      ASSERT(index < mDuplicateRLEReportBlockCount)
-      return &(mFirstDuplicateRLEReportBlock[index]);
-    }
-
-    //-------------------------------------------------------------------------
-    RTCPPacket::XR::PacketReceiptTimesReportBlock *RTCPPacket::XR::packetReceiptTimesReportBlockAtIndex(size_t index) const
-    {
-      ASSERT(index < mPacketReceiptTimesReportBlockCount)
-      return &(mFirstPacketReceiptTimesReportBlock[index]);
-    }
-
-    //-------------------------------------------------------------------------
-    RTCPPacket::XR::ReceiverReferenceTimeReportBlock *RTCPPacket::XR::receiverReferenceTimeReportBlockAtIndex(size_t index) const
-    {
-      ASSERT(index < mReceiverReferenceTimeReportBlockCount)
-      return &(mFirstReceiverReferenceTimeReportBlock[index]);
-    }
-
-    //-------------------------------------------------------------------------
-    RTCPPacket::XR::DLRRReportBlock *RTCPPacket::XR::dlrrReportBlockAtIndex(size_t index) const
-    {
-      ASSERT(index < mDLRRReportBlockCount)
-      return &(mFirstDLRRReportBlock[index]);
-    }
-
-    //-------------------------------------------------------------------------
-    RTCPPacket::XR::StatisticsSummaryReportBlock *RTCPPacket::XR::statisticsSummaryReportBlockAtIndex(size_t index) const
-    {
-      ASSERT(index < mStatisticsSummaryReportBlockCount)
-      return &(mFirstStatisticsSummaryReportBlock[index]);
-    }
-
-    //-------------------------------------------------------------------------
-    RTCPPacket::XR::VoIPMetricsReportBlock *RTCPPacket::XR::voIPMetricsReportBlockAtIndex(size_t index) const
-    {
-      ASSERT(index < mVoIPMetricsReportBlockCount)
-      return &(mFirstVoIPMetricsReportBlock[index]);
-    }
-
-    //-------------------------------------------------------------------------
-    RTCPPacket::XR::UnknownReportBlock *RTCPPacket::XR::unknownReportBlockAtIndex(size_t index) const
-    {
-      ASSERT(index < mUnknownReportBlockCount)
-      return &(mFirstUnknownReportBlock[index]);
-    }
-
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::XR::isRunLengthChunk(RLEChunk chunk)
-    {
-      return !RTCP_IS_FLAG_SET(chunk, 15);
-    }
-
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::XR::isBitVectorChunk(RLEChunk chunk)
-    {
-      return RTCP_IS_FLAG_SET(chunk, 15);
-    }
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTCPPacket (public)
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    RTCPPacket::RTCPPacket(const make_private &)
-    {
-    }
-
-    //-------------------------------------------------------------------------
-    RTCPPacket::~RTCPPacket()
-    {
-    }
-
-    //-------------------------------------------------------------------------
-    RTCPPacketPtr RTCPPacket::create(const BYTE *buffer, size_t bufferLengthInBytes)
-    {
-      ORTC_THROW_INVALID_PARAMETERS_IF(!buffer)
-      ORTC_THROW_INVALID_PARAMETERS_IF(0 == bufferLengthInBytes)
-      return RTCPPacket::create(UseServicesHelper::convertToBuffer(buffer, bufferLengthInBytes));
-    }
-
-    //-------------------------------------------------------------------------
-    RTCPPacketPtr RTCPPacket::create(const SecureByteBlock &buffer)
-    {
-      return RTCPPacket::create(buffer.BytePtr(), buffer.SizeInBytes());
-    }
-
-    //-------------------------------------------------------------------------
-    RTCPPacketPtr RTCPPacket::create(SecureByteBlockPtr buffer)
-    {
-      RTCPPacketPtr pThis(make_shared<RTCPPacket>(make_private{}));
-      pThis->mBuffer = buffer;
-      if (!pThis->parse()) {
-        ZS_LOG_WARNING(Debug, pThis->log("packet could not be parsed"))
-        return RTCPPacketPtr();
-      }
-      return pThis;
-    }
-
-    //-------------------------------------------------------------------------
-    RTCPPacketPtr RTCPPacket::create(const Report *first)
-    {
-      size_t allocationSize = getPacketSize(first);
-      SecureByteBlockPtr temp(make_shared<SecureByteBlock>(allocationSize));
-
-      BYTE *buffer = temp->BytePtr();
-      BYTE *pos = buffer;
-      writePacket(first, pos, allocationSize);
-
-      return create(temp);
-    }
-
-    //-------------------------------------------------------------------------
-    SecureByteBlockPtr RTCPPacket::generateFrom(const Report *first)
-    {
-      size_t allocationSize = getPacketSize(first);
-      SecureByteBlockPtr temp(make_shared<SecureByteBlock>(allocationSize));
-
-      BYTE *buffer = temp->BytePtr();
-      BYTE *pos = buffer;
-      writePacket(first, pos, allocationSize);
-
-      return temp;
-    }
-
-    //-------------------------------------------------------------------------
-    const BYTE *RTCPPacket::ptr() const
-    {
-      return mBuffer->BytePtr();
-    }
-
-    //-------------------------------------------------------------------------
-    size_t RTCPPacket::size() const
-    {
-      return mBuffer->SizeInBytes();
-    }
-
-    //-------------------------------------------------------------------------
-    SecureByteBlockPtr RTCPPacket::buffer() const
-    {
-      return mBuffer;
-    }
-
-    //-------------------------------------------------------------------------
-    RTCPPacket::SenderReport *RTCPPacket::senderReportAtIndex(size_t index) const
-    {
-      ASSERT(index < mSenderReportCount)
-      return &(mFirstSenderReport[index]);
-    }
-
-    //-------------------------------------------------------------------------
-    RTCPPacket::ReceiverReport *RTCPPacket::receiverReportAtIndex(size_t index) const
-    {
-      ASSERT(index < mReceiverReportCount)
-      return &(mFirstReceiverReport[index]);
-    }
-
-    //-------------------------------------------------------------------------
-    RTCPPacket::SDES *RTCPPacket::sdesAtIndex(size_t index) const
-    {
-      ASSERT(index < mSDESCount)
-      return &(mFirstSDES[index]);
-    }
-
-    //-------------------------------------------------------------------------
-    RTCPPacket::Bye *RTCPPacket::byeAtIndex(size_t index) const
-    {
-      ASSERT(index < mByeCount)
-      return &(mFirstBye[index]);
-    }
-
-    //-------------------------------------------------------------------------
-    RTCPPacket::App *RTCPPacket::appAtIndex(size_t index) const
-    {
-      ASSERT(index < mAppCount)
-      return &(mFirstApp[index]);
-    }
-
-    //-------------------------------------------------------------------------
-    RTCPPacket::TransportLayerFeedbackMessage *RTCPPacket::transportLayerFeedbackReportAtIndex(size_t index) const
-    {
-      ASSERT(index < mTransportLayerFeedbackMessageCount)
-      return &(mFirstTransportLayerFeedbackMessage[index]);
-    }
-
-    //-------------------------------------------------------------------------
-    RTCPPacket::PayloadSpecificFeedbackMessage *RTCPPacket::payloadSpecificFeedbackReportAtIndex(size_t index) const
-    {
-      ASSERT(index < mPayloadSpecificFeedbackMessageCount)
-      return &(mFirstPayloadSpecificFeedbackMessage[index]);
-    }
-
-    //-------------------------------------------------------------------------
-    RTCPPacket::XR *RTCPPacket::xrAtIndex(size_t index) const
-    {
-      ASSERT(index < mXRCount)
-      return &(mFirstXR[index]);
-    }
-
-    //-------------------------------------------------------------------------
-    RTCPPacket::UnknownReport *RTCPPacket::unknownAtIndex(size_t index) const
-    {
-      ASSERT(index < mUnknownReportCount)
-      return &(mFirstUnknownReport[index]);
-    }
-
-    //-------------------------------------------------------------------------
-    static void toDebug(
-                        ElementPtr &subEl,
-                        RTCPPacket::Report *common
-                        )
-    {
-      UseServicesHelper::debugAppend(subEl, "next", NULL != common->next());
-      UseServicesHelper::debugAppend(subEl, "ptr", NULL != common->ptr());
-      UseServicesHelper::debugAppend(subEl, "size", common->size());
-      UseServicesHelper::debugAppend(subEl, "version", common->version());
-      UseServicesHelper::debugAppend(subEl, "padding", common->padding());
-      UseServicesHelper::debugAppend(subEl, "report specific", common->reportSpecific());
-      UseServicesHelper::debugAppend(subEl, "pt", common->pt());
-    }
-
-    //-------------------------------------------------------------------------
-    static void toDebugSenderReceiverCommonReport(
-                                                  ElementPtr &subEl,
-                                                  RTCPPacket::SenderReceiverCommonReport *common
-                                                  )
-    {
-      internal::toDebug(subEl, common);
-      UseServicesHelper::debugAppend(subEl, "rc", common->rc());
-      UseServicesHelper::debugAppend(subEl, (RTCPPacket::ReceiverReport::kPayloadType != common->pt() ? "ssrc of sender" : "ssrc of packet sender"), common->ssrcOfSender());
-      UseServicesHelper::debugAppend(subEl, "extension", (NULL != common->extension()));
-      UseServicesHelper::debugAppend(subEl, "extension size", common->extensionSize());
-    }
-
-    //-------------------------------------------------------------------------
-    static ElementPtr toDebug(RTCPPacket::SenderReceiverCommonReport *common)
-    {
-      RTCPPacket::SenderReceiverCommonReport::ReportBlock *block = common->firstReportBlock();
-      if (NULL == block) return ElementPtr();
-
-      ElementPtr outerEl = Element::create("ReportBlocks");
-
-      for (; NULL != block; block = block->next()) {
-        ElementPtr subEl = Element::create("ReportBlocks");
-        UseServicesHelper::debugAppend(subEl, "ssrc", block->ssrc());
-        UseServicesHelper::debugAppend(subEl, "fraction lost", block->fractionLost());
-        UseServicesHelper::debugAppend(subEl, "cumulative number of packets lost", block->cumulativeNumberOfPacketsLost());
-        UseServicesHelper::debugAppend(subEl, "extended highest sequence number received", block->extendedHighestSequenceNumberReceived());
-        UseServicesHelper::debugAppend(subEl, "interarrival jitter", block->interarrivalJitter());
-        UseServicesHelper::debugAppend(subEl, "lsr", block->lsr());
-        UseServicesHelper::debugAppend(subEl, "dlsr", block->dlsr());
-        UseServicesHelper::debugAppend(outerEl, subEl);
-      }
-      return outerEl;
-    }
-
-    //-------------------------------------------------------------------------
-    static void toDebug(
-                        ElementPtr &subEl,
-                        RTCPPacket::SDES::Chunk::StringItem *common
-                        )
-    {
-      auto type = common->type();
-      UseServicesHelper::debugAppend(subEl, "type", type);
-      if (RTCPPacket::SDES::Chunk::Priv::kItemType == type) {
-        RTCPPacket::SDES::Chunk::Priv *priv = reinterpret_cast<RTCPPacket::SDES::Chunk::Priv *>(common);
-        UseServicesHelper::debugAppend(subEl, "prefix length", priv->prefixLength());
-        UseServicesHelper::debugAppend(subEl, "prefix", priv->prefix());
-      }
-      UseServicesHelper::debugAppend(subEl, "length", common->length());
-      UseServicesHelper::debugAppend(subEl, "value", common->value());
-    }
-
-    //-------------------------------------------------------------------------
-    static ElementPtr toDebug(
-                              const char *typeNames,
-                              const char *typeName,
-                              RTCPPacket::SDES::Chunk::StringItem *first
-                              )
-    {
-      if (NULL == first) return ElementPtr();
-
-      RTCPPacket::SDES::Chunk::StringItem *item = first;
-      bool hasMoreThanOne = (NULL != item ? (NULL != item->mNext) : false);
-
-      ElementPtr outerEl;
-
-      if (hasMoreThanOne) {
-        outerEl = Element::create(typeNames);
-      }
-
-      for (; NULL != item; item = item->mNext) {
-        ElementPtr subEl = Element::create(typeName);
-        internal::toDebug(subEl, item);
-
-        if (!hasMoreThanOne) {
-          return subEl;
-        }
-        UseServicesHelper::debugAppend(outerEl, subEl);
-      }
-
-      return outerEl;
-    }
-
-    //-------------------------------------------------------------------------
-    static ElementPtr toDebug(
-                              const char *typeNamse,
-                              const char *typeName,
-                              DWORD *ssrcs,
-                              size_t count
-                              )
-    {
-      if (0 == count) return ElementPtr();
-
-      ElementPtr outerEl = Element::create(typeNamse);
-
-      for (size_t index = 0; index < count; ++index) {
-        UseServicesHelper::debugAppend(outerEl, typeName, ssrcs[index]);
-      }
-
-      return outerEl;
-    }
-    
-    //-------------------------------------------------------------------------
-    static void toDebugFeedbackMessage(
-                                       ElementPtr &subEl,
-                                       RTCPPacket::FeedbackMessage *common
-                                       )
-    {
-      internal::toDebug(subEl, common);
-
-      UseServicesHelper::debugAppend(subEl, "fmt", common->fmt());
-      UseServicesHelper::debugAppend(subEl, "ssrc of packet sender", common->ssrcOfPacketSender());
-      UseServicesHelper::debugAppend(subEl, "ssrc of media source", common->ssrcOfMediaSource());
-      UseServicesHelper::debugAppend(subEl, "fci", (NULL != common->fci()));
-      UseServicesHelper::debugAppend(subEl, "fci size", common->fciSize());
-    }
-
-    //-------------------------------------------------------------------------
-    static void toDebug(
-                        ElementPtr &subEl,
-                        RTCPPacket::TransportLayerFeedbackMessage::TMMBRCommon *common
-                        )
-    {
-      UseServicesHelper::debugAppend(subEl, "ssrc", common->ssrc());
-      UseServicesHelper::debugAppend(subEl, "mx tbr exp", common->mxTBRExp());
-      UseServicesHelper::debugAppend(subEl, "mx tbr mantissa", common->mxTBRMantissa());
-      UseServicesHelper::debugAppend(subEl, "measured overhead", common->measuredOverhead());
-    }
-    
-    //-------------------------------------------------------------------------
-    static void toDebug(
-                        ElementPtr &subEl,
-                        RTCPPacket::PayloadSpecificFeedbackMessage::CodecControlCommon *common
-                        )
-    {
-      UseServicesHelper::debugAppend(subEl, "ssrc", common->ssrc());
-      UseServicesHelper::debugAppend(subEl, "seq nr", common->seqNr());
-      UseServicesHelper::debugAppend(subEl, "reserved", common->reserved());
-    }
-
-    //-------------------------------------------------------------------------
-    static void toDebugReportBlock(
-                                   ElementPtr &subEl,
-                                   RTCPPacket::XR::ReportBlock *common
-                                   )
-    {
-      UseServicesHelper::debugAppend(subEl, "next", (NULL != common->next()));
-      UseServicesHelper::debugAppend(subEl, "block type", common->blockType());
-      UseServicesHelper::debugAppend(subEl, "type specific", common->typeSpecific());
-      UseServicesHelper::debugAppend(subEl, "type specific contents", (NULL != common->typeSpecificContents()));
-      UseServicesHelper::debugAppend(subEl, "type specific contents size", common->typeSpecificContentSize());
-    }
-
-    //-------------------------------------------------------------------------
-    static void toDebugReportBlockRange(
-                                        ElementPtr &subEl,
-                                        RTCPPacket::XR::ReportBlockRange *common
-                                        )
-    {
-      internal::toDebugReportBlock(subEl, common);
-      UseServicesHelper::debugAppend(subEl, "reserved", common->reserved());
-      UseServicesHelper::debugAppend(subEl, "thinning", common->thinning());
-      UseServicesHelper::debugAppend(subEl, "ssrc", common->ssrcOfSource());
-      UseServicesHelper::debugAppend(subEl, "begin seq", common->beginSeq());
-      UseServicesHelper::debugAppend(subEl, "end seq", common->endSeq());
-    }
-
-    //-------------------------------------------------------------------------
-    static void toDebugRLEReportBlock(
-                                      ElementPtr &subEl,
-                                      RTCPPacket::XR::RLEReportBlock *common
-                                      )
-    {
-      internal::toDebugReportBlockRange(subEl, common);
-      auto count = common->chunkCount();
-
-      if (count < 1) return;
-
-      ElementPtr outerEl = Element::create("chunks");
-
-      for (size_t index = 0; index < count; ++index) {
-        RTCPPacket::XR::RLEChunk chunk = common->chunkAtIndex(index);
-
-        ElementPtr chunkEl;
-
-        if (RTCPPacket::XR::isRunLengthChunk(chunk)) {
-          chunkEl = Element::create("run length");
-
-          RTCPPacket::XR::RunLength rl(chunk);
-          UseServicesHelper::debugAppend(chunkEl, "run type", string(rl.runType()));
-          UseServicesHelper::debugAppend(chunkEl, "run length", rl.runLength());
-
-        } else if (RTCPPacket::XR::isBitVectorChunk(chunk)) {
-          chunkEl = Element::create("bit vector");
-
-          String bits;
-          RTCPPacket::XR::BitVector bv(chunk);
-          for (int bitPos = 0; bitPos < sizeof(RTCPPacket::XR::RLEChunk); ++bitPos) {
-            bits += string(bv.bitAtIndex(bitPos));
-          }
-          UseServicesHelper::debugAppend(chunkEl, "bit vector", bits);
-        } else {
-          chunkEl = Element::create("unknown");
-          UseServicesHelper::debugAppend(chunkEl, "value", chunk);
-        }
-
-        UseServicesHelper::debugAppend(outerEl, chunkEl);
-      }
-      UseServicesHelper::debugAppend(subEl, outerEl);
-
-    }
-
-    //-------------------------------------------------------------------------
-    static ElementPtr toDebugSenderReport(RTCPPacket::SenderReport *sr)
-    {
-      ElementPtr subEl = Element::create("SenderReport");
-
-      internal::toDebugSenderReceiverCommonReport(subEl, sr);
-      UseServicesHelper::debugAppend(subEl, "ntp timestamp ms", sr->ntpTimestampMS());
-      UseServicesHelper::debugAppend(subEl, "ntp timestamp ls", sr->ntpTimestampLS());
-      UseServicesHelper::debugAppend(subEl, "ntp timestamp", sr->ntpTimestamp());
-      UseServicesHelper::debugAppend(subEl, "sender packet count", sr->senderPacketCount());
-      UseServicesHelper::debugAppend(subEl, "sender octet count", sr->senderOctetCount());
-
-      UseServicesHelper::debugAppend(subEl, internal::toDebug(sr));
-
-      UseServicesHelper::debugAppend(subEl, "next sender report", NULL != sr->nextSenderReport());
-      return subEl;
-    }
-
-    //-------------------------------------------------------------------------
-    static ElementPtr toDebugReceiverReport(RTCPPacket::ReceiverReport *rr)
-    {
-      ElementPtr subEl = Element::create("ReceiverReport");
-      internal::toDebugSenderReceiverCommonReport(subEl, rr);
-      UseServicesHelper::debugAppend(subEl, internal::toDebug(rr));
-      UseServicesHelper::debugAppend(subEl, "next receiver report", NULL != rr->nextReceiverReport());
-      return subEl;
-    }
-
-    //-------------------------------------------------------------------------
-    static ElementPtr toDebugSDES(RTCPPacket::SDES *sdes)
-    {
-      ElementPtr subEl = Element::create("SDES");
-      internal::toDebug(subEl, sdes);
-      UseServicesHelper::debugAppend(subEl, "sc", sdes->sc());
-
-      RTCPPacket::SDES::Chunk *chunk = sdes->firstChunk();
-      if (NULL != chunk) {
-        ElementPtr chunksEl = Element::create("Chunks");
-
-        for (; NULL != chunk; chunk = chunk->next()) {
-          ElementPtr chunkEl = Element::create("Chunk");
-          UseServicesHelper::debugAppend(chunkEl, "ssrc", chunk->ssrc());
-          UseServicesHelper::debugAppend(chunkEl, "count", chunk->count());
-          UseServicesHelper::debugAppend(chunkEl, "cname count", chunk->cNameCount());
-          UseServicesHelper::debugAppend(chunkEl, "name count", chunk->nameCount());
-          UseServicesHelper::debugAppend(chunkEl, "email count", chunk->emailCount());
-          UseServicesHelper::debugAppend(chunkEl, "phone count", chunk->phoneCount());
-          UseServicesHelper::debugAppend(chunkEl, "loc count", chunk->locCount());
-          UseServicesHelper::debugAppend(chunkEl, "tool count", chunk->toolCount());
-          UseServicesHelper::debugAppend(chunkEl, "note count", chunk->noteCount());
-          UseServicesHelper::debugAppend(chunkEl, "priv count", chunk->privCount());
-          UseServicesHelper::debugAppend(chunkEl, "mid count", chunk->midCount());
-          UseServicesHelper::debugAppend(chunkEl, "rid count", chunk->ridCount());
-          UseServicesHelper::debugAppend(chunkEl, "unknown count", chunk->unknownCount());
-
-          UseServicesHelper::debugAppend(chunkEl, internal::toDebug("cnames", "cname", chunk->firstCName()));
-          UseServicesHelper::debugAppend(chunkEl, internal::toDebug("names", "name", chunk->firstName()));
-          UseServicesHelper::debugAppend(chunkEl, internal::toDebug("emails", "email", chunk->firstEmail()));
-          UseServicesHelper::debugAppend(chunkEl, internal::toDebug("phones", "phone", chunk->firstPhone()));
-          UseServicesHelper::debugAppend(chunkEl, internal::toDebug("locs", "loc", chunk->firstLoc()));
-          UseServicesHelper::debugAppend(chunkEl, internal::toDebug("tools", "tool", chunk->firstTool()));
-          UseServicesHelper::debugAppend(chunkEl, internal::toDebug("notes", "note", chunk->firstNote()));
-          UseServicesHelper::debugAppend(chunkEl, internal::toDebug("privs", "priv", chunk->firstPriv()));
-          UseServicesHelper::debugAppend(chunkEl, internal::toDebug("mid", "mid", chunk->firstMid()));
-          UseServicesHelper::debugAppend(chunkEl, internal::toDebug("rid", "rid", chunk->firstRid()));
-          UseServicesHelper::debugAppend(chunkEl, internal::toDebug("unknowns", "unknown", chunk->firstUnknown()));
-
-          UseServicesHelper::debugAppend(chunksEl, chunkEl);
-        }
-
-        UseServicesHelper::debugAppend(subEl, chunksEl);
-      }
-
-      UseServicesHelper::debugAppend(subEl, "next sdes", NULL != sdes->nextSDES());
-      return subEl;
-    }
-
-    //-------------------------------------------------------------------------
-    static ElementPtr toDebugBye(RTCPPacket::Bye *bye)
-    {
-      ElementPtr subEl = Element::create("Bye");
-      internal::toDebug(subEl, bye);
-
-      UseServicesHelper::debugAppend(subEl, internal::toDebug("ssrcs", "ssrc", bye->mSSRCs, bye->sc()));
-
-      UseServicesHelper::debugAppend(subEl, "reason for leaving", bye->reasonForLeaving());
-      UseServicesHelper::debugAppend(subEl, "next bye", NULL != bye->nextBye());
-      return subEl;
-    }
-
-    //-------------------------------------------------------------------------
-    static ElementPtr toDebugApp(RTCPPacket::App *app)
-    {
-      ElementPtr subEl = Element::create("App");
-      internal::toDebug(subEl, app);
-
-      UseServicesHelper::debugAppend(subEl, "subtype", app->subtype());
-      UseServicesHelper::debugAppend(subEl, "ssrc", app->ssrc());
-      UseServicesHelper::debugAppend(subEl, "name", app->name());
-
-      UseServicesHelper::debugAppend(subEl, "data", (NULL != app->data()));
-      UseServicesHelper::debugAppend(subEl, "name size", app->dataSize());
-
-      UseServicesHelper::debugAppend(subEl, "next app", NULL != app->nextApp());
-      return subEl;
-    }
-
-    //-------------------------------------------------------------------------
-    static ElementPtr toDebugTransportLayerFeedbackMessage(RTCPPacket::TransportLayerFeedbackMessage *fm)
-    {
-      ElementPtr subEl = Element::create("TransportLayerFeedbackMessage");
-      internal::toDebugFeedbackMessage(subEl, fm);
-
-      {
-        auto count = fm->genericNACKCount();
-        if (count > 0) {
-          ElementPtr formatsEl = Element::create("GenericNACKs");
-
-          for (size_t index = 0; index < count; ++index) {
-            ElementPtr formatEl = Element::create("GenericNACK");
-
-            auto format = fm->genericNACKAtIndex(index);
-
-            UseServicesHelper::debugAppend(formatEl, "pid", format->pid());
-            UseServicesHelper::debugAppend(formatEl, "blp", format->blp());
-
-            UseServicesHelper::debugAppend(formatsEl, formatEl);
-          }
-          UseServicesHelper::debugAppend(subEl, formatsEl);
-        }
-      }
-
-      {
-        auto count = fm->tmmbrCount();
-        if (count > 0) {
-          ElementPtr formatsEl = Element::create("TMMBRs");
-
-          for (size_t index = 0; index < count; ++index) {
-            ElementPtr formatEl = Element::create("TMMBR");
-
-            auto format = fm->tmmbrAtIndex(index);
-            internal::toDebug(formatEl, format);
-
-            UseServicesHelper::debugAppend(formatsEl, formatEl);
-          }
-          UseServicesHelper::debugAppend(subEl, formatsEl);
-        }
-      }
-
-      {
-        auto count = fm->tmmbrCount();
-        if (count > 0) {
-          ElementPtr formatsEl = Element::create("TMMBNs");
-
-          for (size_t index = 0; index < count; ++index) {
-            ElementPtr formatEl = Element::create("TMMBN");
-
-            auto format = fm->tmmbrAtIndex(index);
-            internal::toDebug(formatEl, format);
-
-            UseServicesHelper::debugAppend(formatsEl, formatEl);
-          }
-          UseServicesHelper::debugAppend(subEl, formatsEl);
-        }
-      }
-
-      UseServicesHelper::debugAppend(subEl, "unknown", NULL != fm->unknown());
-
-      UseServicesHelper::debugAppend(subEl, "next transport layer feedback message", (NULL != fm->nextTransportLayerFeedbackMessage()));
-
-      return subEl;
-    }
-
-    //-------------------------------------------------------------------------
-    static ElementPtr toDebugPayloadSpecificFeedbackMessage(RTCPPacket::PayloadSpecificFeedbackMessage *fm)
-    {
-      ElementPtr subEl = Element::create("PayloadSpecificFeedbackMessage");
-      internal::toDebugFeedbackMessage(subEl, fm);
-
-      {
-        auto format = fm->pli();
-        if (NULL != format) {
-          ElementPtr formatEl = Element::create("PLI");
-
-          UseServicesHelper::debugAppend(subEl, formatEl);
-        }
-      }
-
-      {
-        auto count = fm->sliCount();
-        if (count > 0) {
-          ElementPtr formatsEl = Element::create("SLIs");
-
-          for (size_t index = 0; index < count; ++index) {
-            ElementPtr formatEl = Element::create("SLI");
-
-            auto format = fm->sliAtIndex(index);
-
-            UseServicesHelper::debugAppend(formatEl, "first", format->first());
-            UseServicesHelper::debugAppend(formatEl, "number", format->number());
-            UseServicesHelper::debugAppend(formatEl, "picture id", format->pictureID());
-
-            UseServicesHelper::debugAppend(formatsEl, formatEl);
-          }
-          UseServicesHelper::debugAppend(subEl, formatsEl);
-        }
-      }
-
-      {
-        auto format = fm->rpsi();
-        if (NULL != format) {
-          ElementPtr formatEl = Element::create("RPSI");
-
-          UseServicesHelper::debugAppend(formatEl, "zero bit", format->zeroBit());
-          UseServicesHelper::debugAppend(formatEl, "payload type", format->payloadType());
-
-          UseServicesHelper::debugAppend(formatEl, "native rpsi bit string", (NULL != format->nativeRPSIBitString()));
-          UseServicesHelper::debugAppend(formatEl, "native rpsi bit string size (bits)", format->nativeRPSIBitStringSizeInBits());
-
-          UseServicesHelper::debugAppend(subEl, formatEl);
-        }
-      }
-
-      {
-        auto count = fm->firCount();
-        if (count > 0) {
-          ElementPtr formatsEl = Element::create("FIRs");
-
-          for (size_t index = 0; index < count; ++index) {
-            ElementPtr formatEl = Element::create("FIR");
-
-            auto format = fm->firAtIndex(index);
-            internal::toDebug(formatEl, format);
-
-            UseServicesHelper::debugAppend(formatsEl, formatEl);
-          }
-          UseServicesHelper::debugAppend(subEl, formatsEl);
-        }
-      }
-
-      {
-        auto count = fm->tstrCount();
-        if (count > 0) {
-          ElementPtr formatsEl = Element::create("TSTRs");
-
-          for (size_t index = 0; index < count; ++index) {
-            ElementPtr formatEl = Element::create("TSTR");
-
-            auto format = fm->tstrAtIndex(index);
-            internal::toDebug(formatEl, format);
-
-            UseServicesHelper::debugAppend(formatEl, "index", format->index());
-
-            UseServicesHelper::debugAppend(formatsEl, formatEl);
-          }
-          UseServicesHelper::debugAppend(subEl, formatsEl);
-        }
-      }
-
-      {
-        auto count = fm->tstnCount();
-        if (count > 0) {
-          ElementPtr formatsEl = Element::create("TSTNs");
-
-          for (size_t index = 0; index < count; ++index) {
-            ElementPtr formatEl = Element::create("TSTN");
-
-            auto format = fm->tstnAtIndex(index);
-            internal::toDebug(formatEl, format);
-
-            UseServicesHelper::debugAppend(formatEl, "index", format->index());
-
-            UseServicesHelper::debugAppend(formatsEl, formatEl);
-          }
-          UseServicesHelper::debugAppend(subEl, formatsEl);
-        }
-      }
-
-      {
-        auto count = fm->vbcmCount();
-        if (count > 0) {
-          ElementPtr formatsEl = Element::create("VBCMs");
-
-          for (size_t index = 0; index < count; ++index) {
-            ElementPtr formatEl = Element::create("VBCM");
-
-            auto format = fm->vbcmAtIndex(index);
-            internal::toDebug(formatEl, format);
-
-            UseServicesHelper::debugAppend(formatEl, "zero bit", format->zeroBit());
-            UseServicesHelper::debugAppend(formatEl, "payload type", format->payloadType());
-
-            UseServicesHelper::debugAppend(formatEl, "vbcm octet string", (NULL != format->vbcmOctetString()));
-            UseServicesHelper::debugAppend(formatEl, "vbcm octet string size", format->vbcmOctetStringSize());
-
-            UseServicesHelper::debugAppend(formatsEl, formatEl);
-          }
-          UseServicesHelper::debugAppend(subEl, formatsEl);
-        }
-      }
-
-      {
-        auto format = fm->afb();
-        auto remb = fm->remb();
-
-        if ((NULL != format) &&
-            (NULL == remb)) {
-          ElementPtr formatEl = Element::create("AFB");
-
-          UseServicesHelper::debugAppend(formatEl, "data", (NULL != format->data()));
-          UseServicesHelper::debugAppend(formatEl, "data size", format->dataSize());
-
-          UseServicesHelper::debugAppend(subEl, formatEl);
-        }
-      }
-
-      {
-        auto format = fm->remb();
-        if (NULL != format) {
-          ElementPtr formatEl = Element::create("REMB");
-
-          UseServicesHelper::debugAppend(formatEl, "num ssrc", format->numSSRC());
-          UseServicesHelper::debugAppend(formatEl, "br exp", format->brExp());
-          UseServicesHelper::debugAppend(formatEl, "br mantissa", format->brMantissa());
-
-          UseServicesHelper::debugAppend(formatEl, internal::toDebug("ssrcs", "ssrc", format->mSSRCs, format->numSSRC()));
-
-          UseServicesHelper::debugAppend(subEl, formatEl);
-        }
-      }
-
-      UseServicesHelper::debugAppend(subEl, "unknown", NULL != fm->unknown());
-
-      UseServicesHelper::debugAppend(subEl, "next payload specific feedback message", (NULL != fm->nextPayloadSpecificFeedbackMessage()));
-      return subEl;
-    }
-
-    //-------------------------------------------------------------------------
-    static ElementPtr toDebugXR(RTCPPacket::XR *xr)
-    {
-      ElementPtr subEl = Element::create("XR");
-      internal::toDebug(subEl, xr);
-
-      UseServicesHelper::debugAppend(subEl, "reserved", xr->reserved());
-      UseServicesHelper::debugAppend(subEl, "ssrc", xr->ssrc());
-      UseServicesHelper::debugAppend(subEl, "report block count", xr->reportBlockCount());
-
-      {
-        auto count = xr->lossRLEReportBlockCount();
-        if (count > 0) {
-          ElementPtr formatsEl = Element::create("LossRLEReportBlocks");
-
-          for (size_t index = 0; index < count; ++index) {
-            ElementPtr formatEl = Element::create("LossRLEReportBlock");
-
-            auto format = xr->lossRLEReportBlockAtIndex(index);
-
-            internal::toDebugRLEReportBlock(formatEl, format);
-
-            UseServicesHelper::debugAppend(formatEl, "next loss rle report block", (NULL != format->nextLossRLE()));
-
-            UseServicesHelper::debugAppend(formatsEl, formatEl);
-          }
-          UseServicesHelper::debugAppend(subEl, formatsEl);
-        }
-      }
-
-      {
-        auto count = xr->duplicateRLEReportBlockCount();
-        if (count > 0) {
-          ElementPtr formatsEl = Element::create("DuplicateRLEReportBlocks");
-
-          for (size_t index = 0; index < count; ++index) {
-            ElementPtr formatEl = Element::create("DuplicateRLEReportBlock");
-
-            auto format = xr->duplicateRLEReportBlockAtIndex(index);
-
-            internal::toDebugRLEReportBlock(formatEl, format);
-
-            UseServicesHelper::debugAppend(formatEl, "next duplicate rle report block", (NULL != format->nextDuplicateRLE()));
-
-            UseServicesHelper::debugAppend(formatsEl, formatEl);
-          }
-          UseServicesHelper::debugAppend(subEl, formatsEl);
-        }
-      }
-
-      {
-        auto count = xr->packetReceiptTimesReportBlockCount();
-        if (count > 0) {
-          ElementPtr formatsEl = Element::create("PacketReceiptTimesReportBlocks");
-
-          for (size_t index = 0; index < count; ++index) {
-            ElementPtr formatEl = Element::create("PacketReceiptTimesReportBlock");
-
-            auto format = xr->packetReceiptTimesReportBlockAtIndex(index);
-
-            internal::toDebugReportBlockRange(formatEl, format);
-
-            UseServicesHelper::debugAppend(formatEl, internal::toDebug("receipt times", "receipt time", format->mReceiptTimes, format->receiptTimeCount()));
-            UseServicesHelper::debugAppend(formatEl, "next packet receipt times report block", (NULL != format->nextPacketReceiptTimesReportBlock()));
-
-            UseServicesHelper::debugAppend(formatsEl, formatEl);
-          }
-          UseServicesHelper::debugAppend(subEl, formatsEl);
-        }
-      }
-
-      {
-        auto count = xr->receiverReferenceTimeReportBlockCount();
-        if (count > 0) {
-          ElementPtr formatsEl = Element::create("ReceiverReferenceTimeReportBlocks");
-
-          for (size_t index = 0; index < count; ++index) {
-            ElementPtr formatEl = Element::create("ReceiverReferenceTimeReportBlock");
-
-            auto format = xr->receiverReferenceTimeReportBlockAtIndex(index);
-
-            internal::toDebugReportBlock(formatEl, format);
-
-            UseServicesHelper::debugAppend(formatEl, "ntp timestamp ms", format->ntpTimestampMS());
-            UseServicesHelper::debugAppend(formatEl, "ntp timestamp ls", format->ntpTimestampLS());
-            UseServicesHelper::debugAppend(formatEl, "ntp timestamp", format->ntpTimestamp());
-            UseServicesHelper::debugAppend(formatEl, "next receiver reference time report block", (NULL != format->nextReceiverReferenceTimeReportBlock()));
-
-            UseServicesHelper::debugAppend(formatsEl, formatEl);
-          }
-          UseServicesHelper::debugAppend(subEl, formatsEl);
-        }
-      }
-
-      {
-        auto count = xr->dlrrReportBlockCount();
-        if (count > 0) {
-          ElementPtr formatsEl = Element::create("DLRRReportBlocks");
-
-          for (size_t index = 0; index < count; ++index) {
-            ElementPtr formatEl = Element::create("DLRRReportBlock");
-
-            auto format = xr->dlrrReportBlockAtIndex(index);
-
-            internal::toDebugReportBlock(formatEl, format);
-
-            UseServicesHelper::debugAppend(formatEl, "subblock count", format->subBlockCount());
-
-            size_t subBlockCount = format->subBlockCount();
-            if (subBlockCount > 0) {
-              ElementPtr subblocksEl = Element::create("SubBlocks");
-              for (size_t indexSubBlock = 0; indexSubBlock < subBlockCount; ++indexSubBlock)
-              {
-                ElementPtr subblockEl = Element::create("SubBlock");
-                auto subBlock = format->subBlockAtIndex(indexSubBlock);
-                UseServicesHelper::debugAppend(subblockEl, "ssrc", subBlock->ssrc());
-                UseServicesHelper::debugAppend(subblockEl, "lrr", subBlock->lrr());
-                UseServicesHelper::debugAppend(subblockEl, "dlrr", subBlock->dlrr());
-                UseServicesHelper::debugAppend(subblocksEl, subblockEl);
-              }
-              UseServicesHelper::debugAppend(formatEl, subblocksEl);
-            }
-
-            UseServicesHelper::debugAppend(formatEl, "next dlrr report block", (NULL != format->nextDLRRReportBlock()));
-
-            UseServicesHelper::debugAppend(formatsEl, formatEl);
-          }
-          UseServicesHelper::debugAppend(subEl, formatsEl);
-        }
-      }
-
-      {
-        auto count = xr->statisticsSummaryReportBlockCount();
-        if (count > 0) {
-          ElementPtr formatsEl = Element::create("StatisticsSummaryReportBlocks");
-
-          for (size_t index = 0; index < count; ++index) {
-            ElementPtr formatEl = Element::create("StatisticsSummaryReportBlock");
-
-            auto format = xr->statisticsSummaryReportBlockAtIndex(index);
-
-            internal::toDebugReportBlockRange(formatEl, format);
-
-            UseServicesHelper::debugAppend(formatEl, "loss report flag", format->lossReportFlag());
-            UseServicesHelper::debugAppend(formatEl, "duplicate report flag", format->duplicateReportFlag());
-            UseServicesHelper::debugAppend(formatEl, "jitter report flag", format->jitterFlag());
-            UseServicesHelper::debugAppend(formatEl, "ttl flag", format->ttlFlag());
-            UseServicesHelper::debugAppend(formatEl, "hop limit flag", format->hopLimitFlag());
-
-            if (format->lossReportFlag()) {
-              UseServicesHelper::debugAppend(formatEl, "lost packets", format->lostPackets());
-            }
-            if (format->duplicateReportFlag()) {
-              UseServicesHelper::debugAppend(formatEl, "dup packets", format->dupPackets());
-            }
-
-            if (format->jitterFlag()) {
-              UseServicesHelper::debugAppend(formatEl, "min jitter", format->minJitter());
-              UseServicesHelper::debugAppend(formatEl, "max jitter", format->maxJitter());
-              UseServicesHelper::debugAppend(formatEl, "mean jitter", format->meanJitter());
-              UseServicesHelper::debugAppend(formatEl, "dev jitter", format->devJitter());
-            }
-
-            if (format->ttlFlag()) {
-              UseServicesHelper::debugAppend(formatEl, "min ttl", format->minTTL());
-              UseServicesHelper::debugAppend(formatEl, "max ttl", format->maxTTL());
-              UseServicesHelper::debugAppend(formatEl, "mean ttl", format->meanTTL());
-              UseServicesHelper::debugAppend(formatEl, "dev ttl", format->devTTL());
-            }
-
-            if (format->hopLimitFlag()) {
-              UseServicesHelper::debugAppend(formatEl, "min hop limit", format->minHopLimit());
-              UseServicesHelper::debugAppend(formatEl, "max hop limit", format->maxHopLimit());
-              UseServicesHelper::debugAppend(formatEl, "mean hop limit", format->meanHopLimit());
-              UseServicesHelper::debugAppend(formatEl, "dev hop limit", format->devHopLimit());
-            }
-
-            UseServicesHelper::debugAppend(formatEl, "next statistics summary report block", (NULL != format->nextStatisticsSummaryReportBlock()));
-
-            UseServicesHelper::debugAppend(formatsEl, formatEl);
-          }
-          UseServicesHelper::debugAppend(subEl, formatsEl);
-        }
-      }
-
-      {
-        auto count = xr->voIPMetricsReportBlockCount();
-        if (count > 0) {
-          ElementPtr formatsEl = Element::create("VoIPMetricsReportBlocks");
-
-          for (size_t index = 0; index < count; ++index) {
-            ElementPtr formatEl = Element::create("VoIPMetricsReportBlock");
-
-            auto format = xr->voIPMetricsReportBlockAtIndex(index);
-
-            internal::toDebugReportBlock(formatEl, format);
-
-            UseServicesHelper::debugAppend(formatEl, "ssrc of source", format->ssrcOfSource());
-
-            UseServicesHelper::debugAppend(formatEl, "loss rate", format->lossRate());
-            UseServicesHelper::debugAppend(formatEl, "discard rate", format->discardRate());
-            UseServicesHelper::debugAppend(formatEl, "burst density", format->burstDensity());
-            UseServicesHelper::debugAppend(formatEl, "gap densitity", format->gapDensity());
-
-            UseServicesHelper::debugAppend(formatEl, "burst duration", format->burstDuration());
-            UseServicesHelper::debugAppend(formatEl, "gap duration", format->gapDuration());
-
-            UseServicesHelper::debugAppend(formatEl, "round trip delay", format->roundTripDelay());
-            UseServicesHelper::debugAppend(formatEl, "end system delay", format->endSystemDelay());
-
-            UseServicesHelper::debugAppend(formatEl, "signal level", format->signalLevel());
-            UseServicesHelper::debugAppend(formatEl, "noise level", format->noiseLevel());
-            UseServicesHelper::debugAppend(formatEl, "rerl", format->rerl());
-            UseServicesHelper::debugAppend(formatEl, "Gmin", format->Gmin());
-
-            UseServicesHelper::debugAppend(formatEl, "r factor", format->rFactor());
-            UseServicesHelper::debugAppend(formatEl, "ext r factor", format->extRFactor());
-            UseServicesHelper::debugAppend(formatEl, "moslq", format->mosLQ());
-            UseServicesHelper::debugAppend(formatEl, "moscq", format->mosCQ());
-
-            UseServicesHelper::debugAppend(formatEl, "rx config", format->rxConfig());
-            UseServicesHelper::debugAppend(formatEl, "plc", format->plc());
-            UseServicesHelper::debugAppend(formatEl, "jba", format->jba());
-            UseServicesHelper::debugAppend(formatEl, "jb rate", format->jbRate());
-
-            UseServicesHelper::debugAppend(formatEl, "jb nominal", format->jbNominal());
-            UseServicesHelper::debugAppend(formatEl, "jb maximum", format->jbMaximum());
-            UseServicesHelper::debugAppend(formatEl, "jb abs max", format->jbAbsMax());
-
-            UseServicesHelper::debugAppend(formatEl, "next voip metrics report block", (NULL != format->nextVoIPMetricsReportBlock()));
-
-            UseServicesHelper::debugAppend(formatsEl, formatEl);
-          }
-          UseServicesHelper::debugAppend(subEl, formatsEl);
-        }
-      }
-
-      {
-        auto count = xr->unknownReportBlockCount();
-        if (count > 0) {
-          ElementPtr formatsEl = Element::create("UnknownReportBlocks");
-
-          for (size_t index = 0; index < count; ++index) {
-            ElementPtr formatEl = Element::create("UnknownReportBlock");
-
-            auto format = xr->unknownReportBlockAtIndex(index);
-
-            internal::toDebugReportBlock(formatEl, format);
-
-            UseServicesHelper::debugAppend(formatEl, "next unknown report block", (NULL != format->nextUnknownReportBlock()));
-
-            UseServicesHelper::debugAppend(formatsEl, formatEl);
-          }
-          UseServicesHelper::debugAppend(subEl, formatsEl);
-        }
-      }
-
-      UseServicesHelper::debugAppend(subEl, "next xr", (NULL != xr->nextXR()));
-      return subEl;
-    }
-
-    //-------------------------------------------------------------------------
-    ElementPtr RTCPPacket::toDebug() const
-    {
-      ElementPtr objectEl = Element::create("ortc::RTCPPacket");
-
-      UseServicesHelper::debugAppend(objectEl, "buffer", mBuffer ? mBuffer->SizeInBytes() : 0);
-      UseServicesHelper::debugAppend(objectEl, "allocate buffer", mAllocationBuffer ? mAllocationBuffer->SizeInBytes() : 0);
-
-      UseServicesHelper::debugAppend(objectEl, "allocation pos", (NULL != mAllocationPos ? (mAllocationBuffer ? (reinterpret_cast<PTRNUMBER>(mAllocationPos) - reinterpret_cast<PTRNUMBER>(mAllocationBuffer->BytePtr())) : reinterpret_cast<PTRNUMBER>(mAllocationPos)) : 0));
-      UseServicesHelper::debugAppend(objectEl, "buffer", mAllocationSize);
-
-      for (Report *report = mFirst; NULL != report; report = report->next())
-      {
-        switch (report->pt()) {
-          case SenderReport::kPayloadType:
-          {
-            SenderReport *sr = static_cast<SenderReport *>(report);
-            UseServicesHelper::debugAppend(objectEl, toDebugSenderReport(sr));
-            break;
-          }
-          case ReceiverReport::kPayloadType:
-          {
-            ReceiverReport *rr = static_cast<ReceiverReport *>(report);
-            UseServicesHelper::debugAppend(objectEl, toDebugReceiverReport(rr));
-            break;
-          }
-          case SDES::kPayloadType:
-          {
-            SDES *sdes = static_cast<SDES *>(report);
-            UseServicesHelper::debugAppend(objectEl, toDebugSDES(sdes));
-            break;
-          }
-          case Bye::kPayloadType:
-          {
-            Bye *bye = static_cast<Bye *>(report);
-            UseServicesHelper::debugAppend(objectEl, toDebugBye(bye));
-            break;
-          }
-          case App::kPayloadType:
-          {
-            App *app = static_cast<App *>(report);
-            UseServicesHelper::debugAppend(objectEl, toDebugApp(app));
-            break;
-          }
-          case TransportLayerFeedbackMessage::kPayloadType:
-          {
-            TransportLayerFeedbackMessage *fm = static_cast<TransportLayerFeedbackMessage *>(report);
-            UseServicesHelper::debugAppend(objectEl, toDebugTransportLayerFeedbackMessage(fm));
-            break;
-          }
-          case PayloadSpecificFeedbackMessage::kPayloadType:
-          {
-            PayloadSpecificFeedbackMessage *fm = static_cast<PayloadSpecificFeedbackMessage *>(report);
-            UseServicesHelper::debugAppend(objectEl, toDebugPayloadSpecificFeedbackMessage(fm));
-            break;
-          }
-          case XR::kPayloadType:
-          {
-            XR *xr = static_cast<XR *>(report);
-            UseServicesHelper::debugAppend(objectEl, toDebugXR(xr));
-            break;
-          }
-          default:
-          {
-            UnknownReport *unknown = static_cast<UnknownReport *>(report);
-
-            ElementPtr subEl = Element::create("UnknownReport");
-            internal::toDebug(subEl, unknown);
-
-            UseServicesHelper::debugAppend(subEl, "next unknown", (NULL != unknown->nextUnknown()));
-
-            UseServicesHelper::debugAppend(objectEl, subEl);
-            break;
-          }
-        }
-      }
-
-      return objectEl;
-    }
-
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTCPPacket (internal)
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    Log::Params RTCPPacket::slog(const char *message)
-    {
-      return packet_slog(message);
-    }
-
-    //-------------------------------------------------------------------------
-    Log::Params RTCPPacket::log(const char *message) const
-    {
-      ElementPtr objectEl = Element::create("ortc::RTCPPacket");
-      return Log::Params(message, objectEl);
-    }
-
-    //-------------------------------------------------------------------------
-    Log::Params RTCPPacket::debug(const char *message) const
-    {
-      return Log::Params(message, toDebug());
-    }
-
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::parse()
-    {
-      const BYTE *buffer = mBuffer->BytePtr();
-      size_t size = mBuffer->SizeInBytes();
-
-      if (size < kMinRtcpPacketLen) {
-        ZS_LOG_WARNING(Trace, log("packet length is too short") + ZS_PARAM("length", size))
-        return false;
-      }
-
-      bool foundPaddingBit = false;
-
-      // scope: calculate total memory allocation size needed to parse entire RTCP packet
-      {
-        size_t remaining = size;
-        const BYTE *pos = buffer;
-
-        while (remaining >= kMinRtcpPacketLen) {
-          auto version = RTCP_GET_BITS(*pos, 0x3, 6);
-          if (kRtpVersion != version) {
-            ZS_LOG_WARNING(Trace, debug("illegal version found") + ZS_PARAM("version", version))
-            return false;
-          }
-
-          size_t length = sizeof(DWORD) + (static_cast<size_t>(RTPUtils::getBE16(&(pos[2]))) * sizeof(DWORD));
-
-          size_t padding = 0;
-
-          if (RTCP_IS_FLAG_SET(*pos, 5)) {
-            if (foundPaddingBit) {
-              ZS_LOG_WARNING(Trace, debug("found illegal second padding bit set in compound RTCP block"))
-              return false;
-            }
-
-            padding = buffer[size-1];
-          }
-
-          if ((sizeof(DWORD) + padding) > length) {
-            ZS_LOG_WARNING(Trace, debug("malformed padding size in RTCP packet"))
-            return false;
-          }
-
-          length -= padding;
-
-          if (remaining < length) {
-            ZS_LOG_WARNING(Trace, debug("insufficient length remaining for RTCP block") + ZS_PARAM("length", length) + ZS_PARAM("remaining", remaining))
-            return false;
-          }
-
-          BYTE reportSpecific = RTCP_GET_BITS(*pos, 0x1F, 0);
-
-          const BYTE *prePos = pos;
-          BYTE pt = pos[1];
-
-          advancePos(pos, remaining, sizeof(DWORD));
-
-          size_t preAllocationSize = mAllocationSize;
-
-          if (!getAllocationSize(static_cast<BYTE>(version), static_cast<BYTE>(padding), reportSpecific, pt, pos, static_cast<size_t>(length - sizeof(DWORD)))) return false;
-
-          advancePos(pos, remaining, length - sizeof(DWORD));
-
-          if (0 != padding) {
-            advancePos(pos, remaining, padding);
-          }
-
-          if (ZS_IS_LOGGING(Insane)) {
-            ZS_LOG_TRACE(log("report allocation size") + ZS_PARAM("pt", Report::ptToString(pt)) + ZS_PARAM("pt (number)", pt) + ZS_PARAM("consumed", (reinterpret_cast<PTRNUMBER>(pos) - reinterpret_cast<PTRNUMBER>(prePos))) + ZS_PARAM("allocation size", mAllocationSize - preAllocationSize))
-          }
-
-          ++mCount;
-        }
-      }
-
-      if (0 == mAllocationSize) {
-        ZS_LOG_TRACE(debug("no RTCP packets were processed"))
-        return true;
-      }
-
-      mAllocationBuffer = make_shared<SecureByteBlock>(alignedSize(mAllocationSize));
-
-      mAllocationPos = mAllocationBuffer->BytePtr();
-
-      // scope: allocation size is now established; begin parsing all reports contained in RTCP packet
-      {
-        size_t remaining = size;
-        const BYTE *pos = buffer;
-
-
-        if (0 != mSenderReportCount) {
-          mFirstSenderReport = new (allocateBuffer(alignedSize(sizeof(SenderReport)) * mSenderReportCount)) SenderReport[mSenderReportCount];
-        }
-        if (0 != mReceiverReportCount) {
-          mFirstReceiverReport = new (allocateBuffer(alignedSize(sizeof(ReceiverReport)) * mReceiverReportCount)) ReceiverReport[mReceiverReportCount];
-        }
-        if (0 != mSDESCount) {
-          mFirstSDES = new (allocateBuffer(alignedSize(sizeof(SDES)) * mSDESCount)) SDES[mSDESCount];
-        }
-        if (0 != mByeCount) {
-          mFirstBye = new (allocateBuffer(alignedSize(sizeof(Bye)) * mByeCount)) Bye[mByeCount];
-        }
-        if (0 != mAppCount) {
-          mFirstApp = new (allocateBuffer(alignedSize(sizeof(App)) * mAppCount)) App[mAppCount];
-        }
-        if (0 != mTransportLayerFeedbackMessageCount) {
-          mFirstTransportLayerFeedbackMessage = new (allocateBuffer(alignedSize(sizeof(TransportLayerFeedbackMessage)) * mTransportLayerFeedbackMessageCount)) TransportLayerFeedbackMessage[mTransportLayerFeedbackMessageCount];
-        }
-        if (0 != mPayloadSpecificFeedbackMessageCount) {
-          mFirstPayloadSpecificFeedbackMessage = new (allocateBuffer(alignedSize(sizeof(PayloadSpecificFeedbackMessage)) * mPayloadSpecificFeedbackMessageCount)) PayloadSpecificFeedbackMessage[mPayloadSpecificFeedbackMessageCount];
-        }
-        if (0 != mXRCount) {
-          mFirstXR = new (allocateBuffer(alignedSize(sizeof(XR)) * mXRCount)) XR[mXRCount];
-        }
-        if (0 != mUnknownReportCount) {
-          mFirstUnknownReport = new (allocateBuffer(alignedSize(sizeof(UnknownReport)) * mUnknownReportCount)) UnknownReport[mUnknownReportCount];
-        }
-
-        mSenderReportCount = 0;
-        mReceiverReportCount = 0;
-        mSDESCount = 0;
-        mByeCount = 0;
-        mAppCount = 0;
-        mTransportLayerFeedbackMessageCount = 0;
-        mPayloadSpecificFeedbackMessageCount = 0;
-        mXRCount = 0;
-        mUnknownReportCount = 0;
-
-        Report *lastReport = NULL;
-        size_t count = 0;
-
-        while (remaining >= kMinRtcpPacketLen) {
-          auto version = RTCP_GET_BITS(*pos, 0x3, 6);
-          size_t length = sizeof(DWORD) + (static_cast<size_t>(RTPUtils::getBE16(&(pos[2]))) * sizeof(DWORD));
-
-          size_t padding = 0;
-
-          if (RTCP_IS_FLAG_SET(*pos, 5)) {
-            padding = buffer[size-1];
-            length -= padding; // already protected during pre-parse against malformed padding length
-          }
-
-          BYTE reportSpecific = RTCP_GET_BITS(*pos, 0x1F, 0);
-
-          const BYTE *prePos = pos;
-          BYTE pt = pos[1];
-
-          advancePos(pos, remaining, sizeof(DWORD));
-
-          size_t preAllocationSize = mAllocationSize;
-
-          if (!parse(lastReport, version, static_cast<BYTE>(padding), reportSpecific, pt, pos, length - sizeof(DWORD))) return false;
-
-          if (NULL == mFirst) {
-            mFirst = lastReport;
-          }
-
-          advancePos(pos, remaining, length - sizeof(DWORD));
-
-          if (0 != padding) {
-            advancePos(pos, remaining, padding);
-          }
-
-          if (ZS_IS_LOGGING(Insane)) {
-            ZS_LOG_TRACE(log("report parsed") + ZS_PARAM("pt", Report::ptToString(pt)) + ZS_PARAM("pt (number)", pt) + ZS_PARAM("consumed", (reinterpret_cast<PTRNUMBER>(pos) - reinterpret_cast<PTRNUMBER>(prePos))) + ZS_PARAM("consumed allocation", preAllocationSize - mAllocationSize))
-          }
-
-          ++count;
-          ASSERT(count <= mCount)
-        }
-      }
-
-      ZS_LOG_INSANE(debug("parsed"))
-
-      return true;
-    }
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTCPPacket (parse allocation sizing routines)
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::getAllocationSize(
-                                       BYTE version,
-                                       BYTE padding,
-                                       BYTE reportSpecific,
-                                       BYTE pt,
-                                       const BYTE *contents,
-                                       size_t contentSize
-                                       )
-    {
-      bool result = false;
-
-      switch (pt) {
-        case SenderReport::kPayloadType:                    result = getSenderReportAllocationSize(version, padding, reportSpecific, contents, contentSize); break;
-        case ReceiverReport::kPayloadType:                  result = getReceiverReportAllocationSize(version, padding, reportSpecific, contents, contentSize); break;
-        case SDES::kPayloadType:                            result = getSDESAllocationSize(version, padding, reportSpecific, contents, contentSize); break;
-        case Bye::kPayloadType:                             result = getByeAllocationSize(version, padding, reportSpecific, contents, contentSize); break;
-        case App::kPayloadType:                             result = getAppAllocationSize(version, padding, reportSpecific, contents, contentSize); break;
-        case TransportLayerFeedbackMessage::kPayloadType:   result = getTransportLayerFeedbackMessageAllocationSize(version, padding, reportSpecific, contents, contentSize); break;
-        case PayloadSpecificFeedbackMessage::kPayloadType:  result = getPayloadSpecificFeedbackMessageAllocationSize(version, padding, reportSpecific, contents, contentSize); break;
-        case XR::kPayloadType:                              result = getXRAllocationSize(version, padding, reportSpecific, contents, contentSize); break;
-        default:
-        {
-          result = getUnknownReportAllocationSize(version, padding, reportSpecific, contents, contentSize);
-          break;
-        }
-      }
-      return result;
-    }
-
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::getSenderReportAllocationSize(
-                                                   BYTE version,
-                                                   BYTE padding,
-                                                   BYTE reportSpecific,
-                                                   const BYTE *contents,
-                                                   size_t contentSize
-                                                   )
-    {
-      ++mSenderReportCount;
-
-      mAllocationSize += alignedSize(sizeof(SenderReport)) + (alignedSize(sizeof(SenderReport::ReportBlock)) * static_cast<size_t>(reportSpecific));
-      return true;
-    }
-
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::getReceiverReportAllocationSize(
-                                                     BYTE version,
-                                                     BYTE padding,
-                                                     BYTE reportSpecific,
-                                                     const BYTE *contents,
-                                                     size_t contentSize
-                                                     )
-    {
-      ++mReceiverReportCount;
-
-      mAllocationSize += alignedSize(sizeof(ReceiverReport)) + (alignedSize(sizeof(ReceiverReport::ReportBlock)) * static_cast<size_t>(reportSpecific));
-      return true;
-    }
-
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::getSDESAllocationSize(
-                                           BYTE version,
-                                           BYTE padding,
-                                           BYTE reportSpecific,
-                                           const BYTE *contents,
-                                           size_t contentSize
-                                           )
-    {
-      ++mSDESCount;
-
-      size_t chunksCount = static_cast<size_t>(reportSpecific);
-
-      mAllocationSize += alignedSize(sizeof(SDES)) + (alignedSize(sizeof(SDES::Chunk)) * chunksCount);
-
-      size_t remaining = contentSize;
-
-      const BYTE *pos = contents;
-
-      while ((remaining > sizeof(DWORD)) &&
-             (chunksCount > 0))
-      {
-        advancePos(pos, remaining, sizeof(DWORD));
-
-        ZS_LOG_INSANE(log("getting SDES chunk allocation size") + ZS_PARAM("chunk number", static_cast<size_t>(reportSpecific) - chunksCount))
-
-        --chunksCount;
-
-        while (remaining >= sizeof(BYTE)) {
-
-          size_t preAllocationSize = mAllocationSize;
-
-          BYTE type = *pos;
-          advancePos(pos, remaining);
-
-          if (SDES::Chunk::kEndOfItemsType == type) {
-            // skip NUL item (no length octet is present)
-
-            // skip to next DWORD alignment
-            auto diff = reinterpret_cast<PTRNUMBER>(pos) - reinterpret_cast<PTRNUMBER>(contents);
-            while ((0 != (diff % sizeof(DWORD))) &&
-                   (remaining > 0))
-            {
-              // only NUL chunks are allowed
-              if (SDES::Chunk::kEndOfItemsType != (*pos)) {
-                ZS_LOG_WARNING(Insane, log("SDES item type is not understood") + ZS_PARAM("type", *pos))
-                return false;
-              }
-
-              advancePos(pos, remaining);
-              ++diff;
-            }
-            break;
-          }
-
-          if (remaining < sizeof(BYTE)) {
-            ZS_LOG_WARNING(Trace, log("no length of SDES entry present") + ZS_PARAM("remaining", remaining))
-            return false;
-          }
-
-          size_t prefixLength = 0;
-          size_t length = static_cast<size_t>(*pos);
-          advancePos(pos, remaining);
-
-          if (remaining < length) {
-            ZS_LOG_WARNING(Trace, debug("malformed SDES length found") + ZS_PARAM("length", length) + ZS_PARAM("remaining", remaining))
-            return false;
-          }
-
-          switch (type) {
-            case SDES::Chunk::CName::kItemType: mAllocationSize += alignedSize(sizeof(SDES::Chunk::CName)); break;
-            case SDES::Chunk::Name::kItemType:  mAllocationSize += alignedSize(sizeof(SDES::Chunk::Name)); break;
-            case SDES::Chunk::Email::kItemType: mAllocationSize += alignedSize(sizeof(SDES::Chunk::Email)); break;
-            case SDES::Chunk::Phone::kItemType: mAllocationSize += alignedSize(sizeof(SDES::Chunk::Phone)); break;
-            case SDES::Chunk::Loc::kItemType:   mAllocationSize += alignedSize(sizeof(SDES::Chunk::Loc)); break;
-            case SDES::Chunk::Tool::kItemType:  mAllocationSize += alignedSize(sizeof(SDES::Chunk::Tool)); break;
-            case SDES::Chunk::Note::kItemType:  mAllocationSize += alignedSize(sizeof(SDES::Chunk::Note)); break;
-            case SDES::Chunk::Priv::kItemType:
-            {
-              {
-                mAllocationSize += alignedSize(sizeof(SDES::Chunk::Priv));
-
-                if (length > 0) {
-                  prefixLength = static_cast<size_t>(*pos);
-
-                  if (prefixLength > (length-1)) goto illegal_priv_prefix;
-
-                  if (0 != prefixLength) {
-                    mAllocationSize += alignedSize(sizeof(char)*(prefixLength+1));
-                  }
-                }
-                break;
-              }
-            illegal_priv_prefix:
-              {
-                ZS_LOG_WARNING(Trace, debug("malformed SDES Priv prefix found"))
-                return false;
-              }
-              break;
-            }
-            case SDES::Chunk::Mid::kItemType:  mAllocationSize += alignedSize(sizeof(SDES::Chunk::Mid)); break;
-            case SDES::Chunk::Rid::kItemType:  mAllocationSize += alignedSize(sizeof(SDES::Chunk::Rid)); break;
-            default:
-            {
-              mAllocationSize += alignedSize(sizeof(SDES::Chunk::Unknown));
-              ZS_LOG_WARNING(Insane, log("SDES item type is not understood") + ZS_PARAM("type", type))
-              break;
-            }
-          }
-
-          if (0 != length) {
-            mAllocationSize += alignedSize((sizeof(char)*length)+sizeof(char));
-          }
-
-          ZS_LOG_INSANE(log("get SDES item allocation size") + ZS_PARAM("type", SDES::Chunk::StringItem::typeToString(type)) + ZS_PARAM("type (number)", type) + ZS_PARAM("prefix length", prefixLength) + ZS_PARAM("length", length) + ZS_PARAM("allocation size", (mAllocationSize - preAllocationSize)))
-
-          advancePos(pos, remaining, length);
-        }
-
-      }
-
-      return true;
-    }
-
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::getByeAllocationSize(
-                                           BYTE version,
-                                           BYTE padding,
-                                           BYTE reportSpecific,
-                                           const BYTE *contents,
-                                           size_t contentSize
-                                           )
-    {
-      ++mByeCount;
-
-      size_t ssrcCount = static_cast<size_t>(reportSpecific);
-
-      mAllocationSize += alignedSize(sizeof(Bye)) + (alignedSize(sizeof(DWORD)) * ssrcCount);
-
-      const BYTE *pos = contents;
-      size_t remaining = contentSize;
-
-      if (remaining < (ssrcCount * sizeof(DWORD))) {
-        ZS_LOG_WARNING(Trace, debug("malformed BYE SSRC size"))
-        return false;
-      }
-
-      advancePos(pos, remaining, sizeof(DWORD) * ssrcCount);
-
-      if (remaining < sizeof(BYTE)) return true;
-
-      size_t length = static_cast<size_t>(*pos);
-
-      if (length < 1) return true;
-
-      if (length > remaining) {
-        ZS_LOG_WARNING(Trace, debug("malformed BYE reason length") + ZS_PARAM("length", length) + ZS_PARAM("remaining", remaining))
-        return false;
-      }
-
-      mAllocationSize += alignedSize((sizeof(char)*(length+1)));
-      return true;
-    }
-
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::getAppAllocationSize(
-                                           BYTE version,
-                                           BYTE padding,
-                                           BYTE reportSpecific,
-                                           const BYTE *contents,
-                                           size_t contentSize
-                                           )
-    {
-      ++mAppCount;
-
-      mAllocationSize += alignedSize(sizeof(App));
-
-      size_t remaining = contentSize;
-
-      if (remaining < (sizeof(DWORD)*2)) {
-        ZS_LOG_WARNING(Detail, log("malformed APP length") + ZS_PARAM("remaining", remaining))
-        return false;
-      }
-
-      return true;
-    }
-
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::getTransportLayerFeedbackMessageAllocationSize(
-                                                                    BYTE version,
-                                                                    BYTE padding,
-                                                                    BYTE reportSpecific,
-                                                                    const BYTE *contents,
-                                                                    size_t contentSize
-                                                                    )
-    {
-      ++mTransportLayerFeedbackMessageCount;
-
-      mAllocationSize += alignedSize(sizeof(TransportLayerFeedbackMessage));
-
-      const BYTE *pos = contents;
-      size_t remaining = contentSize;
-
-      if (remaining < (sizeof(DWORD)*2)) {
-        ZS_LOG_WARNING(Detail, log("malformed transport layer feedback message length") + ZS_PARAM("remaining", remaining))
-        return false;
-      }
-
-      advancePos(pos, remaining, sizeof(DWORD)*2);
-
-      bool result = false;
-
-      switch (reportSpecific) {
-        case TransportLayerFeedbackMessage::GenericNACK::kFmt:  result = getTransportLayerFeedbackMessageGenericNACKAllocationSize(reportSpecific, pos, remaining); break;
-        case TransportLayerFeedbackMessage::TMMBR::kFmt:        result = getTransportLayerFeedbackMessageTMMBRAllocationSize(reportSpecific, pos, remaining); break;
-        case TransportLayerFeedbackMessage::TMMBN::kFmt:        result = getTransportLayerFeedbackMessageTMMBNAllocationSize(reportSpecific, pos, remaining); break;
-        default: {
-          break;
-        }
-      }
-
-      ZS_LOG_INSANE(packet_slog("getting transport layer feedback message size") + ZS_PARAM("fmt", FeedbackMessage::fmtToString(TransportLayerFeedbackMessage::kPayloadType, reportSpecific)) + ZS_PARAM("fmt (number)", reportSpecific))
-
-      return true;
-    }
-
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::getPayloadSpecificFeedbackMessageAllocationSize(
-                                                                     BYTE version,
-                                                                     BYTE padding,
-                                                                     BYTE reportSpecific,
-                                                                     const BYTE *contents,
-                                                                     size_t contentSize
-                                                                     )
-    {
-      ++mPayloadSpecificFeedbackMessageCount;
-
-      mAllocationSize += alignedSize(sizeof(PayloadSpecificFeedbackMessage));
-
-      const BYTE *pos = contents;
-      size_t remaining = contentSize;
-
-      if (remaining < (sizeof(DWORD)*2)) {
-        ZS_LOG_WARNING(Detail, log("malformed transport layer feedback message length") + ZS_PARAM("remaining", remaining))
-        return false;
-      }
-
-      advancePos(pos, remaining, sizeof(DWORD)*2);
-
-      bool result = false;
-
-      char bogus[sizeof(DWORD)] {};
-      const DWORD *usingSubType = reinterpret_cast<const DWORD *>(&(bogus[0]));
-
-      switch (reportSpecific) {
-        case PayloadSpecificFeedbackMessage::PLI::kFmt:   result = getPayloadSpecificFeedbackMessagePLIAllocationSize(reportSpecific, pos, remaining); break;
-        case PayloadSpecificFeedbackMessage::SLI::kFmt:   result = getPayloadSpecificFeedbackMessageSLIAllocationSize(reportSpecific, pos, remaining); break;
-        case PayloadSpecificFeedbackMessage::RPSI::kFmt:  result = getPayloadSpecificFeedbackMessageRPSIAllocationSize(reportSpecific, pos, remaining); break;
-        case PayloadSpecificFeedbackMessage::FIR::kFmt:   result = getPayloadSpecificFeedbackMessageFIRAllocationSize(reportSpecific, pos, remaining); break;
-        case PayloadSpecificFeedbackMessage::TSTR::kFmt:  result = getPayloadSpecificFeedbackMessageTSTRAllocationSize(reportSpecific, pos, remaining); break;
-        case PayloadSpecificFeedbackMessage::TSTN::kFmt:  result = getPayloadSpecificFeedbackMessageTSTNAllocationSize(reportSpecific, pos, remaining); break;
-        case PayloadSpecificFeedbackMessage::VBCM::kFmt:  result = getPayloadSpecificFeedbackMessageVBCMAllocationSize(reportSpecific, pos, remaining); break;
-        case PayloadSpecificFeedbackMessage::AFB::kFmt:   {
-          {
-            if (remaining < sizeof(DWORD)) goto generic_afb;
-            if (0 != memcmp(pos, reinterpret_cast<const BYTE *>("REMB"), sizeof(DWORD))) goto generic_afb;
-
-            usingSubType = reinterpret_cast<const DWORD *>(pos);
-
-            result = getPayloadSpecificFeedbackMessageREMBAllocationSize(reportSpecific, pos, remaining);
-            break;
-          }
-        generic_afb:
-          {
-            result = getPayloadSpecificFeedbackMessageAFBAllocationSize(reportSpecific, pos, remaining);
-            break;
-          }
-        }
-        default: {
-          break;
-        }
-      }
-
-      ZS_LOG_INSANE(packet_slog("getting payload specific feedback message size") + ZS_PARAM("fmt", FeedbackMessage::fmtToString(TransportLayerFeedbackMessage::kPayloadType, reportSpecific, *usingSubType)) + ZS_PARAM("fmt (number)", reportSpecific))
-
-      return true;
-    }
-
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::getXRAllocationSize(
-                                         BYTE version,
-                                         BYTE padding,
-                                         BYTE reportSpecific,
-                                         const BYTE *contents,
-                                         size_t contentSize
-                                         )
-    {
-      ++mXRCount;
-
-      mAllocationSize += alignedSize(sizeof(XR));
-
-      const BYTE *pos = contents;
-      size_t remaining = contentSize;
-
-      if (remaining < sizeof(DWORD)) {
-        ZS_LOG_WARNING(Trace, debug("XR is not a valid length") + ZS_PARAM("remaining", remaining))
-        return false;
-      }
-
-      advancePos(pos, remaining, sizeof(DWORD));
-
-      while (remaining >= sizeof(DWORD)) {
-        const BYTE *prePos = pos;
-        size_t preAllocationSize = mAllocationSize;
-
-        BYTE bt = pos[0];
-        BYTE typeSpecific = pos[1];
-        size_t blockLength = static_cast<size_t>(RTPUtils::getBE16(&(pos[2]))) * sizeof(DWORD);
-
-        advancePos(pos, remaining, sizeof(DWORD));
-
-        if (remaining < blockLength) {
-          ZS_LOG_WARNING(Trace, debug("malformed XR block length found") + ZS_PARAM("block length", blockLength) + ZS_PARAM("remaining", remaining))
-          return false;
-        }
-
-        bool result = false;
-
-        switch (bt) {
-          case XR::LossRLEReportBlock::kBlockType:                result = getXRLossRLEReportBlockAllocationSize(typeSpecific, pos, blockLength); break;
-          case XR::DuplicateRLEReportBlock::kBlockType:           result = getXRDuplicateRLEReportBlockAllocationSize(typeSpecific, pos, blockLength); break;
-          case XR::PacketReceiptTimesReportBlock::kBlockType:     result = getXRPacketReceiptTimesReportBlockAllocationSize(typeSpecific, pos, blockLength); break;
-          case XR::ReceiverReferenceTimeReportBlock::kBlockType:  result = getXRReceiverReferenceTimeReportBlockAllocationSize(typeSpecific, pos, blockLength); break;
-          case XR::DLRRReportBlock::kBlockType:                   result = getXRDLRRReportBlockAllocationSize(typeSpecific, pos, blockLength); break;
-          case XR::StatisticsSummaryReportBlock::kBlockType:      result = getXRStatisticsSummaryReportBlockAllocationSize(typeSpecific, pos, blockLength); break;
-          case XR::VoIPMetricsReportBlock::kBlockType:            result = getXRVoIPMetricsReportBlockAllocationSize(typeSpecific, pos, blockLength); break;
-          default:
-          {
-            result = getXRUnknownReportBlockAllocationSize(typeSpecific, pos, blockLength); break;
-            break;
-          }
-        }
-
-        if (!result) return false;
-
-        advancePos(pos, remaining, blockLength);
-
-        ZS_LOG_INSANE(log("get XR allocation size for block") + ZS_PARAM("block type", XR::ReportBlock::blockTypeToString(bt)) + ZS_PARAM("block type (number)", bt) + ZS_PARAM("block size", blockLength) + ZS_PARAM("consumed", (reinterpret_cast<PTRNUMBER>(pos) - reinterpret_cast<PTRNUMBER>(prePos))) + ZS_PARAM("allocation size", mAllocationSize - preAllocationSize))
-      }
-
-      return true;
-    }
-
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::getUnknownReportAllocationSize(
-                                                   BYTE version,
-                                                   BYTE padding,
-                                                   BYTE reportSpecific,
-                                                   const BYTE *contents,
-                                                   size_t contentSize
-                                                   )
-    {
-      ++mUnknownReportCount;
-
-      mAllocationSize += alignedSize(sizeof(UnknownReport));
-      return true;
-    }
-
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::getTransportLayerFeedbackMessageGenericNACKAllocationSize(
-                                                                               BYTE fmt,
-                                                                               const BYTE *contents,
-                                                                               size_t contentSize
-                                                                               )
-    {
-      size_t remaining = contentSize;
-
-      if (remaining < sizeof(DWORD)) {
-        ZS_LOG_WARNING(Trace, debug("malformed generic NACK transport layer feedback message") + ZS_PARAM("remaining", remaining))
-        return false;
-      }
-
-      size_t possibleNACKs = remaining / sizeof(DWORD);
-
-      mAllocationSize += (alignedSize(sizeof(TransportLayerFeedbackMessage::GenericNACK)) * possibleNACKs);
-      return true;
-    }
-
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::getTransportLayerFeedbackMessageTMMBRAllocationSize(
-                                                                         BYTE fmt,
-                                                                         const BYTE *contents,
-                                                                         size_t contentSize
-                                                                         )
-    {
-      size_t remaining = contentSize;
-
-      if (remaining < (sizeof(DWORD)*2)) {
-        ZS_LOG_WARNING(Trace, debug("malformed TMMBR transport layer feedback message") + ZS_PARAM("remaining", remaining))
-        return false;
-      }
-
-      size_t possibleTMMBRs = remaining / (sizeof(DWORD)*2);
-
-      mAllocationSize += (alignedSize(sizeof(TransportLayerFeedbackMessage::TMMBR)) * possibleTMMBRs);
-      return true;
-    }
-    
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::getTransportLayerFeedbackMessageTMMBNAllocationSize(
-                                                                         BYTE fmt,
-                                                                         const BYTE *contents,
-                                                                         size_t contentSize
-                                                                         )
-    {
-      size_t remaining = contentSize;
-
-      if (remaining < (sizeof(DWORD)*2)) {
-        ZS_LOG_WARNING(Trace, debug("malformed TMMBN transport layer feedback message") + ZS_PARAM("remaining", remaining))
-        return false;
-      }
-
-      size_t possibleTMMBNs = remaining / (sizeof(DWORD)*2);
-
-      mAllocationSize += (alignedSize(sizeof(TransportLayerFeedbackMessage::TMMBN)) * possibleTMMBNs);
-      return true;
-    }
-    
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::getPayloadSpecificFeedbackMessagePLIAllocationSize(
-                                                                        BYTE fmt,
-                                                                        const BYTE *contents,
-                                                                        size_t contentSize
-                                                                        )
-    {
-      return true;
-    }
-    
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::getPayloadSpecificFeedbackMessageSLIAllocationSize(
-                                                                        BYTE fmt,
-                                                                        const BYTE *contents,
-                                                                        size_t contentSize
-                                                                        )
-    {
-      size_t remaining = contentSize;
-
-      if (remaining < sizeof(DWORD)) {
-        ZS_LOG_WARNING(Trace, debug("malformed SLI payload specific feedback message") + ZS_PARAM("remaining", remaining))
-        return false;
-      }
-
-      size_t possibleSLIs = remaining / sizeof(DWORD);
-
-      mAllocationSize += (alignedSize(sizeof(PayloadSpecificFeedbackMessage::SLI)) * possibleSLIs);
-      return true;
-    }
-    
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::getPayloadSpecificFeedbackMessageRPSIAllocationSize(
-                                                                         BYTE fmt,
-                                                                         const BYTE *contents,
-                                                                         size_t contentSize
-                                                                         )
-    {
-      return true;
-    }
-    
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::getPayloadSpecificFeedbackMessageFIRAllocationSize(
-                                                                         BYTE fmt,
-                                                                         const BYTE *contents,
-                                                                         size_t contentSize
-                                                                         )
-    {
-      size_t remaining = contentSize;
-
-      if (remaining < (sizeof(DWORD)*2)) {
-        ZS_LOG_WARNING(Trace, debug("malformed FIR payload specific feedback message") + ZS_PARAM("remaining", remaining))
-        return false;
-      }
-
-      size_t possibleFIRs = remaining / (sizeof(DWORD)*2);
-
-      mAllocationSize += (alignedSize(sizeof(PayloadSpecificFeedbackMessage::FIR)) * possibleFIRs);
-      return true;
-    }
-    
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::getPayloadSpecificFeedbackMessageTSTRAllocationSize(
-                                                                         BYTE fmt,
-                                                                         const BYTE *contents,
-                                                                         size_t contentSize
-                                                                         )
-    {
-      size_t remaining = contentSize;
-
-      if (remaining < (sizeof(DWORD)*2)) {
-        ZS_LOG_WARNING(Trace, debug("malformed TSTR payload specific feedback message") + ZS_PARAM("remaining", remaining))
-        return false;
-      }
-
-      size_t possibleTSTRs = remaining / (sizeof(DWORD)*2);
-
-      mAllocationSize += (alignedSize(sizeof(PayloadSpecificFeedbackMessage::TSTR)) * possibleTSTRs);
-      return true;
-    }
-    
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::getPayloadSpecificFeedbackMessageTSTNAllocationSize(
-                                                                         BYTE fmt,
-                                                                         const BYTE *contents,
-                                                                         size_t contentSize
-                                                                         )
-    {
-      size_t remaining = contentSize;
-
-      if (remaining < (sizeof(DWORD)*2)) {
-        ZS_LOG_WARNING(Trace, debug("malformed TSTN payload specific feedback message") + ZS_PARAM("remaining", remaining))
-        return false;
-      }
-
-      size_t possibleTSTNs = remaining / (sizeof(DWORD)*2);
-
-      mAllocationSize += (alignedSize(sizeof(PayloadSpecificFeedbackMessage::TSTN)) * possibleTSTNs);
-      return true;
-    }
-    
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::getPayloadSpecificFeedbackMessageVBCMAllocationSize(
-                                                                         BYTE fmt,
-                                                                         const BYTE *contents,
-                                                                         size_t contentSize
-                                                                         )
-    {
-      const BYTE *pos = contents;
-      size_t remaining = contentSize;
-
-      size_t possibleVBCMs = 0;
-
-      while (remaining >= (sizeof(DWORD)*2)) {
-        mAllocationSize += alignedSize(sizeof(PayloadSpecificFeedbackMessage::VBCM));
-        ++possibleVBCMs;
-
-        size_t length = RTPUtils::getBE16(&(pos[6]));
-        size_t modulas = length % sizeof(DWORD);
-        size_t padding = ((0 != modulas) ? (sizeof(DWORD)-modulas) : 0);
-
-        advancePos(pos, remaining, sizeof(DWORD)*2);
-
-        if (remaining < length) {
-          ZS_LOG_WARNING(Trace, debug("malformed VBCM payload specific feedback message") + ZS_PARAM("remaining", remaining) + ZS_PARAM("length", length))
-          return false;
-        }
-
-        size_t skipLength = (((length + padding) > remaining) ? remaining : (length + padding));
-
-        advancePos(pos, remaining, skipLength);
-      }
-
-      if (possibleVBCMs < 1) {
-        ZS_LOG_WARNING(Trace, debug("malformed VBCM payload specific feedback message") + ZS_PARAM("remaining", remaining) + ZS_PARAM("possible", possibleVBCMs))
-        return false;
-      }
-
-      return true;
-    }
-    
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::getPayloadSpecificFeedbackMessageAFBAllocationSize(
-                                                                         BYTE fmt,
-                                                                         const BYTE *contents,
-                                                                         size_t contentSize
-                                                                         )
-    {
-      return true;
-    }
-
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::getPayloadSpecificFeedbackMessageREMBAllocationSize(
-                                                                        BYTE fmt,
-                                                                        const BYTE *contents,
-                                                                        size_t contentSize
-                                                                        )
-    {
-      size_t remaining = contentSize;
-
-      if (remaining < (sizeof(DWORD)*3)) {
-        ZS_LOG_WARNING(Trace, debug("malformed REMB payload specific feedback message") + ZS_PARAM("remaining", remaining))
-        return false;
-      }
-
-      size_t possibleSSRCs = (remaining - (sizeof(DWORD)*2)) / sizeof(DWORD);
-
-      mAllocationSize += (alignedSize(sizeof(DWORD)) * possibleSSRCs);
-      return true;
-    }
-    
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::getXRLossRLEReportBlockAllocationSize(
-                                                           BYTE typeSpecific,
-                                                           const BYTE *contents,
-                                                           size_t contentSize
-                                                           )
-    {
-      mAllocationSize += alignedSize(sizeof(XR::LossRLEReportBlock));
-
-      const BYTE *pos = contents;
-      size_t remaining = contentSize;
-
-      if (remaining < (sizeof(DWORD)*2)) {
-        ZS_LOG_WARNING(Trace, debug("malformed loss RLE report block"))
-        return false;
-      }
-
-      advancePos(pos, remaining, sizeof(DWORD)*2);
-
-      size_t possibleChunks = remaining  / sizeof(WORD);
-
-      if (0 != possibleChunks) {
-        mAllocationSize += alignedSize(sizeof(XR::RLEChunk)) * possibleChunks;
-      }
-
-      return true;
-    }
-    
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::getXRDuplicateRLEReportBlockAllocationSize(
-                                                                BYTE typeSpecific,
-                                                                const BYTE *contents,
-                                                                size_t contentSize
-                                                                )
-    {
-      mAllocationSize += alignedSize(sizeof(XR::DuplicateRLEReportBlock));
-
-      const BYTE *pos = contents;
-      size_t remaining = contentSize;
-
-      if (remaining < (sizeof(DWORD)*2)) {
-        ZS_LOG_WARNING(Trace, debug("malformed duplicate RLE report block"))
-        return false;
-      }
-
-      advancePos(pos, remaining, sizeof(DWORD)*2);
-
-      size_t possibleChunks = remaining  / sizeof(WORD);
-
-      if (0 != possibleChunks) {
-        mAllocationSize += alignedSize(sizeof(XR::RLEChunk)) * possibleChunks;
-      }
-
-      return true;
-    }
-    
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::getXRPacketReceiptTimesReportBlockAllocationSize(
-                                                                      BYTE typeSpecific,
-                                                                      const BYTE *contents,
-                                                                      size_t contentSize
-                                                                      )
-    {
-      mAllocationSize += alignedSize(sizeof(XR::PacketReceiptTimesReportBlock));
-
-      const BYTE *pos = contents;
-      size_t remaining = contentSize;
-
-      if (remaining < (sizeof(DWORD)*2)) {
-        ZS_LOG_WARNING(Trace, debug("malformed packet receipt times report block"))
-        return false;
-      }
-
-      advancePos(pos, remaining, sizeof(DWORD)*2);
-
-      size_t possibleReceiptTimes = remaining  / sizeof(DWORD);
-
-      if (0 != possibleReceiptTimes) {
-        mAllocationSize += alignedSize(sizeof(DWORD)) * possibleReceiptTimes;
-      }
-
-      return true;
-    }
-    
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::getXRReceiverReferenceTimeReportBlockAllocationSize(
-                                                                         BYTE typeSpecific,
-                                                                         const BYTE *contents,
-                                                                         size_t contentSize
-                                                                         )
-    {
-      mAllocationSize += alignedSize(sizeof(XR::ReceiverReferenceTimeReportBlock));
-      return true;
-    }
-    
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::getXRDLRRReportBlockAllocationSize(
-                                                        BYTE typeSpecific,
-                                                        const BYTE *contents,
-                                                        size_t contentSize
-                                                        )
-    {
-      mAllocationSize += alignedSize(sizeof(XR::DLRRReportBlock));
-
-      size_t possibleSubBlocks = contentSize / (sizeof(DWORD) + sizeof(DWORD) + sizeof(DWORD));
-      if (0 != possibleSubBlocks) {
-        mAllocationSize += alignedSize(sizeof(XR::DLRRReportBlock::SubBlock)) * possibleSubBlocks;
-      }
-      return true;
-    }
-
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::getXRStatisticsSummaryReportBlockAllocationSize(
-                                                                     BYTE typeSpecific,
-                                                                     const BYTE *contents,
-                                                                     size_t contentSize
-                                                                     )
-    {
-      mAllocationSize += alignedSize(sizeof(XR::StatisticsSummaryReportBlock));
-      return true;
-    }
-
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::getXRVoIPMetricsReportBlockAllocationSize(
-                                                               BYTE typeSpecific,
-                                                               const BYTE *contents,
-                                                               size_t contentSize
-                                                               )
-    {
-      mAllocationSize += alignedSize(sizeof(XR::VoIPMetricsReportBlock));
-      return true;
-    }
-
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::getXRUnknownReportBlockAllocationSize(
-                                                           BYTE typeSpecific,
-                                                           const BYTE *contents,
-                                                           size_t contentSize
-                                                           )
-    {
-      mAllocationSize += alignedSize(sizeof(XR::UnknownReportBlock));
-      return true;
-    }
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTCPPacket (parsing routines)
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::parse(
-                           Report * &ioLastReport,
-                           BYTE version,
-                           BYTE padding,
-                           BYTE reportSpecific,
-                           BYTE pt,
-                           const BYTE *contents,
-                           size_t contentSize
-                           )
-    {
-      Report *usingReport = NULL;
-
-      switch (pt) {
-        case SenderReport::kPayloadType:                                {
-          auto temp = &(mFirstSenderReport[mSenderReportCount]);;
-          fill(temp, version, padding, reportSpecific, pt, contents, contentSize);
-          if (!parse(temp)) return false;
-          usingReport = temp;
-          break;
-        }
-        case ReceiverReport::kPayloadType:                              {
-          auto temp = &(mFirstReceiverReport[mReceiverReportCount]);
-          fill(temp, version, padding, reportSpecific, pt, contents, contentSize);
-          if (!parse(temp)) return false;
-          usingReport = temp;
-          break;
-        }
-        case SDES::kPayloadType:                                        {
-          auto temp = &(mFirstSDES[mSDESCount]);
-          fill(temp, version, padding, reportSpecific, pt, contents, contentSize);
-          if (!parse(temp)) return false;
-          usingReport = temp;
-          break;
-        }
-        case Bye::kPayloadType:                                         {
-          auto temp = &(mFirstBye[mByeCount]);
-          fill(temp, version, padding, reportSpecific, pt, contents, contentSize);
-          if (!parse(temp)) return false;
-          usingReport = temp;
-          break;
-        }
-        case App::kPayloadType:                                         {
-          auto temp = &(mFirstApp[mAppCount]);
-          fill(temp, version, padding, reportSpecific, pt, contents, contentSize);
-          if (!parse(temp)) return false;
-          usingReport = temp;
-          break;
-        }
-        case TransportLayerFeedbackMessage::kPayloadType:               {
-          auto temp = &(mFirstTransportLayerFeedbackMessage[mTransportLayerFeedbackMessageCount]);
-          fill(temp, version, padding, reportSpecific, pt, contents, contentSize);
-          if (!parse(temp)) return false;
-          usingReport = temp;
-          break;
-        }
-        case PayloadSpecificFeedbackMessage::kPayloadType:              {
-          auto temp = &(mFirstPayloadSpecificFeedbackMessage[mPayloadSpecificFeedbackMessageCount]);
-          fill(temp, version, padding, reportSpecific, pt, contents, contentSize);
-          if (!parse(temp)) return false;
-          usingReport = temp;
-          break;
-        }
-        case XR::kPayloadType:                                          {
-          auto temp = &(mFirstXR[mXRCount]);
-          fill(temp, version, padding, reportSpecific, pt, contents, contentSize);
-          if (!parse(temp)) return false;
-          usingReport = temp;
-          break;
-        }
-        default:
-        {
-          auto temp = &(mFirstUnknownReport[mUnknownReportCount]);
-          fill(temp, version, padding, reportSpecific, pt, contents, contentSize);
-          if (!parse(temp)) return false;
-          usingReport = temp;
-          break;
-        }
-      }
-
-      if (NULL != ioLastReport) {
-        ioLastReport->mNext = usingReport;
-      }
-
-      ioLastReport = usingReport;
-      return true;
-    }
-
-    //-------------------------------------------------------------------------
-    void RTCPPacket::fill(
-                          Report *report,
-                          BYTE version,
-                          BYTE padding,
-                          BYTE reportSpecific,
-                          BYTE pt,
-                          const BYTE *contents,
-                          size_t contentSize
-                          )
-    {
-      if (contentSize > 0) {
-        report->mPtr = contents;
-        report->mSize = contentSize;
-      }
-      report->mVersion = version;
-      report->mPadding = padding;
-      report->mReportSpecific = reportSpecific;
-      report->mPT = pt;
-    }
-
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::parseCommon(
-                                 SenderReceiverCommonReport *report,
-                                 size_t detailedHeaderSize
-                                 )
-    {
-      const BYTE *pos = report->ptr();
-      size_t remaining = report->size();
-
-      {
-        if (remaining < sizeof(DWORD)) goto illegal_size;
-
-        report->mSSRCOfSender = RTPUtils::getBE32(pos);
-
-        advancePos(pos, remaining, sizeof(DWORD));
-
-        if (remaining < detailedHeaderSize) goto illegal_size;
-
-        advancePos(pos, remaining, detailedHeaderSize);
-
-        size_t count = 0;
-
-        if (report->rc() > 0) {
-          report->mFirstReportBlock = new (allocateBuffer(alignedSize(sizeof(SenderReceiverCommonReport::ReportBlock))*report->rc())) SenderReceiverCommonReport::ReportBlock[report->rc()];
-
-          while ((remaining >= (sizeof(DWORD)*6)) &&
-                 (count < report->rc()))
-          {
-            SenderReceiverCommonReport::ReportBlock *block = &(report->mFirstReportBlock[count]);
-            if (0 != count) {
-              report->mFirstReportBlock[count-1].mNext = block;
-            }
-
-            block->mSSRC = RTPUtils::getBE32(&(pos[0]));
-            block->mFractionLost = pos[4];
-            block->mCumulativeNumberOfPacketsLost = RTPUtils::getBE32(&(pos[4]));
-            block->mCumulativeNumberOfPacketsLost = block->mCumulativeNumberOfPacketsLost & 0x00FFFFFF;
-            block->mExtendedHighestSequenceNumberReceived = RTPUtils::getBE32(&(pos[8]));
-            block->mInterarrivalJitter = RTPUtils::getBE32(&(pos[12]));
-            block->mLSR = RTPUtils::getBE32(&(pos[16]));
-            block->mDLSR = RTPUtils::getBE32(&(pos[20]));
-
-            advancePos(pos, remaining, sizeof(DWORD)*6);
-
-            ++count;
-          }
-        }
-
-        if (count != report->rc()) goto illegal_size;
-
-        if (0 != remaining) {
-          report->mExtension = pos;
-          report->mExtensionSize = remaining;
-        }
-
-        return true;
-      }
-
-    illegal_size:
-      {
-        ZS_LOG_WARNING(Trace, debug("unable to parse sender/receiver report (malformed packet)") + ZS_PARAM("remaining", remaining) + ZS_PARAM("detailed header size", detailedHeaderSize))
-      }
-
-      return false;
-    }
-
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::parse(SenderReport *report)
-    {
-      if (0 != mSenderReportCount) {
-        (&(mFirstSenderReport[mSenderReportCount-1]))->mNextSenderReport = report;
-      }
-      ++mSenderReportCount;
-
-      if (!parseCommon(report, sizeof(DWORD)*5)) return false;
-
-      const BYTE *pos = report->ptr();
-
-      report->mNTPTimestampMS = RTPUtils::getBE32(&(pos[4]));
-      report->mNTPTimestampLS = RTPUtils::getBE32(&(pos[8]));
-      report->mRTPTimestamp = RTPUtils::getBE32(&(pos[12]));
-      report->mSenderPacketCount = RTPUtils::getBE32(&(pos[16]));
-      report->mSenderOctetCount = RTPUtils::getBE32(&(pos[20]));
-
-      return true;
-    }
-
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::parse(ReceiverReport *report)
-    {
-      if (0 != mReceiverReportCount) {
-        (&(mFirstReceiverReport[mReceiverReportCount-1]))->mNextReceiverReport = report;
-      }
-      ++mReceiverReportCount;
-
-      if (!parseCommon(report, 0)) return false;
-
-      return true;
-    }
-    
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::parse(SDES *report)
-    {
-      if (0 != mSDESCount) {
-        (&(mFirstSDES[mSDESCount-1]))->mNextSDES = report;
-      }
-      ++mSDESCount;
-
-      if (0 == report->sc()) return true;
-
-      size_t chunkCount = 0;
-
-      const BYTE *pos = report->ptr();
-      size_t remaining = report->size();
-
-      report->mFirstChunk = new (allocateBuffer(alignedSize(sizeof(SDES::Chunk))*(report->sc()))) SDES::Chunk[report->sc()];
-
-      while ((remaining > sizeof(DWORD)) &&
-             ((chunkCount < report->sc())))
-      {
-        SDES::Chunk *chunk = &(report->mFirstChunk[chunkCount]);
-        if (0 != chunkCount) {
-          report->mFirstChunk[chunkCount-1].mNext = chunk;
-        }
-        ++chunkCount;
-
-        ZS_LOG_INSANE(log("parsing SDES chunk") + ZS_PARAM("chunk number", chunkCount-1))
-
-        chunk->mSSRC = RTPUtils::getBE32(pos);
-        advancePos(pos, remaining, sizeof(DWORD));
-
-        const BYTE *startOfItems = pos;
-        size_t remainingAtStartOfItems = remaining;
-
-        // first do an items count
-        while (remaining >= sizeof(BYTE)) {
-
-          BYTE type = *pos;
-          advancePos(pos, remaining);
-
-          if (SDES::Chunk::kEndOfItemsType == type) {
-            // stop now (going to retry parsing again anyway)
-            break;
-          }
-
-          ASSERT(remaining >= sizeof(BYTE))
-
-          size_t length = static_cast<size_t>(*pos);
-          advancePos(pos, remaining);
-
-          ASSERT(remaining >= length)
-
-          switch (type) {
-            case SDES::Chunk::CName::kItemType: ++(chunk->mCNameCount); break;
-            case SDES::Chunk::Name::kItemType:  ++(chunk->mNameCount); break;
-            case SDES::Chunk::Email::kItemType: ++(chunk->mEmailCount); break;
-            case SDES::Chunk::Phone::kItemType: ++(chunk->mPhoneCount); break;
-            case SDES::Chunk::Loc::kItemType:   ++(chunk->mLocCount); break;
-            case SDES::Chunk::Tool::kItemType:  ++(chunk->mToolCount); break;
-            case SDES::Chunk::Note::kItemType:  ++(chunk->mNoteCount); break;
-            case SDES::Chunk::Priv::kItemType:  ++(chunk->mPrivCount); break;
-            case SDES::Chunk::Mid::kItemType:   ++(chunk->mMidCount); break;
-            case SDES::Chunk::Rid::kItemType:   ++(chunk->mRidCount); break;
-            default:
-            {
-              ++(chunk->mUnknownCount);
-              ZS_LOG_WARNING(Insane, log("SDES item type is not understood") + ZS_PARAM("type", type))
-              break;
-            }
-          }
-
-          advancePos(pos, remaining, length);
-        }
-
-        // allocate space for items
-
-        if (0 != chunk->mCNameCount) {
-          chunk->mFirstCName = new (allocateBuffer(alignedSize(sizeof(SDES::Chunk::CName))*(chunk->mCNameCount))) SDES::Chunk::CName[chunk->mCNameCount];
-        }
-        if (0 != chunk->mNameCount) {
-          chunk->mFirstName = new (allocateBuffer(alignedSize(sizeof(SDES::Chunk::Name))*(chunk->mNameCount))) SDES::Chunk::Name[chunk->mNameCount];
-        }
-        if (0 != chunk->mEmailCount) {
-          chunk->mFirstEmail = new (allocateBuffer(alignedSize(sizeof(SDES::Chunk::Email))*(chunk->mEmailCount))) SDES::Chunk::Email[chunk->mEmailCount];
-        }
-        if (0 != chunk->mPhoneCount) {
-          chunk->mFirstPhone = new (allocateBuffer(alignedSize(sizeof(SDES::Chunk::Phone))*(chunk->mPhoneCount))) SDES::Chunk::Phone[chunk->mPhoneCount];
-        }
-        if (0 != chunk->mLocCount) {
-          chunk->mFirstLoc = new (allocateBuffer(alignedSize(sizeof(SDES::Chunk::Loc))*(chunk->mLocCount))) SDES::Chunk::Loc[chunk->mLocCount];
-        }
-        if (0 != chunk->mToolCount) {
-          chunk->mFirstTool = new (allocateBuffer(alignedSize(sizeof(SDES::Chunk::Tool))*(chunk->mToolCount))) SDES::Chunk::Tool[chunk->mToolCount];
-        }
-        if (0 != chunk->mNoteCount) {
-          chunk->mFirstNote = new (allocateBuffer(alignedSize(sizeof(SDES::Chunk::Note))*(chunk->mNoteCount))) SDES::Chunk::Note[chunk->mNoteCount];
-        }
-        if (0 != chunk->mPrivCount) {
-          chunk->mFirstPriv = new (allocateBuffer(alignedSize(sizeof(SDES::Chunk::Priv))*(chunk->mPrivCount))) SDES::Chunk::Priv[chunk->mPrivCount];
-        }
-        if (0 != chunk->mMidCount) {
-          chunk->mFirstMid = new (allocateBuffer(alignedSize(sizeof(SDES::Chunk::Mid))*(chunk->mMidCount))) SDES::Chunk::Mid[chunk->mMidCount];
-        }
-        if (0 != chunk->mRidCount) {
-          chunk->mFirstRid = new (allocateBuffer(alignedSize(sizeof(SDES::Chunk::Rid))*(chunk->mRidCount))) SDES::Chunk::Rid[chunk->mRidCount];
-        }
-        if (0 != chunk->mUnknownCount) {
-          chunk->mFirstUnknown = new (allocateBuffer(alignedSize(sizeof(SDES::Chunk::Unknown))*(chunk->mUnknownCount))) SDES::Chunk::Unknown[chunk->mUnknownCount];
-        }
-
-        chunk->mCNameCount = 0;
-        chunk->mNameCount = 0;
-        chunk->mEmailCount = 0;
-        chunk->mPhoneCount = 0;
-        chunk->mLocCount = 0;
-        chunk->mToolCount = 0;
-        chunk->mNoteCount = 0;
-        chunk->mPrivCount = 0;
-        chunk->mMidCount = 0;
-        chunk->mRidCount = 0;
-        chunk->mUnknownCount = 0;
-
-        // start over and now parse
-        pos = startOfItems;
-        remaining = remainingAtStartOfItems;
-
-        while (remaining >= sizeof(BYTE)) {
-
-          BYTE type = *pos;
-          advancePos(pos, remaining);
-
-          if (SDES::Chunk::kEndOfItemsType == type) {
-            // skip NUL item (no length octet is present)
-
-            // skip to next DWORD alignment
-            auto diff = reinterpret_cast<PTRNUMBER>(pos) - reinterpret_cast<PTRNUMBER>(ptr());
-            while ((0 != (diff % sizeof(DWORD))) &&
-                   (remaining > 0))
-            {
-              // only NUL chunks are allowed
-              ASSERT(SDES::Chunk::kEndOfItemsType == (*pos))
-              advancePos(pos, remaining);
-              ++diff;
-            }
-            break;
-          }
-
-          ASSERT(remaining >= sizeof(BYTE))
-
-          size_t length = static_cast<size_t>(*pos);
-          advancePos(pos, remaining);
-
-          ASSERT(remaining >= length)
-
-          SDES::Chunk::StringItem *item {};
-
-          const char *prefixStr = NULL;
-          size_t prefixLen = 0;
-
-          switch (type) {
-            case SDES::Chunk::CName::kItemType: {
-              item = &(chunk->mFirstCName[chunk->mCNameCount]);
-              if (0 != chunk->mCNameCount) {
-                (&(chunk->mFirstCName[chunk->mCNameCount-1]))->mNext = item;
-              }
-              ++(chunk->mCNameCount);
-              break;
-            }
-            case SDES::Chunk::Name::kItemType:  {
-              item = &(chunk->mFirstName[chunk->mNameCount]);
-              if (0 != chunk->mNameCount) {
-                (&(chunk->mFirstName[chunk->mNameCount-1]))->mNext = item;
-              }
-              ++(chunk->mNameCount);
-              break;
-            }
-            case SDES::Chunk::Email::kItemType: {
-              item = &(chunk->mFirstEmail[chunk->mEmailCount]);
-              if (0 != chunk->mEmailCount) {
-                (&(chunk->mFirstEmail[chunk->mEmailCount-1]))->mNext = item;
-              }
-              ++(chunk->mEmailCount);
-              break;
-            }
-            case SDES::Chunk::Phone::kItemType: {
-              item = &(chunk->mFirstPhone[chunk->mPhoneCount]);
-              if (0 != chunk->mPhoneCount) {
-                (&(chunk->mFirstPhone[chunk->mPhoneCount-1]))->mNext = item;
-              }
-              ++(chunk->mPhoneCount);
-              break;
-            }
-            case SDES::Chunk::Loc::kItemType:   {
-              item = &(chunk->mFirstLoc[chunk->mLocCount]);
-              if (0 != chunk->mLocCount) {
-                (&(chunk->mFirstLoc[chunk->mLocCount-1]))->mNext = item;
-              }
-              ++(chunk->mLocCount);
-              break;
-            }
-            case SDES::Chunk::Tool::kItemType:  {
-              item = &(chunk->mFirstTool[chunk->mToolCount]);
-              if (0 != chunk->mToolCount) {
-                (&(chunk->mFirstTool[chunk->mToolCount-1]))->mNext = item;
-              }
-              ++(chunk->mToolCount);
-              break;
-            }
-            case SDES::Chunk::Note::kItemType:  {
-              item = &(chunk->mFirstNote[chunk->mNoteCount]);
-              if (0 != chunk->mNoteCount) {
-                (&(chunk->mFirstNote[chunk->mNoteCount-1]))->mNext = item;
-              }
-              ++(chunk->mNoteCount);
-              break;
-            }
-            case SDES::Chunk::Priv::kItemType:  {
-              SDES::Chunk::Priv *priv = &(chunk->mFirstPriv[chunk->mPrivCount]);
-              if (0 != chunk->mPrivCount) {
-                (&(chunk->mFirstPriv[chunk->mPrivCount-1]))->mNext = priv;
-              }
-
-              if (length > 0) {
-                prefixLen = static_cast<size_t>(*pos);
-                advancePos(pos, remaining);
-                --length;
-                if (0 != prefixLen) {
-                  priv->mPrefix = new (allocateBuffer(sizeof(char)*(prefixLen+1))) char [prefixLen+1];
-                  priv->mPrefixLength = prefixLen;
-                  memcpy(const_cast<char *>(priv->mPrefix), pos, prefixLen);
-
-                  advancePos(pos, remaining, prefixLen);
-                  ASSERT(length >= prefixLen)
-
-                  length -= prefixLen;
-                }
-              }
-
-              item = priv;
-
-              ++(chunk->mPrivCount);
-              break;
-            }
-            case SDES::Chunk::Mid::kItemType:  {
-              item = &(chunk->mFirstMid[chunk->mMidCount]);
-              if (0 != chunk->mMidCount) {
-                (&(chunk->mFirstMid[chunk->mMidCount-1]))->mNext = item;
-              }
-              ++(chunk->mMidCount);
-              break;
-            }
-            case SDES::Chunk::Rid::kItemType:  {
-              item = &(chunk->mFirstRid[chunk->mRidCount]);
-              if (0 != chunk->mRidCount) {
-                (&(chunk->mFirstRid[chunk->mRidCount-1]))->mNext = item;
-              }
-              ++(chunk->mRidCount);
-              break;
-            }
-            default:
-            {
-              item = &(chunk->mFirstUnknown[chunk->mUnknownCount]);
-              if (0 != chunk->mUnknownCount) {
-                (&(chunk->mFirstUnknown[chunk->mUnknownCount-1]))->mNext = item;
-              }
-              ++(chunk->mUnknownCount);
-              ZS_LOG_WARNING(Insane, log("SDES item type is not understood") + ZS_PARAM("type", type))
-              break;
-            }
-          }
-
-          if (NULL != item) {
-            item->mType = type;
-            if (length > 0) {
-              item->mValue = new (allocateBuffer(length+1)) char [length+1];
-              item->mLength = length;
-              memcpy(const_cast<char *>(item->mValue), pos, length);
-            }
-            if (ZS_IS_LOGGING(Insane)) {
-              if (NULL != prefixStr) {
-                ZS_LOG_INSANE(packet_slog("parsing SDES") + ZS_PARAM("type", item->typeToString()) + ZS_PARAM("chunk", chunkCount) + ZS_PARAM("prefix len", prefixLen) + ZS_PARAM("prefix", prefixStr) + ZS_PARAM("len", length) + ZS_PARAM("value", (NULL != item->mValue ? item->mValue : NULL)))
-              } else {
-                ZS_LOG_INSANE(packet_slog("parsing SDES") + ZS_PARAM("type", item->typeToString()) + ZS_PARAM("chunk", chunkCount) + ZS_PARAM("len", length) + ZS_PARAM("value", (NULL != item->mValue ? item->mValue : NULL)))
-              }
-            }
-          }
-
-          ++(chunk->mCount);
-
-          advancePos(pos, remaining, length);
-        }
-
-      }
-
-      if (chunkCount != report->sc()) {
-        ZS_LOG_WARNING(Trace, debug("chunk count in SDES does not match packet count") + ZS_PARAM("chunk count", chunkCount) + ZS_PARAM("packet count", report->sc()))
-        return false;
-      }
-
-      return true;
-    }
-    
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::parse(Bye *report)
-    {
-      if (0 != mByeCount) {
-        (&(mFirstBye[mByeCount-1]))->mNextBye = report;
-      }
-      ++mByeCount;
-
-      const BYTE *pos = report->ptr();
-      size_t remaining = report->size();
-
-      if (NULL == pos) {
-        if (0 != report->sc()) {
-          ZS_LOG_WARNING(Trace, debug("BYE report count > 0 but does not contain SSRCs") + ZS_PARAM("sc", report->sc()))
-          return false;
-        }
-
-        return true;
-      }
-
-      if (0 != report->sc()) {
-        report->mSSRCs = new (allocateBuffer(alignedSize(sizeof(DWORD))*(report->sc()))) DWORD[report->sc()];
-      }
-
-      {
-        size_t index = 0;
-
-        while (index < report->sc()) {
-          if (remaining < sizeof(DWORD)) goto illegal_remaining;
-
-          report->mSSRCs[index] = RTPUtils::getBE32(pos);
-          advancePos(pos, remaining, sizeof(DWORD));
-          ++index;
-        }
-
-        if (remaining > sizeof(BYTE)) {
-          size_t length = static_cast<size_t>(*pos);
-          advancePos(pos, remaining);
-
-          if (remaining < length) goto illegal_remaining;
-
-          if (length > 0) {
-            report->mReasonForLeaving = new (allocateBuffer(alignedSize((sizeof(char)*length)+sizeof(char)))) char[length+1];
-            memcpy(const_cast<char *>(report->mReasonForLeaving), pos, length);
-          }
-        }
-
-        return true;
-      }
-
-    illegal_remaining:
-      {
-        ZS_LOG_WARNING(Trace, debug("malformed BYE") + ZS_PARAM("pos", reinterpret_cast<PTRNUMBER>(pos) - reinterpret_cast<PTRNUMBER>(report->ptr()))  + ZS_PARAM("remaining", remaining))
-      }
-      return false;
-    }
-
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::parse(App *report)
-    {
-      if (0 != mAppCount) {
-        (&(mFirstApp[mAppCount-1]))->mNextApp = report;
-      }
-      ++mAppCount;
-
-      const BYTE *pos = report->ptr();
-      size_t remaining = report->size();
-
-      {
-        if (remaining < sizeof(DWORD)) goto illegal_remaining;
-
-        report->mSSRC = RTPUtils::getBE32(pos);
-        advancePos(pos, remaining, sizeof(DWORD));
-
-        if (remaining < sizeof(DWORD)) goto illegal_remaining;
-
-        for (size_t index = 0; index < sizeof(DWORD); ++index) {
-          report->mName[index] = static_cast<char>(pos[index]);
-        }
-        advancePos(pos, remaining, sizeof(DWORD));
-
-        if (0 != remaining) {
-          report->mData = pos;
-          report->mDataSize = remaining;
-        }
-
-        return true;
-      }
-
-    illegal_remaining:
-      {
-        ZS_LOG_WARNING(Trace, debug("malformed APP") + ZS_PARAM("pos", reinterpret_cast<PTRNUMBER>(pos) - reinterpret_cast<PTRNUMBER>(report->ptr()))  + ZS_PARAM("remaining", remaining))
-      }
-      return false;
-    }
-    
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::parse(TransportLayerFeedbackMessage *report)
-    {
-      if (0 != mTransportLayerFeedbackMessageCount) {
-        (&(mFirstTransportLayerFeedbackMessage[mTransportLayerFeedbackMessageCount-1]))->mNextTransportLayerFeedbackMessage = report;
-      }
-      ++mTransportLayerFeedbackMessageCount;
-
-      const BYTE *pos = report->ptr();
-      size_t remaining = report->size();
-
-      {
-        if (remaining < (sizeof(DWORD)*2)) goto illegal_remaining;
-
-        fill(report, pos, remaining);
-
-        bool result = false;
-
-        switch (report->fmt()) {
-          case TransportLayerFeedbackMessage::GenericNACK::kFmt:  result = parseGenericNACK(report); break;
-          case TransportLayerFeedbackMessage::TMMBR::kFmt:        result = parseTMMBR(report); break;
-          case TransportLayerFeedbackMessage::TMMBN::kFmt:        result = parseTMMBN(report); break;
-          default: {
-            result = parseUnknown(report);
-            break;
-          }
-        }
-
-        ZS_LOG_INSANE(packet_slog("parsed transport layer feedback message") + ZS_PARAM("fmt", report->fmtToString()) + ZS_PARAM("fmt (number)", report->reportSpecific()))
-
-        return true;
-      }
-
-    illegal_remaining:
-      {
-        ZS_LOG_WARNING(Trace, debug("malformed transport layer feedback message") + ZS_PARAM("pos", reinterpret_cast<PTRNUMBER>(pos) - reinterpret_cast<PTRNUMBER>(report->ptr()))  + ZS_PARAM("remaining", remaining))
-      }
-      return false;
-    }
-    
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::parse(PayloadSpecificFeedbackMessage *report)
-    {
-      if (0 != mPayloadSpecificFeedbackMessageCount) {
-        (&(mFirstPayloadSpecificFeedbackMessage[mPayloadSpecificFeedbackMessageCount-1]))->mNextPayloadSpecificFeedbackMessage = report;
-      }
-      ++mPayloadSpecificFeedbackMessageCount;
-
-      const BYTE *pos = report->ptr();
-      size_t remaining = report->size();
-
-      {
-        if (remaining < (sizeof(DWORD)*2)) goto illegal_remaining;
-
-        fill(report, pos, remaining);
-        advancePos(pos, remaining, sizeof(DWORD)*2);
-
-        bool result = false;
-
-        switch (report->fmt()) {
-          case PayloadSpecificFeedbackMessage::PLI::kFmt:   result = parsePLI(report); break;
-          case PayloadSpecificFeedbackMessage::SLI::kFmt:   result = parseSLI(report); break;
-          case PayloadSpecificFeedbackMessage::RPSI::kFmt:  result = parseRPSI(report); break;
-          case PayloadSpecificFeedbackMessage::FIR::kFmt:   result = parseFIR(report); break;
-          case PayloadSpecificFeedbackMessage::TSTR::kFmt:  result = parseTSTR(report); break;
-          case PayloadSpecificFeedbackMessage::TSTN::kFmt:  result = parseTSTN(report); break;
-          case PayloadSpecificFeedbackMessage::VBCM::kFmt:  result = parseVBCM(report); break;
-          case PayloadSpecificFeedbackMessage::AFB::kFmt:   {
-            {
-              if (remaining < sizeof(DWORD)) goto generic_afb;
-              if (0 != memcmp(pos, reinterpret_cast<const BYTE *>("REMB"), sizeof(DWORD))) goto generic_afb;
-
-              result = parseREMB(report);
-              break;
-            }
-          generic_afb:
-            {
-              result = parseAFB(report);
-              break;
-            }
-          }
-          default: {
-            result = parseUnknown(report);
-            break;
-          }
-        }
-
-        ZS_LOG_INSANE(packet_slog("parsed payload specific feedback message") + ZS_PARAM("fmt", report->fmtToString()) + ZS_PARAM("fmt (number)", report->reportSpecific()))
-
-        return true;
-      }
-
-    illegal_remaining:
-      {
-        ZS_LOG_WARNING(Trace, debug("malformed payload specific feedback message") + ZS_PARAM("pos", reinterpret_cast<PTRNUMBER>(pos) - reinterpret_cast<PTRNUMBER>(report->ptr()))  + ZS_PARAM("remaining", remaining))
-      }
-      return false;
-    }
-    
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::parse(XR *report)
-    {
-      if (0 != mXRCount) {
-        (&(mFirstXR[mXRCount-1]))->mNextXR = report;
-      }
-      ++mXRCount;
-
-      const BYTE *pos = report->ptr();
-      size_t remaining = report->size();
-
-      {
-        if (remaining < sizeof(DWORD)) goto illegal_remaining;
-
-        report->mSSRC = RTPUtils::getBE32(pos);
-        advancePos(pos, remaining, sizeof(DWORD));
-
-        // first count the totals for each XR block type
-        while (remaining >= sizeof(DWORD)) {
-
-          BYTE bt = pos[0];
-          size_t blockLength = static_cast<size_t>(RTPUtils::getBE16(&(pos[2]))) * sizeof(DWORD);
-
-          advancePos(pos, remaining, sizeof(DWORD));
-
-          ++report->mReportBlockCount;
-
-          if (remaining < blockLength) {
-            ZS_LOG_WARNING(Trace, debug("illegal XR block length found") + ZS_PARAM("block length", blockLength) + ZS_PARAM("remaining", remaining))
-            return false;
-          }
-
-          switch (bt) {
-            case XR::LossRLEReportBlock::kBlockType:                ++(report->mLossRLEReportBlockCount); break;
-            case XR::DuplicateRLEReportBlock::kBlockType:           ++(report->mDuplicateRLEReportBlockCount); break;
-            case XR::PacketReceiptTimesReportBlock::kBlockType:     ++(report->mPacketReceiptTimesReportBlockCount); break;
-            case XR::ReceiverReferenceTimeReportBlock::kBlockType:  ++(report->mReceiverReferenceTimeReportBlockCount); break;
-            case XR::DLRRReportBlock::kBlockType:                   ++(report->mDLRRReportBlockCount); break;
-            case XR::StatisticsSummaryReportBlock::kBlockType:      ++(report->mStatisticsSummaryReportBlockCount); break;
-            case XR::VoIPMetricsReportBlock::kBlockType:            ++(report->mVoIPMetricsReportBlockCount); break;
-            default:
-            {
-              ++(report->mUnknownReportBlockCount); break;
-              break;
-            }
-          }
-          
-          advancePos(pos, remaining, blockLength);
-        }
-
-        if (0 != report->mLossRLEReportBlockCount) {
-          report->mFirstLossRLEReportBlock = new (allocateBuffer(alignedSize(sizeof(XR::LossRLEReportBlock))*(report->mLossRLEReportBlockCount))) XR::LossRLEReportBlock[report->mLossRLEReportBlockCount];
-        }
-        if (0 != report->mDuplicateRLEReportBlockCount) {
-          report->mFirstDuplicateRLEReportBlock = new (allocateBuffer(alignedSize(sizeof(XR::DuplicateRLEReportBlock))*(report->mDuplicateRLEReportBlockCount))) XR::DuplicateRLEReportBlock[report->mDuplicateRLEReportBlockCount];
-        }
-        if (0 != report->mPacketReceiptTimesReportBlockCount) {
-          report->mFirstPacketReceiptTimesReportBlock = new (allocateBuffer(alignedSize(sizeof(XR::PacketReceiptTimesReportBlock))*(report->mPacketReceiptTimesReportBlockCount))) XR::PacketReceiptTimesReportBlock[report->mPacketReceiptTimesReportBlockCount];
-        }
-        if (0 != report->mReceiverReferenceTimeReportBlockCount) {
-          report->mFirstReceiverReferenceTimeReportBlock = new (allocateBuffer(alignedSize(sizeof(XR::ReceiverReferenceTimeReportBlock))*(report->mReceiverReferenceTimeReportBlockCount))) XR::ReceiverReferenceTimeReportBlock[report->mReceiverReferenceTimeReportBlockCount];
-        }
-        if (0 != report->mDLRRReportBlockCount) {
-          report->mFirstDLRRReportBlock = new (allocateBuffer(alignedSize(sizeof(XR::DLRRReportBlock))*(report->mDLRRReportBlockCount))) XR::DLRRReportBlock[report->mDLRRReportBlockCount];
-        }
-        if (0 != report->mStatisticsSummaryReportBlockCount) {
-          report->mFirstStatisticsSummaryReportBlock = new (allocateBuffer(alignedSize(sizeof(XR::StatisticsSummaryReportBlock))*(report->mStatisticsSummaryReportBlockCount))) XR::StatisticsSummaryReportBlock[report->mStatisticsSummaryReportBlockCount];
-        }
-        if (0 != report->mVoIPMetricsReportBlockCount) {
-          report->mFirstVoIPMetricsReportBlock = new (allocateBuffer(alignedSize(sizeof(XR::VoIPMetricsReportBlock))*(report->mVoIPMetricsReportBlockCount))) XR::VoIPMetricsReportBlock[report->mVoIPMetricsReportBlockCount];
-        }
-        if (0 != report->mUnknownReportBlockCount) {
-          report->mFirstUnknownReportBlock = new (allocateBuffer(alignedSize(sizeof(XR::UnknownReportBlock))*(report->mUnknownReportBlockCount))) XR::UnknownReportBlock[report->mUnknownReportBlockCount];
-        }
-
-        report->mLossRLEReportBlockCount = 0;
-        report->mDuplicateRLEReportBlockCount = 0;
-        report->mPacketReceiptTimesReportBlockCount = 0;
-        report->mReceiverReferenceTimeReportBlockCount = 0;
-        report->mDLRRReportBlockCount = 0;
-        report->mStatisticsSummaryReportBlockCount = 0;
-        report->mVoIPMetricsReportBlockCount = 0;
-        report->mUnknownReportBlockCount = 0;
-
-        XR::ReportBlock *previousReportBlock = NULL;
-
-        // reset to start of buffer
-        pos = report->ptr();
-        remaining = report->size();
-
-        advancePos(pos, remaining, sizeof(DWORD));
-
-        // parse each XR report block
-        while (remaining >= sizeof(DWORD)) {
-          const BYTE *prePos = pos;
-          size_t preAllocationSize = mAllocationSize;
-
-          BYTE bt = pos[0];
-          BYTE typeSpecific = pos[1];
-          size_t blockLength = static_cast<size_t>(RTPUtils::getBE16(&(pos[2]))) * sizeof(DWORD);
-
-          advancePos(pos, remaining, sizeof(DWORD));
-
-          if (remaining < blockLength) {
-            ZS_LOG_WARNING(Trace, debug("malformed XR block length found") + ZS_PARAM("block length", blockLength) + ZS_PARAM("remaining", remaining))
-            return false;
-          }
-
-          XR::ReportBlock *usingBlock = NULL;
-
-          switch (bt) {
-            case XR::LossRLEReportBlock::kBlockType:                {
-              auto reportBlock = &(report->mFirstLossRLEReportBlock[report->mLossRLEReportBlockCount]);
-              usingBlock = reportBlock;
-              if (0 != report->mLossRLEReportBlockCount) {
-                (&(report->mFirstLossRLEReportBlock[report->mLossRLEReportBlockCount-1]))->mNextLossRLE = reportBlock;
-              }
-              ++(report->mLossRLEReportBlockCount);
-              fill(report, reportBlock, previousReportBlock, bt, typeSpecific, pos, blockLength);
-              if (!parse(report, reportBlock)) return false;
-              break;
-            }
-            case XR::DuplicateRLEReportBlock::kBlockType:           {
-              auto reportBlock = &(report->mFirstDuplicateRLEReportBlock[report->mDuplicateRLEReportBlockCount]);
-              usingBlock = reportBlock;
-              if (0 != report->mDuplicateRLEReportBlockCount) {
-                (&(report->mFirstDuplicateRLEReportBlock[report->mDuplicateRLEReportBlockCount-1]))->mNextDuplicateRLE = reportBlock;
-              }
-              ++(report->mDuplicateRLEReportBlockCount);
-              fill(report, reportBlock, previousReportBlock, bt, typeSpecific, pos, blockLength);
-              if (!parse(report, reportBlock)) return false;
-              break;
-            }
-            case XR::PacketReceiptTimesReportBlock::kBlockType:     {
-              auto reportBlock = &(report->mFirstPacketReceiptTimesReportBlock[report->mPacketReceiptTimesReportBlockCount]);
-              usingBlock = reportBlock;
-              if (0 != report->mPacketReceiptTimesReportBlockCount) {
-                (&(report->mFirstPacketReceiptTimesReportBlock[report->mPacketReceiptTimesReportBlockCount-1]))->mNextPacketReceiptTimesReportBlock = reportBlock;
-              }
-              ++(report->mPacketReceiptTimesReportBlockCount);
-              fill(report, reportBlock, previousReportBlock, bt, typeSpecific, pos, blockLength);
-              if (!parse(report, reportBlock)) return false;
-              break;
-            }
-            case XR::ReceiverReferenceTimeReportBlock::kBlockType:  {
-              auto reportBlock = &(report->mFirstReceiverReferenceTimeReportBlock[report->mReceiverReferenceTimeReportBlockCount]);
-              usingBlock = reportBlock;
-              if (0 != report->mReceiverReferenceTimeReportBlockCount) {
-                (&(report->mFirstReceiverReferenceTimeReportBlock[report->mReceiverReferenceTimeReportBlockCount-1]))->mNextReceiverReferenceTimeReportBlock = reportBlock;
-              }
-              ++(report->mReceiverReferenceTimeReportBlockCount);
-              fill(report, reportBlock, previousReportBlock, bt, typeSpecific, pos, blockLength);
-              if (!parse(report, reportBlock)) return false;
-              break;
-            }
-            case XR::DLRRReportBlock::kBlockType:                   {
-              auto reportBlock = &(report->mFirstDLRRReportBlock[report->mDLRRReportBlockCount]);
-              usingBlock = reportBlock;
-              if (0 != report->mDLRRReportBlockCount) {
-                (&(report->mFirstDLRRReportBlock[report->mDLRRReportBlockCount-1]))->mNextDLRRReportBlock = reportBlock;
-              }
-              ++(report->mDLRRReportBlockCount);
-              fill(report, reportBlock, previousReportBlock, bt, typeSpecific, pos, blockLength);
-              if (!parse(report, reportBlock)) return false;
-              break;
-            }
-            case XR::StatisticsSummaryReportBlock::kBlockType:      {
-              auto reportBlock = &(report->mFirstStatisticsSummaryReportBlock[report->mStatisticsSummaryReportBlockCount]);
-              usingBlock = reportBlock;
-              if (0 != report->mStatisticsSummaryReportBlockCount) {
-                (&(report->mFirstStatisticsSummaryReportBlock[report->mStatisticsSummaryReportBlockCount-1]))->mNextStatisticsSummaryReportBlock = reportBlock;
-              }
-              ++(report->mStatisticsSummaryReportBlockCount);
-              fill(report, reportBlock, previousReportBlock, bt, typeSpecific, pos, blockLength);
-              if (!parse(report, reportBlock)) return false;
-              break;
-            }
-            case XR::VoIPMetricsReportBlock::kBlockType:            {
-              auto reportBlock = &(report->mFirstVoIPMetricsReportBlock[report->mVoIPMetricsReportBlockCount]);
-              usingBlock = reportBlock;
-              if (0 != report->mVoIPMetricsReportBlockCount) {
-                (&(report->mFirstVoIPMetricsReportBlock[report->mVoIPMetricsReportBlockCount-1]))->mNextVoIPMetricsReportBlock = reportBlock;
-              }
-              ++(report->mVoIPMetricsReportBlockCount);
-              fill(report, reportBlock, previousReportBlock, bt, typeSpecific, pos, blockLength);
-              if (!parse(report, reportBlock)) return false;
-              break;
-            }
-            default:                                                {
-              auto reportBlock = &(report->mFirstUnknownReportBlock[report->mUnknownReportBlockCount]);
-              usingBlock = reportBlock;
-              if (0 != report->mUnknownReportBlockCount) {
-                (&(report->mFirstUnknownReportBlock[report->mUnknownReportBlockCount-1]))->mNextUnknownReportBlock = reportBlock;
-              }
-              ++(report->mUnknownReportBlockCount);
-              fill(report, reportBlock, previousReportBlock, bt, typeSpecific, pos, blockLength);
-              if (!parse(report, reportBlock)) return false;
-              break;
-            }
-          }
-
-          advancePos(pos, remaining, blockLength);
-
-          ZS_LOG_INSANE(packet_slog("parsed XR block") + ZS_PARAM("block type", usingBlock->blockTypeToString()) + ZS_PARAM("block type (number)", usingBlock->blockType()) + ZS_PARAM("block size", blockLength) + ZS_PARAM("consumed", (reinterpret_cast<PTRNUMBER>(pos) - reinterpret_cast<PTRNUMBER>(prePos)))  + ZS_PARAM("allocation consumed", preAllocationSize - mAllocationSize))
-        }
-        
-
-        return true;
-      }
-
-    illegal_remaining:
-      {
-        ZS_LOG_WARNING(Trace, debug("malformed XR when parsing") + ZS_PARAM("pos", reinterpret_cast<PTRNUMBER>(pos) - reinterpret_cast<PTRNUMBER>(report->ptr()))  + ZS_PARAM("remaining", remaining))
-      }
-      return false;
-    }
-
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::parse(UnknownReport *report)
-    {
-      if (0 != mUnknownReportCount) {
-        (&(mFirstUnknownReport[mUnknownReportCount-1]))->mNextUnknown = report;
-      }
-      ++mUnknownReportCount;
-
-      return true;
-    }
-    
-    //-------------------------------------------------------------------------
-    void RTCPPacket::fill(FeedbackMessage *report, const BYTE *contents, size_t contentSize)
-    {
-      const BYTE *pos = contents;
-      size_t remaining = contentSize;
-
-      report->mSSRCOfPacketSender = RTPUtils::getBE32(&(pos[0]));
-      report->mSSRCOfMediaSource = RTPUtils::getBE32(&(pos[4]));
-
-      advancePos(pos, remaining, sizeof(DWORD)*2);
-
-      if (remaining > sizeof(BYTE)) {
-        report->mFCI = pos;
-        report->mFCISize = remaining;
-      }
-    }
-
-    //-------------------------------------------------------------------------
-    void RTCPPacket::fill(
-                          XR *report,
-                          XR::ReportBlock *reportBlock,
-                          XR::ReportBlock * &ioPreviousReportBlock,
-                          BYTE blockType,
-                          BYTE typeSpecific,
-                          const BYTE *contents,
-                          size_t contentSize
-                          )
-    {
-      reportBlock->mBlockType = blockType;
-      reportBlock->mTypeSpecific = typeSpecific;
-      if (0 != contentSize) {
-        reportBlock->mTypeSpecificContents = contents;
-        reportBlock->mTypeSpecificContentSize = contentSize;
-      }
-
-      if (NULL == report->mFirstReportBlock) {
-        report->mFirstReportBlock = reportBlock;
-      }
-      if (NULL != ioPreviousReportBlock) {
-        ioPreviousReportBlock->mNext = reportBlock;
-      }
-      ioPreviousReportBlock = reportBlock;
-    }
-
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::parseGenericNACK(TransportLayerFeedbackMessage *report)
-    {
-      typedef TransportLayerFeedbackMessage::GenericNACK GenericNACK;
-      const BYTE *pos = report->fci();
-      size_t remaining = report->fciSize();
-
-      size_t possibleNACKs = remaining / sizeof(DWORD);
-
-      ASSERT(0 != possibleNACKs)
-
-      report->mFirstGenericNACK = new (allocateBuffer(alignedSize(sizeof(GenericNACK))*possibleNACKs)) GenericNACK[possibleNACKs];
-
-      while (remaining >= sizeof(DWORD)) {
-        GenericNACK *nack = &(report->mFirstGenericNACK[report->mGenericNACKCount]);
-
-        nack->mPID = RTPUtils::getBE16(&(pos[0]));
-        nack->mBLP = RTPUtils::getBE16(&(pos[2]));
-
-        advancePos(pos, remaining, sizeof(DWORD));
-
-        ++(report->mGenericNACKCount);
-      }
-
-      ASSERT(possibleNACKs == report->mGenericNACKCount)
-
-      return true;
-    }
-    
-    //-------------------------------------------------------------------------
-    void RTCPPacket::fillTMMBRCommon(
-                                      TransportLayerFeedbackMessage *report,
-                                      TransportLayerFeedbackMessage::TMMBRCommon *common,
-                                      const BYTE *pos
-                                      )
-    {
-      typedef TransportLayerFeedbackMessage::TMMBRCommon TMMBRCommon;
-
-      common->mSSRC = RTPUtils::getBE32(&(pos[0]));
-      common->mMxTBRExp = RTCP_GET_BITS(pos[4], 0x3F, 2);
-      common->mMxTBRMantissa = RTCP_GET_BITS(RTPUtils::getBE32(&(pos[4])), 0x1FFFF, 9);
-      common->mMeasuredOverhead = RTCP_GET_BITS(RTPUtils::getBE32(&(pos[4])), 0x1FF, 0);
-    }
-    
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::parseTMMBR(TransportLayerFeedbackMessage *report)
-    {
-      typedef TransportLayerFeedbackMessage::TMMBR TMMBR;
-
-      const BYTE *pos = report->fci();
-      size_t remaining = report->fciSize();
-
-      size_t possibleTMMBRs = remaining / (sizeof(DWORD)*2);
-
-      ASSERT(0 != possibleTMMBRs)
-
-      report->mFirstTMMBR = new (allocateBuffer(alignedSize(sizeof(TMMBR))*possibleTMMBRs)) TMMBR[possibleTMMBRs];
-
-      while (remaining >= (sizeof(DWORD)*2)) {
-        TMMBR *tmmbr = &(report->mFirstTMMBR[report->mTMMBRCount]);
-
-        fillTMMBRCommon(report, tmmbr, pos);
-
-        advancePos(pos, remaining, sizeof(DWORD)*2);
-
-        ++(report->mTMMBRCount);
-      }
-
-      ASSERT(possibleTMMBRs == report->mTMMBRCount)
-
-      return true;
-    }
-    
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::parseTMMBN(TransportLayerFeedbackMessage *report)
-    {
-      typedef TransportLayerFeedbackMessage::TMMBN TMMBN;
-
-      const BYTE *pos = report->fci();
-      size_t remaining = report->fciSize();
-
-      size_t possibleTMMBNs = remaining / (sizeof(DWORD)*2);
-
-      if (possibleTMMBNs < 1) {
-        report->mFirstTMMBN = NULL;
-        report->mTMMBNCount = 0;
-        return true;
-      }
-
-      report->mFirstTMMBN = new (allocateBuffer(alignedSize(sizeof(TMMBN))*possibleTMMBNs)) TMMBN[possibleTMMBNs];
-
-      while (remaining >= (sizeof(DWORD)*2)) {
-        TMMBN *tmmbr = &(report->mFirstTMMBN[report->mTMMBNCount]);
-
-        fillTMMBRCommon(report, tmmbr, pos);
-
-        advancePos(pos, remaining, sizeof(DWORD)*2);
-
-        ++(report->mTMMBNCount);
-      }
-
-      ASSERT(possibleTMMBNs == report->mTMMBNCount)
-
-      return true;
-    }
-
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::parseUnknown(TransportLayerFeedbackMessage *report)
-    {
-      report->mUnknown = report;
-      return true;
-    }
-
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::parsePLI(PayloadSpecificFeedbackMessage *report)
-    {
-      return true;
-    }
-
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::parseSLI(PayloadSpecificFeedbackMessage *report)
-    {
-      typedef PayloadSpecificFeedbackMessage::SLI SLI;
-
-      const BYTE *pos = report->fci();
-      size_t remaining = report->fciSize();
-
-      size_t possibleSLIs = remaining / (sizeof(DWORD));
-
-      ASSERT(0 != possibleSLIs)
-
-      report->mFirstSLI = new (allocateBuffer(alignedSize(sizeof(SLI))*possibleSLIs)) SLI[possibleSLIs];
-
-      while (remaining >= (sizeof(DWORD))) {
-        SLI *sli = &(report->mFirstSLI[report->mSLICount]);
-
-        sli->mFirst = RTCP_GET_BITS(RTPUtils::getBE16(&(pos[0])), 0x1FFF, 3);
-        sli->mNumber = static_cast<WORD>(RTCP_GET_BITS(RTPUtils::getBE32(&(pos[0])), 0x1FFF, 6));
-        sli->mPictureID = RTCP_GET_BITS(pos[3], 0x3F, 0);
-
-        advancePos(pos, remaining, sizeof(DWORD));
-
-        ++(report->mSLICount);
-      }
-
-      ASSERT(possibleSLIs == report->mSLICount)
-
-      return true;
-    }
-    
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::parseRPSI(PayloadSpecificFeedbackMessage *report)
-    {
-      const BYTE *pos = report->fci();
-      size_t remaining = report->fciSize();
-
-      {
-        if (remaining < sizeof(WORD)) goto illegal_remaining;
-
-        BYTE pb = pos[0];
-        report->mRPSI.mZeroBit = RTCP_GET_BITS(pos[1], 0x1, 7);
-        report->mRPSI.mPayloadType = RTCP_GET_BITS(pos[1], 0x7F, 0);
-
-        advancePos(pos, remaining, sizeof(WORD));
-
-        if (remaining > 0) {
-          report->mRPSI.mNativeRPSIBitString = pos;
-          report->mRPSI.mNativeRPSIBitStringSizeInBits = (remaining*8);
-          if (pb > report->mRPSI.mNativeRPSIBitStringSizeInBits) goto illegal_remaining;
-
-          report->mRPSI.mNativeRPSIBitStringSizeInBits -= static_cast<size_t>(pb);
-          if (0 == report->mRPSI.mNativeRPSIBitStringSizeInBits) {
-            report->mRPSI.mNativeRPSIBitString = NULL;
-          }
-        }
-
-        return true;
-      }
-
-    illegal_remaining:
-      {
-        ZS_LOG_WARNING(Trace, debug("malformed RPSI payload specific feedback message") + ZS_PARAM("pos", reinterpret_cast<PTRNUMBER>(pos) - reinterpret_cast<PTRNUMBER>(report->fci()))  + ZS_PARAM("remaining", remaining))
-      }
-      return false;
-    }
-    
-    //-------------------------------------------------------------------------
-    void RTCPPacket::fillCodecControlCommon(
-                                            PayloadSpecificFeedbackMessage *report,
-                                            PayloadSpecificFeedbackMessage::CodecControlCommon *common,
-                                            const BYTE *pos
-                                            )
-    {
-      common->mSSRC = RTPUtils::getBE32(&(pos[0]));
-      common->mSeqNr = pos[4];
-      common->mReserved = RTCP_GET_BITS(RTPUtils::getBE32(&(pos[4])), 0xFFFFFF, 0);
-    }
-
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::parseFIR(PayloadSpecificFeedbackMessage *report)
-    {
-      typedef PayloadSpecificFeedbackMessage::FIR FIR;
-
-      const BYTE *pos = report->fci();
-      size_t remaining = report->fciSize();
-
-      size_t possibleFIRs = remaining / (sizeof(DWORD)*2);
-
-      ASSERT(0 != possibleFIRs)
-
-      report->mFirstFIR = new (allocateBuffer(alignedSize(sizeof(FIR))*possibleFIRs)) FIR[possibleFIRs];
-
-      while (remaining >= (sizeof(DWORD)*2)) {
-        FIR *fir = &(report->mFirstFIR[report->mFIRCount]);
-        fillCodecControlCommon(report, fir, pos);
-
-        advancePos(pos, remaining, sizeof(DWORD)*2);
-
-        ++(report->mFIRCount);
-      }
-
-      ASSERT(possibleFIRs == report->mFIRCount)
-
-      return true;
-    }
-    
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::parseTSTR(PayloadSpecificFeedbackMessage *report)
-    {
-      typedef PayloadSpecificFeedbackMessage::TSTR TSTR;
-
-      const BYTE *pos = report->fci();
-      size_t remaining = report->fciSize();
-
-      size_t possibleTSTRs = remaining / (sizeof(DWORD)*2);
-
-      ASSERT(0 != possibleTSTRs)
-
-      report->mFirstTSTR = new (allocateBuffer(alignedSize(sizeof(TSTR))*possibleTSTRs)) TSTR[possibleTSTRs];
-
-      while (remaining >= (sizeof(DWORD)*2)) {
-        TSTR *tstr = &(report->mFirstTSTR[report->mTSTRCount]);
-        fillCodecControlCommon(report, tstr, pos);
-
-        tstr->mControlSpecific = RTCP_GET_BITS(tstr->mReserved, 0x1F, 0);
-        tstr->mReserved = RTCP_GET_BITS(tstr->mReserved, 0x7FFFF, 5);
-
-        advancePos(pos, remaining, sizeof(DWORD)*2);
-
-        ++(report->mTSTRCount);
-      }
-
-      ASSERT(possibleTSTRs == report->mTSTRCount)
-      
-      return true;
-    }
-    
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::parseTSTN(PayloadSpecificFeedbackMessage *report)
-    {
-      typedef PayloadSpecificFeedbackMessage::TSTN TSTN;
-
-      const BYTE *pos = report->fci();
-      size_t remaining = report->fciSize();
-
-      size_t possibleTSTNs = remaining / (sizeof(DWORD)*2);
-
-      ASSERT(0 != possibleTSTNs)
-
-      report->mFirstTSTN = new (allocateBuffer(alignedSize(sizeof(TSTN))*possibleTSTNs)) TSTN[possibleTSTNs];
-
-      while (remaining >= (sizeof(DWORD)*2)) {
-        TSTN *tstn = &(report->mFirstTSTN[report->mTSTNCount]);
-        fillCodecControlCommon(report, tstn, pos);
-
-        tstn->mControlSpecific = RTCP_GET_BITS(tstn->mReserved, 0x1F, 0);
-        tstn->mReserved = RTCP_GET_BITS(tstn->mReserved, 0x7FFFF, 5);
-
-        advancePos(pos, remaining, sizeof(DWORD)*2);
-
-        ++(report->mTSTNCount);
-      }
-
-      ASSERT(possibleTSTNs == report->mTSTNCount)
-      
-      return true;
-    }
-    
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::parseVBCM(PayloadSpecificFeedbackMessage *report)
-    {
-      typedef PayloadSpecificFeedbackMessage::VBCM VBCM;
-
-      const BYTE *pos = report->fci();
-      size_t remaining = report->fciSize();
-
-      size_t possibleVBCMs = 0;
-
-      // first count the VBCM blocks
-      {
-        while (remaining >= (sizeof(DWORD)*2)) {
-          ++possibleVBCMs;
-
-          size_t length = RTPUtils::getBE16(&(pos[6]));
-          size_t modulas = length % sizeof(DWORD);
-          size_t padding = ((0 != modulas) ? (sizeof(DWORD)-modulas) : 0);
-
-          advancePos(pos, remaining, sizeof(DWORD)*2);
-
-          ASSERT(remaining >= length)
-
-          size_t skipLength = (((length + padding) > remaining) ? remaining : (length + padding));
-
-          advancePos(pos, remaining, skipLength);
-        }
-        ASSERT(0 != possibleVBCMs)
-      }
-
-      pos = report->fci();
-      remaining = report->fciSize();
-
-      {
-        ASSERT(0 != possibleVBCMs)
-
-        report->mFirstVBCM = new (allocateBuffer(alignedSize(sizeof(VBCM))*possibleVBCMs)) VBCM[possibleVBCMs];
-
-        while (remaining >= (sizeof(DWORD)*2)) {
-          VBCM *vcbm = &(report->mFirstVBCM[report->mVBCMCount]);
-          fillCodecControlCommon(report, vcbm, pos);
-
-          // move reserved to control specific
-          vcbm->mControlSpecific = vcbm->mReserved;
-          vcbm->mReserved = 0;
-
-          size_t length = RTPUtils::getBE16(&(pos[6]));
-          size_t modulas = length % sizeof(DWORD);
-          size_t padding = ((0 != modulas) ? (sizeof(DWORD)-modulas) : 0);
-
-          advancePos(pos, remaining, sizeof(DWORD)*2);
-
-          ASSERT(remaining >= length)
-
-          if (length > 0) {
-            vcbm->mVBCMOctetString = pos;
-          }
-
-          size_t skipLength = (((length + padding) > remaining) ? remaining : (length + padding));
-
-          advancePos(pos, remaining, skipLength);
-
-          ++(report->mVBCMCount);
-        }
-
-        ASSERT(possibleVBCMs == report->mVBCMCount)
-      }
-      return true;
-    }
-
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::parseAFB(PayloadSpecificFeedbackMessage *report)
-    {
-      typedef PayloadSpecificFeedbackMessage::AFB AFB;
-
-      const BYTE *pos = report->fci();
-      size_t remaining = report->fciSize();
-
-      if (remaining > 0) {
-        report->mAFB.mData = pos;
-        report->mAFB.mDataSize = remaining;
-      }
-      return true;
-    }
-    
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::parseREMB(PayloadSpecificFeedbackMessage *report)
-    {
-      typedef PayloadSpecificFeedbackMessage::REMB REMB;
-
-      if (!parseAFB(report)) return false;
-
-      const BYTE *pos = report->fci();
-      size_t remaining = report->fciSize();
-
-      report->mHasREMB = true;
-
-      {
-        ASSERT(remaining >= sizeof(DWORD)*3)
-
-        report->mREMB.mNumSSRC = pos[4];
-        report->mREMB.mBRExp = RTCP_GET_BITS(pos[5], 0x3F, 2);
-        report->mREMB.mBRMantissa = RTCP_GET_BITS(RTPUtils::getBE32(&(pos[4])), 0x3FFFF, 0);
-
-        size_t possibleSSRCs = (remaining - sizeof(DWORD)*2) / (sizeof(DWORD));
-
-        advancePos(pos, remaining, sizeof(DWORD)*2);
-
-        report->mREMB.mSSRCs = new (allocateBuffer(alignedSize(sizeof(DWORD))*possibleSSRCs)) DWORD[possibleSSRCs];
-
-        size_t count = 0;
-        while ((possibleSSRCs > 0) &&
-               (count < report->mREMB.numSSRC()) &&
-               (remaining >= sizeof(DWORD)))
-        {
-          report->mREMB.mSSRCs[count] = RTPUtils::getBE32(pos);
-          advancePos(pos, remaining, sizeof(DWORD));
-          --possibleSSRCs;
-          ++count;
-        }
-
-        if (count != report->mREMB.numSSRC()) goto illegal_remaining;
-        return true;
-      }
-
-    illegal_remaining:
-      {
-        ZS_LOG_WARNING(Trace, debug("malformed REMB payload specific feedback message") + ZS_PARAM("pos", reinterpret_cast<PTRNUMBER>(pos) - reinterpret_cast<PTRNUMBER>(report->fci()))  + ZS_PARAM("remaining", remaining))
-      }
-      return false;
-    }
-
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::parseUnknown(PayloadSpecificFeedbackMessage *report)
-    {
-      report->mUnknown = report;
-      return true;
-    }
-    
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::parseCommonRange(
-                                      XR *xr,
-                                      XR::ReportBlockRange *reportBlock
-                                      )
-    {
-      const BYTE *pos = reportBlock->typeSpecificContents();
-      size_t remaining = reportBlock->typeSpecificContentSize();
-
-      {
-        if (remaining < (sizeof(DWORD)*2)) goto illegal_remaining;
-
-        reportBlock->mSSRCOfSource = RTPUtils::getBE32(&(pos[0]));
-        reportBlock->mBeginSeq = RTPUtils::getBE16(&(pos[4]));
-        reportBlock->mEndSeq = RTPUtils::getBE16(&(pos[6]));
-
-        return true;
-      }
-
-    illegal_remaining:
-      {
-        ZS_LOG_WARNING(Trace, debug("malformed report block range") + ZS_PARAM("pos", reinterpret_cast<PTRNUMBER>(pos) - reinterpret_cast<PTRNUMBER>(reportBlock->typeSpecificContents()))  + ZS_PARAM("remaining", remaining))
-      }
-      return false;
-    }
-
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::parseCommonRLE(
-                                    XR *xr,
-                                    XR::RLEReportBlock *reportBlock
-                                    )
-    {
-      const BYTE *pos = reportBlock->typeSpecificContents();
-      size_t remaining = reportBlock->typeSpecificContentSize();
-
-      if (!parseCommonRange(xr, reportBlock)) return false;
-
-      advancePos(pos, remaining, sizeof(DWORD)*2);
-
-      size_t possibleRLEsCount = (remaining / sizeof(WORD));
-
-      if (0 == possibleRLEsCount) return true;
-
-      reportBlock->mChunks = new (allocateBuffer(alignedSize(sizeof(XR::RLEChunk)*possibleRLEsCount))) XR::RLEChunk[possibleRLEsCount];
-
-      while (remaining >= sizeof(WORD))
-      {
-        XR::RLEChunk value = RTPUtils::getBE16(pos);
-        advancePos(pos, remaining, sizeof(WORD));
-
-        if (0 == value) break;
-        reportBlock->mChunks[reportBlock->mChunkCount] = value;
-        ++(reportBlock->mChunkCount);
-      }
-
-      if (0 == reportBlock->mChunkCount) {
-        reportBlock->mChunks = NULL;
-      }
-
-      return true;
-    }
-    
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::parse(
-                           XR *xr,
-                           XR::LossRLEReportBlock *reportBlock
-                           )
-    {
-      return parseCommonRLE(xr, reportBlock);
-    }
-    
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::parse(
-                           XR *xr,
-                           XR::DuplicateRLEReportBlock *reportBlock
-                           )
-    {
-      return parseCommonRLE(xr, reportBlock);
-    }
-
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::parse(
-                           XR *xr,
-                           XR::PacketReceiptTimesReportBlock *reportBlock
-                           )
-    {
-      if (!parseCommonRange(xr, reportBlock)) return false;
-
-      const BYTE *pos = reportBlock->typeSpecificContents();
-      size_t remaining = reportBlock->typeSpecificContentSize();
-
-      advancePos(pos, remaining, sizeof(DWORD)*2);
-
-      size_t possibleTimes = remaining / sizeof(DWORD);
-
-      if (0 == possibleTimes) return true;
-
-      reportBlock->mReceiptTimes = new (allocateBuffer(alignedSize(sizeof(DWORD))*possibleTimes)) DWORD[possibleTimes];
-
-      while (remaining >= sizeof(DWORD)) {
-        reportBlock->mReceiptTimes[reportBlock->mReceiptTimeCount] = RTPUtils::getBE32(pos);
-        advancePos(pos, remaining, sizeof(DWORD));
-        ++(reportBlock->mReceiptTimeCount);
-      }
-
-      return true;
-    }
-
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::parse(
-                           XR *xr,
-                           XR::ReceiverReferenceTimeReportBlock *reportBlock
-                           )
-    {
-      const BYTE *pos = reportBlock->typeSpecificContents();
-      size_t remaining = reportBlock->typeSpecificContentSize();
-
-      if (remaining < (sizeof(DWORD)*2)) {
-        ZS_LOG_WARNING(Trace, debug("malformed receiver reference time report block") + ZS_PARAM("remain", remaining))
-        return false;
-      }
-
-      reportBlock->mNTPTimestampMS = RTPUtils::getBE32(&(pos[0]));
-      reportBlock->mNTPTimestampLS = RTPUtils::getBE32(&(pos[4]));
-
-      return true;
-    }
-    
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::parse(
-                           XR *xr,
-                           XR::DLRRReportBlock *reportBlock
-                           )
-    {
-      const BYTE *pos = reportBlock->typeSpecificContents();
-      size_t remaining = reportBlock->typeSpecificContentSize();
-
-      size_t possibleSubBlockCount = remaining / (sizeof(DWORD)*3);
-
-      if (0 == possibleSubBlockCount) return true;
-
-      if (remaining < (sizeof(DWORD)*2)) {
-        ZS_LOG_WARNING(Trace, debug("malformed dlr report block") + ZS_PARAM("remain", remaining))
-        return false;
-      }
-
-      reportBlock->mSubBlocks = new (allocateBuffer(alignedSize(sizeof(XR::DLRRReportBlock::SubBlock))*possibleSubBlockCount)) XR::DLRRReportBlock::SubBlock[possibleSubBlockCount];
-
-      while (remaining >= (sizeof(DWORD)*3))
-      {
-        auto subBlock = &(reportBlock->mSubBlocks[reportBlock->mSubBlockCount]);
-
-        subBlock->mSSRC = RTPUtils::getBE32(&(pos[0]));
-        subBlock->mLRR = RTPUtils::getBE32(&(pos[4]));
-        subBlock->mDLRR = RTPUtils::getBE32(&(pos[8]));
-
-        advancePos(pos, remaining, sizeof(DWORD)*3);
-
-        ++(reportBlock->mSubBlockCount);
-      }
-
-      ASSERT(reportBlock->mSubBlockCount == possibleSubBlockCount)
-
-      return true;
-    }
-    
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::parse(
-                           XR *xr,
-                           XR::StatisticsSummaryReportBlock *reportBlock
-                           )
-    {
-      const BYTE *pos = reportBlock->typeSpecificContents();
-      size_t remaining = reportBlock->typeSpecificContentSize();
-
-      parseCommonRange(xr, reportBlock);
-
-      if (remaining < (sizeof(DWORD)*9)) {
-        ZS_LOG_TRACE(debug("malformed statistics summary report block") + ZS_PARAM("remaining", remaining))
-        return false;
-      }
-
-      advancePos(pos, remaining, sizeof(DWORD)*2);
-
-      reportBlock->mLostPackets = RTPUtils::getBE32(&(pos[0]));
-      reportBlock->mDupPackets = RTPUtils::getBE32(&(pos[4]));
-      reportBlock->mMinJitter = RTPUtils::getBE32(&(pos[8]));
-      reportBlock->mMaxJitter = RTPUtils::getBE32(&(pos[12]));
-      reportBlock->mMeanJitter = RTPUtils::getBE32(&(pos[16]));
-      reportBlock->mDevJitter = RTPUtils::getBE32(&(pos[20]));
-
-      reportBlock->mMinTTLOrHL = pos[24];
-      reportBlock->mMaxTTLOrHL = pos[25];
-      reportBlock->mMeanTTLOrHL = pos[26];
-      reportBlock->mDevTTLOrHL = pos[27];
-
-      return true;
-    }
-    
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::parse(
-                           XR *xr,
-                           XR::VoIPMetricsReportBlock *reportBlock
-                           )
-    {
-      const BYTE *pos = reportBlock->typeSpecificContents();
-      size_t remaining = reportBlock->typeSpecificContentSize();
-
-      if (remaining < (sizeof(DWORD)*8)) {
-        ZS_LOG_TRACE(debug("malformed voip metrics report block") + ZS_PARAM("remaining", remaining))
-        return false;
-      }
-
-      reportBlock->mSSRCOfSource = RTPUtils::getBE32(&(pos[0]));
-      reportBlock->mLossRate = pos[4];
-      reportBlock->mDiscardRate = pos[5];
-      reportBlock->mBurstDensity = pos[6];
-      reportBlock->mGapDensity = pos[7];
-      reportBlock->mBurstDuration = RTPUtils::getBE16(&(pos[8]));
-      reportBlock->mGapDuration = RTPUtils::getBE16(&(pos[10]));
-      reportBlock->mRoundTripDelay = RTPUtils::getBE16(&(pos[12]));
-      reportBlock->mEndSystemDelay = RTPUtils::getBE16(&(pos[14]));
-      reportBlock->mSignalLevel = pos[16];
-      reportBlock->mNoiseLevel = pos[17];
-      reportBlock->mRERL = pos[18];
-      reportBlock->mGmin = pos[19];
-      reportBlock->mRFactor = pos[20];
-      reportBlock->mExtRFactor = pos[21];
-      reportBlock->mMOSLQ = pos[22];
-      reportBlock->mMOSCQ = pos[23];
-      reportBlock->mRXConfig = pos[24];
-      reportBlock->mReservedVoIP = pos[25];
-      reportBlock->mJBNominal = RTPUtils::getBE16(&(pos[26]));
-      reportBlock->mJBMaximum = RTPUtils::getBE16(&(pos[28]));
-      reportBlock->mJBAbsMax = RTPUtils::getBE16(&(pos[30]));
-
-      return true;
-    }
-    
-    //-------------------------------------------------------------------------
-    bool RTCPPacket::parse(
-                           XR *xr,
-                           XR::UnknownReportBlock *reportBlock
-                           )
-    {
-      return true;
-    }
-
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -4553,12 +169,6 @@ namespace ortc
     #pragma mark
     #pragma mark RTCPPacket (writing sizing routines)
     #pragma mark
-
-    //-------------------------------------------------------------------------
-    void *RTCPPacket::allocateBuffer(size_t size)
-    {
-      return internal::allocateBuffer(mAllocationPos, mAllocationSize, size);
-    }
 
     //-------------------------------------------------------------------------
     static size_t getPacketSizeSenderReport(const RTCPPacket::SenderReport *report)
@@ -4967,89 +577,21 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    size_t RTCPPacket::getPacketSize(const Report *first)
+    static void writePacketUnknown(const RTCPPacket::UnknownReport *report, BYTE * &pos, size_t &remaining)
     {
-      size_t result = 0;
+      typedef RTCPPacket::UnknownReport UnknownReport;
+      pos[1] = report->pt();
 
-      const Report *final = NULL;
+      advancePos(pos, remaining, sizeof(DWORD));
 
-      for (const Report *report = first; NULL != report; report = report->next())
-      {
-        final = report;
+      auto size = report->size();
+      if (0 == size) return;
 
-        size_t beforeSize = result;
+      ASSERT(NULL != report->ptr());
 
-        switch (report->pt()) {
-          case SenderReport::kPayloadType:
-          {
-            const SenderReport *sr = static_cast<const SenderReport *>(report);
-            result += internal::getPacketSizeSenderReport(sr);
-            break;
-          }
-          case ReceiverReport::kPayloadType:
-          {
-            const ReceiverReport *rr = static_cast<const ReceiverReport *>(report);
-            result += internal::getPacketSizeReceiverReport(rr);
-            break;
-          }
-          case SDES::kPayloadType:
-          {
-            const SDES *sdes = static_cast<const SDES *>(report);
-            result += internal::getPacketSizeSDES(sdes);
-            break;
-          }
-          case Bye::kPayloadType:
-          {
-            const Bye *bye = static_cast<const Bye *>(report);
-            result += internal::getPacketSizeBye(bye);
-            break;
-          }
-          case App::kPayloadType:
-          {
-            const App *app = static_cast<const App *>(report);
-            result += internal::getPacketSizeApp(app);
-            break;
-          }
-          case TransportLayerFeedbackMessage::kPayloadType:
-          {
-            const TransportLayerFeedbackMessage *fm = static_cast<const TransportLayerFeedbackMessage *>(report);
-            result += internal::getPacketSizeTransportLayerFeedbackMessage(fm);
-            break;
-          }
-          case PayloadSpecificFeedbackMessage::kPayloadType:
-          {
-            const PayloadSpecificFeedbackMessage *fm = static_cast<const PayloadSpecificFeedbackMessage *>(report);
-            result += internal::getPacketSizePayloadSpecificFeedbackMessage(fm);
-            break;
-          }
-          case XR::kPayloadType:
-          {
-            const XR *xr = static_cast<const XR *>(report);
-            result += internal::getPacketSizeXR(xr);
-            break;
-          }
-          default:
-          {
-            result += sizeof(DWORD) +  boundarySize(report->size());
-            break;
-          }
-        }
+      memcpy(pos, report->ptr(), size);
 
-        size_t afterSize = result;
-
-        if (ZS_IS_LOGGING(Insane)) {
-          ZS_LOG_TRACE(slog("getting report packet size") + ZS_PARAM("pt", report->ptToString()) + ZS_PARAM("pt (num)", report->pt()) + ZS_PARAM("size", afterSize-beforeSize))
-        }
-      }
-
-      if (NULL != final) {
-        auto padding = final->padding();
-        if (0 != padding) {
-          result += padding;
-        }
-      }
-
-      return boundarySize(result);
+      advancePos(pos, remaining, size);
     }
 
     //-------------------------------------------------------------------------
@@ -5075,8 +617,8 @@ namespace ortc
       ASSERT(throwIfGreaterThanBitsAllow(report->reportSpecific(), 5))
 
       pos[0] = RTCP_PACK_BITS(report->version(), 0x3, 6) |
-               ((0 != padding) ? RTCP_PACK_BITS(1, 0x1, 5) : 0) |
-               RTCP_PACK_BITS(report->reportSpecific(), 0x1F, 0);
+                ((0 != padding) ? RTCP_PACK_BITS(1, 0x1, 5) : 0) |
+                RTCP_PACK_BITS(report->reportSpecific(), 0x1F, 0);
       pos[1] = report->pt();
     }
 
@@ -5089,16 +631,16 @@ namespace ortc
       size_t count = 0;
       for (const ReportBlock *block = report->firstReportBlock(); NULL != block; block = block->next(), ++count)
       {
-        ASSERT(count < report->rc())
+        ASSERT(count < report->rc());
 
-        RTPUtils::setBE32(&(pos[0]), block->ssrc());
-        ASSERT(throwIfGreaterThanBitsAllow(block->cumulativeNumberOfPacketsLost(), 24))
-        RTPUtils::setBE32(&(pos[4]), block->cumulativeNumberOfPacketsLost());
+        UseRTPUtils::setBE32(&(pos[0]), block->ssrc());
+        ASSERT(throwIfGreaterThanBitsAllow(block->cumulativeNumberOfPacketsLost(), 24));
+        UseRTPUtils::setBE32(&(pos[4]), block->cumulativeNumberOfPacketsLost());
         pos[4] = block->fractionLost();
-        RTPUtils::setBE32(&(pos[8]), block->extendedHighestSequenceNumberReceived());
-        RTPUtils::setBE32(&(pos[12]), block->interarrivalJitter());
-        RTPUtils::setBE32(&(pos[16]), block->lsr());
-        RTPUtils::setBE32(&(pos[20]), block->dlsr());
+        UseRTPUtils::setBE32(&(pos[8]), block->extendedHighestSequenceNumberReceived());
+        UseRTPUtils::setBE32(&(pos[12]), block->interarrivalJitter());
+        UseRTPUtils::setBE32(&(pos[16]), block->lsr());
+        UseRTPUtils::setBE32(&(pos[20]), block->dlsr());
 
         advancePos(pos, remaining, sizeof(DWORD)*6);
       }
@@ -5118,12 +660,12 @@ namespace ortc
       typedef RTCPPacket::SenderReport SenderReport;
       pos[1] = SenderReport::kPayloadType;
 
-      RTPUtils::setBE32(&(pos[4]), report->ssrcOfSender());
-      RTPUtils::setBE32(&(pos[8]), report->ntpTimestampMS());
-      RTPUtils::setBE32(&(pos[12]), report->ntpTimestampLS());
-      RTPUtils::setBE32(&(pos[16]), report->rtpTimestamp());
-      RTPUtils::setBE32(&(pos[20]), report->senderPacketCount());
-      RTPUtils::setBE32(&(pos[24]), report->senderOctetCount());
+      UseRTPUtils::setBE32(&(pos[4]), report->ssrcOfSender());
+      UseRTPUtils::setBE32(&(pos[8]), report->ntpTimestampMS());
+      UseRTPUtils::setBE32(&(pos[12]), report->ntpTimestampLS());
+      UseRTPUtils::setBE32(&(pos[16]), report->rtpTimestamp());
+      UseRTPUtils::setBE32(&(pos[20]), report->senderPacketCount());
+      UseRTPUtils::setBE32(&(pos[24]), report->senderOctetCount());
 
       advancePos(pos, remaining, sizeof(DWORD)*7);
 
@@ -5136,7 +678,7 @@ namespace ortc
       typedef RTCPPacket::ReceiverReport ReceiverReport;
       pos[1] = ReceiverReport::kPayloadType;
 
-      RTPUtils::setBE32(&(pos[4]), report->ssrcOfPacketSender());
+      UseRTPUtils::setBE32(&(pos[4]), report->ssrcOfPacketSender());
 
       advancePos(pos, remaining, sizeof(DWORD)*2);
 
@@ -5157,7 +699,7 @@ namespace ortc
 
       for (Chunk *chunk = report->firstChunk(); NULL != chunk; chunk = chunk->next(), ++chunkCount)
       {
-        RTPUtils::setBE32(pos, chunk->ssrc());
+        UseRTPUtils::setBE32(pos, chunk->ssrc());
         advancePos(pos, remaining, sizeof(DWORD));
 
         BYTE *startPos = pos;
@@ -5199,7 +741,7 @@ namespace ortc
           pos[0] = Chunk::Email::kItemType;
           size_t len = (NULL != item->mValue ? strlen(item->mValue) : 0);
           pos[1] = static_cast<BYTE>(len);
-          ASSERT(throwIfGreaterThanBitsAllow(len, 8))
+          ASSERT(throwIfGreaterThanBitsAllow(len, 8));
 
           advancePos(pos, remaining, sizeof(WORD));
 
@@ -5215,7 +757,7 @@ namespace ortc
           pos[0] = Chunk::Phone::kItemType;
           size_t len = (NULL != item->mValue ? strlen(item->mValue) : 0);
           pos[1] = static_cast<BYTE>(len);
-          ASSERT(throwIfGreaterThanBitsAllow(len, 8))
+          ASSERT(throwIfGreaterThanBitsAllow(len, 8));
 
           advancePos(pos, remaining, sizeof(WORD));
 
@@ -5231,7 +773,7 @@ namespace ortc
           pos[0] = Chunk::Loc::kItemType;
           size_t len = (NULL != item->mValue ? strlen(item->mValue) : 0);
           pos[1] = static_cast<BYTE>(len);
-          ASSERT(throwIfGreaterThanBitsAllow(len, 8))
+          ASSERT(throwIfGreaterThanBitsAllow(len, 8));
 
           advancePos(pos, remaining, sizeof(WORD));
 
@@ -5247,7 +789,7 @@ namespace ortc
           pos[0] = Chunk::Tool::kItemType;
           size_t len = (NULL != item->mValue ? strlen(item->mValue) : 0);
           pos[1] = static_cast<BYTE>(len);
-          ASSERT(throwIfGreaterThanBitsAllow(len, 8))
+          ASSERT(throwIfGreaterThanBitsAllow(len, 8));
 
           advancePos(pos, remaining, sizeof(WORD));
 
@@ -5263,7 +805,7 @@ namespace ortc
           pos[0] = Chunk::Note::kItemType;
           size_t len = (NULL != item->mValue ? strlen(item->mValue) : 0);
           pos[1] = static_cast<BYTE>(len);
-          ASSERT(throwIfGreaterThanBitsAllow(len, 8))
+          ASSERT(throwIfGreaterThanBitsAllow(len, 8));
 
           advancePos(pos, remaining, sizeof(WORD));
 
@@ -5282,7 +824,7 @@ namespace ortc
           size_t len = len1 + len2;
           if (len > 0) ++len;
           pos[1] = static_cast<BYTE>(len);
-          ASSERT(throwIfGreaterThanBitsAllow(len, 8))
+          ASSERT(throwIfGreaterThanBitsAllow(len, 8));
 
           advancePos(pos, remaining, sizeof(WORD));
 
@@ -5306,7 +848,7 @@ namespace ortc
           pos[0] = Chunk::Mid::kItemType;
           size_t len = (NULL != item->mValue ? strlen(item->mValue) : 0);
           pos[1] = static_cast<BYTE>(len);
-          ASSERT(throwIfGreaterThanBitsAllow(len, 8))
+          ASSERT(throwIfGreaterThanBitsAllow(len, 8));
 
           advancePos(pos, remaining, sizeof(WORD));
 
@@ -5322,7 +864,7 @@ namespace ortc
           pos[0] = Chunk::Rid::kItemType;
           size_t len = (NULL != item->mValue ? strlen(item->mValue) : 0);
           pos[1] = static_cast<BYTE>(len);
-          ASSERT(throwIfGreaterThanBitsAllow(len, 8))
+          ASSERT(throwIfGreaterThanBitsAllow(len, 8));
 
           advancePos(pos, remaining, sizeof(WORD));
 
@@ -5338,7 +880,7 @@ namespace ortc
           pos[0] = item->type();
           size_t len = (NULL != item->mValue ? strlen(item->mValue) : 0);
           pos[1] = static_cast<BYTE>(len);
-          ASSERT(throwIfGreaterThanBitsAllow(len, 8))
+          ASSERT(throwIfGreaterThanBitsAllow(len, 8));
 
           advancePos(pos, remaining, sizeof(WORD));
 
@@ -5360,7 +902,7 @@ namespace ortc
         if ((0 == diff) ||
             (0 == modulas)) {
           // write "empty" chunk
-          RTPUtils::setBE32(pos, 0);
+          UseRTPUtils::setBE32(pos, 0);
           advancePos(pos, remaining, sizeof(DWORD));
         }
       }
@@ -5378,7 +920,7 @@ namespace ortc
 
       for (size_t index = 0; index < report->sc(); ++index)
       {
-        RTPUtils::setBE32(pos, report->ssrc(index));
+        UseRTPUtils::setBE32(pos, report->ssrc(index));
         advancePos(pos, remaining, sizeof(DWORD));
       }
 
@@ -5398,7 +940,7 @@ namespace ortc
       typedef RTCPPacket::App App;
       pos[1] = App::kPayloadType;
 
-      RTPUtils::setBE32(&(pos[4]), report->ssrc());
+      UseRTPUtils::setBE32(&(pos[4]), report->ssrc());
       memcpy(&(pos[8]), report->name(), sizeof(DWORD));
 
       advancePos(pos, remaining, sizeof(DWORD)*3);
@@ -5420,8 +962,8 @@ namespace ortc
 
       pos[1] = TransportLayerFeedbackMessage::kPayloadType;
 
-      RTPUtils::setBE32(&(pos[4]), report->ssrcOfPacketSender());
-      RTPUtils::setBE32(&(pos[8]), report->ssrcOfMediaSource());
+      UseRTPUtils::setBE32(&(pos[4]), report->ssrcOfPacketSender());
+      UseRTPUtils::setBE32(&(pos[8]), report->ssrcOfMediaSource());
 
       advancePos(pos, remaining, sizeof(DWORD)*3);
 
@@ -5433,8 +975,8 @@ namespace ortc
           for (size_t index = 0; index < count; ++index)
           {
             auto item = report->genericNACKAtIndex(index);
-            RTPUtils::setBE16(&(pos[0]), item->pid());
-            RTPUtils::setBE16(&(pos[2]), item->blp());
+            UseRTPUtils::setBE16(&(pos[0]), item->pid());
+            UseRTPUtils::setBE16(&(pos[2]), item->blp());
             advancePos(pos, remaining, sizeof(DWORD));
           }
           break;
@@ -5446,13 +988,13 @@ namespace ortc
           for (size_t index = 0; index < count; ++index)
           {
             auto item = report->tmmbrAtIndex(index);
-            RTPUtils::setBE32(&(pos[0]), item->ssrc());
+            UseRTPUtils::setBE32(&(pos[0]), item->ssrc());
 
             DWORD merged = RTCP_PACK_BITS(static_cast<DWORD>(item->mxTBRExp()), 0x3F, 26) |
-                           RTCP_PACK_BITS(static_cast<DWORD>(item->mxTBRMantissa()), 0x1FFFF, 9) |
-                           RTCP_PACK_BITS(static_cast<DWORD>(item->measuredOverhead()), 0x1FF, 0);
+                            RTCP_PACK_BITS(static_cast<DWORD>(item->mxTBRMantissa()), 0x1FFFF, 9) |
+                            RTCP_PACK_BITS(static_cast<DWORD>(item->measuredOverhead()), 0x1FF, 0);
 
-            RTPUtils::setBE32(&(pos[4]), merged);
+            UseRTPUtils::setBE32(&(pos[4]), merged);
 
             advancePos(pos, remaining, sizeof(DWORD)*2);
           }
@@ -5465,13 +1007,13 @@ namespace ortc
           for (size_t index = 0; index < count; ++index)
           {
             auto item = report->tmmbnAtIndex(index);
-            RTPUtils::setBE32(&(pos[0]), item->ssrc());
+            UseRTPUtils::setBE32(&(pos[0]), item->ssrc());
 
             DWORD merged = RTCP_PACK_BITS(static_cast<DWORD>(item->mxTBRExp()), 0x3F, 26) |
-                           RTCP_PACK_BITS(static_cast<DWORD>(item->mxTBRMantissa()), 0x1FFFF, 9) |
-                           RTCP_PACK_BITS(static_cast<DWORD>(item->measuredOverhead()), 0x1FF, 0);
+                            RTCP_PACK_BITS(static_cast<DWORD>(item->mxTBRMantissa()), 0x1FFFF, 9) |
+                            RTCP_PACK_BITS(static_cast<DWORD>(item->measuredOverhead()), 0x1FF, 0);
 
-            RTPUtils::setBE32(&(pos[4]), merged);
+            UseRTPUtils::setBE32(&(pos[4]), merged);
 
             advancePos(pos, remaining, sizeof(DWORD)*2);
           }
@@ -5507,8 +1049,8 @@ namespace ortc
 
       pos[1] = PayloadSpecificFeedbackMessage::kPayloadType;
 
-      RTPUtils::setBE32(&(pos[4]), report->ssrcOfPacketSender());
-      RTPUtils::setBE32(&(pos[8]), report->ssrcOfMediaSource());
+      UseRTPUtils::setBE32(&(pos[4]), report->ssrcOfPacketSender());
+      UseRTPUtils::setBE32(&(pos[8]), report->ssrcOfMediaSource());
 
       advancePos(pos, remaining, sizeof(DWORD)*3);
 
@@ -5526,10 +1068,10 @@ namespace ortc
             auto item = report->sliAtIndex(index);
 
             DWORD merged = RTCP_PACK_BITS(static_cast<DWORD>(item->first()), 0x1FFF, 19) |
-                           RTCP_PACK_BITS(static_cast<DWORD>(item->number()), 0x1FFF, 6) |
-                           RTCP_PACK_BITS(static_cast<DWORD>(item->pictureID()), 0x3F, 0);
+                            RTCP_PACK_BITS(static_cast<DWORD>(item->number()), 0x1FFF, 6) |
+                            RTCP_PACK_BITS(static_cast<DWORD>(item->pictureID()), 0x3F, 0);
 
-            RTPUtils::setBE32(&(pos[0]), merged);
+            UseRTPUtils::setBE32(&(pos[0]), merged);
             advancePos(pos, remaining, sizeof(DWORD));
           }
           break;
@@ -5539,7 +1081,7 @@ namespace ortc
           auto rpsi = report->rpsi();
 
           pos[1] = RTCP_PACK_BITS(static_cast<BYTE>(rpsi->zeroBit()), 0x1, 7) |
-                   RTCP_PACK_BITS(static_cast<BYTE>(rpsi->payloadType()), 0x7F, 0);
+                    RTCP_PACK_BITS(static_cast<BYTE>(rpsi->payloadType()), 0x7F, 0);
 
           auto totalBits = static_cast<size_t>(rpsi->nativeRPSIBitStringSizeInBits());
 
@@ -5573,8 +1115,8 @@ namespace ortc
           for (size_t index = 0; index < count; ++index)
           {
             auto item = report->firAtIndex(index);
-            RTPUtils::setBE32(&(pos[0]), item->ssrc());
-            RTPUtils::setBE32(&(pos[4]), item->reserved());
+            UseRTPUtils::setBE32(&(pos[0]), item->ssrc());
+            UseRTPUtils::setBE32(&(pos[4]), item->reserved());
             pos[4] = item->seqNr();
             advancePos(pos, remaining, sizeof(DWORD)*2);
           }
@@ -5587,13 +1129,13 @@ namespace ortc
           for (size_t index = 0; index < count; ++index)
           {
             auto item = report->tstrAtIndex(index);
-            RTPUtils::setBE32(&(pos[0]), item->ssrc());
+            UseRTPUtils::setBE32(&(pos[0]), item->ssrc());
 
             DWORD merged = RTCP_PACK_BITS(static_cast<DWORD>(item->seqNr()), 0xFF, 24) |
-                           RTCP_PACK_BITS(static_cast<DWORD>(item->reserved()), 0x7FFFF, 5) |
-                           RTCP_PACK_BITS(static_cast<DWORD>(item->index()), 0x1F, 0);
+                            RTCP_PACK_BITS(static_cast<DWORD>(item->reserved()), 0x7FFFF, 5) |
+                            RTCP_PACK_BITS(static_cast<DWORD>(item->index()), 0x1F, 0);
 
-            RTPUtils::setBE32(&(pos[4]), merged);
+            UseRTPUtils::setBE32(&(pos[4]), merged);
             advancePos(pos, remaining, sizeof(DWORD)*2);
           }
           break;
@@ -5605,13 +1147,13 @@ namespace ortc
           for (size_t index = 0; index < count; ++index)
           {
             auto item = report->tstnAtIndex(index);
-            RTPUtils::setBE32(&(pos[0]), item->ssrc());
+            UseRTPUtils::setBE32(&(pos[0]), item->ssrc());
 
             DWORD merged = RTCP_PACK_BITS(static_cast<DWORD>(item->seqNr()), 0xFF, 24) |
-                           RTCP_PACK_BITS(static_cast<DWORD>(item->reserved()), 0x7FFFF, 5) |
-                           RTCP_PACK_BITS(static_cast<DWORD>(item->index()), 0x1F, 0);
+                            RTCP_PACK_BITS(static_cast<DWORD>(item->reserved()), 0x7FFFF, 5) |
+                            RTCP_PACK_BITS(static_cast<DWORD>(item->index()), 0x1F, 0);
 
-            RTPUtils::setBE32(&(pos[4]), merged);
+            UseRTPUtils::setBE32(&(pos[4]), merged);
             advancePos(pos, remaining, sizeof(DWORD)*2);
           }
           break;
@@ -5624,15 +1166,15 @@ namespace ortc
           {
             auto item = report->vbcmAtIndex(index);
 
-            RTPUtils::setBE32(&(pos[0]), item->ssrc());
+            UseRTPUtils::setBE32(&(pos[0]), item->ssrc());
 
             pos[4] = item->seqNr();
             pos[5] = RTCP_PACK_BITS(static_cast<BYTE>(item->zeroBit()), 0x1, 7) |
-                     RTCP_PACK_BITS(static_cast<BYTE>(item->payloadType()), 0x7F, 0);
+                      RTCP_PACK_BITS(static_cast<BYTE>(item->payloadType()), 0x7F, 0);
 
             auto size = item->vbcmOctetStringSize();
             if (0 != size) {
-              RTPUtils::setBE16(&(pos[6]), static_cast<WORD>(size));
+              UseRTPUtils::setBE16(&(pos[6]), static_cast<WORD>(size));
               memcpy(&(pos[8]), item->vbcmOctetString(), size*sizeof(BYTE));
             }
 
@@ -5656,8 +1198,8 @@ namespace ortc
             memcpy(pos, "REMB", sizeof(DWORD));
 
             DWORD merged = RTCP_PACK_BITS(static_cast<DWORD>(remb->brExp()), 0x3F, 18) |
-                           RTCP_PACK_BITS(static_cast<DWORD>(remb->brMantissa()), 0x3FFFF, 0);
-            RTPUtils::setBE32(&(pos[4]), merged);
+                            RTCP_PACK_BITS(static_cast<DWORD>(remb->brMantissa()), 0x3FFFF, 0);
+            UseRTPUtils::setBE32(&(pos[4]), merged);
             pos[4] = static_cast<BYTE>(remb->numSSRC());
             advancePos(pos, remaining, sizeof(DWORD)*2);
 
@@ -5665,7 +1207,7 @@ namespace ortc
             for (size_t index = 0; index < count; ++index)
             {
               auto ssrc = remb->ssrcAtIndex(index);
-              RTPUtils::setBE32(pos, ssrc);
+              UseRTPUtils::setBE32(pos, ssrc);
               advancePos(pos, remaining, sizeof(DWORD));
             }
           }
@@ -5700,7 +1242,7 @@ namespace ortc
       typedef RTCPPacket::XR::RLEChunk RLEChunk;
 
       pos[1] = XR::kPayloadType;
-      RTPUtils::setBE32(&(pos[4]), report->mSSRC);
+      UseRTPUtils::setBE32(&(pos[4]), report->mSSRC);
 
       advancePos(pos, remaining, sizeof(DWORD)*2);
 
@@ -5718,9 +1260,9 @@ namespace ortc
           {
             auto block = reinterpret_cast<const LossRLEReportBlock *>(reportBlock);
 
-            RTPUtils::setBE32(&(pos[0]), block->ssrcOfSource());
-            RTPUtils::setBE16(&(pos[4]), block->beginSeq());
-            RTPUtils::setBE16(&(pos[6]), block->endSeq());
+            UseRTPUtils::setBE32(&(pos[0]), block->ssrcOfSource());
+            UseRTPUtils::setBE16(&(pos[4]), block->beginSeq());
+            UseRTPUtils::setBE16(&(pos[6]), block->endSeq());
 
             advancePos(pos, remaining, sizeof(DWORD)*2);
 
@@ -5728,7 +1270,7 @@ namespace ortc
             for (size_t index = 0; index < chunkCount; ++index)
             {
               RLEChunk chunk = block->chunkAtIndex(index);
-              RTPUtils::setBE16(pos, chunk);
+              UseRTPUtils::setBE16(pos, chunk);
               advancePos(pos, remaining, sizeof(WORD));
             }
             break;
@@ -5737,9 +1279,9 @@ namespace ortc
           {
             auto block = reinterpret_cast<const DuplicateRLEReportBlock *>(reportBlock);
 
-            RTPUtils::setBE32(&(pos[0]), block->ssrcOfSource());
-            RTPUtils::setBE16(&(pos[4]), block->beginSeq());
-            RTPUtils::setBE16(&(pos[6]), block->endSeq());
+            UseRTPUtils::setBE32(&(pos[0]), block->ssrcOfSource());
+            UseRTPUtils::setBE16(&(pos[4]), block->beginSeq());
+            UseRTPUtils::setBE16(&(pos[6]), block->endSeq());
 
             advancePos(pos, remaining, sizeof(DWORD)*2);
 
@@ -5747,7 +1289,7 @@ namespace ortc
             for (size_t index = 0; index < count; ++index)
             {
               RLEChunk chunk = block->chunkAtIndex(index);
-              RTPUtils::setBE16(pos, chunk);
+              UseRTPUtils::setBE16(pos, chunk);
               advancePos(pos, remaining, sizeof(WORD));
             }
             break;
@@ -5756,9 +1298,9 @@ namespace ortc
           {
             auto block = reinterpret_cast<const PacketReceiptTimesReportBlock *>(reportBlock);
 
-            RTPUtils::setBE32(&(pos[0]), block->ssrcOfSource());
-            RTPUtils::setBE16(&(pos[4]), block->beginSeq());
-            RTPUtils::setBE16(&(pos[6]), block->endSeq());
+            UseRTPUtils::setBE32(&(pos[0]), block->ssrcOfSource());
+            UseRTPUtils::setBE16(&(pos[4]), block->beginSeq());
+            UseRTPUtils::setBE16(&(pos[6]), block->endSeq());
 
             advancePos(pos, remaining, sizeof(DWORD)*2);
 
@@ -5766,7 +1308,7 @@ namespace ortc
             for (size_t index = 0; index < count; ++index)
             {
               DWORD receiptTime = block->receiptTimeAtIndex(index);
-              RTPUtils::setBE32(pos, receiptTime);
+              UseRTPUtils::setBE32(pos, receiptTime);
               advancePos(pos, remaining, sizeof(DWORD));
             }
             break;
@@ -5774,8 +1316,8 @@ namespace ortc
           case ReceiverReferenceTimeReportBlock::kBlockType:
           {
             auto block = reinterpret_cast<const ReceiverReferenceTimeReportBlock *>(reportBlock);
-            RTPUtils::setBE32(&(pos[0]), block->ntpTimestampMS());
-            RTPUtils::setBE32(&(pos[4]), block->ntpTimestampLS());
+            UseRTPUtils::setBE32(&(pos[0]), block->ntpTimestampMS());
+            UseRTPUtils::setBE32(&(pos[4]), block->ntpTimestampLS());
             advancePos(pos, remaining, sizeof(DWORD)*2);
             break;
           }
@@ -5787,9 +1329,9 @@ namespace ortc
             for (size_t index = 0; index < count; ++index)
             {
               DLRRReportBlock::SubBlock *subBlock = block->subBlockAtIndex(index);
-              RTPUtils::setBE32(&(pos[0]), subBlock->ssrc());
-              RTPUtils::setBE32(&(pos[4]), subBlock->lrr());
-              RTPUtils::setBE32(&(pos[8]), subBlock->dlrr());
+              UseRTPUtils::setBE32(&(pos[0]), subBlock->ssrc());
+              UseRTPUtils::setBE32(&(pos[4]), subBlock->lrr());
+              UseRTPUtils::setBE32(&(pos[8]), subBlock->dlrr());
               advancePos(pos, remaining, sizeof(DWORD)*3);
             }
             break;
@@ -5797,15 +1339,15 @@ namespace ortc
           case StatisticsSummaryReportBlock::kBlockType:
           {
             auto block = reinterpret_cast<const StatisticsSummaryReportBlock *>(reportBlock);
-            RTPUtils::setBE32(&(pos[0]), block->ssrcOfSource());
-            RTPUtils::setBE16(&(pos[4]), block->beginSeq());
-            RTPUtils::setBE16(&(pos[6]), block->endSeq());
-            RTPUtils::setBE32(&(pos[8]), block->lostPackets());
-            RTPUtils::setBE32(&(pos[12]), block->dupPackets());
-            RTPUtils::setBE32(&(pos[16]), block->minJitter());
-            RTPUtils::setBE32(&(pos[20]), block->maxJitter());
-            RTPUtils::setBE32(&(pos[24]), block->meanJitter());
-            RTPUtils::setBE32(&(pos[28]), block->devJitter());
+            UseRTPUtils::setBE32(&(pos[0]), block->ssrcOfSource());
+            UseRTPUtils::setBE16(&(pos[4]), block->beginSeq());
+            UseRTPUtils::setBE16(&(pos[6]), block->endSeq());
+            UseRTPUtils::setBE32(&(pos[8]), block->lostPackets());
+            UseRTPUtils::setBE32(&(pos[12]), block->dupPackets());
+            UseRTPUtils::setBE32(&(pos[16]), block->minJitter());
+            UseRTPUtils::setBE32(&(pos[20]), block->maxJitter());
+            UseRTPUtils::setBE32(&(pos[24]), block->meanJitter());
+            UseRTPUtils::setBE32(&(pos[28]), block->devJitter());
             pos[32] = block->mMinTTLOrHL;
             pos[33] = block->mMaxTTLOrHL;
             pos[34] = block->mMeanTTLOrHL;
@@ -5816,15 +1358,15 @@ namespace ortc
           case VoIPMetricsReportBlock::kBlockType:
           {
             auto block = reinterpret_cast<const VoIPMetricsReportBlock *>(reportBlock);
-            RTPUtils::setBE32(&(pos[0]), block->ssrcOfSource());
+            UseRTPUtils::setBE32(&(pos[0]), block->ssrcOfSource());
             pos[4] = block->lossRate();
             pos[5] = block->discardRate();
             pos[6] = block->burstDensity();
             pos[7] = block->gapDensity();
-            RTPUtils::setBE16(&(pos[8]), block->burstDuration());
-            RTPUtils::setBE16(&(pos[10]), block->gapDuration());
-            RTPUtils::setBE16(&(pos[12]), block->roundTripDelay());
-            RTPUtils::setBE16(&(pos[14]), block->endSystemDelay());
+            UseRTPUtils::setBE16(&(pos[8]), block->burstDuration());
+            UseRTPUtils::setBE16(&(pos[10]), block->gapDuration());
+            UseRTPUtils::setBE16(&(pos[12]), block->roundTripDelay());
+            UseRTPUtils::setBE16(&(pos[14]), block->endSystemDelay());
             pos[16] = block->signalLevel();
             pos[17] = block->noiseLevel();
             pos[18] = block->rerl();
@@ -5837,9 +1379,9 @@ namespace ortc
 
             pos[24] = block->rxConfig();
             pos[25] = block->mReservedVoIP;
-            RTPUtils::setBE16(&(pos[26]), block->jbNominal());
-            RTPUtils::setBE16(&(pos[28]), block->jbMaximum());
-            RTPUtils::setBE16(&(pos[30]), block->jbAbsMax());
+            UseRTPUtils::setBE16(&(pos[26]), block->jbNominal());
+            UseRTPUtils::setBE16(&(pos[28]), block->jbMaximum());
+            UseRTPUtils::setBE16(&(pos[30]), block->jbAbsMax());
             advancePos(pos, remaining, sizeof(DWORD)*8);
             break;
           }
@@ -5866,132 +1408,4829 @@ namespace ortc
         diff = boundarySize(diff);
         ZS_LOG_INSANE(packet_slog("writing XR block") + ZS_PARAM("block type", reportBlock->blockTypeToString()) + ZS_PARAM("block type (number)", reportBlock->blockType()) + ZS_PARAM("block size", diff))
 
-        RTPUtils::setBE16(&(blockStart[2]), static_cast<WORD>((diff/sizeof(DWORD))-1));
+        UseRTPUtils::setBE16(&(blockStart[2]), static_cast<WORD>((diff/sizeof(DWORD))-1));
       }
     }
 
     //-------------------------------------------------------------------------
-    static void writePacketUnknown(const RTCPPacket::UnknownReport *report, BYTE * &pos, size_t &remaining)
+    static void traceReport(
+                            IMediaStreamTrackTypes::MediaChannelID mediaChannelID,
+                            RTCPPacket::Report *common
+                            )
     {
-      typedef RTCPPacket::UnknownReport UnknownReport;
-      pos[1] = report->pt();
-
-      advancePos(pos, remaining, sizeof(DWORD));
-
-      auto size = report->size();
-      if (0 == size) return;
-
-      ASSERT(NULL != report->ptr())
-
-      memcpy(pos, report->ptr(), size);
-
-      advancePos(pos, remaining, size);
+      ZS_EVENTING_8(x, i, Insane, RTCPPacketTraceReport, ol, RtcpPacket, Info,
+        puid, mediaChannelID, mediaChannelID,
+        bool, next, NULL != common->next(),
+        buffer, buffer, common->ptr(),
+        size, size, common->size(),
+        byte, version, common->version(),
+        size_t, padding, common->padding(),
+        byte, reportSpecific, common->reportSpecific(),
+        byte, payloadType, common->pt()
+      );
     }
 
     //-------------------------------------------------------------------------
-    void RTCPPacket::writePacket(const Report *first, BYTE * &pos, size_t &remaining)
+    static void traceReportBlocks(
+                                  IMediaStreamTrackTypes::MediaChannelID mediaChannelID,
+                                  RTCPPacket::SenderReceiverCommonReport *common
+                                  )
     {
-      ASSERT(sizeof(char) == sizeof(BYTE))
-      ASSERT(NULL != first)
+      RTCPPacket::SenderReceiverCommonReport::ReportBlock *block = common->firstReportBlock();
+      if (NULL == block) return;
 
-      for (const Report *report = first; NULL != report; report = report->next())
+      for (; NULL != block; block = block->next()) {
+        ZS_EVENTING_8(x, i, Insane, RTCPPacketTraceSenderReceiverCommonReportBlock, ol, RtcpPacket, Info,
+          puid, mediaChannelID, mediaChannelID,
+          dword, ssrc, block->ssrc(),
+          byte, fractionLost, block->fractionLost(),
+          dword, cumulativeNumberOfPacketsLost, block->cumulativeNumberOfPacketsLost(),
+          dword, extendedHighestSequenceNumberReceived, block->extendedHighestSequenceNumberReceived(),
+          dword, interarrivalJitter, block->interarrivalJitter(),
+          dword, lsr, block->lsr(),
+          dword, dlsr, block->dlsr()
+        );
+      }
+    }
+    
+    //-------------------------------------------------------------------------
+    static void traceSenderReceiverCommonReport(
+                                                IMediaStreamTrackTypes::MediaChannelID mediaChannelID,
+                                                RTCPPacket::SenderReceiverCommonReport *common
+                                                )
+    {
+      traceReport(mediaChannelID, common);
+      ZS_EVENTING_5(x, i, Insane, RTCPPacketTraceSenderReceiverCommonReport, ol, RtcpPacket, Info,
+        puid, mediaChannelID, mediaChannelID,
+        string, ssrcType, (RTCPPacket::ReceiverReport::kPayloadType != common->pt() ? "ssrc of sender" : "ssrc of packet sender"),
+        dword, ssrc, common->ssrcOfSender(),
+        buffer, extension, common->extension(),
+        size, extensionSize, common->extensionSize()
+      );
+      traceReportBlocks(mediaChannelID, common);
+    }
+
+    //-------------------------------------------------------------------------
+    static void traceStringItem(
+                                IMediaStreamTrackTypes::MediaChannelID mediaChannelID,
+                                RTCPPacket::SDES::Chunk::StringItem *common
+                                )
+  {
+      auto type = common->type();
+
+      if (RTCPPacket::SDES::Chunk::Priv::kItemType == type) {
+        RTCPPacket::SDES::Chunk::Priv *priv = reinterpret_cast<RTCPPacket::SDES::Chunk::Priv *>(common);
+        ZS_EVENTING_6(x, i, Insane, RTCPPacketTraceChunkStringItemPriv, ol, RtcpPacket, Info,
+          puid, mediaChannelID, mediaChannelID,
+          byte, type, common->type(),
+          size_t, prefixLength, priv->prefixLength(),
+          string, prefix, priv->prefix(),
+          size_t, length, common->length(),
+          string, value, common->value()
+        );
+      } else {
+        ZS_EVENTING_4(x, i, Insane, RTCPPacketTraceChunkStringItem, ol, RtcpPacket, Parse,
+          puid, mediaChannelID, mediaChannelID,
+          byte, type, common->type(),
+          size_t, length, common->length(),
+          string, value, common->value()
+        );
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    static void traceStringItemList(
+                                    IMediaStreamTrackTypes::MediaChannelID mediaChannelID,
+                                    RTCPPacket::SDES::Chunk::StringItem *first
+                                    )
+    {
+      if (NULL == first) return;
+
+      RTCPPacket::SDES::Chunk::StringItem *item = first;
+      for (; NULL != item; item = item->mNext) {
+        traceStringItem(mediaChannelID, item);
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    static void traceDWORDs(
+                            IMediaStreamTrackTypes::MediaChannelID mediaChannelID,
+                            const char *type,
+                            DWORD *values,
+                            size_t count
+                            )
+    {
+      if (NULL == values) return;
+
+      for (size_t index = 0; index < count; ++index) {
+        ZS_EVENTING_4(x, i, Insane, RTCPPacketTraceDWORDs, ol, RtcpPacket, Info,
+          puid, mediaChannelID, mediaChannelID,
+          string, type, type,
+          size_t, index, index,
+          dword, value, values[index]
+        );
+      }
+    }
+    
+    //-------------------------------------------------------------------------
+    static void traceFeedbackMessage(
+                                     IMediaStreamTrackTypes::MediaChannelID mediaChannelID,
+                                     RTCPPacket::FeedbackMessage *common
+                                     )
+    {
+      traceReport(mediaChannelID, common);
+      ZS_EVENTING_6(x, i, Insane, RTCPPacketTraceFeedbackMessage, ol, RtcpPacket, Info,
+        puid, mediaChannelID, mediaChannelID,
+        byte, fmt, common->fmt(),
+        dword, ssrcOfPacketSender, common->ssrcOfPacketSender(),
+        dword, ssrcOfMediaSource, common->ssrcOfMediaSource(),
+        buffer, fci, common->fci(),
+        size, fciSize, common->fciSize()
+      );
+    }
+
+    //-------------------------------------------------------------------------
+    static void traceTMMBRCommon(
+                                 IMediaStreamTrackTypes::MediaChannelID mediaChannelID,
+                                 BYTE fmt,
+                                 RTCPPacket::TransportLayerFeedbackMessage::TMMBRCommon *common
+                                 )
+    {
+      ZS_EVENTING_6(x, i, Insane, RTCPPacketTraceFeedbackMessageTMMBRCommon, ol, RtcpPacket, Info,
+        puid, mediaChannelID, mediaChannelID,
+        byte, fmt, fmt,
+        dword, ssrc, common->ssrc(),
+        byte, mxTBRExp, common->mxTBRExp(),
+        dword, mxTBRMantissa, common->mxTBRMantissa(),
+        word, measuredOverhead, common->measuredOverhead()
+      );
+    }
+    
+    //-------------------------------------------------------------------------
+    static void traceCodecControlCommon(
+                                        IMediaStreamTrackTypes::MediaChannelID mediaChannelID,
+                                        BYTE fmt,
+                                        RTCPPacket::PayloadSpecificFeedbackMessage::CodecControlCommon *common
+                                        )
+    {
+      ZS_EVENTING_5(x, i, Insane, RTCPPacketTraceFeedbackMessageCodecControlCommon, ol, RtcpPacket, Info,
+        puid, mediaChannelID, mediaChannelID,
+        byte, fmt, fmt,
+        dword, ssrc, common->ssrc(),
+        byte, seqNr, common->seqNr(),
+        dword, reserved, common->reserved()
+      );
+    }
+
+    //-------------------------------------------------------------------------
+    static void traceXRReportBlock(
+                                   IMediaStreamTrackTypes::MediaChannelID mediaChannelID,
+                                   RTCPPacket::XR::ReportBlock *common
+                                   )
+    {
+      ZS_EVENTING_6(x, i, Insane, RTCPPacketTraceXRReportBlock, ol, RtcpPacket, Info,
+        puid, mediaChannelID, mediaChannelID,
+        bool, next, (NULL != common->next()),
+        byte, blockType, common->blockType(),
+        byte, typeSpecific, common->typeSpecific(),
+        buffer, typeSpecificContents, common->typeSpecificContents(),
+        size, typeSpecificContentSize, common->typeSpecificContentSize()
+      );
+    }
+
+    //-------------------------------------------------------------------------
+    static void traceReportBlockRange(
+                                      IMediaStreamTrackTypes::MediaChannelID mediaChannelID,
+                                      RTCPPacket::XR::ReportBlockRange *common
+                                      )
+    {
+      traceXRReportBlock(mediaChannelID, common);
+      ZS_EVENTING_6(x, i, Insane, RTCPPacketTraceXRReportBlockRange, ol, RtcpPacket, Info,
+        puid, mediaChannelID, mediaChannelID,
+        byte, reserved, common->reserved(),
+        byte, thinning, common->thinning(),
+        dword, ssrcOfSource, common->ssrcOfSource(),
+        word, beginSeq, common->beginSeq(),
+        word, endSeq, common->endSeq()
+      );
+    }
+
+    //-------------------------------------------------------------------------
+    static void traceRLEReportBlock(
+                                    IMediaStreamTrackTypes::MediaChannelID mediaChannelID,
+                                    RTCPPacket::XR::RLEReportBlock *common
+                                    )
+    {
+      traceReportBlockRange(mediaChannelID, common);
+      auto count = common->chunkCount();
+
+      if (count < 1) return;
+
+      ElementPtr outerEl = Element::create("chunks");
+
+      for (size_t index = 0; index < count; ++index) {
+        RTCPPacket::XR::RLEChunk chunk = common->chunkAtIndex(index);
+
+        ElementPtr chunkEl;
+
+        if (RTCPPacket::XR::isRunLengthChunk(chunk)) {
+          RTCPPacket::XR::RunLength rl(chunk);
+          ZS_EVENTING_3(x, i, Insane, RTCPPacketTraceXRRLEReportBlockChunkRunLength, ol, RtcpPacket, Info,
+            puid, mediaChannelID, mediaChannelID,
+            byte, runType, rl.runType(),
+            size_t, runLength, rl.runLength()
+          );
+        } else if (RTCPPacket::XR::isBitVectorChunk(chunk)) {
+          RTCPPacket::XR::BitVector bv(chunk);
+          ZS_EVENTING_2(x, i, Insane, RTCPPacketTraceXRRLEReportBlockChunkBitVector, ol, RtcpPacket, Info,
+            puid, mediaChannelID, mediaChannelID,
+            word, bitVector, bv.bitVector()
+          );
+        } else {
+          ZS_EVENTING_2(x, i, Insane, RTCPPacketTraceXRRLEReportBlockChunkUnknown, ol, RtcpPacket, Info,
+            puid, mediaChannelID, mediaChannelID,
+            word, chunk, chunk
+          );
+        }
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    static void traceSenderReport(
+                                  IMediaStreamTrackTypes::MediaChannelID mediaChannelID,
+                                  RTCPPacket::SenderReport *sr
+                                  )
+    {
+      traceSenderReceiverCommonReport(mediaChannelID, sr);
+      ZS_EVENTING_7(x, i, Insane, RTCPPacketTraceSenderReport, ol, RtcpPacket, Info,
+        puid, mediaChannelID, mediaChannelID,
+        dword, ntpTimestampMS, sr->ntpTimestampMS(),
+        dword, ntpTimestampLS, sr->ntpTimestampLS(),
+        string, ntpTimestamp, string(sr->ntpTimestamp()),
+        dword, senderPacketCount, sr->senderPacketCount(),
+        dword, senderOctetCount, sr->senderOctetCount(),
+        bool, nextSenderReport, (NULL != sr->nextSenderReport())
+      );
+    }
+
+    //-------------------------------------------------------------------------
+    static void traceReceiverReport(
+                                    IMediaStreamTrackTypes::MediaChannelID mediaChannelID,
+                                    RTCPPacket::ReceiverReport *rr
+                                    )
+    {
+      ElementPtr subEl = Element::create("ReceiverReport");
+      traceSenderReceiverCommonReport(mediaChannelID, rr);
+      ZS_EVENTING_2(x, i, Insane, RTCPPacketTraceReceiverReport, ol, RtcpPacket, Info,
+        puid, mediaChannelID, mediaChannelID,
+        bool, nextReceiverReport, (NULL != rr->nextReceiverReport())
+      );
+    }
+
+    //-------------------------------------------------------------------------
+    static void traceSDES(
+                          IMediaStreamTrackTypes::MediaChannelID mediaChannelID,
+                          RTCPPacket::SDES *sdes
+                          )
+    {
+      traceReport(mediaChannelID, sdes);
+
+      ZS_EVENTING_3(x, i, Insane, RTCPPacketTraceSDES, ol, RtcpPacket, Info,
+        puid, mediaChannelID, mediaChannelID,
+        size_t, sc, sdes->sc(),
+        bool, nextSDES, (NULL != sdes->nextSDES())
+      );
+
+      RTCPPacket::SDES::Chunk *chunk = sdes->firstChunk();
+      if (NULL != chunk) {
+        for (; NULL != chunk; chunk = chunk->next()) {
+          ZS_EVENTING_14(x, i, Insane, RTCPPacketTraceSDESChunk, ol, RtcpPacket, Info,
+            puid, mediaChannelID, mediaChannelID,
+            dword, ssrc, chunk->ssrc(),
+            size_t, count, chunk->count(),
+            size_t, cNameCount, chunk->cNameCount(),
+            size_t, nameCount, chunk->nameCount(),
+            size_t, emailCount, chunk->emailCount(),
+            size_t, phoneCount, chunk->phoneCount(),
+            size_t, locCount, chunk->locCount(),
+            size_t, toolCount, chunk->toolCount(),
+            size_t, noteCount, chunk->noteCount(),
+            size_t, privCount, chunk->privCount(),
+            size_t, midCount, chunk->midCount(),
+            size_t, ridCount, chunk->ridCount(),
+            size_t, unknownCount, chunk->unknownCount()
+          );
+
+          traceStringItemList(mediaChannelID, chunk->firstCName());
+          traceStringItemList(mediaChannelID, chunk->firstName());
+          traceStringItemList(mediaChannelID, chunk->firstEmail());
+          traceStringItemList(mediaChannelID, chunk->firstPhone());
+          traceStringItemList(mediaChannelID, chunk->firstLoc());
+          traceStringItemList(mediaChannelID, chunk->firstTool());
+          traceStringItemList(mediaChannelID, chunk->firstNote());
+          traceStringItemList(mediaChannelID, chunk->firstPriv());
+          traceStringItemList(mediaChannelID, chunk->firstMid());
+          traceStringItemList(mediaChannelID, chunk->firstRid());
+          traceStringItemList(mediaChannelID, chunk->firstUnknown());
+        }
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    static void traceBye(
+                         IMediaStreamTrackTypes::MediaChannelID mediaChannelID,
+                         RTCPPacket::Bye *bye
+                         )
+    {
+      traceReport(mediaChannelID, bye);
+      ZS_EVENTING_3(x, i, Insane, RTCPPacketTraceBye, ol, RtcpPacket, Info,
+        puid, mediaChannelID, mediaChannelID,
+        string, reasonForLeaving, bye->reasonForLeaving(),
+        bool, nextBye, (NULL != bye->nextBye())
+      );
+      traceDWORDs(mediaChannelID, "ssrc", bye->mSSRCs, bye->sc());
+    }
+
+    //-------------------------------------------------------------------------
+    static void traceApp(
+                         IMediaStreamTrackTypes::MediaChannelID mediaChannelID,
+                         RTCPPacket::App *app
+                         )
+    {
+      traceReport(mediaChannelID, app);
+      ZS_EVENTING_7(x, i, Insane, RTCPPacketTraceApp, ol, RtcpPacket, Info,
+        puid, mediaChannelID, mediaChannelID,
+        byte, subtype, app->subtype(),
+        dword, ssrc, app->ssrc(),
+        string, name, app->name(),
+        buffer, data, app->data(),
+        size, dataSize, app->dataSize(),
+        bool, nextApp, (NULL != app->nextApp())
+      );
+    }
+
+    //-------------------------------------------------------------------------
+    static void traceTransportLayerFeedbackMessage(
+                                                   IMediaStreamTrackTypes::MediaChannelID mediaChannelID,
+                                                   RTCPPacket::TransportLayerFeedbackMessage *fm
+                                                   )
+    {
+      traceFeedbackMessage(mediaChannelID, fm);
+
+      ZS_EVENTING_3(x, i, Insane, RTCPPacketTraceTransportLayerFeedbackMessage, ol, RtcpPacket, Info,
+        puid, mediaChannelID, mediaChannelID,
+        bool, unknown, (NULL != fm->unknown()),
+        bool, nextTransportLayerFeedbackMessage, (NULL != fm->nextTransportLayerFeedbackMessage())
+      );
+
       {
-        BYTE *startOfReport = pos;
+        auto count = fm->genericNACKCount();
+        if (count > 0) {
+          for (size_t index = 0; index < count; ++index) {
+            auto format = fm->genericNACKAtIndex(index);
 
-        writePacketHeader(report, pos, remaining);
+            ZS_EVENTING_3(x, i, Insane, RTCPPacketTransportLayerFeedbackMessageGenericNACK, ol, RtcpPacket, Info,
+              puid, mediaChannelID, mediaChannelID,
+              word, pid, format->pid(),
+              word, blp, format->blp()
+            );
+          }
+        }
+      }
 
-        switch (report->pt()) {
-          case SenderReport::kPayloadType:
+      {
+        auto count = fm->tmmbrCount();
+        if (count > 0) {
+          ElementPtr formatsEl = Element::create("TMMBRs");
+
+          for (size_t index = 0; index < count; ++index) {
+            ElementPtr formatEl = Element::create("TMMBR");
+
+            auto format = fm->tmmbrAtIndex(index);
+            traceTMMBRCommon(mediaChannelID, RTCPPacket::TransportLayerFeedbackMessage::TMMBR::kFmt, format);
+          }
+        }
+      }
+
+      {
+        auto count = fm->tmmbrCount();
+        if (count > 0) {
+          for (size_t index = 0; index < count; ++index) {
+            auto format = fm->tmmbnAtIndex(index);
+            traceTMMBRCommon(mediaChannelID, RTCPPacket::TransportLayerFeedbackMessage::TMMBN::kFmt, format);
+          }
+        }
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    static void tracePayloadSpecificFeedbackMessage(
+                                                    IMediaStreamTrackTypes::MediaChannelID mediaChannelID,
+                                                    RTCPPacket::PayloadSpecificFeedbackMessage *fm
+                                                    )
+    {
+      traceFeedbackMessage(mediaChannelID, fm);
+
+      {
+        auto format = fm->pli();
+        if (NULL != format) {
+          ZS_EVENTING_1(x, i, Insane, RTCPPacketTracePayloadSpecificFeedbackMessagePLI, ol, RtcpPacket, Info, puid, mediaChannelID, mediaChannelID);
+        }
+      }
+
+      {
+        auto count = fm->sliCount();
+        if (count > 0) {
+          for (size_t index = 0; index < count; ++index) {
+            auto format = fm->sliAtIndex(index);
+
+            ZS_EVENTING_5(x, i, Insane, RTCPPacketTracePayloadSpecificFeedbackMessageSLI, ol, RtcpPacket, Info,
+              puid, mediaChannelID, mediaChannelID,
+              size_t, index, index,
+              word, first, format->first(),
+              word, number, format->number(),
+              byte, pictureID, format->pictureID()
+            );
+          }
+        }
+      }
+
+      {
+        auto format = fm->rpsi();
+        if (NULL != format) {
+          ZS_EVENTING_5(x, i, Insane, RTCPPacketTracePayloadSpecificFeedbackMessageRPSI, ol, RtcpPacket, Info,
+            puid, mediaChannelID, mediaChannelID,
+            byte, zeroBit, format->zeroBit(),
+            byte, payloadType, format->payloadType(),
+            buffer, nativeRPSIBitString, format->nativeRPSIBitString(),
+            size, nativeRPSIBitStringSizeInBits, (format->nativeRPSIBitStringSizeInBits()/8)+(0 == format->nativeRPSIBitStringSizeInBits()%8 ? 0 : 1)
+          );
+        }
+      }
+
+      {
+        auto count = fm->firCount();
+        if (count > 0) {
+          for (size_t index = 0; index < count; ++index) {
+            auto format = fm->firAtIndex(index);
+            traceCodecControlCommon(mediaChannelID, RTCPPacket::PayloadSpecificFeedbackMessage::FIR::kFmt, format);
+          }
+        }
+      }
+
+      {
+        auto count = fm->tstrCount();
+        if (count > 0) {
+          for (size_t index = 0; index < count; ++index) {
+            auto format = fm->tstrAtIndex(index);
+            traceCodecControlCommon(mediaChannelID, RTCPPacket::PayloadSpecificFeedbackMessage::TSTR::kFmt, format);
+
+            ZS_EVENTING_4(x, i, Insane, RTCPPacketTracePayloadSpecificFeedbackMessageTSTx, ol, RtcpPacket, Info,
+              puid, mediaChannelID, mediaChannelID,
+              string, type, "TSTR",
+              size_t, index, index,
+              byte, formatIndex, format->index()
+            );
+          }
+        }
+      }
+
+      {
+        auto count = fm->tstnCount();
+        if (count > 0) {
+          for (size_t index = 0; index < count; ++index) {
+            auto format = fm->tstnAtIndex(index);
+            traceCodecControlCommon(mediaChannelID, RTCPPacket::PayloadSpecificFeedbackMessage::TSTN::kFmt, format);
+
+            ZS_EVENTING_4(x, i, Insane, RTCPPacketTracePayloadSpecificFeedbackMessageTSTx, ol, RtcpPacket, Info,
+              puid, mediaChannelID, mediaChannelID,
+              string, type, "TSTN",
+              size_t, index, index,
+              byte, formatIndex, format->index()
+            );
+          }
+        }
+      }
+
+      {
+        auto count = fm->vbcmCount();
+        if (count > 0) {
+          for (size_t index = 0; index < count; ++index) {
+            auto format = fm->vbcmAtIndex(index);
+            traceCodecControlCommon(mediaChannelID, RTCPPacket::PayloadSpecificFeedbackMessage::TSTN::kFmt, format);
+
+            ZS_EVENTING_6(x, i, Insane, RTCPPacketTracePayloadSpecificFeedbackMessageVBCM, ol, RtcpPacket, Info,
+              puid, mediaChannelID, mediaChannelID,
+              size_t, index, index,
+              byte, zeroBit, format->zeroBit(),
+              byte, payloadType, format->payloadType(),
+              buffer, vbcmOctetString, format->vbcmOctetString(),
+              size, vbcmOctetStringSize, format->vbcmOctetStringSize()
+            );
+          }
+        }
+      }
+
+      {
+        auto format = fm->afb();
+        auto remb = fm->remb();
+
+        if ((NULL != format) &&
+            (NULL == remb)) {
+          ZS_EVENTING_3(x, i, Insane, RTCPPacketTracePayloadSpecificFeedbackMessageAFB, ol, RtcpPacket, Info,
+            puid, mediaChannelID, mediaChannelID,
+            buffer, data, format->data(),
+            size, dataSize, format->dataSize()
+          );
+        }
+      }
+
+      {
+        auto format = fm->remb();
+        if (NULL != format) {
+          ZS_EVENTING_4(x, i, Insane, RTCPPacketTracePayloadSpecificFeedbackMessageREMB, ol, RtcpPacket, Info,
+            puid, mediaChannelID, mediaChannelID,
+            size_t, numSSRC, format->numSSRC(),
+            byte, brExp, format->brExp(),
+            dword, brMantissa, format->brMantissa()
+          );
+          traceDWORDs(mediaChannelID, "ssrc", format->mSSRCs, format->numSSRC());
+        }
+      }
+    }
+
+    //-------------------------------------------------------------------------
+    static void traceXR(
+                        IMediaStreamTrackTypes::MediaChannelID mediaChannelID,
+                        RTCPPacket::XR *xr
+                        )
+    {
+      traceReport(mediaChannelID, xr);
+
+      ZS_EVENTING_5(x, i, Insane, RTCPPacketTraceXR, ol, RtcpPacket, Info,
+        puid, mediaChannelID, mediaChannelID,
+        byte, numSSRC, xr->reserved(),
+        dword, ssrc, xr->ssrc(),
+        size_t, reportBlockCount, xr->reportBlockCount(),
+        bool, next, xr->nextXR()
+      );
+
+      {
+        auto count = xr->lossRLEReportBlockCount();
+        if (count > 0) {
+          for (size_t index = 0; index < count; ++index) {
+            auto format = xr->lossRLEReportBlockAtIndex(index);
+            ZS_EVENTING_4(x, i, Insane, RTCPPacketTraceXRTypeRLEReportBlock, ol, RtcpPacket, Info,
+              puid, mediaChannelID, mediaChannelID,
+              string, type, "LossRLE", 
+              size_t, index, index,
+              bool, next, (NULL != format->nextLossRLE())
+            );
+            traceRLEReportBlock(mediaChannelID, format);
+          }
+        }
+      }
+
+      {
+        auto count = xr->duplicateRLEReportBlockCount();
+        if (count > 0) {
+          for (size_t index = 0; index < count; ++index) {
+            auto format = xr->duplicateRLEReportBlockAtIndex(index);
+            ZS_EVENTING_4(x, i, Insane, RTCPPacketTraceXRTypeRLEReportBlock, ol, RtcpPacket, Info,
+              puid, mediaChannelID, mediaChannelID,
+              string, type, "DuplicateRLE",
+              size_t, index, index,
+              bool, next, (NULL != format->nextDuplicateRLE())
+            );
+            traceRLEReportBlock(mediaChannelID, format);
+          }
+        }
+      }
+
+      {
+        auto count = xr->packetReceiptTimesReportBlockCount();
+        if (count > 0) {
+          for (size_t index = 0; index < count; ++index) {
+            auto format = xr->packetReceiptTimesReportBlockAtIndex(index);
+            ZS_EVENTING_4(x, i, Insane, RTCPPacketTraceXRTypeRLEReportBlock, ol, RtcpPacket, Info,
+              puid, mediaChannelID, mediaChannelID,
+              string, type, "PacketReceiptTimes",
+              size_t, index, index,
+              bool, next, (NULL != format->nextPacketReceiptTimesReportBlock())
+            );
+            traceDWORDs(mediaChannelID, "receipt time", format->mReceiptTimes, format->receiptTimeCount());
+            traceReportBlockRange(mediaChannelID, format);
+          }
+        }
+      }
+
+      {
+        auto count = xr->receiverReferenceTimeReportBlockCount();
+        if (count > 0) {
+          for (size_t index = 0; index < count; ++index) {
+            auto format = xr->receiverReferenceTimeReportBlockAtIndex(index);
+            ZS_EVENTING_6(x, i, Insane, RTCPPacketTraceXRReceiverReferenceTimeReportBlock, ol, RtcpPacket, Info,
+              puid, mediaChannelID, mediaChannelID,
+              size_t, index, index,
+              dword, ntpTimestampMS, format->ntpTimestampMS(),
+              dword, ntpTimestampLS, format->ntpTimestampLS(),
+              string, ntpTimestamp, string(format->ntpTimestamp()),
+              bool, next, (NULL != format->nextReceiverReferenceTimeReportBlock())
+            );
+            traceXRReportBlock(mediaChannelID, format);
+          }
+        }
+      }
+
+      {
+        auto count = xr->dlrrReportBlockCount();
+        if (count > 0) {
+          for (size_t index = 0; index < count; ++index) {
+            auto format = xr->dlrrReportBlockAtIndex(index);
+            size_t subBlockCount = format->subBlockCount();
+
+            ZS_EVENTING_4(x, i, Insane, RTCPPacketTraceXRDLRRReportBlock, ol, RtcpPacket, Info,
+              puid, mediaChannelID, mediaChannelID,
+              size_t, index, index,
+              size_t, subBlockCount, subBlockCount,
+              bool, next, (NULL != format->nextDLRRReportBlock())
+            );
+
+            if (subBlockCount > 0) {
+              for (size_t indexSubBlock = 0; indexSubBlock < subBlockCount; ++indexSubBlock)
+              {
+                auto subBlock = format->subBlockAtIndex(indexSubBlock);
+                ZS_EVENTING_6(x, i, Insane, RTCPPacketTraceXRDLRRReportBlockSubBlock, ol, RtcpPacket, Info,
+                  puid, mediaChannelID, mediaChannelID,
+                  size_t, index, indexSubBlock,
+                  size_t, subBlockCount, subBlockCount,
+                  dword, ssrc, subBlock->ssrc(),
+                  dword, lrr, subBlock->lrr(),
+                  dword, dlrr, subBlock->dlrr()
+                );
+              }
+            }
+            traceXRReportBlock(mediaChannelID, format);
+          }
+        }
+      }
+
+      {
+        auto count = xr->statisticsSummaryReportBlockCount();
+        if (count > 0) {
+          for (size_t index = 0; index < count; ++index) {
+            auto format = xr->statisticsSummaryReportBlockAtIndex(index);
+            ZS_EVENTING_22(x, i, Insane, RTCPPacketTraceXRStatisticsSummary, ol, RtcpPacket, Info,
+              puid, mediaChannelID, mediaChannelID,
+              size_t, index, index,
+              bool, lossReportFlag, format->lossReportFlag(),
+              bool, lrr, format->duplicateReportFlag(),
+              bool, jitterFlag, format->jitterFlag(),
+              bool, ttlFlag, format->ttlFlag(),
+              bool, hopLimitFlag, format->hopLimitFlag(),
+              dword, lostPackets, format->lossReportFlag() ? format->lostPackets() : 0,
+              dword, dupPackets, format->duplicateReportFlag() ? format->dupPackets() : 0,
+              dword, minJitter, format->jitterFlag() ? format->minJitter() : 0,
+              dword, maxJitter, format->jitterFlag() ? format->maxJitter() : 0,
+              dword, meanJitter, format->jitterFlag() ? format->meanJitter() : 0,
+              dword, devJitter, format->jitterFlag() ? format->devJitter() : 0,
+              byte, minTTL, format->ttlFlag() ? format->minTTL() : static_cast<BYTE>(0),
+              byte, maxTTL, format->ttlFlag() ? format->maxTTL() : static_cast<BYTE>(0),
+              byte, meanTTL, format->ttlFlag() ? format->meanTTL() : static_cast<BYTE>(0),
+              byte, devTTL, format->ttlFlag() ? format->devTTL() : static_cast<BYTE>(0),
+              byte, minHopLimit, format->hopLimitFlag() ? format->minHopLimit() : static_cast<BYTE>(0),
+              byte, maxHopLimit, format->hopLimitFlag() ? format->maxHopLimit() : static_cast<BYTE>(0),
+              byte, meanHopLimit, format->hopLimitFlag() ? format->meanHopLimit() : static_cast<BYTE>(0),
+              byte, devHopLimit, format->hopLimitFlag() ? format->devHopLimit() : static_cast<BYTE>(0),
+              bool, next, (NULL != format->nextStatisticsSummaryReportBlock())
+            );
+            traceReportBlockRange(mediaChannelID, format);
+          }
+        }
+      }
+
+      {
+        auto count = xr->voIPMetricsReportBlockCount();
+        if (count > 0) {
+          for (size_t index = 0; index < count; ++index) {
+            auto format = xr->voIPMetricsReportBlockAtIndex(index);
+            ZS_EVENTING_27(x, i, Insane, RTCPPacketTraceXRVoIPMetricsReportBlock, ol, RtcpPacket, Info,
+              puid, mediaChannelID, mediaChannelID,
+              size_t, index, index,
+              dword, ssrcOfSource, format->ssrcOfSource(),
+              byte, lossRate, format->lossRate(),
+              byte, discardRate, format->discardRate(),
+              byte, burstDensity, format->burstDensity(),
+              byte, gapDensity, format->gapDensity(),
+              word, burstDuration, format->burstDuration(),
+              word, gapDuration, format->gapDuration(),
+              word, roundTripDelay, format->roundTripDelay(),
+              word, endSystemDelay, format->endSystemDelay(),
+              byte, signalLevel, format->signalLevel(),
+              byte, noiseLevel, format->noiseLevel(),
+              byte, rerl, format->rerl(),
+              byte, Gmin, format->Gmin(),
+              byte, rFactor, format->rFactor(),
+              byte, extRFactor, format->extRFactor(),
+              byte, mosLQ, format->mosLQ(),
+              byte, mosCQ, format->mosCQ(),
+              byte, rxConfig, format->rxConfig(),
+              byte, plc, format->plc(),
+              byte, jba, format->jba(),
+              byte, jbRate, format->jbRate(),
+              word, jbNominal, format->jbNominal(),
+              word, jbMaximum, format->jbMaximum(),
+              word, jbAbsMax, format->jbAbsMax(),
+              bool, next, (NULL != format->nextVoIPMetricsReportBlock())
+            );
+
+            traceXRReportBlock(mediaChannelID, format);
+          }
+        }
+      }
+
+      {
+        auto count = xr->unknownReportBlockCount();
+        if (count > 0) {
+          for (size_t index = 0; index < count; ++index) {
+            auto format = xr->unknownReportBlockAtIndex(index);
+            ZS_EVENTING_4(x, i, Insane, RTCPPacketTraceXRTypeRLEReportBlock, ol, RtcpPacket, Info,
+              puid, mediaChannelID, mediaChannelID,
+              string, type, "UnknownReportBlock",
+              size_t, index, index,
+              bool, next, (NULL != format->nextUnknownReportBlock())
+            );
+
+            traceXRReportBlock(mediaChannelID, format);
+          }
+        }
+      }
+    }
+
+  } // namespace internal
+
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark RTCPPacket::SenderReport
+  #pragma mark
+
+  //-------------------------------------------------------------------------
+  const char *RTCPPacket::Report::ptToString(BYTE pt)
+  {
+    switch (pt) {
+      case SenderReport::kPayloadType:                    return "SenderReport";
+      case ReceiverReport::kPayloadType:                  return "ReceiverReport";
+      case SDES::kPayloadType:                            return "SDES";
+      case Bye::kPayloadType:                             return "Bye";
+      case App::kPayloadType:                             return "App";
+      case TransportLayerFeedbackMessage::kPayloadType:   return "TransportLayerFeedbackMessage";
+      case PayloadSpecificFeedbackMessage::kPayloadType:  return "PayloadSpecificFeedbackMessage";
+      case XR::kPayloadType:                              return "XR";
+      default:  {
+      }
+    }
+    return "Uknown";
+  }
+
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark RTCPPacket::SenderReport
+  #pragma mark
+
+  //-------------------------------------------------------------------------
+  Time RTCPPacket::SenderReport::ntpTimestamp() const
+  {
+    return UseRTPUtils::ntpToTime(mNTPTimestampMS, mNTPTimestampLS);
+  }
+
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark RTCPPacket::SDES::Chunk::StringItem
+  #pragma mark
+
+  //-------------------------------------------------------------------------
+  const char *RTCPPacket::SDES::Chunk::StringItem::typeToString(BYTE type)
+  {
+    switch (type) {
+      case CName::kItemType:  return "CName";
+      case Name::kItemType:   return "Name";
+      case Email::kItemType:  return "Email";
+      case Phone::kItemType:  return "Phone";
+      case Loc::kItemType:    return "Loc";
+      case Tool::kItemType:   return "Tool";
+      case Note::kItemType:   return "Note";
+      case Priv::kItemType:   return "Priv";
+      case Mid::kItemType:    return "Mid";
+      case Rid::kItemType:    return "Rid";
+      default: {
+        break;
+      }
+    }
+    return "Unknown";
+  }
+
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark RTCPPacket::SDES::Chunk
+  #pragma mark
+
+  //-------------------------------------------------------------------------
+  RTCPPacket::SDES::Chunk::CName *RTCPPacket::SDES::Chunk::cNameAtIndex(size_t index) const
+  {
+    ASSERT(index < mCNameCount)
+    return &(mFirstCName[index]);
+  }
+
+  //-------------------------------------------------------------------------
+  RTCPPacket::SDES::Chunk::Name *RTCPPacket::SDES::Chunk::nameAtIndex(size_t index) const
+  {
+    ASSERT(index < mNameCount)
+    return &(mFirstName[index]);
+  }
+
+  //-------------------------------------------------------------------------
+  RTCPPacket::SDES::Chunk::Email *RTCPPacket::SDES::Chunk::emailAtIndex(size_t index) const
+  {
+    ASSERT(index < mEmailCount)
+    return &(mFirstEmail[index]);
+  }
+
+  //-------------------------------------------------------------------------
+  RTCPPacket::SDES::Chunk::Phone *RTCPPacket::SDES::Chunk::phoneAtIndex(size_t index) const
+  {
+    ASSERT(index < mPhoneCount)
+    return &(mFirstPhone[index]);
+  }
+
+  //-------------------------------------------------------------------------
+  RTCPPacket::SDES::Chunk::Loc *RTCPPacket::SDES::Chunk::locAtIndex(size_t index) const
+  {
+    ASSERT(index < mLocCount)
+    return &(mFirstLoc[index]);
+  }
+
+  //-------------------------------------------------------------------------
+  RTCPPacket::SDES::Chunk::Tool *RTCPPacket::SDES::Chunk::toolAtIndex(size_t index) const
+  {
+    ASSERT(index < mToolCount)
+    return &(mFirstTool[index]);
+  }
+
+  //-------------------------------------------------------------------------
+  RTCPPacket::SDES::Chunk::Note *RTCPPacket::SDES::Chunk::noteAtIndex(size_t index) const
+  {
+    ASSERT(index < mNoteCount)
+    return &(mFirstNote[index]);
+  }
+
+  //-------------------------------------------------------------------------
+  RTCPPacket::SDES::Chunk::Priv *RTCPPacket::SDES::Chunk::privAtIndex(size_t index) const
+  {
+    ASSERT(index < mPrivCount)
+    return &(mFirstPriv[index]);
+  }
+
+  //-------------------------------------------------------------------------
+  RTCPPacket::SDES::Chunk::Mid *RTCPPacket::SDES::Chunk::midAtIndex(size_t index) const
+  {
+    ASSERT(index < mMidCount)
+    return &(mFirstMid[index]);
+  }
+
+  //-------------------------------------------------------------------------
+  RTCPPacket::SDES::Chunk::Rid *RTCPPacket::SDES::Chunk::ridAtIndex(size_t index) const
+  {
+    ASSERT(index < mRidCount)
+    return &(mFirstRid[index]);
+  }
+
+  //-------------------------------------------------------------------------
+  RTCPPacket::SDES::Chunk::Unknown *RTCPPacket::SDES::Chunk::unknownAtIndex(size_t index) const
+  {
+    ASSERT(index < mUnknownCount)
+    return &(mFirstUnknown[index]);
+  }
+
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark RTCPPacket::Bye
+  #pragma mark
+
+  //-------------------------------------------------------------------------
+  DWORD RTCPPacket::Bye::ssrc(size_t index) const
+  {
+    ASSERT(index < sc())
+    return mSSRCs[index];
+  }
+
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark RTCPPacket::FeedbackMessage
+  #pragma mark
+
+  //-------------------------------------------------------------------------
+  const char *RTCPPacket::FeedbackMessage::fmtToString(BYTE pt, BYTE fmt, DWORD subFmt)
+  {
+    switch (pt) {
+      case TransportLayerFeedbackMessage::kPayloadType:     {
+        switch (fmt) {
+          case TransportLayerFeedbackMessage::GenericNACK::kFmt:  return "GenericNACK";
+          case TransportLayerFeedbackMessage::TMMBR::kFmt:        return "TMMBR";
+          case TransportLayerFeedbackMessage::TMMBN::kFmt:        return "TMMBN";
+          default:                                                break;
+        }
+        break;
+      }
+      case PayloadSpecificFeedbackMessage::kPayloadType:    {
+        switch (fmt) {
+          case PayloadSpecificFeedbackMessage::PLI::kFmt:         return "PLI";
+          case PayloadSpecificFeedbackMessage::SLI::kFmt:         return "SLI";
+          case PayloadSpecificFeedbackMessage::RPSI::kFmt:        return "RPSI";
+          case PayloadSpecificFeedbackMessage::FIR::kFmt:         return "FIR";
+          case PayloadSpecificFeedbackMessage::TSTR::kFmt:        return "TSTR";
+          case PayloadSpecificFeedbackMessage::TSTN::kFmt:        return "TSTN";
+          case PayloadSpecificFeedbackMessage::VBCM::kFmt:        return "VBCM";
+          case PayloadSpecificFeedbackMessage::AFB::kFmt:         {
+            const char *tmp = "REMB";
+            if (subFmt == *(reinterpret_cast<const DWORD *>(tmp))) return "REMB";
+            return "AFB";
+          }
+          default:                                                break;
+        }
+        break;
+      }
+      default:                                              {
+        break;
+      }
+    }
+    return "Unknown";
+  }
+
+  //-------------------------------------------------------------------------
+  const char *RTCPPacket::FeedbackMessage::fmtToString() const
+  {
+    if (PayloadSpecificFeedbackMessage::kPayloadType == mPT) {
+      if (PayloadSpecificFeedbackMessage::AFB::kFmt == mReportSpecific) {
+        auto result = reinterpret_cast<const PayloadSpecificFeedbackMessage *>(this);
+        const char tmp1[sizeof(DWORD)] {};
+        const char *tmp2 = "REMB";
+        const char *usingTmp = (result->mHasREMB ? tmp2 : (&(tmp1[0])));
+
+        return fmtToString(mPT, mReportSpecific, *(reinterpret_cast<const DWORD *>(usingTmp)));
+      }
+    }
+    return fmtToString(mPT, mReportSpecific);
+  }
+
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark RTCPPacket::TransportLayerFeedbackMessage
+  #pragma mark
+
+  //-------------------------------------------------------------------------
+  RTCPPacket::TransportLayerFeedbackMessage::GenericNACK *RTCPPacket::TransportLayerFeedbackMessage::genericNACKAtIndex(size_t index) const
+  {
+    ASSERT(index < mGenericNACKCount)
+    return &(mFirstGenericNACK[index]);
+  }
+
+  //-------------------------------------------------------------------------
+  RTCPPacket::TransportLayerFeedbackMessage::TMMBR *RTCPPacket::TransportLayerFeedbackMessage::tmmbrAtIndex(size_t index) const
+  {
+    ASSERT(index < mTMMBRCount)
+    return &(mFirstTMMBR[index]);
+  }
+
+  //-------------------------------------------------------------------------
+  RTCPPacket::TransportLayerFeedbackMessage::TMMBN *RTCPPacket::TransportLayerFeedbackMessage::tmmbnAtIndex(size_t index) const
+  {
+    ASSERT(index < mTMMBNCount)
+    return &(mFirstTMMBN[index]);
+  }
+
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark RTCPPacket::PayloadSpecificFeedbackMessage::VBCM
+  #pragma mark
+
+  //-------------------------------------------------------------------------
+  BYTE RTCPPacket::PayloadSpecificFeedbackMessage::VBCM::zeroBit() const
+  {
+    return RTCP_GET_BITS(mControlSpecific, 0x1, 23);
+  }
+
+  //-------------------------------------------------------------------------
+  BYTE RTCPPacket::PayloadSpecificFeedbackMessage::VBCM::payloadType() const
+  {
+    return RTCP_GET_BITS(mControlSpecific, 0x7F, 16);
+  }
+
+  //-------------------------------------------------------------------------
+  size_t RTCPPacket::PayloadSpecificFeedbackMessage::VBCM::vbcmOctetStringSize() const
+  {
+    return RTCP_GET_BITS(mControlSpecific, 0xFFFF, 0);
+  }
+
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark RTCPPacket::PayloadSpecificFeedbackMessage::REMB
+  #pragma mark
+
+  //-------------------------------------------------------------------------
+  DWORD RTCPPacket::PayloadSpecificFeedbackMessage::REMB::ssrcAtIndex(size_t index) const
+  {
+    ASSERT(index < numSSRC())
+    return mSSRCs[index];
+  }
+
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark RTCPPacket::PayloadSpecificFeedbackMessage
+  #pragma mark
+
+  //-------------------------------------------------------------------------
+  RTCPPacket::PayloadSpecificFeedbackMessage::PLI *RTCPPacket::PayloadSpecificFeedbackMessage::pli() const
+  {
+    if (PLI::kFmt != fmt()) return NULL;
+    return const_cast<PLI *>(&mPLI);
+  }
+
+  //-------------------------------------------------------------------------
+  RTCPPacket::PayloadSpecificFeedbackMessage::SLI *RTCPPacket::PayloadSpecificFeedbackMessage::sliAtIndex(size_t index) const
+  {
+    ASSERT(index < mSLICount)
+    return &(mFirstSLI[index]);
+  }
+
+  //-------------------------------------------------------------------------
+  RTCPPacket::PayloadSpecificFeedbackMessage::FIR *RTCPPacket::PayloadSpecificFeedbackMessage::firAtIndex(size_t index) const
+  {
+    ASSERT(index < mFIRCount)
+    return &(mFirstFIR[index]);
+  }
+
+  //-------------------------------------------------------------------------
+  RTCPPacket::PayloadSpecificFeedbackMessage::TSTR *RTCPPacket::PayloadSpecificFeedbackMessage::tstrAtIndex(size_t index) const
+  {
+    ASSERT(index < mTSTRCount)
+    return &(mFirstTSTR[index]);
+  }
+
+  //-------------------------------------------------------------------------
+  RTCPPacket::PayloadSpecificFeedbackMessage::TSTN *RTCPPacket::PayloadSpecificFeedbackMessage::tstnAtIndex(size_t index) const
+  {
+    ASSERT(index < mTSTNCount)
+    return &(mFirstTSTN[index]);
+  }
+
+  //-------------------------------------------------------------------------
+  RTCPPacket::PayloadSpecificFeedbackMessage::VBCM *RTCPPacket::PayloadSpecificFeedbackMessage::vbcmAtIndex(size_t index) const
+  {
+    ASSERT(index < mVBCMCount)
+    return &(mFirstVBCM[index]);
+  }
+
+  //-------------------------------------------------------------------------
+  RTCPPacket::PayloadSpecificFeedbackMessage::RPSI *RTCPPacket::PayloadSpecificFeedbackMessage::rpsi() const
+  {
+    if (RPSI::kFmt != fmt()) return NULL;
+    return const_cast<RPSI *>(&mRPSI);
+  }
+
+  //-------------------------------------------------------------------------
+  RTCPPacket::PayloadSpecificFeedbackMessage::AFB *RTCPPacket::PayloadSpecificFeedbackMessage::afb() const
+  {
+    if (AFB::kFmt != fmt()) return NULL;
+    if (mHasREMB) return NULL;
+    return const_cast<AFB *>(&mAFB);
+  }
+
+  //-------------------------------------------------------------------------
+  RTCPPacket::PayloadSpecificFeedbackMessage::REMB *RTCPPacket::PayloadSpecificFeedbackMessage::remb() const
+  {
+    if (REMB::kFmt != fmt()) return NULL;
+    if (!mHasREMB) return NULL;
+    return const_cast<REMB *>(&mREMB);
+  }
+
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark RTCPPacket::XR::ReportBlock
+  #pragma mark
+
+  //-------------------------------------------------------------------------
+  const char *RTCPPacket::XR::ReportBlock::blockTypeToString(BYTE blockType)
+  {
+    switch (blockType) {
+      case LossRLEReportBlock::kBlockType:                return "LossRLEReportBlock";
+      case DuplicateRLEReportBlock::kBlockType:           return "DuplicateRLEReportBlock";
+      case PacketReceiptTimesReportBlock::kBlockType:     return "PacketReceiptTimesReportBlock";
+      case ReceiverReferenceTimeReportBlock::kBlockType:  return "ReceiverReferenceTimeReportBlock";
+      case DLRRReportBlock::kBlockType:                   return "DLRRReportBlock";
+      case StatisticsSummaryReportBlock::kBlockType:      return "StatisticsSummaryReportBlock";
+      case VoIPMetricsReportBlock::kBlockType:            return "VoIPMetricsReportBlock";
+      default: {
+        break;
+      }
+    }
+
+    return "UnknownReportBlock";
+  }
+
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark RTCPPacket::XR::ReportBlockRange
+  #pragma mark
+
+  //-------------------------------------------------------------------------
+  BYTE RTCPPacket::XR::ReportBlockRange::reserved() const
+  {
+    return RTCP_GET_BITS(mTypeSpecific, 0xF, 4);
+  }
+
+  //-------------------------------------------------------------------------
+  BYTE RTCPPacket::XR::ReportBlockRange::thinning() const
+  {
+    return RTCP_GET_BITS(mTypeSpecific, 0xF, 0);
+  }
+
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark RTCPPacket::XR::RLEReportBlock
+  #pragma mark
+
+  //-------------------------------------------------------------------------
+  RTCPPacket::XR::RLEChunk RTCPPacket::XR::RLEReportBlock::chunkAtIndex(size_t index) const
+  {
+    ASSERT(index < chunkCount())
+    return mChunks[index];
+  }
+
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark RTCPPacket::XR::PacketReceiptTimesReportBlock
+  #pragma mark
+
+  //-------------------------------------------------------------------------
+  DWORD RTCPPacket::XR::PacketReceiptTimesReportBlock::receiptTimeAtIndex(size_t index) const
+  {
+    ASSERT(index < receiptTimeCount())
+    return mReceiptTimes[index];
+  }
+
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark RTCPPacket::XR::ReceiverReferenceTimeReportBlock
+  #pragma mark
+
+  //-------------------------------------------------------------------------
+  Time RTCPPacket::XR::ReceiverReferenceTimeReportBlock::ntpTimestamp() const
+  {
+    return UseRTPUtils::ntpToTime(mNTPTimestampMS, mNTPTimestampLS);
+  }
+
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark RTCPPacket::XR::DLRRReportBlock
+  #pragma mark
+
+  //-------------------------------------------------------------------------
+  RTCPPacket::XR::DLRRReportBlock::SubBlock *RTCPPacket::XR::DLRRReportBlock::subBlockAtIndex(size_t index) const
+  {
+    ASSERT(index < subBlockCount())
+    return &(mSubBlocks[index]);
+  }
+
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark RTCPPacket::XR::StatisticsSummaryReportBlock
+  #pragma mark
+
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::XR::StatisticsSummaryReportBlock::lossReportFlag() const
+  {
+    return RTCP_IS_FLAG_SET(mTypeSpecific, 7);
+  }
+
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::XR::StatisticsSummaryReportBlock::duplicateReportFlag() const
+  {
+    return RTCP_IS_FLAG_SET(mTypeSpecific, 6);
+  }
+
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::XR::StatisticsSummaryReportBlock::jitterFlag() const
+  {
+    return RTCP_IS_FLAG_SET(mTypeSpecific, 5);
+  }
+
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::XR::StatisticsSummaryReportBlock::ttlFlag() const
+  {
+    return (1 == RTCP_GET_BITS(mTypeSpecific, 0x3, 3));
+  }
+
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::XR::StatisticsSummaryReportBlock::hopLimitFlag() const
+  {
+    return (2 == RTCP_GET_BITS(mTypeSpecific, 0x3, 3));
+  }
+
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark RTCPPacket::XR::VoIPMetricsReportBlock
+  #pragma mark
+
+  //-------------------------------------------------------------------------
+  BYTE RTCPPacket::XR::VoIPMetricsReportBlock::plc() const
+  {
+    return RTCP_GET_BITS(mRXConfig, 0x3, 6);
+  }
+
+  //-------------------------------------------------------------------------
+  BYTE RTCPPacket::XR::VoIPMetricsReportBlock::jba() const
+  {
+    return RTCP_GET_BITS(mRXConfig, 0x3, 4);
+  }
+
+  //-------------------------------------------------------------------------
+  BYTE RTCPPacket::XR::VoIPMetricsReportBlock::jbRate() const
+  {
+    return RTCP_GET_BITS(mRXConfig, 0xF, 0);
+  }
+
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark RTCPPacket::XR::RunLength
+  #pragma mark
+
+  //-------------------------------------------------------------------------
+  RTCPPacket::XR::RunLength::RunLength(RLEChunk chunk) :
+    mRunType(RTCP_GET_BITS(chunk, 0x1, 14)),
+    mRunLength(RTCP_GET_BITS(chunk, 0x3FFF, 0))
+  {
+  }
+
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark RTCPPacket::XR::BitVector
+  #pragma mark
+
+  //-------------------------------------------------------------------------
+  RTCPPacket::XR::BitVector::BitVector(RLEChunk chunk) :
+    mBitVector(RTCP_GET_BITS(chunk, 0x7FFF, 0))
+  {
+  }
+
+  //-------------------------------------------------------------------------
+  BYTE RTCPPacket::XR::BitVector::bitAtIndex(size_t index) const
+  {
+    ASSERT(index < (sizeof(WORD)*8))
+    return (mBitVector >> ((sizeof(WORD)*8)-index-1)) & 0x1;
+  }
+
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark RTCPPacket::XR
+  #pragma mark
+
+  //-------------------------------------------------------------------------
+  RTCPPacket::XR::LossRLEReportBlock *RTCPPacket::XR::lossRLEReportBlockAtIndex(size_t index) const
+  {
+    ASSERT(index < mLossRLEReportBlockCount)
+    return &(mFirstLossRLEReportBlock[index]);
+  }
+
+  //-------------------------------------------------------------------------
+  RTCPPacket::XR::DuplicateRLEReportBlock *RTCPPacket::XR::duplicateRLEReportBlockAtIndex(size_t index) const
+  {
+    ASSERT(index < mDuplicateRLEReportBlockCount)
+    return &(mFirstDuplicateRLEReportBlock[index]);
+  }
+
+  //-------------------------------------------------------------------------
+  RTCPPacket::XR::PacketReceiptTimesReportBlock *RTCPPacket::XR::packetReceiptTimesReportBlockAtIndex(size_t index) const
+  {
+    ASSERT(index < mPacketReceiptTimesReportBlockCount)
+    return &(mFirstPacketReceiptTimesReportBlock[index]);
+  }
+
+  //-------------------------------------------------------------------------
+  RTCPPacket::XR::ReceiverReferenceTimeReportBlock *RTCPPacket::XR::receiverReferenceTimeReportBlockAtIndex(size_t index) const
+  {
+    ASSERT(index < mReceiverReferenceTimeReportBlockCount)
+    return &(mFirstReceiverReferenceTimeReportBlock[index]);
+  }
+
+  //-------------------------------------------------------------------------
+  RTCPPacket::XR::DLRRReportBlock *RTCPPacket::XR::dlrrReportBlockAtIndex(size_t index) const
+  {
+    ASSERT(index < mDLRRReportBlockCount)
+    return &(mFirstDLRRReportBlock[index]);
+  }
+
+  //-------------------------------------------------------------------------
+  RTCPPacket::XR::StatisticsSummaryReportBlock *RTCPPacket::XR::statisticsSummaryReportBlockAtIndex(size_t index) const
+  {
+    ASSERT(index < mStatisticsSummaryReportBlockCount)
+    return &(mFirstStatisticsSummaryReportBlock[index]);
+  }
+
+  //-------------------------------------------------------------------------
+  RTCPPacket::XR::VoIPMetricsReportBlock *RTCPPacket::XR::voIPMetricsReportBlockAtIndex(size_t index) const
+  {
+    ASSERT(index < mVoIPMetricsReportBlockCount)
+    return &(mFirstVoIPMetricsReportBlock[index]);
+  }
+
+  //-------------------------------------------------------------------------
+  RTCPPacket::XR::UnknownReportBlock *RTCPPacket::XR::unknownReportBlockAtIndex(size_t index) const
+  {
+    ASSERT(index < mUnknownReportBlockCount)
+    return &(mFirstUnknownReportBlock[index]);
+  }
+
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::XR::isRunLengthChunk(RLEChunk chunk)
+  {
+    return !RTCP_IS_FLAG_SET(chunk, 15);
+  }
+
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::XR::isBitVectorChunk(RLEChunk chunk)
+  {
+    return RTCP_IS_FLAG_SET(chunk, 15);
+  }
+
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark RTCPPacket (public)
+  #pragma mark
+
+  //-------------------------------------------------------------------------
+  RTCPPacket::RTCPPacket(
+                         const make_private &,
+                         MediaChannelID mediaChannelID
+                         ) :
+    mMediaChannelID(mediaChannelID)
+  {
+  }
+
+  //-------------------------------------------------------------------------
+  RTCPPacket::~RTCPPacket()
+  {
+  }
+
+  //-------------------------------------------------------------------------
+  RTCPPacketPtr RTCPPacket::create(
+                                   const BYTE *buffer,
+                                   size_t bufferLengthInBytes,
+                                   MediaChannelID mediaChannelID
+                                   )
+  {
+    ORTC_THROW_INVALID_PARAMETERS_IF(!buffer)
+    ORTC_THROW_INVALID_PARAMETERS_IF(0 == bufferLengthInBytes)
+    return RTCPPacket::create(UseServicesHelper::convertToBuffer(buffer, bufferLengthInBytes), mediaChannelID);
+  }
+
+  //-------------------------------------------------------------------------
+  RTCPPacketPtr RTCPPacket::create(
+                                   const SecureByteBlock &buffer,
+                                   MediaChannelID mediaChannelID
+                                   )
+  {
+    return RTCPPacket::create(buffer.BytePtr(), buffer.SizeInBytes(), mediaChannelID);
+  }
+
+  //-------------------------------------------------------------------------
+  RTCPPacketPtr RTCPPacket::create(
+                                   SecureByteBlockPtr buffer,
+                                   MediaChannelID mediaChannelID
+                                   )
+  {
+    RTCPPacketPtr pThis(make_shared<RTCPPacket>(make_private{}, mediaChannelID));
+    pThis->mBuffer = buffer;
+    if (!pThis->parse()) {
+      ZS_EVENTING_4(x, w, Debug, RTCPPacketParseWarningNotParsed, ol, RtcpPacket, Parse,
+        string, message, "packet could not be parsed",
+        puid, mediaChannelID, mediaChannelID,
+        buffer, buffer, ((bool)buffer) ? buffer->BytePtr() : NULL,
+        size, size, ((bool)buffer) ? buffer->SizeInBytes() : 0
+      );
+      return RTCPPacketPtr();
+    }
+    return pThis;
+  }
+
+  //-------------------------------------------------------------------------
+  RTCPPacketPtr RTCPPacket::create(
+                                   const Report *first,
+                                   MediaChannelID mediaChannelID
+                                   )
+  {
+    size_t allocationSize = getPacketSize(first);
+    SecureByteBlockPtr temp(make_shared<SecureByteBlock>(allocationSize));
+
+    BYTE *buffer = temp->BytePtr();
+    BYTE *pos = buffer;
+    writePacket(first, pos, allocationSize);
+
+    return create(temp, mediaChannelID);
+  }
+
+  //-------------------------------------------------------------------------
+  SecureByteBlockPtr RTCPPacket::generateFrom(const Report *first)
+  {
+    size_t allocationSize = getPacketSize(first);
+    SecureByteBlockPtr temp(make_shared<SecureByteBlock>(allocationSize));
+
+    BYTE *buffer = temp->BytePtr();
+    BYTE *pos = buffer;
+    writePacket(first, pos, allocationSize);
+
+    return temp;
+  }
+
+  //-------------------------------------------------------------------------
+  const BYTE *RTCPPacket::ptr() const
+  {
+    return mBuffer->BytePtr();
+  }
+
+  //-------------------------------------------------------------------------
+  size_t RTCPPacket::size() const
+  {
+    return mBuffer->SizeInBytes();
+  }
+
+  //-------------------------------------------------------------------------
+  SecureByteBlockPtr RTCPPacket::buffer() const
+  {
+    return mBuffer;
+  }
+
+  //-------------------------------------------------------------------------
+  RTCPPacket::SenderReport *RTCPPacket::senderReportAtIndex(size_t index) const
+  {
+    ASSERT(index < mSenderReportCount)
+    return &(mFirstSenderReport[index]);
+  }
+
+  //-------------------------------------------------------------------------
+  RTCPPacket::ReceiverReport *RTCPPacket::receiverReportAtIndex(size_t index) const
+  {
+    ASSERT(index < mReceiverReportCount)
+    return &(mFirstReceiverReport[index]);
+  }
+
+  //-------------------------------------------------------------------------
+  RTCPPacket::SDES *RTCPPacket::sdesAtIndex(size_t index) const
+  {
+    ASSERT(index < mSDESCount)
+    return &(mFirstSDES[index]);
+  }
+
+  //-------------------------------------------------------------------------
+  RTCPPacket::Bye *RTCPPacket::byeAtIndex(size_t index) const
+  {
+    ASSERT(index < mByeCount)
+    return &(mFirstBye[index]);
+  }
+
+  //-------------------------------------------------------------------------
+  RTCPPacket::App *RTCPPacket::appAtIndex(size_t index) const
+  {
+    ASSERT(index < mAppCount)
+    return &(mFirstApp[index]);
+  }
+
+  //-------------------------------------------------------------------------
+  RTCPPacket::TransportLayerFeedbackMessage *RTCPPacket::transportLayerFeedbackReportAtIndex(size_t index) const
+  {
+    ASSERT(index < mTransportLayerFeedbackMessageCount)
+    return &(mFirstTransportLayerFeedbackMessage[index]);
+  }
+
+  //-------------------------------------------------------------------------
+  RTCPPacket::PayloadSpecificFeedbackMessage *RTCPPacket::payloadSpecificFeedbackReportAtIndex(size_t index) const
+  {
+    ASSERT(index < mPayloadSpecificFeedbackMessageCount)
+    return &(mFirstPayloadSpecificFeedbackMessage[index]);
+  }
+
+  //-------------------------------------------------------------------------
+  RTCPPacket::XR *RTCPPacket::xrAtIndex(size_t index) const
+  {
+    ASSERT(index < mXRCount)
+    return &(mFirstXR[index]);
+  }
+
+  //-------------------------------------------------------------------------
+  RTCPPacket::UnknownReport *RTCPPacket::unknownAtIndex(size_t index) const
+  {
+    ASSERT(index < mUnknownReportCount)
+    return &(mFirstUnknownReport[index]);
+  }
+
+  //-------------------------------------------------------------------------
+  void RTCPPacket::trace(const char *message) const
+  {
+    if (!ZS_EVENTING_IS_LOGGING(Insane)) return;
+
+    ZS_EVENTING_7(x, i, Insane, RTCPPacketTrace, ol, RtcpPacket, Info,
+      puid, mediaChannelID, mMediaChannelID,
+      string, message, message,
+      buffer, buffer, ((bool)mBuffer) ? mBuffer->BytePtr() : NULL,
+      size, size, ((bool)mBuffer) ? mBuffer->SizeInBytes() : 0,
+      buffer, allocationBuffer, ((bool)mAllocationBuffer) ? mAllocationBuffer->BytePtr() : NULL,
+      size, allocationBuffersize, ((bool)mAllocationBuffer) ? mAllocationBuffer->SizeInBytes() : 0,
+      size_t, allocationPos, (NULL != mAllocationPos ? (mAllocationBuffer ? (reinterpret_cast<PTRNUMBER>(mAllocationPos) - reinterpret_cast<PTRNUMBER>(mAllocationBuffer->BytePtr())) : reinterpret_cast<PTRNUMBER>(mAllocationPos)) : 0)
+    );
+
+    for (Report *report = mFirst; NULL != report; report = report->next())
+    {
+      switch (report->pt()) {
+        case SenderReport::kPayloadType:
+        {
+          SenderReport *sr = static_cast<SenderReport *>(report);
+          internal::traceSenderReport(mMediaChannelID, sr);
+          break;
+        }
+        case ReceiverReport::kPayloadType:
+        {
+          ReceiverReport *rr = static_cast<ReceiverReport *>(report);
+          internal::traceReceiverReport(mMediaChannelID, rr);
+          break;
+        }
+        case SDES::kPayloadType:
+        {
+          SDES *sdes = static_cast<SDES *>(report);
+          internal::traceSDES(mMediaChannelID, sdes);
+          break;
+        }
+        case Bye::kPayloadType:
+        {
+          Bye *bye = static_cast<Bye *>(report);
+          internal::traceBye(mMediaChannelID, bye);
+          break;
+        }
+        case App::kPayloadType:
+        {
+          App *app = static_cast<App *>(report);
+          internal::traceApp(mMediaChannelID, app);
+          break;
+        }
+        case TransportLayerFeedbackMessage::kPayloadType:
+        {
+          TransportLayerFeedbackMessage *fm = static_cast<TransportLayerFeedbackMessage *>(report);
+          internal::traceTransportLayerFeedbackMessage(mMediaChannelID, fm);
+          break;
+        }
+        case PayloadSpecificFeedbackMessage::kPayloadType:
+        {
+          PayloadSpecificFeedbackMessage *fm = static_cast<PayloadSpecificFeedbackMessage *>(report);
+          internal::tracePayloadSpecificFeedbackMessage(mMediaChannelID, fm);
+          break;
+        }
+        case XR::kPayloadType:
+        {
+          XR *xr = static_cast<XR *>(report);
+          internal::traceXR(mMediaChannelID, xr);
+          break;
+        }
+        default:
+        {
+          UnknownReport *unknown = static_cast<UnknownReport *>(report);
+          ZS_EVENTING_2(x, i, Insane, RTCPPacketTraceUnknownReport, ol, RtcpPacket, Info,
+            puid, mediaChannelID, mMediaChannelID,
+            bool, next, (NULL != unknown->nextUnknown())
+          );
+          break;
+        }
+      }
+    }
+  }
+
+
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark RTCPPacket (internal)
+  #pragma mark
+
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::parse()
+  {
+    const BYTE *buffer = mBuffer->BytePtr();
+    size_t size = mBuffer->SizeInBytes();
+
+    if (size < internal::kMinRtcpPacketLen) {
+      ZS_EVENTING_4(x, w, Trace, RTCPPacketParseWarning, ol, RtcpPacket, Parse,
+        string, message, "packet length is too short",
+        puid, mediaChannelID, mMediaChannelID,
+        size_t, remaining, 0,
+        size_t, length, size
+      );
+      trace("packet length is too short");
+      return false;
+    }
+
+    bool foundPaddingBit = false;
+
+    // scope: calculate total memory allocation size needed to parse entire RTCP packet
+    {
+      size_t remaining = size;
+      const BYTE *pos = buffer;
+
+      while (remaining >= internal::kMinRtcpPacketLen) {
+        BYTE version = RTCP_GET_BITS(*pos, 0x3, 6);
+        if (internal::kRtpVersion != version) {
+          ZS_EVENTING_3(x, w, Trace, RTCPPacketParseWarningIllegalVersion, ol, RtcpPacket, Parse,
+            string, message, "illegal version found",
+            puid, mediaChannelID, mMediaChannelID,
+            byte, version, version
+          );
+          trace("illegal version found");
+          return false;
+        }
+
+        size_t length = sizeof(DWORD) + (static_cast<size_t>(UseRTPUtils::getBE16(&(pos[2]))) * sizeof(DWORD));
+
+        size_t padding = 0;
+
+        if (RTCP_IS_FLAG_SET(*pos, 5)) {
+          if (foundPaddingBit) {
+            ZS_EVENTING_4(x, w, Trace, RTCPPacketParseWarning, ol, RtcpPacket, Parse,
+              string, message, "found illegal second padding bit set in compound RTCP block",
+              puid, mediaChannelID, mMediaChannelID,
+              size_t, remaining, remaining,
+              size_t, length, length
+            );
+            trace("found illegal second padding bit set in compound RTCP block");
+            return false;
+          }
+
+          padding = buffer[size-1];
+        }
+
+        if ((sizeof(DWORD) + padding) > length) {
+          ZS_EVENTING_4(x, w, Trace, RTCPPacketParseWarning, ol, RtcpPacket, Parse,
+            string, message, "malformed padding size in RTCP packet",
+            puid, mediaChannelID, mMediaChannelID,
+            size_t, remaining, remaining,
+            size_t, length, length
+          );
+          trace("malformed padding size in RTCP packet");
+          return false;
+        }
+
+        length -= padding;
+
+        if (remaining < length) {
+          ZS_EVENTING_4(x, w, Trace, RTCPPacketParseWarning, ol, RtcpPacket, Parse,
+            string, message, "insufficient length remaining for RTCP block",
+            puid, mediaChannelID, mMediaChannelID,
+            size_t, remaining, remaining,
+            size_t, length, length
+          );
+          trace("insufficient length remaining for RTCP block");
+          return false;
+        }
+
+        BYTE reportSpecific = RTCP_GET_BITS(*pos, 0x1F, 0);
+
+        const BYTE *prePos = pos;
+        BYTE pt = pos[1];
+
+        internal::advancePos(pos, remaining, sizeof(DWORD));
+
+        size_t preAllocationSize = mAllocationSize;
+
+        if (!getAllocationSize(static_cast<BYTE>(version), static_cast<BYTE>(padding), reportSpecific, pt, pos, static_cast<size_t>(length - sizeof(DWORD)))) return false;
+
+        internal::advancePos(pos, remaining, length - sizeof(DWORD));
+
+        if (0 != padding) {
+          internal::advancePos(pos, remaining, padding);
+        }
+
+        ZS_EVENTING_6(x, i, Insane, RTCPPacketParseAllocationSize, ol, RtcpPacket, Parse,
+          puid, mediaChannelID, mMediaChannelID,
+          string, pt, Report::ptToString(pt),
+          size_t, consumed, static_cast<size_t>(reinterpret_cast<PTRNUMBER>(pos) - reinterpret_cast<PTRNUMBER>(prePos)),
+          size_t, allocationSize, mAllocationSize - preAllocationSize,
+          size_t, remaining, remaining,
+          size_t, length, length
+        );
+        ++mCount;
+      }
+    }
+
+    if (0 == mAllocationSize) {
+      trace("no RTCP packets were processed");
+      return true;
+    }
+
+    mAllocationBuffer = make_shared<SecureByteBlock>(internal::alignedSize(mAllocationSize));
+
+    mAllocationPos = mAllocationBuffer->BytePtr();
+
+    // scope: allocation size is now established; begin parsing all reports contained in RTCP packet
+    {
+      size_t remaining = size;
+      const BYTE *pos = buffer;
+
+
+      if (0 != mSenderReportCount) {
+        mFirstSenderReport = new (allocateBuffer(internal::alignedSize(sizeof(SenderReport)) * mSenderReportCount)) SenderReport[mSenderReportCount];
+      }
+      if (0 != mReceiverReportCount) {
+        mFirstReceiverReport = new (allocateBuffer(internal::alignedSize(sizeof(ReceiverReport)) * mReceiverReportCount)) ReceiverReport[mReceiverReportCount];
+      }
+      if (0 != mSDESCount) {
+        mFirstSDES = new (allocateBuffer(internal::alignedSize(sizeof(SDES)) * mSDESCount)) SDES[mSDESCount];
+      }
+      if (0 != mByeCount) {
+        mFirstBye = new (allocateBuffer(internal::alignedSize(sizeof(Bye)) * mByeCount)) Bye[mByeCount];
+      }
+      if (0 != mAppCount) {
+        mFirstApp = new (allocateBuffer(internal::alignedSize(sizeof(App)) * mAppCount)) App[mAppCount];
+      }
+      if (0 != mTransportLayerFeedbackMessageCount) {
+        mFirstTransportLayerFeedbackMessage = new (allocateBuffer(internal::alignedSize(sizeof(TransportLayerFeedbackMessage)) * mTransportLayerFeedbackMessageCount)) TransportLayerFeedbackMessage[mTransportLayerFeedbackMessageCount];
+      }
+      if (0 != mPayloadSpecificFeedbackMessageCount) {
+        mFirstPayloadSpecificFeedbackMessage = new (allocateBuffer(internal::alignedSize(sizeof(PayloadSpecificFeedbackMessage)) * mPayloadSpecificFeedbackMessageCount)) PayloadSpecificFeedbackMessage[mPayloadSpecificFeedbackMessageCount];
+      }
+      if (0 != mXRCount) {
+        mFirstXR = new (allocateBuffer(internal::alignedSize(sizeof(XR)) * mXRCount)) XR[mXRCount];
+      }
+      if (0 != mUnknownReportCount) {
+        mFirstUnknownReport = new (allocateBuffer(internal::alignedSize(sizeof(UnknownReport)) * mUnknownReportCount)) UnknownReport[mUnknownReportCount];
+      }
+
+      mSenderReportCount = 0;
+      mReceiverReportCount = 0;
+      mSDESCount = 0;
+      mByeCount = 0;
+      mAppCount = 0;
+      mTransportLayerFeedbackMessageCount = 0;
+      mPayloadSpecificFeedbackMessageCount = 0;
+      mXRCount = 0;
+      mUnknownReportCount = 0;
+
+      Report *lastReport = NULL;
+      size_t count = 0;
+
+      while (remaining >= internal::kMinRtcpPacketLen) {
+        BYTE version = RTCP_GET_BITS(*pos, 0x3, 6);
+        size_t length = sizeof(DWORD) + (static_cast<size_t>(UseRTPUtils::getBE16(&(pos[2]))) * sizeof(DWORD));
+
+        size_t padding = 0;
+
+        if (RTCP_IS_FLAG_SET(*pos, 5)) {
+          padding = buffer[size-1];
+          length -= padding; // already protected during pre-parse against malformed padding length
+        }
+
+        BYTE reportSpecific = RTCP_GET_BITS(*pos, 0x1F, 0);
+
+        const BYTE *prePos = pos;
+        BYTE pt = pos[1];
+
+        internal::advancePos(pos, remaining, sizeof(DWORD));
+
+        size_t preAllocationSize = mAllocationSize;
+
+        if (!parse(lastReport, version, static_cast<BYTE>(padding), reportSpecific, pt, pos, length - sizeof(DWORD))) return false;
+
+        if (NULL == mFirst) {
+          mFirst = lastReport;
+        }
+
+        internal::advancePos(pos, remaining, length - sizeof(DWORD));
+
+        if (0 != padding) {
+          internal::advancePos(pos, remaining, padding);
+        }
+
+        ZS_EVENTING_5(x, i, Insane, RTCPPacketParsedReport, ol, RtcpPacket, Parse,
+          puid, mediaChannelID, mMediaChannelID,
+          byte, ptValue, pt,
+          string, pt, Report::ptToString(pt),
+          size_t, consumed, static_cast<size_t>(reinterpret_cast<PTRNUMBER>(pos) - reinterpret_cast<PTRNUMBER>(prePos)),
+          size_t, consumedAllocation, preAllocationSize - mAllocationSize
+        );
+
+        ++count;
+        ASSERT(count <= mCount);
+      }
+    }
+
+    trace("parsed");
+    return true;
+  }
+
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark RTCPPacket (parse allocation sizing routines)
+  #pragma mark
+
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::getAllocationSize(
+                                      BYTE version,
+                                      BYTE padding,
+                                      BYTE reportSpecific,
+                                      BYTE pt,
+                                      const BYTE *contents,
+                                      size_t contentSize
+                                      )
+  {
+    bool result = false;
+
+    switch (pt) {
+      case SenderReport::kPayloadType:                    result = getSenderReportAllocationSize(version, padding, reportSpecific, contents, contentSize); break;
+      case ReceiverReport::kPayloadType:                  result = getReceiverReportAllocationSize(version, padding, reportSpecific, contents, contentSize); break;
+      case SDES::kPayloadType:                            result = getSDESAllocationSize(version, padding, reportSpecific, contents, contentSize); break;
+      case Bye::kPayloadType:                             result = getByeAllocationSize(version, padding, reportSpecific, contents, contentSize); break;
+      case App::kPayloadType:                             result = getAppAllocationSize(version, padding, reportSpecific, contents, contentSize); break;
+      case TransportLayerFeedbackMessage::kPayloadType:   result = getTransportLayerFeedbackMessageAllocationSize(version, padding, reportSpecific, contents, contentSize); break;
+      case PayloadSpecificFeedbackMessage::kPayloadType:  result = getPayloadSpecificFeedbackMessageAllocationSize(version, padding, reportSpecific, contents, contentSize); break;
+      case XR::kPayloadType:                              result = getXRAllocationSize(version, padding, reportSpecific, contents, contentSize); break;
+      default:
+      {
+        result = getUnknownReportAllocationSize(version, padding, reportSpecific, contents, contentSize);
+        break;
+      }
+    }
+    return result;
+  }
+
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::getSenderReportAllocationSize(
+                                                  BYTE version,
+                                                  BYTE padding,
+                                                  BYTE reportSpecific,
+                                                  const BYTE *contents,
+                                                  size_t contentSize
+                                                  )
+  {
+    ++mSenderReportCount;
+
+    mAllocationSize += internal::alignedSize(sizeof(SenderReport)) + (internal::alignedSize(sizeof(SenderReport::ReportBlock)) * static_cast<size_t>(reportSpecific));
+    return true;
+  }
+
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::getReceiverReportAllocationSize(
+                                                    BYTE version,
+                                                    BYTE padding,
+                                                    BYTE reportSpecific,
+                                                    const BYTE *contents,
+                                                    size_t contentSize
+                                                    )
+  {
+    ++mReceiverReportCount;
+
+    mAllocationSize += internal::alignedSize(sizeof(ReceiverReport)) + (internal::alignedSize(sizeof(ReceiverReport::ReportBlock)) * static_cast<size_t>(reportSpecific));
+    return true;
+  }
+
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::getSDESAllocationSize(
+                                          BYTE version,
+                                          BYTE padding,
+                                          BYTE reportSpecific,
+                                          const BYTE *contents,
+                                          size_t contentSize
+                                          )
+  {
+    ++mSDESCount;
+
+    size_t chunksCount = static_cast<size_t>(reportSpecific);
+
+    mAllocationSize += internal::alignedSize(sizeof(SDES)) + (internal::alignedSize(sizeof(SDES::Chunk)) * chunksCount);
+
+    size_t remaining = contentSize;
+
+    const BYTE *pos = contents;
+
+    while ((remaining > sizeof(DWORD)) &&
+            (chunksCount > 0))
+    {
+      internal::advancePos(pos, remaining, sizeof(DWORD));
+
+      ZS_EVENTING_3(x, i, Insane, RTCPPacketGetSDESAllocationSizeChunks, ol, RtcpPacket, Parse,
+        string, message, "getting SDES chunk allocation size",
+        puid, mediaChannelID, mMediaChannelID,
+        size_t, chunkNumber, static_cast<size_t>(reportSpecific) - chunksCount
+      );
+
+      --chunksCount;
+
+      while (remaining >= sizeof(BYTE)) {
+
+        size_t preAllocationSize = mAllocationSize;
+
+        BYTE type = *pos;
+        internal::advancePos(pos, remaining);
+
+        if (SDES::Chunk::kEndOfItemsType == type) {
+          // skip NUL item (no length octet is present)
+
+          // skip to next DWORD alignment
+          auto diff = reinterpret_cast<PTRNUMBER>(pos) - reinterpret_cast<PTRNUMBER>(contents);
+          while ((0 != (diff % sizeof(DWORD))) &&
+                  (remaining > 0))
           {
-            const SenderReport *sr = static_cast<const SenderReport *>(report);
-            internal::writePacketSenderReport(sr, pos, remaining);
+            // only NUL chunks are allowed
+            if (SDES::Chunk::kEndOfItemsType != (*pos)) {
+              ZS_EVENTING_3(x, w, Insane, RTCPPacketGetSDESAllocationSizeSDESTypeNotUnderstood, ol, RtcpPacket, Parse,
+                string, message, "SDES item type is not understood",
+                puid, mediaChannelID, mMediaChannelID,
+                byte, type, *pos
+              );
+              return false;
+            }
+
+            internal::advancePos(pos, remaining);
+            ++diff;
+          }
+          break;
+        }
+
+        if (remaining < sizeof(BYTE)) {
+          ZS_EVENTING_4(x, w, Trace, RTCPPacketParseWarning, ol, RtcpPacket, Parse,
+            string, message, "no length of SDES entry present",
+            puid, mediaChannelID, mMediaChannelID,
+            size_t, remaining, remaining,
+            size_t, length, 0
+          );
+          return false;
+        }
+
+        size_t prefixLength = 0;
+        size_t length = static_cast<size_t>(*pos);
+        internal::advancePos(pos, remaining);
+
+        if (remaining < length) {
+          ZS_EVENTING_4(x, w, Trace, RTCPPacketParseWarning, ol, RtcpPacket, Parse,
+            string, message, "malformed SDES length found",
+            puid, mediaChannelID, mMediaChannelID,
+            size_t, remaining, remaining,
+            size_t, length, length
+          );
+          return false;
+        }
+
+        switch (type) {
+          case SDES::Chunk::CName::kItemType: mAllocationSize += internal::alignedSize(sizeof(SDES::Chunk::CName)); break;
+          case SDES::Chunk::Name::kItemType:  mAllocationSize += internal::alignedSize(sizeof(SDES::Chunk::Name)); break;
+          case SDES::Chunk::Email::kItemType: mAllocationSize += internal::alignedSize(sizeof(SDES::Chunk::Email)); break;
+          case SDES::Chunk::Phone::kItemType: mAllocationSize += internal::alignedSize(sizeof(SDES::Chunk::Phone)); break;
+          case SDES::Chunk::Loc::kItemType:   mAllocationSize += internal::alignedSize(sizeof(SDES::Chunk::Loc)); break;
+          case SDES::Chunk::Tool::kItemType:  mAllocationSize += internal::alignedSize(sizeof(SDES::Chunk::Tool)); break;
+          case SDES::Chunk::Note::kItemType:  mAllocationSize += internal::alignedSize(sizeof(SDES::Chunk::Note)); break;
+          case SDES::Chunk::Priv::kItemType:
+          {
+            {
+              mAllocationSize += internal::alignedSize(sizeof(SDES::Chunk::Priv));
+
+              if (length > 0) {
+                prefixLength = static_cast<size_t>(*pos);
+
+                if (prefixLength > (length-1)) goto illegal_priv_prefix;
+
+                if (0 != prefixLength) {
+                  mAllocationSize += internal::alignedSize(sizeof(char)*(prefixLength+1));
+                }
+              }
+              break;
+            }
+          illegal_priv_prefix:
+            {
+              ZS_EVENTING_4(x, w, Trace, RTCPPacketParseWarning, ol, RtcpPacket, Parse,
+                string, message, "malformed SDES Priv prefix found",
+                puid, mediaChannelID, mMediaChannelID,
+                size_t, remaining, remaining,
+                size_t, length, length
+              );
+              trace("malformed SDES Priv prefix found");
+              return false;
+            }
             break;
           }
-          case ReceiverReport::kPayloadType:
+          case SDES::Chunk::Mid::kItemType:  mAllocationSize += internal::alignedSize(sizeof(SDES::Chunk::Mid)); break;
+          case SDES::Chunk::Rid::kItemType:  mAllocationSize += internal::alignedSize(sizeof(SDES::Chunk::Rid)); break;
+          default:
           {
-            const ReceiverReport *rr = static_cast<const ReceiverReport *>(report);
-            internal::writePacketReceiverReport(rr, pos, remaining);
+            mAllocationSize += internal::alignedSize(sizeof(SDES::Chunk::Unknown));
+            ZS_EVENTING_3(x, w, Insane, RTCPPacketGetSDESAllocationSizeSDESTypeNotUnderstood, ol, RtcpPacket, Parse,
+              string, message, "SDES item type is not understood",
+              puid, mediaChannelID, mMediaChannelID,
+              byte, type, type
+            );
+            trace("SDES item type is not understood");
             break;
           }
-          case SDES::kPayloadType:
+        }
+
+        if (0 != length) {
+          mAllocationSize += internal::alignedSize((sizeof(char)*length)+sizeof(char));
+        }
+
+        ZS_EVENTING_7(x, i, Insane, RTCPPacketGetSDESAllocationSizeSDES, ol, RtcpPacket, Parse,
+          string, message, "get SDES item allocation size",
+          puid, mediaChannelID, mMediaChannelID,
+          string, type, SDES::Chunk::StringItem::typeToString(type),
+          byte, typeValue, type,
+          size_t, prefixLength, prefixLength,
+          size_t, length, length,
+          size_t, allocationSize, (mAllocationSize - preAllocationSize)
+        );
+        internal::advancePos(pos, remaining, length);
+      }
+
+    }
+
+    return true;
+  }
+
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::getByeAllocationSize(
+                                        BYTE version,
+                                        BYTE padding,
+                                        BYTE reportSpecific,
+                                        const BYTE *contents,
+                                        size_t contentSize
+                                        )
+  {
+    ++mByeCount;
+
+    size_t ssrcCount = static_cast<size_t>(reportSpecific);
+
+    mAllocationSize += internal::alignedSize(sizeof(Bye)) + (internal::alignedSize(sizeof(DWORD)) * ssrcCount);
+
+    const BYTE *pos = contents;
+    size_t remaining = contentSize;
+
+    if (remaining < (ssrcCount * sizeof(DWORD))) {
+      ZS_EVENTING_4(x, w, Trace, RTCPPacketParseWarning, ol, RtcpPacket, Parse,
+        string, message, "malformed BYE SSRC size",
+        puid, mediaChannelID, mMediaChannelID,
+        size_t, remaining, remaining,
+        size_t, length, 0
+      );
+      return false;
+    }
+
+    internal::advancePos(pos, remaining, sizeof(DWORD) * ssrcCount);
+
+    if (remaining < sizeof(BYTE)) return true;
+
+    size_t length = static_cast<size_t>(*pos);
+
+    if (length < 1) return true;
+
+    if (length > remaining) {
+      ZS_EVENTING_4(x, w, Trace, RTCPPacketParseWarning, ol, RtcpPacket, Parse,
+        string, message, "malformed BYE reason length",
+        puid, mediaChannelID, mMediaChannelID,
+        size_t, remaining, remaining,
+        size_t, length, length
+      );
+      return false;
+    }
+
+    mAllocationSize += internal::alignedSize((sizeof(char)*(length+1)));
+    return true;
+  }
+
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::getAppAllocationSize(
+                                          BYTE version,
+                                          BYTE padding,
+                                          BYTE reportSpecific,
+                                          const BYTE *contents,
+                                          size_t contentSize
+                                          )
+  {
+    ++mAppCount;
+
+    mAllocationSize += internal::alignedSize(sizeof(App));
+
+    size_t remaining = contentSize;
+
+    if (remaining < (sizeof(DWORD)*2)) {
+      ZS_EVENTING_4(x, w, Trace, RTCPPacketParseWarning, ol, RtcpPacket, Parse,
+        string, message, "malformed APP length",
+        puid, mediaChannelID, mMediaChannelID,
+        size_t, remaining, remaining,
+        size_t, length, 0
+      );
+      return false;
+    }
+
+    return true;
+  }
+
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::getTransportLayerFeedbackMessageAllocationSize(
+                                                                  BYTE version,
+                                                                  BYTE padding,
+                                                                  BYTE reportSpecific,
+                                                                  const BYTE *contents,
+                                                                  size_t contentSize
+                                                                  )
+  {
+    ++mTransportLayerFeedbackMessageCount;
+
+    mAllocationSize += internal::alignedSize(sizeof(TransportLayerFeedbackMessage));
+
+    const BYTE *pos = contents;
+    size_t remaining = contentSize;
+
+    if (remaining < (sizeof(DWORD)*2)) {
+      ZS_EVENTING_4(x, w, Trace, RTCPPacketParseWarning, ol, RtcpPacket, Parse,
+        string, message, "malformed transport layer feedback message length",
+        puid, mediaChannelID, mMediaChannelID,
+        size_t, remaining, remaining,
+        size_t, length, 0
+      );
+      return false;
+    }
+
+    internal::advancePos(pos, remaining, sizeof(DWORD)*2);
+
+    bool result = false;
+
+    switch (reportSpecific) {
+      case TransportLayerFeedbackMessage::GenericNACK::kFmt:  result = getTransportLayerFeedbackMessageGenericNACKAllocationSize(reportSpecific, pos, remaining); break;
+      case TransportLayerFeedbackMessage::TMMBR::kFmt:        result = getTransportLayerFeedbackMessageTMMBRAllocationSize(reportSpecific, pos, remaining); break;
+      case TransportLayerFeedbackMessage::TMMBN::kFmt:        result = getTransportLayerFeedbackMessageTMMBNAllocationSize(reportSpecific, pos, remaining); break;
+      default: {
+        break;
+      }
+    }
+
+    ZS_EVENTING_3(x, i, Insane, RTCPPacketGetTransportLayerFeedbackMessageAllocationSize, ol, RtcpPacket, Parse,
+      puid, mediaChannelID, mMediaChannelID,
+      string, fmt, FeedbackMessage::fmtToString(TransportLayerFeedbackMessage::kPayloadType, reportSpecific),
+      byte, fmtNumber, reportSpecific
+    );
+    return true;
+  }
+
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::getPayloadSpecificFeedbackMessageAllocationSize(
+                                                                    BYTE version,
+                                                                    BYTE padding,
+                                                                    BYTE reportSpecific,
+                                                                    const BYTE *contents,
+                                                                    size_t contentSize
+                                                                    )
+  {
+    ++mPayloadSpecificFeedbackMessageCount;
+
+    mAllocationSize += internal::alignedSize(sizeof(PayloadSpecificFeedbackMessage));
+
+    const BYTE *pos = contents;
+    size_t remaining = contentSize;
+
+    if (remaining < (sizeof(DWORD)*2)) {
+      ZS_EVENTING_4(x, w, Trace, RTCPPacketParseWarning, ol, RtcpPacket, Parse,
+        string, message, "malformed transport layer feedback message length",
+        puid, mediaChannelID, mMediaChannelID,
+        size_t, remaining, remaining,
+        size_t, length, 0
+      );
+      return false;
+    }
+
+    internal::advancePos(pos, remaining, sizeof(DWORD)*2);
+
+    bool result = false;
+
+    char bogus[sizeof(DWORD)] {};
+    const DWORD *usingSubType = reinterpret_cast<const DWORD *>(&(bogus[0]));
+
+    switch (reportSpecific) {
+      case PayloadSpecificFeedbackMessage::PLI::kFmt:   result = getPayloadSpecificFeedbackMessagePLIAllocationSize(reportSpecific, pos, remaining); break;
+      case PayloadSpecificFeedbackMessage::SLI::kFmt:   result = getPayloadSpecificFeedbackMessageSLIAllocationSize(reportSpecific, pos, remaining); break;
+      case PayloadSpecificFeedbackMessage::RPSI::kFmt:  result = getPayloadSpecificFeedbackMessageRPSIAllocationSize(reportSpecific, pos, remaining); break;
+      case PayloadSpecificFeedbackMessage::FIR::kFmt:   result = getPayloadSpecificFeedbackMessageFIRAllocationSize(reportSpecific, pos, remaining); break;
+      case PayloadSpecificFeedbackMessage::TSTR::kFmt:  result = getPayloadSpecificFeedbackMessageTSTRAllocationSize(reportSpecific, pos, remaining); break;
+      case PayloadSpecificFeedbackMessage::TSTN::kFmt:  result = getPayloadSpecificFeedbackMessageTSTNAllocationSize(reportSpecific, pos, remaining); break;
+      case PayloadSpecificFeedbackMessage::VBCM::kFmt:  result = getPayloadSpecificFeedbackMessageVBCMAllocationSize(reportSpecific, pos, remaining); break;
+      case PayloadSpecificFeedbackMessage::AFB::kFmt:   {
+        {
+          if (remaining < sizeof(DWORD)) goto generic_afb;
+          if (0 != memcmp(pos, reinterpret_cast<const BYTE *>("REMB"), sizeof(DWORD))) goto generic_afb;
+
+          usingSubType = reinterpret_cast<const DWORD *>(pos);
+
+          result = getPayloadSpecificFeedbackMessageREMBAllocationSize(reportSpecific, pos, remaining);
+          break;
+        }
+      generic_afb:
+        {
+          result = getPayloadSpecificFeedbackMessageAFBAllocationSize(reportSpecific, pos, remaining);
+          break;
+        }
+      }
+      default: {
+        break;
+      }
+    }
+
+    ZS_EVENTING_3(x, i, Insane, RTCPPacketGetPayloadSpecificFeedbackMessageAllocationSize, ol, RtcpPacket, Parse,
+      puid, mediaChannelID, mMediaChannelID,
+      string, fmt, FeedbackMessage::fmtToString(TransportLayerFeedbackMessage::kPayloadType, reportSpecific, *usingSubType),
+      byte, fmtNumber, reportSpecific
+    );
+    return true;
+  }
+
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::getXRAllocationSize(
+                                        BYTE version,
+                                        BYTE padding,
+                                        BYTE reportSpecific,
+                                        const BYTE *contents,
+                                        size_t contentSize
+                                        )
+  {
+    ++mXRCount;
+
+    mAllocationSize += internal::alignedSize(sizeof(XR));
+
+    const BYTE *pos = contents;
+    size_t remaining = contentSize;
+
+    if (remaining < sizeof(DWORD)) {
+      ZS_EVENTING_4(x, w, Trace, RTCPPacketParseWarning, ol, RtcpPacket, Parse,
+        string, message, "XR is not a valid length",
+        puid, mediaChannelID, mMediaChannelID,
+        size_t, remaining, remaining,
+        size_t, length, 0
+      );
+      return false;
+    }
+
+    internal::advancePos(pos, remaining, sizeof(DWORD));
+
+    while (remaining >= sizeof(DWORD)) {
+      const BYTE *prePos = pos;
+      size_t preAllocationSize = mAllocationSize;
+
+      BYTE bt = pos[0];
+      BYTE typeSpecific = pos[1];
+      size_t blockLength = static_cast<size_t>(UseRTPUtils::getBE16(&(pos[2]))) * sizeof(DWORD);
+
+      internal::advancePos(pos, remaining, sizeof(DWORD));
+
+      if (remaining < blockLength) {
+        ZS_EVENTING_4(x, w, Trace, RTCPPacketParseWarning, ol, RtcpPacket, Parse,
+          string, message, "malformed XR block length found",
+          puid, mediaChannelID, mMediaChannelID,
+          size_t, remaining, remaining,
+          size_t, length, blockLength
+        );
+        return false;
+      }
+
+      bool result = false;
+
+      switch (bt) {
+        case XR::LossRLEReportBlock::kBlockType:                result = getXRLossRLEReportBlockAllocationSize(typeSpecific, pos, blockLength); break;
+        case XR::DuplicateRLEReportBlock::kBlockType:           result = getXRDuplicateRLEReportBlockAllocationSize(typeSpecific, pos, blockLength); break;
+        case XR::PacketReceiptTimesReportBlock::kBlockType:     result = getXRPacketReceiptTimesReportBlockAllocationSize(typeSpecific, pos, blockLength); break;
+        case XR::ReceiverReferenceTimeReportBlock::kBlockType:  result = getXRReceiverReferenceTimeReportBlockAllocationSize(typeSpecific, pos, blockLength); break;
+        case XR::DLRRReportBlock::kBlockType:                   result = getXRDLRRReportBlockAllocationSize(typeSpecific, pos, blockLength); break;
+        case XR::StatisticsSummaryReportBlock::kBlockType:      result = getXRStatisticsSummaryReportBlockAllocationSize(typeSpecific, pos, blockLength); break;
+        case XR::VoIPMetricsReportBlock::kBlockType:            result = getXRVoIPMetricsReportBlockAllocationSize(typeSpecific, pos, blockLength); break;
+        default:
+        {
+          result = getXRUnknownReportBlockAllocationSize(typeSpecific, pos, blockLength); break;
+          break;
+        }
+      }
+
+      if (!result) return false;
+
+      internal::advancePos(pos, remaining, blockLength);
+
+      ZS_EVENTING_5(x, i, Insane, RTCPPacketGetXRAllocationSize, ol, RtcpPacket, Parse,
+        puid, mediaChannelID, mMediaChannelID,
+        string, blockType, XR::ReportBlock::blockTypeToString(bt),
+        size_t, blockLength, blockLength,
+        uint64, consumed, (reinterpret_cast<PTRNUMBER>(pos) - reinterpret_cast<PTRNUMBER>(prePos)),
+        size_t, allocationSize, mAllocationSize - preAllocationSize
+      );
+    }
+
+    return true;
+  }
+
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::getUnknownReportAllocationSize(
+                                                  BYTE version,
+                                                  BYTE padding,
+                                                  BYTE reportSpecific,
+                                                  const BYTE *contents,
+                                                  size_t contentSize
+                                                  )
+  {
+    ++mUnknownReportCount;
+
+    mAllocationSize += internal::alignedSize(sizeof(UnknownReport));
+    return true;
+  }
+
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::getTransportLayerFeedbackMessageGenericNACKAllocationSize(
+                                                                              BYTE fmt,
+                                                                              const BYTE *contents,
+                                                                              size_t contentSize
+                                                                              )
+  {
+    size_t remaining = contentSize;
+
+    if (remaining < sizeof(DWORD)) {
+      ZS_EVENTING_4(x, w, Trace, RTCPPacketParseWarning, ol, RtcpPacket, Parse,
+        string, message, "malformed generic NACK transport layer feedback message",
+        puid, mediaChannelID, mMediaChannelID,
+        size_t, remaining, remaining,
+        size_t, length, 0
+      );
+      return false;
+    }
+
+    size_t possibleNACKs = remaining / sizeof(DWORD);
+
+    mAllocationSize += (internal::alignedSize(sizeof(TransportLayerFeedbackMessage::GenericNACK)) * possibleNACKs);
+    return true;
+  }
+
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::getTransportLayerFeedbackMessageTMMBRAllocationSize(
+                                                                        BYTE fmt,
+                                                                        const BYTE *contents,
+                                                                        size_t contentSize
+                                                                        )
+  {
+    size_t remaining = contentSize;
+
+    if (remaining < (sizeof(DWORD)*2)) {
+      ZS_EVENTING_4(x, w, Trace, RTCPPacketParseWarning, ol, RtcpPacket, Parse,
+        string, message, "malformed TMMBR transport layer feedback message",
+        puid, mediaChannelID, mMediaChannelID,
+        size_t, remaining, remaining,
+        size_t, length, 0
+      );
+      return false;
+    }
+
+    size_t possibleTMMBRs = remaining / (sizeof(DWORD)*2);
+
+    mAllocationSize += (internal::alignedSize(sizeof(TransportLayerFeedbackMessage::TMMBR)) * possibleTMMBRs);
+    return true;
+  }
+    
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::getTransportLayerFeedbackMessageTMMBNAllocationSize(
+                                                                        BYTE fmt,
+                                                                        const BYTE *contents,
+                                                                        size_t contentSize
+                                                                        )
+  {
+    size_t remaining = contentSize;
+
+    if (remaining < (sizeof(DWORD)*2)) {
+      ZS_EVENTING_4(x, w, Trace, RTCPPacketParseWarning, ol, RtcpPacket, Parse,
+        string, message, "malformed TMMBN transport layer feedback message",
+        puid, mediaChannelID, mMediaChannelID,
+        size_t, remaining, remaining,
+        size_t, length, 0
+      );
+      return false;
+    }
+
+    size_t possibleTMMBNs = remaining / (sizeof(DWORD)*2);
+
+    mAllocationSize += (internal::alignedSize(sizeof(TransportLayerFeedbackMessage::TMMBN)) * possibleTMMBNs);
+    return true;
+  }
+    
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::getPayloadSpecificFeedbackMessagePLIAllocationSize(
+                                                                      BYTE fmt,
+                                                                      const BYTE *contents,
+                                                                      size_t contentSize
+                                                                      )
+  {
+    return true;
+  }
+    
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::getPayloadSpecificFeedbackMessageSLIAllocationSize(
+                                                                      BYTE fmt,
+                                                                      const BYTE *contents,
+                                                                      size_t contentSize
+                                                                      )
+  {
+    size_t remaining = contentSize;
+
+    if (remaining < sizeof(DWORD)) {
+      ZS_EVENTING_4(x, w, Trace, RTCPPacketParseWarning, ol, RtcpPacket, Parse,
+        string, message, "malformed SLI payload specific feedback message",
+        puid, mediaChannelID, mMediaChannelID,
+        size_t, remaining, remaining,
+        size_t, length, 0
+      );
+      return false;
+    }
+
+    size_t possibleSLIs = remaining / sizeof(DWORD);
+
+    mAllocationSize += (internal::alignedSize(sizeof(PayloadSpecificFeedbackMessage::SLI)) * possibleSLIs);
+    return true;
+  }
+    
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::getPayloadSpecificFeedbackMessageRPSIAllocationSize(
+                                                                        BYTE fmt,
+                                                                        const BYTE *contents,
+                                                                        size_t contentSize
+                                                                        )
+  {
+    return true;
+  }
+    
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::getPayloadSpecificFeedbackMessageFIRAllocationSize(
+                                                                        BYTE fmt,
+                                                                        const BYTE *contents,
+                                                                        size_t contentSize
+                                                                        )
+  {
+    size_t remaining = contentSize;
+
+    if (remaining < (sizeof(DWORD)*2)) {
+      ZS_EVENTING_4(x, w, Trace, RTCPPacketParseWarning, ol, RtcpPacket, Parse,
+        string, message, "malformed FIR payload specific feedback message",
+        puid, mediaChannelID, mMediaChannelID,
+        size_t, remaining, remaining,
+        size_t, length, 0
+      );
+      return false;
+    }
+
+    size_t possibleFIRs = remaining / (sizeof(DWORD)*2);
+
+    mAllocationSize += (internal::alignedSize(sizeof(PayloadSpecificFeedbackMessage::FIR)) * possibleFIRs);
+    return true;
+  }
+    
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::getPayloadSpecificFeedbackMessageTSTRAllocationSize(
+                                                                        BYTE fmt,
+                                                                        const BYTE *contents,
+                                                                        size_t contentSize
+                                                                        )
+  {
+    size_t remaining = contentSize;
+
+    if (remaining < (sizeof(DWORD)*2)) {
+      ZS_EVENTING_4(x, w, Trace, RTCPPacketParseWarning, ol, RtcpPacket, Parse,
+        string, message, "malformed TSTR payload specific feedback message",
+        puid, mediaChannelID, mMediaChannelID,
+        size_t, remaining, remaining,
+        size_t, length, 0
+      );
+      return false;
+    }
+
+    size_t possibleTSTRs = remaining / (sizeof(DWORD)*2);
+
+    mAllocationSize += (internal::alignedSize(sizeof(PayloadSpecificFeedbackMessage::TSTR)) * possibleTSTRs);
+    return true;
+  }
+    
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::getPayloadSpecificFeedbackMessageTSTNAllocationSize(
+                                                                        BYTE fmt,
+                                                                        const BYTE *contents,
+                                                                        size_t contentSize
+                                                                        )
+  {
+    size_t remaining = contentSize;
+
+    if (remaining < (sizeof(DWORD)*2)) {
+      ZS_EVENTING_4(x, w, Trace, RTCPPacketParseWarning, ol, RtcpPacket, Parse,
+        string, message, "malformed TSTN payload specific feedback message",
+        puid, mediaChannelID, mMediaChannelID,
+        size_t, remaining, remaining,
+        size_t, length, 0
+      );
+      return false;
+    }
+
+    size_t possibleTSTNs = remaining / (sizeof(DWORD)*2);
+
+    mAllocationSize += (internal::alignedSize(sizeof(PayloadSpecificFeedbackMessage::TSTN)) * possibleTSTNs);
+    return true;
+  }
+    
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::getPayloadSpecificFeedbackMessageVBCMAllocationSize(
+                                                                        BYTE fmt,
+                                                                        const BYTE *contents,
+                                                                        size_t contentSize
+                                                                        )
+  {
+    const BYTE *pos = contents;
+    size_t remaining = contentSize;
+
+    size_t possibleVBCMs = 0;
+
+    while (remaining >= (sizeof(DWORD)*2)) {
+      mAllocationSize += internal::alignedSize(sizeof(PayloadSpecificFeedbackMessage::VBCM));
+      ++possibleVBCMs;
+
+      size_t length = UseRTPUtils::getBE16(&(pos[6]));
+      size_t modulas = length % sizeof(DWORD);
+      size_t padding = ((0 != modulas) ? (sizeof(DWORD)-modulas) : 0);
+
+      internal::advancePos(pos, remaining, sizeof(DWORD)*2);
+
+      if (remaining < length) {
+        ZS_EVENTING_4(x, w, Trace, RTCPPacketParseWarning, ol, RtcpPacket, Parse,
+          string, message, "malformed VBCM payload specific feedback message",
+          puid, mediaChannelID, mMediaChannelID,
+          size_t, remaining, remaining,
+          size_t, length, length
+        );
+        return false;
+      }
+
+      size_t skipLength = (((length + padding) > remaining) ? remaining : (length + padding));
+
+      internal::advancePos(pos, remaining, skipLength);
+    }
+
+    if (possibleVBCMs < 1) {
+      ZS_EVENTING_4(x, w, Trace, RTCPPacketParseWarning, ol, RtcpPacket, Parse,
+        string, message, "malformed VBCM payload specific feedback message (possible VBCMs too small)",
+        puid, mediaChannelID, mMediaChannelID,
+        size_t, remaining, remaining,
+        size_t, length, possibleVBCMs
+      );
+      return false;
+    }
+
+    return true;
+  }
+    
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::getPayloadSpecificFeedbackMessageAFBAllocationSize(
+                                                                        BYTE fmt,
+                                                                        const BYTE *contents,
+                                                                        size_t contentSize
+                                                                        )
+  {
+    return true;
+  }
+
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::getPayloadSpecificFeedbackMessageREMBAllocationSize(
+                                                                      BYTE fmt,
+                                                                      const BYTE *contents,
+                                                                      size_t contentSize
+                                                                      )
+  {
+    size_t remaining = contentSize;
+
+    if (remaining < (sizeof(DWORD)*3)) {
+      ZS_EVENTING_4(x, w, Trace, RTCPPacketParseWarning, ol, RtcpPacket, Parse,
+        string, message, "malformed REMB payload specific feedback message",
+        puid, mediaChannelID, mMediaChannelID,
+        size_t, remaining, remaining,
+        size_t, length, 0
+      );
+      return false;
+    }
+
+    size_t possibleSSRCs = (remaining - (sizeof(DWORD)*2)) / sizeof(DWORD);
+
+    mAllocationSize += (internal::alignedSize(sizeof(DWORD)) * possibleSSRCs);
+    return true;
+  }
+    
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::getXRLossRLEReportBlockAllocationSize(
+                                                          BYTE typeSpecific,
+                                                          const BYTE *contents,
+                                                          size_t contentSize
+                                                          )
+  {
+    mAllocationSize += internal::alignedSize(sizeof(XR::LossRLEReportBlock));
+
+    const BYTE *pos = contents;
+    size_t remaining = contentSize;
+
+    if (remaining < (sizeof(DWORD)*2)) {
+      ZS_EVENTING_4(x, w, Trace, RTCPPacketParseWarning, ol, RtcpPacket, Parse,
+        string, message, "malformed loss RLE report block",
+        puid, mediaChannelID, mMediaChannelID,
+        size_t, remaining, remaining,
+        size_t, length, 0
+      );
+      return false;
+    }
+
+    internal::advancePos(pos, remaining, sizeof(DWORD)*2);
+
+    size_t possibleChunks = remaining  / sizeof(WORD);
+
+    if (0 != possibleChunks) {
+      mAllocationSize += internal::alignedSize(sizeof(XR::RLEChunk)) * possibleChunks;
+    }
+
+    return true;
+  }
+    
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::getXRDuplicateRLEReportBlockAllocationSize(
+                                                              BYTE typeSpecific,
+                                                              const BYTE *contents,
+                                                              size_t contentSize
+                                                              )
+  {
+    mAllocationSize += internal::alignedSize(sizeof(XR::DuplicateRLEReportBlock));
+
+    const BYTE *pos = contents;
+    size_t remaining = contentSize;
+
+    if (remaining < (sizeof(DWORD)*2)) {
+      ZS_EVENTING_4(x, w, Trace, RTCPPacketParseWarning, ol, RtcpPacket, Parse,
+        string, message, "malformed duplicate RLE report block",
+        puid, mediaChannelID, mMediaChannelID,
+        size_t, remaining, remaining,
+        size_t, length, 0
+      );
+      return false;
+    }
+
+    internal::advancePos(pos, remaining, sizeof(DWORD)*2);
+
+    size_t possibleChunks = remaining  / sizeof(WORD);
+
+    if (0 != possibleChunks) {
+      mAllocationSize += internal::alignedSize(sizeof(XR::RLEChunk)) * possibleChunks;
+    }
+
+    return true;
+  }
+    
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::getXRPacketReceiptTimesReportBlockAllocationSize(
+                                                                    BYTE typeSpecific,
+                                                                    const BYTE *contents,
+                                                                    size_t contentSize
+                                                                    )
+  {
+    mAllocationSize += internal::alignedSize(sizeof(XR::PacketReceiptTimesReportBlock));
+
+    const BYTE *pos = contents;
+    size_t remaining = contentSize;
+
+    if (remaining < (sizeof(DWORD)*2)) {
+      ZS_EVENTING_4(x, w, Trace, RTCPPacketParseWarning, ol, RtcpPacket, Parse,
+        string, message, "malformed packet receipt times report block",
+        puid, mediaChannelID, mMediaChannelID,
+        size_t, remaining, remaining,
+        size_t, length, 0
+      );
+      return false;
+    }
+
+    internal::advancePos(pos, remaining, sizeof(DWORD)*2);
+
+    size_t possibleReceiptTimes = remaining  / sizeof(DWORD);
+
+    if (0 != possibleReceiptTimes) {
+      mAllocationSize += internal::alignedSize(sizeof(DWORD)) * possibleReceiptTimes;
+    }
+
+    return true;
+  }
+    
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::getXRReceiverReferenceTimeReportBlockAllocationSize(
+                                                                        BYTE typeSpecific,
+                                                                        const BYTE *contents,
+                                                                        size_t contentSize
+                                                                        )
+  {
+    mAllocationSize += internal::alignedSize(sizeof(XR::ReceiverReferenceTimeReportBlock));
+    return true;
+  }
+    
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::getXRDLRRReportBlockAllocationSize(
+                                                      BYTE typeSpecific,
+                                                      const BYTE *contents,
+                                                      size_t contentSize
+                                                      )
+  {
+    mAllocationSize += internal::alignedSize(sizeof(XR::DLRRReportBlock));
+
+    size_t possibleSubBlocks = contentSize / (sizeof(DWORD) + sizeof(DWORD) + sizeof(DWORD));
+    if (0 != possibleSubBlocks) {
+      mAllocationSize += internal::alignedSize(sizeof(XR::DLRRReportBlock::SubBlock)) * possibleSubBlocks;
+    }
+    return true;
+  }
+
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::getXRStatisticsSummaryReportBlockAllocationSize(
+                                                                    BYTE typeSpecific,
+                                                                    const BYTE *contents,
+                                                                    size_t contentSize
+                                                                    )
+  {
+    mAllocationSize += internal::alignedSize(sizeof(XR::StatisticsSummaryReportBlock));
+    return true;
+  }
+
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::getXRVoIPMetricsReportBlockAllocationSize(
+                                                              BYTE typeSpecific,
+                                                              const BYTE *contents,
+                                                              size_t contentSize
+                                                              )
+  {
+    mAllocationSize += internal::alignedSize(sizeof(XR::VoIPMetricsReportBlock));
+    return true;
+  }
+
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::getXRUnknownReportBlockAllocationSize(
+                                                          BYTE typeSpecific,
+                                                          const BYTE *contents,
+                                                          size_t contentSize
+                                                          )
+  {
+    mAllocationSize += internal::alignedSize(sizeof(XR::UnknownReportBlock));
+    return true;
+  }
+
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  //-------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark RTCPPacket (parsing routines)
+  #pragma mark
+
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::parse(
+                          Report * &ioLastReport,
+                          BYTE version,
+                          BYTE padding,
+                          BYTE reportSpecific,
+                          BYTE pt,
+                          const BYTE *contents,
+                          size_t contentSize
+                          )
+  {
+    Report *usingReport = NULL;
+
+    switch (pt) {
+      case SenderReport::kPayloadType:                                {
+        auto temp = &(mFirstSenderReport[mSenderReportCount]);;
+        fill(temp, version, padding, reportSpecific, pt, contents, contentSize);
+        if (!parse(temp)) return false;
+        usingReport = temp;
+        break;
+      }
+      case ReceiverReport::kPayloadType:                              {
+        auto temp = &(mFirstReceiverReport[mReceiverReportCount]);
+        fill(temp, version, padding, reportSpecific, pt, contents, contentSize);
+        if (!parse(temp)) return false;
+        usingReport = temp;
+        break;
+      }
+      case SDES::kPayloadType:                                        {
+        auto temp = &(mFirstSDES[mSDESCount]);
+        fill(temp, version, padding, reportSpecific, pt, contents, contentSize);
+        if (!parse(temp)) return false;
+        usingReport = temp;
+        break;
+      }
+      case Bye::kPayloadType:                                         {
+        auto temp = &(mFirstBye[mByeCount]);
+        fill(temp, version, padding, reportSpecific, pt, contents, contentSize);
+        if (!parse(temp)) return false;
+        usingReport = temp;
+        break;
+      }
+      case App::kPayloadType:                                         {
+        auto temp = &(mFirstApp[mAppCount]);
+        fill(temp, version, padding, reportSpecific, pt, contents, contentSize);
+        if (!parse(temp)) return false;
+        usingReport = temp;
+        break;
+      }
+      case TransportLayerFeedbackMessage::kPayloadType:               {
+        auto temp = &(mFirstTransportLayerFeedbackMessage[mTransportLayerFeedbackMessageCount]);
+        fill(temp, version, padding, reportSpecific, pt, contents, contentSize);
+        if (!parse(temp)) return false;
+        usingReport = temp;
+        break;
+      }
+      case PayloadSpecificFeedbackMessage::kPayloadType:              {
+        auto temp = &(mFirstPayloadSpecificFeedbackMessage[mPayloadSpecificFeedbackMessageCount]);
+        fill(temp, version, padding, reportSpecific, pt, contents, contentSize);
+        if (!parse(temp)) return false;
+        usingReport = temp;
+        break;
+      }
+      case XR::kPayloadType:                                          {
+        auto temp = &(mFirstXR[mXRCount]);
+        fill(temp, version, padding, reportSpecific, pt, contents, contentSize);
+        if (!parse(temp)) return false;
+        usingReport = temp;
+        break;
+      }
+      default:
+      {
+        auto temp = &(mFirstUnknownReport[mUnknownReportCount]);
+        fill(temp, version, padding, reportSpecific, pt, contents, contentSize);
+        if (!parse(temp)) return false;
+        usingReport = temp;
+        break;
+      }
+    }
+
+    if (NULL != ioLastReport) {
+      ioLastReport->mNext = usingReport;
+    }
+
+    ioLastReport = usingReport;
+    return true;
+  }
+
+  //-------------------------------------------------------------------------
+  void RTCPPacket::fill(
+                        Report *report,
+                        BYTE version,
+                        BYTE padding,
+                        BYTE reportSpecific,
+                        BYTE pt,
+                        const BYTE *contents,
+                        size_t contentSize
+                        )
+  {
+    if (contentSize > 0) {
+      report->mPtr = contents;
+      report->mSize = contentSize;
+    }
+    report->mVersion = version;
+    report->mPadding = padding;
+    report->mReportSpecific = reportSpecific;
+    report->mPT = pt;
+  }
+
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::parseCommon(
+                                SenderReceiverCommonReport *report,
+                                size_t detailedHeaderSize
+                                )
+  {
+    const BYTE *pos = report->ptr();
+    size_t remaining = report->size();
+
+    {
+      if (remaining < sizeof(DWORD)) goto illegal_size;
+
+      report->mSSRCOfSender = UseRTPUtils::getBE32(pos);
+
+      internal::advancePos(pos, remaining, sizeof(DWORD));
+
+      if (remaining < detailedHeaderSize) goto illegal_size;
+
+      internal::advancePos(pos, remaining, detailedHeaderSize);
+
+      size_t count = 0;
+
+      if (report->rc() > 0) {
+        report->mFirstReportBlock = new (allocateBuffer(internal::alignedSize(sizeof(SenderReceiverCommonReport::ReportBlock))*report->rc())) SenderReceiverCommonReport::ReportBlock[report->rc()];
+
+        while ((remaining >= (sizeof(DWORD)*6)) &&
+                (count < report->rc()))
+        {
+          SenderReceiverCommonReport::ReportBlock *block = &(report->mFirstReportBlock[count]);
+          if (0 != count) {
+            report->mFirstReportBlock[count-1].mNext = block;
+          }
+
+          block->mSSRC = UseRTPUtils::getBE32(&(pos[0]));
+          block->mFractionLost = pos[4];
+          block->mCumulativeNumberOfPacketsLost = UseRTPUtils::getBE32(&(pos[4]));
+          block->mCumulativeNumberOfPacketsLost = block->mCumulativeNumberOfPacketsLost & 0x00FFFFFF;
+          block->mExtendedHighestSequenceNumberReceived = UseRTPUtils::getBE32(&(pos[8]));
+          block->mInterarrivalJitter = UseRTPUtils::getBE32(&(pos[12]));
+          block->mLSR = UseRTPUtils::getBE32(&(pos[16]));
+          block->mDLSR = UseRTPUtils::getBE32(&(pos[20]));
+
+          internal::advancePos(pos, remaining, sizeof(DWORD)*6);
+
+          ++count;
+        }
+      }
+
+      if (count != report->rc()) goto illegal_size;
+
+      if (0 != remaining) {
+        report->mExtension = pos;
+        report->mExtensionSize = remaining;
+      }
+
+      return true;
+    }
+
+  illegal_size:
+    {
+      ZS_EVENTING_4(x, w, Trace, RTCPPacketParseWarning, ol, RtcpPacket, Parse,
+        string, message, "unable to parse sender/receiver report (malformed packet)",
+        puid, mediaChannelID, mMediaChannelID,
+        size_t, remaining, remaining,
+        size_t, length, detailedHeaderSize
+      );
+    }
+
+    return false;
+  }
+
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::parse(SenderReport *report)
+  {
+    if (0 != mSenderReportCount) {
+      (&(mFirstSenderReport[mSenderReportCount-1]))->mNextSenderReport = report;
+    }
+    ++mSenderReportCount;
+
+    if (!parseCommon(report, sizeof(DWORD)*5)) return false;
+
+    const BYTE *pos = report->ptr();
+
+    report->mNTPTimestampMS = UseRTPUtils::getBE32(&(pos[4]));
+    report->mNTPTimestampLS = UseRTPUtils::getBE32(&(pos[8]));
+    report->mRTPTimestamp = UseRTPUtils::getBE32(&(pos[12]));
+    report->mSenderPacketCount = UseRTPUtils::getBE32(&(pos[16]));
+    report->mSenderOctetCount = UseRTPUtils::getBE32(&(pos[20]));
+
+    return true;
+  }
+
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::parse(ReceiverReport *report)
+  {
+    if (0 != mReceiverReportCount) {
+      (&(mFirstReceiverReport[mReceiverReportCount-1]))->mNextReceiverReport = report;
+    }
+    ++mReceiverReportCount;
+
+    if (!parseCommon(report, 0)) return false;
+
+    return true;
+  }
+    
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::parse(SDES *report)
+  {
+    if (0 != mSDESCount) {
+      (&(mFirstSDES[mSDESCount-1]))->mNextSDES = report;
+    }
+    ++mSDESCount;
+
+    if (0 == report->sc()) return true;
+
+    size_t chunkCount = 0;
+
+    const BYTE *pos = report->ptr();
+    size_t remaining = report->size();
+
+    report->mFirstChunk = new (allocateBuffer(internal::alignedSize(sizeof(SDES::Chunk))*(report->sc()))) SDES::Chunk[report->sc()];
+
+    while ((remaining > sizeof(DWORD)) &&
+            ((chunkCount < report->sc())))
+    {
+      SDES::Chunk *chunk = &(report->mFirstChunk[chunkCount]);
+      if (0 != chunkCount) {
+        report->mFirstChunk[chunkCount-1].mNext = chunk;
+      }
+      ++chunkCount;
+
+      ZS_EVENTING_2(x, i, Insane, RTCPPacketParseSDES, ol, RtcpPacket, Parse,
+        puid, mediaChannelID, mMediaChannelID,
+        size_t, chunkCount, chunkCount - 1
+      );
+
+      chunk->mSSRC = UseRTPUtils::getBE32(pos);
+      internal::advancePos(pos, remaining, sizeof(DWORD));
+
+      const BYTE *startOfItems = pos;
+      size_t remainingAtStartOfItems = remaining;
+
+      // first do an items count
+      while (remaining >= sizeof(BYTE)) {
+
+        BYTE type = *pos;
+        internal::advancePos(pos, remaining);
+
+        if (SDES::Chunk::kEndOfItemsType == type) {
+          // stop now (going to retry parsing again anyway)
+          break;
+        }
+
+        ASSERT(remaining >= sizeof(BYTE))
+
+        size_t length = static_cast<size_t>(*pos);
+        internal::advancePos(pos, remaining);
+
+        ASSERT(remaining >= length)
+
+        switch (type) {
+          case SDES::Chunk::CName::kItemType: ++(chunk->mCNameCount); break;
+          case SDES::Chunk::Name::kItemType:  ++(chunk->mNameCount); break;
+          case SDES::Chunk::Email::kItemType: ++(chunk->mEmailCount); break;
+          case SDES::Chunk::Phone::kItemType: ++(chunk->mPhoneCount); break;
+          case SDES::Chunk::Loc::kItemType:   ++(chunk->mLocCount); break;
+          case SDES::Chunk::Tool::kItemType:  ++(chunk->mToolCount); break;
+          case SDES::Chunk::Note::kItemType:  ++(chunk->mNoteCount); break;
+          case SDES::Chunk::Priv::kItemType:  ++(chunk->mPrivCount); break;
+          case SDES::Chunk::Mid::kItemType:   ++(chunk->mMidCount); break;
+          case SDES::Chunk::Rid::kItemType:   ++(chunk->mRidCount); break;
+          default:
           {
-            const SDES *sdes = static_cast<const SDES *>(report);
-            internal::writePacketSDES(sdes, pos, remaining);
+            ++(chunk->mUnknownCount);
+            ZS_EVENTING_2(x, w, Insane, RTCPPacketParseWarningSDESItemNotUnderstood, ol, RtcpPacket, Parse,
+              puid, mediaChannelID, mMediaChannelID,
+              byte, type, type
+            );
             break;
           }
-          case Bye::kPayloadType:
+        }
+
+        internal::advancePos(pos, remaining, length);
+      }
+
+      // allocate space for items
+
+      if (0 != chunk->mCNameCount) {
+        chunk->mFirstCName = new (allocateBuffer(internal::alignedSize(sizeof(SDES::Chunk::CName))*(chunk->mCNameCount))) SDES::Chunk::CName[chunk->mCNameCount];
+      }
+      if (0 != chunk->mNameCount) {
+        chunk->mFirstName = new (allocateBuffer(internal::alignedSize(sizeof(SDES::Chunk::Name))*(chunk->mNameCount))) SDES::Chunk::Name[chunk->mNameCount];
+      }
+      if (0 != chunk->mEmailCount) {
+        chunk->mFirstEmail = new (allocateBuffer(internal::alignedSize(sizeof(SDES::Chunk::Email))*(chunk->mEmailCount))) SDES::Chunk::Email[chunk->mEmailCount];
+      }
+      if (0 != chunk->mPhoneCount) {
+        chunk->mFirstPhone = new (allocateBuffer(internal::alignedSize(sizeof(SDES::Chunk::Phone))*(chunk->mPhoneCount))) SDES::Chunk::Phone[chunk->mPhoneCount];
+      }
+      if (0 != chunk->mLocCount) {
+        chunk->mFirstLoc = new (allocateBuffer(internal::alignedSize(sizeof(SDES::Chunk::Loc))*(chunk->mLocCount))) SDES::Chunk::Loc[chunk->mLocCount];
+      }
+      if (0 != chunk->mToolCount) {
+        chunk->mFirstTool = new (allocateBuffer(internal::alignedSize(sizeof(SDES::Chunk::Tool))*(chunk->mToolCount))) SDES::Chunk::Tool[chunk->mToolCount];
+      }
+      if (0 != chunk->mNoteCount) {
+        chunk->mFirstNote = new (allocateBuffer(internal::alignedSize(sizeof(SDES::Chunk::Note))*(chunk->mNoteCount))) SDES::Chunk::Note[chunk->mNoteCount];
+      }
+      if (0 != chunk->mPrivCount) {
+        chunk->mFirstPriv = new (allocateBuffer(internal::alignedSize(sizeof(SDES::Chunk::Priv))*(chunk->mPrivCount))) SDES::Chunk::Priv[chunk->mPrivCount];
+      }
+      if (0 != chunk->mMidCount) {
+        chunk->mFirstMid = new (allocateBuffer(internal::alignedSize(sizeof(SDES::Chunk::Mid))*(chunk->mMidCount))) SDES::Chunk::Mid[chunk->mMidCount];
+      }
+      if (0 != chunk->mRidCount) {
+        chunk->mFirstRid = new (allocateBuffer(internal::alignedSize(sizeof(SDES::Chunk::Rid))*(chunk->mRidCount))) SDES::Chunk::Rid[chunk->mRidCount];
+      }
+      if (0 != chunk->mUnknownCount) {
+        chunk->mFirstUnknown = new (allocateBuffer(internal::alignedSize(sizeof(SDES::Chunk::Unknown))*(chunk->mUnknownCount))) SDES::Chunk::Unknown[chunk->mUnknownCount];
+      }
+
+      chunk->mCNameCount = 0;
+      chunk->mNameCount = 0;
+      chunk->mEmailCount = 0;
+      chunk->mPhoneCount = 0;
+      chunk->mLocCount = 0;
+      chunk->mToolCount = 0;
+      chunk->mNoteCount = 0;
+      chunk->mPrivCount = 0;
+      chunk->mMidCount = 0;
+      chunk->mRidCount = 0;
+      chunk->mUnknownCount = 0;
+
+      // start over and now parse
+      pos = startOfItems;
+      remaining = remainingAtStartOfItems;
+
+      while (remaining >= sizeof(BYTE)) {
+
+        BYTE type = *pos;
+        internal::advancePos(pos, remaining);
+
+        if (SDES::Chunk::kEndOfItemsType == type) {
+          // skip NUL item (no length octet is present)
+
+          // skip to next DWORD alignment
+          auto diff = reinterpret_cast<PTRNUMBER>(pos) - reinterpret_cast<PTRNUMBER>(ptr());
+          while ((0 != (diff % sizeof(DWORD))) &&
+                  (remaining > 0))
           {
-            const Bye *bye = static_cast<const Bye *>(report);
-            internal::writePacketBye(bye, pos, remaining);
+            // only NUL chunks are allowed
+            ASSERT(SDES::Chunk::kEndOfItemsType == (*pos));
+            internal::advancePos(pos, remaining);
+            ++diff;
+          }
+          break;
+        }
+
+        ASSERT(remaining >= sizeof(BYTE))
+
+        size_t length = static_cast<size_t>(*pos);
+        internal::advancePos(pos, remaining);
+
+        ASSERT(remaining >= length)
+
+        SDES::Chunk::StringItem *item {};
+
+        const char *prefixStr = NULL;
+        size_t prefixLen = 0;
+
+        switch (type) {
+          case SDES::Chunk::CName::kItemType: {
+            item = &(chunk->mFirstCName[chunk->mCNameCount]);
+            if (0 != chunk->mCNameCount) {
+              (&(chunk->mFirstCName[chunk->mCNameCount-1]))->mNext = item;
+            }
+            ++(chunk->mCNameCount);
             break;
           }
-          case App::kPayloadType:
-          {
-            const App *app = static_cast<const App *>(report);
-            internal::writePacketApp(app, pos, remaining);
+          case SDES::Chunk::Name::kItemType:  {
+            item = &(chunk->mFirstName[chunk->mNameCount]);
+            if (0 != chunk->mNameCount) {
+              (&(chunk->mFirstName[chunk->mNameCount-1]))->mNext = item;
+            }
+            ++(chunk->mNameCount);
             break;
           }
-          case TransportLayerFeedbackMessage::kPayloadType:
-          {
-            const TransportLayerFeedbackMessage *fm = static_cast<const TransportLayerFeedbackMessage *>(report);
-            internal::writePacketTransportLayerFeedbackMessage(fm, pos, remaining);
+          case SDES::Chunk::Email::kItemType: {
+            item = &(chunk->mFirstEmail[chunk->mEmailCount]);
+            if (0 != chunk->mEmailCount) {
+              (&(chunk->mFirstEmail[chunk->mEmailCount-1]))->mNext = item;
+            }
+            ++(chunk->mEmailCount);
             break;
           }
-          case PayloadSpecificFeedbackMessage::kPayloadType:
-          {
-            const PayloadSpecificFeedbackMessage *fm = static_cast<const PayloadSpecificFeedbackMessage *>(report);
-            internal::writePacketPayloadSpecificFeedbackMessage(fm, pos, remaining);
+          case SDES::Chunk::Phone::kItemType: {
+            item = &(chunk->mFirstPhone[chunk->mPhoneCount]);
+            if (0 != chunk->mPhoneCount) {
+              (&(chunk->mFirstPhone[chunk->mPhoneCount-1]))->mNext = item;
+            }
+            ++(chunk->mPhoneCount);
             break;
           }
-          case XR::kPayloadType:
-          {
-            const XR *xr = static_cast<const XR *>(report);
-            internal::writePacketXR(xr, pos, remaining);
+          case SDES::Chunk::Loc::kItemType:   {
+            item = &(chunk->mFirstLoc[chunk->mLocCount]);
+            if (0 != chunk->mLocCount) {
+              (&(chunk->mFirstLoc[chunk->mLocCount-1]))->mNext = item;
+            }
+            ++(chunk->mLocCount);
+            break;
+          }
+          case SDES::Chunk::Tool::kItemType:  {
+            item = &(chunk->mFirstTool[chunk->mToolCount]);
+            if (0 != chunk->mToolCount) {
+              (&(chunk->mFirstTool[chunk->mToolCount-1]))->mNext = item;
+            }
+            ++(chunk->mToolCount);
+            break;
+          }
+          case SDES::Chunk::Note::kItemType:  {
+            item = &(chunk->mFirstNote[chunk->mNoteCount]);
+            if (0 != chunk->mNoteCount) {
+              (&(chunk->mFirstNote[chunk->mNoteCount-1]))->mNext = item;
+            }
+            ++(chunk->mNoteCount);
+            break;
+          }
+          case SDES::Chunk::Priv::kItemType:  {
+            SDES::Chunk::Priv *priv = &(chunk->mFirstPriv[chunk->mPrivCount]);
+            if (0 != chunk->mPrivCount) {
+              (&(chunk->mFirstPriv[chunk->mPrivCount-1]))->mNext = priv;
+            }
+
+            if (length > 0) {
+              prefixLen = static_cast<size_t>(*pos);
+              internal::advancePos(pos, remaining);
+              --length;
+              if (0 != prefixLen) {
+                priv->mPrefix = new (allocateBuffer(sizeof(char)*(prefixLen+1))) char [prefixLen+1];
+                priv->mPrefixLength = prefixLen;
+                memcpy(const_cast<char *>(priv->mPrefix), pos, prefixLen);
+
+                internal::advancePos(pos, remaining, prefixLen);
+                ASSERT(length >= prefixLen)
+
+                length -= prefixLen;
+              }
+            }
+
+            item = priv;
+
+            ++(chunk->mPrivCount);
+            break;
+          }
+          case SDES::Chunk::Mid::kItemType:  {
+            item = &(chunk->mFirstMid[chunk->mMidCount]);
+            if (0 != chunk->mMidCount) {
+              (&(chunk->mFirstMid[chunk->mMidCount-1]))->mNext = item;
+            }
+            ++(chunk->mMidCount);
+            break;
+          }
+          case SDES::Chunk::Rid::kItemType:  {
+            item = &(chunk->mFirstRid[chunk->mRidCount]);
+            if (0 != chunk->mRidCount) {
+              (&(chunk->mFirstRid[chunk->mRidCount-1]))->mNext = item;
+            }
+            ++(chunk->mRidCount);
             break;
           }
           default:
           {
-            const UnknownReport *unknown = static_cast<const UnknownReport *>(report);
-            internal::writePacketUnknown(unknown, pos, remaining);
+            item = &(chunk->mFirstUnknown[chunk->mUnknownCount]);
+            if (0 != chunk->mUnknownCount) {
+              (&(chunk->mFirstUnknown[chunk->mUnknownCount-1]))->mNext = item;
+            }
+            ++(chunk->mUnknownCount);
+            ZS_EVENTING_2(x, w, Insane, RTCPPacketParseSDESItemTypeNotUnderstood, ol, RtcpPacket, Parse,
+              puid, mediaChannelID, mMediaChannelID,
+              byte, type, type
+            );
             break;
           }
         }
 
-        BYTE *endOfReport = pos;
-        size_t diff = static_cast<size_t>(reinterpret_cast<PTRNUMBER>(endOfReport) - reinterpret_cast<PTRNUMBER>(startOfReport));
-
-        size_t modulas = diff % sizeof(DWORD);
-        if (0 != modulas) {
-          advancePos(pos, remaining, sizeof(DWORD)-modulas);
-          diff += (sizeof(DWORD)-modulas);
-        }
-
-        if (ZS_IS_LOGGING(Insane)) {
-          ZS_LOG_TRACE(slog("writing report") + ZS_PARAM("pt", report->ptToString()) + ZS_PARAM("pt (number)", report->pt()) + ZS_PARAM("size", diff))
-        }
-
-        size_t padding = 0;
-
-        if (NULL == report->next()) {
-          padding = boundarySize(static_cast<size_t>(report->padding()));
-          if (0 != padding) {
-            if (padding > 1) {
-              advancePos(pos, remaining, (padding-1)*sizeof(BYTE));
-            }
-            pos[0] = static_cast<BYTE>(padding);
-            advancePos(pos, remaining);
+        if (NULL != item) {
+          item->mType = type;
+          if (length > 0) {
+            item->mValue = new (allocateBuffer(length+1)) char [length+1];
+            item->mLength = length;
+            memcpy(const_cast<char *>(item->mValue), pos, length);
+          }
+          if (NULL != prefixStr) {
+            ZS_EVENTING_7(x, i, Insane, RTCPPacketParseSDESPrefixItemPrefix, ol, RtcpPacket, Parse,
+              puid, mediaChannelID, mMediaChannelID,
+              string, type, item->typeToString(),
+              size_t, chunkCount, chunkCount,
+              size_t, prefixLen, prefixLen,
+              string, prefixStr, prefixStr,
+              size_t, length, length,
+              string, value, (NULL != item->mValue ? item->mValue : NULL)
+            );
+          } else {
+            ZS_EVENTING_5(x, i, Insane, RTCPPacketParseSDESItemPrefix, ol, RtcpPacket, Parse,
+              puid, mediaChannelID, mMediaChannelID,
+              string, type, item->typeToString(),
+              size_t, chunkCount, chunkCount,
+              size_t, length, length,
+              string, value, (NULL != item->mValue ? item->mValue : NULL)
+            );
           }
         }
 
-        size_t headerSize = ((diff+padding)/sizeof(DWORD))-1;
-        ASSERT(throwIfGreaterThanBitsAllow(headerSize, 16))
+        ++(chunk->mCount);
 
-        RTPUtils::setBE16(&(startOfReport[2]), static_cast<WORD>(headerSize));
+        internal::advancePos(pos, remaining, length);
       }
 
-      ASSERT(0 == remaining)
     }
 
+    if (chunkCount != report->sc()) {
+      ZS_EVENTING_3(x, w, Trace, RTCPPacketParseSDESChunkCountAndPacketCountMismatch, ol, RtcpPacket, Parse,
+        puid, mediaChannelID, mMediaChannelID,
+        size_t, chunkCount, chunkCount,
+        size_t, sc, report->sc()
+      );
+      return false;
+    }
+
+    return true;
+  }
+    
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::parse(Bye *report)
+  {
+    if (0 != mByeCount) {
+      (&(mFirstBye[mByeCount-1]))->mNextBye = report;
+    }
+    ++mByeCount;
+
+    const BYTE *pos = report->ptr();
+    size_t remaining = report->size();
+
+    if (NULL == pos) {
+      if (0 != report->sc()) {
+        ZS_EVENTING_2(x, w, Trace, RTCPPacketParseByeReportCountMissingSSRCs, ol, RtcpPacket, Parse,
+          puid, mediaChannelID, mMediaChannelID,
+          size_t, sc, report->sc()
+        );
+        trace("BYE report count > 0 but does not contain SSRCs");
+        return false;
+      }
+
+      return true;
+    }
+
+    if (0 != report->sc()) {
+      report->mSSRCs = new (allocateBuffer(internal::alignedSize(sizeof(DWORD))*(report->sc()))) DWORD[report->sc()];
+    }
+
+    {
+      size_t index = 0;
+
+      while (index < report->sc()) {
+        if (remaining < sizeof(DWORD)) goto illegal_remaining;
+
+        report->mSSRCs[index] = UseRTPUtils::getBE32(pos);
+        internal::advancePos(pos, remaining, sizeof(DWORD));
+        ++index;
+      }
+
+      if (remaining > sizeof(BYTE)) {
+        size_t length = static_cast<size_t>(*pos);
+        internal::advancePos(pos, remaining);
+
+        if (remaining < length) goto illegal_remaining;
+
+        if (length > 0) {
+          report->mReasonForLeaving = new (allocateBuffer(internal::alignedSize((sizeof(char)*length)+sizeof(char)))) char[length+1];
+          memcpy(const_cast<char *>(report->mReasonForLeaving), pos, length);
+        }
+      }
+
+      return true;
+    }
+
+  illegal_remaining:
+    {
+      ZS_EVENTING_4(x, w, Trace, RTCPPacketParseWarning, ol, RtcpPacket, Parse,
+        string, message, "malformed BYE",
+        puid, mediaChannelID, mMediaChannelID,
+        size_t, remaining, remaining,
+        size_t, length, (reinterpret_cast<PTRNUMBER>(pos) - reinterpret_cast<PTRNUMBER>(report->ptr()))
+      );
+    }
+    return false;
+  }
+
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::parse(App *report)
+  {
+    if (0 != mAppCount) {
+      (&(mFirstApp[mAppCount-1]))->mNextApp = report;
+    }
+    ++mAppCount;
+
+    const BYTE *pos = report->ptr();
+    size_t remaining = report->size();
+
+    {
+      if (remaining < sizeof(DWORD)) goto illegal_remaining;
+
+      report->mSSRC = UseRTPUtils::getBE32(pos);
+      internal::advancePos(pos, remaining, sizeof(DWORD));
+
+      if (remaining < sizeof(DWORD)) goto illegal_remaining;
+
+      for (size_t index = 0; index < sizeof(DWORD); ++index) {
+        report->mName[index] = static_cast<char>(pos[index]);
+      }
+      internal::advancePos(pos, remaining, sizeof(DWORD));
+
+      if (0 != remaining) {
+        report->mData = pos;
+        report->mDataSize = remaining;
+      }
+
+      return true;
+    }
+
+  illegal_remaining:
+    {
+      ZS_EVENTING_4(x, w, Trace, RTCPPacketParseWarning, ol, RtcpPacket, Parse,
+        string, message, "malformed APP",
+        puid, mediaChannelID, mMediaChannelID,
+        size_t, remaining, remaining,
+        size_t, length, (reinterpret_cast<PTRNUMBER>(pos) - reinterpret_cast<PTRNUMBER>(report->ptr()))
+      );
+    }
+    return false;
+  }
+    
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::parse(TransportLayerFeedbackMessage *report)
+  {
+    if (0 != mTransportLayerFeedbackMessageCount) {
+      (&(mFirstTransportLayerFeedbackMessage[mTransportLayerFeedbackMessageCount-1]))->mNextTransportLayerFeedbackMessage = report;
+    }
+    ++mTransportLayerFeedbackMessageCount;
+
+    const BYTE *pos = report->ptr();
+    size_t remaining = report->size();
+
+    {
+      if (remaining < (sizeof(DWORD)*2)) goto illegal_remaining;
+
+      fill(report, pos, remaining);
+
+      bool result = false;
+
+      switch (report->fmt()) {
+        case TransportLayerFeedbackMessage::GenericNACK::kFmt:  result = parseGenericNACK(report); break;
+        case TransportLayerFeedbackMessage::TMMBR::kFmt:        result = parseTMMBR(report); break;
+        case TransportLayerFeedbackMessage::TMMBN::kFmt:        result = parseTMMBN(report); break;
+        default: {
+          result = parseUnknown(report);
+          break;
+        }
+      }
+
+      ZS_EVENTING_3(x, i, Insane, RTCPPacketParseTransportLayerFeedbackMessage, ol, RtcpPacket, Parse,
+        puid, mediaChannelID, mMediaChannelID,
+        string, fmt, report->fmtToString(),
+        byte, fmtNumber, report->reportSpecific()
+      );
+      return true;
+    }
+
+  illegal_remaining:
+    {
+      ZS_EVENTING_4(x, w, Trace, RTCPPacketParseWarning, ol, RtcpPacket, Parse,
+        string, message, "malformed transport layer feedback message",
+        puid, mediaChannelID, mMediaChannelID,
+        size_t, remaining, remaining,
+        size_t, length, (reinterpret_cast<PTRNUMBER>(pos) - reinterpret_cast<PTRNUMBER>(report->ptr()))
+      );
+    }
+    return false;
+  }
+    
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::parse(PayloadSpecificFeedbackMessage *report)
+  {
+    if (0 != mPayloadSpecificFeedbackMessageCount) {
+      (&(mFirstPayloadSpecificFeedbackMessage[mPayloadSpecificFeedbackMessageCount-1]))->mNextPayloadSpecificFeedbackMessage = report;
+    }
+    ++mPayloadSpecificFeedbackMessageCount;
+
+    const BYTE *pos = report->ptr();
+    size_t remaining = report->size();
+
+    {
+      if (remaining < (sizeof(DWORD)*2)) goto illegal_remaining;
+
+      fill(report, pos, remaining);
+      internal::advancePos(pos, remaining, sizeof(DWORD)*2);
+
+      bool result = false;
+
+      switch (report->fmt()) {
+        case PayloadSpecificFeedbackMessage::PLI::kFmt:   result = parsePLI(report); break;
+        case PayloadSpecificFeedbackMessage::SLI::kFmt:   result = parseSLI(report); break;
+        case PayloadSpecificFeedbackMessage::RPSI::kFmt:  result = parseRPSI(report); break;
+        case PayloadSpecificFeedbackMessage::FIR::kFmt:   result = parseFIR(report); break;
+        case PayloadSpecificFeedbackMessage::TSTR::kFmt:  result = parseTSTR(report); break;
+        case PayloadSpecificFeedbackMessage::TSTN::kFmt:  result = parseTSTN(report); break;
+        case PayloadSpecificFeedbackMessage::VBCM::kFmt:  result = parseVBCM(report); break;
+        case PayloadSpecificFeedbackMessage::AFB::kFmt:   {
+          {
+            if (remaining < sizeof(DWORD)) goto generic_afb;
+            if (0 != memcmp(pos, reinterpret_cast<const BYTE *>("REMB"), sizeof(DWORD))) goto generic_afb;
+
+            result = parseREMB(report);
+            break;
+          }
+        generic_afb:
+          {
+            result = parseAFB(report);
+            break;
+          }
+        }
+        default: {
+          result = parseUnknown(report);
+          break;
+        }
+      }
+
+      ZS_EVENTING_3(x, i, Insane, RTCPPacketParsePayloadSpecificFeedbackMessage, ol, RtcpPacket, Parse,
+        puid, mediaChannelID, mMediaChannelID,
+        string, fmt, report->fmtToString(),
+        byte, fmtNumber, report->reportSpecific()
+      );
+      return true;
+    }
+
+  illegal_remaining:
+    {
+      ZS_EVENTING_4(x, w, Trace, RTCPPacketParseWarning, ol, RtcpPacket, Parse,
+        string, message, "malformed payload specific feedback message",
+        puid, mediaChannelID, mMediaChannelID,
+        size_t, remaining, remaining,
+        size_t, length, (reinterpret_cast<PTRNUMBER>(pos) - reinterpret_cast<PTRNUMBER>(report->ptr()))
+      );
+    }
+    return false;
+  }
+    
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::parse(XR *report)
+  {
+    if (0 != mXRCount) {
+      (&(mFirstXR[mXRCount-1]))->mNextXR = report;
+    }
+    ++mXRCount;
+
+    const BYTE *pos = report->ptr();
+    size_t remaining = report->size();
+
+    {
+      if (remaining < sizeof(DWORD)) goto illegal_remaining;
+
+      report->mSSRC = UseRTPUtils::getBE32(pos);
+      internal::advancePos(pos, remaining, sizeof(DWORD));
+
+      // first count the totals for each XR block type
+      while (remaining >= sizeof(DWORD)) {
+
+        BYTE bt = pos[0];
+        size_t blockLength = static_cast<size_t>(UseRTPUtils::getBE16(&(pos[2]))) * sizeof(DWORD);
+
+        internal::advancePos(pos, remaining, sizeof(DWORD));
+
+        ++report->mReportBlockCount;
+
+        if (remaining < blockLength) {
+          ZS_EVENTING_4(x, w, Trace, RTCPPacketParseWarning, ol, RtcpPacket, Parse,
+            string, message, "illegal XR block length found",
+            puid, mediaChannelID, mMediaChannelID,
+            size_t, remaining, remaining,
+            size_t, length, blockLength
+          );
+          return false;
+        }
+
+        switch (bt) {
+          case XR::LossRLEReportBlock::kBlockType:                ++(report->mLossRLEReportBlockCount); break;
+          case XR::DuplicateRLEReportBlock::kBlockType:           ++(report->mDuplicateRLEReportBlockCount); break;
+          case XR::PacketReceiptTimesReportBlock::kBlockType:     ++(report->mPacketReceiptTimesReportBlockCount); break;
+          case XR::ReceiverReferenceTimeReportBlock::kBlockType:  ++(report->mReceiverReferenceTimeReportBlockCount); break;
+          case XR::DLRRReportBlock::kBlockType:                   ++(report->mDLRRReportBlockCount); break;
+          case XR::StatisticsSummaryReportBlock::kBlockType:      ++(report->mStatisticsSummaryReportBlockCount); break;
+          case XR::VoIPMetricsReportBlock::kBlockType:            ++(report->mVoIPMetricsReportBlockCount); break;
+          default:
+          {
+            ++(report->mUnknownReportBlockCount); break;
+            break;
+          }
+        }
+          
+        internal::advancePos(pos, remaining, blockLength);
+      }
+
+      if (0 != report->mLossRLEReportBlockCount) {
+        report->mFirstLossRLEReportBlock = new (allocateBuffer(internal::alignedSize(sizeof(XR::LossRLEReportBlock))*(report->mLossRLEReportBlockCount))) XR::LossRLEReportBlock[report->mLossRLEReportBlockCount];
+      }
+      if (0 != report->mDuplicateRLEReportBlockCount) {
+        report->mFirstDuplicateRLEReportBlock = new (allocateBuffer(internal::alignedSize(sizeof(XR::DuplicateRLEReportBlock))*(report->mDuplicateRLEReportBlockCount))) XR::DuplicateRLEReportBlock[report->mDuplicateRLEReportBlockCount];
+      }
+      if (0 != report->mPacketReceiptTimesReportBlockCount) {
+        report->mFirstPacketReceiptTimesReportBlock = new (allocateBuffer(internal::alignedSize(sizeof(XR::PacketReceiptTimesReportBlock))*(report->mPacketReceiptTimesReportBlockCount))) XR::PacketReceiptTimesReportBlock[report->mPacketReceiptTimesReportBlockCount];
+      }
+      if (0 != report->mReceiverReferenceTimeReportBlockCount) {
+        report->mFirstReceiverReferenceTimeReportBlock = new (allocateBuffer(internal::alignedSize(sizeof(XR::ReceiverReferenceTimeReportBlock))*(report->mReceiverReferenceTimeReportBlockCount))) XR::ReceiverReferenceTimeReportBlock[report->mReceiverReferenceTimeReportBlockCount];
+      }
+      if (0 != report->mDLRRReportBlockCount) {
+        report->mFirstDLRRReportBlock = new (allocateBuffer(internal::alignedSize(sizeof(XR::DLRRReportBlock))*(report->mDLRRReportBlockCount))) XR::DLRRReportBlock[report->mDLRRReportBlockCount];
+      }
+      if (0 != report->mStatisticsSummaryReportBlockCount) {
+        report->mFirstStatisticsSummaryReportBlock = new (allocateBuffer(internal::alignedSize(sizeof(XR::StatisticsSummaryReportBlock))*(report->mStatisticsSummaryReportBlockCount))) XR::StatisticsSummaryReportBlock[report->mStatisticsSummaryReportBlockCount];
+      }
+      if (0 != report->mVoIPMetricsReportBlockCount) {
+        report->mFirstVoIPMetricsReportBlock = new (allocateBuffer(internal::alignedSize(sizeof(XR::VoIPMetricsReportBlock))*(report->mVoIPMetricsReportBlockCount))) XR::VoIPMetricsReportBlock[report->mVoIPMetricsReportBlockCount];
+      }
+      if (0 != report->mUnknownReportBlockCount) {
+        report->mFirstUnknownReportBlock = new (allocateBuffer(internal::alignedSize(sizeof(XR::UnknownReportBlock))*(report->mUnknownReportBlockCount))) XR::UnknownReportBlock[report->mUnknownReportBlockCount];
+      }
+
+      report->mLossRLEReportBlockCount = 0;
+      report->mDuplicateRLEReportBlockCount = 0;
+      report->mPacketReceiptTimesReportBlockCount = 0;
+      report->mReceiverReferenceTimeReportBlockCount = 0;
+      report->mDLRRReportBlockCount = 0;
+      report->mStatisticsSummaryReportBlockCount = 0;
+      report->mVoIPMetricsReportBlockCount = 0;
+      report->mUnknownReportBlockCount = 0;
+
+      XR::ReportBlock *previousReportBlock = NULL;
+
+      // reset to start of buffer
+      pos = report->ptr();
+      remaining = report->size();
+
+      internal::advancePos(pos, remaining, sizeof(DWORD));
+
+      // parse each XR report block
+      while (remaining >= sizeof(DWORD)) {
+        const BYTE *prePos = pos;
+        size_t preAllocationSize = mAllocationSize;
+
+        BYTE bt = pos[0];
+        BYTE typeSpecific = pos[1];
+        size_t blockLength = static_cast<size_t>(UseRTPUtils::getBE16(&(pos[2]))) * sizeof(DWORD);
+
+        internal::advancePos(pos, remaining, sizeof(DWORD));
+
+        if (remaining < blockLength) {
+          ZS_EVENTING_4(x, w, Trace, RTCPPacketParseWarning, ol, RtcpPacket, Parse,
+            string, message, "malformed XR block length found",
+            puid, mediaChannelID, mMediaChannelID,
+            size_t, remaining, remaining,
+            size_t, length, blockLength
+          );
+          return false;
+        }
+
+        XR::ReportBlock *usingBlock = NULL;
+
+        switch (bt) {
+          case XR::LossRLEReportBlock::kBlockType:                {
+            auto reportBlock = &(report->mFirstLossRLEReportBlock[report->mLossRLEReportBlockCount]);
+            usingBlock = reportBlock;
+            if (0 != report->mLossRLEReportBlockCount) {
+              (&(report->mFirstLossRLEReportBlock[report->mLossRLEReportBlockCount-1]))->mNextLossRLE = reportBlock;
+            }
+            ++(report->mLossRLEReportBlockCount);
+            fill(report, reportBlock, previousReportBlock, bt, typeSpecific, pos, blockLength);
+            if (!parse(report, reportBlock)) return false;
+            break;
+          }
+          case XR::DuplicateRLEReportBlock::kBlockType:           {
+            auto reportBlock = &(report->mFirstDuplicateRLEReportBlock[report->mDuplicateRLEReportBlockCount]);
+            usingBlock = reportBlock;
+            if (0 != report->mDuplicateRLEReportBlockCount) {
+              (&(report->mFirstDuplicateRLEReportBlock[report->mDuplicateRLEReportBlockCount-1]))->mNextDuplicateRLE = reportBlock;
+            }
+            ++(report->mDuplicateRLEReportBlockCount);
+            fill(report, reportBlock, previousReportBlock, bt, typeSpecific, pos, blockLength);
+            if (!parse(report, reportBlock)) return false;
+            break;
+          }
+          case XR::PacketReceiptTimesReportBlock::kBlockType:     {
+            auto reportBlock = &(report->mFirstPacketReceiptTimesReportBlock[report->mPacketReceiptTimesReportBlockCount]);
+            usingBlock = reportBlock;
+            if (0 != report->mPacketReceiptTimesReportBlockCount) {
+              (&(report->mFirstPacketReceiptTimesReportBlock[report->mPacketReceiptTimesReportBlockCount-1]))->mNextPacketReceiptTimesReportBlock = reportBlock;
+            }
+            ++(report->mPacketReceiptTimesReportBlockCount);
+            fill(report, reportBlock, previousReportBlock, bt, typeSpecific, pos, blockLength);
+            if (!parse(report, reportBlock)) return false;
+            break;
+          }
+          case XR::ReceiverReferenceTimeReportBlock::kBlockType:  {
+            auto reportBlock = &(report->mFirstReceiverReferenceTimeReportBlock[report->mReceiverReferenceTimeReportBlockCount]);
+            usingBlock = reportBlock;
+            if (0 != report->mReceiverReferenceTimeReportBlockCount) {
+              (&(report->mFirstReceiverReferenceTimeReportBlock[report->mReceiverReferenceTimeReportBlockCount-1]))->mNextReceiverReferenceTimeReportBlock = reportBlock;
+            }
+            ++(report->mReceiverReferenceTimeReportBlockCount);
+            fill(report, reportBlock, previousReportBlock, bt, typeSpecific, pos, blockLength);
+            if (!parse(report, reportBlock)) return false;
+            break;
+          }
+          case XR::DLRRReportBlock::kBlockType:                   {
+            auto reportBlock = &(report->mFirstDLRRReportBlock[report->mDLRRReportBlockCount]);
+            usingBlock = reportBlock;
+            if (0 != report->mDLRRReportBlockCount) {
+              (&(report->mFirstDLRRReportBlock[report->mDLRRReportBlockCount-1]))->mNextDLRRReportBlock = reportBlock;
+            }
+            ++(report->mDLRRReportBlockCount);
+            fill(report, reportBlock, previousReportBlock, bt, typeSpecific, pos, blockLength);
+            if (!parse(report, reportBlock)) return false;
+            break;
+          }
+          case XR::StatisticsSummaryReportBlock::kBlockType:      {
+            auto reportBlock = &(report->mFirstStatisticsSummaryReportBlock[report->mStatisticsSummaryReportBlockCount]);
+            usingBlock = reportBlock;
+            if (0 != report->mStatisticsSummaryReportBlockCount) {
+              (&(report->mFirstStatisticsSummaryReportBlock[report->mStatisticsSummaryReportBlockCount-1]))->mNextStatisticsSummaryReportBlock = reportBlock;
+            }
+            ++(report->mStatisticsSummaryReportBlockCount);
+            fill(report, reportBlock, previousReportBlock, bt, typeSpecific, pos, blockLength);
+            if (!parse(report, reportBlock)) return false;
+            break;
+          }
+          case XR::VoIPMetricsReportBlock::kBlockType:            {
+            auto reportBlock = &(report->mFirstVoIPMetricsReportBlock[report->mVoIPMetricsReportBlockCount]);
+            usingBlock = reportBlock;
+            if (0 != report->mVoIPMetricsReportBlockCount) {
+              (&(report->mFirstVoIPMetricsReportBlock[report->mVoIPMetricsReportBlockCount-1]))->mNextVoIPMetricsReportBlock = reportBlock;
+            }
+            ++(report->mVoIPMetricsReportBlockCount);
+            fill(report, reportBlock, previousReportBlock, bt, typeSpecific, pos, blockLength);
+            if (!parse(report, reportBlock)) return false;
+            break;
+          }
+          default:                                                {
+            auto reportBlock = &(report->mFirstUnknownReportBlock[report->mUnknownReportBlockCount]);
+            usingBlock = reportBlock;
+            if (0 != report->mUnknownReportBlockCount) {
+              (&(report->mFirstUnknownReportBlock[report->mUnknownReportBlockCount-1]))->mNextUnknownReportBlock = reportBlock;
+            }
+            ++(report->mUnknownReportBlockCount);
+            fill(report, reportBlock, previousReportBlock, bt, typeSpecific, pos, blockLength);
+            if (!parse(report, reportBlock)) return false;
+            break;
+          }
+        }
+
+        internal::advancePos(pos, remaining, blockLength);
+
+        ZS_EVENTING_5(x, i, Insane, RTCPPacketParseXR, ol, RtcpPacket, Parse,
+          puid, mediaChannelID, mMediaChannelID,
+          string, blockType, usingBlock->blockTypeToString(),
+          size_t, blockLength, blockLength,
+          size_t, consumed, (reinterpret_cast<PTRNUMBER>(pos) - reinterpret_cast<PTRNUMBER>(prePos)),
+          size_t, allocationConsumed, preAllocationSize - mAllocationSize
+        );
+      }
+
+      return true;
+    }
+
+  illegal_remaining:
+    {
+      ZS_EVENTING_4(x, w, Trace, RTCPPacketParseWarning, ol, RtcpPacket, Parse,
+        string, message, "malformed XR when parsing",
+        puid, mediaChannelID, mMediaChannelID,
+        size_t, remaining, remaining,
+        size_t, length, (reinterpret_cast<PTRNUMBER>(pos) - reinterpret_cast<PTRNUMBER>(report->ptr()))
+      );
+    }
+    return false;
+  }
+
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::parse(UnknownReport *report)
+  {
+    if (0 != mUnknownReportCount) {
+      (&(mFirstUnknownReport[mUnknownReportCount-1]))->mNextUnknown = report;
+    }
+    ++mUnknownReportCount;
+
+    return true;
+  }
+    
+  //-------------------------------------------------------------------------
+  void RTCPPacket::fill(FeedbackMessage *report, const BYTE *contents, size_t contentSize)
+  {
+    const BYTE *pos = contents;
+    size_t remaining = contentSize;
+
+    report->mSSRCOfPacketSender = UseRTPUtils::getBE32(&(pos[0]));
+    report->mSSRCOfMediaSource = UseRTPUtils::getBE32(&(pos[4]));
+
+    internal::advancePos(pos, remaining, sizeof(DWORD)*2);
+
+    if (remaining > sizeof(BYTE)) {
+      report->mFCI = pos;
+      report->mFCISize = remaining;
+    }
+  }
+
+  //-------------------------------------------------------------------------
+  void RTCPPacket::fill(
+                        XR *report,
+                        XR::ReportBlock *reportBlock,
+                        XR::ReportBlock * &ioPreviousReportBlock,
+                        BYTE blockType,
+                        BYTE typeSpecific,
+                        const BYTE *contents,
+                        size_t contentSize
+                        )
+  {
+    reportBlock->mBlockType = blockType;
+    reportBlock->mTypeSpecific = typeSpecific;
+    if (0 != contentSize) {
+      reportBlock->mTypeSpecificContents = contents;
+      reportBlock->mTypeSpecificContentSize = contentSize;
+    }
+
+    if (NULL == report->mFirstReportBlock) {
+      report->mFirstReportBlock = reportBlock;
+    }
+    if (NULL != ioPreviousReportBlock) {
+      ioPreviousReportBlock->mNext = reportBlock;
+    }
+    ioPreviousReportBlock = reportBlock;
+  }
+
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::parseGenericNACK(TransportLayerFeedbackMessage *report)
+  {
+    typedef TransportLayerFeedbackMessage::GenericNACK GenericNACK;
+    const BYTE *pos = report->fci();
+    size_t remaining = report->fciSize();
+
+    size_t possibleNACKs = remaining / sizeof(DWORD);
+
+    ASSERT(0 != possibleNACKs)
+
+    report->mFirstGenericNACK = new (allocateBuffer(internal::alignedSize(sizeof(GenericNACK))*possibleNACKs)) GenericNACK[possibleNACKs];
+
+    while (remaining >= sizeof(DWORD)) {
+      GenericNACK *nack = &(report->mFirstGenericNACK[report->mGenericNACKCount]);
+
+      nack->mPID = UseRTPUtils::getBE16(&(pos[0]));
+      nack->mBLP = UseRTPUtils::getBE16(&(pos[2]));
+
+      internal::advancePos(pos, remaining, sizeof(DWORD));
+
+      ++(report->mGenericNACKCount);
+    }
+
+    ASSERT(possibleNACKs == report->mGenericNACKCount)
+
+    return true;
+  }
+    
+  //-------------------------------------------------------------------------
+  void RTCPPacket::fillTMMBRCommon(
+                                    TransportLayerFeedbackMessage *report,
+                                    TransportLayerFeedbackMessage::TMMBRCommon *common,
+                                    const BYTE *pos
+                                    )
+  {
+    typedef TransportLayerFeedbackMessage::TMMBRCommon TMMBRCommon;
+
+    common->mSSRC = UseRTPUtils::getBE32(&(pos[0]));
+    common->mMxTBRExp = RTCP_GET_BITS(pos[4], 0x3F, 2);
+    common->mMxTBRMantissa = RTCP_GET_BITS(UseRTPUtils::getBE32(&(pos[4])), 0x1FFFF, 9);
+    common->mMeasuredOverhead = RTCP_GET_BITS(UseRTPUtils::getBE32(&(pos[4])), 0x1FF, 0);
+  }
+    
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::parseTMMBR(TransportLayerFeedbackMessage *report)
+  {
+    typedef TransportLayerFeedbackMessage::TMMBR TMMBR;
+
+    const BYTE *pos = report->fci();
+    size_t remaining = report->fciSize();
+
+    size_t possibleTMMBRs = remaining / (sizeof(DWORD)*2);
+
+    ASSERT(0 != possibleTMMBRs)
+
+    report->mFirstTMMBR = new (allocateBuffer(internal::alignedSize(sizeof(TMMBR))*possibleTMMBRs)) TMMBR[possibleTMMBRs];
+
+    while (remaining >= (sizeof(DWORD)*2)) {
+      TMMBR *tmmbr = &(report->mFirstTMMBR[report->mTMMBRCount]);
+
+      fillTMMBRCommon(report, tmmbr, pos);
+
+      internal::advancePos(pos, remaining, sizeof(DWORD)*2);
+
+      ++(report->mTMMBRCount);
+    }
+
+    ASSERT(possibleTMMBRs == report->mTMMBRCount)
+
+    return true;
+  }
+    
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::parseTMMBN(TransportLayerFeedbackMessage *report)
+  {
+    typedef TransportLayerFeedbackMessage::TMMBN TMMBN;
+
+    const BYTE *pos = report->fci();
+    size_t remaining = report->fciSize();
+
+    size_t possibleTMMBNs = remaining / (sizeof(DWORD)*2);
+
+    if (possibleTMMBNs < 1) {
+      report->mFirstTMMBN = NULL;
+      report->mTMMBNCount = 0;
+      return true;
+    }
+
+    report->mFirstTMMBN = new (allocateBuffer(internal::alignedSize(sizeof(TMMBN))*possibleTMMBNs)) TMMBN[possibleTMMBNs];
+
+    while (remaining >= (sizeof(DWORD)*2)) {
+      TMMBN *tmmbr = &(report->mFirstTMMBN[report->mTMMBNCount]);
+
+      fillTMMBRCommon(report, tmmbr, pos);
+
+      internal::advancePos(pos, remaining, sizeof(DWORD)*2);
+
+      ++(report->mTMMBNCount);
+    }
+
+    ASSERT(possibleTMMBNs == report->mTMMBNCount)
+
+    return true;
+  }
+
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::parseUnknown(TransportLayerFeedbackMessage *report)
+  {
+    report->mUnknown = report;
+    return true;
+  }
+
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::parsePLI(PayloadSpecificFeedbackMessage *report)
+  {
+    return true;
+  }
+
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::parseSLI(PayloadSpecificFeedbackMessage *report)
+  {
+    typedef PayloadSpecificFeedbackMessage::SLI SLI;
+
+    const BYTE *pos = report->fci();
+    size_t remaining = report->fciSize();
+
+    size_t possibleSLIs = remaining / (sizeof(DWORD));
+
+    ASSERT(0 != possibleSLIs)
+
+    report->mFirstSLI = new (allocateBuffer(internal::alignedSize(sizeof(SLI))*possibleSLIs)) SLI[possibleSLIs];
+
+    while (remaining >= (sizeof(DWORD))) {
+      SLI *sli = &(report->mFirstSLI[report->mSLICount]);
+
+      sli->mFirst = RTCP_GET_BITS(UseRTPUtils::getBE16(&(pos[0])), 0x1FFF, 3);
+      sli->mNumber = static_cast<WORD>(RTCP_GET_BITS(UseRTPUtils::getBE32(&(pos[0])), 0x1FFF, 6));
+      sli->mPictureID = RTCP_GET_BITS(pos[3], 0x3F, 0);
+
+      internal::advancePos(pos, remaining, sizeof(DWORD));
+
+      ++(report->mSLICount);
+    }
+
+    ASSERT(possibleSLIs == report->mSLICount)
+
+    return true;
+  }
+    
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::parseRPSI(PayloadSpecificFeedbackMessage *report)
+  {
+    const BYTE *pos = report->fci();
+    size_t remaining = report->fciSize();
+
+    {
+      if (remaining < sizeof(WORD)) goto illegal_remaining;
+
+      BYTE pb = pos[0];
+      report->mRPSI.mZeroBit = RTCP_GET_BITS(pos[1], 0x1, 7);
+      report->mRPSI.mPayloadType = RTCP_GET_BITS(pos[1], 0x7F, 0);
+
+      internal::advancePos(pos, remaining, sizeof(WORD));
+
+      if (remaining > 0) {
+        report->mRPSI.mNativeRPSIBitString = pos;
+        report->mRPSI.mNativeRPSIBitStringSizeInBits = (remaining*8);
+        if (pb > report->mRPSI.mNativeRPSIBitStringSizeInBits) goto illegal_remaining;
+
+        report->mRPSI.mNativeRPSIBitStringSizeInBits -= static_cast<size_t>(pb);
+        if (0 == report->mRPSI.mNativeRPSIBitStringSizeInBits) {
+          report->mRPSI.mNativeRPSIBitString = NULL;
+        }
+      }
+
+      return true;
+    }
+
+  illegal_remaining:
+    {
+      ZS_EVENTING_4(x, w, Trace, RTCPPacketParseWarning, ol, RtcpPacket, Parse,
+        string, message, "malformed RPSI payload specific feedback message",
+        puid, mediaChannelID, mMediaChannelID,
+        size_t, remaining, remaining,
+        size_t, length, (reinterpret_cast<PTRNUMBER>(pos) - reinterpret_cast<PTRNUMBER>(report->fci()))
+      );
+    }
+    return false;
+  }
+    
+  //-------------------------------------------------------------------------
+  void RTCPPacket::fillCodecControlCommon(
+                                          PayloadSpecificFeedbackMessage *report,
+                                          PayloadSpecificFeedbackMessage::CodecControlCommon *common,
+                                          const BYTE *pos
+                                          )
+  {
+    common->mSSRC = UseRTPUtils::getBE32(&(pos[0]));
+    common->mSeqNr = pos[4];
+    common->mReserved = RTCP_GET_BITS(UseRTPUtils::getBE32(&(pos[4])), 0xFFFFFF, 0);
+  }
+
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::parseFIR(PayloadSpecificFeedbackMessage *report)
+  {
+    typedef PayloadSpecificFeedbackMessage::FIR FIR;
+
+    const BYTE *pos = report->fci();
+    size_t remaining = report->fciSize();
+
+    size_t possibleFIRs = remaining / (sizeof(DWORD)*2);
+
+    ASSERT(0 != possibleFIRs)
+
+    report->mFirstFIR = new (allocateBuffer(internal::alignedSize(sizeof(FIR))*possibleFIRs)) FIR[possibleFIRs];
+
+    while (remaining >= (sizeof(DWORD)*2)) {
+      FIR *fir = &(report->mFirstFIR[report->mFIRCount]);
+      fillCodecControlCommon(report, fir, pos);
+
+      internal::advancePos(pos, remaining, sizeof(DWORD)*2);
+
+      ++(report->mFIRCount);
+    }
+
+    ASSERT(possibleFIRs == report->mFIRCount)
+
+    return true;
+  }
+    
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::parseTSTR(PayloadSpecificFeedbackMessage *report)
+  {
+    typedef PayloadSpecificFeedbackMessage::TSTR TSTR;
+
+    const BYTE *pos = report->fci();
+    size_t remaining = report->fciSize();
+
+    size_t possibleTSTRs = remaining / (sizeof(DWORD)*2);
+
+    ASSERT(0 != possibleTSTRs)
+
+    report->mFirstTSTR = new (allocateBuffer(internal::alignedSize(sizeof(TSTR))*possibleTSTRs)) TSTR[possibleTSTRs];
+
+    while (remaining >= (sizeof(DWORD)*2)) {
+      TSTR *tstr = &(report->mFirstTSTR[report->mTSTRCount]);
+      fillCodecControlCommon(report, tstr, pos);
+
+      tstr->mControlSpecific = RTCP_GET_BITS(tstr->mReserved, 0x1F, 0);
+      tstr->mReserved = RTCP_GET_BITS(tstr->mReserved, 0x7FFFF, 5);
+
+      internal::advancePos(pos, remaining, sizeof(DWORD)*2);
+
+      ++(report->mTSTRCount);
+    }
+
+    ASSERT(possibleTSTRs == report->mTSTRCount)
+      
+    return true;
+  }
+    
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::parseTSTN(PayloadSpecificFeedbackMessage *report)
+  {
+    typedef PayloadSpecificFeedbackMessage::TSTN TSTN;
+
+    const BYTE *pos = report->fci();
+    size_t remaining = report->fciSize();
+
+    size_t possibleTSTNs = remaining / (sizeof(DWORD)*2);
+
+    ASSERT(0 != possibleTSTNs)
+
+    report->mFirstTSTN = new (allocateBuffer(internal::alignedSize(sizeof(TSTN))*possibleTSTNs)) TSTN[possibleTSTNs];
+
+    while (remaining >= (sizeof(DWORD)*2)) {
+      TSTN *tstn = &(report->mFirstTSTN[report->mTSTNCount]);
+      fillCodecControlCommon(report, tstn, pos);
+
+      tstn->mControlSpecific = RTCP_GET_BITS(tstn->mReserved, 0x1F, 0);
+      tstn->mReserved = RTCP_GET_BITS(tstn->mReserved, 0x7FFFF, 5);
+
+      internal::advancePos(pos, remaining, sizeof(DWORD)*2);
+
+      ++(report->mTSTNCount);
+    }
+
+    ASSERT(possibleTSTNs == report->mTSTNCount)
+      
+    return true;
+  }
+    
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::parseVBCM(PayloadSpecificFeedbackMessage *report)
+  {
+    typedef PayloadSpecificFeedbackMessage::VBCM VBCM;
+
+    const BYTE *pos = report->fci();
+    size_t remaining = report->fciSize();
+
+    size_t possibleVBCMs = 0;
+
+    // first count the VBCM blocks
+    {
+      while (remaining >= (sizeof(DWORD)*2)) {
+        ++possibleVBCMs;
+
+        size_t length = UseRTPUtils::getBE16(&(pos[6]));
+        size_t modulas = length % sizeof(DWORD);
+        size_t padding = ((0 != modulas) ? (sizeof(DWORD)-modulas) : 0);
+
+        internal::advancePos(pos, remaining, sizeof(DWORD)*2);
+
+        ASSERT(remaining >= length)
+
+        size_t skipLength = (((length + padding) > remaining) ? remaining : (length + padding));
+
+        internal::advancePos(pos, remaining, skipLength);
+      }
+      ASSERT(0 != possibleVBCMs);
+    }
+
+    pos = report->fci();
+    remaining = report->fciSize();
+
+    {
+      ASSERT(0 != possibleVBCMs);
+
+      report->mFirstVBCM = new (allocateBuffer(internal::alignedSize(sizeof(VBCM))*possibleVBCMs)) VBCM[possibleVBCMs];
+
+      while (remaining >= (sizeof(DWORD)*2)) {
+        VBCM *vcbm = &(report->mFirstVBCM[report->mVBCMCount]);
+        fillCodecControlCommon(report, vcbm, pos);
+
+        // move reserved to control specific
+        vcbm->mControlSpecific = vcbm->mReserved;
+        vcbm->mReserved = 0;
+
+        size_t length = UseRTPUtils::getBE16(&(pos[6]));
+        size_t modulas = length % sizeof(DWORD);
+        size_t padding = ((0 != modulas) ? (sizeof(DWORD)-modulas) : 0);
+
+        internal::advancePos(pos, remaining, sizeof(DWORD)*2);
+
+        ASSERT(remaining >= length)
+
+        if (length > 0) {
+          vcbm->mVBCMOctetString = pos;
+        }
+
+        size_t skipLength = (((length + padding) > remaining) ? remaining : (length + padding));
+
+        internal::advancePos(pos, remaining, skipLength);
+
+        ++(report->mVBCMCount);
+      }
+
+      ASSERT(possibleVBCMs == report->mVBCMCount);
+    }
+    return true;
+  }
+
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::parseAFB(PayloadSpecificFeedbackMessage *report)
+  {
+    typedef PayloadSpecificFeedbackMessage::AFB AFB;
+
+    const BYTE *pos = report->fci();
+    size_t remaining = report->fciSize();
+
+    if (remaining > 0) {
+      report->mAFB.mData = pos;
+      report->mAFB.mDataSize = remaining;
+    }
+    return true;
+  }
+    
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::parseREMB(PayloadSpecificFeedbackMessage *report)
+  {
+    typedef PayloadSpecificFeedbackMessage::REMB REMB;
+
+    if (!parseAFB(report)) return false;
+
+    const BYTE *pos = report->fci();
+    size_t remaining = report->fciSize();
+
+    report->mHasREMB = true;
+
+    {
+      ASSERT(remaining >= sizeof(DWORD) * 3);
+
+      report->mREMB.mNumSSRC = pos[4];
+      report->mREMB.mBRExp = RTCP_GET_BITS(pos[5], 0x3F, 2);
+      report->mREMB.mBRMantissa = RTCP_GET_BITS(UseRTPUtils::getBE32(&(pos[4])), 0x3FFFF, 0);
+
+      size_t possibleSSRCs = (remaining - sizeof(DWORD)*2) / (sizeof(DWORD));
+
+      internal::advancePos(pos, remaining, sizeof(DWORD)*2);
+
+      report->mREMB.mSSRCs = new (allocateBuffer(internal::alignedSize(sizeof(DWORD))*possibleSSRCs)) DWORD[possibleSSRCs];
+
+      size_t count = 0;
+      while ((possibleSSRCs > 0) &&
+              (count < report->mREMB.numSSRC()) &&
+              (remaining >= sizeof(DWORD)))
+      {
+        report->mREMB.mSSRCs[count] = UseRTPUtils::getBE32(pos);
+        internal::advancePos(pos, remaining, sizeof(DWORD));
+        --possibleSSRCs;
+        ++count;
+      }
+
+      if (count != report->mREMB.numSSRC()) goto illegal_remaining;
+      return true;
+    }
+
+  illegal_remaining:
+    {
+      ZS_EVENTING_4(x, w, Trace, RTCPPacketParseWarning, ol, RtcpPacket, Parse,
+        string, message, "malformed REMB payload specific feedback message",
+        puid, mediaChannelID, mMediaChannelID,
+        size_t, remaining, remaining,
+        size_t, length, (reinterpret_cast<PTRNUMBER>(pos) - reinterpret_cast<PTRNUMBER>(report->fci()))
+      );
+    }
+    return false;
+  }
+
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::parseUnknown(PayloadSpecificFeedbackMessage *report)
+  {
+    report->mUnknown = report;
+    return true;
+  }
+    
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::parseCommonRange(
+                                    XR *xr,
+                                    XR::ReportBlockRange *reportBlock
+                                    )
+  {
+    const BYTE *pos = reportBlock->typeSpecificContents();
+    size_t remaining = reportBlock->typeSpecificContentSize();
+
+    {
+      if (remaining < (sizeof(DWORD)*2)) goto illegal_remaining;
+
+      reportBlock->mSSRCOfSource = UseRTPUtils::getBE32(&(pos[0]));
+      reportBlock->mBeginSeq = UseRTPUtils::getBE16(&(pos[4]));
+      reportBlock->mEndSeq = UseRTPUtils::getBE16(&(pos[6]));
+
+      return true;
+    }
+
+  illegal_remaining:
+    {
+      ZS_EVENTING_4(x, w, Trace, RTCPPacketParseWarning, ol, RtcpPacket, Parse,
+        string, message, "malformed report block range",
+        puid, mediaChannelID, mMediaChannelID,
+        size_t, remaining, remaining,
+        size_t, length, (reinterpret_cast<PTRNUMBER>(pos) - reinterpret_cast<PTRNUMBER>(reportBlock->typeSpecificContents()))
+      );
+    }
+    return false;
+  }
+
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::parseCommonRLE(
+                                  XR *xr,
+                                  XR::RLEReportBlock *reportBlock
+                                  )
+  {
+    const BYTE *pos = reportBlock->typeSpecificContents();
+    size_t remaining = reportBlock->typeSpecificContentSize();
+
+    if (!parseCommonRange(xr, reportBlock)) return false;
+
+    internal::advancePos(pos, remaining, sizeof(DWORD)*2);
+
+    size_t possibleRLEsCount = (remaining / sizeof(WORD));
+
+    if (0 == possibleRLEsCount) return true;
+
+    reportBlock->mChunks = new (allocateBuffer(internal::alignedSize(sizeof(XR::RLEChunk)*possibleRLEsCount))) XR::RLEChunk[possibleRLEsCount];
+
+    while (remaining >= sizeof(WORD))
+    {
+      XR::RLEChunk value = UseRTPUtils::getBE16(pos);
+      internal::advancePos(pos, remaining, sizeof(WORD));
+
+      if (0 == value) break;
+      reportBlock->mChunks[reportBlock->mChunkCount] = value;
+      ++(reportBlock->mChunkCount);
+    }
+
+    if (0 == reportBlock->mChunkCount) {
+      reportBlock->mChunks = NULL;
+    }
+
+    return true;
+  }
+    
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::parse(
+                          XR *xr,
+                          XR::LossRLEReportBlock *reportBlock
+                          )
+  {
+    return parseCommonRLE(xr, reportBlock);
+  }
+    
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::parse(
+                          XR *xr,
+                          XR::DuplicateRLEReportBlock *reportBlock
+                          )
+  {
+    return parseCommonRLE(xr, reportBlock);
+  }
+
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::parse(
+                          XR *xr,
+                          XR::PacketReceiptTimesReportBlock *reportBlock
+                          )
+  {
+    if (!parseCommonRange(xr, reportBlock)) return false;
+
+    const BYTE *pos = reportBlock->typeSpecificContents();
+    size_t remaining = reportBlock->typeSpecificContentSize();
+
+    internal::advancePos(pos, remaining, sizeof(DWORD)*2);
+
+    size_t possibleTimes = remaining / sizeof(DWORD);
+
+    if (0 == possibleTimes) return true;
+
+    reportBlock->mReceiptTimes = new (allocateBuffer(internal::alignedSize(sizeof(DWORD))*possibleTimes)) DWORD[possibleTimes];
+
+    while (remaining >= sizeof(DWORD)) {
+      reportBlock->mReceiptTimes[reportBlock->mReceiptTimeCount] = UseRTPUtils::getBE32(pos);
+      internal::advancePos(pos, remaining, sizeof(DWORD));
+      ++(reportBlock->mReceiptTimeCount);
+    }
+
+    return true;
+  }
+
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::parse(
+                          XR *xr,
+                          XR::ReceiverReferenceTimeReportBlock *reportBlock
+                          )
+  {
+    const BYTE *pos = reportBlock->typeSpecificContents();
+    size_t remaining = reportBlock->typeSpecificContentSize();
+
+    if (remaining < (sizeof(DWORD)*2)) {
+      ZS_EVENTING_4(x, w, Trace, RTCPPacketParseWarning, ol, RtcpPacket, Parse,
+        string, message, "malformed receiver reference time report block",
+        puid, mediaChannelID, mMediaChannelID,
+        size_t, remaining, remaining,
+        size_t, length, 0
+      );
+      return false;
+    }
+
+    reportBlock->mNTPTimestampMS = UseRTPUtils::getBE32(&(pos[0]));
+    reportBlock->mNTPTimestampLS = UseRTPUtils::getBE32(&(pos[4]));
+
+    return true;
+  }
+    
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::parse(
+                          XR *xr,
+                          XR::DLRRReportBlock *reportBlock
+                          )
+  {
+    const BYTE *pos = reportBlock->typeSpecificContents();
+    size_t remaining = reportBlock->typeSpecificContentSize();
+
+    size_t possibleSubBlockCount = remaining / (sizeof(DWORD)*3);
+
+    if (0 == possibleSubBlockCount) return true;
+
+    if (remaining < (sizeof(DWORD)*2)) {
+      ZS_EVENTING_4(x, w, Trace, RTCPPacketParseWarning, ol, RtcpPacket, Parse,
+        string, message, "malformed dlr report block",
+        puid, mediaChannelID, mMediaChannelID,
+        size_t, remaining, remaining,
+        size_t, length, 0
+      );
+      return false;
+    }
+
+    reportBlock->mSubBlocks = new (allocateBuffer(internal::alignedSize(sizeof(XR::DLRRReportBlock::SubBlock))*possibleSubBlockCount)) XR::DLRRReportBlock::SubBlock[possibleSubBlockCount];
+
+    while (remaining >= (sizeof(DWORD)*3))
+    {
+      auto subBlock = &(reportBlock->mSubBlocks[reportBlock->mSubBlockCount]);
+
+      subBlock->mSSRC = UseRTPUtils::getBE32(&(pos[0]));
+      subBlock->mLRR = UseRTPUtils::getBE32(&(pos[4]));
+      subBlock->mDLRR = UseRTPUtils::getBE32(&(pos[8]));
+
+      internal::advancePos(pos, remaining, sizeof(DWORD)*3);
+
+      ++(reportBlock->mSubBlockCount);
+    }
+
+    ASSERT(reportBlock->mSubBlockCount == possibleSubBlockCount)
+
+    return true;
+  }
+    
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::parse(
+                          XR *xr,
+                          XR::StatisticsSummaryReportBlock *reportBlock
+                          )
+  {
+    const BYTE *pos = reportBlock->typeSpecificContents();
+    size_t remaining = reportBlock->typeSpecificContentSize();
+
+    parseCommonRange(xr, reportBlock);
+
+    if (remaining < (sizeof(DWORD)*9)) {
+      ZS_EVENTING_4(x, w, Trace, RTCPPacketParseWarning, ol, RtcpPacket, Parse,
+        string, message, "malformed statistics summary report block",
+        puid, mediaChannelID, mMediaChannelID,
+        size_t, remaining, remaining,
+        size_t, length, 0
+      );
+      return false;
+    }
+
+    internal::advancePos(pos, remaining, sizeof(DWORD)*2);
+
+    reportBlock->mLostPackets = UseRTPUtils::getBE32(&(pos[0]));
+    reportBlock->mDupPackets = UseRTPUtils::getBE32(&(pos[4]));
+    reportBlock->mMinJitter = UseRTPUtils::getBE32(&(pos[8]));
+    reportBlock->mMaxJitter = UseRTPUtils::getBE32(&(pos[12]));
+    reportBlock->mMeanJitter = UseRTPUtils::getBE32(&(pos[16]));
+    reportBlock->mDevJitter = UseRTPUtils::getBE32(&(pos[20]));
+
+    reportBlock->mMinTTLOrHL = pos[24];
+    reportBlock->mMaxTTLOrHL = pos[25];
+    reportBlock->mMeanTTLOrHL = pos[26];
+    reportBlock->mDevTTLOrHL = pos[27];
+
+    return true;
+  }
+    
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::parse(
+                          XR *xr,
+                          XR::VoIPMetricsReportBlock *reportBlock
+                          )
+  {
+    const BYTE *pos = reportBlock->typeSpecificContents();
+    size_t remaining = reportBlock->typeSpecificContentSize();
+
+    if (remaining < (sizeof(DWORD)*8)) {
+      ZS_EVENTING_4(x, w, Trace, RTCPPacketParseWarning, ol, RtcpPacket, Parse,
+        string, message, "malformed voip metrics report block",
+        puid, mediaChannelID, mMediaChannelID,
+        size_t, remaining, remaining,
+        size_t, length, 0
+      );
+      return false;
+    }
+
+    reportBlock->mSSRCOfSource = UseRTPUtils::getBE32(&(pos[0]));
+    reportBlock->mLossRate = pos[4];
+    reportBlock->mDiscardRate = pos[5];
+    reportBlock->mBurstDensity = pos[6];
+    reportBlock->mGapDensity = pos[7];
+    reportBlock->mBurstDuration = UseRTPUtils::getBE16(&(pos[8]));
+    reportBlock->mGapDuration = UseRTPUtils::getBE16(&(pos[10]));
+    reportBlock->mRoundTripDelay = UseRTPUtils::getBE16(&(pos[12]));
+    reportBlock->mEndSystemDelay = UseRTPUtils::getBE16(&(pos[14]));
+    reportBlock->mSignalLevel = pos[16];
+    reportBlock->mNoiseLevel = pos[17];
+    reportBlock->mRERL = pos[18];
+    reportBlock->mGmin = pos[19];
+    reportBlock->mRFactor = pos[20];
+    reportBlock->mExtRFactor = pos[21];
+    reportBlock->mMOSLQ = pos[22];
+    reportBlock->mMOSCQ = pos[23];
+    reportBlock->mRXConfig = pos[24];
+    reportBlock->mReservedVoIP = pos[25];
+    reportBlock->mJBNominal = UseRTPUtils::getBE16(&(pos[26]));
+    reportBlock->mJBMaximum = UseRTPUtils::getBE16(&(pos[28]));
+    reportBlock->mJBAbsMax = UseRTPUtils::getBE16(&(pos[30]));
+
+    return true;
+  }
+    
+  //-------------------------------------------------------------------------
+  bool RTCPPacket::parse(
+                          XR *xr,
+                          XR::UnknownReportBlock *reportBlock
+                          )
+  {
+    return true;
+  }
+
+  //-------------------------------------------------------------------------
+  void *RTCPPacket::allocateBuffer(size_t size)
+  {
+    return internal::allocateBuffer(mAllocationPos, mAllocationSize, size);
+  }
+
+  //-------------------------------------------------------------------------
+  size_t RTCPPacket::getPacketSize(const Report *first)
+  {
+    size_t result = 0;
+
+    const Report *final = NULL;
+
+    for (const Report *report = first; NULL != report; report = report->next())
+    {
+      final = report;
+
+      size_t beforeSize = result;
+
+      switch (report->pt()) {
+        case SenderReport::kPayloadType:
+        {
+          const SenderReport *sr = static_cast<const SenderReport *>(report);
+          result += internal::getPacketSizeSenderReport(sr);
+          break;
+        }
+        case ReceiverReport::kPayloadType:
+        {
+          const ReceiverReport *rr = static_cast<const ReceiverReport *>(report);
+          result += internal::getPacketSizeReceiverReport(rr);
+          break;
+        }
+        case SDES::kPayloadType:
+        {
+          const SDES *sdes = static_cast<const SDES *>(report);
+          result += internal::getPacketSizeSDES(sdes);
+          break;
+        }
+        case Bye::kPayloadType:
+        {
+          const Bye *bye = static_cast<const Bye *>(report);
+          result += internal::getPacketSizeBye(bye);
+          break;
+        }
+        case App::kPayloadType:
+        {
+          const App *app = static_cast<const App *>(report);
+          result += internal::getPacketSizeApp(app);
+          break;
+        }
+        case TransportLayerFeedbackMessage::kPayloadType:
+        {
+          const TransportLayerFeedbackMessage *fm = static_cast<const TransportLayerFeedbackMessage *>(report);
+          result += internal::getPacketSizeTransportLayerFeedbackMessage(fm);
+          break;
+        }
+        case PayloadSpecificFeedbackMessage::kPayloadType:
+        {
+          const PayloadSpecificFeedbackMessage *fm = static_cast<const PayloadSpecificFeedbackMessage *>(report);
+          result += internal::getPacketSizePayloadSpecificFeedbackMessage(fm);
+          break;
+        }
+        case XR::kPayloadType:
+        {
+          const XR *xr = static_cast<const XR *>(report);
+          result += internal::getPacketSizeXR(xr);
+          break;
+        }
+        default:
+        {
+          result += sizeof(DWORD) + internal::boundarySize(report->size());
+          break;
+        }
+      }
+
+      size_t afterSize = result;
+
+      ZS_EVENTING_3(x, i, Insane, RTCPPacketGettingReportPacketSize, ol, RtcpPacket, Info,
+        string, payloadType , report->ptToString(),
+        byte, payloadTypeNumber, report->pt(),
+        size_t, size, afterSize - beforeSize
+      );
+    }
+
+    if (NULL != final) {
+      auto padding = final->padding();
+      if (0 != padding) {
+        result += padding;
+      }
+    }
+
+    return internal::boundarySize(result);
+  }
+
+  //-------------------------------------------------------------------------
+  void RTCPPacket::writePacket(const Report *first, BYTE * &pos, size_t &remaining)
+  {
+    ASSERT(sizeof(char) == sizeof(BYTE))
+    ASSERT(NULL != first)
+
+    for (const Report *report = first; NULL != report; report = report->next())
+    {
+      BYTE *startOfReport = pos;
+
+      internal::writePacketHeader(report, pos, remaining);
+
+      switch (report->pt()) {
+        case SenderReport::kPayloadType:
+        {
+          const SenderReport *sr = static_cast<const SenderReport *>(report);
+          internal::writePacketSenderReport(sr, pos, remaining);
+          break;
+        }
+        case ReceiverReport::kPayloadType:
+        {
+          const ReceiverReport *rr = static_cast<const ReceiverReport *>(report);
+          internal::writePacketReceiverReport(rr, pos, remaining);
+          break;
+        }
+        case SDES::kPayloadType:
+        {
+          const SDES *sdes = static_cast<const SDES *>(report);
+          internal::writePacketSDES(sdes, pos, remaining);
+          break;
+        }
+        case Bye::kPayloadType:
+        {
+          const Bye *bye = static_cast<const Bye *>(report);
+          internal::writePacketBye(bye, pos, remaining);
+          break;
+        }
+        case App::kPayloadType:
+        {
+          const App *app = static_cast<const App *>(report);
+          internal::writePacketApp(app, pos, remaining);
+          break;
+        }
+        case TransportLayerFeedbackMessage::kPayloadType:
+        {
+          const TransportLayerFeedbackMessage *fm = static_cast<const TransportLayerFeedbackMessage *>(report);
+          internal::writePacketTransportLayerFeedbackMessage(fm, pos, remaining);
+          break;
+        }
+        case PayloadSpecificFeedbackMessage::kPayloadType:
+        {
+          const PayloadSpecificFeedbackMessage *fm = static_cast<const PayloadSpecificFeedbackMessage *>(report);
+          internal::writePacketPayloadSpecificFeedbackMessage(fm, pos, remaining);
+          break;
+        }
+        case XR::kPayloadType:
+        {
+          const XR *xr = static_cast<const XR *>(report);
+          internal::writePacketXR(xr, pos, remaining);
+          break;
+        }
+        default:
+        {
+          const UnknownReport *unknown = static_cast<const UnknownReport *>(report);
+          internal::writePacketUnknown(unknown, pos, remaining);
+          break;
+        }
+      }
+
+      BYTE *endOfReport = pos;
+      size_t diff = static_cast<size_t>(reinterpret_cast<PTRNUMBER>(endOfReport) - reinterpret_cast<PTRNUMBER>(startOfReport));
+
+      size_t modulas = diff % sizeof(DWORD);
+      if (0 != modulas) {
+        internal::advancePos(pos, remaining, sizeof(DWORD)-modulas);
+        diff += (sizeof(DWORD)-modulas);
+      }
+
+      ZS_EVENTING_3(x, i, Insane, RTCPPacketWriteReport, ol, RtcpPacket, Info,
+        string, payloadType, report->ptToString(),
+        byte, payloadTypeNumber, report->pt(),
+        size_t, size, diff
+      );
+
+      size_t padding = 0;
+
+      if (NULL == report->next()) {
+        padding = internal::boundarySize(static_cast<size_t>(report->padding()));
+        if (0 != padding) {
+          if (padding > 1) {
+            internal::advancePos(pos, remaining, (padding-1)*sizeof(BYTE));
+          }
+          pos[0] = static_cast<BYTE>(padding);
+          internal::advancePos(pos, remaining);
+        }
+      }
+
+      size_t headerSize = ((diff+padding)/sizeof(DWORD))-1;
+      ASSERT(internal::throwIfGreaterThanBitsAllow(headerSize, 16));
+
+      UseRTPUtils::setBE16(&(startOfReport[2]), static_cast<WORD>(headerSize));
+    }
+
+    ASSERT(0 == remaining);
   }
 
 }

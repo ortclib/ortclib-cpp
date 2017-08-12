@@ -1,0 +1,278 @@
+/*
+
+ Copyright (c) 2017, Optical Tone Ltd.
+ All rights reserved.
+
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+
+ 1. Redistributions of source code must retain the above copyright notice, this
+ list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright notice,
+ this list of conditions and the following disclaimer in the documentation
+ and/or other materials provided with the distribution.
+
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+ The views and conclusions contained in the software and documentation are those
+ of the authors and should not be interpreted as representing official policies,
+ either expressed or implied, of the FreeBSD Project.
+ 
+ */
+
+
+namespace org
+{
+  namespace ortc
+  {
+    /// <summary>
+    /// The RTCSrtpKeyParam objects defines the keying material needed for a
+    /// SRTP SDES session.
+    /// </summary>
+    [dictionary]
+    struct RTCSrtpSdesKeyParameters
+    {    // see RFC 4568 sect 9.2
+      /// <summary>
+      /// Gets or sets the key method to be utilized, in the syntax defined
+      /// for 'srtp-key-method' in [RFC4568] Section 9.2.
+      /// </summary>
+      string  keyMethod;     // must be "inline"
+      /// <summary>
+      /// Gets or sets the key and salt to be utilized, in the syntax defined
+      /// for 'key-salt' in [RFC4568] Sections 9.2.
+      /// </summary>
+      string  keySalt;       // key + salt, base 64 encoded e.g. base64(16 bytes + 14 bytes)
+      /// <summary>
+      /// Gets or sets the key lifetime to be utilized, in the syntax defined
+      /// for 'lifetime' in [RFC4568] Section 9.2.
+      /// </summary>
+      string  lifetime;      // must be "2^n" where n is the max number of packets to flow throw the transport
+      /// <summary>
+      /// Gets or sets the master key index to be utilized, in the syntax
+      /// defined for 'mki-value' in [RFC4568] Section 9.2.
+      /// </summary>
+      string  mkiValue;      // base 10 expressed value of Master Key Identifier (MKI) converted to string
+      /// <summary>
+      /// Gets or sets the master key index length to be utilized, in the
+      /// syntax defined for 'mki-length' in [RFC4568] Section 9.2.
+      /// </summary>
+      uint16  mkiLength;     // number of bytes allocated on each SRTP packet for Master Key Identifier (MKI) [max = 128 bytes]
+
+      /// <summary>
+      /// Constructs an empty instance of an RTCSrtpSdesKeyParameters object.
+      /// </summary>
+      [constructor, default]
+      void RTCSrtpSdesKeyParameters();
+      /// <summary>
+      /// Constructs an instance of an RTCSrtpSdesKeyParameters object by cloning object data from an existing object.
+      /// </summary>
+      [constructor, altname(RTCSrtpSdesKeyParametersClone)]
+      void RTCSrtpSdesKeyParameters(RTCSrtpSdesKeyParameters source);
+      /// <summary>
+      /// Constructs an instance of an RTCSrtpSdesKeyParameters object by extracting object data from a JSON object.
+      /// </summary>
+      [constructor, default, altname(RTCSrtpSdesKeyParametersWithJson)]
+      void RTCSrtpSdesKeyParameters(Json json);
+
+      /// <summary>
+      /// A helper routine to convert the object's data to structured JSON object data.
+      /// </summary>
+      Json toJson();
+      /// <summary>
+      /// Return a hash of the data contained within the object.
+      /// </summary>
+      string hash();
+    };
+
+    /// <summary>
+    /// The RTCSrtpSdesCryptoParameters object includes information relating
+    /// to SRTP/SDES cryptographic configuration.
+    /// </summary>
+    [dictionary]
+    struct RTCSrtpSdesCryptoParameters
+    { // see RFC 4568 sect 9.2
+      typedef std::list<RTCSrtpSdesKeyParameters> KeyParametersList;
+      typedef StringList SessionParamList;
+
+      /// <summary>
+      /// Gets or sets the tag identifying the parameters set, in the syntax
+      /// defined for 'tag' in [RFC4568] Section 9.1.
+      /// </summary>
+      uint16            tag;
+      /// <summary>
+      /// Gets or sets the the ciphersuite to be utilized, in the syntax
+      /// defined for 'srtp-crypto-suite' in [RFC4568] Section 9.2;
+      /// </summary>
+      string            cryptoSuite;
+      /// <summary>
+      /// Gets or sets the key parameters to be utilized, as described in
+      /// [RFC4568] Section 6.1. Calls to
+      /// RTCSrtpSdesTransport.GetLocalParameters should return only a single
+      /// RTCSrtpKeyParam dictionary entry.
+      /// </summary>
+      KeyParametersList keyParams;
+      /// <summary>
+      /// Gets or sets a sequence of session parameters to be utilized, each
+      /// in the syntax defined for 'session-param' in [RFC4568] Section 9.1;
+      /// </summary>
+      SessionParamList  sessionParams;
+
+      /// <summary>
+      /// Constructs an empty instance of an RTCSrtpSdesCryptoParameters object.
+      /// </summary>
+      [constructor, default]
+      void RTCSrtpSdesCryptoParameters();
+      /// <summary>
+      /// Constructs an instance of an RTCSrtpSdesCryptoParameters object by cloning object data from an existing object.
+      /// </summary>
+      [constructor, altname(RTCSrtpSdesCryptoParametersClone)]
+      void RTCSrtpSdesCryptoParameters(RTCSrtpSdesCryptoParameters source);
+      /// <summary>
+      /// Constructs an instance of an RTCSrtpSdesCryptoParameters object by extracting object data from a JSON object.
+      /// </summary>
+      [constructor, default, altname(RTCSrtpSdesCryptoParametersWithJson)]
+      void RTCSrtpSdesCryptoParameters(Json json);
+
+      /// <summary>
+      /// A helper routine to convert the object's data to structured JSON object data.
+      /// </summary>
+      Json toJson();
+      /// <summary>
+      /// Return a hash of the data contained within the object.
+      /// </summary>
+      string hash();
+    };
+
+    /// <summary>
+    /// The RTCSrtpSdesParameters object includes information relating to
+    /// SRTP/SDES configuration.
+    /// </summary>
+    [dictionary]
+    struct RTCSrtpSdesParameters
+    {
+      typedef std::list<RTCSrtpSdesCryptoParameters> CryptoParametersList;
+
+      /// <summary>
+      /// Gets or sets a sequence of cryptographic parameters.
+      /// </summary>
+      CryptoParametersList cryptoParams;
+
+      /// <summary>
+      /// Constructs an empty instance of an RTCSrtpSdesParameters object.
+      /// </summary>
+      [constructor, default]
+      void RTCSrtpSdesParameters();
+      /// <summary>
+      /// Constructs an instance of an RTCSrtpSdesParameters object by cloning object data from an existing object.
+      /// </summary>
+      [constructor, altname(RTCSrtpSdesParametersClone)]
+      void RTCSrtpSdesParameters(RTCSrtpSdesParameters source);
+      /// <summary>
+      /// Constructs an instance of an RTCSrtpSdesParameters object by extracting object data from a JSON object.
+      /// </summary>
+      [constructor, default, altname(RTCSrtpSdesParametersWithJson)]
+      void RTCSrtpSdesParameters(Json json);
+
+      /// <summary>
+      /// A helper routine to convert the object's data to structured JSON object data.
+      /// </summary>
+      Json toJson();
+      /// <summary>
+      /// Return a hash of the data contained within the object.
+      /// </summary>
+      string hash();
+    };
+
+    /// <summary>
+    /// This is the event data associated with the
+    /// transport.OnLifetimeRemaining event handler.
+    /// </summary>
+    struct RTCSrtpSdesTransportLifetimeRemainingEvent
+    {
+      [constructor, delete]
+      void RTCSrtpSdesTransportLifetimeRemainingEvent();
+
+      /// <summary>
+      /// Gets the least percentage remaining of all the keys in the
+      /// SDES/SRTP transport.
+      /// </summary>
+      [getter]
+      unsigned long leastLifetimeRemainingPercentageForAllKeys;
+      /// <summary>
+      /// Gets the overall percentage of life remaining of all the keys in the
+      /// SDES/SRTP transport.
+      /// </summary>
+      [getter]
+      unsigned long overallLifetimeRemainingPercentage;
+    };
+
+    /// <summary>
+    /// The RTCSrtpSdesTransport includes information relating to SRTP/SDES
+    /// transport.
+    /// </summary>
+    interface RTCSrtpSdesTransport : RTCRtpTransport,
+                                     RTCStatsProvider
+    {
+      /// <summary>
+      /// Constructs an instance of an RTCSrtpSdesTransport object using the specified ICE transport and cryptographic parameters.
+      /// </summary>
+      [constructor]
+      void RTCSrtpSdesTransport(
+                                RTCIceTransport iceTransport,
+                                RTCSrtpSdesCryptoParameters encryptParameters,
+                                RTCSrtpSdesCryptoParameters decryptParameters
+                                ) throws (InvalidParameters, InvalidStateError);
+
+      /// <summary>
+      /// Gets a unique object instance identifier for this object.
+      /// </summary>
+      [getter]
+      puid objectId;
+
+      /// <summary>
+      /// Gets the associated RTP RTCIceTransport as passed into the constructor.
+      /// </summary>
+      [getter]
+      RTCIceTransport transport;
+      /// <summary>
+      /// Gets the associated RTCP RTCIceTransport as passed into the constructor.
+      /// </summary>
+      [getter]
+      RTCIceTransport rtcpTransport;
+
+      /// <summary>
+      /// Obtain the local SRTP/SDES parameter sets.
+      /// </summary>
+      [static]
+      RTCSrtpSdesParameters getLocalParameters();
+
+      /// <summary>
+      /// Stops sending or receiving any further encrypted RTP/RTCP data over the associated ICE transport.
+      /// </summary>
+      void stop();
+
+      /// <summary>
+      /// This event is fired when the lifetime of the keying material
+      /// percentage remaining has changed.
+      /// </summary>
+      [event]
+      void onLifetimeRemaining(RTCSrtpSdesTransportLifetimeRemainingEvent event);
+
+      /// <summary>
+      /// This event is fired on reception of an error.
+      /// </summary>
+      [event]
+      void onError(ErrorEvent event);
+    };
+
+  }
+}

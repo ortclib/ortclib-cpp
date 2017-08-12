@@ -1,0 +1,127 @@
+/*
+
+ Copyright (c) 2017, Optical Tone Ltd.
+ All rights reserved.
+
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+
+ 1. Redistributions of source code must retain the above copyright notice, this
+ list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright notice,
+ this list of conditions and the following disclaimer in the documentation
+ and/or other materials provided with the distribution.
+
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+ The views and conclusions contained in the software and documentation are those
+ of the authors and should not be interpreted as representing official policies,
+ either expressed or implied, of the FreeBSD Project.
+ 
+ */
+
+namespace org
+{
+  namespace ortc
+  {
+    /// <summary>
+    /// This object is fired when the RTCRtpListener detects an RTP stream
+    /// that is not configured to be processed by an existing RTCRtpReceiver
+    /// object.
+    /// </summary>
+    struct RTCRtpUnhandledEvent
+    {
+      /// <summary>
+      /// Gets the SSRC in the RTP stream triggering the OnUnhandledRtp event.
+      /// </summary>
+      [getter]
+      SsrcType ssrc;
+      /// <summary>
+      /// Gets the Payload Type value in the RTP stream triggering the
+      /// OnUnhandledRtp event.
+      /// </summary>
+      [getter]
+      PayloadType payloadType;
+      /// <summary>
+      /// Gets the value of the MID RTP header extension [BUNDLE] in
+      /// the RTP stream triggering the OnUnhandledRtp event if present.
+      /// </summary>
+      [getter]
+      string muxId;
+      /// <summary>
+      /// Gets the value of the RID RTP header extension [RID] in the
+      /// RTP stream triggering the OnUnhandledRtp event if present.
+      /// </summary>
+      [getter]
+      string rid;
+    };
+
+    /// <summary>
+    /// The RTCRtpListener listens to RTP packets received from the
+    /// RTCDtlsTransport, determining whether an incoming RTP stream is
+    /// configured to be processed by an existing RTCRtpReceiver object. If no
+    /// match is found, the unhandledrtp event is fired. This can be due to
+    /// packets having an unknown SSRC, payload type or any other error that
+    /// makes it impossible to attribute an RTP packet to a specific
+    /// RTCRtpReceiver object. The event is not fired once for each arriving
+    /// packet; multiple discarded packets for the same SSRC should result in
+    /// a single event.
+    /// </summary>
+    interface RTCRtpListener : RTCStatsProvider
+    {
+      typedef std::list<RTCRtpHeaderExtensionParameters> HeaderExtensionParametersList;
+
+      /// <summary>
+      /// Construct an instance of RTCRtpListener from an RTCDtlsTransport
+      /// object.
+      /// </summary>
+      [constructor]
+      void RTCRtpListener(RTCRtpTransport transport);
+      [constructor, altname(RTCRtpListenerWithHeaderExtensions)]
+      /// <summary>
+      /// Construct an instance of RTCRtpListener from an RTCDtlsTransport
+      /// object and the mapped header extensions to properly intepret
+      /// RTP header extensions.
+      /// </summary>
+      void RTCRtpListener(
+                          RTCRtpTransport transport,
+                          HeaderExtensionParametersList headerExtensions
+                          );
+
+      /// <summary>
+      /// Gets a unique object instance identifier for this object.
+      /// </summary>
+      [getter]
+      puid objectId;
+
+      /// <summary>
+      /// Gets the RTP RTPDtlsTransport or RTPSrtpSdesTransport instance.
+      /// </summary>
+      [getter]
+      RTCRtpTransport transport;
+
+      /// <summary>
+      /// Set a list of header extensions that can be interpreted by the listener
+      /// on incoming RTP packets.
+      /// </summary>
+      void setHeaderExtensions(HeaderExtensionParametersList headerExtensions);
+
+      /// <summary>
+      /// The event handler emits the RTCRtpUnhandledEvent, which is fired
+      /// when the RTCRtpListener detects an RTP stream that is not configured
+      /// to be processed by an existing RTCRtpReceiver object.
+      /// </summary>
+      [event]
+      void onUnhandled(RTCRtpUnhandledEvent event);
+    }; 
+  }
+}

@@ -58,11 +58,13 @@ namespace ortc
 
     interaction IMediaDevicesAsyncDelegate
     {
-      ZS_DECLARE_TYPEDEF_PTR(IMediaDevicesTypes::Constraints, Constraints)
-      ZS_DECLARE_TYPEDEF_PTR(IMediaDevicesTypes::PromiseWithDeviceList, PromiseWithDeviceList)
-      ZS_DECLARE_TYPEDEF_PTR(IMediaDevicesTypes::PromiseWithMediaStreamTrackListPtr, PromiseWithMediaStreamTrackListPtr)
+      ZS_DECLARE_TYPEDEF_PTR(IMediaDevicesTypes::Constraints, Constraints);
+      ZS_DECLARE_TYPEDEF_PTR(IMediaDevicesTypes::PromiseWithDeviceList, PromiseWithDeviceList);
+      ZS_DECLARE_TYPEDEF_PTR(IMediaDevicesTypes::PromiseWithMediaStreamTrackList, PromiseWithMediaStreamTrackList);
+      ZS_DECLARE_TYPEDEF_PTR(IMediaDevicesTypes::PromiseWithSettingsList, PromiseWithSettingsList);
 
       virtual void onEnumerateDevices(PromiseWithDeviceListPtr promise) = 0;
+      virtual void onEnumerateDefaultModes(PromiseWithSettingsListPtr promise, const char *deviceID) = 0;
 
       virtual void onGetUserMedia(PromiseWithMediaStreamTrackListPtr promise, ConstraintsPtr constraints) = 0;
     };
@@ -100,9 +102,10 @@ namespace ortc
       };
       static const char *toString(States state);
 
-      ZS_DECLARE_TYPEDEF_PTR(IMediaDevicesTypes::Constraints, Constraints)
-      ZS_DECLARE_TYPEDEF_PTR(IMediaDevicesTypes::PromiseWithDeviceList, PromiseWithDeviceList)
-      ZS_DECLARE_TYPEDEF_PTR(IMediaDevicesTypes::PromiseWithMediaStreamTrackList, PromiseWithMediaStreamTrackList)
+      ZS_DECLARE_TYPEDEF_PTR(IMediaDevicesTypes::Constraints, Constraints);
+      ZS_DECLARE_TYPEDEF_PTR(IMediaDevicesTypes::PromiseWithDeviceList, PromiseWithDeviceList);
+      ZS_DECLARE_TYPEDEF_PTR(IMediaDevicesTypes::PromiseWithMediaStreamTrackList, PromiseWithMediaStreamTrackList);
+      ZS_DECLARE_TYPEDEF_PTR(IMediaDevicesTypes::PromiseWithSettingsList, PromiseWithSettingsList);
 
     public:
       MediaDevices(
@@ -138,6 +141,7 @@ namespace ortc
       static SupportedConstraintsPtr getSupportedConstraints();
 
       static PromiseWithDeviceListPtr enumerateDevices();
+      static PromiseWithSettingsListPtr enumerateDefaultModes(const char *deviceID);
 
       static PromiseWithMediaStreamTrackListPtr getUserMedia(const Constraints &constraints = Constraints());
 
@@ -163,6 +167,10 @@ namespace ortc
       #pragma mark
 
       virtual void onEnumerateDevices(PromiseWithDeviceListPtr promise) override;
+      virtual void onEnumerateDefaultModes(
+                                           PromiseWithSettingsListPtr promise,
+                                           const char *deviceID
+                                           ) override;
 
       virtual void onGetUserMedia(PromiseWithMediaStreamTrackListPtr promise, ConstraintsPtr constraints) override;
 
@@ -223,10 +231,11 @@ namespace ortc
 
     interaction IMediaDevicesFactory
     {
-      typedef IMediaDevicesTypes::Constraints Constraints;
-      typedef IMediaDevicesTypes::SupportedConstraintsPtr SupportedConstraintsPtr;
-      typedef IMediaDevicesTypes::PromiseWithDeviceListPtr PromiseWithDeviceListPtr;
-      typedef IMediaDevicesTypes::PromiseWithMediaStreamTrackListPtr PromiseWithMediaStreamTrackListPtr;
+      ZS_DECLARE_TYPEDEF_PTR(IMediaDevicesTypes::Constraints, Constraints);
+      ZS_DECLARE_TYPEDEF_PTR(IMediaDevicesTypes::SupportedConstraints, SupportedConstraints);
+      ZS_DECLARE_TYPEDEF_PTR(IMediaDevicesTypes::PromiseWithDeviceList, PromiseWithDeviceList);
+      ZS_DECLARE_TYPEDEF_PTR(IMediaDevicesTypes::PromiseWithMediaStreamTrackList, PromiseWithMediaStreamTrackList);
+      ZS_DECLARE_TYPEDEF_PTR(IMediaDevicesTypes::PromiseWithSettingsList, PromiseWithSettingsList);
 
       static IMediaDevicesFactory &singleton();
 
@@ -237,6 +246,7 @@ namespace ortc
       virtual SupportedConstraintsPtr getSupportedConstraints();
 
       virtual PromiseWithDeviceListPtr enumerateDevices();
+      virtual PromiseWithSettingsListPtr enumerateDefaultModes(const char *deviceID);
 
       virtual PromiseWithMediaStreamTrackListPtr getUserMedia(const Constraints &constraints = Constraints());
 
@@ -252,6 +262,7 @@ ZS_DECLARE_PROXY_TYPEDEF(ortc::IMediaDevicesTypes::ConstraintsPtr, ConstraintsPt
 ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::IMediaDevicesAsyncDelegate::PromiseWithDeviceListPtr, PromiseWithDeviceListPtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::IMediaDevicesAsyncDelegate::PromiseWithMediaStreamTrackListPtr, PromiseWithMediaStreamTrackListPtr)
 ZS_DECLARE_PROXY_METHOD_1(onEnumerateDevices, PromiseWithDeviceListPtr)
+ZS_DECLARE_PROXY_METHOD_2(onEnumerateDefaultModes, PromiseWithSettingsListPtr, const char *)
 ZS_DECLARE_PROXY_METHOD_2(onGetUserMedia, PromiseWithMediaStreamTrackListPtr, ConstraintsPtr)
 ZS_DECLARE_PROXY_END()
 

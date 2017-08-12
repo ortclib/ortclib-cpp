@@ -1,0 +1,360 @@
+/*
+
+ Copyright (c) 2017, Optical Tone Ltd.
+ All rights reserved.
+
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+
+ 1. Redistributions of source code must retain the above copyright notice, this
+ list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright notice,
+ this list of conditions and the following disclaimer in the documentation
+ and/or other materials provided with the distribution.
+
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+ The views and conclusions contained in the software and documentation are those
+ of the authors and should not be interpreted as representing official policies,
+ either expressed or implied, of the FreeBSD Project.
+ 
+ */
+
+namespace org
+{
+  namespace ortc
+  {
+    namespace adapter
+    {
+      /// <summary>
+      /// The RTCSdpType enum describes the type of RTCSessionDescription
+      /// instance.
+      /// </summary>
+      enum RTCSdpType
+      {
+        /// <summary>
+        /// An RTCSdpType of offer indicates that a description must be
+        /// treated as an [RTC3264] offer.
+        /// </summary>
+        offer,
+        /// <summary>
+        /// An RTCSdpType of pranswer indicates that a description must be
+        /// treated as an [RTC3264] answer, but not a final answer. A
+        /// description used as an SDP pranswer may be applied as a response
+        /// to an SDP offer, or an update to a previously sent SDP pranswer.
+        /// </summary>
+        pranswer,
+        /// <summary>
+        /// The format of the description is that of an SDP answer.
+        /// </summary>
+        answer,
+        /// <summary>
+        /// The format of the description is that of an SDP rollback.
+        /// </summary>
+        rollback,
+      };
+  
+      /// <summary>
+      /// Defines the session description's signalling mechanism.
+      /// </summary>
+      enum RTCSessionDescriptionSignalingType
+      {
+        /// <summary>
+        /// The format of the description is that of a JSON blob.
+        /// </summary>
+        json,
+        /// <summary>
+        /// The format of the description is that of an SDP offer.
+        /// </summary>
+        sdpOffer,
+        /// <summary>
+        /// The format of the description is that of an SDP pre-answer.
+        /// </summary>
+        sdpPranswer,
+        /// <summary>
+        /// The format of the description is that of an SDP answer.
+        /// </summary>
+        sdpAnswer,
+        /// <summary>
+        /// The format of the description is that of an SDP rollback.
+        /// </summary>
+        sdpRollback,
+      };
+
+      /// <summary>
+      /// Defines the session description's media type as described in
+      /// [RFC4566] Section 5.14 for the media line.
+      /// </summary>
+      /// <example>
+      /// <code>
+      /// m=audio 49170 RTP/AVP 0
+      /// m=video 51372 RTP/AVP 99
+      /// </code>
+      /// </example>
+      enum RTCSessionDescriptionMediaType
+      {
+        /// <summary>
+        /// This object represents an unknown media type.
+        /// </summary>
+        unknown,
+        /// <summary>
+        /// This object represents an audio media type.
+        /// </summary>
+        audio,
+        /// <summary>
+        /// This object represents a video media type.
+        /// </summary>
+        video,
+        /// <summary>
+        /// This object represents a text media type.
+        /// </summary>
+        text,
+        /// <summary>
+        /// This object represents an application media type.
+        /// </summary>
+        application,
+      };
+
+      /// <summary>
+      /// Defines the session description direction in which media is flowing.
+      /// </summary>
+      /// <example>
+      /// <code>
+      /// a=sendrecv
+      /// a=sendonly
+      /// a=recvonly
+      /// a=inactive
+      /// </code>
+      /// </example>
+      enum RTCSessionDescriptionMediaDirection
+      {
+        /// <summary>
+        /// As defined in [RFC4566], media should be started in send and
+        /// receive mode.
+        /// </summary>
+        sendReceive,
+        /// <summary>
+        /// As defined in [RFC4566], media should be started in send-only mode.
+        /// </summary>
+        sendOnly,
+        /// <summary>
+        /// As defined in [RFC4566], media should be started in receive-only
+        /// mode.
+        /// </summary>
+        receiveOnly,
+        /// <summary>
+        /// As defined in [RFC4566], media should be started in inactive mode.
+        /// </summary>
+        inactive,
+      };
+
+      /// <summary>
+      /// As described in [draft-ietf-rtcweb-jsep] (section 4.1.1.), BUNDLE
+      /// policy affects which media tracks are negotiated if the remote
+      /// endpoint is not BUNDLE-aware, and what ICE candidates are gathered.
+      /// </summary>
+      enum RTCBundlePolicy
+      {
+        /// <summary>
+        /// Gather ICE candidates for each media type in use (audio, video,
+        /// and data). If the remote endpoint is not BUNDLE-aware, negotiate
+        /// only one audio and video track on separate transports.
+        /// </summary>
+        balanced,
+        /// <summary>
+        /// Gather ICE candidates for each track. If the remote endpoint is
+        /// not BUNDLE-aware, negotiate all media tracks on separate
+        /// transports.
+        /// </summary>
+        maxCompat,
+        /// <summary>
+        /// Gather ICE candidates for only one track. If the remote endpoint
+        /// is not BUNDLE-aware, negotiate only one media track.
+        /// </summary>
+        maxBundle,
+      };
+
+      /// <summary>
+      /// The RtcpMuxPolicy affects what ICE candidates are gathered to
+      /// support non-multiplexed RTCP.
+      /// </summary>
+      enum RTCRtcpMuxPolicy
+      {
+        /// <summary>
+        /// Gather ICE candidates for both RTP and RTCP candidates. If the
+        /// remote-endpoint is capable of multiplexing RTCP, multiplex RTCP on
+        /// the RTP candidates. If it is not, use both the RTP and RTCP
+        /// candidates separately.
+        /// </summary>
+        negotiated,
+        /// <summary>
+        /// Gather ICE candidates only for RTP and multiplex RTCP on the RTP
+        /// candidates. If the remote endpoint is not capable of rtcp-mux,
+        /// session negotiation will fail.
+        /// </summary>
+        require,
+      };
+
+      /// <summary>
+      /// The RTCPeerConnectionSignalingMode defines the signaling type to be
+      /// used with signaling modes.
+      /// </summary>
+      enum RTCPeerConnectionSignalingMode
+      {
+        /// <summary>
+        /// Use JSON capabilities exchange style signaling with the peer
+        /// connection.
+        /// </summary>
+        json,
+        /// <summary>
+        ///  Use SDP offer/answer exchange style signaling with the peer
+        /// connection.
+        /// </summary>
+        sdp,
+      };
+
+      /// <summary>
+      /// The RTCSignalingState describes the current state of an offer / 
+      /// answer exchanged as it relates to the SDP negotiation process. WHen
+      /// JSON style signaling is used the state is always Stable.
+      /// </summary>
+      enum RTCSignalingState
+      {
+        /// <summary>
+        /// There is no offer­answer exchange in progress. This is also the
+        /// initial state in which case the local and remote descriptions are
+        /// empty.
+        /// </summary>
+        stable,
+        /// <summary>
+        /// A local description, of type "offer", has been successfully
+        /// applied.
+        /// </summary>
+        haveLocalOffer,
+        /// <summary>
+        /// A remote description, of type "offer", has been successfully
+        /// applied.
+        /// </summary>
+        haveRemoteOffer,
+        /// <summary>
+        /// A remote description of type "offer" has been successfully
+        /// applied and a local description of type "pranswer" has been
+        /// successfully applied.
+        /// </summary>
+        haveLocalPranswer,
+        /// <summary>
+        /// A local description of type "offer" has been successfully applied
+        /// and a remote description of type "pranswer" has been successfully
+        /// applied.
+        /// </summary>
+        haveRemotePranswer,
+        /// <summary>
+        /// The connection is closed.
+        /// </summary>
+        closed,
+      };
+
+      /// <summary>
+      /// The RTCIceConnectionState indicates the combined state of all the
+      /// RTCIceTransport objects states.
+      /// </summary>
+      enum RTCIceConnectionState
+      {
+        /// <summary>
+        /// The ICE Agent is gathering addresses and/or waiting for remote
+        /// candidates to be supplied.
+        /// </summary>
+        new,
+        /// <summary>
+        /// The ICE Agent has received remote candidates on at least one
+        /// component, and is checking candidate pairs but has not yet found a
+        /// connection. In addition to checking, it may also still be
+        /// gathering.
+        /// </summary>
+        checking,
+        /// <summary>
+        /// The ICE Agent has found a usable connection for all components but
+        /// is still checking other candidate pairs to see if there is a
+        /// better connection. It may also still be gathering.
+        /// </summary>
+        connected,
+        /// <summary>
+        /// The ICE Agent has finished gathering and checking and found a
+        /// connection for all components. Details on how the completed state
+        /// in ICE is reached are covered in [RFC5245].
+        /// </summary>
+        completed,
+        /// <summary>
+        /// Liveness checks have failed for one or more components. This is
+        /// more aggressive than failed, and may trigger intermittently (and
+        /// resolve itself without action) on a flaky network.
+        /// </summary>
+        disconnected,
+        /// <summary>
+        /// The ICE Agent is finished checking all candidate pairs and failed
+        /// to find a connection for at least one component. Connections may
+        /// have been found for some components.
+        /// </summary>
+        failed,
+        /// <summary>
+        /// The ICE Agent has shut down and is no longer responding to STUN
+        /// requests.
+        /// </summary>
+        closed,
+      };
+
+      /// <summary>
+      /// The RTCPeerConnectionState indicates the combined state of all the
+      /// RTCIceTransport and RTCDtlsTransport objects states.
+      /// </summary>
+      enum RTCPeerConnectionState
+      {
+        /// <summary>
+        /// Any of the RTCIceTransports or RTCDtlsTransports are in the new
+        /// state and none of the transports are in the connecting, checking,
+        /// failed or disconnected state, or all transports are in the closed
+        /// state.
+        /// </summary>
+        new,
+        /// <summary>
+        /// Any of the RTCIceTransports or RTCDtlsTransports are in the
+        /// connecting or checking state and none of them is in the failed
+        /// state.
+        /// </summary>
+        connecting,
+        /// <summary>
+        /// All RTCIceTransports and RTCDtlsTransports are in the connected,
+        /// completed or closed state and at least of them is in the connected
+        /// or completed state.
+        /// </summary>
+        connected,
+        /// <summary>
+        /// Any of the RTCIceTransports or RTCDtlsTransports are in the
+        /// disconnected state and none of them are in the failed or
+        /// connecting or checking state.
+        /// </summary>
+        disconnected,
+        /// <summary>
+        /// Any of the RTCIceTransports or RTCDtlsTransports are in a failed
+        /// state.
+        /// </summary>
+        failed,
+        /// <summary>
+        /// The RTCPeerConnection object's IsClosed slot is true.
+        /// </summary>
+        closed,
+      };
+
+    }
+
+  }
+}

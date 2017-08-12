@@ -430,7 +430,7 @@ namespace ortc
 
       virtual IRTPReceiverSubscriptionPtr subscribe(IRTPReceiverDelegatePtr delegate) override;
 
-      virtual IMediaStreamTrackPtr track() const override;
+      virtual ortc::IMediaStreamTrackPtr track() const override;
       virtual IRTPTransportPtr transport() const override;
       virtual IRTCPTransportPtr rtcpTransport() const override;
 

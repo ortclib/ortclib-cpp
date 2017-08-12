@@ -1,0 +1,285 @@
+/*
+
+ Copyright (c) 2017, Optical Tone Ltd.
+ All rights reserved.
+
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+
+ 1. Redistributions of source code must retain the above copyright notice, this
+ list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright notice,
+ this list of conditions and the following disclaimer in the documentation
+ and/or other materials provided with the distribution.
+
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+ The views and conclusions contained in the software and documentation are those
+ of the authors and should not be interpreted as representing official policies,
+ either expressed or implied, of the FreeBSD Project.
+ 
+ */
+
+namespace org
+{
+  namespace ortc
+  {
+    interface RTCDataTransport
+    {
+      [constructor, delete]
+      void RTCDataTransport();
+    };
+
+    /// <summary>
+    /// An RTCDataChannel can be configured to operate in different
+    /// reliability modes. A reliable channel ensures that the data is
+    /// delivered at the other peer through retransmissions. An unreliable
+    /// channel is configured to either limit the number of retransmissions
+    /// (maxRetransmits ) or set a time during which transmissions (including
+    /// retransmissions) are allowed (maxPacketLifeTime). These properties
+    /// can not be used simultaneously and an attempt to do so will result in
+    /// an error. Not setting any of these properties results in a reliable
+    /// channel.
+    /// </summary>
+    [dictionary]
+    struct RTCDataChannelParameters
+    {
+      /// <summary>
+      /// Gets or sets a label that can be used to distinguish this
+      /// RTCDataChannel object from other RTCDataChannel objects.
+      /// </summary>
+      string            label;
+      /// <summary>
+      /// Gets or sets the if the RTCDataChannel is ordered, and false if out
+      /// of order delivery is allowed.
+      /// </summary>
+      bool              ordered = true;
+      /// <summary>
+      /// Gets or sets the maxPacketLifetime attribute represents the length
+      /// of the time window (in milliseconds) during which retransmissions
+      /// may occur in unreliable mode. A value of 0 means not used.
+      /// </summary>
+      Milliseconds      maxPacketLifetime;
+      /// <summary>
+      /// Gets or sets the maxRetransmits attribute returns the maximum number
+      /// of retransmissions that are attempted in unreliable mode if set.
+      /// </summary>
+      uint32            maxRetransmits;
+      /// <summary>
+      /// Custom definition of the protocol being carried over the data channel.
+      /// </summary>
+      string            protocol;
+      /// <summary>
+      /// Gets or sets an indicator if the this RTCDataChannel was negotiated
+      /// by the application. If true, the application negotiated the
+      /// RTCDataChannel, otherwise the value is false.
+      /// </summary>
+      bool              negotiated;
+      /// <summary>
+      /// The id attribute returns the id for this RTCDataChannel if set.
+      /// </summary>
+      [optional]
+      uint16            id;
+
+      /// <summary>
+      /// Constructs an instance of an RTCDataChannelParameters instance.
+      /// </summary>
+      [constructor, default]
+      void RTCDataChannelParameters();
+      /// <summary>
+      /// Constructs an instance of an RTCDataChannelParameters instance cloning from an existing instance.
+      /// </summary>
+      [constructor, altname(RTCDataChannelParametersClone)]
+      void RTCDataChannelParameters(RTCDataChannelParameters source);
+      /// <summary>
+      /// Constructs an instance of an RTCDataChannelParameters instance from a JSON object.
+      /// </summary>
+      [constructor, default, altname(RTCDataChannelParametersWithJson)]
+      void RTCDataChannelParameters(Json json);
+
+      /// <summary>
+      /// A helper routine to convert the object's data to structured JSON object data.
+      /// </summary>
+      Json toJson();
+      /// <summary>
+      /// Return a hash of the data contained within the object.
+      /// </summary>
+      string hash();
+    };
+
+    /// <summary>
+    /// RTCDataChannelStateChangeEvent represents the ready state event
+    /// fired when the RTCDataChannel state is changed.
+    /// </summary>
+    struct RTCDataChannelStateChangeEvent
+    {
+      [constructor, delete]
+      void RTCDataChannelStateChangeEvent();
+
+      /// <summary>
+      /// The RTCDataChannelState that cased the event to fire.
+      /// </summary>
+      [getter]
+      RTCDataChannelState state;
+    };
+
+    /// <summary>
+    /// RTCMessageEvent represents the event data when a message from the
+    /// RTCDataChannel is fired.
+    /// </summary>
+    struct RTCMessageEvent
+    {
+      [constructor, delete]
+      void RTCMessageEvent();
+
+      /// <summary>
+      /// Gets the binary message being sent. Only set if the data was binary.
+      /// </summary>
+      [getter]
+      binary binary;
+
+      /// <summary>
+      /// Gets the binary message being sent. Only set if the data was text.
+      /// </summary>
+      [getter]
+      string text;
+    };
+
+    /// <summary>
+    /// An RTCDataChannel class instance allows sending data messages to/from
+    /// the remote peer.
+    /// </summary>
+    interface RTCDataChannel : RTCStatsProvider
+    {
+      /// <summary>
+      /// Constructs an instance of RTCDataChannel object from a
+      /// RTCDataTransport object and an RTCDataChannelParameters object.
+      /// </summary>
+      [constructor]
+      void RTCDataChannel(RTCDataTransport transport, RTCDataChannelParameters params) throws (InvalidParameters, InvalidStateError);
+
+      /// <summary>
+      /// Gets a unique object instance identifier for this object.
+      /// </summary>
+      [getter]
+      puid objectId;
+
+      /// <summary>
+      /// Gets or sets the related transport object.
+      /// </summary>
+      [getter]
+      RTCDataTransport transport;
+
+      /// <summary>
+      /// Gets or sets the parameters applying to this data channel.
+      /// </summary>
+      [getter]
+      RTCDataChannelParameters parameters;
+
+      /// <summary>
+      /// Gets or sets the state of the RTCDataChannel object. It must return
+      /// the value to which the user agent last set it (as defined by the
+      /// processing model algorithms).
+      /// </summary>
+      [getter]
+      RTCDataChannelState readyState;
+
+      /// <summary>
+      /// Gets the number of bytes of application data (UTF-8 text and binary
+      /// data) that have been queued using send() but that, as of the last
+      /// time the event loop started executing a task, had not yet been
+      /// transmitted to the network.
+      /// </summary>
+      [getter]
+      size_t bufferedAmount;
+
+      /// <summary>
+      /// Gets or sets the threshold at which the BufferedAmount is considered
+      /// to be low. When the bufferedAmount decreases from above this
+      /// threshold to equal or below it, the bufferedamountlow event fires.
+      /// The bufferedAmountLowThreshold is initially zero on each new
+      /// RTCDataChannel, but the application may change its value at any
+      /// time.
+      /// </summary>
+      [getter, setter]
+      size_t bufferedAmountLowThreshold;
+
+      /// <summary>
+      /// Gets or sets the binaryType attribute. On getting, return the value
+      /// to which it was last set. On setting, the user agent must set the
+      /// IDL attribute to the new value. When an RTCDataChannel object is
+      /// constructed, the binaryType attribute must be initialized to the
+      /// string 'blob'. This attribute controls how binary data is exposed to
+      /// scripts.
+      /// </summary>
+      [getter, setter]
+      string binaryType;
+
+      /// <summary>
+      /// Closes the RTCDataChannel.
+      /// </summary>
+      void close();
+
+      /// <summary>
+      /// The Send() method is overloaded to handle different data argument
+      /// types. This Send() method transmits a string to the remote peer.
+      /// </summary>
+      [default, altname(sendWithString)]
+      void send(string text) throws (InvalidParameters, InvalidStateError);
+      /// <summary>
+      /// The Send() method is overloaded to handle different data argument
+      /// types. This Send() method transmits a binary blob to the remote
+      /// peer.
+      /// </summary>
+      [altname(sendWithBinary)]
+      void send(binary data) throws (InvalidParameters, InvalidStateError);
+
+      /// <summary>
+      /// The event handler when the state of the RTCDataChannel is open.
+      /// </summary>
+      [event]
+      void onOpen();
+
+      /// <summary>
+      /// The event handler when the state of the RTCDataChannel is closed.
+      /// </summary>
+      [event]
+      void onClose();
+
+      /// <summary>
+      /// The event handler when the state of the RTCDataChannel object
+      //// changes.
+      /// </summary>
+      [event]
+      void onStateChange(RTCDataChannelStateChangeEvent event);
+
+      /// <summary>
+      /// The error event handler for the RTCDataChannel.
+      /// </summary>
+      [event]
+      void onError(ErrorEvent event);
+
+      /// <summary>
+      /// The event handler when the BufferedAmount falls below the
+      /// BufferedAmountLowThreshold.
+      /// </summary>
+      [event]
+      void onBufferedAmountLow();
+
+      /// <summary>
+      /// The event handler when data from the remote peer arrives.
+      /// </summary>
+      [event]
+      void onMessage(RTCMessageEvent event);
+    };
+  }
+}

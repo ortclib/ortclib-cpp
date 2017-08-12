@@ -48,13 +48,23 @@ namespace ortc
   
   interaction IMediaDevicesTypes : public IMediaStreamTrackTypes
   {
-    ZS_DECLARE_STRUCT_PTR(SupportedConstraints)
-    ZS_DECLARE_STRUCT_PTR(Device)
-    ZS_DECLARE_STRUCT_PTR(DeviceList)
-    ZS_DECLARE_STRUCT_PTR(MediaStreamTrackList)
+    ZS_DECLARE_STRUCT_PTR(SupportedConstraints);
+    ZS_DECLARE_STRUCT_PTR(Device);
+    ZS_DECLARE_STRUCT_PTR(DeviceList);
+    ZS_DECLARE_STRUCT_PTR(MediaStreamTrackList);
 
-    ZS_DECLARE_TYPEDEF_PTR(PromiseWith<MediaStreamTrackListPtr>, PromiseWithMediaStreamTrackList)
-    ZS_DECLARE_TYPEDEF_PTR(PromiseWith<DeviceListPtr>, PromiseWithDeviceList)
+    ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::Settings, Settings);
+
+    struct SettingsList : public std::list<Settings>,
+                          public Any
+    {
+    };
+
+    ZS_DECLARE_PTR(SettingsList);
+
+    ZS_DECLARE_TYPEDEF_PTR(zsLib::PromiseWith<MediaStreamTrackList>, PromiseWithMediaStreamTrackList);
+    ZS_DECLARE_TYPEDEF_PTR(zsLib::PromiseWith<DeviceList>, PromiseWithDeviceList);
+    ZS_DECLARE_TYPEDEF_PTR(zsLib::PromiseWith<SettingsList>, PromiseWithSettingsList);
 
     enum DeviceKinds
     {
@@ -86,6 +96,7 @@ namespace ortc
       bool mSampleSize {false};
       bool mEchoCancellation {false};
       bool mLatency {false};
+      bool mChannelCount {false};
       bool mDeviceID {false};
       bool mGroupID {false};
 
@@ -104,8 +115,9 @@ namespace ortc
     #pragma mark IMediaDevices::Device
     #pragma mark
 
-    struct Device {
-      DeviceKinds mKind {DeviceKind_First};
+    struct Device
+    {
+       DeviceKinds mKind {DeviceKind_First};
 
       String mLabel;
       String mDeviceID;
@@ -173,6 +185,7 @@ namespace ortc
     static SupportedConstraintsPtr getSupportedConstraints();
 
     static PromiseWithDeviceListPtr enumerateDevices();
+    static PromiseWithSettingsListPtr enumerateDefaultModes(const char *deviceID);
 
     static PromiseWithMediaStreamTrackListPtr getUserMedia(const Constraints &constraints = Constraints());
 

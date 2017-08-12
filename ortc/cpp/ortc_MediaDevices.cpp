@@ -263,10 +263,26 @@ namespace ortc
       }
 
       IMediaDevicesAsyncDelegateProxy::create(pThis)->onEnumerateDevices(promise);
-
       return promise;
     }
 
+
+    //-------------------------------------------------------------------------
+    IMediaDevicesTypes::PromiseWithSettingsListPtr MediaDevices::enumerateDefaultModes(const char *deviceID)
+    {
+      PromiseWithSettingsListPtr promise = PromiseWithSettingsList::create(IORTCForInternal::queueDelegate());
+
+      MediaDevicesPtr pThis(MediaDevices::singleton());
+
+      if (!pThis) {
+        ZS_LOG_WARNING(Basic, slog("media devices singleton is gone"))
+        promise->reject();
+        return promise;
+      }
+
+      IMediaDevicesAsyncDelegateProxy::create(pThis)->onEnumerateDefaultModes(promise, deviceID);
+      return promise;
+    }
 
     //-------------------------------------------------------------------------
     IMediaDevicesTypes::PromiseWithMediaStreamTrackListPtr MediaDevices::getUserMedia(const Constraints &constraints)
@@ -398,8 +414,15 @@ namespace ortc
       }
       delete info;
 
+      webrtc::AudioDeviceModule::AudioLayer audioLayer;
+#ifdef WINRT
+      audioLayer = webrtc::AudioDeviceModule::kWindowsWasapiAudio;
+#else
+      audioLayer = webrtc::AudioDeviceModule::kPlatformDefaultAudio;
+#endif
+
       rtc::scoped_refptr<webrtc::AudioDeviceModule> audioDevice =
-        webrtc::AudioDeviceModuleImpl::Create(1, webrtc::AudioDeviceModule::kWindowsWasapiAudio);
+        webrtc::AudioDeviceModuleImpl::Create(1, audioLayer);
       if (!audioDevice) {
         promise->reject();
         return;
@@ -436,6 +459,18 @@ namespace ortc
       audioDevice->Terminate();
 
       promise->resolve(value);
+    }
+
+    //-------------------------------------------------------------------------
+    void MediaDevices::onEnumerateDefaultModes(
+                                               PromiseWithSettingsListPtr promise,
+                                               const char *deviceID
+                                               )
+    {
+      AutoRecursiveLock lock(*this);
+#define TODO_ENUMERATE_MODES 1
+#define TODO_ENUMERATE_MODES 2
+      promise->reject(ErrorAny::create(UseHTTP::HTTPStatusCode_NotImplemented, "method not implemented"));
     }
 
     //-------------------------------------------------------------------------
@@ -848,6 +883,7 @@ namespace ortc
     IHelper::adoptElementValue(elem, "sampleSize", mSampleSize);
     IHelper::adoptElementValue(elem, "echoCancellation", mEchoCancellation);
     IHelper::adoptElementValue(elem, "latency", mLatency);
+    IHelper::adoptElementValue(elem, "channelCount", mChannelCount);
     IHelper::adoptElementValue(elem, "deviceId", mDeviceID);
     IHelper::adoptElementValue(elem, "groupId", mGroupID);
 
@@ -870,6 +906,7 @@ namespace ortc
     IHelper::debugAppend(resultEl, "sample rate", mSampleRate);
     IHelper::debugAppend(resultEl, "echo cancellation", mEchoCancellation);
     IHelper::debugAppend(resultEl, "latency", mLatency);
+    IHelper::debugAppend(resultEl, "channel count", mChannelCount);
     IHelper::debugAppend(resultEl, "device id", mDeviceID);
     IHelper::debugAppend(resultEl, "group id", mGroupID);
 
@@ -899,6 +936,8 @@ namespace ortc
     hasher->update(mEchoCancellation);
     hasher->update(":");
     hasher->update(mLatency);
+    hasher->update(":");
+    hasher->update(mChannelCount);
     hasher->update(":");
     hasher->update(mDeviceID);
     hasher->update(":");
@@ -1016,7 +1055,7 @@ namespace ortc
     for (auto iter = begin(); iter != end(); ++iter)
     {
       auto &track = (*iter);
-      IHelper::debugAppend(resultEl, IMediaStreamTrack::toDebug(track));
+      IMediaStreamTrack::trace(track);
     }
 
     return resultEl;

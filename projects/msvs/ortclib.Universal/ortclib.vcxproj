@@ -46,6 +46,14 @@
     <ClInclude Include="..\..\..\ortc\IDataChannel.h" />
     <ClInclude Include="..\..\..\ortc\IDataChannelTypes.h" />
     <ClInclude Include="..\..\..\ortc\IDataTransport.h" />
+    <ClInclude Include="..\..\..\ortc\idl\Ortc.idl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClInclude>
     <ClInclude Include="..\..\..\ortc\IDTLSTransport.h" />
     <ClInclude Include="..\..\..\ortc\IDTMFSender.h" />
     <ClInclude Include="..\..\..\ortc\IHelper.h" />
@@ -55,7 +63,9 @@
     <ClInclude Include="..\..\..\ortc\IICETypes.h" />
     <ClInclude Include="..\..\..\ortc\IIdentity.h" />
     <ClInclude Include="..\..\..\ortc\IMediaDevices.h" />
+    <ClInclude Include="..\..\..\ortc\IMediaElement.h" />
     <ClInclude Include="..\..\..\ortc\IMediaStreamTrack.h" />
+    <ClInclude Include="..\..\..\ortc\IMediaStreamTrackSelector.h" />
     <ClInclude Include="..\..\..\ortc\internal\ifaddrs-android.h" />
     <ClInclude Include="..\..\..\ortc\internal\ortc.events.h" />
     <ClInclude Include="..\..\..\ortc\internal\ortc.events_win.h" />
@@ -64,8 +74,17 @@
     <ClInclude Include="..\..\..\ortc\internal\ortc.stats.events.h" />
     <ClInclude Include="..\..\..\ortc\internal\ortc.stats.events_win.h" />
     <ClInclude Include="..\..\..\ortc\internal\ortc.stats.events_win_etw.h" />
+    <ClInclude Include="..\..\..\ortc\internal\ortc_IMediaStreamTrack.h" />
+    <ClInclude Include="..\..\..\ortc\internal\ortc_IMediaStreamTrackChannel.h" />
+    <ClInclude Include="..\..\..\ortc\internal\ortc_IMediaStreamTrackMonitor.h" />
+    <ClInclude Include="..\..\..\ortc\internal\ortc_IMediaStreamTrackSubscriber.h" />
+    <ClInclude Include="..\..\..\ortc\internal\ortc_IRTP.h" />
+    <ClInclude Include="..\..\..\ortc\internal\ortc_MediaChannelTraceHelper.h" />
+    <ClInclude Include="..\..\..\ortc\internal\ortc_MediaDeviceCaptureAudio.h" />
+    <ClInclude Include="..\..\..\ortc\internal\ortc_MediaDeviceCaptureVideo.h" />
     <ClInclude Include="..\..\..\ortc\internal\ortc_Certificate.h" />
     <ClInclude Include="..\..\..\ortc\internal\ortc_DataChannel.h" />
+    <ClInclude Include="..\..\..\ortc\internal\ortc_MediaDeviceRenderAudio.h" />
     <ClInclude Include="..\..\..\ortc\internal\ortc_DTLSTransport.h" />
     <ClInclude Include="..\..\..\ortc\internal\ortc_DTMFSender.h" />
     <ClInclude Include="..\..\..\ortc\internal\ortc_Helper.h" />
@@ -74,25 +93,29 @@
     <ClInclude Include="..\..\..\ortc\internal\ortc_ICETransport.h" />
     <ClInclude Include="..\..\..\ortc\internal\ortc_ICETransportController.h" />
     <ClInclude Include="..\..\..\ortc\internal\ortc_Identity.h" />
+    <ClInclude Include="..\..\..\ortc\internal\ortc_IMediaDevice.h" />
+    <ClInclude Include="..\..\..\ortc\internal\ortc_IMediaDeviceCapture.h" />
+    <ClInclude Include="..\..\..\ortc\internal\ortc_IMediaDeviceRender.h" />
+    <ClInclude Include="..\..\..\ortc\internal\ortc_IRTPDecoder.h" />
+    <ClInclude Include="..\..\..\ortc\internal\ortc_IRTPEncoder.h" />
     <ClInclude Include="..\..\..\ortc\internal\ortc_ISecureTransport.h" />
     <ClInclude Include="..\..\..\ortc\internal\ortc_ISRTPTransport.h" />
     <ClInclude Include="..\..\..\ortc\internal\ortc_MediaDevices.h" />
+    <ClInclude Include="..\..\..\ortc\internal\ortc_MediaEngine.h" />
     <ClInclude Include="..\..\..\ortc\internal\ortc_MediaStreamTrack.h" />
+    <ClInclude Include="..\..\..\ortc\internal\ortc_MediaStreamTrackChannel.h" />
+    <ClInclude Include="..\..\..\ortc\internal\ortc_MediaStreamTrackSubscriberMedia.h" />
+    <ClInclude Include="..\..\..\ortc\internal\ortc_MediaStreamTrackSubscriberRTP.h" />
     <ClInclude Include="..\..\..\ortc\internal\ortc_ORTC.h" />
-    <ClInclude Include="..\..\..\ortc\internal\ortc_RTCPPacket.h" />
+    <ClInclude Include="..\..\..\ortc\internal\ortc_RTPDecoderAudio.h" />
+    <ClInclude Include="..\..\..\ortc\internal\ortc_RTPDecoderVideo.h" />
+    <ClInclude Include="..\..\..\ortc\internal\ortc_RTPEncoderAudio.h" />
+    <ClInclude Include="..\..\..\ortc\internal\ortc_RTPEncoderVideo.h" />
     <ClInclude Include="..\..\..\ortc\internal\ortc_RTPListener.h" />
-    <ClInclude Include="..\..\..\ortc\internal\ortc_RTPMediaEngine.h" />
-    <ClInclude Include="..\..\..\ortc\internal\ortc_RTPPacket.h" />
     <ClInclude Include="..\..\..\ortc\internal\ortc_RTPReceiver.h" />
     <ClInclude Include="..\..\..\ortc\internal\ortc_RTPReceiverChannel.h" />
-    <ClInclude Include="..\..\..\ortc\internal\ortc_RTPReceiverChannelAudio.h" />
-    <ClInclude Include="..\..\..\ortc\internal\ortc_RTPReceiverChannelMediaBase.h" />
-    <ClInclude Include="..\..\..\ortc\internal\ortc_RTPReceiverChannelVideo.h" />
     <ClInclude Include="..\..\..\ortc\internal\ortc_RTPSender.h" />
     <ClInclude Include="..\..\..\ortc\internal\ortc_RTPSenderChannel.h" />
-    <ClInclude Include="..\..\..\ortc\internal\ortc_RTPSenderChannelAudio.h" />
-    <ClInclude Include="..\..\..\ortc\internal\ortc_RTPSenderChannelMediaBase.h" />
-    <ClInclude Include="..\..\..\ortc\internal\ortc_RTPSenderChannelVideo.h" />
     <ClInclude Include="..\..\..\ortc\internal\ortc_RTPTypes.h" />
     <ClInclude Include="..\..\..\ortc\internal\ortc_RTPUtils.h" />
     <ClInclude Include="..\..\..\ortc\internal\ortc_SCTPTransport.h" />
@@ -112,11 +135,29 @@
     <ClInclude Include="..\..\..\ortc\IStatsProvider.h" />
     <ClInclude Include="..\..\..\ortc\IStatsReport.h" />
     <ClInclude Include="..\..\..\ortc\ortc.h" />
+    <ClInclude Include="..\..\..\ortc\RTCPPacket.h" />
+    <ClInclude Include="..\..\..\ortc\RTPPacket.h" />
     <ClInclude Include="..\..\..\ortc\types.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\ortc\cpp\ortc.events.json" />
     <None Include="..\..\..\ortc\cpp\ortc.stats.events.json" />
+    <None Include="..\..\..\ortc\idl\config.json">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="..\..\..\ortc\idl\winuwp.json">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </None>
     <None Include="..\..\..\ortc\internal\ortc.events.jman" />
     <None Include="..\..\..\ortc\internal\ortc.events_win_etw.man" />
     <None Include="..\..\..\ortc\internal\ortc.events_win_etw.wprp" />
@@ -155,23 +196,27 @@
     <ClCompile Include="..\..\..\ortc\cpp\ortc_ICETypes.cpp" />
     <ClCompile Include="..\..\..\ortc\cpp\ortc_Identity.cpp" />
     <ClCompile Include="..\..\..\ortc\cpp\ortc_ISecureTransport.cpp" />
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_MediaChannelTraceHelper.cpp" />
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_MediaDevice.cpp" />
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_MediaDeviceCapture.cpp" />
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_MediaDeviceCaptureAudio.cpp" />
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_MediaDeviceCaptureVideo.cpp" />
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_MediaDeviceRenderAudio.cpp" />
     <ClCompile Include="..\..\..\ortc\cpp\ortc_MediaDevices.cpp" />
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_MediaEngine.cpp" />
     <ClCompile Include="..\..\..\ortc\cpp\ortc_MediaStreamTrack.cpp" />
     <ClCompile Include="..\..\..\ortc\cpp\ortc_ORTC.cpp" />
     <ClCompile Include="..\..\..\ortc\cpp\ortc_RTCPPacket.cpp" />
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPDecoderAudio.cpp" />
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPDecoderVideo.cpp" />
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPEncoderAudio.cpp" />
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPEncoderVideo.cpp" />
     <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPListener.cpp" />
-    <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPMediaEngine.cpp" />
     <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPPacket.cpp" />
     <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPReceiver.cpp" />
     <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPReceiverChannel.cpp" />
-    <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPReceiverChannelAudio.cpp" />
-    <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPReceiverChannelMediaBase.cpp" />
-    <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPReceiverChannelVideo.cpp" />
     <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPSender.cpp" />
     <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPSenderChannel.cpp" />
-    <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPSenderChannelAudio.cpp" />
-    <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPSenderChannelMediaBase.cpp" />
-    <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPSenderChannelVideo.cpp" />
     <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPTypes.cpp" />
     <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPUtils.cpp" />
     <ClCompile Include="..\..\..\ortc\cpp\ortc_SCTPTransport.cpp" />
@@ -180,6 +225,232 @@
     <ClCompile Include="..\..\..\ortc\cpp\ortc_SRTPTransport.cpp" />
     <ClCompile Include="..\..\..\ortc\cpp\ortc_StatsReport.cpp" />
     <ClCompile Include="..\..\..\ortc\cpp\ortc_webrtc.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Midl Include="..\..\..\ortc\idl\adapter\enums.idl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </Midl>
+    <Midl Include="..\..\..\ortc\idl\adapter\MediaStream.idl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </Midl>
+    <Midl Include="..\..\..\ortc\idl\adapter\PeerConnection.idl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </Midl>
+    <Midl Include="..\..\..\ortc\idl\adapter\SessionDescription.idl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </Midl>
+    <Midl Include="..\..\..\ortc\idl\Capabilities.idl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </Midl>
+    <Midl Include="..\..\..\ortc\idl\Certificate.idl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </Midl>
+    <Midl Include="..\..\..\ortc\idl\Constraints.idl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </Midl>
+    <Midl Include="..\..\..\ortc\idl\DataChannel.idl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </Midl>
+    <Midl Include="..\..\..\ortc\idl\DtmfSender.idl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </Midl>
+    <Midl Include="..\..\..\ortc\idl\DtlsTransport.idl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </Midl>
+    <Midl Include="..\..\..\ortc\idl\enums.idl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </Midl>
+    <Midl Include="..\..\..\ortc\idl\error.idl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </Midl>
+    <Midl Include="..\..\..\ortc\idl\IceGatherer.idl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </Midl>
+    <Midl Include="..\..\..\ortc\idl\IceTransport.idl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </Midl>
+    <Midl Include="..\..\..\ortc\idl\IceTransportController.idl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </Midl>
+    <Midl Include="..\..\..\ortc\idl\IceTypes.idl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </Midl>
+    <Midl Include="..\..\..\ortc\idl\Identity.idl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </Midl>
+    <Midl Include="..\..\..\ortc\idl\Logger.idl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </Midl>
+    <Midl Include="..\..\..\ortc\idl\MediaDevices.idl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </Midl>
+    <Midl Include="..\..\..\ortc\idl\MediaStreamTrack.idl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </Midl>
+    <Midl Include="..\..\..\ortc\idl\RtpListener.idl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </Midl>
+    <Midl Include="..\..\..\ortc\idl\RtpReceiver.idl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </Midl>
+    <Midl Include="..\..\..\ortc\idl\RtpSender.idl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </Midl>
+    <Midl Include="..\..\..\ortc\idl\RtpTypes.idl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </Midl>
+    <Midl Include="..\..\..\ortc\idl\SctpTransport.idl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </Midl>
+    <Midl Include="..\..\..\ortc\idl\SrtpSdesTransport.idl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </Midl>
+    <Midl Include="..\..\..\ortc\idl\StatsProvider.idl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </Midl>
+    <Midl Include="..\..\..\ortc\idl\StatsReport.idl">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </Midl>
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{83e6cc72-ebc5-4c0c-b6a6-2d67a3c1e8a9}</ProjectGuid>

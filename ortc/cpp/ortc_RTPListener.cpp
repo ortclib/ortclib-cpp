@@ -33,8 +33,6 @@
 #include <ortc/internal/ortc_RTPReceiver.h>
 #include <ortc/internal/ortc_RTPSender.h>
 #include <ortc/internal/ortc_DTLSTransport.h>
-#include <ortc/internal/ortc_RTPPacket.h>
-#include <ortc/internal/ortc_RTCPPacket.h>
 #include <ortc/internal/ortc_SRTPSDESTransport.h>
 #include <ortc/internal/ortc_RTPTypes.h>
 #include <ortc/internal/ortc_ORTC.h>
@@ -42,6 +40,9 @@
 #include <ortc/internal/platform.h>
 
 #include <ortc/IHelper.h>
+#include <ortc/RTPPacket.h>
+#include <ortc/RTCPPacket.h>
+
 #include <ortc/services/IHTTP.h>
 
 #include <zsLib/ISettings.h>
@@ -94,10 +95,12 @@ namespace ortc
         case IRTPTypes::HeaderExtensionURI_RID:                               return false;
         case IRTPTypes::HeaderExtensionURI_3gpp_VideoOrientation:             return true;
         case IRTPTypes::HeaderExtensionURI_3gpp_VideoOrientation6:            return true;
+        case IRTPTypes::HeaderExtensionURI_TransmissionTimeOffsets:           return true;
+        case IRTPTypes::HeaderExtensionURI_AbsoluteSendTime:                  return true;
+        case IRTPTypes::HeaderExtensionURI_TransportSequenceNumber:           return true;
       }
       return true;
     }
-    
     
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -781,12 +784,12 @@ namespace ortc
       {
         for (auto iter = receivers->begin(); iter != receivers->end(); ++iter) {
           ReceiverID receiverID = (*iter).first;
-          auto receiverInfo = (*iter).second;
+          auto currentReceiverInfo = (*iter).second;
 
           auto receiver = (*iter).second->mReceiver.lock();
 
           if (!receiver) {
-            ZS_LOG_WARNING(Trace, log("receiver is gone") + ZS_PARAM("receiver ID", receiverID) + receiverInfo->toDebug())
+            ZS_LOG_WARNING(Trace, log("receiver is gone") + ZS_PARAM("receiver ID", receiverID) + currentReceiverInfo->toDebug())
             continue;
           }
 
@@ -1102,7 +1105,7 @@ namespace ortc
                                      )
     {
       ZS_EVENTING_2(
-                    x, i, Debug, cRtpListenerRegisterSender, ol, RtpListener, Info,
+                    x, i, Debug, RtpListenerRegisterSender, ol, RtpListener, Info,
                     puid, id, mID,
                     puid, senderId, inSender->getID()
                     );

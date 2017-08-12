@@ -676,7 +676,7 @@ namespace ortc
 ZS_DECLARE_PROXY_BEGIN(ortc::internal::IRTPListenerAsyncDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IICETypes::Components, Components)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::IRTPListenerAsyncDelegate::UseRTPReceiverPtr, UseRTPReceiverPtr)
-ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::RTPPacketPtr, RTPPacketPtr)
+ZS_DECLARE_PROXY_TYPEDEF(ortc::RTPPacketPtr, RTPPacketPtr)
 ZS_DECLARE_PROXY_METHOD_3(onDeliverPacket, Components, UseRTPReceiverPtr, RTPPacketPtr)
 ZS_DECLARE_PROXY_END()
 

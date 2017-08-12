@@ -314,7 +314,7 @@ namespace ortc
           auto &acandidate = *(*iter);
           auto candidate = convertCandidate(acandidate);
 
-          if (0 == acandidate.mComponentID) {
+          if (acandidate.mComponentID < 2) {
             outRTPCandidates.push_back(candidate);
           } else {
             if (!ioRTCPTransport) {
@@ -473,7 +473,7 @@ namespace ortc
           bool found = false;
           for (auto iter = description.mTransports.begin(); iter != description.mTransports.end(); ++iter) {
             auto &transport = *(*iter);
-            if (transport.mID != foundBundleID) continue;
+            if (transport.mID != searchForTransportID) continue;
             mediaLine.mTransportID = foundBundleID;
             found = true;
           }
@@ -857,7 +857,6 @@ namespace ortc
           if (!rtpMap) {
             auto reservedType = IRTPTypes::toReservedCodec(pt);
             auto supportedType = IRTPTypes::toSupportedCodec(reservedType);
-            auto codecKind = IRTPTypes::getCodecKind(supportedType);
 
             if (IRTPTypes::SupportedCodec_Unknown == supportedType) {
               ZS_LOG_WARNING(Debug, internal::slog("codec payload type is not understood") + ZS_PARAM("payload type", pt));
