@@ -397,6 +397,29 @@ namespace ortc
         ISettings::setBool(ORTC_SETTING_GATHERER_GATHER_PASSIVE_TCP_CANDIDATES, true);
 
         ISettings::setUInt(ORTC_SETTING_GATHERER_RECHECK_IP_ADDRESSES_IN_SECONDS, 60);
+
+        {
+          zsLib::RangeSelection<WORD> range;
+#ifdef _WIN32
+          range.allow(5000, 65535);
+          range.deny(443, 443);
+          range.deny(500, 500);
+          range.deny(1900, 1900);
+          range.deny(2869, 2869);
+          range.deny(3074, 3074);
+          range.deny(3076, 3076);
+          range.deny(4016, 4016);
+          range.deny(4211, 4211);
+          range.deny(4222, 4223);
+          range.deny(4500, 4500);
+          range.deny(4600, 4601);
+          range.deny(5355, 5355);
+          range.deny(49152, 57343);
+#else
+          range.allow(5000, 65535);
+#endif //_WIN32
+          range.exportToSetting(ORTC_SETTING_GATHERER_PORT_RESTRICTIONS);
+        }
       }
       
     };
@@ -573,7 +596,8 @@ namespace ortc
       mMaxTotalBuffers(ISettings::getUInt(ORTC_SETTING_GATHERER_MAX_TOTAL_INCOMING_PACKET_BUFFERING)),
       mMaxTCPBufferingSizePendingConnection(ISettings::getUInt(ORTC_SETTING_GATHERER_MAX_PENDING_OUTGOING_TCP_SOCKET_BUFFERING_IN_BYTES)),
       mMaxTCPBufferingSizeConnected(ISettings::getUInt(ORTC_SETTING_GATHERER_MAX_CONNECTED_TCP_SOCKET_BUFFERING_IN_BYTES)),
-      mGatherPassiveTCP(ISettings::getBool(ORTC_SETTING_GATHERER_GATHER_PASSIVE_TCP_CANDIDATES))
+      mGatherPassiveTCP(ISettings::getBool(ORTC_SETTING_GATHERER_GATHER_PASSIVE_TCP_CANDIDATES)),
+      mPortRestriction(RangeSelection::createFromSetting(ORTC_SETTING_GATHERER_PORT_RESTRICTIONS))
     {
       mSTUNPacketParseOptions = STUNPacket::ParseOptions(STUNPacket::RFC_AllowAll, false, "ortc::ICEGatherer", mID);
 
@@ -4927,6 +4951,10 @@ namespace ortc
           } else {
             ZS_LOG_WARNING(Debug, log("will not attempt to rebind to default port") + ZS_PARAM("ip address", ioBindIP.string()))
           }
+        } else if (!firstAttempt) {
+          WORD selectedPort = mPortRestriction.getRandomPosition(IHelper::random(0, std::numeric_limits<size_t>::max()));
+          ioBindIP.setPort(selectedPort);
+          ZS_LOG_DEBUG(log("will attempt to bind to chosen port") + ZS_PARAM("ip address", ioBindIP.string()))
         }
 
         socket->bind(ioBindIP);
@@ -4946,6 +4974,10 @@ namespace ortc
         WORD bindPort = local.getPort();
         ioBindIP.setPort(bindPort);
         if (0 == mDefaultPort) {
+          if (!mPortRestriction.isAllowed(mDefaultPort)) {
+            ZS_LOG_WARNING(Detail, log("OS selected a port that is within the denied ports allowed (will attempt rebind on random, non OS chosen, and non denied port)") + ZS_PARAM("port", bindPort));
+            ZS_THROW_CUSTOM_PROPERTIES_1(Socket::Exceptions::Unspecified, 0, String("OS port selection was within denied port range: " + string(bindPort)));
+          }
           mDefaultPort = bindPort;
           ZS_LOG_TRACE(log("selected default bind port") + ZS_PARAMIZE(mDefaultPort))
         }

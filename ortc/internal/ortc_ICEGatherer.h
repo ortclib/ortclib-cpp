@@ -46,12 +46,15 @@
 #include <zsLib/MessageQueueAssociator.h>
 #include <zsLib/Socket.h>
 #include <zsLib/ITimer.h>
+#include <zsLib/RangeSelection.h>
 
 #include <cryptopp/queue.h>
 
 #define ORTC_SETTING_GATHERER_INTERFACE_NAME_MAPPING  "ortc/gatherer/interface-name-mapping"
 #define ORTC_SETTING_GATHERER_USERNAME_FRAG_LENGTH  "ortc/gatherer/username-frag-length"
 #define ORTC_SETTING_GATHERER_PASSWORD_LENGTH  "ortc/gatherer/password-length"
+
+#define ORTC_SETTING_GATHERER_PORT_RESTRICTIONS "ortc/gatherer/port-restrictions" // use zsLib::RangeSelection<uint16_t> to set this setting
 
 #define ORTC_SETTING_GATHERER_CANDIDATE_TYPE_PREFERENCE_PRIORITY_PREFIX "ortc/gatherer/canadidate-type-priority-"  // (0..126) << (24)
 #define ORTC_SETTING_GATHERER_PROTOCOL_TYPE_PREFERENCE_PRIORITY_PREFIX "ortc/gatherer/protocol-type-priority-"     // (0..0x3) << (24-2)
@@ -320,6 +323,7 @@ namespace ortc
       typedef std::map<LocalCandidateRemoteIPPair, RoutePtr> LocalCandidateRemoteIPRouteMap;
 
       typedef CryptoPP::ByteQueue ByteQueue;
+      typedef zsLib::RangeSelection<WORD> RangeSelection;
 
     public:
       struct ConstructorOptions
@@ -1070,6 +1074,7 @@ namespace ortc
       String mHostsHash;
       String mOptionsHash;
 
+      RangeSelection mPortRestriction;
       WORD mDefaultPort {0};
 
       String mLastFixedHostPortsHostsHash;
