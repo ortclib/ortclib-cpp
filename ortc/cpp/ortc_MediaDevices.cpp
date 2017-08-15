@@ -1,6 +1,6 @@
 /*
 
- Copyright (c) 2015, Hookflash Inc. / Hookflash Inc.
+ Copyright (c) 2017, Hookflash Inc. / Optical Tone Ltd.
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -393,7 +393,7 @@ namespace ortc
 
       DeviceListPtr value(std::make_shared<DeviceList>());
 
-      webrtc::VideoCaptureModule::DeviceInfo* info = webrtc::VideoCaptureFactory::CreateDeviceInfo(0);
+      webrtc::VideoCaptureModule::DeviceInfo* info = webrtc::VideoCaptureFactory::CreateDeviceInfo();
       if (!info) {
         promise->reject();
         return;

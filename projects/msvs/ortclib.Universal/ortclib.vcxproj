@@ -570,9 +570,9 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <CompileAsWinRT>true</CompileAsWinRT>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..;$(ProjectDir)..\..\..\..\zsLib;$(ProjectDir)..\..\..\..\zsLib-eventing;$(ProjectDir)..\..\..\..\ortclib-services-cpp;$(ProjectDir)..\..\..\..;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\webrtc;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\boringssl\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\usrsctp\usrsctplib;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\srtp\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\srtp\crypto\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..;$(ProjectDir)..\..\..\..\zsLib;$(ProjectDir)..\..\..\..\zsLib-eventing;$(ProjectDir)..\..\..\..\ortclib-services-cpp;$(ProjectDir)..\..\..\..;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\webrtc;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\boringssl\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\usrsctp\usrsctplib;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\crypto\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4068;4290</DisableSpecificWarnings>
-      <PreprocessorDefinitions>USE_ETW;USE_OPENSSL=1;NOMINMAX;WEBRTC_WIN;WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;USE_ETW;USE_OPENSSL=1;NOMINMAX;WEBRTC_WIN;WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -600,9 +600,9 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <CompileAsWinRT>true</CompileAsWinRT>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..;$(ProjectDir)..\..\..\..\zsLib;$(ProjectDir)..\..\..\..\zsLib-eventing;$(ProjectDir)..\..\..\..\ortclib-services-cpp;$(ProjectDir)..\..\..\..;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\webrtc;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\boringssl\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\usrsctp\usrsctplib;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\srtp\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\srtp\crypto\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..;$(ProjectDir)..\..\..\..\zsLib;$(ProjectDir)..\..\..\..\zsLib-eventing;$(ProjectDir)..\..\..\..\ortclib-services-cpp;$(ProjectDir)..\..\..\..;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\webrtc;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\boringssl\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\usrsctp\usrsctplib;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\crypto\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4068;4290</DisableSpecificWarnings>
-      <PreprocessorDefinitions>USE_ETW;USE_OPENSSL=1;NOMINMAX;WEBRTC_WIN;WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;USE_ETW;USE_OPENSSL=1;NOMINMAX;WEBRTC_WIN;WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -630,9 +630,9 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <CompileAsWinRT>true</CompileAsWinRT>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..;$(ProjectDir)..\..\..\..\zsLib;$(ProjectDir)..\..\..\..\zsLib-eventing;$(ProjectDir)..\..\..\..\ortclib-services-cpp;$(ProjectDir)..\..\..\..;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\webrtc;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\boringssl\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\usrsctp\usrsctplib;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\srtp\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\srtp\crypto\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..;$(ProjectDir)..\..\..\..\zsLib;$(ProjectDir)..\..\..\..\zsLib-eventing;$(ProjectDir)..\..\..\..\ortclib-services-cpp;$(ProjectDir)..\..\..\..;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\webrtc;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\boringssl\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\usrsctp\usrsctplib;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\crypto\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4068;4290</DisableSpecificWarnings>
-      <PreprocessorDefinitions>USE_ETW;USE_OPENSSL=1;NOMINMAX;WEBRTC_WIN;WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE;_ARM_WINAPI_PARTITION_DESKTOP_SDK_AVAILABLE=1;%(ClCompile.PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;USE_ETW;USE_OPENSSL=1;NOMINMAX;WEBRTC_WIN;WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE;_ARM_WINAPI_PARTITION_DESKTOP_SDK_AVAILABLE=1;%(ClCompile.PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -660,9 +660,9 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <CompileAsWinRT>true</CompileAsWinRT>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..;$(ProjectDir)..\..\..\..\zsLib;$(ProjectDir)..\..\..\..\zsLib-eventing;$(ProjectDir)..\..\..\..\ortclib-services-cpp;$(ProjectDir)..\..\..\..;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\webrtc;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\boringssl\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\usrsctp\usrsctplib;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\srtp\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\srtp\crypto\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..;$(ProjectDir)..\..\..\..\zsLib;$(ProjectDir)..\..\..\..\zsLib-eventing;$(ProjectDir)..\..\..\..\ortclib-services-cpp;$(ProjectDir)..\..\..\..;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\webrtc;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\boringssl\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\usrsctp\usrsctplib;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\crypto\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4068;4290</DisableSpecificWarnings>
-      <PreprocessorDefinitions>USE_ETW;USE_OPENSSL=1;NOMINMAX;WEBRTC_WIN;WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE;_ARM_WINAPI_PARTITION_DESKTOP_SDK_AVAILABLE=1;%(ClCompile.PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;USE_ETW;USE_OPENSSL=1;NOMINMAX;WEBRTC_WIN;WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE;_ARM_WINAPI_PARTITION_DESKTOP_SDK_AVAILABLE=1;%(ClCompile.PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -690,9 +690,9 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <CompileAsWinRT>true</CompileAsWinRT>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..;$(ProjectDir)..\..\..\..\zsLib;$(ProjectDir)..\..\..\..\zsLib-eventing;$(ProjectDir)..\..\..\..\ortclib-services-cpp;$(ProjectDir)..\..\..\..;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\webrtc;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\boringssl\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\usrsctp\usrsctplib;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\srtp\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\srtp\crypto\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..;$(ProjectDir)..\..\..\..\zsLib;$(ProjectDir)..\..\..\..\zsLib-eventing;$(ProjectDir)..\..\..\..\ortclib-services-cpp;$(ProjectDir)..\..\..\..;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\webrtc;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\boringssl\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\usrsctp\usrsctplib;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\crypto\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4068;4290</DisableSpecificWarnings>
-      <PreprocessorDefinitions>USE_ETW;USE_OPENSSL=1;NOMINMAX;WEBRTC_WIN;WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;USE_ETW;USE_OPENSSL=1;NOMINMAX;WEBRTC_WIN;WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -720,9 +720,9 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <CompileAsWinRT>true</CompileAsWinRT>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..;$(ProjectDir)..\..\..\..\zsLib;$(ProjectDir)..\..\..\..\zsLib-eventing;$(ProjectDir)..\..\..\..\ortclib-services-cpp;$(ProjectDir)..\..\..\..;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\webrtc;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\boringssl\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\usrsctp\usrsctplib;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\srtp\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\srtp\crypto\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..;$(ProjectDir)..\..\..\..\zsLib;$(ProjectDir)..\..\..\..\zsLib-eventing;$(ProjectDir)..\..\..\..\ortclib-services-cpp;$(ProjectDir)..\..\..\..;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\webrtc;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\boringssl\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\usrsctp\usrsctplib;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\crypto\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DisableSpecificWarnings>4068;4290</DisableSpecificWarnings>
-      <PreprocessorDefinitions>USE_ETW;USE_OPENSSL=1;NOMINMAX;WEBRTC_WIN;WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;USE_ETW;USE_OPENSSL=1;NOMINMAX;WEBRTC_WIN;WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE;_UNICODE;UNICODE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

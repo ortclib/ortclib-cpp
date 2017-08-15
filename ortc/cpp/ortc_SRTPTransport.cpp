@@ -60,7 +60,6 @@
 #endif //HAVE_TGMATH_H
 
 //libSRTP
-#include "srtp.h"
 #include "srtp_priv.h"
 
 #ifdef _DEBUG
@@ -291,7 +290,7 @@ namespace ortc
         AutoRecursiveLock lock(mLock);
 
         int err = srtp_init();
-        mInitialized = (err == err_status_ok);
+        mInitialized = (err == srtp_err_status_ok);
         if (!mInitialized) {
           ZS_LOG_ERROR(Trace, log("Failed to init SRTP") + ZS_PARAM("error", err))
         }
@@ -499,14 +498,12 @@ namespace ortc
               memset(&policy, 0, sizeof(policy));
 
               if (CS_AES_CM_128_HMAC_SHA1_80 == mParams[loop].mCryptoSuite) {
-                  crypto_policy_set_aes_cm_128_hmac_sha1_80(&policy.rtp);
-                  crypto_policy_set_aes_cm_128_hmac_sha1_80(&policy.rtcp);
-              }
-              else if (CS_AES_CM_128_HMAC_SHA1_32 == mParams[loop].mCryptoSuite) {
-                  crypto_policy_set_aes_cm_128_hmac_sha1_32(&policy.rtp);   // rtp is 32,
-                  crypto_policy_set_aes_cm_128_hmac_sha1_80(&policy.rtcp);  // rtcp still 80
-              }
-              else {
+                  srtp_crypto_policy_set_aes_cm_128_hmac_sha1_80(&policy.rtp);
+                  srtp_crypto_policy_set_aes_cm_128_hmac_sha1_80(&policy.rtcp);
+              } else if (CS_AES_CM_128_HMAC_SHA1_32 == mParams[loop].mCryptoSuite) {
+                  srtp_crypto_policy_set_aes_cm_128_hmac_sha1_32(&policy.rtp);   // rtp is 32,
+                  srtp_crypto_policy_set_aes_cm_128_hmac_sha1_80(&policy.rtcp);  // rtcp still 80
+              } else {
                   ZS_LOG_WARNING(Detail, log("crypto suite is not understood") + mParams[loop].toDebug())
                   ORTC_THROW_INVALID_PARAMETERS("Crypto suite is not understood: " + mParams[loop].mCryptoSuite)
               }
@@ -525,7 +522,7 @@ namespace ortc
               policy.next = NULL;
 
               int err = srtp_create(&keyingMaterial->mSRTPSession, &policy);
-              if (err != err_status_ok) {
+              if (err != srtp_err_status_ok) {
                   keyingMaterial->mSRTPSession = NULL;
                   ZS_LOG_ERROR(Debug, log("Failed to create SRTP session, err=") + ZS_PARAM("err=", err))
                   ORTC_THROW_INVALID_PARAMETERS("Failed to create SRTP session")
@@ -814,11 +811,11 @@ namespace ortc
           AutoLock lock(usedKeys[loop]->mSRTPSessionLock);
           int err = (component == IICETypes::Component_RTP ? srtp_unprotect(usedKeys[loop]->mSRTPSession, decryptedBuffer->BytePtr(), &out_len) :
                                                              srtp_unprotect_rtcp(usedKeys[loop]->mSRTPSession, decryptedBuffer->BytePtr(), &out_len));
-          if (err == err_status_replay_fail) {
+          if (err == srtp_err_status_replay_fail) {
             return true;
           }
 
-          if (err != err_status_ok) {
+          if (err != srtp_err_status_ok) {
             ZS_LOG_WARNING(Trace, log("cannot use current keying material, trying with next key") + usedKeys[loop]->toDebug())
             continue;
           }
@@ -972,7 +969,7 @@ namespace ortc
         //}
       }
 
-      if (err != err_status_ok) {
+      if (err != srtp_err_status_ok) {
         ZS_LOG_WARNING(Debug, log("cannot use current keying material for encryption") + keyingMaterial->toDebug())
         return false;
       }

@@ -38,10 +38,7 @@
 #include <zsLib/MessageQueueAssociator.h>
 #include <zsLib/ITimer.h>
 
-// Forward declaration to avoid pulling in libsrtp headers here
-struct srtp_event_data_t;
-struct srtp_ctx_t;
-struct srtp_policy_t;
+#include "srtp.h"
 
 //#define ORTC_SETTING_SRTP_TRANSPORT_WARN_OF_KEY_LIFETIME_EXHAUGSTION_WHEN_REACH_PERCENTAGE_USSED "ortc/srtp/warm-key-lifetime-exhaustion-when-reach-percentage-used"
 
