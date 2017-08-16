@@ -4974,7 +4974,7 @@ namespace ortc
         WORD bindPort = local.getPort();
         ioBindIP.setPort(bindPort);
         if (0 == mDefaultPort) {
-          if (!mPortRestriction.isAllowed(mDefaultPort)) {
+          if (!mPortRestriction.isAllowed(bindPort)) {
             ZS_LOG_WARNING(Detail, log("OS selected a port that is within the denied ports allowed (will attempt rebind on random, non OS chosen, and non denied port)") + ZS_PARAM("port", bindPort));
             ZS_THROW_CUSTOM_PROPERTIES_1(Socket::Exceptions::Unspecified, 0, String("OS port selection was within denied port range: " + string(bindPort)));
           }
