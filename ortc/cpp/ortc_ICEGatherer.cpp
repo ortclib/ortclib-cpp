@@ -4952,7 +4952,7 @@ namespace ortc
             ZS_LOG_WARNING(Debug, log("will not attempt to rebind to default port") + ZS_PARAM("ip address", ioBindIP.string()))
           }
         } else if (!firstAttempt) {
-          WORD selectedPort = mPortRestriction.getRandomPosition(IHelper::random(0, std::numeric_limits<size_t>::max()));
+          WORD selectedPort = mPortRestriction.getRandomPosition(IHelper::random(0, 0xFFFF));
           ioBindIP.setPort(selectedPort);
           ZS_LOG_DEBUG(log("will attempt to bind to chosen port") + ZS_PARAM("ip address", ioBindIP.string()))
         }
