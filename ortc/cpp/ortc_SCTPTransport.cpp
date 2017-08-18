@@ -2492,16 +2492,16 @@ namespace ortc
 
       if (!inPacket.mOrdered) {
         spa.sendv_sndinfo.snd_flags = SCTP_UNORDERED;
-        if ((inPacket.mMaxRetransmits.hasValue()) ||
-            (Milliseconds() == inPacket.mMaxPacketLifetime)) {
-          spa.sendv_flags |= SCTP_SEND_PRINFO_VALID;
-          spa.sendv_prinfo.pr_policy = SCTP_PR_SCTP_RTX;
-          spa.sendv_prinfo.pr_value = inPacket.mMaxRetransmits.value();
-        } else {
-          spa.sendv_flags |= SCTP_SEND_PRINFO_VALID;
-          spa.sendv_prinfo.pr_policy = SCTP_PR_SCTP_TTL;
-          spa.sendv_prinfo.pr_value = SafeInt<decltype(spa.sendv_prinfo.pr_value)>(inPacket.mMaxPacketLifetime.count());
-        }
+      }
+
+      if (inPacket.mMaxRetransmits.hasValue()) {
+        spa.sendv_flags |= SCTP_SEND_PRINFO_VALID;
+        spa.sendv_prinfo.pr_policy = SCTP_PR_SCTP_RTX;
+        spa.sendv_prinfo.pr_value = inPacket.mMaxRetransmits.value();
+      } else if (0 != inPacket.mMaxPacketLifetime.count()) {
+        spa.sendv_flags |= SCTP_SEND_PRINFO_VALID;
+        spa.sendv_prinfo.pr_policy = SCTP_PR_SCTP_TTL;
+        spa.sendv_prinfo.pr_value = SafeInt<decltype(spa.sendv_prinfo.pr_value)>(inPacket.mMaxPacketLifetime.count());
       }
 
       auto result = usrsctp_sendv(
