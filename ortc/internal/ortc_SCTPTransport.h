@@ -540,6 +540,7 @@ namespace ortc
 
       virtual void onTimer(ITimerPtr timer) override;
 
+      
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark SCTPTransport => ISCTPTransportAsyncDelegate
@@ -547,6 +548,13 @@ namespace ortc
 
       virtual void onIncomingPacket(SCTPPacketIncomingPtr packet) override;
       virtual void onNotifiedToShutdown() override;
+
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark SCTPTransport => (friend SCTPInit)
+      #pragma mark
+
+      virtual IMessageQueuePtr getDeliveryQueue() const { return mDeliveryQueue; }
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -648,6 +656,7 @@ namespace ortc
 
       SCTPTransportWeakPtr *mThisSocket {};
       ISCTPTransportWeakPtr mTearAway;
+      IMessageQueuePtr mDeliveryQueue;
 
       bool mIncoming {false};
 

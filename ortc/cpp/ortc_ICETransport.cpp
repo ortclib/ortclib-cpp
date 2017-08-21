@@ -229,7 +229,8 @@ namespace ortc
       mBlacklistConsent(ISettings::getBool(ORTC_SETTING_ICE_TRANSPORT_BLACKLIST_AFTER_CONSENT_REMOVAL)),
       mKeepWarmTimeBase(ISettings::getUInt(ORTC_SETTING_ICE_TRANSPORT_KEEP_WARM_TIME_BASE_IN_MILLISECONDS)),
       mKeepWarmTimeRandomizedAddTime(ISettings::getUInt(ORTC_SETTING_ICE_TRANSPORT_KEEP_WARM_TIME_RANDOMIZED_ADD_TIME_IN_MILLISECONDS)),
-      mMaxBufferedPackets(ISettings::getUInt(ORTC_SETTING_ICE_TRANSPORT_MAX_BUFFERED_FOR_SECURE_TRANSPORT))
+      mMaxBufferedPackets(ISettings::getUInt(ORTC_SETTING_ICE_TRANSPORT_MAX_BUFFERED_FOR_SECURE_TRANSPORT)),
+      mLegalRoutesComputeQueue(IORTCForInternal::queueORTC())
     {
       ZS_LOG_BASIC(debug("created"));
 
@@ -276,6 +277,7 @@ namespace ortc
 
           CandidatePtr candidate(make_shared<Candidate>(localCandidate));
           mLocalCandidates[candidate->hash()] = candidate;
+          mLegalRoutesDirty = true;
         }
       }
 
@@ -540,7 +542,6 @@ namespace ortc
 
       if (oldParamHash.hasData()) {
         ZS_LOG_DETAIL(log("remote ufrag has changed thus must flush out all remote candidates"))
-        mRemoteCandidatesHash.clear();
         mRemoteCandidates.clear();
       }
 
@@ -569,7 +570,7 @@ namespace ortc
           mLocalCandidates[candidate->hash()] = candidate;
         }
         mLocalCandidatesComplete = false;
-        mLocalCandidatesHash.clear();
+        mLegalRoutesDirty = true;
 
         pruneAllCandidatePairs(true);
       } else {
@@ -729,8 +730,7 @@ namespace ortc
 
     changed:
       {
-        mComputedPairsHash.clear();
-        mRemoteCandidatesHash.clear();
+        mLegalRoutesDirty = true;
 
         wakeUp();
       }
@@ -836,9 +836,7 @@ namespace ortc
         return;
       }
 
-      mComputedPairsHash.clear();
-      mRemoteCandidatesHash.clear();
-
+      mLegalRoutesDirty = true;
       wakeUp();
     }
 
@@ -912,8 +910,7 @@ namespace ortc
 
     changed:
       {
-        mComputedPairsHash.clear();
-        mRemoteCandidatesHash.clear();
+        mLegalRoutesDirty = true;
 
         wakeUp();
       }
@@ -1959,11 +1956,12 @@ namespace ortc
 
       if (mLocalCandidatesComplete) {
         mLocalCandidatesComplete = false;
-        mLocalCandidatesHash.clear();
+        mLegalRoutesDirty = true;
         shouldRecalculate = true;
       }
 
       mLocalCandidates[hash] = candidate;
+      mLegalRoutesDirty = true;
       shouldRecalculate = true;
 
       ZS_LOG_DEBUG(log("found new local candidate") + candidate->toDebug())
@@ -1974,8 +1972,7 @@ namespace ortc
       {
         if (!shouldRecalculate) return;
 
-        mLocalCandidatesHash.clear();
-        mComputedPairsHash.clear();
+        mLegalRoutesDirty = true;
         IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
       }
     }
@@ -2012,8 +2009,8 @@ namespace ortc
       ZS_LOG_DEBUG(log("end of local candidates found") + candidate->toDebug())
 
       mLocalCandidatesComplete = true;
+      mLegalRoutesDirty = true;
 
-      mLocalCandidatesHash.clear();
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
 
@@ -2061,8 +2058,8 @@ namespace ortc
       ZS_LOG_DEBUG(log("local candidate is now gone") + candidate->toDebug())
 
       mLocalCandidates.erase(found);
-      
-      mLocalCandidatesHash.clear();
+      mLegalRoutesDirty = true;
+
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
 
@@ -2421,15 +2418,15 @@ namespace ortc
       IHelper::debugAppend(resultEl, "remote parameters hash", mRemoteParametersHash);
       IHelper::debugAppend(resultEl, "remote parameters", mRemoteParameters.toDebug());
 
-      IHelper::debugAppend(resultEl, "local candidates hash", mLocalCandidatesHash);
       IHelper::debugAppend(resultEl, "local candidates", mLocalCandidates.size());
       IHelper::debugAppend(resultEl, "end of local candidates", mLocalCandidatesComplete);
 
-      IHelper::debugAppend(resultEl, "remote candidates hash", mRemoteCandidatesHash);
       IHelper::debugAppend(resultEl, "remote candidates", mRemoteCandidates.size());
       IHelper::debugAppend(resultEl, "end of remote candidates", mRemoteCandidatesComplete);
 
-      IHelper::debugAppend(resultEl, "computed pairs hash", mComputedPairsHash);
+      IHelper::debugAppend(resultEl, "legal routes dirty", mLegalRoutesDirty);
+      IHelper::debugAppend(resultEl, "computed legal routes", mComputedLegalRoutes);
+      IHelper::debugAppend(resultEl, "computing legal routes", mComputingLegalRoutes);
       IHelper::debugAppend(resultEl, "legal routes", mLegalRoutes.size());
       IHelper::debugAppend(resultEl, "foundation routes", mFoundationRoutes.size());
       IHelper::debugAppend(resultEl, mRouteStateTracker->toDebug());
@@ -2531,53 +2528,103 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool ICETransport::stepCalculateLegalPairs()
     {
-      typedef std::map<Hash, CandidatePairPtr> CandidatePairMap;
-
       ZS_EVENTING_1(x, i, Debug, IceTransportStep, ol, IceTransport, Step, puid, id, mID);
 
-      if (mComputedPairsHash.hasData()) {
-        ZS_LOG_TRACE(log("already computed legal pairs"))
+      if (mLegalRoutesDirty) {
+        mComputedLegalRoutes = false;
+      }
+
+      if (mComputedLegalRoutes) {
+        ZS_LOG_TRACE(log("already computed legal pairs"));
         return true;
       }
 
-      CandidatePairMap pairings;
+      if (mComputingLegalRoutes) {
+        ZS_LOG_TRACE(log("already computing legal pairs"));
+        return false;
+      }
 
-      for (auto iterLocal = mLocalCandidates.begin(); iterLocal != mLocalCandidates.end(); ++iterLocal) {
-        auto localCandidate = (*iterLocal).second;
+      ZS_LOG_DEBUG(log("computing legal pairs"));
 
-        bool isLocalIPv4 = (String::npos != localCandidate->mIP.find('.'));
+      ICETransportPtr pThis = mThisWeak.lock();
+      decltype(mLocalCandidates) localCandidates = mLocalCandidates;
+      decltype(mRemoteCandidates) remoteCandidates = mRemoteCandidates;
+      mLegalRoutesDirty = false;
+      mComputingLegalRoutes = true;
 
-        if (IICETypes::CandidateType_Srflex == localCandidate->mCandidateType) {
-          ZS_LOG_TRACE(log("eliminating server reflexive as a local candidate") + localCandidate->toDebug())
-          continue;
-        }
+      mLegalRoutesComputeQueue->postClosure( [pThis, localCandidates, remoteCandidates] {
 
-        for (auto iterRemote = mRemoteCandidates.begin(); iterRemote != mRemoteCandidates.end(); ++iterRemote) {
-          auto remoteCandidate = (*iterRemote).second;
+        CandidatePairMap pairings;
 
-          // do not match unless protocols are compatible
-          if (localCandidate->mProtocol != remoteCandidate->mProtocol) continue;
-          if (IICETypes::Protocol_TCP == localCandidate->mProtocol) {
-            switch (localCandidate->mTCPType) {
-              case IICETypes::TCPCandidateType_Active:  if (IICETypes::TCPCandidateType_Passive != remoteCandidate->mTCPType) continue; break;
-              case IICETypes::TCPCandidateType_Passive: if (IICETypes::TCPCandidateType_Active != remoteCandidate->mTCPType) continue; break;
-              case IICETypes::TCPCandidateType_SO:      if (IICETypes::TCPCandidateType_SO != remoteCandidate->mTCPType) continue; break;
+        // scope: calculate legal pairs outside a lock
+        {
+          for (auto iterLocal = localCandidates.begin(); iterLocal != localCandidates.end(); ++iterLocal) {
+            auto localCandidate = (*iterLocal).second;
+
+            bool isLocalIPv4 = (String::npos != localCandidate->mIP.find('.'));
+
+            if (IICETypes::CandidateType_Srflex == localCandidate->mCandidateType) {
+              ZS_LOG_TRACE(pThis->log("eliminating server reflexive as a local candidate") + localCandidate->toDebug());
+              continue;
+            }
+
+            for (auto iterRemote = remoteCandidates.begin(); iterRemote != remoteCandidates.end(); ++iterRemote) {
+              auto remoteCandidate = (*iterRemote).second;
+
+              // do not match unless protocols are compatible
+              if (localCandidate->mProtocol != remoteCandidate->mProtocol) continue;
+              if (IICETypes::Protocol_TCP == localCandidate->mProtocol) {
+                switch (localCandidate->mTCPType) {
+                case IICETypes::TCPCandidateType_Active:  if (IICETypes::TCPCandidateType_Passive != remoteCandidate->mTCPType) continue; break;
+                case IICETypes::TCPCandidateType_Passive: if (IICETypes::TCPCandidateType_Active != remoteCandidate->mTCPType) continue; break;
+                case IICETypes::TCPCandidateType_SO:      if (IICETypes::TCPCandidateType_SO != remoteCandidate->mTCPType) continue; break;
+                }
+              }
+
+              bool isRemoteIPv4 = (String::npos != remoteCandidate->mIP.find('.'));
+
+              if (isLocalIPv4 != isRemoteIPv4) continue;  // cannot match unless they both are either IPv4 or IPv6
+
+              CandidatePairPtr candidatePair(make_shared<CandidatePair>());
+              candidatePair->mLocal = localCandidate;
+              candidatePair->mRemote = remoteCandidate;
+
+              auto hash = candidatePair->hash();
+
+              pairings[hash] = candidatePair;
             }
           }
-
-          bool isRemoteIPv4 = (String::npos != remoteCandidate->mIP.find('.'));
-
-          if (isLocalIPv4 != isRemoteIPv4) continue;  // cannot match unless they both are either IPv4 or IPv6
-
-          CandidatePairPtr candidatePair(make_shared<CandidatePair>());
-          candidatePair->mLocal = localCandidate;
-          candidatePair->mRemote = remoteCandidate;
-
-          auto hash = candidatePair->hash();
-
-          pairings[hash] = candidatePair;
         }
-      }
+
+        // scope: process legal pairs
+        {
+          AutoRecursiveLock lock(*pThis);
+
+          // scope: check if computing pairs has changed since pairs were being computed
+          {
+            if (pThis->mLegalRoutesDirty) {
+              // attempt to calculate legal pairs again since something has changed since calculations were performed
+              goto done_computing;
+            }
+            pThis->stepProcessLegalPairs(pairings);
+            goto done_computing;
+          }
+        done_computing:
+          {
+            // no longer computing pairs
+            pThis->mComputingLegalRoutes = false;
+            IWakeDelegateProxy::create(pThis)->onWake();
+          }
+        }
+      });
+
+      return false;
+    }
+
+    //-------------------------------------------------------------------------
+    bool ICETransport::stepProcessLegalPairs(CandidatePairMap &pairings)
+    {
+      ZS_LOG_DEBUG(log("processing legal pairs"));
 
       auto currentRoute = mActiveRoute;
 
@@ -2589,7 +2636,7 @@ namespace ortc
 
         auto found = pairings.find(route->mCandidatePairHash);
         if (found != pairings.end()) {
-          ZS_LOG_TRACE(log("route still exists (thus still legal)") + route->toDebug())
+          ZS_LOG_TRACE(log("route still exists (thus still legal)") + route->toDebug());
           pairings.erase(found);
           continue;
         }
@@ -2606,7 +2653,7 @@ namespace ortc
 
           if (foundLocal == mLocalCandidates.end()) {
             ZS_LOG_WARNING(Debug, log("local candidate is gone (thus pairing must be trimmed)"))
-            goto shutdown_route;
+              goto shutdown_route;
           }
 
           goto check_route_state;
@@ -2631,13 +2678,13 @@ namespace ortc
       keep_route:
         {
           ZS_LOG_TRACE(log("peer reflexive route still in valid state (thus still legal)") + route->toDebug())
-          continue;
+            continue;
         }
 
       shutdown_route:
         {
           ZS_LOG_WARNING(Debug, log("route no longer valid (no candidate pairing found or peer reflexive no longer valid)") + route->toDebug())
-          shutdown(route);
+            shutdown(route);
           continue;
         }
       }
@@ -2653,22 +2700,13 @@ namespace ortc
 
         route->trace(__func__, "new legal route");
 
-        ZS_LOG_DEBUG(log("found new legal route") + route->toDebug())
+        ZS_LOG_DEBUG(log("found new legal route") + route->toDebug());
         mLegalRoutes[hash] = route;
 
         installFoundation(route);
       }
 
-      auto hasher = IHasher::sha1();
-
-      for (auto iter = mLegalRoutes.begin(); iter != mLegalRoutes.end(); ++iter) {
-        auto hash = (*iter).first;
-
-        hasher->update(hash);
-        hasher->update(":");
-      }
-
-      mComputedPairsHash = hasher->finalizeAsString();
+      mComputedLegalRoutes = true;
       return true;
     }
 
@@ -3804,7 +3842,7 @@ namespace ortc
         mGatherer->remoteAllRelatedRoutes(*this);
       }
 
-      mComputedPairsHash.clear();
+      mLegalRoutesDirty = true;
 
       mFoundationRoutes.clear();
       mPendingActivation.clear();
