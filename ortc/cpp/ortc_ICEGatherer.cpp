@@ -362,7 +362,7 @@ namespace ortc
 
         {
           UseBackOffTimerPatternPtr pattern = UseBackOffTimerPattern::create();
-          pattern->addNextRetryAfterFailureDuration(Seconds(1));
+          pattern->addNextRetryAfterFailureDuration(Milliseconds(10));
           pattern->addNextRetryAfterFailureDuration(Seconds(1));
           pattern->setMultiplierForLastRetryAfterFailureDuration(2.0);
           pattern->setMaxRetryAfterFailureDuration(Seconds(120));
@@ -3229,7 +3229,7 @@ namespace ortc
             hostPort->mBindUDPBackOffTimer->notifyAttempting();
 
             IPAddress bindIP(hostPort->mHostData->mIP);
-            hostPort->mBoundUDPSocket = bind(firstAttempt, bindIP, IICETypes::Protocol_UDP);
+            bind(hostPort->mBoundUDPSocket, hostPort->mBoundUDPSocketDelegateHolder, firstAttempt, bindIP, IICETypes::Protocol_UDP);
             if (hostPort->mBoundUDPSocket) {
               ZS_EVENTING_4(
                             x, i, Debug, IceGathererHostPortBind, ol, IceGatherer, HostSocketBind,
@@ -3279,7 +3279,7 @@ namespace ortc
               hostPort->mBindTCPBackOffTimer->notifyAttempting();
 
               IPAddress bindIP(hostPort->mHostData->mIP);
-              hostPort->mBoundTCPSocket = bind(firstAttempt, bindIP, IICETypes::Protocol_TCP);
+              bind(hostPort->mBoundTCPSocket, hostPort->mBoundTCPSocketDelegateHolder, firstAttempt, bindIP, IICETypes::Protocol_TCP);
               if (hostPort->mBoundTCPSocket) {
                 ZS_EVENTING_4(
                               x, i, Debug, IceGathererHostPortBind, ol, IceGatherer, HostSocketBind,
@@ -4925,17 +4925,20 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    SocketPtr ICEGatherer::bind(
-                                bool firstAttempt,
-                                IPAddress &ioBindIP,
-                                IICETypes::Protocols protocol
-                                )
+    void ICEGatherer::bind(
+                           SocketPtr &outSocket,
+                           SocketDelegatePtr &outSocketDelegate,
+                           bool firstAttempt,
+                           IPAddress &ioBindIP,
+                           IICETypes::Protocols protocol
+                           )
     {
       ZS_LOG_DEBUG(log("attempting to bind to IP") + ZS_PARAM("ip", ioBindIP.string()));
 
       auto createFamily = (ioBindIP.isIPv6() ? Socket::Create::IPv6 : Socket::Create::IPv4);
 
       SocketPtr socket;
+      SocketDelegatePtr socketDelegate = SocketDelegate::create(IORTCForInternal::queueORTCPipeline(), mThisWeak.lock());
 
       try {
         switch (protocol) {
@@ -4969,7 +4972,7 @@ namespace ortc
 
         IPAddress local = socket->getLocalAddress();
 
-        socket->setDelegate(mThisWeak.lock());
+        socket->setDelegate(socketDelegate);
 
         WORD bindPort = local.getPort();
         ioBindIP.setPort(bindPort);
@@ -5010,14 +5013,15 @@ namespace ortc
     bind_success:
       {
         ZS_LOG_DEBUG(log("bind successful") + ZS_PARAM("bind ip", ioBindIP.string()))
-        return socket;
+        outSocket = socket;
+        outSocketDelegate = socketDelegate;
+        return;
       }
 
     bind_failure:
       {
         ZS_LOG_WARNING(Debug, log("bind failure") + ZS_PARAM("bind ip", ioBindIP.string()))
       }
-      return SocketPtr();
     }
     
     //-------------------------------------------------------------------------
@@ -5473,7 +5477,8 @@ namespace ortc
             mTCPPorts[tcpPort->mSocket] = HostAndTCPPortPair(hostPort, tcpPort);
             hostPort->mTCPPorts[tcpPort->mSocket] = HostAndTCPPortPair(hostPort, tcpPort);
 
-            tcpPort->mSocket->setDelegate(mThisWeak.lock());
+            tcpPort->mSocketDelegateHolder = SocketDelegate::create(IORTCForInternal::queueORTCPipeline(), mThisWeak.lock());
+            tcpPort->mSocket->setDelegate(tcpPort->mSocketDelegateHolder);
 
             tcpPort->mCandidate = hostPort->mCandidateTCPPassive;
 
@@ -6353,7 +6358,8 @@ namespace ortc
                   bool woudlBlock = false;
 
                   tcpPort->mSocket->setBlocking(false);
-                  tcpPort->mSocket->setDelegate(mThisWeak.lock());
+                  tcpPort->mSocketDelegateHolder = SocketDelegate::create(IORTCForInternal::queueORTCPipeline(), mThisWeak.lock());
+                  tcpPort->mSocket->setDelegate(tcpPort->mSocketDelegateHolder);
                   tcpPort->mSocket->connect(remoteIP, &woudlBlock);
                 } catch(Socket::Exceptions::Unspecified &error) {
                   ZS_LOG_WARNING(Detail, log("failed to create an outgoing TCP connection") + ZS_PARAM("error", error.errorCode()) + ZS_PARAM("local ip", localIP.string()) + ZS_PARAM("remote ip", remoteIP.string()))

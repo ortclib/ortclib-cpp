@@ -433,24 +433,24 @@ namespace ortc
 
     protected:
       //-----------------------------------------------------------------------
-#pragma mark
-#pragma mark SCTPInit => ISingletonManagerDelegate
-#pragma mark
+      #pragma mark
+      #pragma mark SCTPInit => ISingletonManagerDelegate
+      #pragma mark
 
-//-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
       virtual void notifySingletonCleanup() override
       {
         cancel();
       }
 
       //-----------------------------------------------------------------------
-#pragma mark
-#pragma mark SCTPInit => usrscpt callbacks
-#pragma mark
+      #pragma mark
+      #pragma mark SCTPInit => usrscpt callbacks
+      #pragma mark
 
-//-----------------------------------------------------------------------
-// This is the callback usrsctp uses when there's data to send on the network
-// that has been wrapped appropriatly for the SCTP protocol.
+      //-----------------------------------------------------------------------
+      // This is the callback usrsctp uses when there's data to send on the network
+      // that has been wrapped appropriatly for the SCTP protocol.
       static int OnSctpOutboundPacket(
         void* addr,
         void* data,
@@ -459,9 +459,9 @@ namespace ortc
         uint8_t set_df
       )
       {
-        ZS_THROW_INVALID_ASSUMPTION_IF(!addr)
+        ZS_THROW_INVALID_ASSUMPTION_IF(!addr);
 
-          SCTPTransportPtr transport = (*(static_cast<SCTPTransportWeakPtr *>(addr))).lock();
+        SCTPTransportPtr transport = (*(static_cast<SCTPTransportWeakPtr *>(addr))).lock();
 
         ZS_LOG_TRACE(slog("on sctp output packet") + ZS_PARAM("address", ((PTRNUMBER)addr)) + ZS_PARAM("length", length) + ZS_PARAM("tos", tos) + ZS_PARAM("set_df", set_df))
 
@@ -514,9 +514,9 @@ namespace ortc
         void* ulp_info
       )
       {
-        ZS_THROW_INVALID_ASSUMPTION_IF(!ulp_info)
+        ZS_THROW_INVALID_ASSUMPTION_IF(!ulp_info);
 
-          SCTPTransportPtr transport = (*(static_cast<SCTPTransportWeakPtr *>(ulp_info))).lock();
+        SCTPTransportPtr transport = (*(static_cast<SCTPTransportWeakPtr *>(ulp_info))).lock();
 
         const SCTPPayloadProtocolIdentifier ppid = static_cast<SCTPPayloadProtocolIdentifier>(ntohl(rcv.rcv_ppid));
 
@@ -556,7 +556,9 @@ namespace ortc
           return -1;
         }
 
-        transport->postClosure([transport, packet]() {
+        auto queue = transport->getDeliveryQueue();
+
+        queue->postClosure([transport, packet]() {
           transport->onIncomingPacket(packet);
         });
         return 0;
@@ -621,9 +623,9 @@ namespace ortc
 
     protected:
       //-----------------------------------------------------------------------
-#pragma mark
-#pragma mark SCTPInit => (data)
-#pragma mark
+      #pragma mark
+      #pragma mark SCTPInit => (data)
+      #pragma mark
 
       AutoPUID mID;
       mutable RecursiveLock mLock;
@@ -636,11 +638,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-#pragma mark
-#pragma mark ISCTPTransportForDataChannel
-#pragma mark
+    #pragma mark
+    #pragma mark ISCTPTransportForDataChannel
+    #pragma mark
 
-//-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
     ISCTPTransportForSCTPTransportListener::ForListenerPtr ISCTPTransportForSCTPTransportListener::create(
       UseListenerPtr listener,
       UseSecureTransportPtr secureTransport,
@@ -661,11 +663,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-#pragma mark
-#pragma mark SCTPTransport
-#pragma mark
+    #pragma mark
+    #pragma mark SCTPTransport
+    #pragma mark
 
-//---------------------------------------------------------------------------
+    //---------------------------------------------------------------------------
     const char *SCTPTransport::toString(InternalStates state)
     {
       switch (state) {
@@ -711,6 +713,7 @@ namespace ortc
       mMaxSessionsPerPort(ISettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_SESSIONS_PER_PORT)),
       mListener(listener),
       mSecureTransport(secureTransport),
+      mDeliveryQueue(IORTCForInternal::queueORTCPipeline()),
       mIncoming(0 != localPort),
       mLocalPort(localPort),
       mRemotePort(remotePort)

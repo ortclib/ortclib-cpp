@@ -1,6 +1,7 @@
 /*
 
- Copyright (c) 2014, Hookflash Inc. / Hookflash Inc.
+ Copyright (c) 2014, Hookflash Inc.
+ Copyright (c) 2017, Optical Tone Ltd.
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -40,6 +41,7 @@
 #include <zsLib/IMessageQueueManager.h>
 #include <zsLib/ISettings.h>
 #include <zsLib/Log.h>
+#include <zsLib/Socket.h>
 #include <zsLib/XML.h>
 
 namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
@@ -52,9 +54,11 @@ namespace ortc
 
   namespace internal
   {
-    ZS_DECLARE_TYPEDEF_PTR(zsLib::IMessageQueueManager, UseMessageQueueManager)
+    ZS_DECLARE_TYPEDEF_PTR(zsLib::IMessageQueueManager, UseMessageQueueManager);
+    ZS_DECLARE_CLASS_PTR(ORTCSettingsDefaults);
 
     void initSubsystems();
+    void installORTCSettingsDefaults();
     void installCertificateSettingsDefaults();
     void installDataChannelSettingsDefaults();
     void installDTMFSenderSettingsDefaults();
@@ -83,6 +87,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     static void installAllDefaults()
     {
+      installORTCSettingsDefaults();
       installCertificateSettingsDefaults();
       installDataChannelSettingsDefaults();
       installDTMFSenderSettingsDefaults();
@@ -109,6 +114,55 @@ namespace ortc
       installSRTPSDESTransportSettingsDefaults();
     }
 
+    
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark ORTCSettingsDefaults
+    #pragma mark
+
+    class ORTCSettingsDefaults : public ISettingsApplyDefaultsDelegate
+    {
+    public:
+      //-----------------------------------------------------------------------
+      ~ORTCSettingsDefaults()
+      {
+        ISettings::removeDefaults(*this);
+      }
+
+      //-----------------------------------------------------------------------
+      static ORTCSettingsDefaultsPtr singleton()
+      {
+        static SingletonLazySharedPtr<ORTCSettingsDefaults> singleton(create());
+        return singleton.singleton();
+      }
+
+      //-----------------------------------------------------------------------
+      static ORTCSettingsDefaultsPtr create()
+      {
+        auto pThis(make_shared<ORTCSettingsDefaults>());
+        ISettings::installDefaults(pThis);
+        return pThis;
+      }
+
+      //-----------------------------------------------------------------------
+      virtual void notifySettingsApplyDefaults() override
+      {
+        ISettings::setString(ZSLIB_SETTING_SOCKET_MONITOR_THREAD_PRIORITY, zsLib::toString(zsLib::ThreadPriority_HighPriority));
+        ISettings::setString(ORTC_QUEUE_THREAD_MAIN_PRIORITY, zsLib::toString(zsLib::ThreadPriority_NormalPriority));
+        ISettings::setString(ORTC_QUEUE_THREAD_PIPELINE_PRIORITY, zsLib::toString(zsLib::ThreadPriority_HighPriority));
+      }
+      
+    };
+
+    //-------------------------------------------------------------------------
+    void installORTCSettingsDefaults()
+    {
+      ORTCSettingsDefaults::singleton();
+    }
+
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -133,6 +187,12 @@ namespace ortc
     IMessageQueuePtr IORTCForInternal::queueORTC()
     {
       return (ORTC::singleton())->queueORTC();
+    }
+
+    //-------------------------------------------------------------------------
+    IMessageQueuePtr IORTCForInternal::queueORTCPipeline()
+    {
+      return (ORTC::singleton())->queueORTCPipeline();
     }
 
     //-------------------------------------------------------------------------
@@ -374,10 +434,28 @@ namespace ortc
     IMessageQueuePtr ORTC::queueORTC() const
     {
       AutoRecursiveLock lock(*this);
-      if (!mORTCQueue) {
-        mORTCQueue = UseMessageQueueManager::getThreadPoolQueue(ORTC_QUEUE_MAIN_THREAD_NAME);
-      }
-      return mORTCQueue;
+      class Once {
+      public:
+        Once() {
+          zsLib::IMessageQueueManager::registerMessageQueueThreadPriority(ORTC_QUEUE_MAIN_THREAD_NAME, zsLib::threadPriorityFromString(ISettings::getString(ORTC_QUEUE_THREAD_MAIN_PRIORITY)));
+        }
+      };
+      static Once once;
+      return UseMessageQueueManager::getThreadPoolQueue(ORTC_QUEUE_MAIN_THREAD_NAME);
+    }
+
+    //-------------------------------------------------------------------------
+    IMessageQueuePtr ORTC::queueORTCPipeline() const
+    {
+      AutoRecursiveLock lock(*this);
+      class Once {
+      public:
+        Once() {
+          zsLib::IMessageQueueManager::registerMessageQueueThreadPriority(ORTC_QUEUE_PIPELINE_THREAD_NAME, zsLib::threadPriorityFromString(ISettings::getString(ORTC_QUEUE_THREAD_PIPELINE_PRIORITY)));
+        }
+      };
+      static Once once;
+      return UseMessageQueueManager::getThreadPoolQueue(ORTC_QUEUE_PIPELINE_THREAD_NAME);
     }
 
     //-------------------------------------------------------------------------

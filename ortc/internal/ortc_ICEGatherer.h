@@ -204,6 +204,7 @@ namespace ortc
       friend interaction IICEGatherer;
       friend interaction IICEGathererFactory;
       friend interaction IICEGathererForICETransport;
+      friend struct SocketDelegate;
 
       typedef IICEGatherer::States States;
 
@@ -271,15 +272,16 @@ namespace ortc
 
       typedef std::list<IPAddress> IPAddressList;
 
-      ZS_DECLARE_CLASS_PTR(HostIPSorter)
-      ZS_DECLARE_STRUCT_PTR(HostPort)
-      ZS_DECLARE_STRUCT_PTR(ReflexivePort)
-      ZS_DECLARE_STRUCT_PTR(RelayPort)
-      ZS_DECLARE_STRUCT_PTR(TCPPort)
-      ZS_DECLARE_STRUCT_PTR(BufferedPacket)
-      ZS_DECLARE_STRUCT_PTR(Route)
-      ZS_DECLARE_STRUCT_PTR(InstalledTransport)
-      ZS_DECLARE_STRUCT_PTR(Preference)
+      ZS_DECLARE_STRUCT_PTR(SocketDelegate);
+      ZS_DECLARE_CLASS_PTR(HostIPSorter);
+      ZS_DECLARE_STRUCT_PTR(HostPort);
+      ZS_DECLARE_STRUCT_PTR(ReflexivePort);
+      ZS_DECLARE_STRUCT_PTR(RelayPort);
+      ZS_DECLARE_STRUCT_PTR(TCPPort);
+      ZS_DECLARE_STRUCT_PTR(BufferedPacket);
+      ZS_DECLARE_STRUCT_PTR(Route);
+      ZS_DECLARE_STRUCT_PTR(InstalledTransport);
+      ZS_DECLARE_STRUCT_PTR(Preference);
 
       typedef std::pair<HostPortPtr, ReflexivePortPtr> HostAndReflexivePortPair;
       typedef std::pair<HostPortPtr, RelayPortPtr> HostAndRelayPortPair;
@@ -530,6 +532,65 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       #pragma mark
+      #pragma mark ICEGatherer::SocketDelegate
+      #pragma mark
+
+      struct SocketDelegate : public zsLib::MessageQueueAssociator,
+                              public zsLib::ISocketDelegate
+      {
+      protected:
+        struct make_private {};
+
+      public:
+        SocketDelegate(
+                       const make_private &,
+                       IMessageQueuePtr queue,
+                       ICEGathererPtr gatherer
+                       ) :
+          MessageQueueAssociator(queue),
+          iceGatherer_(gatherer)
+        {
+        }
+
+        static SocketDelegatePtr create(
+                                        IMessageQueuePtr queue,
+                                        ICEGathererPtr gatherer
+                                        )
+        {
+          auto pThis(std::make_shared<SocketDelegate>(make_private{}, queue, gatherer));
+          return pThis;
+        }
+
+        virtual void onReadReady(SocketPtr socket) override
+        {
+          auto outer = iceGatherer_.lock();
+          if (!outer) return;
+          outer->onReadReady(socket);
+        }
+
+        virtual void onWriteReady(SocketPtr socket) override
+        {
+          auto outer = iceGatherer_.lock();
+          if (!outer) return;
+          outer->onWriteReady(socket);
+        }
+
+        virtual void onException(SocketPtr socket) override
+        {
+          auto outer = iceGatherer_.lock();
+          if (!outer) return;
+          outer->onException(socket);
+        }
+
+        AutoPUID id_;
+        ICEGathererWeakPtr iceGatherer_;
+      };
+
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
+      #pragma mark
       #pragma mark ICEGatherer::HostIPSorter
       #pragma mark
 
@@ -706,6 +767,7 @@ namespace ortc
         CandidatePtr mCandidateUDP;
         IPAddress mBoundUDPIP;
         SocketPtr mBoundUDPSocket;
+        SocketDelegatePtr mBoundUDPSocketDelegateHolder;
         UseBackOffTimerPtr mBindUDPBackOffTimer;
         
         CandidatePtr mCandidateTCPPassive;
@@ -713,6 +775,7 @@ namespace ortc
 
         IPAddress mBoundTCPIP;
         SocketPtr mBoundTCPSocket;
+        SocketDelegatePtr mBoundTCPSocketDelegateHolder;
         UseBackOffTimerPtr mBindTCPBackOffTimer;
 
         bool mWarmUpAfterBinding {true};
@@ -748,6 +811,7 @@ namespace ortc
 
         IPAddress mRemoteIP;
         SocketPtr mSocket;
+        SocketDelegatePtr mSocketDelegateHolder;
         ByteQueue mIncomingBuffer;
         ByteQueue mOutgoingBuffer;
 
@@ -926,11 +990,13 @@ namespace ortc
                     HostPortPtr ownerHostPort
                     );
 
-      SocketPtr bind(
-                     bool firstAttempt,
-                     IPAddress &ioBindIP,
-                     IICETypes::Protocols protocol
-                     );
+      void bind(
+                SocketPtr &outSocket,
+                SocketDelegatePtr &outSocketDelegate,
+                bool firstAttempt,
+                IPAddress &ioBindIP,
+                IICETypes::Protocols protocol
+                );
 
       CandidatePtr createCandidate(
                                    HostIPSorter::DataPtr hostData,
