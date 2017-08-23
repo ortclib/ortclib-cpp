@@ -77,6 +77,8 @@
         "ortc_MediaDeviceCaptureAudio.cpp",
         "ortc_MediaDeviceCaptureVideo.cpp",
         "ortc_MediaDeviceRenderAudio.cpp",
+        "ortc_MediaStreamTrack.cpp",
+        "ortc_MediaStreamTrackMonitor.cpp",
         "ortc_RTPEncoderAudio.cpp",
         "ortc_RTPEncoderVideo.cpp",
         "ortc_RTPDecoderAudio.cpp",
@@ -149,6 +151,9 @@
           "name": "MediaEngine"
         },
         {
+          "name": "MediaStreamTrackMonitor" 
+        },
+        {
           "name":  "RtpPacket"
         },
         {
@@ -156,9 +161,6 @@
         },
         {
           "name": "RtpListener"
-        },
-        {
-          "name": "RtpMediaEngine"
         },
         {
           "name": "RtpReceiver",

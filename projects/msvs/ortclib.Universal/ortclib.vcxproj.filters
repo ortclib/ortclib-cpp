@@ -339,6 +339,9 @@
     <ClInclude Include="..\..\..\ortc\internal\ortc_IMediaStreamTrackMonitor.h">
       <Filter>ortc\internal</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_MediaStreamTrackMonitor.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\ortc\internal\ortc_ETWStatsReport.man">
@@ -548,6 +551,9 @@
       <Filter>ortc\cpp</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\ortc\cpp\ortc_MediaChannelTraceHelper.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_MediaStreamTrackMonitor.cpp">
       <Filter>ortc\cpp</Filter>
     </ClCompile>
   </ItemGroup>

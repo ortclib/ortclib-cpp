@@ -185,12 +185,56 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
+    #pragma mark IMediaStreamTrackForMediaDevices
+    #pragma mark
+
+    interaction IMediaStreamTrackForMediaDevices
+    {
+      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForMediaDevices, ForMediaDevices);
+
+      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::TrackConstraints, TrackConstraints);
+
+      static ForMediaDevicesPtr createForMediaDevices(
+                                                      IMediaStreamTrackTypes::Kinds kind,
+                                                      const TrackConstraints &constraints
+                                                      );
+
+      virtual PUID getID() const = 0;
+    };
+
+    
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IMediaStreamTrackForMediaStreamTrackSelector
+    #pragma mark
+
+    interaction IMediaStreamTrackForMediaStreamTrackSelector
+    {
+      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForMediaStreamTrackSelector, ForMediaStreamTrackSelector);
+
+      static ForMediaStreamTrackSelectorPtr createForMediaStreamTrackSelector(IMediaStreamTrackTypes::Kinds kind);
+
+      virtual PUID getID() const = 0;
+    };
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
     #pragma mark IMediaStreamTrackForRTPReceiver
     #pragma mark
 
     interaction IMediaStreamTrackForRTPReceiver
     {
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPReceiver, ForReceiver);
+
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters);
+
+      static ForReceiverPtr createForReceiver(IMediaStreamTrackTypes::Kinds kind);
 
       virtual PUID getID() const = 0;
     };

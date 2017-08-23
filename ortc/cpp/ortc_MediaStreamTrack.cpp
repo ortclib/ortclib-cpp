@@ -35,8 +35,8 @@
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/ortc_StatsReport.h>
 #include <ortc/internal/platform.h>
-
 #include <ortc/internal/ortc_IMediaStreamTrackMonitor.h>
+#include <ortc/internal/ortc.events.h>
 
 #include <ortc/IHelper.h>
 
@@ -136,9 +136,23 @@ namespace ortc
     {
       MediaStreamTrackSettingsDefaults::singleton();
     }
-
-#if 0
-
+    
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IMediaStreamTrack
+    #pragma mark
+  
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IMediaStreamTrackForMediaStreamTrackChannel
+    #pragma mark
+  
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -148,10 +162,42 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    MediaStreamTrackPtr IMediaStreamTrackForRTPReceiver::create(Kinds kind)
+    IMediaStreamTrackForRTPReceiver::ForReceiverPtr IMediaStreamTrackForRTPReceiver::createForReceiver(IMediaStreamTrackTypes::Kinds kind)
     {
-      return internal::IMediaStreamTrackFactory::singleton().create(kind);
+      return IMediaStreamTrackFactory::singleton().createForReceiver(kind);
     }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IMediaStreamTrackForRTPReceiverChannel
+    #pragma mark
+  
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IMediaStreamTrackForRTPSender
+    #pragma mark
+  
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IMediaStreamTrackForRTPSenderChannel
+    #pragma mark
+  
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark IMediaStreamTrackForMediaStream
+    #pragma mark
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -164,19 +210,21 @@ namespace ortc
     //-------------------------------------------------------------------------
     MediaStreamTrack::MediaStreamTrack(
                                        const make_private &,
-                                       IMessageQueuePtr queue,
-                                       Kinds kind,
-                                       bool remote,
-                                       TrackConstraintsPtr constraints
+                                       const MediaStreamTrackArguments &args
                                        ) :
-      MessageQueueAssociator(queue),
+      MessageQueueAssociator(args.queue_),
       SharedRecursiveLock(SharedRecursiveLock::create()),
-      mTrackID(String(IMediaStreamTrackTypes::toString(kind)) + "_label_" + string(zsLib::createUUID())),
-      mKind(kind),
-      mRemote(remote),
-      mConstraints(constraints)
+      trackId_(String(IMediaStreamTrackTypes::toString(args.kind_)) + "_label_" + string(zsLib::createUUID())),
+      kind_(args.kind_),
+      type_(args.type_),
+      constraints_(args.constraints_)
     {
-      ZS_LOG_DETAIL(debug("created"))
+      ZS_EVENTING_4(x, i, Detail, MediaStreamTrackCreate, ol, MediaEngine, Start, 
+        puid, id, id_,
+        string, traceId, trackId_,
+        string, kind, IMediaStreamTrackTypes::toString(kind_),
+        string, type, MediaStreamTrack::toString(type_)
+      );
     }
 
     //-------------------------------------------------------------------------
@@ -184,13 +232,12 @@ namespace ortc
     {
       AutoRecursiveLock lock(*this);
 
-      mStatsTimer = ITimer::create(mThisWeak.lock(), Seconds(1));
+      statsTimer_ = ITimer::create(thisWeak_.lock(), Seconds(1));
 
-      mCapabilities = make_shared<Capabilities>();
-      mSettings = make_shared<TrackSettings>();
+      capabilities_ = make_shared<Capabilities>();
+      settings_ = make_shared<Settings>();
 
-
-      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
+      IWakeDelegateProxy::create(thisWeak_.lock())->onWake();
     }
 
     //-------------------------------------------------------------------------
@@ -198,57 +245,58 @@ namespace ortc
     {
       if (isNoop()) return;
 
-      ZS_LOG_DETAIL(log("destroyed"))
-      mThisWeak.reset();
+      ZS_EVENTING_1(x, i, Detail, MediaStreamTrackDestroy, ol, MediaEngine, Stop, puid, id, id_);
+
+      thisWeak_.reset();
 
       cancel();
     }
 
     //-------------------------------------------------------------------------
-    MediaStreamTrackPtr MediaStreamTrack::create(
-                                                 Kinds kind,
-                                                 bool remote,
-                                                 TrackConstraintsPtr constraints
-                                                 )
+    MediaStreamTrackPtr MediaStreamTrack::convert(ortc::IMediaStreamTrackPtr object)
     {
-      MediaStreamTrackPtr pThis(make_shared<MediaStreamTrack>(make_private{}, IORTCForInternal::queueORTC(), kind, remote, constraints));
-      pThis->mThisWeak = pThis;
-      pThis->init();
-      return pThis;
+      return ZS_DYNAMIC_PTR_CAST(MediaStreamTrack, object);
     }
 
+
     //-------------------------------------------------------------------------
-    MediaStreamTrackPtr MediaStreamTrack::convert(IMediaStreamTrackPtr object)
+    MediaStreamTrackPtr MediaStreamTrack::convert(internal::IMediaStreamTrackPtr object)
     {
       return ZS_DYNAMIC_PTR_CAST(MediaStreamTrack, object);
     }
 
     //-------------------------------------------------------------------------
-    MediaStreamTrackPtr MediaStreamTrack::convert(ForSenderPtr object)
+    MediaStreamTrackPtr MediaStreamTrack::convert(ForMediaStreamPtr object)
     {
       return ZS_DYNAMIC_PTR_CAST(MediaStreamTrack, object);
     }
 
     //-------------------------------------------------------------------------
-    MediaStreamTrackPtr MediaStreamTrack::convert(ForSenderChannelPtr object)
+    MediaStreamTrackPtr MediaStreamTrack::convert(ForMediaStreamTrackChannelPtr object)
     {
       return ZS_DYNAMIC_PTR_CAST(MediaStreamTrack, object);
     }
 
     //-------------------------------------------------------------------------
-    MediaStreamTrackPtr MediaStreamTrack::convert(ForSenderChannelMediaBasePtr object)
+    MediaStreamTrackPtr MediaStreamTrack::convert(ForMediaStreamTrackSubscriberPtr object)
     {
       return ZS_DYNAMIC_PTR_CAST(MediaStreamTrack, object);
     }
 
     //-------------------------------------------------------------------------
-    MediaStreamTrackPtr MediaStreamTrack::convert(ForSenderChannelAudioPtr object)
+    MediaStreamTrackPtr MediaStreamTrack::convert(ForMediaStreamTrackSubscriberMediaPtr object)
     {
       return ZS_DYNAMIC_PTR_CAST(MediaStreamTrack, object);
     }
 
     //-------------------------------------------------------------------------
-    MediaStreamTrackPtr MediaStreamTrack::convert(ForSenderChannelVideoPtr object)
+    MediaStreamTrackPtr MediaStreamTrack::convert(ForMediaStreamTrackSubscriberRTPPtr object)
+    {
+      return ZS_DYNAMIC_PTR_CAST(MediaStreamTrack, object);
+    }
+
+    //-------------------------------------------------------------------------
+    MediaStreamTrackPtr MediaStreamTrack::convert(ForMediaDevicesPtr object)
     {
       return ZS_DYNAMIC_PTR_CAST(MediaStreamTrack, object);
     }
@@ -266,40 +314,17 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    MediaStreamTrackPtr MediaStreamTrack::convert(ForReceiverChannelMediaBasePtr object)
+    MediaStreamTrackPtr MediaStreamTrack::convert(ForSenderPtr object)
     {
       return ZS_DYNAMIC_PTR_CAST(MediaStreamTrack, object);
     }
 
     //-------------------------------------------------------------------------
-    MediaStreamTrackPtr MediaStreamTrack::convert(ForReceiverChannelAudioPtr object)
+    MediaStreamTrackPtr MediaStreamTrack::convert(ForSenderChannelPtr object)
     {
       return ZS_DYNAMIC_PTR_CAST(MediaStreamTrack, object);
     }
 
-    //-------------------------------------------------------------------------
-    MediaStreamTrackPtr MediaStreamTrack::convert(ForReceiverChannelVideoPtr object)
-    {
-      return ZS_DYNAMIC_PTR_CAST(MediaStreamTrack, object);
-    }
-
-    //-------------------------------------------------------------------------
-    MediaStreamTrackPtr MediaStreamTrack::convert(ForMediaDevicesPtr object)
-    {
-      return ZS_DYNAMIC_PTR_CAST(MediaStreamTrack, object);
-    }
-
-    //-------------------------------------------------------------------------
-    MediaStreamTrackPtr MediaStreamTrack::convert(ForMediaEnginePtr object)
-    {
-      return ZS_DYNAMIC_PTR_CAST(MediaStreamTrack, object);
-    }
-
-    //-------------------------------------------------------------------------
-    MediaStreamTrackPtr MediaStreamTrack::convert(ForMediaStreamPtr object)
-    {
-      return ZS_DYNAMIC_PTR_CAST(MediaStreamTrack, object);
-    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -319,12 +344,13 @@ namespace ortc
 
       if ((isShutdown()) ||
           (isShuttingDown())) {
-        ZS_LOG_WARNING(Debug, log("can not fetch stats while shutdown / shutting down"));
+        ZS_EVENTING_2(x, w, Debug, MediaStreamTrackWarning, ol, RtpPacket, Info, puid, id, id_, string, message, "can not fetch stats while shutdown / shutting down");
+
         return PromiseWithStatsReport::createRejected(IORTCForInternal::queueDelegate());
       }
 
       PromiseWithStatsReportPtr promise = PromiseWithStatsReport::create(IORTCForInternal::queueDelegate());
-      IMediaStreamTrackAsyncDelegateProxy::create(mThisWeak.lock())->onResolveStatsPromise(promise, stats);
+      IMediaStreamTrackAsyncDelegateProxy::create(thisWeak_.lock())->onResolveStatsPromise(promise, stats);
       return promise;
     }
 
@@ -337,26 +363,29 @@ namespace ortc
     #pragma mark
     
     //-------------------------------------------------------------------------
-    ElementPtr MediaStreamTrack::toDebug(MediaStreamTrackPtr object)
+    void MediaStreamTrack::trace(
+                                 MediaStreamTrackPtr object,
+                                 const char *message
+                                 )
     {
-      if (!object) return ElementPtr();
-      return object->toDebug();
+      if (!object) return;
+      return object->trace(message);
     }
 
     //-------------------------------------------------------------------------
     IMediaStreamTrackSubscriptionPtr MediaStreamTrack::subscribe(IMediaStreamTrackDelegatePtr originalDelegate)
     {
-      ZS_LOG_DETAIL(slog("subscribing to media stream track"))
+      ZS_EVENTING_1(x, i, Detail, MediaStreamTrackSubscribe, ol, MediaEngine, Info, puid, id, id_);
 
       AutoRecursiveLock lock(*this);
       if (!originalDelegate) return IMediaStreamTrackSubscriptionPtr();
 
-      IMediaStreamTrackSubscriptionPtr subscription = mSubscriptions.subscribe(originalDelegate, IORTCForInternal::queueDelegate());
+      IMediaStreamTrackSubscriptionPtr subscription = subscriptions_.subscribe(originalDelegate, IORTCForInternal::queueDelegate());
 
-      IMediaStreamTrackDelegatePtr delegate = mSubscriptions.delegate(subscription, true);
+      IMediaStreamTrackDelegatePtr delegate = subscriptions_.delegate(subscription, true);
 
       if (delegate) {
-        auto pThis = mThisWeak.lock();
+        auto pThis = thisWeak_.lock();
 
 #define TODO_DO_WE_NEED_TO_TELL_ABOUT_ANY_MISSED_EVENTS 1
 #define TODO_DO_WE_NEED_TO_TELL_ABOUT_ANY_MISSED_EVENTS 2
@@ -366,7 +395,7 @@ namespace ortc
       }
 
       if (isShutdown()) {
-        mSubscriptions.clear();
+        subscriptions_.clear();
       }
 
       return subscription;
@@ -375,13 +404,13 @@ namespace ortc
     //-------------------------------------------------------------------------
     IMediaStreamTrackTypes::Kinds MediaStreamTrack::kind() const
     {
-      return mKind;
+      return kind_;
     }
 
     //-------------------------------------------------------------------------
     String MediaStreamTrack::id() const
     {
-      return mTrackID;
+      return trackId_;
     }
 
     //-------------------------------------------------------------------------
@@ -389,63 +418,59 @@ namespace ortc
     {
       AutoRecursiveLock lock(*this);
 
-      return mDeviceID;
+      return deviceId_;
     }
+
 
     //-------------------------------------------------------------------------
     String MediaStreamTrack::label() const
     {
-#define TODO 1
-#define TODO 2
-      return String();
+      return label_;
     }
 
     //-------------------------------------------------------------------------
     bool MediaStreamTrack::enabled() const
     {
-#define TODO 1
-#define TODO 2
-      return false;
+      AutoRecursiveLock lock(*this);
+      return enabled_;
     }
 
     //-------------------------------------------------------------------------
     void MediaStreamTrack::enabled(bool enabled)
     {
-#define TODO 1
-#define TODO 2
+      AutoRecursiveLock lock(*this);
+      enabled_ = enabled;
     }
 
     //-------------------------------------------------------------------------
     bool MediaStreamTrack::muted() const
     {
-#define TODO 1
-#define TODO 2
-      return false;
+      AutoRecursiveLock lock(*this);
+      return muted_;
     }
 
     //-------------------------------------------------------------------------
     void MediaStreamTrack::muted(bool muted)
     {
-#define TODO 1
-#define TODO 2
+      AutoRecursiveLock lock(*this);
+      muted_ = muted;
     }
 
     //-------------------------------------------------------------------------
     bool MediaStreamTrack::remote() const
     {
-      return mRemote; // no lock needed
+      return type_ == MediaStreamTrackType_Receiver;
     }
 
     //-------------------------------------------------------------------------
     IMediaStreamTrackTypes::States MediaStreamTrack::readyState() const
     {
-#define TODO 1
-#define TODO 2
-      return State_First;
+      AutoRecursiveLock lock(*this);
+      return currentState_;
     }
 
     //-------------------------------------------------------------------------
-    IMediaStreamTrackPtr MediaStreamTrack::clone() const
+    ortc::IMediaStreamTrackPtr MediaStreamTrack::clone() const
     {
 #define TODO 1
 #define TODO 2
@@ -456,26 +481,28 @@ namespace ortc
     void MediaStreamTrack::stop()
     {
       AutoRecursiveLock lock(*this);
+#define TODO 1
+#define TODO 2
     }
 
     //-------------------------------------------------------------------------
     IMediaStreamTrackTypes::CapabilitiesPtr MediaStreamTrack::getCapabilities() const
     {
-      return mCapabilities;
+      return capabilities_;
     }
 
     //-------------------------------------------------------------------------
     IMediaStreamTrackTypes::TrackConstraintsPtr MediaStreamTrack::getConstraints() const
     {
       AutoRecursiveLock lock(*this);
-      return mConstraints;
+      return constraints_;
     }
 
     //-------------------------------------------------------------------------
     IMediaStreamTrackTypes::SettingsPtr MediaStreamTrack::getSettings() const
     {
       AutoRecursiveLock lock(*this);
-      return mSettings;
+      return settings_;
     }
 
     //-------------------------------------------------------------------------
@@ -485,175 +512,49 @@ namespace ortc
 
       auto constraints = TrackConstraints::create(inConstraints);
 
-      IMediaStreamTrackAsyncDelegateProxy::create(mThisWeak.lock())->onApplyConstraints(promise, constraints);
+      IMediaStreamTrackAsyncDelegateProxy::create(thisWeak_.lock())->onApplyConstraints(promise, constraints);
 
       return promise;
     }
 
     //-------------------------------------------------------------------------
-    IMediaStreamTrackMediaSubscriptionPtr MediaStreamTrack::installMediaDelegate(IMediaStreamTrackMediaDelegatePtr delegate)
+    IMediaStreamTrackMediaSubscriptionPtr MediaStreamTrack::subscribeMedia(IMediaStreamTrackSyncMediaDelegatePtr delegate)
     {
-#define TODO 1
-#define TODO 2
       return IMediaStreamTrackMediaSubscriptionPtr();
     }
 
     //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPSender
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    void MediaStreamTrack::setSender(IRTPSenderPtr sender)
+    IMediaStreamTrackMediaSubscriptionPtr MediaStreamTrack::subscribeMedia(IMediaStreamTrackAsyncMediaDelegatePtr delegate)
     {
-      AutoRecursiveLock lock(*this);
-
-      mSender = RTPSender::convert(sender);
+      return IMediaStreamTrackMediaSubscriptionPtr();
     }
 
+    
     //-------------------------------------------------------------------------
-    void MediaStreamTrack::notifyAttachSenderChannel(RTPSenderChannelPtr channel)
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark MediaStreamTrack => internal::IMediaStreamTrack
+    #pragma mark
+
+
+    //-------------------------------------------------------------------------
+    IMediaStreamTrackRTPSubscriptionPtr MediaStreamTrack::subscribeRTP(
+                                                                       const Parameters &rtpEncodingParams,
+                                                                       IMediaStreamTrackRTPDelegatePtr delegate
+                                                                       )
     {
-      IMediaStreamTrackAsyncDelegateProxy::create(mThisWeak.lock())->onAttachSenderChannel(channel);
+      return IMediaStreamTrackRTPSubscriptionPtr();
     }
 
-    //-------------------------------------------------------------------------
-    void MediaStreamTrack::notifyDetachSenderChannel(RTPSenderChannelPtr channel)
-    {
-      IMediaStreamTrackAsyncDelegateProxy::create(mThisWeak.lock())->onDetachSenderChannel(channel);
-    }
-
+    
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
-    #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPSenderChannel
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPSenderChannelMediaBase
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPSenderChannelAudio
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPSenderChannelVideo
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPReceiver
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    MediaStreamTrackPtr MediaStreamTrack::create(Kinds kind)
-    {
-      return create(kind, true, TrackConstraintsPtr());
-    }
-
-    //-------------------------------------------------------------------------
-    void MediaStreamTrack::setReceiver(IRTPReceiverPtr receiver)
-    {
-      AutoRecursiveLock lock(*this);
-
-      mReceiver = RTPReceiver::convert(receiver);
-    }
-
-    //-------------------------------------------------------------------------
-    void MediaStreamTrack::notifyActiveReceiverChannel(RTPReceiverChannelPtr inChannel)
-    {
-      IMediaStreamTrackAsyncDelegateProxy::create(mThisWeak.lock())->onSetActiveReceiverChannel(inChannel);
-    }
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPReceiverChannel
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPReceiverChannelMediaBase
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPReceiverChannelAudio
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPReceiverChannelVideo
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    void MediaStreamTrack::renderVideoFrame(VideoFramePtr videoFrame)
-    {
-      AutoRecursiveLock lock(*this);
-    }
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaStreamTrack => IMediaStreamTrackForMediaEngine
-    #pragma mark
-
-    //-------------------------------------------------------------------------
-    void MediaStreamTrack::sendCapturedVideoFrame(VideoFramePtr videoFrame)
-    {
-      UseSenderChannelPtr channel;
-
-      {
-        AutoRecursiveLock lock(*this);
-
-        channel = mSenderChannel.lock();
-      }
-
-      if (!channel) return;
-
-      channel->sendVideoFrame(videoFrame);
-    }
-
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaStreamTrack => IMediaStreamTrackForMediaEngine
+    #pragma mark MediaStreamTrack => IMediaStreamTrackForSettings
     #pragma mark
 
     //-------------------------------------------------------------------------
@@ -676,13 +577,139 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     #pragma mark
+    #pragma mark MediaStreamTrack => IMediaStreamTrackForMediaStreamTrackChannel
+    #pragma mark
+
+    
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark MediaStreamTrack => IMediaStreamTrackForMediaStreamTrackSubscriber
+    #pragma mark
+    
+    //-------------------------------------------------------------------------
+    void MediaStreamTrack::notifySubscriberCancelled(UseSubscriberPtr subscriber)
+    {
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark MediaStreamTrack => IMediaStreamTrackForMediaStreamTrackSubscriberMedia
+    #pragma mark
+    
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark MediaStreamTrack => IMediaStreamTrackForMediaStreamTrackSubscriberRTP
+    #pragma mark
+
+    
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark MediaStreamTrack => IMediaStreamTrackForMediaDevices
+    #pragma mark
+
+
+    //-------------------------------------------------------------------------
+    MediaStreamTrack::ForMediaDevicesPtr MediaStreamTrack::createForMediaDevices(
+                                                                                 IMediaStreamTrackTypes::Kinds kind,
+                                                                                 const TrackConstraints &constraints
+                                                                                 )
+    {
+      MediaStreamTrackArguments args;
+      args.queue_ = IORTCForInternal::queueORTC();
+      args.kind_ = kind;
+      args.type_ = MediaStreamTrackType_Capture;
+      args.constraints_ = make_shared<TrackConstraints>(constraints);
+
+      MediaStreamTrackPtr pThis(make_shared<MediaStreamTrack>(make_private{}, args));
+      pThis->thisWeak_ = pThis;
+      pThis->init();
+      return pThis;
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark MediaStreamTrack => IMediaStreamTrackForMediaStreamTrackSelector
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    MediaStreamTrack::ForMediaDevicesPtr MediaStreamTrack::createForMediaStreamTrackSelector(IMediaStreamTrackTypes::Kinds kind)
+    {
+      return ForMediaDevicesPtr();
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPReceiver
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    MediaStreamTrack::ForReceiverPtr MediaStreamTrack::createForReceiver(IMediaStreamTrackTypes::Kinds kind)
+    {
+      MediaStreamTrackArguments args;
+      args.queue_ = IORTCForInternal::queueORTC();
+      args.kind_ = kind;
+      args.type_ = MediaStreamTrackType_Receiver;
+
+      MediaStreamTrackPtr pThis(make_shared<MediaStreamTrack>(make_private{}, args));
+      pThis->thisWeak_ = pThis;
+      pThis->init();
+      return pThis;
+    }
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPReceiverChannel
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPSender
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPSenderChannel
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
     #pragma mark MediaStreamTrack => IWakeDelegate
     #pragma mark
 
     //-------------------------------------------------------------------------
     void MediaStreamTrack::onWake()
     {
-      ZS_LOG_DEBUG(log("wake"))
+      ZS_EVENTING_1(x, i, Debug, MediaStreamTrackOnWake, ol, MediaEngine, InternalEvent, puid, id, id_);
 
       AutoRecursiveLock lock(*this);
       step();
@@ -699,11 +726,13 @@ namespace ortc
     //-------------------------------------------------------------------------
     void MediaStreamTrack::onTimer(ITimerPtr timer)
     {
-      ZS_LOG_TRACE(log("timer") + ZS_PARAM("timer id", timer->getID()))
+      ZS_EVENTING_2(x, i, Debug, MediaStreamTrackOnTimer, ol, MediaEngine, InternalEvent,
+        puid, id, id_,
+        puid, timerId, timer->getID()
+      );
 
       AutoRecursiveLock lock(*this);
-
-      if (mStatsTimer) {
+      if (statsTimer_) {
       }
     }
 
@@ -718,7 +747,10 @@ namespace ortc
     //-------------------------------------------------------------------------
     void MediaStreamTrack::onPromiseSettled(PromisePtr promise)
     {
-      ZS_LOG_DEBUG(log("promise settled") + ZS_PARAM("promise", promise->getID()))
+      ZS_EVENTING_2(x, i, Debug, MediaStreamTrackOnPromiseSettled, ol, MediaEngine, InternalEvent,
+        puid, id, id_,
+        puid, promiseId, promise->getID()
+      );
 
       AutoRecursiveLock lock(*this);
       step();
@@ -748,52 +780,6 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void MediaStreamTrack::onSetActiveReceiverChannel(UseReceiverChannelPtr channel)
-    {
-      AutoRecursiveLock lock(*this);
-
-      if (!channel) {
-        ZS_LOG_DEBUG(log("active receiver channel is being removed"))
-#define TODO 1
-#define TODO 2
-        return;
-      }
-
-      ZS_LOG_DEBUG(log("setting to active receiver channel") + ZS_PARAM("channel", channel->getID()))
-
-      mReceiverChannel = channel;
-
-#define TODO 1
-#define TODO 2
-    }
-
-    //-------------------------------------------------------------------------
-    void MediaStreamTrack::onAttachSenderChannel(UseSenderChannelPtr channel)
-    {
-      ZS_LOG_DEBUG(log("attaching sender channel") + ZS_PARAM("channel", channel->getID()))
-
-      AutoRecursiveLock lock(*this);
-
-      mSenderChannel = channel;
-
-#define TODO 1
-#define TODO 2
-    }
-    
-    //-------------------------------------------------------------------------
-    void MediaStreamTrack::onDetachSenderChannel(UseSenderChannelPtr channel)
-    {
-      ZS_LOG_DEBUG(log("detaching sender channel") + ZS_PARAM("channel", channel->getID()))
-
-      AutoRecursiveLock lock(*this);
-
-      mSenderChannel.reset();
-
-#define TODO 1
-#define TODO 2
-    }
-
-    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -802,69 +788,49 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    Log::Params MediaStreamTrack::log(const char *message) const
+    void MediaStreamTrack::trace(const char *message) const
     {
-      ElementPtr objectEl = Element::create("ortc::MediaStreamTrack");
-      IHelper::debugAppend(objectEl, "id", mID);
-      return Log::Params(message, objectEl);
-    }
-
-    //-------------------------------------------------------------------------
-    Log::Params MediaStreamTrack::slog(const char *message)
-    {
-      ElementPtr objectEl = Element::create("ortc::MediaStreamTrack");
-      return Log::Params(message, objectEl);
-    }
-
-    //-------------------------------------------------------------------------
-    Log::Params MediaStreamTrack::debug(const char *message) const
-    {
-      return Log::Params(message, toDebug());
-    }
-
-    //-------------------------------------------------------------------------
-    ElementPtr MediaStreamTrack::toDebug() const
-    {
-      AutoRecursiveLock lock(*this);
-
-      ElementPtr resultEl = Element::create("ortc::MediaStreamTrack");
-
-      IHelper::debugAppend(resultEl, "id", mID);
-
-      IHelper::debugAppend(resultEl, "graceful shutdown", (bool)mGracefulShutdownReference);
-
-      IHelper::debugAppend(resultEl, "subscribers", mSubscriptions.size());
-
-      IHelper::debugAppend(resultEl, "state", toString(mCurrentState));
-
-      IHelper::debugAppend(resultEl, "error", mLastError);
-      IHelper::debugAppend(resultEl, "error reason", mLastErrorReason);
-
-      return resultEl;
+      ZS_EVENTING_15(x, i, Trace, MediaStreamTrackTrace, ol, MediaEngine, Info,
+        puid, id, id_,
+        bool, gracefulShutdownReference, (bool)gracefulShutdownReference_,
+        string, currentState, ortc::IMediaStreamTrackTypes::toString(currentState_),
+        word, lastError, lastError_,
+        string, lastErrorReason, lastErrorReason_,
+        string, trackId, trackId_,
+        string, label, label_,
+        string, kind, ortc::IMediaStreamTrackTypes::toString(kind_),
+        bool, enabled, enabled_,
+        bool, muted, muted_,
+        string, type, MediaStreamTrack::toString(type_),
+        string, deviceId, deviceId_,
+        size_t, subscribers, subscribers_ ? subscribers_->size() : 0,
+        size_t, channels, channels_ ? channels_->size() : 0,
+        puid, statsTimer, statsTimer_ ? statsTimer_->getID() : 0
+      );
     }
 
     //-------------------------------------------------------------------------
     bool MediaStreamTrack::isShuttingDown() const
     {
-      if (mGracefulShutdownReference) return true;
-      return State_Ended == mCurrentState;
+      if (gracefulShutdownReference_) return true;
+      return State_Ended == currentState_;
     }
 
     //-------------------------------------------------------------------------
     bool MediaStreamTrack::isShutdown() const
     {
-      if (mGracefulShutdownReference) return false;
-      return State_Ended == mCurrentState;
+      if (gracefulShutdownReference_) return false;
+      return State_Ended == currentState_;
     }
 
     //-------------------------------------------------------------------------
     void MediaStreamTrack::step()
     {
-      ZS_LOG_DEBUG(debug("step"))
+      ZS_EVENTING_1(x, i, Debug, MediaStreamTrackStep, ol, MediaEngine, Step, puid, id, id_);
 
       if ((isShuttingDown()) ||
           (isShutdown())) {
-        ZS_LOG_DEBUG(debug("step forwarding to cancel"))
+        ZS_EVENTING_2(x, i, Debug, MediaStreamTrackStepMessage, ol, MediaEngine, Step, puid, id, id_, string, message, "step forwarding to cancel");
         cancel();
         return;
       }
@@ -878,13 +844,13 @@ namespace ortc
 
     not_ready:
       {
-        ZS_LOG_TRACE(debug("not ready"))
+        ZS_EVENTING_2(x, i, Debug, MediaStreamTrackStepMessage, ol, MediaEngine, Step, puid, id, id_, string, message, "not ready");
         return;
       }
 
     ready:
       {
-        ZS_LOG_TRACE(log("ready"))
+        ZS_EVENTING_2(x, i, Debug, MediaStreamTrackStepMessage, ol, MediaEngine, Step, puid, id, id_, string, message, "ready");
       }
     }
 
@@ -908,32 +874,36 @@ namespace ortc
 
       if (isShutdown()) return;
 
-      if (!mGracefulShutdownReference) mGracefulShutdownReference = mThisWeak.lock();
+      if (!gracefulShutdownReference_) gracefulShutdownReference_ = thisWeak_.lock();
 
       //.......................................................................
       // final cleanup
 
       setState(State_Ended);
 
-      mSubscriptions.clear();
+      subscriptions_.clear();
       
-      if (mStatsTimer) {
-        mStatsTimer->cancel();
-        mStatsTimer.reset();
+      if (statsTimer_) {
+        statsTimer_->cancel();
+        statsTimer_.reset();
       }
 
       // make sure to cleanup any final reference to self
-      mGracefulShutdownReference.reset();
+      gracefulShutdownReference_.reset();
     }
 
     //-------------------------------------------------------------------------
     void MediaStreamTrack::setState(States state)
     {
-      if (state == mCurrentState) return;
+      if (state == currentState_) return;
 
-      ZS_LOG_DETAIL(debug("state changed") + ZS_PARAM("new state", toString(state)) + ZS_PARAM("old state", toString(mCurrentState)))
+      ZS_EVENTING_3(x, i, Debug, MediaStreamTrackState, ol, MediaEngine, StateEvent, 
+        puid, id, id_,
+        string, newState, ortc::IMediaStreamTrack::toString(state),
+        string, oldState, ortc::IMediaStreamTrack::toString(currentState_)
+      );
 
-      mCurrentState = state;
+      currentState_ = state;
 
 //      MediaStreamTrackPtr pThis = mThisWeak.lock();
 //      if (pThis) {
@@ -949,15 +919,23 @@ namespace ortc
         reason = UseHTTP::toString(UseHTTP::toStatusCode(errorCode));
       }
 
-      if (0 != mLastError) {
-        ZS_LOG_WARNING(Detail, debug("error already set thus ignoring new error") + ZS_PARAM("new error", errorCode) + ZS_PARAM("new reason", reason))
+      if (0 != lastError_) {
+        ZS_EVENTING_3(x, w, Debug, MediaStreamTrackErrorAgain, ol, MediaEngine, ErrorEvent,
+          puid, id, id_,
+          word, error, errorCode,
+          string, reason, reason
+        );
         return;
       }
 
-      mLastError = errorCode;
-      mLastErrorReason = reason;
+      lastError_ = errorCode;
+      lastErrorReason_ = reason;
 
-      ZS_LOG_WARNING(Detail, debug("error set") + ZS_PARAM("error", mLastError) + ZS_PARAM("reason", mLastErrorReason))
+      ZS_EVENTING_3(x, e, Detail, MediaStreamTrackError, ol, MediaEngine, ErrorEvent,
+        puid, id, id_,
+        word, error, errorCode,
+        string, reason, reason
+      );
     }
 
     //-------------------------------------------------------------------------
@@ -974,25 +952,11 @@ namespace ortc
       return MediaStreamTrackFactory::singleton();
     }
 
-    //-------------------------------------------------------------------------
-    MediaStreamTrackPtr IMediaStreamTrackFactory::create(
-                                                         IMediaStreamTrackTypes::Kinds kind,
-                                                         bool remote,
-                                                         TrackConstraintsPtr constraints
-                                                         )
+    IMediaStreamTrackFactory::ForReceiverPtr IMediaStreamTrackFactory::createForReceiver(IMediaStreamTrackTypes::Kinds kind)
     {
       if (this) {}
-      return internal::MediaStreamTrack::create(kind, remote, constraints);
+      return internal::MediaStreamTrack::createForReceiver(kind);
     }
-
-    //-------------------------------------------------------------------------
-    MediaStreamTrackPtr IMediaStreamTrackFactory::create(IMediaStreamTrackTypes::Kinds kind)
-    {
-      if (this) {}
-      return internal::MediaStreamTrack::create(kind);
-    }
-
-#endif //0
 
   } // internal namespace
 

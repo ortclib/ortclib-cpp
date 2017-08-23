@@ -50,6 +50,8 @@ namespace ortc
     ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrackMonitorMediaSubscriberMediaDelegate);
     ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrackMonitorMediaSubscriberRTPDelegate);
 
+    ZS_DECLARE_INTERACTION_PTR(IMediaStreamTrackForMediaStreamTrackMonitor);
+
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------

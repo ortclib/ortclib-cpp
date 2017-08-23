@@ -482,22 +482,20 @@ namespace ortc
 
       if (constraints->mVideo)
       {
-        MediaStreamTrackPtr videoTrack = IMediaStreamTrackFactory::singleton().create(
+        auto videoTrack = IMediaStreamTrackFactory::singleton().createForMediaDevices(
                                                                                       IMediaStreamTrackTypes::Kinds::Kind_Video,
-                                                                                      false,
-                                                                                      constraints->mVideo
+                                                                                      *constraints->mVideo
                                                                                       );
-        value->push_back(videoTrack);
+        value->push_back(MediaStreamTrack::convert(videoTrack));
       }
 
       if (constraints->mAudio)
       {
-        MediaStreamTrackPtr audioTrack = IMediaStreamTrackFactory::singleton().create(
+        auto audioTrack = IMediaStreamTrackFactory::singleton().createForMediaDevices(
                                                                                       IMediaStreamTrackTypes::Kinds::Kind_Audio,
-                                                                                      false,
-                                                                                      constraints->mAudio
+                                                                                      *constraints->mAudio
                                                                                       );
-        value->push_back(audioTrack);
+        value->push_back(MediaStreamTrack::convert(audioTrack));
       }
 
       promise->resolve(value);
