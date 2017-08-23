@@ -63,8 +63,6 @@
 #define ASSERT(x)
 #endif //_DEBUG
 
-#if 0
-
 namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_rtpsender) }
 
 namespace ortc
@@ -237,15 +235,11 @@ namespace ortc
         switch (kind.value()) {
           case IMediaStreamTrackTypes::Kind_Audio:
           {
-            mAudio = UseAudio::create(mThisWeak.lock(), MediaStreamTrack::convert(mTrack), *mParameters);
-            mMediaBase = mAudio;
             found = true;
             break;
           }
           case IMediaStreamTrackTypes::Kind_Video:
           {
-            mVideo = UseVideo::create(mThisWeak.lock(), MediaStreamTrack::convert(mTrack), *mParameters);
-            mMediaBase = mVideo;
             found = true;
             break;
           }
@@ -254,10 +248,9 @@ namespace ortc
 
       ORTC_THROW_INVALID_PARAMETERS_IF(!found);
 
-      ZS_EVENTING_3(
+      ZS_EVENTING_2(
                     x, i, Detail, RtpSenderChannelCreateMediaChannel, ol, RtpSender, Info,
                     puid, id, mID,
-                    puid, mediaBaseId, mMediaBase->getID(),
                     string, kind, IMediaStreamTrack::toString(kind.value())
                     );
 
@@ -339,10 +332,9 @@ namespace ortc
     void RTPSenderChannel::notifyTrackChanged(MediaStreamTrackPtr inTrack)
     {
       UseMediaStreamTrackPtr track = inTrack;
-      ZS_EVENTING_3(
+      ZS_EVENTING_2(
                     x, i, Debug, RtpSenderChannelChangeTrack, ol, RtpSenderChannel, InternalEvent,
                     puid, id, mID,
-                    puid, mediaBaseId, mMediaBase->getID(),
                     puid, trackId, ((bool)track) ? track->getID() : 0
                     );
       IRTPSenderChannelAsyncDelegateProxy::create(mThisWeak.lock())->onTrackChanged(track);
@@ -382,23 +374,17 @@ namespace ortc
     {
       ZS_LOG_TRACE(log("on provide stats") + ZS_PARAM("promise", promise->getID()));
 
-      UseMediaBasePtr mediaBase;
-
       {
         AutoRecursiveLock lock(*this);
-        mediaBase = mMediaBase;
       }
-
-      mediaBase->requestStats(promise, stats);
     }
 
     //-------------------------------------------------------------------------
     bool RTPSenderChannel::handlePacket(RTCPPacketPtr packet)
     {
-      ZS_EVENTING_5(
+      ZS_EVENTING_4(
                     x, i, Trace, RtpSenderChannelDeliverIncomingPacketToMediaChannel, ol, RtpSenderChannel, Deliver,
                     puid, id, mID,
-                    puid, mediaBaseId, mMediaBase->getID(),
                     enum, packetType, zsLib::to_underlying(IICETypes::Component_RTCP),
                     buffer, packet, packet->buffer()->BytePtr(),
                     size, size, packet->buffer()->SizeInBytes()
@@ -442,7 +428,7 @@ namespace ortc
         }
       }
 
-      return mMediaBase->handlePacket(packet);
+      return false;
     }
 
     //-------------------------------------------------------------------------
@@ -452,25 +438,24 @@ namespace ortc
                                       Milliseconds interToneGap
                                       )
     {
-      mMediaBase->insertDTMF(tones, duration, interToneGap);
     }
 
     //-------------------------------------------------------------------------
     String RTPSenderChannel::toneBuffer() const
     {
-      return mMediaBase->toneBuffer();
+      return String();
     }
 
     //-------------------------------------------------------------------------
     Milliseconds RTPSenderChannel::duration() const
     {
-      return mMediaBase->duration();
+      return Milliseconds();
     }
 
     //-------------------------------------------------------------------------
     Milliseconds RTPSenderChannel::interToneGap() const
     {
-      return mMediaBase->interToneGap();
+      return Milliseconds();
     }
 
     //-------------------------------------------------------------------------
@@ -677,14 +662,12 @@ namespace ortc
 #define TODO_VERIFY_RESULT 1
 #define TODO_VERIFY_RESULT 2
       if (!mAudio) return 0;
-      return mAudio->sendAudioSamples(audioSamples, numberOfSamples, numberOfChannels);
+      return 0;
     }
 
     //-------------------------------------------------------------------------
     void RTPSenderChannel::sendVideoFrame(VideoFramePtr videoFrame)
     {
-      if (!mVideo) return;
-      mVideo->sendVideoFrame(videoFrame);
     }
     
     //-------------------------------------------------------------------------
@@ -733,17 +716,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     void RTPSenderChannel::onTrackChanged(UseMediaStreamTrackPtr track)
     {
-      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPSenderChannelMediaBase, UseBaseMediaStreamTrack)
-      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPSenderChannelAudio, UseAudioMediaStreamTrack)
-      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPSenderChannelVideo, UseVideoMediaStreamTrack)
-
       switch (mKind.value()) {
         case IMediaStreamTrackTypes::Kind_Audio: {
-          mMediaBase->onTrackChanged(IMediaStreamTrackForRTPSenderChannelAudioPtr(MediaStreamTrack::convert(track)));
           break;
         }
         case IMediaStreamTrackTypes::Kind_Video: {
-          mMediaBase->onTrackChanged(IMediaStreamTrackForRTPSenderChannelVideoPtr(MediaStreamTrack::convert(track)));
           break;
         }
       }
@@ -764,8 +741,6 @@ namespace ortc
           cancel();
         }
       }
-
-      mMediaBase->notifyTransportState(state);
     }
 
     //-------------------------------------------------------------------------
@@ -820,8 +795,6 @@ namespace ortc
 
         setupTagging();
       }
-      
-      mediaBase->notifyUpdate(params);
     }
 
     //-------------------------------------------------------------------------
@@ -1061,5 +1034,3 @@ namespace ortc
   } // internal namespace
 
 }
-
-#endif //0
