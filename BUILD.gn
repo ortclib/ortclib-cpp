@@ -7,6 +7,7 @@ config("ortclib_config") {
         cflags_cc = [ 
             "/WX-",
             "/wd4068",
+            "/GR",
         ]
     }
     include_dirs = [ 
@@ -20,6 +21,13 @@ config("ortclib_config") {
         "../../third_party/libsrtp/srtp/include",
         "../../third_party/libsrtp/srtp/crypto/include",
         "../../third_party/libsrtp/config",
+        "../../third_party/usrsctp/usrsctplib/usrsctplib",
+        "../../third_party/boringssl/include/openssl", 
+        "../../third_party/boringssl/include",
+        "../../third_party/libsrtp/include",
+        "../../third_party/libsrtp/crypto/include", 
+        "../../third_party/boringssl/src/include",        
+        
     ]
 }
 

@@ -30,6 +30,8 @@
  */
 
 #pragma once
+	
+#pragma warning(disable:4290)
 
 #include <ortc/services/types.h>
 
