@@ -79,7 +79,7 @@ namespace ortc
 
       virtual Kinds kind() const = 0;
       virtual String id() const = 0;
-      virtual ElementPtr toDebug() const = 0;
+      virtual void trace(const char *message) const = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -118,6 +118,8 @@ namespace ortc
                              public IMediaStreamTrackForMediaStreamTrackChannel,
                              public IMediaStreamTrackForMediaStreamTrackSubscriberMedia,
                              public IMediaStreamTrackForMediaStreamTrackSubscriberRTP,
+                             public IMediaStreamTrackForMediaDevices,
+                             public IMediaStreamTrackForMediaStreamTrackSelector,
                              public IMediaStreamTrackForRTPReceiver,
                              public IMediaStreamTrackForRTPReceiverChannel,
                              public IMediaStreamTrackForRTPSender,
@@ -138,6 +140,8 @@ namespace ortc
       friend interaction IMediaStreamTrackForMediaStreamTrackChannel;
       friend interaction IMediaStreamTrackForMediaStreamTrackSubscriberMedia;
       friend interaction IMediaStreamTrackForMediaStreamTrackSubscriberRTP;
+      friend interaction IMediaStreamTrackForMediaDevices;
+      friend interaction IMediaStreamTrackForMediaStreamTrackSelector;
       friend interaction IMediaStreamTrackForRTPReceiver;
       friend interaction IMediaStreamTrackForRTPReceiverChannel;
       friend interaction IMediaStreamTrackForRTPSender;
@@ -154,7 +158,7 @@ namespace ortc
         MediaStreamTrackType_Last = MediaStreamTrackType_Selector,
       };
 
-      const char *toString(MediaStreamTrackTypes type);
+      static const char *toString(MediaStreamTrackTypes type);
       
       ZS_DECLARE_TYPEDEF_PTR(IMediaEngineForMediaStreamTrack, UseMediaEngine);
 
@@ -182,12 +186,17 @@ namespace ortc
       ZS_DECLARE_PTR(ChannelMap);
 
     public:
+      struct MediaStreamTrackArguments
+      {
+        IMessageQueuePtr queue_;
+        Kinds kind_;
+        MediaStreamTrackTypes type_ {MediaStreamTrackType_First};
+        TrackConstraintsPtr constraints_;
+      };
+
       MediaStreamTrack(
                        const make_private &,
-                       IMessageQueuePtr queue,
-                       Kinds kind,
-                       bool remote,
-                       TrackConstraintsPtr constraints
+                       const MediaStreamTrackArguments &args
                        );
 
     protected:
@@ -202,12 +211,6 @@ namespace ortc
     public:
       virtual ~MediaStreamTrack();
 
-      static MediaStreamTrackPtr create(
-                                        Kinds kind,
-                                        MediaStreamTrackTypes type,
-                                        TrackConstraintsPtr constraints
-                                        );
-
       static MediaStreamTrackPtr convert(ortc::IMediaStreamTrackPtr object);
       static MediaStreamTrackPtr convert(internal::IMediaStreamTrackPtr object);
       static MediaStreamTrackPtr convert(ForMediaStreamPtr object);
@@ -215,6 +218,8 @@ namespace ortc
       static MediaStreamTrackPtr convert(ForMediaStreamTrackSubscriberPtr object);
       static MediaStreamTrackPtr convert(ForMediaStreamTrackSubscriberMediaPtr object);
       static MediaStreamTrackPtr convert(ForMediaStreamTrackSubscriberRTPPtr object);
+      static MediaStreamTrackPtr convert(ForMediaDevicesPtr object);
+      static MediaStreamTrackPtr convert(ForMediaStreamTrackSelectorPtr object);
       static MediaStreamTrackPtr convert(ForReceiverPtr object);
       static MediaStreamTrackPtr convert(ForReceiverChannelPtr object);
       static MediaStreamTrackPtr convert(ForSenderPtr object);
@@ -234,11 +239,11 @@ namespace ortc
       #pragma mark
 
       static void trace(
-                        IMediaStreamTrackPtr object,
+                        MediaStreamTrackPtr object,
                         const char *message = NULL
                         );
 
-      virtual PUID getID() const override {return mID;}
+      virtual PUID getID() const override {return id_;}
 
       virtual IMediaStreamTrackSubscriptionPtr subscribe(IMediaStreamTrackDelegatePtr delegate) override;
 
@@ -267,15 +272,15 @@ namespace ortc
 
       virtual IMediaStreamTrackMediaSubscriptionPtr subscribeMedia(IMediaStreamTrackAsyncMediaDelegatePtr delegate) override;
 
-      virtual IMediaStreamTrackRTPSubscriptionPtr subscribeRTP(
-                                                               const Parameters &rtpEncodingParams,
-                                                               IMediaStreamTrackRTPDelegatePtr delegate
-                                                               ) override;
-
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark MediaStreamTrack => internal::IMediaStreamTrack
       #pragma mark
+      
+      virtual IMediaStreamTrackRTPSubscriptionPtr subscribeRTP(
+                                                               const Parameters &rtpEncodingParams,
+                                                               IMediaStreamTrackRTPDelegatePtr delegate
+                                                               ) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -314,11 +319,33 @@ namespace ortc
       #pragma mark MediaStreamTrack => IMediaStreamTrackForMediaStreamTrackSubscriberRTP
       #pragma mark
 
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark MediaStreamTrack => IMediaStreamTrackForMediaDevices
+      #pragma mark
+
+      // (duplicate) virtual PUID getID() const = 0;
+
+      static ForMediaDevicesPtr createForMediaDevices(
+                                                      IMediaStreamTrackTypes::Kinds kind,
+                                                      const TrackConstraints &constraints
+                                                      );
+      
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark MediaStreamTrack => IMediaStreamTrackForMediaStreamTrackSelector
+      #pragma mark
+
+      // (duplicate) virtual PUID getID() const = 0;
+
+      static ForMediaDevicesPtr createForMediaStreamTrackSelector(IMediaStreamTrackTypes::Kinds kind);
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPReceiver
       #pragma mark
+
+      static ForReceiverPtr createForReceiver(IMediaStreamTrackTypes::Kinds kind);
 
       // (duplicate) virtual PUID getID() const = 0;
 
@@ -384,6 +411,8 @@ namespace ortc
       #pragma mark MediaStreamTrack => (internal)
       #pragma mark
 
+      void trace(const char *message) const;
+
       bool isShuttingDown() const;
       bool isShutdown() const;
 
@@ -402,23 +431,24 @@ namespace ortc
       #pragma mark MediaStreamTrack => (data)
       #pragma mark
 
-      AutoPUID mID;
-      MediaStreamTrackWeakPtr mThisWeak;
-      MediaStreamTrackPtr mGracefulShutdownReference;
+      AutoPUID id_;
+      MediaStreamTrackWeakPtr thisWeak_;
+      MediaStreamTrackPtr gracefulShutdownReference_;
 
-      IMediaStreamTrackDelegateSubscriptions mSubscriptions;
+      IMediaStreamTrackDelegateSubscriptions subscriptions_;
 
-      States currentState_ {State_Live};
+      States currentState_ {State_First};
 
       WORD lastError_ {};
       String lastErrorReason_;
 
-      String trackID_;
+      String trackId_;
       String label_;
       Kinds kind_ {Kind_First};
+      bool enabled_ {false};
       bool muted_ {false};
-      MediaStreamTrackTypes type_ {};
-      String deviceID_;
+      MediaStreamTrackTypes type_ {MediaStreamTrackType_First};
+      String deviceId_;
 
       CapabilitiesPtr capabilities_;
       TrackConstraintsPtr constraints_;
@@ -440,16 +470,20 @@ namespace ortc
 
     interaction IMediaStreamTrackFactory
     {
-      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::TrackConstraints, TrackConstraints)
+      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::TrackConstraints, TrackConstraints);
+
+      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForMediaDevices, ForMediaDevices);
+      ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPReceiver, ForReceiver);
 
       static IMediaStreamTrackFactory &singleton();
 
-      virtual MediaStreamTrackPtr create(
-                                         IMediaStreamTrackTypes::Kinds kind,
-                                         bool remote,
-                                         TrackConstraintsPtr constraints
-                                         );
-      virtual MediaStreamTrackPtr create(IMediaStreamTrackTypes::Kinds kind);
+      virtual ForMediaDevicesPtr createForMediaDevices(
+                                                       IMediaStreamTrackTypes::Kinds kind,
+                                                       const TrackConstraints &constraints
+                                                       );
+
+      virtual ForReceiverPtr createForReceiver(IMediaStreamTrackTypes::Kinds kind);
+
     };
 
     class MediaStreamTrackFactory : public IFactory<IMediaStreamTrackFactory> {};

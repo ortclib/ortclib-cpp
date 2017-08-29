@@ -104,6 +104,7 @@
     <ClInclude Include="..\..\..\ortc\internal\ortc_MediaEngine.h" />
     <ClInclude Include="..\..\..\ortc\internal\ortc_MediaStreamTrack.h" />
     <ClInclude Include="..\..\..\ortc\internal\ortc_MediaStreamTrackChannel.h" />
+    <ClInclude Include="..\..\..\ortc\internal\ortc_MediaStreamTrackMonitor.h" />
     <ClInclude Include="..\..\..\ortc\internal\ortc_MediaStreamTrackSubscriberMedia.h" />
     <ClInclude Include="..\..\..\ortc\internal\ortc_MediaStreamTrackSubscriberRTP.h" />
     <ClInclude Include="..\..\..\ortc\internal\ortc_ORTC.h" />
@@ -205,6 +206,7 @@
     <ClCompile Include="..\..\..\ortc\cpp\ortc_MediaDevices.cpp" />
     <ClCompile Include="..\..\..\ortc\cpp\ortc_MediaEngine.cpp" />
     <ClCompile Include="..\..\..\ortc\cpp\ortc_MediaStreamTrack.cpp" />
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_MediaStreamTrackMonitor.cpp" />
     <ClCompile Include="..\..\..\ortc\cpp\ortc_ORTC.cpp" />
     <ClCompile Include="..\..\..\ortc\cpp\ortc_RTCPPacket.cpp" />
     <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPDecoderAudio.cpp" />

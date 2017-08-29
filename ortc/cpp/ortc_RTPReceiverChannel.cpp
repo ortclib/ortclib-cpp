@@ -61,8 +61,6 @@
 #define ASSERT(x)
 #endif //_DEBUG
 
-#if 0
-
 namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_rtpreceiver) }
 
 namespace ortc
@@ -231,15 +229,11 @@ namespace ortc
         switch (kind.value()) {
           case IMediaStreamTrackTypes::Kind_Audio:
           {
-            mAudio = UseAudio::create(mThisWeak.lock(), MediaStreamTrack::convert(mTrack), *mParameters);
-            mMediaBase = mAudio;
             found = true;
             break;
           }
           case IMediaStreamTrackTypes::Kind_Video:
           {
-            mVideo = UseVideo::create(mThisWeak.lock(), MediaStreamTrack::convert(mTrack), *mParameters);
-            mMediaBase = mVideo;
             found = true;
             break;
           }
@@ -248,10 +242,9 @@ namespace ortc
       
       ORTC_THROW_INVALID_PARAMETERS_IF(!found);
 
-      ZS_EVENTING_3(
+      ZS_EVENTING_2(
                     x, i, Detail, RtpReceiverChannelCreateMediaChannel, ol, RtpReceiverChannel, Info,
                     puid, id, mID,
-                    puid, mediaBaseId, mMediaBase->getID(),
                     string, kind, IMediaStreamTrack::toString(kind.value())
                     );
 
@@ -365,36 +358,33 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool RTPReceiverChannel::handlePacket(RTPPacketPtr packet)
     {
-      ZS_EVENTING_5(
+      ZS_EVENTING_4(
                     x, i, Trace, RtpReceiverChannelDeliverIncomingPacketToMediaChannel, ol, RtpReceiverChannel, Deliver,
                     puid, id, mID,
-                    puid, mediaBaseId, mMediaBase->getID(),
                     enum, packetType, zsLib::to_underlying(IICETypes::Component_RTP),
                     buffer, packet, packet->buffer()->BytePtr(),
                     size, size, packet->buffer()->SizeInBytes()
                     );
 
-      return mMediaBase->handlePacket(packet);
+      return false;
     }
 
     //-------------------------------------------------------------------------
     bool RTPReceiverChannel::handlePacket(RTCPPacketPtr packet)
     {
-      ZS_EVENTING_5(
+      ZS_EVENTING_4(
                     x, i, Trace, RtpReceiverChannelDeliverIncomingPacketToMediaChannel, ol, RtpReceiverChannel, Deliver,
                     puid, id, mID,
-                    puid, mediaBaseId, mMediaBase->getID(),
                     enum, packetType, zsLib::to_underlying(IICETypes::Component_RTCP),
                     buffer, packet, packet->buffer()->BytePtr(),
                     size, size, packet->buffer()->SizeInBytes()
                     );
-      return mMediaBase->handlePacket(packet);
+      return false;
     }
 
     //-------------------------------------------------------------------------
     void RTPReceiverChannel::requestStats(PromiseWithStatsReportPtr promise, const StatsTypeSet &stats)
     {
-      return mMediaBase->requestStats(promise, stats);
     }
 
 
@@ -470,9 +460,7 @@ namespace ortc
 
 #define TODO_VERIFY_RETURN_RESULT 1
 #define TODO_VERIFY_RETURN_RESULT 2
-      if (!mAudio) return 0;
-      
-      return mAudio->getAudioSamples(numberOfSamples, numberOfChannels, audioSamples, numberOfSamplesOut);
+      return 0;
     }
 
     //-------------------------------------------------------------------------
@@ -532,8 +520,6 @@ namespace ortc
           cancel();
         }
       }
-
-      mMediaBase->notifyTransportState(state);
     }
 
     //-------------------------------------------------------------------------
@@ -563,13 +549,10 @@ namespace ortc
     {
       ZS_LOG_TRACE(log("on update") + params->toDebug())
       
-      UseMediaBasePtr mediaBase;
-
       {
         AutoRecursiveLock lock(*this);
         
         mParameters = params;
-        mediaBase = mMediaBase;
 
         Optional<IMediaStreamTrackTypes::Kinds> kind = RTPTypesHelper::getCodecsKind(*mParameters);
         
@@ -580,12 +563,12 @@ namespace ortc
           switch (kind.value()) {
             case IMediaStreamTrackTypes::Kind_Audio:
             {
-              found = (bool)mAudio;
+              found = true;
               break;
             }
             case IMediaStreamTrackTypes::Kind_Video:
             {
-              found = (bool)mVideo;
+              found = true;
               break;
             }
           }
@@ -593,8 +576,6 @@ namespace ortc
         
         ORTC_THROW_INVALID_PARAMETERS_IF(!found)
       }
-
-      mediaBase->notifyUpdate(params);
     }
 
     //-------------------------------------------------------------------------
@@ -766,5 +747,3 @@ namespace ortc
 
   } // internal namespace
 }
-
-#endif //0
