@@ -2,6 +2,8 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
+import("//ortc/zsLib-eventing/zslib_eventing_tool.gni")
+
 config("ortclib_config") {
     if  (is_win) {
         cflags_cc = [ 
@@ -212,4 +214,23 @@ static_library("ortclib") {
   if (is_win) {
     defines += [ "WEBRTC_WIN", ]
   }
+  
+  deps = [ ":ortclib_events" ]
+}
+
+compile_single_event_macro("ortclib_events") {
+  
+  deps = [ 
+    "//ortc/zsLib-eventing:zslib-eventing-tool-compiler",
+  ]
+  
+  sources = [
+    "ortc/cpp/ortc.events.json",
+    "ortc/cpp/ortc.stats.events.json",
+  ]
+  outputs = [
+    "$target_gen_dir/ortc.events.jman",
+    "$target_gen_dir/ortc.stats.events.jman",
+  ]
+    
 }
