@@ -30,8 +30,10 @@
  */
 
 #pragma once
-	
+
+#ifdef _WIN32
 #pragma warning(disable:4290)
+#endif
 
 #include <ortc/services/types.h>
 

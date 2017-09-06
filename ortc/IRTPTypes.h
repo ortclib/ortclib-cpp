@@ -154,7 +154,7 @@ namespace ortc
 #if __APPLE__
       CodecCapability &operator=(const CodecCapability &op2) = default;
 #else
-      CodecCapability &operator=(const CodecCapability &op2) = delete;
+      CodecCapability &operator=(const CodecCapability &op2) /*= delete*/;
 #endif
 
       ElementPtr createElement(const char *objectName = "codecCapability") const;
@@ -489,7 +489,7 @@ namespace ortc
 #if __APPLE__
       CodecParameters &operator=(const CodecParameters &op2) = default;
 #else
-      CodecParameters &operator=(const CodecParameters &op2) = delete;
+      CodecParameters &operator=(const CodecParameters &op2) /*= delete*/;
 #endif
       ElementPtr createElement(const char *objectName) const;
 

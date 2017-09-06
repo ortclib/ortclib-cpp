@@ -44,7 +44,7 @@
 #include <zsLib/MessageQueueAssociator.h>
 #include <zsLib/ITimer.h>
 
-#include <webrtc/video_frame.h>
+#include <webrtc/api/video/video_frame.h>
 
 #define ORTC_SETTING_RTP_SENDER_CHANNEL_RETAG_RTP_PACKETS_AFTER_SSRC_NOT_SENT_IN_SECONDS "ortc/rtp-sender-channel/retag-rtp-packets-after-ssrc-not-sent-in-seconds"
 #define ORTC_SETTING_RTP_SENDER_CHANNEL_TAG_MID_RID_IN_RTCP_SDES "ortc/rtp-sender-channel/tag-mid-rid-in-rtcp-sdes"

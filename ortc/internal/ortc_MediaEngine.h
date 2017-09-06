@@ -48,7 +48,7 @@
 #include <zsLib/IWakeDelegate.h>
 #include <zsLib/ITimer.h>
 
-#include <webrtc/base/logging.h>
+#include <webrtc/rtc_base/logging.h>
 #include <webrtc/system_wrappers/include/trace.h>
 #include <webrtc/base/tracelog.h>
 
@@ -769,7 +769,7 @@ namespace ortc
       class WebRtcLogSink : public rtc::LogSink
       {
       public:
-        virtual void OnLogMessage(const std::string& message) override;
+        virtual void OnLogMessage(const std::string& message) /* override */;
       };
 
       //-----------------------------------------------------------------------
@@ -870,7 +870,7 @@ namespace ortc
 
       std::unique_ptr<WebRtcTraceCallback> traceCallback_;
       std::unique_ptr<WebRtcLogSink> logSink_;
-      rtc::TraceLog traceLog_;
+//      rtc::TraceLog traceLog_;
 
       States currentState_ {State_Pending};
       WORD lastError_ {};
