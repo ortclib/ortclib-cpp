@@ -215,14 +215,13 @@ static_library("ortclib") {
     defines += [ "WEBRTC_WIN", ]
   }
   
-  deps = [ ":ortclib_events" ]
+  deps = [ 
+    "//ortc/zsLib-eventing:zslib-eventing-tool-compiler",
+    ":ortclib_events" 
+  ]
 }
 
 compile_single_event_macro("ortclib_events") {
-  
-  deps = [ 
-    "//ortc/zsLib-eventing:zslib-eventing-tool-compiler",
-  ]
   
   sources = [
     "ortc/cpp/ortc.events.json",
