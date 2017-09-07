@@ -58,6 +58,11 @@ static_library("ortclib") {
   }
   configs -= [ "//build/config/compiler:chromium_code" ]
   
+  deps = [ 
+    "//ortc/zsLib-eventing:zslib-eventing-tool-compiler",
+    ":ortclib_events" 
+  ]
+
   sources = [
     "ortc/ICapabilities.h",
     "ortc/ICertificate.h",
@@ -237,24 +242,13 @@ static_library("ortclib") {
     defines += [ "WEBRTC_WIN", ]
   }
   
-  deps = [ 
-    "//ortc/zsLib-eventing:zslib-eventing-tool-compiler",
-    ":ortclib_events" 
-  ]
 }
 
-compile_single_event_macro("ortclib_events") {
+compile_event_macro("ortclib_events") {
   
   sources = [
     "ortc/cpp/ortc.events.json",
     "ortc/cpp/ortc.stats.events.json",
   ]
-  outputs = [
-    "$target_gen_dir/ortc.events.jman",
-    "$target_gen_dir/ortc.stats.events.jman",
-  ]
     
-  eventOutput = [
-    "ortc/services/internal/services.events",
-  ]
 }
