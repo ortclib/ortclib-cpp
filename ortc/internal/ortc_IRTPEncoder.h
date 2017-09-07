@@ -277,7 +277,6 @@ ZS_DECLARE_PROXY_SUBSCRIPTIONS_BEGIN(ortc::internal::IRTPEncoderDelegate, ortc::
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::RTPPacketPtr, RTPPacketPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::RTCPPacketPtr, RTCPPacketPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::internal::IRTPEncoderPtr, IRTPEncoderPtr)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::internal::IRTPEncoderPtr, IRTPEncoderPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IMediaStreamTrackTypes::ImmutableMediaChannelTracePtr, ImmutableMediaChannelTracePtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::internal::IRTP::States, States)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_SYNC_2(notifyRTPEncoderRTPPacket, ImmutableMediaChannelTracePtr, RTPPacketPtr)

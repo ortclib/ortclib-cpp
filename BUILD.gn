@@ -12,10 +12,23 @@ config("ortclib_config") {
             "/GR",
         ]
     }
+
+    cflags_cc = [ "-g" ]
+    cflags_cc += [
+        "-Wall",
+        "-std=c++11",
+        "-stdlib=libc++",
+#       "-nostdinc++",
+#       "-nodefaultlibs",
+        "-lc++",
+        "-lc++abi",
+    ]
+
     include_dirs = [ 
         ".",
         "..",
         "../zsLib",
+        "../zsLib/zsLib/extras",
         "../zsLib-eventing",
         "../ortclib-services",
         "../../third_party/boringssl/include",
@@ -29,14 +42,21 @@ config("ortclib_config") {
         "../../third_party/libsrtp/include",
         "../../third_party/libsrtp/crypto/include", 
         "../../third_party/boringssl/src/include",        
-        
+        "../..",
+        "../../ortc",
+        "../../ortc/ortclib",
     ]
 }
 
 static_library("ortclib") {
 
   configs += [ ":ortclib_config" ]
-  
+
+  configs -= [ "//build/config/compiler:no_rtti" ]
+  if (!is_win) {
+    configs -= [ "//build/config/gcc:no_exceptions" ]
+  }
+  configs -= [ "//build/config/compiler:chromium_code" ]
   
   sources = [
     "ortc/ICapabilities.h",
@@ -209,6 +229,8 @@ static_library("ortclib") {
     "_CRT_SECURE_NO_WARNINGS",
     "_UNICODE",
     "UNICODE",
+    "WEBRTC_POSIX",
+    "WEBRTC_BUILD_LIBEVENT",
   ]
 
   if (is_win) {

@@ -48,7 +48,7 @@
 #include <zsLib/IWakeDelegate.h>
 #include <zsLib/ITimer.h>
 
-#include <webrtc/base/logging.h>
+#include <webrtc/rtc_base/logging.h>
 #include <webrtc/system_wrappers/include/trace.h>
 #include <webrtc/base/tracelog.h>
 

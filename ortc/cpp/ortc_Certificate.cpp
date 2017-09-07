@@ -45,7 +45,7 @@
 #include <zsLib/Log.h>
 #include <zsLib/XML.h>
 
-#include <cryptopp/Integer.h>
+#include <cryptopp/integer.h>
 #include <cryptopp/sha.h>
 
 #include <openssl/bio.h>
