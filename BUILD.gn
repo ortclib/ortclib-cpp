@@ -232,4 +232,7 @@ compile_single_event_macro("ortclib_events") {
     "$target_gen_dir/ortc.stats.events.jman",
   ]
     
+  eventOutput = [
+    "ortc/services/internal/services.events",
+  ]
 }
