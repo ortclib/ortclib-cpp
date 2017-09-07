@@ -531,35 +531,32 @@ namespace ortc
     //-------------------------------------------------------------------------
     void MediaEngine::internalStartMediaTracing()
     {
-//      traceLog_.EnableTraceInternalStorage();
-//      traceLog_.StartTracing();
+      traceLog_.EnableTraceInternalStorage();
+      traceLog_.StartTracing();
     }
 
     //-------------------------------------------------------------------------
     void MediaEngine::internalStopMediaTracing()
     {
-//      traceLog_.StopTracing();
+      traceLog_.StopTracing();
     }
 
     //-------------------------------------------------------------------------
     bool MediaEngine::internalIsMediaTracing()
     {
-//      return traceLog_.IsTracing();
-        return 0;
+      return traceLog_.IsTracing();
     }
 
     //-------------------------------------------------------------------------
     bool MediaEngine::internalSaveMediaTrace(String filename)
     {
-//      return traceLog_.Save(filename);
-        return 0;
+      return traceLog_.Save(filename);
     }
 
     //-------------------------------------------------------------------------
     bool MediaEngine::internalSaveMediaTrace(String host, int port)
     {
-//      return traceLog_.Save(host, port);
-        return 0;
+      return traceLog_.Save(host, port);
     }
 
 
@@ -959,7 +956,7 @@ namespace ortc
                                             unsigned char flags
                                             )
     {
-//      traceLog_.Add(phase, categoryGroupEnabled, name, id, numArgs, argNames, argTypes, argValues, flags);
+      traceLog_.Add(phase, categoryGroupEnabled, name, id, numArgs, argNames, argTypes, argValues, flags);
     }
 #endif //defined(WINRT)
 
