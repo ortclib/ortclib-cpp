@@ -11,18 +11,16 @@ config("ortclib_config") {
             "/wd4068",
             "/GR",
         ]
-    }
-
-    cflags_cc = [ "-g" ]
-    cflags_cc += [
-        "-Wall",
-        "-std=c++11",
-        "-stdlib=libc++",
-#       "-nostdinc++",
-#       "-nodefaultlibs",
-        "-lc++",
-        "-lc++abi",
-    ]
+    } else {
+        cflags_cc = [ "-g" ]
+        cflags_cc += [
+            "-Wall",
+            "-std=c++11",
+            "-stdlib=libc++",
+            "-lc++",
+            "-lc++abi",
+        ]
+     }
 
     include_dirs = [ 
         ".",
