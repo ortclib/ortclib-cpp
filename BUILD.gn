@@ -51,15 +51,11 @@ static_library("ortclib") {
   configs += [ ":ortclib_config" ]
 
   configs -= [ "//build/config/compiler:no_rtti" ]
+  configs -= [ "//build/config/compiler:chromium_code" ]
+
   if (!is_win) {
     configs -= [ "//build/config/gcc:no_exceptions" ]
   }
-  configs -= [ "//build/config/compiler:chromium_code" ]
-  
-  deps = [ 
-    "//ortc/zsLib-eventing:zslib-eventing-tool-compiler",
-    ":ortclib_events" 
-  ]
 
   sources = [
     "ortc/ICapabilities.h",
@@ -240,6 +236,9 @@ static_library("ortclib") {
     defines += [ "WEBRTC_WIN", ]
   }
   
+  deps = [ 
+    ":ortclib_events",
+  ]
 }
 
 compile_event_macro("ortclib_events") {
