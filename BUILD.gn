@@ -238,6 +238,7 @@ static_library("ortclib") {
   
   deps = [ 
     ":ortclib_events",
+    ":ortclib_idl",
   ]
 }
 
@@ -246,6 +247,14 @@ compile_event_macro("ortclib_events") {
   sources = [
     "ortc/cpp/ortc.events.json",
     "ortc/cpp/ortc.stats.events.json",
+  ]
+    
+}
+
+compile_idl_macro("ortclib_idl") {
+  
+  sources = [
+    "ortc/idl/config.json",
   ]
     
 }
