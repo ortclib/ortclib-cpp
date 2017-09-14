@@ -1,0 +1,273 @@
+# Copyright 2014 The Chromium Authors. All rights reserved.
+# Use of this source code is governed by a BSD-style license that can be
+# found in the LICENSE file.
+
+import("//ortc/zsLib-eventing/zslib_eventing_tool.gni")
+import("//ortc/ortclib/ortc/idl/sources.gni")
+
+config("ortclib_config") {
+    if  (is_win) {
+        cflags_cc = [ 
+            "/WX-",
+            "/wd4068",
+            "/GR",
+        ]
+    } else {
+        cflags_cc = [ "-g" ]
+        cflags_cc += [
+            "-Wall",
+            "-std=c++11",
+            "-stdlib=libc++",
+            "-lc++",
+            "-lc++abi",
+        ]
+     }
+
+    include_dirs = [ 
+        ".",
+        "..",
+        "../zsLib",
+        "../zsLib/zsLib/extras",
+        "../zsLib-eventing",
+        "../ortclib-services",
+        "../../third_party/boringssl/include",
+        "../../third_party/usrsctp/usrsctplib",
+        "../../third_party/libsrtp/srtp/include",
+        "../../third_party/libsrtp/srtp/crypto/include",
+        "../../third_party/libsrtp/config",
+        "../../third_party/usrsctp/usrsctplib/usrsctplib",
+        "../../third_party/boringssl/include/openssl", 
+        "../../third_party/boringssl/include",
+        "../../third_party/libsrtp/include",
+        "../../third_party/libsrtp/crypto/include", 
+        "../../third_party/boringssl/src/include",        
+        "../..",
+        "../../ortc",
+        "../ortclib",
+        "../ortclib/ortc",
+        "../ortclib/ortc/idl",
+        "../ortclib/ortc/idl/wrapper",
+    ]
+}
+
+ortclib_sources = [
+  "ortc/ICapabilities.h",
+  "ortc/ICertificate.h",
+  "ortc/IConstraints.h",
+  "ortc/IDataChannel.h",
+  "ortc/IDataChannelTypes.h",
+  "ortc/IDataTransport.h",
+  "ortc/IDTLSTransport.h",
+  "ortc/IDTMFSender.h",
+  "ortc/IHelper.h",
+  "ortc/IICEGatherer.h",
+  "ortc/IICETransport.h",
+  "ortc/IICETransportController.h",
+  "ortc/IICETypes.h",
+  "ortc/IIdentity.h",
+  "ortc/IMediaDevices.h",
+  "ortc/IMediaElement.h",
+  "ortc/IMediaStreamTrack.h",
+  "ortc/IMediaStreamTrackSelector.h",
+  "ortc/IORTC.h",
+  "ortc/IRTPListener.h",
+  "ortc/IRTPReceiver.h",
+  "ortc/IRTPSender.h",
+  "ortc/IRTPTypes.h",
+  "ortc/ISCTPTransport.h",
+  "ortc/ISRTPSDESTransport.h",
+  "ortc/IStatsProvider.h",
+  "ortc/IStatsReport.h",
+  "ortc/ortc.h",
+  "ortc/RTCPPacket.h",
+  "ortc/RTPPacket.h",
+  "ortc/types.h",
+  "ortc/adapter/adapter.h",
+  "ortc/adapter/IHelper.h",
+  "ortc/adapter/IMediaStream.h",
+  "ortc/adapter/IPeerConnection.h",
+  "ortc/adapter/ISessionDescription.h",
+  "ortc/adapter/types.h",
+  "ortc/adapter/cpp/ortc_adapter_adapter.cpp",
+  "ortc/adapter/cpp/ortc_adapter_Helper.cpp",
+  "ortc/adapter/cpp/ortc_adapter_MediaStream.cpp",
+  "ortc/adapter/cpp/ortc_adapter_PeerConnection.cpp",
+  "ortc/adapter/cpp/ortc_adapter_SDPParser.cpp",
+  "ortc/adapter/cpp/ortc_adapter_SDPParser_DescriptionToSDP.cpp",
+  "ortc/adapter/cpp/ortc_adapter_SDPParser_GenerateSDP.cpp",
+  "ortc/adapter/cpp/ortc_adapter_SDPParser_ParseSDP.cpp",
+  "ortc/adapter/cpp/ortc_adapter_SDPParser_SDPToDescription.cpp",
+  "ortc/adapter/cpp/ortc_adapter_SessionDescription.cpp",
+  "ortc/adapter/internal/ortc_adapter_adapter.h",
+  "ortc/adapter/internal/ortc_adapter_Helper.h",
+  "ortc/adapter/internal/ortc_adapter_MediaStream.h",
+  "ortc/adapter/internal/ortc_adapter_PeerConnection.h",
+  "ortc/adapter/internal/ortc_adapter_SDPParser.h",
+  "ortc/adapter/internal/ortc_adapter_SessionDescription.h",
+  "ortc/adapter/internal/types.h",
+  "ortc/cpp/ifaddrs-android.cc",
+  "ortc/cpp/ortc.cpp",
+  "ortc/cpp/ortc_Capabilities.cpp",
+  "ortc/cpp/ortc_Certificate.cpp",
+  "ortc/cpp/ortc_Constraints.cpp",
+  "ortc/cpp/ortc_DataChannel.cpp",
+  "ortc/cpp/ortc_DTLSTransport.cpp",
+  "ortc/cpp/ortc_DTMFSender.cpp",
+  "ortc/cpp/ortc_Helper.cpp",
+  "ortc/cpp/ortc_ICEGatherer.cpp",
+  "ortc/cpp/ortc_ICEGathererRouter.cpp",
+  "ortc/cpp/ortc_ICETransport.cpp",
+  "ortc/cpp/ortc_ICETransportController.cpp",
+  "ortc/cpp/ortc_ICETypes.cpp",
+  "ortc/cpp/ortc_Identity.cpp",
+  "ortc/cpp/ortc_ISecureTransport.cpp",
+  "ortc/cpp/ortc_MediaChannelTraceHelper.cpp",
+  "ortc/cpp/ortc_MediaDevice.cpp",
+  "ortc/cpp/ortc_MediaDeviceCapture.cpp",
+  "ortc/cpp/ortc_MediaDeviceCaptureAudio.cpp",
+  "ortc/cpp/ortc_MediaDeviceCaptureVideo.cpp",
+  "ortc/cpp/ortc_MediaDeviceRenderAudio.cpp",
+  "ortc/cpp/ortc_MediaDevices.cpp",
+  "ortc/cpp/ortc_MediaEngine.cpp",
+  "ortc/cpp/ortc_MediaStreamTrack.cpp",
+  "ortc/cpp/ortc_ORTC.cpp",
+  "ortc/cpp/ortc_RTCPPacket.cpp",
+  "ortc/cpp/ortc_RTPDecoderAudio.cpp",
+  "ortc/cpp/ortc_RTPDecoderVideo.cpp",
+  "ortc/cpp/ortc_RTPEncoderAudio.cpp",
+  "ortc/cpp/ortc_RTPEncoderVideo.cpp",
+  "ortc/cpp/ortc_RTPListener.cpp",
+  "ortc/cpp/ortc_RTPPacket.cpp",
+  "ortc/cpp/ortc_RTPReceiver.cpp",
+  "ortc/cpp/ortc_RTPReceiverChannel.cpp",
+  "ortc/cpp/ortc_RTPSender.cpp",
+  "ortc/cpp/ortc_RTPSenderChannel.cpp",
+  "ortc/cpp/ortc_RTPTypes.cpp",
+  "ortc/cpp/ortc_RTPUtils.cpp",
+  "ortc/cpp/ortc_SCTPTransport.cpp",
+  "ortc/cpp/ortc_SCTPTransportListener.cpp",
+  "ortc/cpp/ortc_SRTPSDESTransport.cpp",
+  "ortc/cpp/ortc_SRTPTransport.cpp",
+  "ortc/cpp/ortc_StatsReport.cpp",
+  "ortc/cpp/ortc_webrtc.cpp",
+  "ortc/internal/ifaddrs-android.h",
+  "ortc/internal/ortc.events.h",
+  "ortc/internal/ortc.events_win.h",
+  "ortc/internal/ortc.events_win_etw.h",
+  "ortc/internal/ortc.h",
+  "ortc/internal/ortc.stats.events.h",
+  "ortc/internal/ortc.stats.events_win.h",
+  "ortc/internal/ortc.stats.events_win_etw.h",
+  "ortc/internal/ortc_Certificate.h",
+  "ortc/internal/ortc_DataChannel.h",
+  "ortc/internal/ortc_DTLSTransport.h",
+  "ortc/internal/ortc_DTMFSender.h",
+  "ortc/internal/ortc_Helper.h",
+  "ortc/internal/ortc_ICEGatherer.h",
+  "ortc/internal/ortc_ICEGathererRouter.h",
+  "ortc/internal/ortc_ICETransport.h",
+  "ortc/internal/ortc_ICETransportController.h",
+  "ortc/internal/ortc_Identity.h",
+  "ortc/internal/ortc_IMediaDevice.h",
+  "ortc/internal/ortc_IMediaDeviceCapture.h",
+  "ortc/internal/ortc_IMediaDeviceRender.h",
+  "ortc/internal/ortc_IMediaStreamTrack.h",
+  "ortc/internal/ortc_IMediaStreamTrackChannel.h",
+  "ortc/internal/ortc_IMediaStreamTrackMonitor.h",
+  "ortc/internal/ortc_IMediaStreamTrackSubscriber.h",
+  "ortc/internal/ortc_IRTP.h",
+  "ortc/internal/ortc_IRTPDecoder.h",
+  "ortc/internal/ortc_IRTPEncoder.h",
+  "ortc/internal/ortc_ISecureTransport.h",
+  "ortc/internal/ortc_ISRTPTransport.h",
+  "ortc/internal/ortc_MediaChannelTraceHelper.h",
+  "ortc/internal/ortc_MediaDeviceCaptureAudio.h",
+  "ortc/internal/ortc_MediaDeviceCaptureVideo.h",
+  "ortc/internal/ortc_MediaDeviceRenderAudio.h",
+  "ortc/internal/ortc_MediaDevices.h",
+  "ortc/internal/ortc_MediaEngine.h",
+  "ortc/internal/ortc_MediaStreamTrack.h",
+  "ortc/internal/ortc_MediaStreamTrackChannel.h",
+  "ortc/internal/ortc_MediaStreamTrackSubscriberMedia.h",
+  "ortc/internal/ortc_MediaStreamTrackSubscriberRTP.h",
+  "ortc/internal/ortc_ORTC.h",
+  "ortc/internal/ortc_RTPDecoderAudio.h",
+  "ortc/internal/ortc_RTPDecoderVideo.h",
+  "ortc/internal/ortc_RTPEncoderAudio.h",
+  "ortc/internal/ortc_RTPEncoderVideo.h",
+  "ortc/internal/ortc_RTPListener.h",
+  "ortc/internal/ortc_RTPReceiver.h",
+  "ortc/internal/ortc_RTPReceiverChannel.h",
+  "ortc/internal/ortc_RTPSender.h",
+  "ortc/internal/ortc_RTPSenderChannel.h",
+  "ortc/internal/ortc_RTPTypes.h",
+  "ortc/internal/ortc_RTPUtils.h",
+  "ortc/internal/ortc_SCTPTransport.h",
+  "ortc/internal/ortc_SCTPTransportListener.h",
+  "ortc/internal/ortc_SRTPSDESTransport.h",
+  "ortc/internal/ortc_SRTPTransport.h",
+  "ortc/internal/ortc_StatsReport.h",
+  "ortc/internal/ortcEvents.h",
+  "ortc/internal/platform.h",
+  "ortc/internal/types.h",
+]
+
+static_library("ortclib") {
+
+  configs += [ ":ortclib_config" ]
+
+  configs -= [ "//build/config/compiler:no_rtti" ]
+  configs -= [ "//build/config/compiler:chromium_code" ]
+
+  if (!is_win) {
+    configs -= [ "//build/config/gcc:no_exceptions" ]
+  }
+
+  #To include sources generated from IDL set sources value to ortc_sources
+  sources = ortclib_sources
+
+  defines = [
+    "_LIB",
+    "USE_ETW",
+    "USE_OPENSSL=1",
+    "NOMINMAX",    
+    "WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE",
+    "_CRT_SECURE_NO_WARNINGS",
+    "_UNICODE",
+    "UNICODE",
+  ]
+
+  if (is_linux) {
+    defines += [
+    "WEBRTC_POSIX",
+    "WEBRTC_BUILD_LIBEVENT",
+    ]
+  }
+
+  if (is_win) {
+    defines += [ "WEBRTC_WIN", ]
+  }
+  
+  deps = [ 
+    ":ortclib_events",
+    ":ortclib_idl",
+  ]
+}
+
+compile_event_macro("ortclib_events") {
+  
+  sources = [
+    "ortc/cpp/ortc.events.json",
+    "ortc/cpp/ortc.stats.events.json",
+  ]
+    
+}
+
+compile_idl_macro("ortclib_idl") {
+  
+  sources = [
+    "ortc/idl/config.json",
+  ]
+    
+  sourcePathPrefix =  "ortc/idl/"
+}

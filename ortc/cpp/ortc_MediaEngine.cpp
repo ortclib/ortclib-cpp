@@ -49,7 +49,7 @@
 
 #include <cryptopp/sha.h>
 
-#include <webrtc/base/event_tracer.h>
+#include <webrtc/rtc_base/event_tracer.h>
 
 #if 0
 #include <limits>
