@@ -1779,7 +1779,7 @@ namespace ortc
 
       if (mRemoteParams.mFingerprints.size() < 1) {
         ZS_LOG_TRACE(log("waiting for remote parameters before starting"));
-        return true;
+        return false;
       }
 
       auto iceState = mICETransport->state();
