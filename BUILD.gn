@@ -212,7 +212,96 @@ ortclib_sources = [
   "ortc/internal/types.h",
 ]
 
-static_library("ortclib") {
+shared_library("dummy_lib") {
+
+  sources = ortclib_sources
+}
+
+config("ortclib_config_shared") {
+    if  (is_win) {
+        cflags_cc = [ 
+            "/WX-",
+            "/wd4068",
+            "/GR",
+        ]
+    } else {
+        cflags = [ 
+            "-g", 
+            "-Wall",
+            "-std=gnu99",
+            "-stdlib=libc",
+        ]
+     }
+}
+
+shared_library("ortclib") {
+
+  configs += [ ":ortclib_config_shared" ]
+
+  configs -= [ "//build/config/compiler:no_rtti" ]
+  configs -= [ "//build/config/compiler:chromium_code" ]
+
+  if (!is_win) {
+    configs -= [ "//build/config/gcc:no_exceptions" ]
+  }
+
+  include_dirs = [ 
+    ".",
+    "..",
+    "../zsLib",
+    "../zsLib/zsLib/extras",
+    "../zsLib-eventing",
+    "../ortclib-services",
+    "../../third_party/boringssl/include",
+    "../../third_party/usrsctp/usrsctplib",
+    "../../third_party/libsrtp/srtp/include",
+    "../../third_party/libsrtp/srtp/crypto/include",
+    "../../third_party/libsrtp/config",
+    "../../third_party/usrsctp/usrsctplib/usrsctplib",
+    "../../third_party/boringssl/include/openssl", 
+    "../../third_party/boringssl/include",
+    "../../third_party/libsrtp/include",
+    "../../third_party/libsrtp/crypto/include", 
+    "../../third_party/boringssl/src/include",  
+  ]
+
+  sources = ortc_sources
+
+  lib_dirs = [ 
+    "/usr/lib",
+    "/usr/lib/x86_64-linux-gnu",
+  ]
+  libs = [ "uuid" ]
+  
+  deps = [
+    "//build/config:exe_and_shlib_deps",
+    ":ortclib_static",
+    "../zsLib:zslib",
+    "../cryptopp",
+    "../udns",
+    "../idnkit",
+  ]
+
+  defines = [
+    "SHARED",
+    "USE_ETW",
+    "USE_OPENSSL=1",
+    "NOMINMAX",    
+    "WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE",
+    "_CRT_SECURE_NO_WARNINGS",
+    "_UNICODE",
+    "UNICODE",
+  ]
+
+  if (is_linux) {
+    defines += [
+    "WEBRTC_POSIX",
+    "WEBRTC_BUILD_LIBEVENT",
+    ]
+  }
+}
+
+static_library("ortclib_static") {
 
   configs += [ ":ortclib_config" ]
 
@@ -224,7 +313,8 @@ static_library("ortclib") {
   }
 
   #To include sources generated from IDL set sources value to ortc_sources
-  sources = ortclib_sources
+  sources = ortc_sources_cxx_glue
+  sources += ortc_sources_cxx_generated
 
   defines = [
     "_LIB",
