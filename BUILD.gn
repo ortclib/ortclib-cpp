@@ -212,31 +212,14 @@ ortclib_sources = [
   "ortc/internal/types.h",
 ]
 
+#Exists just to keep non generated ortclib code, in case we need it some day
 shared_library("dummy_lib") {
 
   sources = ortclib_sources
 }
 
-config("ortclib_config_shared") {
-    if  (is_win) {
-        cflags_cc = [ 
-            "/WX-",
-            "/wd4068",
-            "/GR",
-        ]
-    } else {
-        cflags = [ 
-            "-g", 
-            "-Wall",
-            "-std=gnu99",
-            "-stdlib=libc",
-        ]
-     }
-}
 
 shared_library("ortclib") {
-
-  configs += [ ":ortclib_config_shared" ]
 
   configs -= [ "//build/config/compiler:no_rtti" ]
   configs -= [ "//build/config/compiler:chromium_code" ]
@@ -276,10 +259,12 @@ shared_library("ortclib") {
   deps = [
     "//build/config:exe_and_shlib_deps",
     ":ortclib_static",
-    "../zsLib:zslib",
-    "../cryptopp",
-    "../udns",
-    "../idnkit",
+    "//ortc/ortclib-services",
+    "//ortc/zsLib:zslib",
+    "//ortc/zsLib-eventing:zslib-eventing",
+    "//ortc/cryptopp",
+    "//ortc/udns",
+    "//ortc/idnkit",
   ]
 
   defines = [
