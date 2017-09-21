@@ -5394,7 +5394,8 @@ namespace ortc
           try {
             totalRead = socket->receiveFrom(fromIP, readBuffer, sizeof(readBuffer), &wouldBlock);
           } catch(Socket::Exceptions::Unspecified &error) {
-            ZS_LOG_WARNING(Debug, log("socket read error") + ZS_PARAM("socket", string(socket)) + ZS_PARAM("error", error.errorCode()))
+            ZS_LOG_WARNING(Debug, log("socket read error") + ZS_PARAM("socket", string(socket)) + ZS_PARAM("error", error.errorCode()));
+            socket->onReadReadyReset();
             return false;
           }
 
@@ -5591,6 +5592,15 @@ namespace ortc
             tcpPort.mIncomingBuffer.Put(&(buffer[0]), read);
           } catch(Socket::Exceptions::Unspecified &error) {
             ZS_LOG_ERROR(Detail, log("unable to receive from socket") + ZS_PARAM("error", error.errorCode()) + tcpPort.toDebug());
+
+            // simulate a socket exception since the receive threw an exception
+            {
+              auto closeSocket = tcpPort.mSocket;
+              auto pThis = mThisWeak.lock();
+              postClosure([pThis, closeSocket] {
+                pThis->onException(closeSocket);
+              });
+            }
             goto process_packets;
           }
 
@@ -5768,7 +5778,17 @@ namespace ortc
           // consume the amount sent from the pending queue (and try sending more)
           tcpPort.mOutgoingBuffer.Skip(sent);
         } catch(Socket::Exceptions::Unspecified &error) {
-          ZS_LOG_ERROR(Detail, log("unable to send to socket") + ZS_PARAM("error", error.errorCode()) + tcpPort.toDebug())
+          ZS_LOG_ERROR(Detail, log("unable to send to socket") + ZS_PARAM("error", error.errorCode()) + tcpPort.toDebug());
+
+          // simulate a socket exception since the receive threw an exception
+          {
+            auto closeSocket = tcpPort.mSocket;
+            auto pThis = mThisWeak.lock();
+            postClosure([pThis, closeSocket] {
+              pThis->onException(closeSocket);
+            });
+          }
+
           goto finished_write;
         }
       }
@@ -6539,7 +6559,8 @@ namespace ortc
 
         if (sent == bufferSizeInBytes) return true;
       } catch(Socket::Exceptions::Unspecified &error) {
-        ZS_LOG_ERROR(Debug, log("unable to send packet") + ZS_PARAM("error", error.errorCode()) + ZS_PARAM("to", remoteIP.string()) + ZS_PARAM("from", boundIP.string()))
+        ZS_LOG_ERROR(Debug, log("unable to send packet") + ZS_PARAM("error", error.errorCode()) + ZS_PARAM("to", remoteIP.string()) + ZS_PARAM("from", boundIP.string()));
+        socket->onWriteReadyReset();
         return false;
       }
 
