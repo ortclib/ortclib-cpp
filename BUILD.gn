@@ -731,7 +731,7 @@ shared_library("ortclib") {
     "/usr/lib",
     "/usr/lib/x86_64-linux-gnu",
   ]
-  libs = [ "uuid" ]
+  libs = [ "uuid", "stdc++" ]
   
   deps = [
     "//build/config:exe_and_shlib_deps",
