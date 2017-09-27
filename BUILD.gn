@@ -704,6 +704,7 @@ shared_library("ortclib") {
     configs -= [ "//build/config/gcc:no_exceptions" ]
   }
 
+     
   include_dirs = [ 
     ".",
     "..",
@@ -731,17 +732,17 @@ shared_library("ortclib") {
     "/usr/lib",
     "/usr/lib/x86_64-linux-gnu",
   ]
-  libs = [ "uuid", "stdc++" ]
+  libs = [ "uuid", "stdc++", "curl", ]
   
   deps = [
-    "//build/config:exe_and_shlib_deps",
-    ":ortclib_static",
-    "//ortc/ortclib-services",
     "//ortc/zsLib:zslib",
     "//ortc/zsLib-eventing:zslib-eventing",
     "//ortc/cryptopp",
     "//ortc/udns",
     "//ortc/idnkit",
+    "//build/config:exe_and_shlib_deps",
+    ":ortclib_static",
+    "//ortc/ortclib-services",
     ":ortclib_idl",
   ]
 
