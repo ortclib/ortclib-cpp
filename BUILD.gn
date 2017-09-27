@@ -689,9 +689,41 @@ ortc_sources = [
 ]
 
 #Exists just to keep non generated ortclib code, in case we need it some day
-shared_library("dummy_lib") {
+static_library("ortclib_static") {
+configs += [ ":ortclib_config" ]
 
+  configs -= [ "//build/config/compiler:no_rtti" ]
+  configs -= [ "//build/config/compiler:chromium_code" ]
+
+  if (!is_win) {
+    configs -= [ "//build/config/gcc:no_exceptions" ]
+  }
+
+  #To include sources generated from IDL set sources value to ortc_sources
   sources = ortclib_sources
+
+  defines = [
+    "_LIB",
+    "USE_ETW",
+    "USE_OPENSSL=1",
+    "NOMINMAX",    
+    "WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE",
+    "_CRT_SECURE_NO_WARNINGS",
+    "_UNICODE",
+    "UNICODE",
+  ]
+
+  if (is_linux) {
+    defines += [
+    "WEBRTC_POSIX",
+    "WEBRTC_BUILD_LIBEVENT",
+    ]
+  }
+
+  if (is_win) {
+    defines += [ "WEBRTC_WIN", ]
+  }
+  
 }
 
 
@@ -732,7 +764,7 @@ shared_library("ortclib") {
     "/usr/lib",
     "/usr/lib/x86_64-linux-gnu",
   ]
-  libs = [ "uuid", "stdc++", "curl", ]
+  libs = [ "uuid", "stdc++", "curl", "ssl", "crypto" ]
   
   deps = [
     "//ortc/zsLib:zslib",
@@ -742,6 +774,7 @@ shared_library("ortclib") {
     "//ortc/idnkit",
     "//build/config:exe_and_shlib_deps",
     ":ortclib_static",
+    ":ortclib_generated_static",
     "//ortc/ortclib-services",
     ":ortclib_idl",
   ]
@@ -765,7 +798,7 @@ shared_library("ortclib") {
   }
 }
 
-static_library("ortclib_static") {
+static_library("ortclib_generated_static") {
 
   configs += [ ":ortclib_config" ]
 
