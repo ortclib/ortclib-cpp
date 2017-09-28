@@ -76,13 +76,9 @@ namespace ortc
     void installRTPEncoderVideoSettingsDefaults();
     void installMediaEngineSettingsDefaults();
     void installRTPReceiverSettingsDefaults();
-    void installRTPReceiverChannelAudioSettingsDefaults();
     void installRTPReceiverChannelSettingsDefaults();
-    void installRTPReceiverChannelVideoSettingsDefaults();
     void installRTPSenderSettingsDefaults();
     void installRTPSenderChannelSettingsDefaults();
-    void installRTPSenderChannelAudioSettingsDefaults();
-    void installRTPSenderChannelVideoSettingsDefaults();
     void installStatsReportSettingsDefaults();
     void installSCTPTransportSettingsDefaults();
     void installSCTPTransportListenerSettingsDefaults();
@@ -112,13 +108,9 @@ namespace ortc
       installRTPEncoderVideoSettingsDefaults();
       installMediaEngineSettingsDefaults();
       installRTPReceiverSettingsDefaults();
-      installRTPReceiverChannelAudioSettingsDefaults();
       installRTPReceiverChannelSettingsDefaults();
-      installRTPReceiverChannelVideoSettingsDefaults();
       installRTPSenderSettingsDefaults();
       installRTPSenderChannelSettingsDefaults();
-      installRTPSenderChannelAudioSettingsDefaults();
-      installRTPSenderChannelVideoSettingsDefaults();
       installStatsReportSettingsDefaults();
       installSCTPTransportSettingsDefaults();
       installSCTPTransportListenerSettingsDefaults();

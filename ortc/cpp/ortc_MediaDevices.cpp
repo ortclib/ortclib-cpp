@@ -740,6 +740,13 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    IMediaDevicesTypes::PromiseWithSettingsListPtr IMediaDevicesFactory::enumerateDefaultModes(const char *deviceID)
+    {
+      if (this) {}
+      return internal::MediaDevices::enumerateDefaultModes(deviceID);
+    }
+
+    //-------------------------------------------------------------------------
     IMediaDevicesTypes::PromiseWithMediaStreamTrackListPtr IMediaDevicesFactory::getUserMedia(const Constraints &constraints)
     {
       if (this) {}
@@ -1176,6 +1183,12 @@ namespace ortc
   IMediaDevicesTypes::PromiseWithDeviceListPtr IMediaDevices::enumerateDevices()
   {
     return internal::IMediaDevicesFactory::singleton().enumerateDevices();
+  }
+
+  //---------------------------------------------------------------------------
+  IMediaDevices::PromiseWithSettingsListPtr IMediaDevices::enumerateDefaultModes(const char *deviceID)
+  {
+    return internal::IMediaDevicesFactory::singleton().enumerateDefaultModes(deviceID);
   }
 
   //---------------------------------------------------------------------------

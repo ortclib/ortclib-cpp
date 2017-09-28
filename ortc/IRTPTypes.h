@@ -485,15 +485,16 @@ namespace ortc
       CodecParameters() {}
       CodecParameters(const CodecParameters &source);
       CodecParameters(ElementPtr elem);
-#if __APPLE__
-      CodecParameters &operator=(const CodecParameters &op2) = default;
-#else
-      CodecParameters &operator=(const CodecParameters &op2) /*= delete*/;
-#endif
+
+      CodecParameters &operator=(const CodecParameters &op2);
+      
       ElementPtr createElement(const char *objectName) const;
 
       ElementPtr toDebug() const;
       String hash() const;
+
+    protected:
+      void copyAny(const CodecParameters &op2);
     };
 
     //-------------------------------------------------------------------------

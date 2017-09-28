@@ -66,6 +66,7 @@ namespace ortc
       };
 
       static const char *toString(States state);
+      static States toState(const char *stateStr) throw (InvalidParameters);
 
       virtual RTPObjectID getID() const = 0;
       virtual void cancel() = 0;
@@ -80,7 +81,7 @@ namespace ortc
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     #pragma mark
-    #pragma mark IRTPDecoderForMediaEngine
+    #pragma mark IRTPForMediaEngine
     #pragma mark
 
     interaction IRTPForMediaEngine

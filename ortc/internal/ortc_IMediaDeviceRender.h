@@ -105,8 +105,6 @@ namespace ortc
                                     ImmutableMediaChannelTracePtr trace,
                                     VideoFramePtr frame
                                     ) override {} // ignored
-
-      virtual ~IMediaDeviceRenderAudio();
     };
 
     //-------------------------------------------------------------------------
