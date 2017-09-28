@@ -127,7 +127,7 @@ namespace ortc
     {
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForMediaStreamTrackChannel, ForMediaStreamTrackChannel);
 
-      virtual ~IMediaStreamTrackForMediaStreamTrackChannel();
+      virtual ~IMediaStreamTrackForMediaStreamTrackChannel() {}
     };
 
 
@@ -160,7 +160,7 @@ namespace ortc
     {
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForMediaStreamTrackSubscriberMedia, ForMediaStreamTrackSubscriberMedia);
 
-      virtual ~IMediaStreamTrackForMediaStreamTrackSubscriberMedia();
+      virtual ~IMediaStreamTrackForMediaStreamTrackSubscriberMedia() {}
     };
 
     
@@ -176,7 +176,7 @@ namespace ortc
     {
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForMediaStreamTrackSubscriberRTP, ForMediaStreamTrackSubscriberRTP);
 
-      virtual ~IMediaStreamTrackForMediaStreamTrackSubscriberRTP();
+      virtual ~IMediaStreamTrackForMediaStreamTrackSubscriberRTP() {}
     };
 
     

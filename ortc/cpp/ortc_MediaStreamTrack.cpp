@@ -209,6 +209,29 @@ namespace ortc
     #pragma mark MediaStreamTrack
     #pragma mark
 
+
+    //-------------------------------------------------------------------------
+    const char *MediaStreamTrack::toString(MediaStreamTrackTypes type)
+    {
+      switch (type) {
+        case MediaStreamTrackType_Capture:   return "capture";
+        case MediaStreamTrackType_Receiver:  return "receiver";
+        case MediaStreamTrackType_Selector:  return "selector";
+      }
+      return "UNDEFINED";
+    }
+
+    //-------------------------------------------------------------------------
+    MediaStreamTrack::MediaStreamTrackTypes MediaStreamTrack::toMediaStreamTrackType(const char *inputStr)
+    {
+      String str(inputStr);
+      for (MediaStreamTrack::MediaStreamTrackTypes index = MediaStreamTrack::MediaStreamTrackType_First; index <= MediaStreamTrack::MediaStreamTrackType_Last; index = static_cast<MediaStreamTrack::MediaStreamTrackTypes>(static_cast<std::underlying_type<MediaStreamTrack::MediaStreamTrackTypes>::type>(index) + 1)) {
+        if (0 == str.compareNoCase(MediaStreamTrack::toString(index))) return index;
+      }
+      ORTC_THROW_INVALID_PARAMETERS("Invalid parameter value: " + str)
+      return MediaStreamTrack::MediaStreamTrackType_First;
+    }
+
     //-------------------------------------------------------------------------
     MediaStreamTrack::MediaStreamTrack(
                                        const make_private &,
@@ -954,6 +977,17 @@ namespace ortc
       return MediaStreamTrackFactory::singleton();
     }
 
+    //-------------------------------------------------------------------------
+    IMediaStreamTrackFactory::ForMediaDevicesPtr IMediaStreamTrackFactory::createForMediaDevices(
+                                                                                                 IMediaStreamTrackTypes::Kinds kind,
+                                                                                                 const TrackConstraints &constraints
+                                                                                                 )
+    {      
+      if (this) {}
+      return internal::MediaStreamTrack::createForMediaDevices(kind, constraints);
+    }
+
+    //-------------------------------------------------------------------------
     IMediaStreamTrackFactory::ForReceiverPtr IMediaStreamTrackFactory::createForReceiver(IMediaStreamTrackTypes::Kinds kind)
     {
       if (this) {}

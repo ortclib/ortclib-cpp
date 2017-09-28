@@ -98,33 +98,33 @@ namespace ortc
 
       static IdentityPtr create(IDTLSTransportPtr transport);
 
-      virtual PUID getID() const override {return mID;}
+      PUID getID() const override {return mID;}
 
-      virtual AssertionPtr peerIdentity() const override;
+      AssertionPtr peerIdentity() const override;
 
-      virtual IDTLSTransportPtr transport() const override;
+      IDTLSTransportPtr transport() const override;
 
-      virtual PromiseWithResultPtr getIdentityAssertion(
-                                                        const char *provider,
-                                                        const char *protoocol = "default",
-                                                        const char *username = NULL
-                                                        ) throw (InvalidStateError) override;
+      PromiseWithResultPtr getIdentityAssertion(
+                                                const char *provider,
+                                                const char *protoocol = "default",
+                                                const char *username = NULL
+                                                ) throw (InvalidStateError) override;
 
-      virtual PromiseWithAssertionPtr setIdentityAssertion(const String &assertion) override;
+      PromiseWithAssertionPtr setIdentityAssertion(const String &assertion) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark Identity => IWakeDelegate
       #pragma mark
 
-      virtual void onWake() override;
+      void onWake() override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark Identity => ITimerDelegate
       #pragma mark
 
-      virtual void onTimer(ITimerPtr timer) override;
+      void onTimer(ITimerPtr timer) override;
 
       //-----------------------------------------------------------------------
       #pragma mark

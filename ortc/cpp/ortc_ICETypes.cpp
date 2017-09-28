@@ -247,6 +247,22 @@ namespace ortc
   #pragma mark
 
   //---------------------------------------------------------------------------
+  IICETypes::Candidate::Candidate()
+  {
+  }
+
+  //---------------------------------------------------------------------------
+  IICETypes::Candidate::Candidate(const Candidate &op2)
+  {
+    (*this) = op2;
+  }
+
+  //---------------------------------------------------------------------------
+  IICETypes::Candidate::~Candidate()
+  {
+  }
+
+  //---------------------------------------------------------------------------
   IICETypes::CandidatePtr IICETypes::Candidate::convert(GatherCandidatePtr candidate)
   {
     return ZS_DYNAMIC_PTR_CAST(Candidate, candidate);

@@ -159,7 +159,8 @@ namespace ortc
       };
 
       static const char *toString(MediaStreamTrackTypes type);
-      
+      MediaStreamTrackTypes toMediaStreamTrackType(const char *inputStr);
+
       ZS_DECLARE_TYPEDEF_PTR(IMediaEngineForMediaStreamTrack, UseMediaEngine);
 
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::ImmutableMediaChannelTrace, ImmutableMediaChannelTrace);
@@ -231,7 +232,7 @@ namespace ortc
       #pragma mark MediaStreamTrack => IStatsProvider
       #pragma mark
 
-      virtual PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const override;
+      PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -243,34 +244,34 @@ namespace ortc
                         const char *message = NULL
                         );
 
-      virtual PUID getID() const override {return id_;}
+      PUID getID() const override {return id_;}
 
-      virtual IMediaStreamTrackSubscriptionPtr subscribe(IMediaStreamTrackDelegatePtr delegate) override;
+      IMediaStreamTrackSubscriptionPtr subscribe(IMediaStreamTrackDelegatePtr delegate) override;
 
-      virtual Kinds kind() const override;
-      virtual String id() const override;
-      virtual String deviceID() const override;
-      virtual String label() const override;
-      virtual bool enabled() const override;
-      virtual void enabled(bool enabled) override;
-      virtual bool muted() const override;
-      virtual void muted(bool muted) override;
-      virtual bool remote() const override;
-      virtual States readyState() const override;
+      Kinds kind() const override;
+      String id() const override;
+      String deviceID() const override;
+      String label() const override;
+      bool enabled() const override;
+      void enabled(bool enabled) override;
+      bool muted() const override;
+      void muted(bool muted) override;
+      bool remote() const override;
+      States readyState() const override;
 
-      virtual ortc::IMediaStreamTrackPtr clone() const override;
+      ortc::IMediaStreamTrackPtr clone() const override;
 
-      virtual void stop() override;
+      void stop() override;
 
-      virtual CapabilitiesPtr getCapabilities() const override;
-      virtual TrackConstraintsPtr getConstraints() const override;
-      virtual SettingsPtr getSettings() const override;
+      CapabilitiesPtr getCapabilities() const override;
+      TrackConstraintsPtr getConstraints() const override;
+      SettingsPtr getSettings() const override;
 
-      virtual PromisePtr applyConstraints(const TrackConstraints &constraints) override;
+      PromisePtr applyConstraints(const TrackConstraints &constraints) override;
 
-      virtual IMediaStreamTrackMediaSubscriptionPtr subscribeMedia(IMediaStreamTrackSyncMediaDelegatePtr delegate) override;
+      IMediaStreamTrackMediaSubscriptionPtr subscribeMedia(IMediaStreamTrackSyncMediaDelegatePtr delegate) override;
 
-      virtual IMediaStreamTrackMediaSubscriptionPtr subscribeMedia(IMediaStreamTrackAsyncMediaDelegatePtr delegate) override;
+      IMediaStreamTrackMediaSubscriptionPtr subscribeMedia(IMediaStreamTrackAsyncMediaDelegatePtr delegate) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -292,7 +293,7 @@ namespace ortc
       #pragma mark MediaStreamTrack => IMediaStreamTrackForMediaStream
       #pragma mark
 
-      virtual bool isEnded() const override;
+      bool isEnded() const override;
       // (duplicate) virtual Kinds kind() const = 0;
       // (duplicate) virtual String id() const = 0;
       // (duplicate) virtual ElementPtr toDebug() const = 0;
@@ -307,7 +308,7 @@ namespace ortc
       #pragma mark MediaStreamTrack => IMediaStreamTrackForMediaStreamTrackSubscriber
       #pragma mark
 
-      virtual void notifySubscriberCancelled(UseSubscriberPtr subscriber) override;
+      void notifySubscriberCancelled(UseSubscriberPtr subscriber) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -377,33 +378,33 @@ namespace ortc
       #pragma mark MediaStreamTrack => IWakeDelegate
       #pragma mark
 
-      virtual void onWake() override;
+      void onWake() override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark MediaStreamTrack => ITimerDelegate
       #pragma mark
 
-      virtual void onTimer(ITimerPtr timer) override;
+      void onTimer(ITimerPtr timer) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark MediaStreamTrack => IPromiseSettledDelegate
       #pragma mark
 
-      virtual void onPromiseSettled(PromisePtr promise) override;
+      void onPromiseSettled(PromisePtr promise) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark MediaStreamTrack => IMediaStreamTrackAsyncDelegate
       #pragma mark
 
-      virtual void onResolveStatsPromise(IStatsProvider::PromiseWithStatsReportPtr promise, IStatsReportTypes::StatsTypeSet stats) override;
+      void onResolveStatsPromise(IStatsProvider::PromiseWithStatsReportPtr promise, IStatsReportTypes::StatsTypeSet stats) override;
 
-      virtual void onApplyConstraints(
-                                      PromisePtr promise,
-                                      TrackConstraintsPtr constraints
-                                      ) override;
+      void onApplyConstraints(
+                              PromisePtr promise,
+                              TrackConstraintsPtr constraints
+                              ) override;
 
     protected:
       //-----------------------------------------------------------------------

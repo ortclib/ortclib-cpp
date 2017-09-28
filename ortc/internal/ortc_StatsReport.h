@@ -143,10 +143,10 @@ namespace ortc
 
       static ElementPtr toDebug(StatsReportPtr report);
 
-      virtual PUID getID() const override {return mID;}
+      PUID getID() const override {return mID;}
 
-      virtual IDListPtr getStatesIDs() const override;
-      virtual StatsPtr getStats(const char *id) const override;
+      IDListPtr getStatesIDs() const override;
+      StatsPtr getStats(const char *id) const override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -165,7 +165,7 @@ namespace ortc
       #pragma mark StatsReport => IPromiseSettledDelegate
       #pragma mark
 
-      virtual void onPromiseSettled(PromisePtr promise) override;
+      void onPromiseSettled(PromisePtr promise) override;
 
     protected:
       //-----------------------------------------------------------------------

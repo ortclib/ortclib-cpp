@@ -165,10 +165,10 @@ namespace ortc
       #pragma mark MediaDeviceCaptureVideo => IMediaDeviceForMediaEngine
       #pragma mark
 
-      virtual bool isDeviceIdle() override;
-      virtual void shutdown() override;
+      bool isDeviceIdle() override;
+      void shutdown() override;
 
-      virtual States getState() const override;
+      States getState() const override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -192,14 +192,14 @@ namespace ortc
       #pragma mark MediaDeviceCaptureVideo => IWakeDelegate
       #pragma mark
 
-      virtual void onWake() override;
+      void onWake() override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark MediaDeviceCaptureVideo => IPromiseSettledDelegate
       #pragma mark
 
-      virtual void onPromiseSettled(PromisePtr promise) override;
+      void onPromiseSettled(PromisePtr promise) override;
 
     protected:
       //-----------------------------------------------------------------------
@@ -300,7 +300,7 @@ namespace ortc
         #pragma mark MediaDeviceCaptureVideo::Media => IWakeDelegate
         #pragma mark
 
-        virtual void onWake() override;
+        void onWake() override;
 
       protected:
         //---------------------------------------------------------------------
@@ -384,7 +384,7 @@ namespace ortc
         #pragma mark MediaDeviceCaptureVideo::MediaSubscriber => (for MediaDeviceCaptureVideo)
         #pragma mark
 
-        virtual MediaDeviceObjectID getID() const override { return id_; }
+        MediaDeviceObjectID getID() const override { return id_; }
         void shutdown();
         bool isShutdown() const;
         void notifyStateChanged(States state);
@@ -407,9 +407,9 @@ namespace ortc
         #pragma mark
 
         // (duplicate) virtual MediaDeviceObjectID getID() const override { return id_; }
-        virtual void cancel() override;
+        void cancel() override;
 
-        virtual States getState() const override;
+        States getState() const override;
 
         //---------------------------------------------------------------------
         #pragma mark

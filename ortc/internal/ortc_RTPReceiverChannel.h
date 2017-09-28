@@ -285,21 +285,21 @@ namespace ortc
                                           const RTCPPacketList &packets
                                           );
 
-      virtual PUID getID() const override {return mID;}
+      PUID getID() const override {return mID;}
 
-      virtual void notifyTransportState(ISecureTransportTypes::States state) override;
+      void notifyTransportState(ISecureTransportTypes::States state) override;
 
-      virtual void notifyPacket(RTPPacketPtr packet) override;
+      void notifyPacket(RTPPacketPtr packet) override;
 
-      virtual void notifyPackets(RTCPPacketListPtr packets) override;
+      void notifyPackets(RTCPPacketListPtr packets) override;
 
-      virtual void notifyUpdate(const Parameters &params) override;
+      void notifyUpdate(const Parameters &params) override;
 
-      virtual bool handlePacket(RTPPacketPtr packet) override;
+      bool handlePacket(RTPPacketPtr packet) override;
 
-      virtual bool handlePacket(RTCPPacketPtr packet) override;
+      bool handlePacket(RTCPPacketPtr packet) override;
 
-      virtual void requestStats(PromiseWithStatsReportPtr promise, const StatsTypeSet &stats) override;
+      void requestStats(PromiseWithStatsReportPtr promise, const StatsTypeSet &stats) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -310,12 +310,12 @@ namespace ortc
 
       // (duplicate) virtual PUID getID() const = 0;
 
-      virtual int32_t getAudioSamples(
-                                      const size_t numberOfSamples,
-                                      const uint8_t numberOfChannels,
-                                      void *audioSamples,
-                                      size_t& numberOfSamplesOut
-                                      ) override;
+      int32_t getAudioSamples(
+                              const size_t numberOfSamples,
+                              const uint8_t numberOfChannels,
+                              void *audioSamples,
+                              size_t& numberOfSamplesOut
+                              ) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -324,7 +324,7 @@ namespace ortc
 
       // (duplicate) virtual PUID getID() const = 0;
 
-      virtual bool sendPacket(RTCPPacketPtr packet) override;
+      bool sendPacket(RTCPPacketPtr packet) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -341,27 +341,27 @@ namespace ortc
       #pragma mark RTPReceiverChannel => IWakeDelegate
       #pragma mark
 
-      virtual void onWake() override;
+      void onWake() override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark RTPReceiverChannel => ITimerDelegate
       #pragma mark
 
-      virtual void onTimer(ITimerPtr timer) override;
+      void onTimer(ITimerPtr timer) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark RTPReceiverChannel => IRTPReceiverChannelAsyncDelegate
       #pragma mark
 
-      virtual void onSecureTransportState(ISecureTransport::States state) override;
+      void onSecureTransportState(ISecureTransport::States state) override;
 
-      virtual void onNotifyPacket(RTPPacketPtr packet) override;
+      void onNotifyPacket(RTPPacketPtr packet) override;
 
-      virtual void onNotifyPackets(RTCPPacketListPtr packets) override;
+      void onNotifyPackets(RTCPPacketListPtr packets) override;
 
-      virtual void onUpdate(ParametersPtr params) override;
+      void onUpdate(ParametersPtr params) override;
 
     protected:
       //-----------------------------------------------------------------------

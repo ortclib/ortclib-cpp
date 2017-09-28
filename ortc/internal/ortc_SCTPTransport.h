@@ -416,7 +416,7 @@ namespace ortc
       #pragma mark SCTPTransport => IStatsProvider
       #pragma mark
 
-      virtual PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const override;
+      PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -431,23 +431,23 @@ namespace ortc
                                       WORD localPort = 0
                                       ) throw (InvalidParameters, InvalidStateError);
 
-      virtual PUID getID() const override {return mID;}
+      PUID getID() const override {return mID;}
 
-      virtual IDTLSTransportPtr transport() const override;
-      virtual ISCTPTransportTypes::States state() const override;
+      IDTLSTransportPtr transport() const override;
+      ISCTPTransportTypes::States state() const override;
 
-      virtual WORD port() const override;
+      WORD port() const override;
 
-      virtual WORD localPort() const override;
-      virtual Optional<WORD> remotePort() const override;
+      WORD localPort() const override;
+      Optional<WORD> remotePort() const override;
 
       virtual void start(
                          const Capabilities &remoteCapabilities,
                          WORD remotePort
                          ) throw (InvalidStateError, InvalidParameters) override;
-      virtual void stop() override;
+      void stop() override;
 
-      virtual ISCTPTransportSubscriptionPtr subscribe(ISCTPTransportDelegatePtr delegate) override;
+      ISCTPTransportSubscriptionPtr subscribe(ISCTPTransportDelegatePtr delegate) override;
 
 
       //-----------------------------------------------------------------------
@@ -457,29 +457,29 @@ namespace ortc
 
       // (duplciate) static ElementPtr toDebug(ForDataChannelPtr transport);
 
-      virtual void registerNewDataChannel(
-                                          UseDataChannelPtr &ioDataChannel,
-                                          WORD &ioSessionID
-                                          ) override;
+      void registerNewDataChannel(
+                                  UseDataChannelPtr &ioDataChannel,
+                                  WORD &ioSessionID
+                                  ) override;
 
       // (duplicate) virtual PUID getID() const = 0;
-      virtual ISCTPTransportForDataChannelSubscriptionPtr subscribe(ISCTPTransportForDataChannelDelegatePtr delegate) override;
+      ISCTPTransportForDataChannelSubscriptionPtr subscribe(ISCTPTransportForDataChannelDelegatePtr delegate) override;
 
       // (duplicate) virtual bool isShuttingDown() const override;
       // (duplicate) virtual bool isShutdown() const override;
-      virtual bool isReady() const override;
+      bool isReady() const override;
 
-      virtual void announceIncoming(
-                                    UseDataChannelPtr dataChannel,
-                                    ParametersPtr params
-                                    ) override;
+      void announceIncoming(
+                            UseDataChannelPtr dataChannel,
+                            ParametersPtr params
+                            ) override;
 
-      virtual PromisePtr sendDataNow(SCTPPacketOutgoingPtr packet) override;
+      PromisePtr sendDataNow(SCTPPacketOutgoingPtr packet) override;
 
-      virtual void requestShutdown(
-                                   UseDataChannelPtr dataChannel,
-                                   WORD sessionID
-                                   ) override;
+      void requestShutdown(
+                           UseDataChannelPtr dataChannel,
+                           WORD sessionID
+                           ) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -499,12 +499,12 @@ namespace ortc
       //                                WORD remotePort
       //                                ) throw (InvalidStateError, InvalidParameters) = 0;
 
-      virtual bool handleDataPacket(
-                                    const BYTE *buffer,
-                                    size_t bufferLengthInBytes
-                                    ) override;
+      bool handleDataPacket(
+                            const BYTE *buffer,
+                            size_t bufferLengthInBytes
+                            ) override;
 
-      virtual void notifyShutdown() override;
+      void notifyShutdown() override;
 
       // (duplicate) virtual bool isShuttingDown() const = 0;
       // (duplicate) virtual bool isShutdown() const = 0;
@@ -514,42 +514,42 @@ namespace ortc
       #pragma mark SCTPTransport => friend SCTPInit
       #pragma mark
 
-      virtual bool notifySendSCTPPacket(
-                                        const BYTE *buffer,
-                                        size_t bufferLengthInBytes
-                                        );
+      bool notifySendSCTPPacket(
+                                const BYTE *buffer,
+                                size_t bufferLengthInBytes
+                                );
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark SCTPTransport => IWakeDelegate
       #pragma mark
 
-      virtual void onWake() override;
+      void onWake() override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark SCTPTransport => ITimerDelegate
       #pragma mark
 
-      virtual void onTimer(ITimerPtr timer) override;
+      void onTimer(ITimerPtr timer) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark SCTPTransport => ISCTPTransportAsyncDelegate
       #pragma mark
 
-      virtual void onIncomingPacket(SCTPPacketIncomingPtr packet) override;
-      virtual void onNotifiedToShutdown() override;
+      void onIncomingPacket(SCTPPacketIncomingPtr packet) override;
+      void onNotifiedToShutdown() override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark SCTPTransport => ISecureTransportDelegate
       #pragma mark
 
-      virtual void onSecureTransportStateChanged(
-                                                 ISecureTransportPtr transport,
-                                                 ISecureTransportTypes::States state
-                                                 ) override;
+      void onSecureTransportStateChanged(
+                                         ISecureTransportPtr transport,
+                                         ISecureTransportTypes::States state
+                                         ) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -720,7 +720,7 @@ ZS_DECLARE_TEAR_AWAY_METHOD_CONST_RETURN_0(state, States)
 ZS_DECLARE_TEAR_AWAY_METHOD_CONST_RETURN_0(port, WORD)
 ZS_DECLARE_TEAR_AWAY_METHOD_CONST_RETURN_0(localPort, WORD)
 ZS_DECLARE_TEAR_AWAY_METHOD_CONST_RETURN_0(remotePort, Optional<WORD>)
-  virtual void start(const Capabilities & v1, WORD v2) throw (ortc::InvalidStateError, ortc::InvalidParameters) override {
+  void start(const Capabilities & v1, WORD v2) throw (ortc::InvalidStateError, ortc::InvalidParameters) override {
     getDelegate()->start(v1, v2);
   }
 ZS_DECLARE_TEAR_AWAY_METHOD_0(stop)

@@ -329,19 +329,19 @@ namespace ortc
                                         const Parameters &params
                                         );
 
-      virtual PUID getID() const override {return mID;}
+      PUID getID() const override {return mID;}
 
-      virtual void notifyTrackChanged(MediaStreamTrackPtr track) override;
+      void notifyTrackChanged(MediaStreamTrackPtr track) override;
 
-      virtual void notifyTransportState(ISecureTransportTypes::States state) override;
+      void notifyTransportState(ISecureTransportTypes::States state) override;
 
-      virtual void notifyPackets(RTCPPacketListPtr packets) override;
+      void notifyPackets(RTCPPacketListPtr packets) override;
 
-      virtual void notifyUpdate(const Parameters &params) override;
+      void notifyUpdate(const Parameters &params) override;
 
-      virtual bool handlePacket(RTCPPacketPtr packet) override;
+      bool handlePacket(RTCPPacketPtr packet) override;
 
-      virtual void requestStats(PromiseWithStatsReportPtr promise, const StatsTypeSet &stats) override;
+      void requestStats(PromiseWithStatsReportPtr promise, const StatsTypeSet &stats) override;
 
       virtual void insertDTMF(
                               const char *tones,
@@ -349,9 +349,9 @@ namespace ortc
                               Milliseconds interToneGap
                               ) override;
 
-      virtual String toneBuffer() const override;
-      virtual Milliseconds duration() const override;
-      virtual Milliseconds interToneGap() const override;
+      String toneBuffer() const override;
+      Milliseconds duration() const override;
+      Milliseconds interToneGap() const override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -360,16 +360,16 @@ namespace ortc
 
       // (duplicate) virtual PUID getID() const = 0;
 
-      virtual bool sendPacket(RTPPacketPtr packet) override;
+      bool sendPacket(RTPPacketPtr packet) override;
 
-      virtual bool sendPacket(RTCPPacketPtr packet) override;
+      bool sendPacket(RTCPPacketPtr packet) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark RTPSenderChannel => IRTPSenderChannelForRTPSenderChannelAudio
       #pragma mark
 
-      virtual void notifyDTMFSenderToneChanged(const char *tone) override;
+      void notifyDTMFSenderToneChanged(const char *tone) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -385,40 +385,40 @@ namespace ortc
 
       // (duplicate) virtual PUID getID() const = 0;
 
-      virtual int32_t sendAudioSamples(
-                                       const void* audioSamples,
-                                       const size_t numberOfSamples,
-                                       const uint8_t numberOfChannels
-                                       ) override;
+      int32_t sendAudioSamples(
+                               const void* audioSamples,
+                               const size_t numberOfSamples,
+                               const uint8_t numberOfChannels
+                               ) override;
 
-      virtual void sendVideoFrame(VideoFramePtr videoFrame) override;
+      void sendVideoFrame(VideoFramePtr videoFrame) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark RTPSenderChannel => IWakeDelegate
       #pragma mark
 
-      virtual void onWake() override;
+      void onWake() override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark RTPSenderChannel => ITimerDelegate
       #pragma mark
 
-      virtual void onTimer(ITimerPtr timer) override;
+      void onTimer(ITimerPtr timer) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark RTPSenderChannel => IRTPSenderChannelAsyncDelegate
       #pragma mark
 
-      virtual void onTrackChanged(UseMediaStreamTrackPtr track) override;
+      void onTrackChanged(UseMediaStreamTrackPtr track) override;
 
-      virtual void onSecureTransportState(ISecureTransport::States state) override;
+      void onSecureTransportState(ISecureTransport::States state) override;
 
-      virtual void onNotifyPackets(RTCPPacketListPtr packets) override;
+      void onNotifyPackets(RTCPPacketListPtr packets) override;
 
-      virtual void onUpdate(ParametersPtr params) override;
+      void onUpdate(ParametersPtr params) override;
 
     protected:
       //-----------------------------------------------------------------------

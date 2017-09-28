@@ -690,7 +690,7 @@ ortc_sources = [
 
 #Exists just to keep non generated ortclib code, in case we need it some day
 static_library("ortclib_static") {
-configs += [ ":ortclib_config" ]
+  configs += [ ":ortclib_config" ]
 
   configs -= [ "//build/config/compiler:no_rtti" ]
   configs -= [ "//build/config/compiler:chromium_code" ]
@@ -724,6 +724,8 @@ configs += [ ":ortclib_config" ]
     defines += [ "WEBRTC_WIN", ]
   }
   
+  # Suppress warnings from the Chromium Clang plugin (bugs.webrtc.org/163).
+  configs -= [ "//build/config/clang:find_bad_constructs" ]
 }
 
 
@@ -796,6 +798,10 @@ shared_library("ortclib") {
     "WEBRTC_BUILD_LIBEVENT",
     ]
   }
+
+  # Suppress warnings from the Chromium Clang plugin (bugs.webrtc.org/163).
+  configs -= [ "//build/config/clang:find_bad_constructs" ]
+
 }
 
 static_library("ortclib_generated_static") {
@@ -839,6 +845,9 @@ static_library("ortclib_generated_static") {
     ":ortclib_events",
     ":ortclib_idl",
   ]
+
+  # Suppress warnings from the Chromium Clang plugin (bugs.webrtc.org/163).
+  configs -= [ "//build/config/clang:find_bad_constructs" ]
 }
 
 compile_event_macro("ortclib_events") {

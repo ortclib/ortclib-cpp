@@ -189,38 +189,38 @@ namespace ortc
                                    const Parameters &params
                                    );
 
-      virtual PUID getID() const override {return mID;}
+      PUID getID() const override {return mID;}
 
-      virtual IDataChannelSubscriptionPtr subscribe(IDataChannelDelegatePtr delegate) override;
+      IDataChannelSubscriptionPtr subscribe(IDataChannelDelegatePtr delegate) override;
 
-      virtual IDataTransportPtr transport() const override;
+      IDataTransportPtr transport() const override;
 
-      virtual ParametersPtr parameters() const override;
+      ParametersPtr parameters() const override;
 
-      virtual States readyState() const override;
+      States readyState() const override;
 
-      virtual size_t bufferedAmount() const override;
-      virtual size_t bufferedAmountLowThreshold() const override;
-      virtual void bufferedAmountLowThreshold(size_t value) override;
+      size_t bufferedAmount() const override;
+      size_t bufferedAmountLowThreshold() const override;
+      void bufferedAmountLowThreshold(size_t value) override;
 
-      virtual String binaryType() const override;
-      virtual void binaryType(const char *str) override;
+      String binaryType() const override;
+      void binaryType(const char *str) override;
 
-      virtual void close() override;
+      void close() override;
 
-      virtual void send(const String &data) override;
-      virtual void send(const SecureByteBlock &data) override;
-      virtual void send(
-                        const BYTE *buffer,
-                        size_t bufferSizeInBytes
-                        ) override;
+      void send(const String &data) override;
+      void send(const SecureByteBlock &data) override;
+      void send(
+                const BYTE *buffer,
+                size_t bufferSizeInBytes
+                ) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark DataChannel => IStatsProvider
       #pragma mark
 
-      virtual PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const override;
+      PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -236,41 +236,41 @@ namespace ortc
 
       // (duplicate) virtual PUID getID() const = 0;
 
-      virtual bool isIncoming() const override {return mIncoming;}
+      bool isIncoming() const override {return mIncoming;}
 
-      virtual bool handleSCTPPacket(SCTPPacketIncomingPtr packet) override;
+      bool handleSCTPPacket(SCTPPacketIncomingPtr packet) override;
 
-      virtual void requestShutdown() override;
-      virtual void notifyClosed() override;
+      void requestShutdown() override;
+      void notifyClosed() override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark DataChannel => ISCTPTransportForDataChannelDelegate
       #pragma mark
       
-      virtual void onSCTPTransportStateChanged() override;
+      void onSCTPTransportStateChanged() override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark DataChannel => IDataChannelAsyncDelegate
       #pragma mark
 
-      virtual void onRequestShutdown() override;
-      virtual void onNotifiedClosed() override;
+      void onRequestShutdown() override;
+      void onNotifiedClosed() override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark DataChannel => IWakeDelegate
       #pragma mark
 
-      virtual void onWake() override;
+      void onWake() override;
       
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark DataChannel => IPromiseSettledDelegate
       #pragma mark
 
-      virtual void onPromiseSettled(PromisePtr promise) override;
+      void onPromiseSettled(PromisePtr promise) override;
 
       //-----------------------------------------------------------------------
       #pragma mark

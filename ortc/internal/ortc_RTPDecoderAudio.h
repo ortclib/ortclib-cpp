@@ -128,24 +128,24 @@ namespace ortc
       #pragma mark RTPDecoderAudio => IRTP
       #pragma mark
 
-      virtual RTPObjectID getID() const override { return id_; }
-      virtual void cancel() override;
+      RTPObjectID getID() const override { return id_; }
+      void cancel() override;
 
-      virtual States getState() const override;
+      States getState() const override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark RTPDecoderAudio => IRTPDecoder
       #pragma mark
 
-      virtual void notifyRTPPacket(
-                                   ImmutableMediaChannelTracePtr trace,
-                                   RTPPacketPtr packet
-                                   ) override;
-      virtual void notifyRTCPPacket(
-                                    ImmutableMediaChannelTracePtr trace,
-                                    RTCPPacketPtr packet
-                                    ) override;
+      void notifyRTPPacket(
+                           ImmutableMediaChannelTracePtr trace,
+                           RTPPacketPtr packet
+                           ) override;
+      void notifyRTCPPacket(
+                            ImmutableMediaChannelTracePtr trace,
+                            RTCPPacketPtr packet
+                            ) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -158,7 +158,7 @@ namespace ortc
       #pragma mark
 
       // (duplicate) virtual RTPObjectID getID() const = 0;
-      virtual void shutdown() override;
+      void shutdown() override;
 
       // (duplciate) virtual States getState() const override;
 
@@ -177,28 +177,28 @@ namespace ortc
       #pragma mark RTPDecoderAudio => IWakeDelegate
       #pragma mark
 
-      virtual void onWake() override;
+      void onWake() override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark RTPDecoderAudio => IPromiseSettledDelegate
       #pragma mark
 
-      virtual void onPromiseSettled(PromisePtr promise) override;
+      void onPromiseSettled(PromisePtr promise) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark RTPDecoderAudio => IRTPDecoderAysncDelegate
       #pragma mark
       
-      virtual void onRTPDecoderRTPPacket(
-                                         ImmutableMediaChannelTracePtr trace,
-                                         RTPPacketPtr packet
-                                         ) override;
-      virtual void onRTPDecoderRTCPPacket(
-                                          ImmutableMediaChannelTracePtr trace,
-                                          RTCPPacketPtr packet
-                                          ) override;
+      void onRTPDecoderRTPPacket(
+                                 ImmutableMediaChannelTracePtr trace,
+                                 RTPPacketPtr packet
+                                 ) override;
+      void onRTPDecoderRTCPPacket(
+                                  ImmutableMediaChannelTracePtr trace,
+                                  RTCPPacketPtr packet
+                                  ) override;
 
     protected:
       //-----------------------------------------------------------------------

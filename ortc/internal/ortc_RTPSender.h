@@ -145,7 +145,7 @@ namespace ortc
 
       static ElementPtr toDebug(ForDTMFSenderPtr transport);
 
-      virtual IDTMFSenderSubscriptionPtr subscribe(IDTMFSenderDelegatePtr delegate) override { return subscribeDTMF(delegate); }
+      IDTMFSenderSubscriptionPtr subscribe(IDTMFSenderDelegatePtr delegate) override { return subscribeDTMF(delegate); }
 
       virtual IDTMFSenderSubscriptionPtr subscribeDTMF(IDTMFSenderDelegatePtr delegate) = 0;
     };
@@ -322,7 +322,7 @@ namespace ortc
       #pragma mark RTPSender => IStatsProvider
       #pragma mark
 
-      virtual PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const override;
+      PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -338,24 +338,24 @@ namespace ortc
                                  IRTCPTransportPtr rtcpTransport = IRTCPTransportPtr()
                                  );
 
-      virtual PUID getID() const override {return mID;}
+      PUID getID() const override {return mID;}
 
-      virtual IRTPSenderSubscriptionPtr subscribe(IRTPSenderDelegatePtr delegate) override;
+      IRTPSenderSubscriptionPtr subscribe(IRTPSenderDelegatePtr delegate) override;
 
-      virtual ortc::IMediaStreamTrackPtr track() const override;
-      virtual IRTPTransportPtr transport() const override;
-      virtual IRTCPTransportPtr rtcpTransport() const override;
+      ortc::IMediaStreamTrackPtr track() const override;
+      IRTPTransportPtr transport() const override;
+      IRTCPTransportPtr rtcpTransport() const override;
 
       virtual void setTransport(
                                 IRTPTransportPtr transport,
                                 IRTCPTransportPtr rtcpTransport = IRTCPTransportPtr()
                                 ) override;
-      virtual PromisePtr setTrack(ortc::IMediaStreamTrackPtr track) override;
+      PromisePtr setTrack(ortc::IMediaStreamTrackPtr track) override;
 
       static CapabilitiesPtr getCapabilities(Optional<Kinds> kind);
 
-      virtual PromisePtr send(const Parameters &parameters) override;
-      virtual void stop() override;
+      PromisePtr send(const Parameters &parameters) override;
+      void stop() override;
 
 
       //-----------------------------------------------------------------------
@@ -381,8 +381,8 @@ namespace ortc
 
       // (duplicate) virtual PUID getID() const = 0;
 
-      virtual bool sendPacket(RTPPacketPtr packet) override;
-      virtual bool sendPacket(RTCPPacketPtr packet) override;
+      bool sendPacket(RTPPacketPtr packet) override;
+      bool sendPacket(RTCPPacketPtr packet) override;
 
       virtual void notifyConflict(
                                   UseChannelPtr channel,
@@ -390,7 +390,7 @@ namespace ortc
                                   bool selfDestruct
                                   ) override;
 
-      virtual void notifyDTMFSenderToneChanged(const char *tone) override;
+      void notifyDTMFSenderToneChanged(const char *tone) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -410,9 +410,9 @@ namespace ortc
 
       // (duplicate) virtual PUID getID() const = 0;
 
-      virtual IDTMFSenderSubscriptionPtr subscribeDTMF(IDTMFSenderDelegatePtr delegate) override;
+      IDTMFSenderSubscriptionPtr subscribeDTMF(IDTMFSenderDelegatePtr delegate) override;
 
-      virtual bool canInsertDTMF() const override;
+      bool canInsertDTMF() const override;
 
       virtual void insertDTMF(
                               const char *tones,
@@ -423,45 +423,45 @@ namespace ortc
                                         InvalidCharacterError
                                         ) override;
 
-      virtual IRTPSenderPtr sender() const override;
+      IRTPSenderPtr sender() const override;
 
-      virtual String toneBuffer() const override;
-      virtual Milliseconds duration() const override;
-      virtual Milliseconds interToneGap() const override;
+      String toneBuffer() const override;
+      Milliseconds duration() const override;
+      Milliseconds interToneGap() const override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark RTPReceiver => ISecureTransportDelegate
       #pragma mark
 
-      virtual void onSecureTransportStateChanged(
-                                                 ISecureTransportPtr transport,
-                                                 ISecureTransport::States state
-                                                 ) override;
+      void onSecureTransportStateChanged(
+                                         ISecureTransportPtr transport,
+                                         ISecureTransport::States state
+                                         ) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark RTPSender => IWakeDelegate
       #pragma mark
 
-      virtual void onWake() override;
+      void onWake() override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark RTPSender => IDTMFSenderDelegate
       #pragma mark
 
-      virtual void onDTMFSenderToneChanged(
-                                           IDTMFSenderPtr sender,
-                                           String tone
-                                           ) override;
+      void onDTMFSenderToneChanged(
+                                   IDTMFSenderPtr sender,
+                                   String tone
+                                   ) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark RTPSender => IRTPSenderAsyncDelegate
       #pragma mark
 
-      virtual void onDestroyChannel(UseChannelPtr channel) override;
+      void onDestroyChannel(UseChannelPtr channel) override;
 
       //-----------------------------------------------------------------------
       #pragma mark

@@ -380,20 +380,20 @@ namespace ortc
                                     Optional<HeaderExtensionParametersList> headerExtensions
                                     );
 
-      virtual PUID getID() const override {return mID;}
+      PUID getID() const override {return mID;}
 
-      virtual IRTPListenerSubscriptionPtr subscribe(IRTPListenerDelegatePtr delegate) override;
+      IRTPListenerSubscriptionPtr subscribe(IRTPListenerDelegatePtr delegate) override;
 
-      virtual IRTPTransportPtr transport() const override;
+      IRTPTransportPtr transport() const override;
 
-      virtual void setHeaderExtensions(const HeaderExtensionParametersList &headerExtensions) override;
+      void setHeaderExtensions(const HeaderExtensionParametersList &headerExtensions) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark RTPListener => IStatsProvider
       #pragma mark
 
-      virtual PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const override;
+      PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -406,12 +406,12 @@ namespace ortc
 
       static RTPListenerPtr create(IRTPTransportPtr transport);
 
-      virtual bool handleRTPPacket(
-                                   IICETypes::Components viaComponent,
-                                   IICETypes::Components packetType,
-                                   const BYTE *buffer,
-                                   size_t bufferLengthInBytes
-                                   ) override;
+      bool handleRTPPacket(
+                           IICETypes::Components viaComponent,
+                           IICETypes::Components packetType,
+                           const BYTE *buffer,
+                           size_t bufferLengthInBytes
+                           ) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -422,23 +422,23 @@ namespace ortc
 
       // (duplicate) virtual PUID getID() const = 0;
 
-      virtual void registerReceiver(
-                                    Optional<IMediaStreamTrack::Kinds> kind,
-                                    UseReceiverPtr inReceiver,
-                                    const Parameters &inParams,
-                                    RTCPPacketList *outPacketList = NULL
-                                    ) override;
+      void registerReceiver(
+                            Optional<IMediaStreamTrack::Kinds> kind,
+                            UseReceiverPtr inReceiver,
+                            const Parameters &inParams,
+                            RTCPPacketList *outPacketList = NULL
+                            ) override;
 
-      virtual void unregisterReceiver(UseReceiver &inReceiver) override;
+      void unregisterReceiver(UseReceiver &inReceiver) override;
 
-      virtual void getPackets(RTCPPacketList &outPacketList) override;
+      void getPackets(RTCPPacketList &outPacketList) override;
 
-      virtual void notifyUnhandled(
-                                   const String &muxID,
-                                   const String &rid,
-                                   IRTPTypes::SSRCType ssrc,
-                                   IRTPTypes::PayloadType payloadType
-                                   ) override;
+      void notifyUnhandled(
+                           const String &muxID,
+                           const String &rid,
+                           IRTPTypes::SSRCType ssrc,
+                           IRTPTypes::PayloadType payloadType
+                           ) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -449,38 +449,38 @@ namespace ortc
 
       // (duplicate) virtual PUID getID() const = 0;
 
-      virtual void registerSender(
-                                  UseSenderPtr inSender,
-                                  const Parameters &inParams,
-                                  RTCPPacketList &outPacketList
-                                  ) override;
+      void registerSender(
+                          UseSenderPtr inSender,
+                          const Parameters &inParams,
+                          RTCPPacketList &outPacketList
+                          ) override;
 
-      virtual void unregisterSender(UseSender &inReceiver) override;
+      void unregisterSender(UseSender &inReceiver) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark RTPListener => IWakeDelegate
       #pragma mark
 
-      virtual void onWake() override;
+      void onWake() override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark RTPListener => ITimerDelegate
       #pragma mark
 
-      virtual void onTimer(ITimerPtr timer) override;
+      void onTimer(ITimerPtr timer) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark RTPListener => IRTPListenerAsyncDelegate
       #pragma mark
 
-      virtual void onDeliverPacket(
-                                   IICETypes::Components viaComponent,
-                                   UseRTPReceiverPtr receiver,
-                                   RTPPacketPtr packet
-                                   ) override;
+      void onDeliverPacket(
+                           IICETypes::Components viaComponent,
+                           UseRTPReceiverPtr receiver,
+                           RTPPacketPtr packet
+                           ) override;
 
     public:
 

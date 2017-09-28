@@ -198,7 +198,7 @@ namespace ortc
       #pragma mark DTLSTransport => IStatsProvider
       #pragma mark
 
-      virtual PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const override;
+      PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -216,26 +216,26 @@ namespace ortc
       static DTLSTransportPtr convert(IRTPTransportPtr rtpTransport);
       static DTLSTransportPtr convert(IRTCPTransportPtr rtcpTransport);
 
-      virtual PUID getID() const override {return mID;}
+      PUID getID() const override {return mID;}
 
-      virtual IDTLSTransportSubscriptionPtr subscribe(IDTLSTransportDelegatePtr delegate) override;
+      IDTLSTransportSubscriptionPtr subscribe(IDTLSTransportDelegatePtr delegate) override;
 
-      virtual CertificateListPtr certificates() const override;
-      virtual IICETransportPtr transport() const override;
+      CertificateListPtr certificates() const override;
+      IICETransportPtr transport() const override;
 
-      virtual States state() const override;
+      States state() const override;
 
-      virtual ParametersPtr getLocalParameters() const override;
-      virtual ParametersPtr getRemoteParameters() const override;
+      ParametersPtr getLocalParameters() const override;
+      ParametersPtr getRemoteParameters() const override;
 
-      virtual SecureByteBlockListPtr getRemoteCertificates() const override;
+      SecureByteBlockListPtr getRemoteCertificates() const override;
 
       virtual void start(const Parameters &remoteParameters) throw (
                                                                     InvalidStateError,
                                                                     InvalidParameters
                                                                     ) override;
 
-      virtual void stop() override;
+      void stop() override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -262,7 +262,7 @@ namespace ortc
                               size_t bufferLengthInBytes
                               ) override;
 
-      virtual IICETransportPtr getICETransport() const override;
+      IICETransportPtr getICETransport() const override;
 
 
       //-----------------------------------------------------------------------
@@ -339,7 +339,7 @@ namespace ortc
 
       // (duplicate) virtual PUID getID() const = 0;
 
-      virtual RTPListenerPtr getListener() const override;
+      RTPListenerPtr getListener() const override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -350,13 +350,13 @@ namespace ortc
 
       // (duplicate) virtual PUID getID() const = 0;
 
-      virtual ISecureTransportSubscriptionPtr subscribe(ISecureTransportDelegatePtr delegate) override;
+      ISecureTransportSubscriptionPtr subscribe(ISecureTransportDelegatePtr delegate) override;
 
-      virtual ISecureTransportTypes::States state(ISecureTransportTypes::States ignored) const override;
+      ISecureTransportTypes::States state(ISecureTransportTypes::States ignored) const override;
 
-      virtual bool isClientRole() const override;
+      bool isClientRole() const override;
 
-      virtual UseDataTransportPtr getDataTransport() const override;
+      UseDataTransportPtr getDataTransport() const override;
 
       virtual bool sendDataPacket(
                                   const BYTE *buffer,
@@ -368,45 +368,45 @@ namespace ortc
       #pragma mark DTLSTransport => IWakeDelegate
       #pragma mark
 
-      virtual void onWake() override;
+      void onWake() override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark DTLSTransport => ITimerDelegate
       #pragma mark
 
-      virtual void onTimer(ITimerPtr timer) override;
+      void onTimer(ITimerPtr timer) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark DTLSTransport => IDTLSTransportAsyncDelegate
       #pragma mark
 
-      virtual void onAdapterSendPacket() override;
-      virtual void onDeliverPendingIncomingRTP() override;
+      void onAdapterSendPacket() override;
+      void onDeliverPendingIncomingRTP() override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark DTLSTransport => IICETransportDelegate
       #pragma mark
 
-      virtual void onICETransportStateChange(
-                                             IICETransportPtr transport,
-                                             IICETransport::States state
-                                             ) override;
+      void onICETransportStateChange(
+                                     IICETransportPtr transport,
+                                     IICETransport::States state
+                                     ) override;
 
-      virtual void onICETransportCandidatePairAvailable(
-                                                        IICETransportPtr transport,
-                                                        CandidatePairPtr candidatePair
-                                                        ) override;
-      virtual void onICETransportCandidatePairGone(
-                                                   IICETransportPtr transport,
-                                                   CandidatePairPtr candidatePair
-                                                   ) override;
-      virtual void onICETransportCandidatePairChanged(
-                                                      IICETransportPtr transport,
-                                                      CandidatePairPtr candidatePair
-                                                      ) override;
+      void onICETransportCandidatePairAvailable(
+                                                IICETransportPtr transport,
+                                                CandidatePairPtr candidatePair
+                                                ) override;
+      void onICETransportCandidatePairGone(
+                                           IICETransportPtr transport,
+                                           CandidatePairPtr candidatePair
+                                           ) override;
+      void onICETransportCandidatePairChanged(
+                                              IICETransportPtr transport,
+                                              CandidatePairPtr candidatePair
+                                              ) override;
 
 
       //-----------------------------------------------------------------------

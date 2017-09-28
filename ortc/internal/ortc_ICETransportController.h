@@ -161,23 +161,23 @@ namespace ortc
 
       static ICETransportControllerPtr create();
 
-      virtual PUID getID() const override;
+      PUID getID() const override;
 
-      virtual ICETransportList getTransports() const override;
-      virtual void addTransport(
-                                IICETransportPtr transport,
-                                Optional<size_t> index = Optional<size_t>()
-                                ) throw(
-                                        InvalidParameters,
-                                        InvalidStateError
-                                        ) override;
+      ICETransportList getTransports() const override;
+      void addTransport(
+                        IICETransportPtr transport,
+                        Optional<size_t> index = Optional<size_t>()
+                        ) throw(
+                                InvalidParameters,
+                                InvalidStateError
+                                ) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark ICETransportController => IStatsProvider
       #pragma mark
 
-      virtual PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const override;
+      PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -186,37 +186,37 @@ namespace ortc
 
       // (duplicate) virtual PUID getID() const = 0;
 
-      virtual PromisePtr notifyWhenUnfrozen(
-                                            ICETransportPtr transport,
-                                            const String &localFoundation,
-                                            const String &remoteFoundation
-                                            ) override;
+      PromisePtr notifyWhenUnfrozen(
+                                    ICETransportPtr transport,
+                                    const String &localFoundation,
+                                    const String &remoteFoundation
+                                    ) override;
 
-      virtual void notifyDetached(ICETransportPtr transport) override;
+      void notifyDetached(ICETransportPtr transport) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark ICETransportController => ITransportControllerAsyncDelegate
       #pragma mark
 
-      virtual void onTransportControllerNotifyWhenUnfrozen(
-                                                           PromisePtr promise,
-                                                           UseICETransportPtr transport,
-                                                           const char *localFoundation,
-                                                           const char *remoteFoundation
-                                                           ) override;
+      void onTransportControllerNotifyWhenUnfrozen(
+                                                   PromisePtr promise,
+                                                   UseICETransportPtr transport,
+                                                   const char *localFoundation,
+                                                   const char *remoteFoundation
+                                                   ) override;
 
-      virtual void onTransportControllerNotifyDetached(
-                                                       UseICETransportPtr transport,
-                                                       AttachedOrderID detachedOrder
-                                                       ) override;
+      void onTransportControllerNotifyDetached(
+                                               UseICETransportPtr transport,
+                                               AttachedOrderID detachedOrder
+                                               ) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark ICETransportController => IWakeDelegate
       #pragma mark
 
-      virtual void onWake() override;
+      void onWake() override;
 
     protected:
       //-----------------------------------------------------------------------

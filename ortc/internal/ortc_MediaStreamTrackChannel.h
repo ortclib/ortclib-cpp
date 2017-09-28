@@ -127,35 +127,35 @@ namespace ortc
                                            ImmutableMediaChannelTracePtr trace
                                            );
 
-      virtual PUID getID() const override { return id_; }
+      PUID getID() const override { return id_; }
 
-      virtual void shutdown() override;
+      void shutdown() override;
 
-      virtual void notifyAudioFrame(
-                                    size_t timeIndex,
-                                    ImmutableMediaChannelTracePtr trace,
-                                    AudioFramePtr frame
-                                    ) override;
-      virtual void notifyVideoFrame(
-                                    size_t timeIndex,
-                                    ImmutableMediaChannelTracePtr trace,
-                                    VideoFramePtr frame
-                                    ) override;
+      void notifyAudioFrame(
+                            size_t timeIndex,
+                            ImmutableMediaChannelTracePtr trace,
+                            AudioFramePtr frame
+                            ) override;
+      void notifyVideoFrame(
+                            size_t timeIndex,
+                            ImmutableMediaChannelTracePtr trace,
+                            VideoFramePtr frame
+                            ) override;
 
-      virtual void notifyRTPPacket(
-                                   size_t timeIndex,
-                                   ImmutableMediaChannelTracePtr trace,
-                                   RTPPacketPtr packet
-                                   ) override;
-      virtual void notifyRTCPPacket(
-                                    size_t timeIndex,
-                                    ImmutableMediaChannelTracePtr trace,
-                                    RTPPacketPtr packet
-                                    ) override;
+      void notifyRTPPacket(
+                           size_t timeIndex,
+                           ImmutableMediaChannelTracePtr trace,
+                           RTPPacketPtr packet
+                           ) override;
+      void notifyRTCPPacket(
+                            size_t timeIndex,
+                            ImmutableMediaChannelTracePtr trace,
+                            RTPPacketPtr packet
+                            ) override;
 
-      virtual void subscribeComplete() override;
+      void subscribeComplete() override;
 
-      virtual bool shouldCancel(size_t cleanOlderThanTimeIndex) override;
+      bool shouldCancel(size_t cleanOlderThanTimeIndex) override;
 
       //---------------------------------------------------------------------
       #pragma mark

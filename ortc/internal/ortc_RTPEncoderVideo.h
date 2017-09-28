@@ -129,24 +129,24 @@ namespace ortc
       #pragma mark RTPEncoderVideo => IRTP
       #pragma mark
 
-      virtual RTPObjectID getID() const override { return id_; }
-      virtual void cancel() override;
+      RTPObjectID getID() const override { return id_; }
+      void cancel() override;
 
-      virtual States getState() const override;
+      States getState() const override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark RTPEncoderVideo => IRTPEncoder
       #pragma mark
 
-      virtual void notifyAudioFrame(
-                                    ImmutableMediaChannelTracePtr trace,
-                                    AudioFramePtr frame
-                                    ) override {}
-      virtual void notifyVideoFrame(
-                                    ImmutableMediaChannelTracePtr trace,
-                                    VideoFramePtr frame
-                                    ) override;
+      void notifyAudioFrame(
+                            ImmutableMediaChannelTracePtr trace,
+                            AudioFramePtr frame
+                            ) override {}
+      void notifyVideoFrame(
+                            ImmutableMediaChannelTracePtr trace,
+                            VideoFramePtr frame
+                            ) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -159,7 +159,7 @@ namespace ortc
       #pragma mark
 
       // (duplicate) virtual RTPObjectID getID() const = 0;
-      virtual void shutdown() override;
+      void shutdown() override;
 
       // (duplciate) virtual States getState() const override;
 
@@ -178,28 +178,28 @@ namespace ortc
       #pragma mark RTPEncoderVideo => IWakeDelegate
       #pragma mark
 
-      virtual void onWake() override;
+      void onWake() override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark RTPEncoderVideo => IPromiseSettledDelegate
       #pragma mark
 
-      virtual void onPromiseSettled(PromisePtr promise) override;
+      void onPromiseSettled(PromisePtr promise) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark RTPEncoderVideo => IRTPEncoderAysncDelegate
       #pragma mark
       
-      virtual void onRTPEncoderAudioFrame(
-                                          ImmutableMediaChannelTracePtr trace,
-                                          AudioFramePtr frame
-                                          ) override {} // ignored
-      virtual void onRTPEncoderVideoFrame(
-                                          ImmutableMediaChannelTracePtr trace,
-                                          VideoFramePtr frame
-                                          ) override;
+      void onRTPEncoderAudioFrame(
+                                  ImmutableMediaChannelTracePtr trace,
+                                  AudioFramePtr frame
+                                  ) override {} // ignored
+      void onRTPEncoderVideoFrame(
+                                  ImmutableMediaChannelTracePtr trace,
+                                  VideoFramePtr frame
+                                  ) override;
 
     protected:
       //-----------------------------------------------------------------------

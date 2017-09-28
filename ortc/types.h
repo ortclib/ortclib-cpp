@@ -92,8 +92,8 @@ namespace ortc
 
     ErrorAny(WORD errorCode, const char *reason, const char *name = NULL) :
       mErrorCode(errorCode),
-      mReason(reason),
-      mName(name) {}
+      mName(name),
+      mReason(reason) {}
 
     static ErrorAnyPtr create(WORD errorCode, const char *reason, const char *name = NULL) { return make_shared<ErrorAny>(errorCode, reason, name); }
   };

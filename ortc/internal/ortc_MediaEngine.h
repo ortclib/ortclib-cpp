@@ -579,7 +579,7 @@ namespace ortc
       #pragma mark MediaEngine => IMediaEngineForMediaDevice
       #pragma mark
 
-      virtual void notifyDeviceIsIdleOrShutdownStateChanged() override;
+      void notifyDeviceIsIdleOrShutdownStateChanged() override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -639,7 +639,7 @@ namespace ortc
       #pragma mark MediaEngine => IMediaEngineForRTP
       #pragma mark
 
-      virtual void notifyRTPShutdownStateChanged() override;
+      void notifyRTPShutdownStateChanged() override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -720,28 +720,28 @@ namespace ortc
       #pragma mark
 
       //-----------------------------------------------------------------------
-      virtual void onMediaDevicesChanged() override;
+      void onMediaDevicesChanged() override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark MediaEngine => IWakeDelegate
       #pragma mark
 
-      virtual void onWake() override;
+      void onWake() override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark MediaEngine => ITimerDelegate
       #pragma mark
 
-      virtual void onTimer(ITimerPtr timer) override;
+      void onTimer(ITimerPtr timer) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark MediaEngine => IPromiseSettledDelegate
       #pragma mark
 
-      virtual void onPromiseSettled(PromisePtr promise) override;
+      void onPromiseSettled(PromisePtr promise) override;
 
     protected:
       //-----------------------------------------------------------------------
@@ -755,7 +755,7 @@ namespace ortc
       class WebRtcTraceCallback : public webrtc::TraceCallback
       {
       public:
-        virtual void Print(webrtc::TraceLevel level, const char* message, int length) override;
+        void Print(webrtc::TraceLevel level, const char* message, int length) override;
       };
 
       //-----------------------------------------------------------------------
@@ -769,7 +769,7 @@ namespace ortc
       class WebRtcLogSink : public rtc::LogSink
       {
       public:
-        virtual void OnLogMessage(const std::string& message) override;
+        void OnLogMessage(const std::string& message) override;
       };
 
       //-----------------------------------------------------------------------

@@ -141,7 +141,7 @@ namespace ortc
       #pragma mark SRTPSDESTransport => IStatsProvider
       #pragma mark
 
-      virtual PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const override;
+      PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -159,16 +159,16 @@ namespace ortc
 
       static SRTPSDESTransportPtr convert(IRTPTransportPtr rtpTransport);
 
-      virtual PUID getID() const override {return mID;}
+      PUID getID() const override {return mID;}
 
-      virtual ISRTPSDESTransportSubscriptionPtr subscribe(ISRTPSDESTransportDelegatePtr delegate) override;
+      ISRTPSDESTransportSubscriptionPtr subscribe(ISRTPSDESTransportDelegatePtr delegate) override;
 
-      virtual IICETransportPtr transport() const override;
-      virtual IICETransportPtr rtcpTransport() const override;
+      IICETransportPtr transport() const override;
+      IICETransportPtr rtcpTransport() const override;
 
       static ParametersPtr getLocalParameters();
 
-      virtual void stop() override;
+      void stop() override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -186,9 +186,9 @@ namespace ortc
 
       // (duplicate) virtual PUID getID() const;
 
-      virtual ISecureTransportSubscriptionPtr subscribe(ISecureTransportDelegatePtr delegate) override;
+      ISecureTransportSubscriptionPtr subscribe(ISecureTransportDelegatePtr delegate) override;
 
-      virtual ISecureTransportTypes::States state(ISecureTransportTypes::States ignored) const override;
+      ISecureTransportTypes::States state(ISecureTransportTypes::States ignored) const override;
 
       virtual bool sendPacket(
                               IICETypes::Components sendOverICETransport,
@@ -197,7 +197,7 @@ namespace ortc
                               size_t bufferLengthInBytes
                               ) override;
 
-      virtual IICETransportPtr getICETransport() const override;
+      IICETransportPtr getICETransport() const override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -229,20 +229,20 @@ namespace ortc
 
       // (duplicate) virtual PUID getID() const;
 
-      virtual void notifyAssociateTransportCreated(
-                                                   IICETypes::Components associatedComponent,
-                                                   ICETransportPtr assoicated
-                                                   ) override;
+      void notifyAssociateTransportCreated(
+                                           IICETypes::Components associatedComponent,
+                                           ICETransportPtr assoicated
+                                           ) override;
 
-      virtual bool handleReceivedPacket(
-                                        IICETypes::Components viaTransport,
-                                        const BYTE *buffer,
-                                        size_t bufferLengthInBytes
-                                        ) override;
-      virtual void handleReceivedSTUNPacket(
-                                            IICETypes::Components viaComponent,
-                                            STUNPacketPtr packet
-                                            ) override;
+      bool handleReceivedPacket(
+                                IICETypes::Components viaTransport,
+                                const BYTE *buffer,
+                                size_t bufferLengthInBytes
+                                ) override;
+      void handleReceivedSTUNPacket(
+                                    IICETypes::Components viaComponent,
+                                    STUNPacketPtr packet
+                                    ) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -253,19 +253,19 @@ namespace ortc
 
       // (duplicate) virtual PUID getID() const = 0;
 
-      virtual bool sendEncryptedPacket(
-                                       IICETypes::Components sendOverICETransport,
-                                       IICETypes::Components packetType,
-                                       const BYTE *buffer,
-                                       size_t bufferLengthInBytes
-                                       ) override;
+      bool sendEncryptedPacket(
+                               IICETypes::Components sendOverICETransport,
+                               IICETypes::Components packetType,
+                               const BYTE *buffer,
+                               size_t bufferLengthInBytes
+                               ) override;
 
-      virtual bool handleReceivedDecryptedPacket(
-                                                 IICETypes::Components viaTransport,
-                                                 IICETypes::Components packetType,
-                                                 const BYTE *buffer,
-                                                 size_t bufferLengthInBytes
-                                                 ) override;
+      bool handleReceivedDecryptedPacket(
+                                         IICETypes::Components viaTransport,
+                                         IICETypes::Components packetType,
+                                         const BYTE *buffer,
+                                         size_t bufferLengthInBytes
+                                         ) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -276,7 +276,7 @@ namespace ortc
 
       // (duplicate) virtual PUID getID() const = 0;
 
-      virtual RTPListenerPtr getListener() const override;
+      RTPListenerPtr getListener() const override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -290,42 +290,42 @@ namespace ortc
       #pragma mark SRTPSDESTransport => ISRTPSDESTransportAsyncDelegate
       #pragma mark
 
-      virtual void onAttachRTCP() override;
+      void onAttachRTCP() override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark SRTPSDESTransport => ISRTPTransportDelegate
       #pragma mark
 
-      virtual void onSRTPTransportLifetimeRemaining(
-                                                    ISRTPTransportPtr transport,
-                                                    ULONG leastLifetimeRemainingPercentageForAllKeys,
-                                                    ULONG overallLifetimeRemainingPercentage
-                                                    ) override;
+      void onSRTPTransportLifetimeRemaining(
+                                            ISRTPTransportPtr transport,
+                                            ULONG leastLifetimeRemainingPercentageForAllKeys,
+                                            ULONG overallLifetimeRemainingPercentage
+                                            ) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark SRTPSDESTransport => IICETransportDelegate
       #pragma mark
 
-      virtual void onICETransportStateChange(
-                                             IICETransportPtr transport,
-                                             IICETransport::States state
-                                             ) override;
+      void onICETransportStateChange(
+                                     IICETransportPtr transport,
+                                     IICETransport::States state
+                                     ) override;
 
-      virtual void onICETransportCandidatePairAvailable(
-                                                        IICETransportPtr transport,
-                                                        CandidatePairPtr candidatePair
-                                                        ) override;
-      virtual void onICETransportCandidatePairGone(
-                                                   IICETransportPtr transport,
-                                                   CandidatePairPtr candidatePair
-                                                   ) override;
+      void onICETransportCandidatePairAvailable(
+                                                IICETransportPtr transport,
+                                                CandidatePairPtr candidatePair
+                                                ) override;
+      void onICETransportCandidatePairGone(
+                                           IICETransportPtr transport,
+                                           CandidatePairPtr candidatePair
+                                           ) override;
 
-      virtual void onICETransportCandidatePairChanged(
-                                                      IICETransportPtr transport,
-                                                      CandidatePairPtr candidatePair
-                                                      ) override;
+      void onICETransportCandidatePairChanged(
+                                              IICETransportPtr transport,
+                                              CandidatePairPtr candidatePair
+                                              ) override;
 
     protected:
       //-----------------------------------------------------------------------

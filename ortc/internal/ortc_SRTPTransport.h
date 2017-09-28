@@ -217,36 +217,36 @@ namespace ortc
                                      const CryptoParameters &decryptParameters
                                      ) throw(InvalidParameters);
 
-      virtual PUID getID() const override {return mID;}
+      PUID getID() const override {return mID;}
 
-      virtual ISRTPTransportSubscriptionPtr subscribe(ISRTPTransportDelegatePtr delegate) override;
+      ISRTPTransportSubscriptionPtr subscribe(ISRTPTransportDelegatePtr delegate) override;
 
-      virtual bool handleReceivedPacket(
-                                        IICETypes::Components viaTransport,
-                                        const BYTE *buffer,
-                                        size_t bufferLengthInBytes
-                                        ) override;
+      bool handleReceivedPacket(
+                                IICETypes::Components viaTransport,
+                                const BYTE *buffer,
+                                size_t bufferLengthInBytes
+                                ) override;
 
-      virtual bool sendPacket(
-                              IICETypes::Components sendOverICETransport,
-                              IICETypes::Components component,
-                              const BYTE *buffer,
-                              size_t bufferLengthInBytes
-                              ) override;
+      bool sendPacket(
+                      IICETypes::Components sendOverICETransport,
+                      IICETypes::Components component,
+                      const BYTE *buffer,
+                      size_t bufferLengthInBytes
+                      ) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark SRTPTransport => IWakeDelegate
       #pragma mark
 
-      virtual void onWake() override;
+      void onWake() override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark SRTPTransport => ITimerDelegate
       #pragma mark
 
-      virtual void onTimer(ITimerPtr timer) override;
+      void onTimer(ITimerPtr timer) override;
 
       //-----------------------------------------------------------------------
       #pragma mark

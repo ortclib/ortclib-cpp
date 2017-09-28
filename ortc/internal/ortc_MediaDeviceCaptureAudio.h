@@ -160,22 +160,22 @@ namespace ortc
       #pragma mark MediaDeviceCaptureAudio => IMediaDeviceForMediaEngine
       #pragma mark
 
-      virtual bool isDeviceIdle() override;
-      virtual void shutdown() override;
+      bool isDeviceIdle() override;
+      void shutdown() override;
 
-      virtual States getState() const override;
+      States getState() const override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark MediaDeviceCaptureAudio => IMediaDeviceCaptureForMediaEngine
       #pragma mark
 
-      virtual void mediaDeviceCaptureSubscribe(
-                                               MediaDeviceCapturePromisePtr promise,
-                                               MediaDeviceObjectID repaceExistingDeviceObjectID,
-                                               TrackConstraintsPtr constraints,
-                                               IMediaDeviceCaptureDelegatePtr delegate
-                                               ) override;
+      void mediaDeviceCaptureSubscribe(
+                                       MediaDeviceCapturePromisePtr promise,
+                                       MediaDeviceObjectID repaceExistingDeviceObjectID,
+                                       TrackConstraintsPtr constraints,
+                                       IMediaDeviceCaptureDelegatePtr delegate
+                                       ) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -187,14 +187,14 @@ namespace ortc
       #pragma mark MediaDeviceCaptureAudio => IWakeDelegate
       #pragma mark
 
-      virtual void onWake() override;
+      void onWake() override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark MediaDeviceCaptureAudio => IPromiseSettledDelegate
       #pragma mark
 
-      virtual void onPromiseSettled(PromisePtr promise) override;
+      void onPromiseSettled(PromisePtr promise) override;
 
     protected:
       //-----------------------------------------------------------------------
@@ -295,7 +295,7 @@ namespace ortc
         #pragma mark MediaDeviceCaptureAudio::Media => IWakeDelegate
         #pragma mark
 
-        virtual void onWake() override;
+        void onWake() override;
 
       protected:
         //---------------------------------------------------------------------
@@ -379,7 +379,7 @@ namespace ortc
         #pragma mark MediaDeviceCaptureAudio::MediaSubscriber => (for MediaDeviceCaptureAudio)
         #pragma mark
 
-        virtual MediaDeviceObjectID getID() const override { return id_; }
+        MediaDeviceObjectID getID() const override { return id_; }
         void shutdown();
         bool isShutdown() const;
         void notifyStateChanged(States state);
@@ -402,9 +402,9 @@ namespace ortc
         #pragma mark
 
         // (duplicate) virtual MediaDeviceObjectID getID() const override { return id_; }
-        virtual void cancel() override;
+        void cancel() override;
 
-        virtual States getState() const override;
+        States getState() const override;
 
         //---------------------------------------------------------------------
         #pragma mark

@@ -234,30 +234,30 @@ namespace ortc
       #pragma mark SCTPTransport => ISCTPTransportListenerForSCTPTransport
       #pragma mark
 
-      virtual PUID getID() const override {return mID;}
+      PUID getID() const override {return mID;}
 
-      virtual WORD allocateLocalPort() override;
-      virtual void deallocateLocalPort(WORD previouslyAllocatedLocalPort) override;
+      WORD allocateLocalPort() override;
+      void deallocateLocalPort(WORD previouslyAllocatedLocalPort) override;
 
-      virtual void registerNewTransport(
-                                        IDTLSTransportPtr dtlsTransport,
-                                        UseSCTPTransportPtr &ioTransport,
-                                        WORD &ioLocalPort,
-                                        bool localPortWasPreallocated,
-                                        WORD &ioRemotePort
-                                        ) override;
+      void registerNewTransport(
+                                IDTLSTransportPtr dtlsTransport,
+                                UseSCTPTransportPtr &ioTransport,
+                                WORD &ioLocalPort,
+                                bool localPortWasPreallocated,
+                                WORD &ioRemotePort
+                                ) override;
 
-      virtual void announceTransport(
-                                     UseSCTPTransportPtr transport,
-                                     WORD localPort,
-                                     WORD remotePort
-                                     ) override;
+      void announceTransport(
+                             UseSCTPTransportPtr transport,
+                             WORD localPort,
+                             WORD remotePort
+                             ) override;
 
-      virtual void notifyShutdown(
-                                  UseSCTPTransport &transport,
-                                  WORD localPort,
-                                  WORD remotePort
-                                  ) override;
+      void notifyShutdown(
+                          UseSCTPTransport &transport,
+                          WORD localPort,
+                          WORD remotePort
+                          ) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -270,10 +270,10 @@ namespace ortc
 
       static ForSecureTransportPtr create(UseSecureTransportPtr transport);
 
-      virtual bool handleDataPacket(
-                                    const BYTE *buffer,
-                                    size_t bufferLengthInBytes
-                                    ) override;
+      bool handleDataPacket(
+                            const BYTE *buffer,
+                            size_t bufferLengthInBytes
+                            ) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -285,7 +285,7 @@ namespace ortc
       #pragma mark SCTPTransportListener => IWakeDelegate
       #pragma mark
 
-      virtual void onWake() override;
+      void onWake() override;
 
     protected:
       //-----------------------------------------------------------------------

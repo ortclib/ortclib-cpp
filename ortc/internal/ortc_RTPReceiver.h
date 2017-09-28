@@ -410,7 +410,7 @@ namespace ortc
       #pragma mark RTPReceiver => IStatsProvider
       #pragma mark
 
-      virtual PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const override;
+      PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -426,27 +426,27 @@ namespace ortc
                                    IRTCPTransportPtr rtcpTransport = IRTCPTransportPtr()
                                    );
 
-      virtual PUID getID() const override {return mID;}
+      PUID getID() const override {return mID;}
 
-      virtual IRTPReceiverSubscriptionPtr subscribe(IRTPReceiverDelegatePtr delegate) override;
+      IRTPReceiverSubscriptionPtr subscribe(IRTPReceiverDelegatePtr delegate) override;
 
-      virtual ortc::IMediaStreamTrackPtr track() const override;
-      virtual IRTPTransportPtr transport() const override;
-      virtual IRTCPTransportPtr rtcpTransport() const override;
+      ortc::IMediaStreamTrackPtr track() const override;
+      IRTPTransportPtr transport() const override;
+      IRTCPTransportPtr rtcpTransport() const override;
 
-      virtual void setTransport(
-                                IRTPTransportPtr transport,
-                                IRTCPTransportPtr rtcpTransport = IRTCPTransportPtr()
-                                ) override;
+      void setTransport(
+                        IRTPTransportPtr transport,
+                        IRTCPTransportPtr rtcpTransport = IRTCPTransportPtr()
+                        ) override;
 
       static CapabilitiesPtr getCapabilities(Optional<Kinds> kind);
 
-      virtual PromisePtr receive(const Parameters &parameters) override;
-      virtual void stop() override;
+      PromisePtr receive(const Parameters &parameters) override;
+      void stop() override;
 
-      virtual ContributingSourceList getContributingSources() const override;
+      ContributingSourceList getContributingSources() const override;
 
-      virtual void requestSendCSRC(SSRCType csrc) override;
+      void requestSendCSRC(SSRCType csrc) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -457,15 +457,15 @@ namespace ortc
 
       // (duplicate) virtual PUID getID() const = 0;
 
-      virtual bool handlePacket(
-                                IICETypes::Components viaTransport,
-                                RTPPacketPtr packet
-                                ) override;
+      bool handlePacket(
+                        IICETypes::Components viaTransport,
+                        RTPPacketPtr packet
+                        ) override;
 
-      virtual bool handlePacket(
-                                IICETypes::Components viaTransport,
-                                RTCPPacketPtr packet
-                                ) override;
+      bool handlePacket(
+                        IICETypes::Components viaTransport,
+                        RTCPPacketPtr packet
+                        ) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -476,7 +476,7 @@ namespace ortc
 
       // (duplicate) virtual PUID getID() const = 0;
 
-      virtual bool sendPacket(RTCPPacketPtr packet) override;
+      bool sendPacket(RTCPPacketPtr packet) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -492,24 +492,24 @@ namespace ortc
       #pragma mark RTPReceiver => ISecureTransportDelegate
       #pragma mark
 
-      virtual void onSecureTransportStateChanged(
-                                                 ISecureTransportPtr transport,
-                                                 ISecureTransport::States state
-                                                 ) override;
+      void onSecureTransportStateChanged(
+                                         ISecureTransportPtr transport,
+                                         ISecureTransport::States state
+                                         ) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark RTPReceiver => IWakeDelegate
       #pragma mark
 
-      virtual void onWake() override;
+      void onWake() override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark RTPReceiver => ITimerDelegate
       #pragma mark
 
-      virtual void onTimer(ITimerPtr timer) override;
+      void onTimer(ITimerPtr timer) override;
 
       //-----------------------------------------------------------------------
       #pragma mark

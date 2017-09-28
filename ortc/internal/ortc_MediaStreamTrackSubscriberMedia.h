@@ -106,18 +106,18 @@ namespace ortc
       #pragma mark MediaStreamTrackSubscriberMedia => IMediaStreamTrackSubscriberForMediaStreamTrack
       #pragma mark
 
-      virtual PUID getID() const override { return id_; }
+      PUID getID() const override { return id_; }
 
-      virtual void shutdown() override;
+      void shutdown() override;
 
-      virtual void notifyChannel(
-                                 UseMediaChannelBasePtr mediaChannel,
-                                 ImmutableMediaChannelTracePtr trace
-                                 ) override;
+      void notifyChannel(
+                         UseMediaChannelBasePtr mediaChannel,
+                         ImmutableMediaChannelTracePtr trace
+                         ) override;
 
-      virtual void notifyTrackMute(bool isMuted) override;
-      virtual void notifyTrackEnded() override;
-      virtual void notifyOverConstrained(OverconstrainedErrorPtr error) override;
+      void notifyTrackMute(bool isMuted) override;
+      void notifyTrackEnded() override;
+      void notifyOverConstrained(OverconstrainedErrorPtr error) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -145,7 +145,7 @@ namespace ortc
       #pragma mark MediaStreamTrackSubscriberRTP => IMediaStreamTrackChannelDelegate
       #pragma mark
 
-      virtual void notifyMediaChannelCancelled(ImmutableMediaChannelTracePtr trace) override;
+      void notifyMediaChannelCancelled(ImmutableMediaChannelTracePtr trace) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -153,14 +153,14 @@ namespace ortc
       #pragma mark
 
 
-      virtual void notifyMediaChannelAudioFrame(
-                                                ImmutableMediaChannelTracePtr trace,
-                                                AudioFramePtr frame
-                                                ) override;
-      virtual void notifyMediaChannelVideoFrame(
-                                                ImmutableMediaChannelTracePtr trace,
-                                                AudioFramePtr frame
-                                                ) override;
+      void notifyMediaChannelAudioFrame(
+                                        ImmutableMediaChannelTracePtr trace,
+                                        AudioFramePtr frame
+                                        ) override;
+      void notifyMediaChannelVideoFrame(
+                                        ImmutableMediaChannelTracePtr trace,
+                                        AudioFramePtr frame
+                                        ) override;
       
       //-----------------------------------------------------------------------
       #pragma mark

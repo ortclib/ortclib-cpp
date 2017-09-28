@@ -128,26 +128,26 @@ namespace ortc
                                   IRTPSenderPtr sender
                                   );
 
-      virtual PUID getID() const override {return mID;}
+      PUID getID() const override {return mID;}
 
-      virtual IDTMFSenderSubscriptionPtr subscribe(IDTMFSenderDelegatePtr delegate) override;
+      IDTMFSenderSubscriptionPtr subscribe(IDTMFSenderDelegatePtr delegate) override;
 
-      virtual bool canInsertDTMF() const override;
+      bool canInsertDTMF() const override;
 
-      virtual void insertDTMF(
-                              const char *tones,
-                              Milliseconds duration = Milliseconds(70),
-                              Milliseconds interToneGap = Milliseconds(70)
-                              ) throw (
-                                       InvalidStateError,
-                                       InvalidCharacterError
-                                       ) override;
+      void insertDTMF(
+                      const char *tones,
+                      Milliseconds duration = Milliseconds(70),
+                      Milliseconds interToneGap = Milliseconds(70)
+                      ) throw (
+                               InvalidStateError,
+                               InvalidCharacterError
+                               ) override;
 
-      virtual IRTPSenderPtr sender() const override;
+      IRTPSenderPtr sender() const override;
 
-      virtual String toneBuffer() const override;
-      virtual Milliseconds duration() const override;
-      virtual Milliseconds interToneGap() const override;
+      String toneBuffer() const override;
+      Milliseconds duration() const override;
+      Milliseconds interToneGap() const override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -163,17 +163,17 @@ namespace ortc
       #pragma mark DTMFSender => IWakeDelegate
       #pragma mark
 
-      virtual void onWake() override;
+      void onWake() override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark DTMFSender => IDTMFSenderDelegate
       #pragma mark
 
-      virtual void onDTMFSenderToneChanged(
-                                           IDTMFSenderPtr sender,
-                                           String tone
-                                           ) override;
+      void onDTMFSenderToneChanged(
+                                   IDTMFSenderPtr sender,
+                                   String tone
+                                   ) override;
 
       //-----------------------------------------------------------------------
       #pragma mark

@@ -182,11 +182,12 @@ namespace ortc
 
       static CandidatePtr convert(GatherCandidatePtr candidate);
 
-      Candidate() {}
-      Candidate(const Candidate &op2) {(*this) = op2;}
+      Candidate();
+      Candidate(const Candidate &op2);
       Candidate(ElementPtr elem);
+      ~Candidate();
 
-      virtual ElementPtr createElement(const char *objectName = "candidate") const;
+      ElementPtr createElement(const char *objectName = "candidate") const override;
 
       ElementPtr toDebug() const;
       String hash(bool includePriorities = true) const;
@@ -213,7 +214,7 @@ namespace ortc
       CandidateComplete(const CandidateComplete &op2) {(*this) = op2;}
       CandidateComplete(ElementPtr elem);
 
-      virtual ElementPtr createElement(const char *objectName = "candidateComplete") const;
+      ElementPtr createElement(const char *objectName = "candidateComplete") const override;
 
       ElementPtr toDebug() const;
       String hash() const;

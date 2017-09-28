@@ -335,7 +335,7 @@ namespace ortc
       #pragma mark ICETransport => IStatsProvider
       #pragma mark
 
-      virtual PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const override;
+      PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -349,35 +349,35 @@ namespace ortc
                                     IICEGathererPtr gatherer
                                     );
 
-      virtual PUID getID() const override {return mID;}
+      PUID getID() const override {return mID;}
 
-      virtual IICETransportSubscriptionPtr subscribe(IICETransportDelegatePtr delegate) override;
+      IICETransportSubscriptionPtr subscribe(IICETransportDelegatePtr delegate) override;
 
-      virtual IICEGathererPtr iceGatherer() const override;
+      IICEGathererPtr iceGatherer() const override;
 
-      virtual Roles role() const override;
-      virtual Components component() const override;
-      virtual States state() const override;
+      Roles role() const override;
+      Components component() const override;
+      States state() const override;
 
-      virtual CandidateListPtr getRemoteCandidates() const override;
+      CandidateListPtr getRemoteCandidates() const override;
 
-      virtual CandidatePairPtr getSelectedCandidatePair() const override;
+      CandidatePairPtr getSelectedCandidatePair() const override;
 
-      virtual void start(
-                         IICEGathererPtr gatherer,
-                         const Parameters &remoteParameters,
-                         Optional<Options> options = Optional<Options>()
-                         ) throw (InvalidParameters) override;
+      void start(
+                 IICEGathererPtr gatherer,
+                 const Parameters &remoteParameters,
+                 Optional<Options> options = Optional<Options>()
+                 ) throw (InvalidParameters) override;
 
-      virtual void stop() override;
+      void stop() override;
 
-      virtual ParametersPtr getRemoteParameters() const override;
+      ParametersPtr getRemoteParameters() const override;
 
-      virtual IICETransportPtr createAssociatedTransport(IICETransportDelegatePtr delegate) throw (InvalidStateError) override;
+      IICETransportPtr createAssociatedTransport(IICETransportDelegatePtr delegate) throw (InvalidStateError) override;
 
-      virtual void addRemoteCandidate(const GatherCandidate &remoteCandidate) throw (InvalidStateError, InvalidParameters) override;
-      virtual void setRemoteCandidates(const CandidateList &remoteCandidates) throw (InvalidStateError, InvalidParameters) override;
-      virtual void removeRemoteCandidate(const GatherCandidate &remoteCandidate) throw (InvalidStateError, InvalidParameters) override;
+      void addRemoteCandidate(const GatherCandidate &remoteCandidate) throw (InvalidStateError, InvalidParameters) override;
+      void setRemoteCandidates(const CandidateList &remoteCandidates) throw (InvalidStateError, InvalidParameters) override;
+      void removeRemoteCandidate(const GatherCandidate &remoteCandidate) throw (InvalidStateError, InvalidParameters) override;
 
       virtual void keepWarm(
                             const CandidatePair &candidatePair,

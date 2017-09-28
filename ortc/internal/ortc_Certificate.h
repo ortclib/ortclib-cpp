@@ -164,11 +164,11 @@ namespace ortc
 
       static PromiseWithCertificatePtr generateCertificate(ElementPtr keygenAlgorithm) throw (NotSupportedError);
 
-      virtual PUID getID() const override {return mID;}
+      PUID getID() const override {return mID;}
 
-      virtual Time expires() const override;
+      Time expires() const override;
 
-      virtual FingerprintPtr fingerprint() const override;
+      FingerprintPtr fingerprint() const override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -177,10 +177,10 @@ namespace ortc
 
       // (duplicate) virtual PUID getID() const;
 
-      virtual KeyPairType getKeyPair() const override;
-      virtual CertificateObjectType getCertificate() const override;
+      KeyPairType getKeyPair() const override;
+      CertificateObjectType getCertificate() const override;
 
-      virtual SecureByteBlockPtr getDigest(const String &algorithm) const override;
+      SecureByteBlockPtr getDigest(const String &algorithm) const override;
 
       // (duplicate) virtual FingerprintPtr fingerprint() const override;
 
@@ -194,14 +194,14 @@ namespace ortc
       #pragma mark Certificate => IStatsProvider
       #pragma mark
 
-      virtual PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const override;
+      PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark Certificate => IWakeDelegate
       #pragma mark
 
-      virtual void onWake() override;
+      void onWake() override;
 
     public:
       //-----------------------------------------------------------------------

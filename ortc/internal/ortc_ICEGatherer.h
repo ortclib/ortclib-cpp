@@ -358,7 +358,7 @@ namespace ortc
       #pragma mark ICEGatherer => IStatsProvider
       #pragma mark
 
-      virtual PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const override;
+      PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -372,21 +372,21 @@ namespace ortc
                                    const Options &options
                                    );
 
-      virtual PUID getID() const override {return mID;}
+      PUID getID() const override {return mID;}
 
-      virtual IICEGathererSubscriptionPtr subscribe(IICEGathererDelegatePtr delegate) override;
+      IICEGathererSubscriptionPtr subscribe(IICEGathererDelegatePtr delegate) override;
 
-      virtual Components component() const override;
-      virtual States state() const override;
+      Components component() const override;
+      States state() const override;
 
-      virtual ParametersPtr getLocalParameters() const override;
-      virtual CandidateListPtr getLocalCandidates() const override;
+      ParametersPtr getLocalParameters() const override;
+      CandidateListPtr getLocalCandidates() const override;
 
-      virtual IICEGathererPtr createAssociatedGatherer(IICEGathererDelegatePtr delegate) throw(InvalidStateError) override;
+      IICEGathererPtr createAssociatedGatherer(IICEGathererDelegatePtr delegate) throw(InvalidStateError) override;
 
-      virtual void gather(const Optional<Options> &options = Optional<Options>()) override;
+      void gather(const Optional<Options> &options = Optional<Options>()) override;
 
-      virtual void close() override;
+      void close() override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -398,126 +398,126 @@ namespace ortc
       // (duplicate) virtual Components component() const = 0;
       // (duplicate) virtual States state() const = 0;
 
-      virtual void installTransport(
-                                    ICETransportPtr transport,
-                                    const String &remoteUFrag
-                                    ) override;
-      virtual void notifyTransportStateChange(ICETransportPtr transport) override;
-      virtual void removeTransport(ICETransport &transport) override;
+      void installTransport(
+                            ICETransportPtr transport,
+                            const String &remoteUFrag
+                            ) override;
+      void notifyTransportStateChange(ICETransportPtr transport) override;
+      void removeTransport(ICETransport &transport) override;
 
-      virtual ForICETransportPtr getRTCPGatherer() const override;
+      ForICETransportPtr getRTCPGatherer() const override;
 
       // (duplicate) virtual IICEGathererSubscriptionPtr subscribe(IICEGathererDelegatePtr delegate) = 0;
       // (duplicate) virtual CandidateListPtr getLocalCandidates() const = 0;
 
-      virtual bool isContinousGathering() const override;
-      virtual String getUsernameFrag() const override {return mUsernameFrag;}
-      virtual String getPassword() const override {return mPassword;}
+      bool isContinousGathering() const override;
+      String getUsernameFrag() const override {return mUsernameFrag;}
+      String getPassword() const override {return mPassword;}
 
-      virtual ICEGathererRouterPtr getGathererRouter() const override;
+      ICEGathererRouterPtr getGathererRouter() const override;
 
-      virtual void removeRoute(RouterRoutePtr routerRoute) override;
-      virtual void remoteAllRelatedRoutes(ICETransport &transport) override;
+      void removeRoute(RouterRoutePtr routerRoute) override;
+      void remoteAllRelatedRoutes(ICETransport &transport) override;
 
-      virtual bool sendPacket(
-                              UseICETransport &transport,
-                              RouterRoutePtr routerRoute,
-                              const BYTE *buffer,
-                              size_t bufferSizeInBytes
-                              ) override;
+      bool sendPacket(
+                      UseICETransport &transport,
+                      RouterRoutePtr routerRoute,
+                      const BYTE *buffer,
+                      size_t bufferSizeInBytes
+                      ) override;
 
-      virtual void notifyLikelyReflexiveActivity(RouterRoutePtr routerRoute) override;
+      void notifyLikelyReflexiveActivity(RouterRoutePtr routerRoute) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark ICEGatherer => IGathererAsyncDelegate
       #pragma mark
 
-      virtual void onNotifyDeliverRouteBufferedPackets(
-                                                       UseICETransportPtr transport,
-                                                       PUID routerRouteID
-                                                       ) override;
+      void onNotifyDeliverRouteBufferedPackets(
+                                               UseICETransportPtr transport,
+                                               PUID routerRouteID
+                                               ) override;
 
-      virtual void onResolveStatsPromise(IStatsProvider::PromiseWithStatsReportPtr promise) override;
+      void onResolveStatsPromise(IStatsProvider::PromiseWithStatsReportPtr promise) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark ICEGatherer => IWakeDelegate
       #pragma mark
 
-      virtual void onWake() override;
+      void onWake() override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark ICEGatherer => IDNSDelegate
       #pragma mark
 
-      virtual void onLookupCompleted(IDNSQueryPtr query) override;
+      void onLookupCompleted(IDNSQueryPtr query) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark ICEGatherer => ITimerDelegate
       #pragma mark
 
-      virtual void onTimer(ITimerPtr timer) override;
+      void onTimer(ITimerPtr timer) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark ICEGatherer => ISocketDelegate
       #pragma mark
 
-      virtual void onReadReady(SocketPtr socket) override;
-      virtual void onWriteReady(SocketPtr socket) override;
-      virtual void onException(SocketPtr socket) override;
+      void onReadReady(SocketPtr socket) override;
+      void onWriteReady(SocketPtr socket) override;
+      void onException(SocketPtr socket) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark ICEGatherer => IBackOffDelegate
       #pragma mark
 
-      virtual void onBackOffTimerStateChanged(
-                                              IBackOffTimerPtr timer,
-                                              IBackOffTimer::States state
-                                              ) override;
+      void onBackOffTimerStateChanged(
+                                      IBackOffTimerPtr timer,
+                                      IBackOffTimer::States state
+                                      ) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark ICEGatherer => ISTUNDiscoveryDelegate
       #pragma mark
 
-      virtual void onSTUNDiscoverySendPacket(
-                                             ISTUNDiscoveryPtr discovery,
-                                             IPAddress destination,
-                                             SecureByteBlockPtr packet
-                                             ) override;
+      void onSTUNDiscoverySendPacket(
+                                     ISTUNDiscoveryPtr discovery,
+                                     IPAddress destination,
+                                     SecureByteBlockPtr packet
+                                     ) override;
 
-      virtual void onSTUNDiscoveryCompleted(ISTUNDiscoveryPtr discovery) override;
+      void onSTUNDiscoveryCompleted(ISTUNDiscoveryPtr discovery) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark ICEGatherer => ITURNSocketDelegate
       #pragma mark
 
-      virtual void onTURNSocketStateChanged(
-                                            ITURNSocketPtr socket,
-                                            TURNSocketStates state
-                                            ) override;
+      void onTURNSocketStateChanged(
+                                    ITURNSocketPtr socket,
+                                    TURNSocketStates state
+                                    ) override;
 
-      virtual void handleTURNSocketReceivedPacket(
-                                                  ITURNSocketPtr socket,
-                                                  IPAddress source,
-                                                  const BYTE *packet,
-                                                  size_t packetLengthInBytes
-                                                  ) override;
+      void handleTURNSocketReceivedPacket(
+                                          ITURNSocketPtr socket,
+                                          IPAddress source,
+                                          const BYTE *packet,
+                                          size_t packetLengthInBytes
+                                          ) override;
 
-      virtual bool notifyTURNSocketSendPacket(
-                                              ITURNSocketPtr socket,
-                                              IPAddress destination,
-                                              const BYTE *packet,
-                                              size_t packetLengthInBytes
-                                              ) override;
+      bool notifyTURNSocketSendPacket(
+                                      ITURNSocketPtr socket,
+                                      IPAddress destination,
+                                      const BYTE *packet,
+                                      size_t packetLengthInBytes
+                                      ) override;
 
-      virtual void onTURNSocketWriteReady(ITURNSocketPtr socket) override;
+      void onTURNSocketWriteReady(ITURNSocketPtr socket) override;
 
 
     public:

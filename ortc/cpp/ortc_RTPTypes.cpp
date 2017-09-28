@@ -2314,62 +2314,24 @@ namespace ortc
     mMaxSpatialLayers(source.mMaxSpatialLayers),
     mSVCMultiStreamSupport(source.mSVCMultiStreamSupport)
   {
-    if ((source.mParameters) ||
-        (source.mOptions)) {
-      SupportedCodecs supported = toSupportedCodec(source.mName);
-      if (source.mParameters) {
-        switch (supported) {
-          case SupportedCodec_Opus: {
-            auto codec = OpusCodecCapabilityParameters::convert(source.mParameters);
-            if (codec) {
-              mParameters = OpusCodecCapabilityParameters::create(*codec);
-            }
-            break;
-          }
-          case SupportedCodec_VP8:    {
-            auto codec = VP8CodecCapabilityParameters::convert(source.mParameters);
-            if (codec) {
-              mParameters = VP8CodecCapabilityParameters::create(*codec);
-            }
-            break;
-          }
-          case SupportedCodec_H264:   {
-            auto codec = H264CodecCapabilityParameters::convert(source.mParameters);
-            if (codec) {
-              mParameters = H264CodecCapabilityParameters::create(*codec);
-            }
-            break;
-          }
-          case SupportedCodec_RTX:   {
-            auto codec = RTXCodecCapabilityParameters::convert(source.mParameters);
-            if (codec) {
-              mParameters = RTXCodecCapabilityParameters::create(*codec);
-            }
-            break;
-          }
-          case SupportedCodec_FlexFEC:   {
-            auto codec = FlexFECCodecCapabilityParameters::convert(source.mParameters);
-            if (codec) {
-              mParameters = FlexFECCodecCapabilityParameters::create(*codec);
-            }
-            break;
-          }
-          default: break;
-        }
-      }
-      if (source.mOptions) {
-        switch (supported) {
-          case SupportedCodec_Opus: {
-            auto codec = OpusCodecCapabilityOptions::convert(source.mOptions);
-            if (codec) {
-              mOptions = OpusCodecCapabilityOptions::create(*codec);
-            }
-            break;
-          }
-          default: break;
-        }
-      }
-    }
+    copyAny(source);
+  }
+
+  //---------------------------------------------------------------------------
+  IRTPTypes::CodecCapability &IRTPTypes::CodecCapability::operator=(const CodecCapability &op2)
+  {    
+    mName = op2.mName;
+    mKind = op2.mKind;
+    mClockRate = op2.mClockRate;
+    mPreferredPayloadType = op2.mPreferredPayloadType;
+    mPTime = op2.mPTime;
+    mMaxPTime = op2.mMaxPTime;
+    mNumChannels = op2.mNumChannels;
+    mRTCPFeedback = op2.mRTCPFeedback;
+    mMaxTemporalLayers = op2.mMaxTemporalLayers;
+    mMaxSpatialLayers = op2.mMaxSpatialLayers;
+    mSVCMultiStreamSupport = op2.mSVCMultiStreamSupport;
+    copyAny(op2);
   }
 
   //---------------------------------------------------------------------------
@@ -2475,6 +2437,67 @@ namespace ortc
     hasher->update(mSVCMultiStreamSupport);
 
     return hasher->finalizeAsString();
+  }
+
+  //---------------------------------------------------------------------------
+  void IRTPTypes::CodecCapability::copyAny(const CodecCapability &source)
+  {    
+    if ((source.mParameters) ||
+        (source.mOptions)) {
+      SupportedCodecs supported = toSupportedCodec(source.mName);
+      if (source.mParameters) {
+        switch (supported) {
+          case SupportedCodec_Opus: {
+            auto codec = OpusCodecCapabilityParameters::convert(source.mParameters);
+            if (codec) {
+              mParameters = OpusCodecCapabilityParameters::create(*codec);
+            }
+            break;
+          }
+          case SupportedCodec_VP8:    {
+            auto codec = VP8CodecCapabilityParameters::convert(source.mParameters);
+            if (codec) {
+              mParameters = VP8CodecCapabilityParameters::create(*codec);
+            }
+            break;
+          }
+          case SupportedCodec_H264:   {
+            auto codec = H264CodecCapabilityParameters::convert(source.mParameters);
+            if (codec) {
+              mParameters = H264CodecCapabilityParameters::create(*codec);
+            }
+            break;
+          }
+          case SupportedCodec_RTX:   {
+            auto codec = RTXCodecCapabilityParameters::convert(source.mParameters);
+            if (codec) {
+              mParameters = RTXCodecCapabilityParameters::create(*codec);
+            }
+            break;
+          }
+          case SupportedCodec_FlexFEC:   {
+            auto codec = FlexFECCodecCapabilityParameters::convert(source.mParameters);
+            if (codec) {
+              mParameters = FlexFECCodecCapabilityParameters::create(*codec);
+            }
+            break;
+          }
+          default: break;
+        }
+      }
+      if (source.mOptions) {
+        switch (supported) {
+          case SupportedCodec_Opus: {
+            auto codec = OpusCodecCapabilityOptions::convert(source.mOptions);
+            if (codec) {
+              mOptions = OpusCodecCapabilityOptions::create(*codec);
+            }
+            break;
+          }
+          default: break;
+        }
+      }
+    }
   }
 
   //---------------------------------------------------------------------------

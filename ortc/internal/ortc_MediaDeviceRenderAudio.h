@@ -164,22 +164,22 @@ namespace ortc
       #pragma mark MediaDeviceRenderAudio => IMediaDeviceForMediaEngine
       #pragma mark
 
-      virtual bool isDeviceIdle() override;
-      virtual void shutdown() override;
+      bool isDeviceIdle() override;
+      void shutdown() override;
 
-      virtual States getState() const override;
+      States getState() const override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark MediaDeviceRenderAudio => IMediaDeviceRenderForMediaEngine
       #pragma mark
 
-      virtual void mediaDeviceRenderSubscribe(
-                                               MediaDeviceRenderPromisePtr promise,
-                                               MediaDeviceObjectID repaceExistingDeviceObjectID,
-                                               TrackConstraintsPtr constraints,
-                                               IMediaDeviceRenderDelegatePtr delegate
-                                               ) override;
+      void mediaDeviceRenderSubscribe(
+                                      MediaDeviceRenderPromisePtr promise,
+                                      MediaDeviceObjectID repaceExistingDeviceObjectID,
+                                      TrackConstraintsPtr constraints,
+                                      IMediaDeviceRenderDelegatePtr delegate
+                                      ) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -191,14 +191,14 @@ namespace ortc
       #pragma mark MediaDeviceRenderAudio => IWakeDelegate
       #pragma mark
 
-      virtual void onWake() override;
+      void onWake() override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark MediaDeviceRenderAudio => IPromiseSettledDelegate
       #pragma mark
 
-      virtual void onPromiseSettled(PromisePtr promise) override;
+      void onPromiseSettled(PromisePtr promise) override;
 
     protected:
       //-----------------------------------------------------------------------

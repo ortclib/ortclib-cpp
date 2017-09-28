@@ -152,34 +152,34 @@ namespace ortc
       #pragma mark MediaDevices => IWakeDelegate
       #pragma mark
 
-      virtual void onWake() override;
+      void onWake() override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark MediaDevices => ITimerDelegate
       #pragma mark
 
-      virtual void onTimer(ITimerPtr timer) override;
+      void onTimer(ITimerPtr timer) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark MediaDevices => IMediaDevicesAsyncDelegate
       #pragma mark
 
-      virtual void onEnumerateDevices(PromiseWithDeviceListPtr promise) override;
-      virtual void onEnumerateDefaultModes(
-                                           PromiseWithSettingsListPtr promise,
-                                           const char *deviceID
-                                           ) override;
+      void onEnumerateDevices(PromiseWithDeviceListPtr promise) override;
+      void onEnumerateDefaultModes(
+                                   PromiseWithSettingsListPtr promise,
+                                   const char *deviceID
+                                   ) override;
 
-      virtual void onGetUserMedia(PromiseWithMediaStreamTrackListPtr promise, ConstraintsPtr constraints) override;
+      void onGetUserMedia(PromiseWithMediaStreamTrackListPtr promise, ConstraintsPtr constraints) override;
 
       //---------------------------------------------------------------------
       #pragma mark
       #pragma mark MessageQueueManager => ISingletonManagerDelegate
       #pragma mark
 
-      virtual void notifySingletonCleanup() override;
+      void notifySingletonCleanup() override;
 
     protected:
       //-----------------------------------------------------------------------

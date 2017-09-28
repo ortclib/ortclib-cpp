@@ -151,16 +151,15 @@ namespace ortc
       CodecCapability() {};
       CodecCapability(const CodecCapability &source);
       CodecCapability(ElementPtr elem);
-#if __APPLE__
-      CodecCapability &operator=(const CodecCapability &op2) = default;
-#else
-      CodecCapability &operator=(const CodecCapability &op2) /*= delete*/;
-#endif
+      CodecCapability &operator=(const CodecCapability &op2);
 
       ElementPtr createElement(const char *objectName = "codecCapability") const;
 
       ElementPtr toDebug() const;
       String hash() const;
+
+    protected:
+      void copyAny(const CodecCapability &source);
     };
 
     //-------------------------------------------------------------------------
