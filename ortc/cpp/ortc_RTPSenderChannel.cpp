@@ -202,10 +202,10 @@ namespace ortc
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
       mSender(sender),
-      mTrack(track),
       mParameters(make_shared<Parameters>(params)),
       mRetagAfterInSeconds(Seconds(ISettings::getUInt(ORTC_SETTING_RTP_SENDER_CHANNEL_RETAG_RTP_PACKETS_AFTER_SSRC_NOT_SENT_IN_SECONDS))),
-      mTagSDES(ISettings::getBool(ORTC_SETTING_RTP_SENDER_CHANNEL_TAG_MID_RID_IN_RTCP_SDES))
+      mTagSDES(ISettings::getBool(ORTC_SETTING_RTP_SENDER_CHANNEL_TAG_MID_RID_IN_RTCP_SDES)),
+      mTrack(track)
     {
       ZS_LOG_DETAIL(debug("created"))
 

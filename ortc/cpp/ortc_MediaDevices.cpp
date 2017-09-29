@@ -311,8 +311,6 @@ namespace ortc
 
       auto pThis = singleton();
       if (!pThis) {
-        ZS_DECLARE_STRUCT_PTR(BogusSubscription)
-
         struct BogusSubscription : public IMediaDevicesSubscription {
           virtual PUID getID() const override {return mID;}
           virtual void cancel() override {}

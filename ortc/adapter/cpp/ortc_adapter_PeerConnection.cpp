@@ -321,8 +321,8 @@ namespace ortc
                                      IPeerConnectionDelegatePtr delegate,
                                      const Optional<Configuration> &configuration
                                      ) :
-        SharedRecursiveLock(SharedRecursiveLock::create()),
-        MessageQueueAssociator(queue)
+        MessageQueueAssociator(queue),
+        SharedRecursiveLock(SharedRecursiveLock::create())
       {
         if (configuration.hasValue()) {
           mConfiguration = configuration.value();

@@ -114,7 +114,7 @@ namespace ortc
 
     // Maximum number of pending packets in the queue. Packets are read immediately
     // after they have been written, so a capacity of "1" is sufficient.
-    static const size_t kMaxPendingPackets = 1;
+    //static const size_t kMaxPendingPackets = 1;
 
     static bool isDtlsPacket(const BYTE *data, size_t len) {
       return (len >= kDtlsRecordHeaderLen && (data[0] > 19 && data[0] < 64));

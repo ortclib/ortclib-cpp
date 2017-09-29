@@ -959,14 +959,9 @@ namespace ortc
         return;
       }
 
-      // if (!stepDoSomething()) goto not_ready;
+      // if (!stepDoSomething()) return;
 
       goto ready;
-
-    not_ready:
-      {
-        return;
-      }
 
     ready:
       {

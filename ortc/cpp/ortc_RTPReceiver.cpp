@@ -102,6 +102,10 @@ namespace ortc
         case IRTPTypes::HeaderExtensionURI_RID:                               return false;
         case IRTPTypes::HeaderExtensionURI_3gpp_VideoOrientation:             return true;
         case IRTPTypes::HeaderExtensionURI_3gpp_VideoOrientation6:            return true;
+
+        case IRTPTypes::HeaderExtensionURI_TransmissionTimeOffsets:           return true;
+        case IRTPTypes::HeaderExtensionURI_AbsoluteSendTime:                  return true;
+        case IRTPTypes::HeaderExtensionURI_TransportSequenceNumber:           return true;
       }
       return true;
     }
@@ -521,12 +525,12 @@ namespace ortc
       SharedRecursiveLock(SharedRecursiveLock::create()),
       mKind(kind),
       mChannels(make_shared<ChannelWeakMap>()),
+      mSSRCTableExpires(Seconds(ISettings::getUInt(ORTC_SETTING_RTP_RECEIVER_SSRC_TIMEOUT_IN_SECONDS))),
       mMaxBufferedRTPPackets(SafeInt<decltype(mMaxBufferedRTPPackets)>(ISettings::getUInt(ORTC_SETTING_RTP_RECEIVER_MAX_RTP_PACKETS_IN_BUFFER))),
       mMaxRTPPacketAge(ISettings::getUInt(ORTC_SETTING_RTP_RECEIVER_MAX_AGE_RTP_PACKETS_IN_SECONDS)),
+      mContributingSourcesExpiry(Seconds(ISettings::getUInt(ORTC_SETTING_RTP_RECEIVER_CSRC_EXPIRY_TIME_IN_SECONDS))),
       mLockAfterSwitchTime(ISettings::getUInt(ORTC_SETTING_RTP_RECEIVER_LOCK_TO_RECEIVER_CHANNEL_AFTER_SWITCH_EXCLUSIVELY_FOR_IN_MILLISECONDS)),
-      mAmbiguousPayloadMappingMinDifference(ISettings::getUInt(ORTC_SETTING_RTP_RECEIVER_ONLY_RESOLVE_AMBIGUOUS_PAYLOAD_MAPPING_IF_ACTIVITY_DIFFERS_IN_MILLISECONDS)),
-      mSSRCTableExpires(Seconds(ISettings::getUInt(ORTC_SETTING_RTP_RECEIVER_SSRC_TIMEOUT_IN_SECONDS))),
-      mContributingSourcesExpiry(Seconds(ISettings::getUInt(ORTC_SETTING_RTP_RECEIVER_CSRC_EXPIRY_TIME_IN_SECONDS)))
+      mAmbiguousPayloadMappingMinDifference(ISettings::getUInt(ORTC_SETTING_RTP_RECEIVER_ONLY_RESOLVE_AMBIGUOUS_PAYLOAD_MAPPING_IF_ACTIVITY_DIFFERS_IN_MILLISECONDS))
     {
       ZS_LOG_DETAIL(debug("created"))
 

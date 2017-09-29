@@ -558,22 +558,22 @@ namespace ortc
                              const make_private &,
                              const ConstructorOptions &options
                              ) :
-      SharedRecursiveLock(SharedRecursiveLock::create()),
       MessageQueueAssociator(options.mQueue),
+      SharedRecursiveLock(SharedRecursiveLock::create()),
       mGathererRouter(ICEGathererRouter::create()),
+      mComponent(options.mComponent),
       mUsernameFrag(options.mUsernameFragment.hasData() ? options.mUsernameFragment : IHelper::randomString(ISettings::getUInt(ORTC_SETTING_GATHERER_USERNAME_FRAG_LENGTH))),
       mPassword(options.mPassword.hasData() ? options.mPassword : IHelper::randomString(ISettings::getUInt(ORTC_SETTING_GATHERER_PASSWORD_LENGTH))),
-      mCreateTCPCandidates(ISettings::getBool(ORTC_SETTING_GATHERER_CREATE_TCP_CANDIDATES)),
-      mOptions(options.mOptions),
-      mComponent(options.mComponent),
       mRTPGatherer(options.mRTPGatherer),
+      mOptions(options.mOptions),
+      mCreateTCPCandidates(ISettings::getBool(ORTC_SETTING_GATHERER_CREATE_TCP_CANDIDATES)),
       mReflexiveInactivityTime(Seconds(ISettings::getUInt(ORTC_SETTING_GATHERER_REFLEXIVE_INACTIVITY_TIMEOUT_IN_SECONDS))),
       mRelayInactivityTime(Seconds(ISettings::getUInt(ORTC_SETTING_GATHERER_RELAY_INACTIVITY_TIMEOUT_IN_SECONDS))),
-      mMaxBufferingTime(Seconds(ISettings::getUInt(ORTC_SETTING_GATHERER_MAX_INCOMING_PACKET_BUFFERING_TIME_IN_SECONDS))),
-      mMaxTotalBuffers(ISettings::getUInt(ORTC_SETTING_GATHERER_MAX_TOTAL_INCOMING_PACKET_BUFFERING)),
+      mGatherPassiveTCP(ISettings::getBool(ORTC_SETTING_GATHERER_GATHER_PASSIVE_TCP_CANDIDATES)),
       mMaxTCPBufferingSizePendingConnection(ISettings::getUInt(ORTC_SETTING_GATHERER_MAX_PENDING_OUTGOING_TCP_SOCKET_BUFFERING_IN_BYTES)),
       mMaxTCPBufferingSizeConnected(ISettings::getUInt(ORTC_SETTING_GATHERER_MAX_CONNECTED_TCP_SOCKET_BUFFERING_IN_BYTES)),
-      mGatherPassiveTCP(ISettings::getBool(ORTC_SETTING_GATHERER_GATHER_PASSIVE_TCP_CANDIDATES))
+      mMaxBufferingTime(Seconds(ISettings::getUInt(ORTC_SETTING_GATHERER_MAX_INCOMING_PACKET_BUFFERING_TIME_IN_SECONDS))),
+      mMaxTotalBuffers(ISettings::getUInt(ORTC_SETTING_GATHERER_MAX_TOTAL_INCOMING_PACKET_BUFFERING))
     {
       mSTUNPacketParseOptions = STUNPacket::ParseOptions(STUNPacket::RFC_AllowAll, false, "ortc::ICEGatherer", mID);
 

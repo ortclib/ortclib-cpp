@@ -201,8 +201,8 @@ namespace ortc
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
       mReceiver(receiver),
-      mTrack(track),
-      mParameters(make_shared<Parameters>(params))
+      mParameters(make_shared<Parameters>(params)),
+      mTrack(track)
     {
       ZS_EVENTING_3(
                     x, i, Detail, RtpReceiverChannelCreate, ol, RtpReceiverChannel, Start,

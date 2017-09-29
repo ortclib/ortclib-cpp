@@ -352,7 +352,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     static size_t getPacketSizeTransportLayerFeedbackMessage(const RTCPPacket::TransportLayerFeedbackMessage *fm)
     {
-      typedef RTCPPacket::TransportLayerFeedbackMessage TransportLayerFeedbackMessage;
+      //typedef RTCPPacket::TransportLayerFeedbackMessage TransportLayerFeedbackMessage;
       typedef RTCPPacket::TransportLayerFeedbackMessage::GenericNACK GenericNACK;
       typedef RTCPPacket::TransportLayerFeedbackMessage::TMMBR TMMBR;
       typedef RTCPPacket::TransportLayerFeedbackMessage::TMMBN TMMBN;
@@ -399,7 +399,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     static size_t getPacketSizePayloadSpecificFeedbackMessage(const RTCPPacket::PayloadSpecificFeedbackMessage *fm)
     {
-      typedef RTCPPacket::PayloadSpecificFeedbackMessage PayloadSpecificFeedbackMessage;
+      //typedef RTCPPacket::PayloadSpecificFeedbackMessage PayloadSpecificFeedbackMessage;
       typedef RTCPPacket::PayloadSpecificFeedbackMessage::PLI PLI;
       typedef RTCPPacket::PayloadSpecificFeedbackMessage::SLI SLI;
       typedef RTCPPacket::PayloadSpecificFeedbackMessage::RPSI RPSI;
@@ -408,7 +408,7 @@ namespace ortc
       typedef RTCPPacket::PayloadSpecificFeedbackMessage::TSTN TSTN;
       typedef RTCPPacket::PayloadSpecificFeedbackMessage::VBCM VBCM;
       typedef RTCPPacket::PayloadSpecificFeedbackMessage::AFB AFB;
-      typedef RTCPPacket::PayloadSpecificFeedbackMessage::REMB REMB;
+      //typedef RTCPPacket::PayloadSpecificFeedbackMessage::REMB REMB;
 
       size_t result = (sizeof(DWORD)*3);
 
@@ -503,7 +503,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     static size_t getPacketSizeXR(const RTCPPacket::XR *report)
     {
-      typedef RTCPPacket::XR XR;
+      //typedef RTCPPacket::XR XR;
       typedef RTCPPacket::XR::ReportBlock ReportBlock;
       typedef RTCPPacket::XR::LossRLEReportBlock LossRLEReportBlock;
       typedef RTCPPacket::XR::DuplicateRLEReportBlock DuplicateRLEReportBlock;
@@ -512,7 +512,7 @@ namespace ortc
       typedef RTCPPacket::XR::DLRRReportBlock DLRRReportBlock;
       typedef RTCPPacket::XR::StatisticsSummaryReportBlock StatisticsSummaryReportBlock;
       typedef RTCPPacket::XR::VoIPMetricsReportBlock VoIPMetricsReportBlock;
-      typedef RTCPPacket::XR::UnknownReportBlock UnknownReportBlock;
+      //typedef RTCPPacket::XR::UnknownReportBlock UnknownReportBlock;
 
       size_t result = (sizeof(DWORD)*2);
 
@@ -579,7 +579,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     static void writePacketUnknown(const RTCPPacket::UnknownReport *report, BYTE * &pos, size_t &remaining)
     {
-      typedef RTCPPacket::UnknownReport UnknownReport;
+      //typedef RTCPPacket::UnknownReport UnknownReport;
       pos[1] = report->pt();
 
       advancePos(pos, remaining, sizeof(DWORD));
@@ -625,7 +625,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     static void writePacketSenderReceiverCommonReport(const RTCPPacket::SenderReceiverCommonReport *report, BYTE * &pos, size_t &remaining)
     {
-      typedef RTCPPacket::SenderReceiverCommonReport SenderReceiverCommonReport;
+      //typedef RTCPPacket::SenderReceiverCommonReport SenderReceiverCommonReport;
       typedef RTCPPacket::SenderReceiverCommonReport::ReportBlock ReportBlock;
 
       size_t count = 0;
@@ -1045,7 +1045,7 @@ namespace ortc
       typedef RTCPPacket::PayloadSpecificFeedbackMessage::TSTN TSTN;
       typedef RTCPPacket::PayloadSpecificFeedbackMessage::VBCM VBCM;
       typedef RTCPPacket::PayloadSpecificFeedbackMessage::AFB AFB;
-      typedef RTCPPacket::PayloadSpecificFeedbackMessage::REMB REMB;
+      //typedef RTCPPacket::PayloadSpecificFeedbackMessage::REMB REMB;
 
       pos[1] = PayloadSpecificFeedbackMessage::kPayloadType;
 
@@ -5359,7 +5359,7 @@ namespace ortc
                                     const BYTE *pos
                                     )
   {
-    typedef TransportLayerFeedbackMessage::TMMBRCommon TMMBRCommon;
+    //typedef TransportLayerFeedbackMessage::TMMBRCommon TMMBRCommon;
 
     common->mSSRC = UseRTPUtils::getBE32(&(pos[0]));
     common->mMxTBRExp = RTCP_GET_BITS(pos[4], 0x3F, 2);
@@ -5689,7 +5689,7 @@ namespace ortc
   //-------------------------------------------------------------------------
   bool RTCPPacket::parseAFB(PayloadSpecificFeedbackMessage *report)
   {
-    typedef PayloadSpecificFeedbackMessage::AFB AFB;
+    //typedef PayloadSpecificFeedbackMessage::AFB AFB;
 
     const BYTE *pos = report->fci();
     size_t remaining = report->fciSize();
@@ -5704,7 +5704,7 @@ namespace ortc
   //-------------------------------------------------------------------------
   bool RTCPPacket::parseREMB(PayloadSpecificFeedbackMessage *report)
   {
-    typedef PayloadSpecificFeedbackMessage::REMB REMB;
+    //typedef PayloadSpecificFeedbackMessage::REMB REMB;
 
     if (!parseAFB(report)) return false;
 

@@ -36,9 +36,8 @@
 #include <ortc/internal/ortc_StatsReport.h>
 #include <ortc/internal/platform.h>
 #include <ortc/internal/ortc_IMediaStreamTrackMonitor.h>
-#include <ortc/internal/ortc.events_win.h>
 #include <ortc/internal/ortc.events.h>
-#include <ortc/internal/ortc.stats.events_win.h>
+#include <ortc/internal/ortc.stats.events.h>
 
 #include <ortc/IHelper.h>
 

@@ -230,8 +230,6 @@ namespace ortc
     {
       notify(ISecureTransport::State_Closed);
 
-      ASSERT((bool)mChannel)
-
       auto outer = mHolder.lock();
       if (outer) {
         outer->notifyChannelGone();
@@ -351,8 +349,8 @@ namespace ortc
                          ) :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
-      mChannels(make_shared<ParametersToChannelHolderMap>()),
-      mTrack(MediaStreamTrack::convert(track))
+      mTrack(MediaStreamTrack::convert(track)),
+      mChannels(make_shared<ParametersToChannelHolderMap>())
     {
       ZS_LOG_DETAIL(debug("created"))
 
@@ -1055,7 +1053,7 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    IDTMFSenderSubscriptionPtr RTPSender::subscribeDTMF(IDTMFSenderDelegatePtr originalDelegate)
+    IDTMFSenderSubscriptionPtr RTPSender::subscribe(IDTMFSenderDelegatePtr originalDelegate)
     {
       ZS_LOG_DETAIL(log("subscribing to dtmf"));
 

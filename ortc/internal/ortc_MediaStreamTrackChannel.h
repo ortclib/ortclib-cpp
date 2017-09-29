@@ -162,7 +162,7 @@ namespace ortc
       #pragma mark MediaChannel (ForMediaStreamTrackSubscriber)
       #pragma mark
 
-      virtual void notifyCancelled(SubscriberObjectID subscriberID) = 0;
+      virtual void notifyCancelled(SubscriberObjectID subscriberID) override;
 
       //---------------------------------------------------------------------
       #pragma mark

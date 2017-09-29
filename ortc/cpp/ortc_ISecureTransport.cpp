@@ -46,6 +46,12 @@
 //
 //#include <cryptopp/sha.h>
 
+
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-local-typedef"
+#endif //__GNUC__
+
 namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
 
 namespace ortc
@@ -449,3 +455,8 @@ namespace ortc
   }
 
 }
+
+
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif //__GNUC__

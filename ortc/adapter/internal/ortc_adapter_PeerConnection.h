@@ -362,8 +362,8 @@ namespace ortc
                        const Noop &,
                        IMessageQueuePtr queue
                        ) :
-          SharedRecursiveLock(SharedRecursiveLock::create()),
-          MessageQueueAssociator(queue) {}
+          MessageQueueAssociator(queue),
+          SharedRecursiveLock(SharedRecursiveLock::create()) {}
 
         void init();
 

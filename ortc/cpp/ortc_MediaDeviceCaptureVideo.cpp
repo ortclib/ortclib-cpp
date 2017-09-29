@@ -982,14 +982,9 @@ namespace ortc
         return;
       }
 
-      // if (!stepDoSomething()) goto not_ready;
+      // if (!stepDoSomething()) goto return;
 
       goto ready;
-
-    not_ready:
-      {
-        return;
-      }
 
     ready:
       {

@@ -42,6 +42,13 @@
 
 #include <zsLib/ISettings.h>
 
+
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-local-typedef"
+#endif //__GNUC__
+
+
 #ifdef _DEBUG
 #define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))
 #else
@@ -161,8 +168,8 @@ namespace ortc
                                      ) :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
-      promise_(promise),
       mediaEngine_(mediaEngine),
+      promise_(promise),
       parameters_(parameters),
       notifyDelegate_(delegate_),
       delegate_(IRTPEncoderDelegateProxy::createWeak(delegate)),
@@ -595,3 +602,8 @@ namespace ortc
 
   } // internal namespace
 }
+
+
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif //__GNUC__

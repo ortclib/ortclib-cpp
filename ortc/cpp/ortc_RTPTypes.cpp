@@ -2332,6 +2332,7 @@ namespace ortc
     mMaxSpatialLayers = op2.mMaxSpatialLayers;
     mSVCMultiStreamSupport = op2.mSVCMultiStreamSupport;
     copyAny(op2);
+    return *this;
   }
 
   //---------------------------------------------------------------------------

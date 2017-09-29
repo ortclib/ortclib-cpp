@@ -62,6 +62,12 @@
 //
 //#include <webrtc/base/event_tracer.h>
 
+
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wunused-local-typedef"
+#endif //__GNUC__
+
 namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_mediaengine) }
 
 namespace ortc
@@ -102,3 +108,8 @@ namespace ortc
 
   } // internal namespace
 }
+
+
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif //__GNUC__

@@ -37,6 +37,7 @@
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/ortc_Helper.h>
 #include <ortc/internal/ortc_Certificate.h>
+#include <ortc/internal/ortc_DataChannel.h>
 #include <ortc/internal/ortc_DTLSTransport.h>
 #include <ortc/internal/ortc_ICEGatherer.h>
 #include <ortc/internal/ortc_ICEGathererRouter.h>

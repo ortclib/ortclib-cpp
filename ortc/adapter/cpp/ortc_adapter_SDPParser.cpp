@@ -1607,7 +1607,6 @@ namespace ortc
         if (mPayloadTypes.size() > 0) {
           result.append(" ");
           result.append("pt=");
-          bool first = true;
           for (auto iter = mPayloadTypes.begin(); iter != mPayloadTypes.end(); ++iter) {
             auto &pt = (*iter);
             if (inserted) result.append(",");

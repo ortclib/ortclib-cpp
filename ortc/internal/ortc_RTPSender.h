@@ -144,10 +144,6 @@ namespace ortc
       ZS_DECLARE_TYPEDEF_PTR(IRTPSenderForDTMFSender, ForDTMFSender)
 
       static ElementPtr toDebug(ForDTMFSenderPtr transport);
-
-      IDTMFSenderSubscriptionPtr subscribe(IDTMFSenderDelegatePtr delegate) override { return subscribeDTMF(delegate); }
-
-      virtual IDTMFSenderSubscriptionPtr subscribeDTMF(IDTMFSenderDelegatePtr delegate) = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -410,7 +406,11 @@ namespace ortc
 
       // (duplicate) virtual PUID getID() const = 0;
 
-      IDTMFSenderSubscriptionPtr subscribeDTMF(IDTMFSenderDelegatePtr delegate) override;
+      //IDTMFSenderSubscriptionPtr subscribe(IDTMFSenderDelegatePtr delegate) override { return subscribeDTMF(delegate); }
+
+      //virtual IDTMFSenderSubscriptionPtr subscribeDTMF(IDTMFSenderDelegatePtr delegate) = 0;
+
+      IDTMFSenderSubscriptionPtr subscribe(IDTMFSenderDelegatePtr delegate) override;
 
       bool canInsertDTMF() const override;
 

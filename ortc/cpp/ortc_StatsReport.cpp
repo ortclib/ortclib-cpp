@@ -1452,7 +1452,7 @@ namespace ortc
     internal::reportInt32(mID, timestamp, "tracks", SafeInt<int32_t>(mTrackIDs.size()));
     unsigned long index = 0;
     for (auto iter = mTrackIDs.begin(); iter != mTrackIDs.end(); ++iter, ++index) {
-      auto &trackID = (*iter);
+      //auto &trackID = (*iter);
       internal::reportString(mID, timestamp, (String("trackId") + string(index)).c_str(), mStreamID);
     }
   }

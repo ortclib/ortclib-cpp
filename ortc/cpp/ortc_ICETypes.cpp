@@ -282,7 +282,7 @@ namespace ortc
         try {
           std::underlying_type<decltype(mComponent)>::type converted = Numeric<std::underlying_type<decltype(mComponent)>::type>(str);
           IICETypes::Components component = static_cast<decltype(mComponent)>(converted);
-          if ((component >= IICETypes::Component_First) ||
+          if ((component >= IICETypes::Component_First) &&
               (component <= IICETypes::Component_Last)) {
             mComponent = component;
           } else {
@@ -486,7 +486,7 @@ namespace ortc
         try {
           std::underlying_type<decltype(mComponent)>::type converted = Numeric<std::underlying_type<decltype(mComponent)>::type>(str);
           IICETypes::Components component = static_cast<decltype(mComponent)>(converted);
-          if ((component >= IICETypes::Component_First) ||
+          if ((component >= IICETypes::Component_First) &&
               (component <= IICETypes::Component_Last)) {
             mComponent = component;
           } else {

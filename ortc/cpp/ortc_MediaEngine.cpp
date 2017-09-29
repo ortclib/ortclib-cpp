@@ -1528,8 +1528,6 @@ namespace ortc
             case IMediaStreamTrackTypes::Kind_Video: if (IMediaDevicesTypes::DeviceKind_VideoInput != device.mKind) continue;
           }
         }
-        if (device.mKind != kind) continue;
-
         if (exactDeviceIDs.size() > 0) {
           if (!doesListContain(exactDeviceIDs, device.mDeviceID)) continue;
           if (exactGroupIDs.size() > 0) {

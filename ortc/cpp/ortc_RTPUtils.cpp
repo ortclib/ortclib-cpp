@@ -70,7 +70,7 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     static const size_t kMinRtpPacketLen = 12;
-    static const size_t kMaxRtpPacketLen = 2048;
+    //static const size_t kMaxRtpPacketLen = 2048;
     static const size_t kMinRtcpPacketLen = 4;
 
     static const uint8_t kRtpVersion = 2;

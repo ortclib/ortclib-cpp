@@ -412,7 +412,7 @@ namespace ortc
       #pragma mark MediaStreamTrack => (internal)
       #pragma mark
 
-      void trace(const char *message) const;
+      void trace(const char *message) const override;
 
       bool isShuttingDown() const;
       bool isShutdown() const;

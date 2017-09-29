@@ -29,8 +29,13 @@
  
  */
 
+#define ZS_DECLARE_TEMPLATE_GENERATE_IMPLEMENTATION
+
 #include <ortc/internal/types.h>
 #include <ortc/internal/ortc.h>
+
+#include <ortc/adapter/internal/ortc_adapter_adapter.h>
+
 #include <ortc/internal/ortc.events.h>
 #include <zsLib/Log.h>
 
@@ -88,3 +93,48 @@ namespace ortc
     }
   }
 }
+
+ZS_DECLARE_TEAR_AWAY_IMPLEMENT(ortc::IDataChannel, ortc::internal::DataChannel::TearAwayData)
+ZS_DECLARE_TEAR_AWAY_IMPLEMENT(ortc::IRTPListener, ortc::internal::RTPListener::TearAwayData)
+ZS_DECLARE_TEAR_AWAY_IMPLEMENT(ortc::ISCTPTransport, ortc::internal::SCTPTransport::TearAwayData)
+
+ZS_DECLARE_PROXY_IMPLEMENT(ortc::IDataChannelDelegate)
+ZS_DECLARE_PROXY_IMPLEMENT(ortc::IDTLSTransportDelegate)
+ZS_DECLARE_PROXY_IMPLEMENT(ortc::IDTMFSenderDelegate)
+ZS_DECLARE_PROXY_IMPLEMENT(ortc::IICEGathererDelegate)
+ZS_DECLARE_PROXY_IMPLEMENT(ortc::IICETransportDelegate)
+ZS_DECLARE_PROXY_IMPLEMENT(ortc::IMediaDevicesDelegate)
+ZS_DECLARE_PROXY_IMPLEMENT(ortc::IMediaStreamTrackDelegate)
+ZS_DECLARE_PROXY_IMPLEMENT(ortc::IRTPListenerDelegate)
+ZS_DECLARE_PROXY_IMPLEMENT(ortc::IRTPReceiverDelegate)
+ZS_DECLARE_PROXY_IMPLEMENT(ortc::IRTPSenderDelegate)
+ZS_DECLARE_PROXY_IMPLEMENT(ortc::ISCTPTransportDelegate)
+ZS_DECLARE_PROXY_IMPLEMENT(ortc::ISCTPTransportListenerDelegate)
+ZS_DECLARE_PROXY_IMPLEMENT(ortc::ISRTPSDESTransportDelegate)
+
+ZS_DECLARE_PROXY_IMPLEMENT(ortc::adapter::IPeerConnectionDelegate)
+ZS_DECLARE_PROXY_IMPLEMENT(ortc::adapter::IMediaStreamDelegate)
+
+ZS_DECLARE_PROXY_IMPLEMENT(ortc::internal::IDataChannelAsyncDelegate)
+ZS_DECLARE_PROXY_IMPLEMENT(ortc::internal::IDTLSTransportAsyncDelegate)
+ZS_DECLARE_PROXY_IMPLEMENT(ortc::internal::IGathererAsyncDelegate)
+ZS_DECLARE_PROXY_IMPLEMENT(ortc::internal::IICETransportAsyncDelegate)
+ZS_DECLARE_PROXY_IMPLEMENT(ortc::internal::ITransportControllerAsyncDelegate)
+ZS_DECLARE_PROXY_IMPLEMENT(ortc::internal::IMediaDeviceCaptureDelegate)
+ZS_DECLARE_PROXY_IMPLEMENT(ortc::internal::IMediaDeviceRenderDelegate)
+ZS_DECLARE_PROXY_IMPLEMENT(ortc::internal::IMediaDevicesAsyncDelegate)
+ZS_DECLARE_PROXY_IMPLEMENT(ortc::internal::IMediaStreamTrackAsyncDelegate)
+ZS_DECLARE_PROXY_IMPLEMENT(ortc::internal::IRTPDecoderDelegate)
+ZS_DECLARE_PROXY_IMPLEMENT(ortc::internal::IRTPDecoderAysncDelegate)
+ZS_DECLARE_PROXY_IMPLEMENT(ortc::internal::IRTPEncoderAysncDelegate)
+ZS_DECLARE_PROXY_IMPLEMENT(ortc::internal::IRTPEncoderDelegate)
+ZS_DECLARE_PROXY_IMPLEMENT(ortc::internal::IRTPListenerAsyncDelegate)
+ZS_DECLARE_PROXY_IMPLEMENT(ortc::internal::IRTPReceiverChannelAsyncDelegate)
+ZS_DECLARE_PROXY_IMPLEMENT(ortc::internal::IRTPSenderAsyncDelegate)
+ZS_DECLARE_PROXY_IMPLEMENT(ortc::internal::IRTPSenderChannelAsyncDelegate)
+ZS_DECLARE_PROXY_IMPLEMENT(ortc::internal::ISCTPTransportForDataChannelDelegate)
+ZS_DECLARE_PROXY_IMPLEMENT(ortc::internal::ISecureTransportDelegate)
+ZS_DECLARE_PROXY_IMPLEMENT(ortc::internal::ISRTPSDESTransportAsyncDelegate)
+ZS_DECLARE_PROXY_IMPLEMENT(ortc::internal::ISRTPTransportDelegate)
+
+ZS_DECLARE_PROXY_IMPLEMENT(ortc::adapter::internal::IPeerConnectionAsyncDelegate)
