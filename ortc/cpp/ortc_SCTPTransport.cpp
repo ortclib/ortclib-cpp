@@ -433,24 +433,24 @@ namespace ortc
 
     protected:
       //-----------------------------------------------------------------------
-#pragma mark
-#pragma mark SCTPInit => ISingletonManagerDelegate
-#pragma mark
+      #pragma mark
+      #pragma mark SCTPInit => ISingletonManagerDelegate
+      #pragma mark
 
-//-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
       virtual void notifySingletonCleanup() override
       {
         cancel();
       }
 
       //-----------------------------------------------------------------------
-#pragma mark
-#pragma mark SCTPInit => usrscpt callbacks
-#pragma mark
+      #pragma mark
+      #pragma mark SCTPInit => usrscpt callbacks
+      #pragma mark
 
-//-----------------------------------------------------------------------
-// This is the callback usrsctp uses when there's data to send on the network
-// that has been wrapped appropriatly for the SCTP protocol.
+      //-----------------------------------------------------------------------
+      // This is the callback usrsctp uses when there's data to send on the network
+      // that has been wrapped appropriatly for the SCTP protocol.
       static int OnSctpOutboundPacket(
         void* addr,
         void* data,
@@ -459,9 +459,9 @@ namespace ortc
         uint8_t set_df
       )
       {
-        ZS_THROW_INVALID_ASSUMPTION_IF(!addr)
+        ZS_THROW_INVALID_ASSUMPTION_IF(!addr);
 
-          SCTPTransportPtr transport = (*(static_cast<SCTPTransportWeakPtr *>(addr))).lock();
+        SCTPTransportPtr transport = (*(static_cast<SCTPTransportWeakPtr *>(addr))).lock();
 
         ZS_LOG_TRACE(slog("on sctp output packet") + ZS_PARAM("address", ((PTRNUMBER)addr)) + ZS_PARAM("length", length) + ZS_PARAM("tos", tos) + ZS_PARAM("set_df", set_df))
 
@@ -514,9 +514,9 @@ namespace ortc
         void* ulp_info
       )
       {
-        ZS_THROW_INVALID_ASSUMPTION_IF(!ulp_info)
+        ZS_THROW_INVALID_ASSUMPTION_IF(!ulp_info);
 
-          SCTPTransportPtr transport = (*(static_cast<SCTPTransportWeakPtr *>(ulp_info))).lock();
+        SCTPTransportPtr transport = (*(static_cast<SCTPTransportWeakPtr *>(ulp_info))).lock();
 
         const SCTPPayloadProtocolIdentifier ppid = static_cast<SCTPPayloadProtocolIdentifier>(ntohl(rcv.rcv_ppid));
 
@@ -556,7 +556,9 @@ namespace ortc
           return -1;
         }
 
-        transport->postClosure([transport, packet]() {
+        auto queue = transport->getDeliveryQueue();
+
+        queue->postClosure([transport, packet]() {
           transport->onIncomingPacket(packet);
         });
         return 0;
@@ -621,9 +623,9 @@ namespace ortc
 
     protected:
       //-----------------------------------------------------------------------
-#pragma mark
-#pragma mark SCTPInit => (data)
-#pragma mark
+      #pragma mark
+      #pragma mark SCTPInit => (data)
+      #pragma mark
 
       AutoPUID mID;
       mutable RecursiveLock mLock;
@@ -636,11 +638,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-#pragma mark
-#pragma mark ISCTPTransportForDataChannel
-#pragma mark
+    #pragma mark
+    #pragma mark ISCTPTransportForDataChannel
+    #pragma mark
 
-//-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
     ISCTPTransportForSCTPTransportListener::ForListenerPtr ISCTPTransportForSCTPTransportListener::create(
       UseListenerPtr listener,
       UseSecureTransportPtr secureTransport,
@@ -661,11 +663,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-#pragma mark
-#pragma mark SCTPTransport
-#pragma mark
+    #pragma mark
+    #pragma mark SCTPTransport
+    #pragma mark
 
-//---------------------------------------------------------------------------
+    //---------------------------------------------------------------------------
     const char *SCTPTransport::toString(InternalStates state)
     {
       switch (state) {
@@ -711,6 +713,7 @@ namespace ortc
       mMaxSessionsPerPort(ISettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_SESSIONS_PER_PORT)),
       mListener(listener),
       mSecureTransport(secureTransport),
+      mDeliveryQueue(IORTCForInternal::queueORTCPipeline()),
       mIncoming(0 != localPort),
       mLocalPort(localPort),
       mRemotePort(remotePort)
@@ -2492,16 +2495,16 @@ namespace ortc
 
       if (!inPacket.mOrdered) {
         spa.sendv_sndinfo.snd_flags = SCTP_UNORDERED;
-        if ((inPacket.mMaxRetransmits.hasValue()) ||
-            (Milliseconds() == inPacket.mMaxPacketLifetime)) {
-          spa.sendv_flags |= SCTP_SEND_PRINFO_VALID;
-          spa.sendv_prinfo.pr_policy = SCTP_PR_SCTP_RTX;
-          spa.sendv_prinfo.pr_value = inPacket.mMaxRetransmits.value();
-        } else {
-          spa.sendv_flags |= SCTP_SEND_PRINFO_VALID;
-          spa.sendv_prinfo.pr_policy = SCTP_PR_SCTP_TTL;
-          spa.sendv_prinfo.pr_value = SafeInt<decltype(spa.sendv_prinfo.pr_value)>(inPacket.mMaxPacketLifetime.count());
-        }
+      }
+
+      if (inPacket.mMaxRetransmits.hasValue()) {
+        spa.sendv_flags |= SCTP_SEND_PRINFO_VALID;
+        spa.sendv_prinfo.pr_policy = SCTP_PR_SCTP_RTX;
+        spa.sendv_prinfo.pr_value = inPacket.mMaxRetransmits.value();
+      } else if (0 != inPacket.mMaxPacketLifetime.count()) {
+        spa.sendv_flags |= SCTP_SEND_PRINFO_VALID;
+        spa.sendv_prinfo.pr_policy = SCTP_PR_SCTP_TTL;
+        spa.sendv_prinfo.pr_value = SafeInt<decltype(spa.sendv_prinfo.pr_value)>(inPacket.mMaxPacketLifetime.count());
       }
 
       auto result = usrsctp_sendv(
@@ -2585,7 +2588,21 @@ namespace ortc
           ZS_LOG_TRACE(log("SCTP_NOTIFICATIONS_STOPPED_EVENT"))
           break;
         case SCTP_SEND_FAILED_EVENT:
-          ZS_LOG_TRACE(log("SCTP_SEND_FAILED_EVENT"))
+          {
+            auto &failure = notification.sn_send_failed_event;
+            ZS_LOG_ERROR(Debug, log("SCTP_SEND_FAILED_EVENT") + 
+              ZS_PARAM("ssfe_assoc_id", failure.ssfe_assoc_id) + 
+              ZS_PARAM("ssfe_type", failure.ssfe_type) + 
+              ZS_PARAM("ssfe_flags", failure.ssfe_flags) +
+              ZS_PARAM("ssfe_length", failure.ssfe_length) +
+              ZS_PARAM("ssfe_error", failure.ssfe_error) +
+              ZS_PARAM("ssfe_info_snd_sid", failure.ssfe_info.snd_sid) +
+              ZS_PARAM("ssfe_info_snd_flags", failure.ssfe_info.snd_flags) +
+              ZS_PARAM("ssfe_info_snd_ppid", failure.ssfe_info.snd_ppid) +
+              ZS_PARAM("ssfe_info_snd_context", failure.ssfe_info.snd_context) +
+              ZS_PARAM("ssfe_info_snd_assoc_id", failure.ssfe_info.snd_assoc_id)
+            );
+          }
           break;
         case SCTP_STREAM_RESET_EVENT:
           ZS_LOG_TRACE(log("SCTP_STREAM_RESET_EVENT"))

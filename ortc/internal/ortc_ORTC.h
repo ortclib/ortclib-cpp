@@ -35,10 +35,14 @@
 #include <ortc/IORTC.h>
 
 #define ORTC_QUEUE_MAIN_THREAD_NAME "org.ortc.ortcLibMainThread"
+#define ORTC_QUEUE_PIPELINE_THREAD_NAME "org.ortc.ortcLibPipeline"
 #define ORTC_QUEUE_BLOCKING_MEDIA_STARTUP_THREAD_NAME "org.ortc.ortcLibBlockingMedia"
 #define ORTC_QUEUE_CERTIFICATE_GENERATION_NAME "org.ortc.ortcLibCertificateGeneration"
 #define ORTC_QUEUE_PACKET_THREAD_NAME "org.ortc.ortcLibPacketThread."
 #define ORTC_QUEUE_TOTAL_PACKET_THREADS 4
+
+#define ORTC_QUEUE_THREAD_MAIN_PRIORITY  "ortc/ortc-thread-main-priority"
+#define ORTC_QUEUE_THREAD_PIPELINE_PRIORITY  "ortc/ortc-thread-pipeline-priority"
 
 namespace ortc
 {
@@ -59,6 +63,7 @@ namespace ortc
       static void overrideQueueDelegate(IMessageQueuePtr queue);
       static IMessageQueuePtr queueDelegate();
       static IMessageQueuePtr queueORTC();
+      static IMessageQueuePtr queueORTCPipeline();
       static IMessageQueuePtr queuePacket();
       static IMessageQueuePtr queueBlockingMediaStartStopThread();
       static IMessageQueuePtr queueCertificateGeneration();
@@ -133,6 +138,7 @@ namespace ortc
       virtual void overrideQueueDelegate(IMessageQueuePtr queue);
       virtual IMessageQueuePtr queueDelegate() const;
       virtual IMessageQueuePtr queueORTC() const;
+      virtual IMessageQueuePtr queueORTCPipeline() const;
       virtual IMessageQueuePtr queuePacket() const;
       virtual IMessageQueuePtr queueBlockingMediaStartStopThread() const;
       virtual IMessageQueuePtr queueCertificateGeneration() const;
@@ -158,7 +164,6 @@ namespace ortc
       RecursiveLock mLock;
 
       mutable IMessageQueuePtr mDelegateQueue;
-      mutable IMessageQueuePtr mORTCQueue;
       mutable IMessageQueuePtr mBlockingMediaStartStopThread;
       mutable IMessageQueuePtr mCertificateGeneration;
 

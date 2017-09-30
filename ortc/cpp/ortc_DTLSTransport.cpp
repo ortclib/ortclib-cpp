@@ -334,11 +334,13 @@ namespace ortc
       //-----------------------------------------------------------------------
       virtual void notifySettingsApplyDefaults() override
       {
-        ISettings::setUInt(ORTC_SETTING_DTLS_TRANSPORT_MAX_PENDING_DTLS_BUFFER, kMaxDtlsPacketLen * 4);
+        ISettings::setUInt(ORTC_SETTING_DTLS_TRANSPORT_MAX_PENDING_DTLS_BUFFER, kMaxDtlsPacketLen * 12);
 
         ISettings::setUInt(ORTC_SETTING_DTLS_TRANSPORT_MAX_PENDING_RTP_PACKETS, 50);
+
+        ISettings::setBool(ORTC_SETTING_DTLS_TRANSPORT_COMBINE_DTLS_PACKETS, true);
       }
-      
+
     };
 
     //-------------------------------------------------------------------------
@@ -388,7 +390,8 @@ namespace ortc
       mICETransport(ICETransport::convert(iceTransport)),
       mComponent(mICETransport->component()),
       mMaxPendingDTLSBuffer(ISettings::getUInt(ORTC_SETTING_DTLS_TRANSPORT_MAX_PENDING_DTLS_BUFFER)),
-      mMaxPendingRTPPackets(ISettings::getUInt(ORTC_SETTING_DTLS_TRANSPORT_MAX_PENDING_RTP_PACKETS))
+      mMaxPendingRTPPackets(ISettings::getUInt(ORTC_SETTING_DTLS_TRANSPORT_MAX_PENDING_RTP_PACKETS)),
+      mCombineDTLSPackets(ISettings::getBool(ORTC_SETTING_DTLS_TRANSPORT_COMBINE_DTLS_PACKETS))
     {
       ORTC_THROW_INVALID_PARAMETERS_IF(!mICETransport);
 
@@ -722,33 +725,6 @@ namespace ortc
 
       mRemoteParams = remoteParameters;
 
-      if (!mFixedRole) {
-        switch (mRemoteParams.mRole) {
-          case IDTLSTransportTypes::Role_Auto:  break;
-          case IDTLSTransportTypes::Role_Client: {
-            ZS_EVENTING_2(
-                          x, i, Detail, DtlsTransportRoleSet, ol, DtlsTransport, Info,
-                          puid, id, mID,
-                          string, role, IDTLSTransportTypes::toString(IDTLSTransportTypes::Role_Server)
-                          );
-            mFixedRole = true;
-            mAdapter->setServerRole();
-            mAdapter->startSSLWithPeer();
-            break;
-          }
-          case IDTLSTransportTypes::Role_Server: {
-            ZS_EVENTING_2(
-                          x, i, Detail, DtlsTransportRoleSet, ol, DtlsTransport, Info,
-                          puid, id, mID,
-                          string, role, IDTLSTransportTypes::toString(IDTLSTransportTypes::Role_Client)
-                          );
-            mFixedRole = true;
-            mAdapter->startSSLWithPeer();
-            break;
-          }
-        }
-      }
-
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
 
@@ -935,7 +911,7 @@ namespace ortc
             mAdapter->startSSLWithPeer();
           }
 
-          BYTE extractedBuffer[kMaxDtlsPacketLen] {};
+          BYTE extractedBuffer[kMaxDtlsPacketLen*2] {};
 
           while (true) {
             size_t read = 0;
@@ -1376,6 +1352,19 @@ namespace ortc
           SecureByteBlockPtr packet = packets.front();
           packets.pop();
 
+          if (!mCombineDTLSPackets) {
+              // packet size exceed buffer capacity so send it immediately (anything previous put into fill buffer has been sent already)
+              ZS_EVENTING_4(
+                            x, i, Trace, DtlsTransportForwardDataPacketToIceTransport, ol, DtlsTransport, Send,
+                            puid, id, mID,
+                            puid, iceTransportId, transport->getID(),
+                            buffer, packet, packet->BytePtr(),
+                            size, size, packet->SizeInBytes()
+                            );
+            if (!transport->sendPacket(*packet, packet->SizeInBytes())) return;
+            continue;
+          }
+
           if (filled + packet->SizeInBytes() > sizeof(fillBuffer)) {
             // cannot fit next packet into fill buffer so data filled thus far
             if (filled > 0) {
@@ -1788,13 +1777,45 @@ namespace ortc
         return false;
       }
 
+      if (mRemoteParams.mFingerprints.size() < 1) {
+        ZS_LOG_TRACE(log("waiting for remote parameters before starting"));
+        return false;
+      }
+
       auto iceState = mICETransport->state();
       switch (iceState) {
           
         case IICETransportTypes::State_Connected:
         case IICETransportTypes::State_Completed:
         {
-          IICETypes::Roles role = mICETransport->getRole();   // example of how to get the ice role
+          mFixedRole = true;
+
+          switch (mRemoteParams.mRole) {
+            case IDTLSTransportTypes::Role_Auto:  break;
+            case IDTLSTransportTypes::Role_Client: {
+              ZS_EVENTING_2(
+                            x, i, Detail, DtlsTransportRoleSet, ol, DtlsTransport, Info,
+                            puid, id, mID,
+                            string, role, IDTLSTransportTypes::toString(IDTLSTransportTypes::Role_Server)
+                            );
+              mAdapter->setServerRole();
+              mAdapter->startSSLWithPeer();
+              return true;
+            }
+            case IDTLSTransportTypes::Role_Server: {
+              ZS_EVENTING_2(
+                            x, i, Detail, DtlsTransportRoleSet, ol, DtlsTransport, Info,
+                            puid, id, mID,
+                            string, role, IDTLSTransportTypes::toString(IDTLSTransportTypes::Role_Client)
+                            );
+              mAdapter->startSSLWithPeer();
+              return true;
+            }
+          }
+
+          // role was not specified by remote paramters so fix the role by way of the ice transport role
+
+          IICETypes::Roles role = mICETransport->getRole();
           switch (role) {
             case IICETypes::Role_Controlling: {
               ZS_EVENTING_2(
@@ -1815,7 +1836,6 @@ namespace ortc
             }
           }
 
-          mFixedRole = true;
           mAdapter->startSSLWithPeer();
           return true;
         }
