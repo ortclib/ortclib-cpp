@@ -69,11 +69,7 @@ namespace ortc
       static void overrideQueueDelegate(IMessageQueuePtr queue);
       static IMessageQueuePtr queueDelegate();
       static IMessageQueuePtr queueORTC();
-<<<<<<< HEAD
-=======
       static IMessageQueuePtr queueORTCPipeline();
-      static IMessageQueuePtr queuePacket();
->>>>>>> origin/releases/m49
       static IMessageQueuePtr queueBlockingMediaStartStopThread();
       static IMessageQueuePtr queueMediaDevices();
       static IMessageQueuePtr queueRTP();
@@ -149,13 +145,9 @@ namespace ortc
       virtual void overrideQueueDelegate(IMessageQueuePtr queue);
       virtual IMessageQueuePtr queueDelegate() const;
       virtual IMessageQueuePtr queueORTC() const;
-<<<<<<< HEAD
       virtual IMessageQueuePtr queueMediaDevices() const;
       virtual IMessageQueuePtr queueRTP() const;
-=======
       virtual IMessageQueuePtr queueORTCPipeline() const;
-      virtual IMessageQueuePtr queuePacket() const;
->>>>>>> origin/releases/m49
       virtual IMessageQueuePtr queueBlockingMediaStartStopThread() const;
       virtual IMessageQueuePtr queueCertificateGeneration() const;
 
