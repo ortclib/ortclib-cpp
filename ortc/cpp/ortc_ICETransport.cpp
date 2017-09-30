@@ -268,8 +268,9 @@ namespace ortc
       AutoRecursiveLock lock(*this);
 
       if (mGatherer) {
-        mGatherer->installTransport(mThisWeak.lock(), String());
-        mGathererSubscription = mGatherer->subscribe(mThisWeak.lock());
+        auto pThis = mThisWeak.lock();
+        mGatherer->installTransport(pThis, String());
+        mGathererSubscription = mGatherer->subscribe(pThis);
 
         auto localCandidates = mGatherer->getLocalCandidates();
         for (auto iter = localCandidates->begin(); iter != localCandidates->end(); ++iter) {
@@ -289,8 +290,10 @@ namespace ortc
     {
       if (isNoop()) return;
 
-      ZS_LOG_BASIC(log("destroyed"))
       mThisWeak.reset();
+
+      ZS_LOG_BASIC(log("destroyed"))
+
       cancel();
       ZS_EVENTING_1(x, i, Detail, IceTransportDestroy, ol, IceTransport, Stop, puid, id, mID);
     }
@@ -348,16 +351,20 @@ namespace ortc
           (!stats.hasStatType(IStatsReportTypes::StatsType_CandidatePair))) {
         return PromiseWithStatsReport::createRejected(IORTCForInternal::queueDelegate());
       }
+
       AutoRecursiveLock lock(*this);
 
+      auto pThis = mThisWeak.lock();
+
       if ((isShutdown()) ||
-          (isShuttingDown())) {
+          (isShuttingDown()) ||
+          (!pThis)) {
         ZS_LOG_WARNING(Debug, log("cannot collect stats while shutdown / shutting down"));
         return PromiseWithStatsReport::createRejected(IORTCForInternal::queueDelegate());
       }
 
       PromiseWithStatsReportPtr promise = PromiseWithStatsReport::create(IORTCForInternal::queueDelegate());
-      IICETransportAsyncDelegateProxy::create(mThisWeak.lock())->onResolveStatsPromise(promise);
+      IICETransportAsyncDelegateProxy::create(pThis)->onResolveStatsPromise(promise);
       return promise;
     }
 
@@ -407,7 +414,7 @@ namespace ortc
       IICETransportDelegatePtr delegate = mSubscriptions.delegate(subscription, true);
 
       if (delegate) {
-        ICETransportPtr pThis = mThisWeak.lock();
+        auto pThis = mThisWeak.lock();
 
         if (IICETransportTypes::State_New != mCurrentState) {
           delegate->onICETransportStateChange(pThis, mCurrentState);
@@ -503,8 +510,12 @@ namespace ortc
                              ) throw (InvalidParameters)
     {
       UseICEGathererPtr gatherer = ICEGatherer::convert(inGatherer);
-      ORTC_THROW_INVALID_PARAMETERS_IF(!gatherer)
-      ORTC_THROW_INVALID_STATE_IF(IICEGatherer::State_Closed == gatherer->state())
+
+      auto pThis = mThisWeak.lock();
+
+      ORTC_THROW_INVALID_STATE_IF(!pThis);
+      ORTC_THROW_INVALID_PARAMETERS_IF(!gatherer);
+      ORTC_THROW_INVALID_STATE_IF(IICEGatherer::State_Closed == gatherer->state());
 
       ORTC_THROW_INVALID_PARAMETERS_IF(remoteParameters.mUsernameFragment.isEmpty())
       ORTC_THROW_INVALID_PARAMETERS_IF(remoteParameters.mPassword.isEmpty())
@@ -559,8 +570,8 @@ namespace ortc
         mGathererRouter = gatherer->getGathererRouter();
         ZS_THROW_INVALID_ASSUMPTION_IF(!mGathererRouter)
 
-        mGatherer->installTransport(mThisWeak.lock(), String());
-        mGathererSubscription = mGatherer->subscribe(mThisWeak.lock());
+        mGatherer->installTransport(pThis, String());
+        mGathererSubscription = mGatherer->subscribe(pThis);
 
         auto localCandidates = mGatherer->getLocalCandidates();
         for (auto iter = localCandidates->begin(); iter != localCandidates->end(); ++iter) {
@@ -575,7 +586,7 @@ namespace ortc
         pruneAllCandidatePairs(true);
       } else {
         if (!hadRemoteUsernameFragment) {
-          mGatherer->installTransport(mThisWeak.lock(), mRemoteParameters.mUsernameFragment);
+          mGatherer->installTransport(pThis, mRemoteParameters.mUsernameFragment);
           mNextActivationCausesAllRoutesThatReceivedChecksToActivate = true;
         } else {
           pruneAllCandidatePairs(true);
@@ -632,7 +643,6 @@ namespace ortc
         }
 
         pThis = make_shared<ICETransport>(make_private {}, IORTCForInternal::queueORTC(), delegate, rtcpGatherer);
-        pThis->mThisWeak.lock();
         pThis->mRTPTransport = mThisWeak.lock();
         mRTCPTransport = pThis;
 
@@ -1449,7 +1459,10 @@ namespace ortc
 
       AutoRecursiveLock lock(*this);
 
-      if (isShutdown()) {
+      auto pThis = mThisWeak.lock();
+
+      if ((isShutdown()) ||
+          (!pThis)) {
         ZS_LOG_WARNING(Detail, log("cannot attach secure transport while shutdown"))
         return;
       }
@@ -1457,19 +1470,22 @@ namespace ortc
       mSecureTransportID = secureTransportID;
       mSecureTransport = transport;
 
-      IICETransportAsyncDelegateProxy::create(mThisWeak.lock())->onNotifyAttached(secureTransportID);
+      IICETransportAsyncDelegateProxy::create(pThis)->onNotifyAttached(secureTransportID);
     }
 
     //-------------------------------------------------------------------------
     void ICETransport::notifyDetached(PUID secureTransportID)
     {
+      auto pThis = mThisWeak.lock();
+      if (!pThis) return;
+
       ZS_EVENTING_2(
                     x, i, Detail, IceTransportInternalSecureTransportDetachedEvent, ol, IceTransport, InternalEvent,
                     puid, id, mID,
                     puid, secureTransportId, secureTransportID
                     );
 
-      IICETransportAsyncDelegateProxy::create(mThisWeak.lock())->onNotifyDetached(secureTransportID);
+      IICETransportAsyncDelegateProxy::create(pThis)->onNotifyDetached(secureTransportID);
     }
 
     //-------------------------------------------------------------------------
@@ -1717,8 +1733,11 @@ namespace ortc
       {
         AutoRecursiveLock lock(*this);
         if (mBufferedPackets.size() > 0) {
-          ZS_LOG_WARNING(Debug, log("more packets are pending thus attempt to deliver again"))
-          IICETransportAsyncDelegateProxy::create(mThisWeak.lock())->onDeliverPendingPackets();
+          auto pThis = mThisWeak.lock();
+          if (pThis) {
+            ZS_LOG_WARNING(Debug, log("more packets are pending thus attempt to deliver again"));
+            IICETransportAsyncDelegateProxy::create(pThis)->onDeliverPendingPackets();
+          }
           return;
         }
 
@@ -1973,7 +1992,7 @@ namespace ortc
         if (!shouldRecalculate) return;
 
         mLegalRoutesDirty = true;
-        IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
+        wakeUp();
       }
     }
 
@@ -2011,7 +2030,7 @@ namespace ortc
       mLocalCandidatesComplete = true;
       mLegalRoutesDirty = true;
 
-      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
+      wakeUp();
     }
 
     //-------------------------------------------------------------------------
@@ -2060,7 +2079,7 @@ namespace ortc
       mLocalCandidates.erase(found);
       mLegalRoutesDirty = true;
 
-      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
+      wakeUp();
     }
 
     //-------------------------------------------------------------------------
@@ -2301,9 +2320,11 @@ namespace ortc
         }
       }
 
+      auto pThis = mThisWeak.lock();
       if ((keptWarm) &&
-          (!route->mNextKeepWarm)) {
-        route->mNextKeepWarm = ITimer::create(mThisWeak.lock(), zsLib::now() + mKeepWarmTimeBase + Milliseconds(IHelper::random(0, static_cast<size_t>(mKeepWarmTimeRandomizedAddTime.count()))));
+          (!route->mNextKeepWarm) &&
+          (pThis)) {
+        route->mNextKeepWarm = ITimer::create(pThis, zsLib::now() + mKeepWarmTimeBase + Milliseconds(IHelper::random(0, static_cast<size_t>(mKeepWarmTimeRandomizedAddTime.count()))));
         mNextKeepWarmTimers[route->mNextKeepWarm] = route;
 
         ZS_LOG_TRACE(log("installed keep warm timer") + route->toDebug())
@@ -2546,7 +2567,7 @@ namespace ortc
 
       ZS_LOG_DEBUG(log("computing legal pairs"));
 
-      ICETransportPtr pThis = mThisWeak.lock();
+      auto pThis = mThisWeak.lock();
       decltype(mLocalCandidates) localCandidates = mLocalCandidates;
       decltype(mRemoteCandidates) remoteCandidates = mRemoteCandidates;
       mLegalRoutesDirty = false;
@@ -3249,7 +3270,10 @@ namespace ortc
       }
 
       mWakeUp = true;
-      IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
+      auto pThis = mThisWeak.lock();
+      if (pThis) {
+        IWakeDelegateProxy::create(pThis)->onWake();
+      }
     }
 
     //-------------------------------------------------------------------------
@@ -3263,7 +3287,7 @@ namespace ortc
       mWarmRoutesChanged = 1; // by setting to 1 warm routes will be checked again
       auto pThis = mThisWeak.lock();
       if (pThis) {
-        IICETransportAsyncDelegateProxy::create(mThisWeak.lock())->onWarmRoutesChanged();
+        IICETransportAsyncDelegateProxy::create(pThis)->onWarmRoutesChanged();
       }
     }
     
@@ -3666,7 +3690,11 @@ namespace ortc
             goto activate_now;
           }
 
-          auto promise = controller->notifyWhenUnfrozen(mThisWeak.lock(), route->mCandidatePair->mLocal->mFoundation, route->mCandidatePair->mRemote->mFoundation);
+          PromisePtr promise;
+          auto pThis = mThisWeak.lock();
+          if (pThis) {
+            promise = controller->notifyWhenUnfrozen(pThis, route->mCandidatePair->mLocal->mFoundation, route->mCandidatePair->mRemote->mFoundation);
+          }
           if (!promise) {
             ZS_LOG_TRACE(log("not frozen upon any other transport") + route->toDebug())
             goto activate_now;
@@ -3800,13 +3828,16 @@ namespace ortc
 
       if (route->mNextKeepWarm) return;
 
+      auto pThis = mThisWeak.lock();
+      if (!pThis) return;
+
       route->trace(__func__, "forced active");
 
       // install a temporary keep warm timer (to force route activate sooner)
       route->mNextKeepWarm = ITimer::create(mThisWeak.lock(), zsLib::now() + Milliseconds(IHelper::random(0, static_cast<size_t>(mKeepWarmTimeRandomizedAddTime.count()))));
       mNextKeepWarmTimers[route->mNextKeepWarm] = route;
 
-      ZS_LOG_TRACE(log("forcing route to generate activity") + route->toDebug())
+      ZS_LOG_TRACE(log("forcing route to generate activity") + route->toDebug());
     }
 
     //-----------------------------------------------------------------------
@@ -4116,7 +4147,10 @@ namespace ortc
         if (found == mWarmRoutes.end()) {
           mWarmRoutes[route->mCandidatePairHash] = route;
           warmRoutesChanged();
-          mSubscriptions.delegate()->onICETransportCandidatePairAvailable(mThisWeak.lock(), cloneCandidatePair(route));
+          auto pThis = mThisWeak.lock();
+          if (pThis) {
+            mSubscriptions.delegate()->onICETransportCandidatePairAvailable(pThis, cloneCandidatePair(route));
+          }
         }
         wakeUp();
       }
@@ -4320,7 +4354,10 @@ namespace ortc
                       puid, activeRouteId, mActiveRoute->mID
                       );
 
-        mSubscriptions.delegate()->onICETransportCandidatePairChanged(mThisWeak.lock(), cloneCandidatePair(mActiveRoute));
+        auto pThis = mThisWeak.lock();
+        if (pThis) {
+          mSubscriptions.delegate()->onICETransportCandidatePairChanged(pThis, cloneCandidatePair(mActiveRoute));
+        }
 
         wakeUp();
       }
@@ -4680,14 +4717,19 @@ namespace ortc
       fix(stunPacket);
 
       auto remoteIP = route->mCandidatePair->mRemote->ip();
-      auto result = ISTUNRequester::create(IHelper::getServicePoolQueue(), mThisWeak.lock(), remoteIP, stunPacket, STUNPacket::RFC_5245_ICE, pattern);
-      ZS_EVENTING_2(
-                    x, i, Debug, IceTransportInternalStunRequesterCreate, ol, IceTransport, Info,
-                    puid, id, mID,
-                    puid, stunRequesterId, ((bool)result) ? result->getID() : 0
-                    );
+      ISTUNRequesterPtr result;
+      auto pThis = mThisWeak.lock();
+      if (pThis) {
+        result = ISTUNRequester::create(IHelper::getServicePoolQueue(), pThis, remoteIP, stunPacket, STUNPacket::RFC_5245_ICE, pattern);
 
-      route->trace(__func__, "create binding request");
+        ZS_EVENTING_2(
+          x, i, Debug, IceTransportInternalStunRequesterCreate, ol, IceTransport, Info,
+          puid, id, mID,
+          puid, stunRequesterId, ((bool)result) ? result->getID() : 0
+        );
+        route->trace(__func__, "create binding request");
+      }
+
       return result;
     }
 
@@ -4830,8 +4872,11 @@ namespace ortc
         pruneAllCandidatePairs(true);
         wakeUp();
 
-        ZS_LOG_WARNING(Debug, log("will retry conflicting packet again after recomputing candidate pairings") + routerRoute->toDebug() + packet->toDebug())
-        IICETransportAsyncDelegateProxy::create(mThisWeak.lock())->onNotifyPacketRetried(routerRoute->mLocalCandidate, routerRoute->mRemoteIP, packet);
+        auto pThis = mThisWeak.lock();
+        if (pThis) {
+          ZS_LOG_WARNING(Debug, log("will retry conflicting packet again after recomputing candidate pairings") + routerRoute->toDebug() + packet->toDebug());
+          IICETransportAsyncDelegateProxy::create(pThis)->onNotifyPacketRetried(routerRoute->mLocalCandidate, routerRoute->mRemoteIP, packet);
+        }
       }
       return true;
     }
