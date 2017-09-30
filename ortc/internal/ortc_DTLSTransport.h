@@ -49,6 +49,7 @@
 
 #define ORTC_SETTING_DTLS_TRANSPORT_MAX_PENDING_DTLS_BUFFER "ortc/dtls/max-pending-dtls-buffer"
 #define ORTC_SETTING_DTLS_TRANSPORT_MAX_PENDING_RTP_PACKETS "ortc/dtls/max-pending-rtp-packets"
+#define ORTC_SETTING_DTLS_TRANSPORT_COMBINE_DTLS_PACKETS "ortc/dtls/combine-dtls-packets"
 
 namespace ortc
 {
@@ -748,6 +749,7 @@ namespace ortc
 
       PacketQueue mPendingOutgoingDTLS;
 
+      bool mCombineDTLSPackets {true};
       bool mFixedRole {false};
 
       Adapter::Validation mValidation {Adapter::VALIDATION_NA};

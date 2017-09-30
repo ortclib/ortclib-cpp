@@ -272,6 +272,7 @@ namespace ortc
 
       typedef String Hash;
       typedef std::map<Hash, CandidatePtr> CandidateMap;
+      typedef std::map<Hash, CandidatePairPtr> CandidatePairMap;
 
       typedef std::map<Hash, RoutePtr> RouteMap;
 
@@ -677,6 +678,7 @@ namespace ortc
 
       void step();
       bool stepCalculateLegalPairs();
+      bool stepProcessLegalPairs(CandidatePairMap &pairings);
       bool stepPendingActivation();
       bool stepActivationTimer();
       bool stepPickRoute();
@@ -831,7 +833,6 @@ namespace ortc
       String mRemoteParametersHash;
       Parameters mRemoteParameters;
 
-      String mLocalCandidatesHash;
       CandidateMap mLocalCandidates;
       bool mLocalCandidatesComplete {false};
 
@@ -839,7 +840,10 @@ namespace ortc
       CandidateMap mRemoteCandidates;
       bool mRemoteCandidatesComplete {false};
 
-      String mComputedPairsHash;
+      IMessageQueuePtr mLegalRoutesComputeQueue;
+      bool mLegalRoutesDirty {true};
+      bool mComputedLegalRoutes {false};
+      bool mComputingLegalRoutes {false};
       RouteMap mLegalRoutes;
       FoundationRouteMap mFoundationRoutes;
       RouteStateTrackerPtr mRouteStateTracker;

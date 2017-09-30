@@ -1,6 +1,7 @@
 /*
 
- Copyright (c) 2014, Hookflash Inc. / Hookflash Inc.
+ Copyright (c) 2014, Hookflash Inc.
+ Copyright (c) 2017, Optical Tone Ltd.
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -40,6 +41,7 @@
 #include <zsLib/IMessageQueueManager.h>
 #include <zsLib/ISettings.h>
 #include <zsLib/Log.h>
+#include <zsLib/Socket.h>
 #include <zsLib/XML.h>
 
 namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
@@ -154,6 +156,8 @@ namespace ortc
       //-----------------------------------------------------------------------
       virtual void notifySettingsApplyDefaults() override
       {
+        ISettings::setString(ORTC_SETTING_ORTC_QUEUE_MAIN_THREAD_NAME, zsLib::toString(zsLib::ThreadPriority_NormalPriority));
+        ISettings::setString(ORTC_SETTING_ORTC_QUEUE_PIPELINE_THREAD_NAME, zsLib::toString(zsLib::ThreadPriority_HighPriority));
         ISettings::setString(ORTC_SETTING_ORTC_QUEUE_BLOCKING_MEDIA_STARTUP_THREAD_NAME, "normal");
         ISettings::setString(ORTC_SETTING_ORTC_QUEUE_CERTIFICATE_GENERATION_NAME, "low");
 
@@ -163,6 +167,7 @@ namespace ortc
         for (size_t index = 0; index < ORTC_QUEUE_TOTAL_RTP_THREADS; ++index) {
           ISettings::setString((String(ORTC_SETTING_ORTC_QUEUE_RTP_THREAD_NAME) + string(index)).c_str(), "higest");
         }
+        ISettings::setString(ZSLIB_SETTING_SOCKET_MONITOR_THREAD_PRIORITY, zsLib::toString(zsLib::ThreadPriority_HighPriority));
       }
       
     };
@@ -197,6 +202,12 @@ namespace ortc
     IMessageQueuePtr IORTCForInternal::queueORTC()
     {
       return (ORTC::singleton())->queueORTC();
+    }
+
+    //-------------------------------------------------------------------------
+    IMessageQueuePtr IORTCForInternal::queueORTCPipeline()
+    {
+      return (ORTC::singleton())->queueORTCPipeline();
     }
 
     //-------------------------------------------------------------------------
@@ -407,6 +418,12 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
+    bool ORTC::isMRPInstalled()
+    {
+      return IRTPMediaEngineForORTC::isMRPInstalled();
+    }
+
+    //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -435,10 +452,28 @@ namespace ortc
     IMessageQueuePtr ORTC::queueORTC() const
     {
       AutoRecursiveLock lock(*this);
-      if (!mORTCQueue) {
-        mORTCQueue = UseMessageQueueManager::getThreadPoolQueue(ORTC_QUEUE_MAIN_THREAD_NAME);
-      }
-      return mORTCQueue;
+      class Once {
+      public:
+        Once() {
+          zsLib::IMessageQueueManager::registerMessageQueueThreadPriority(ORTC_QUEUE_MAIN_THREAD_NAME, zsLib::threadPriorityFromString(ISettings::getString(ORTC_SETTING_ORTC_QUEUE_MAIN_THREAD_NAME)));
+        }
+      };
+      static Once once;
+      return UseMessageQueueManager::getThreadPoolQueue(ORTC_QUEUE_MAIN_THREAD_NAME);
+    }
+
+    //-------------------------------------------------------------------------
+    IMessageQueuePtr ORTC::queueORTCPipeline() const
+    {
+      AutoRecursiveLock lock(*this);
+      class Once {
+      public:
+        Once() {
+          zsLib::IMessageQueueManager::registerMessageQueueThreadPriority(ORTC_QUEUE_PIPELINE_THREAD_NAME, zsLib::threadPriorityFromString(ISettings::getString(ORTC_SETTING_ORTC_QUEUE_PIPELINE_THREAD_NAME)));
+        }
+      };
+      static Once once;
+      return UseMessageQueueManager::getThreadPoolQueue(ORTC_QUEUE_PIPELINE_THREAD_NAME);
     }
 
     //-------------------------------------------------------------------------
@@ -665,6 +700,14 @@ namespace ortc
     auto singleton = internal::ORTC::singleton();
     if (!singleton) return false;
     return singleton->saveMediaTrace(host, port);
+  }
+
+  //-------------------------------------------------------------------------
+  bool IORTC::isMRPInstalled()
+  {
+    auto singleton = internal::ORTC::singleton();
+    if (!singleton) return false;
+    return singleton->isMRPInstalled();
   }
 
 }

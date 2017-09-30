@@ -357,7 +357,7 @@ namespace ortc
                                        const Parameters &params
                                        )
     {
-      ORTC_THROW_INVALID_PARAMETERS_IF(!transport)
+      ORTC_THROW_INVALID_PARAMETERS_IF(!transport);
 
       ORTC_THROW_INVALID_PARAMETERS_IF((Milliseconds() != params.mMaxPacketLifetime) &&
                                        (params.mMaxPacketLifetime.count() > UINT32_MAX));
