@@ -130,14 +130,14 @@ namespace ortc
     const char *toString(SCTPPayloadProtocolIdentifier ppid)
     {
       switch (ppid) {
-        case SCTP_PPID_NONE:              return "NONE";
-        case SCTP_PPID_CONTROL:           return "CONTROL";
-        case SCTP_PPID_BINARY_EMPTY:      return "BINARY_EMPTY";
-        case SCTP_PPID_BINARY_PARTIAL:    return "BINARY_PARTIAL";
-        case SCTP_PPID_BINARY_LAST:       return "BINARY_LAST";
-        case SCTP_PPID_STRING_EMPTY:      return "STRING_EMPTY";
-        case SCTP_PPID_STRING_PARTIAL:    return "STRING_PARTIAL";
-        case SCTP_PPID_STRING_LAST:       return "STRING_LAST";
+      case SCTP_PPID_NONE:              return "NONE";
+      case SCTP_PPID_CONTROL:           return "CONTROL";
+      case SCTP_PPID_BINARY_EMPTY:      return "BINARY_EMPTY";
+      case SCTP_PPID_BINARY_PARTIAL:    return "BINARY_PARTIAL";
+      case SCTP_PPID_BINARY_LAST:       return "BINARY_LAST";
+      case SCTP_PPID_STRING_EMPTY:      return "STRING_EMPTY";
+      case SCTP_PPID_STRING_PARTIAL:    return "STRING_PARTIAL";
+      case SCTP_PPID_STRING_LAST:       return "STRING_LAST";
       }
       return "UNDEFINED";
     }
@@ -150,7 +150,7 @@ namespace ortc
     #pragma mark SCTPPacketIncoming
     #pragma mark
 
-    //---------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
     ElementPtr SCTPPacketIncoming::toDebug() const
     {
       ElementPtr resultEl = Element::create("ortc::SCTPPacketIncoming");
@@ -173,7 +173,7 @@ namespace ortc
     #pragma mark SCTPPacketOutgoing
     #pragma mark
 
-    //---------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
     ElementPtr SCTPPacketOutgoing::toDebug() const
     {
       ElementPtr resultEl = Element::create("ortc::SCTPPacketOutgoing");
@@ -200,9 +200,9 @@ namespace ortc
     {
       //-----------------------------------------------------------------------
       static sockaddr_conn getAddress(
-                                      WORD port,
-                                      SCTPTransportWeakPtr *thisSocket
-                                      )
+        WORD port,
+        SCTPTransportWeakPtr *thisSocket
+      )
       {
         sockaddr_conn sconn = {};
         sconn.sconn_family = AF_CONN;
@@ -252,15 +252,16 @@ namespace ortc
 
       //-----------------------------------------------------------------------
       static String listArray(
-                              const WORD *array,
-                              size_t numElements
-                              )
+        const WORD *array,
+        size_t numElements
+      )
       {
         std::stringstream result;
         for (size_t i = 0; i < numElements; ++i) {
           if (i) {
             result << ", " << array[i];
-          } else {
+          }
+          else {
             result << array[i];
           }
         }
@@ -273,9 +274,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark SCTPTransportSettingsDefaults
-    #pragma mark
+#pragma mark
+#pragma mark SCTPTransportSettingsDefaults
+#pragma mark
 
     class SCTPTransportSettingsDefaults : public ISettingsApplyDefaultsDelegate
     {
@@ -320,21 +321,21 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark SCTPInit
-    #pragma mark
+#pragma mark
+#pragma mark SCTPInit
+#pragma mark
 
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark SCTPInit
-    #pragma mark
+//-------------------------------------------------------------------------
+//-------------------------------------------------------------------------
+//-------------------------------------------------------------------------
+//-------------------------------------------------------------------------
+#pragma mark
+#pragma mark SCTPInit
+#pragma mark
 
-    // code borrowed from:
-    // https://chromium.googlesource.com/external/webrtc/+/master/talk/media/sctp/sctpdataengine.cc
-    // https://chromium.googlesource.com/external/webrtc/+/master/talk/media/sctp/sctpdataengine.h
+// code borrowed from:
+// https://chromium.googlesource.com/external/webrtc/+/master/talk/media/sctp/sctpdataengine.cc
+// https://chromium.googlesource.com/external/webrtc/+/master/talk/media/sctp/sctpdataengine.h
 
     class SCTPInit : public ISingletonManagerDelegate
     {
@@ -410,7 +411,7 @@ namespace ortc
       {
         mThisWeak.reset();
         ZS_LOG_BASIC(log("destroyed"))
-        cancel();
+          cancel();
         ZS_EVENTING_1(x, i, Detail, SctpInitDestroy, ol, SctpInit, Stop, puid, id, mID);
       }
 
@@ -426,7 +427,7 @@ namespace ortc
         if (!result) {
           ZS_LOG_WARNING(Detail, slog("singleton gone"))
         }
-        
+
         return result;
       }
 
@@ -451,34 +452,34 @@ namespace ortc
       // This is the callback usrsctp uses when there's data to send on the network
       // that has been wrapped appropriatly for the SCTP protocol.
       static int OnSctpOutboundPacket(
-                                      void* addr,
-                                      void* data,
-                                      size_t length,
-                                      uint8_t tos,
-                                      uint8_t set_df
-                                      )
+        void* addr,
+        void* data,
+        size_t length,
+        uint8_t tos,
+        uint8_t set_df
+      )
       {
-        ZS_THROW_INVALID_ASSUMPTION_IF(!addr)
+        ZS_THROW_INVALID_ASSUMPTION_IF(!addr);
 
         SCTPTransportPtr transport = (*(static_cast<SCTPTransportWeakPtr *>(addr))).lock();
 
         ZS_LOG_TRACE(slog("on sctp output packet") + ZS_PARAM("address", ((PTRNUMBER)addr)) + ZS_PARAM("length", length) + ZS_PARAM("tos", tos) + ZS_PARAM("set_df", set_df))
 
-        if (ZS_IS_LOGGING(Insane)) {
-          String str = IHelper::convertToBase64((const BYTE *)data, length);
-          ZS_LOG_INSANE(slog("sctp outgoing packet") + ZS_PARAM("wire out", str))
-        }
+          if (ZS_IS_LOGGING(Insane)) {
+            String str = IHelper::convertToBase64((const BYTE *)data, length);
+            ZS_LOG_INSANE(slog("sctp outgoing packet") + ZS_PARAM("wire out", str))
+          }
 
         if (!transport) {
           ZS_LOG_WARNING(Trace, slog("transport is gone (thus cannot send packet)") + ZS_PARAM("address", ((PTRNUMBER)addr)) + ZS_PARAM("length", length) + ZS_PARAM("tos", tos) + ZS_PARAM("set_df", set_df))
-          errno = ESHUTDOWN;
+            errno = ESHUTDOWN;
           return -1;
         }
 
         bool result = transport->notifySendSCTPPacket((const BYTE *)data, length);
         if (!result) {
           ZS_LOG_WARNING(Trace, slog("transport is unable to send packet") + ZS_PARAM("address", ((PTRNUMBER)addr)) + ZS_PARAM("length", length) + ZS_PARAM("tos", tos) + ZS_PARAM("set_df", set_df))
-          errno = EWOULDBLOCK;
+            errno = EWOULDBLOCK;
           return -1;
         }
 
@@ -488,7 +489,7 @@ namespace ortc
       //-----------------------------------------------------------------------
       static void debug_sctp_printf(const char *format, ...)
       {
-        char s[1024] {};
+        char s[1024]{};
 
         va_list ap;
         va_start(ap, format);
@@ -499,21 +500,21 @@ namespace ortc
 #endif  //_WIN32
 
         ZS_LOG_BASIC(slog("debug") + ZS_PARAM("message", s))
-        va_end(ap);
+          va_end(ap);
       }
 
       //-------------------------------------------------------------------------
       static int OnSctpInboundPacket(
-                                     struct socket* sock,
-                                     union sctp_sockstore addr,
-                                     void* data,
-                                     size_t length,
-                                     struct sctp_rcvinfo rcv,
-                                     int flags,
-                                     void* ulp_info
-                                     )
+        struct socket* sock,
+        union sctp_sockstore addr,
+        void* data,
+        size_t length,
+        struct sctp_rcvinfo rcv,
+        int flags,
+        void* ulp_info
+      )
       {
-        ZS_THROW_INVALID_ASSUMPTION_IF(!ulp_info)
+        ZS_THROW_INVALID_ASSUMPTION_IF(!ulp_info);
 
         SCTPTransportPtr transport = (*(static_cast<SCTPTransportWeakPtr *>(ulp_info))).lock();
 
@@ -522,21 +523,21 @@ namespace ortc
 
         if (0 == (flags & MSG_NOTIFICATION)) {
           switch (ppid) {
-            case SCTP_PPID_CONTROL:
-            case SCTP_PPID_BINARY_EMPTY:
-            case SCTP_PPID_BINARY_PARTIAL:
-            case SCTP_PPID_BINARY_LAST:
-            case SCTP_PPID_STRING_EMPTY:
-            case SCTP_PPID_STRING_PARTIAL:
-            case SCTP_PPID_STRING_LAST:
-            {
-              break;
-            }
-            case SCTP_PPID_NONE:
-            default: {
-              ZS_LOG_WARNING(Trace, slog("incoming protocol identifier type was not understood (dropping packet)") + ZS_PARAM("ppid", ppid))
+          case SCTP_PPID_CONTROL:
+          case SCTP_PPID_BINARY_EMPTY:
+          case SCTP_PPID_BINARY_PARTIAL:
+          case SCTP_PPID_BINARY_LAST:
+          case SCTP_PPID_STRING_EMPTY:
+          case SCTP_PPID_STRING_PARTIAL:
+          case SCTP_PPID_STRING_LAST:
+          {
+            break;
+          }
+          case SCTP_PPID_NONE:
+          default: {
+            ZS_LOG_WARNING(Trace, slog("incoming protocol identifier type was not understood (dropping packet)") + ZS_PARAM("ppid", ppid))
               return 1;
-            }
+          }
           }
         }
 
@@ -551,23 +552,25 @@ namespace ortc
 
         if (!transport) {
           ZS_LOG_WARNING(Trace, slog("transport is gone (thus cannot receive packet)") + ZS_PARAM("socket", ((PTRNUMBER)sock)) + ZS_PARAM("length", length) + ZS_PARAM("flags", flags) + ZS_PARAM("ulp", ((PTRNUMBER)ulp_info)))
-          errno = ESHUTDOWN;
+            errno = ESHUTDOWN;
           return -1;
         }
 
-        transport->postClosure([transport, packet]() {
+        auto queue = transport->getDeliveryQueue();
+
+        queue->postClosure([transport, packet]() {
           transport->onIncomingPacket(packet);
         });
         return 0;
       }
-      
+
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SCTPInit => (internal)
-      #pragma mark
+#pragma mark
+#pragma mark SCTPInit => (internal)
+#pragma mark
 
-      //-----------------------------------------------------------------------
+//-----------------------------------------------------------------------
       Log::Params log(const char *message) const
       {
         ElementPtr objectEl = Element::create("ortc::SCTPInit");
@@ -605,13 +608,13 @@ namespace ortc
 
         ZS_LOG_DEBUG(log("cancel called"))
 
-        bool initialized = mInitialized.exchange(false);
+          bool initialized = mInitialized.exchange(false);
         if (!initialized) return;
 
         int count = 0;
 
         while ((0 != usrsctp_finish()) &&
-               (count < 300))
+          (count < 300))
         {
           std::this_thread::sleep_for(Milliseconds(10));
           ++count;
@@ -641,10 +644,10 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     ISCTPTransportForSCTPTransportListener::ForListenerPtr ISCTPTransportForSCTPTransportListener::create(
-                                                                                                          UseListenerPtr listener,
-                                                                                                          UseSecureTransportPtr secureTransport,
-                                                                                                          WORD localPort
-                                                                                                          )
+      UseListenerPtr listener,
+      UseSecureTransportPtr secureTransport,
+      WORD localPort
+    )
     {
       return ISCTPTransportFactory::singleton().create(listener, secureTransport, localPort);
     }
@@ -663,18 +666,18 @@ namespace ortc
     #pragma mark
     #pragma mark SCTPTransport
     #pragma mark
-    
+
     //---------------------------------------------------------------------------
     const char *SCTPTransport::toString(InternalStates state)
     {
       switch (state) {
-        case InternalState_New:                     return "new";
-        case InternalState_Connecting:              return "connecting";
-        case InternalState_ConnectingDisrupted:     return "connecting disrupted";
-        case InternalState_Ready:                   return "ready";
-        case InternalState_Disconnected:            return "disconnected";
-        case InternalState_ShuttingDown:            return "shutting down";
-        case InternalState_Shutdown:                return "shutdown";
+      case InternalState_New:                     return "new";
+      case InternalState_Connecting:              return "connecting";
+      case InternalState_ConnectingDisrupted:     return "connecting disrupted";
+      case InternalState_Ready:                   return "ready";
+      case InternalState_Disconnected:            return "disconnected";
+      case InternalState_ShuttingDown:            return "shutting down";
+      case InternalState_Shutdown:                return "shutdown";
       }
       return "UNDEFINED";
     }
@@ -683,33 +686,34 @@ namespace ortc
     ISCTPTransportTypes::States SCTPTransport::toState(InternalStates state)
     {
       switch (state) {
-        case InternalState_New:                   return ISCTPTransportTypes::State_New;
-        case InternalState_Connecting:            return ISCTPTransportTypes::State_Connecting;
-        case InternalState_ConnectingDisrupted:   return ISCTPTransportTypes::State_Connecting;
-        case InternalState_Ready:                 return ISCTPTransportTypes::State_Connected;
-        case InternalState_Disconnected:          return ISCTPTransportTypes::State_Connected;
-        case InternalState_ShuttingDown:          return ISCTPTransportTypes::State_Closed;
-        case InternalState_Shutdown:              return ISCTPTransportTypes::State_Closed;
+      case InternalState_New:                   return ISCTPTransportTypes::State_New;
+      case InternalState_Connecting:            return ISCTPTransportTypes::State_Connecting;
+      case InternalState_ConnectingDisrupted:   return ISCTPTransportTypes::State_Connecting;
+      case InternalState_Ready:                 return ISCTPTransportTypes::State_Connected;
+      case InternalState_Disconnected:          return ISCTPTransportTypes::State_Connected;
+      case InternalState_ShuttingDown:          return ISCTPTransportTypes::State_Closed;
+      case InternalState_Shutdown:              return ISCTPTransportTypes::State_Closed;
       }
       ZS_THROW_NOT_IMPLEMENTED(String("state is not implemented:") + toString(state))
-      return ISCTPTransportTypes::State_Closed;
+        return ISCTPTransportTypes::State_Closed;
     }
 
     //-------------------------------------------------------------------------
     SCTPTransport::SCTPTransport(
-                                 const make_private &,
-                                 IMessageQueuePtr queue,
-                                 UseListenerPtr listener,
-                                 UseSecureTransportPtr secureTransport,
-                                 WORD localPort,
-                                 WORD remotePort
-                                 ) :
+      const make_private &,
+      IMessageQueuePtr queue,
+      UseListenerPtr listener,
+      UseSecureTransportPtr secureTransport,
+      WORD localPort,
+      WORD remotePort
+    ) :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
       mSCTPInit(SCTPInit::singleton()),
       mMaxSessionsPerPort(ISettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_SESSIONS_PER_PORT)),
       mListener(listener),
       mSecureTransport(secureTransport),
+      mDeliveryQueue(IORTCForInternal::queueORTCPipeline()),
       mIncoming(0 != localPort),
       mLocalPort(localPort),
       mRemotePort(remotePort)
@@ -717,14 +721,14 @@ namespace ortc
       ORTC_THROW_INVALID_PARAMETERS_IF(!secureTransport);
 
       ZS_EVENTING_6(
-                    x, i, Detail, SctpTransportCreate, ol, SctpTransport, Start,
-                    puid, id, mID,
-                    puid, listenerId, ((bool)listener) ? listener->getID() : 0,
-                    size_t, maxSessionsPerPort, mMaxSessionsPerPort,
-                    bool, incoming, mIncoming,
-                    word, localPort, mLocalPort,
-                    word, remotePort, mRemotePort
-                    );
+        x, i, Detail, SctpTransportCreate, ol, SctpTransport, Start,
+        puid, id, mID,
+        puid, listenerId, ((bool)listener) ? listener->getID() : 0,
+        size_t, maxSessionsPerPort, mMaxSessionsPerPort,
+        bool, incoming, mIncoming,
+        word, localPort, mLocalPort,
+        word, remotePort, mRemotePort
+      );
 
       ZS_LOG_DETAIL(debug("created"));
 
@@ -736,10 +740,10 @@ namespace ortc
     {
       AutoRecursiveLock lock(*this);
       //IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
-      
+
       ZS_LOG_DETAIL(debug("SCTP init"))
 
-      auto secureTransport = mSecureTransport.lock();
+        auto secureTransport = mSecureTransport.lock();
       if (secureTransport) {
         mSecureTransportSubscription = secureTransport->subscribe(mThisWeak.lock());
       }
@@ -753,7 +757,7 @@ namespace ortc
       if (isNoop()) return;
 
       ZS_LOG_DETAIL(log("destroyed"))
-      mThisWeak.reset();
+        mThisWeak.reset();
       mThisSocket->reset();
 
       cancel();
@@ -819,7 +823,7 @@ namespace ortc
     #pragma mark
     #pragma mark SCTPTransport => ISCTPTransport
     #pragma mark
-    
+
     //-------------------------------------------------------------------------
     ElementPtr SCTPTransport::toDebug(SCTPTransportPtr transport)
     {
@@ -829,10 +833,10 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     ISCTPTransportPtr SCTPTransport::create(
-                                            ISCTPTransportDelegatePtr delegate,
-                                            IDTLSTransportPtr transport,
-                                            WORD inLocalPort
-                                            ) throw (InvalidParameters, InvalidStateError)
+      ISCTPTransportDelegatePtr delegate,
+      IDTLSTransportPtr transport,
+      WORD inLocalPort
+    ) throw (InvalidParameters, InvalidStateError)
     {
       ORTC_THROW_INVALID_PARAMETERS_IF(!transport);
 
@@ -845,7 +849,7 @@ namespace ortc
       UseListenerPtr listener = SCTPTransportListener::convert(dataTransport);
       ORTC_THROW_INVALID_STATE_IF(!listener);
 
-      Optional<WORD> allocatedLocalPort {};
+      Optional<WORD> allocatedLocalPort{};
       if (0 == inLocalPort) {
         allocatedLocalPort = listener->allocateLocalPort();
         ORTC_THROW_INVALID_STATE_IF(0 == allocatedLocalPort.value());
@@ -904,6 +908,63 @@ namespace ortc
     Optional<WORD> SCTPTransport::remotePort() const
     {
       return mRemotePort;
+    }
+
+    //-------------------------------------------------------------------------
+    ISCTPTransportTypes::PromiseWithSocketOptionsPtr SCTPTransport::getOptions(const SocketOptions &inWhichOptions)
+    {
+      auto promise = PromiseWithSocketOptions::create(IORTCForInternal::queueDelegate());
+
+      AutoRecursiveLock lock(*this);
+      if ((isShuttingDown()) ||
+          (isShutdown())) {
+        promise->reject(ErrorAny::create(UseHTTP::HTTPStatusCode_Gone, "transport is closing or closed"));
+        return promise;
+      }
+
+      if (!mSocket) {
+        mGetSocketOptions.push_back(PromiseWithSocketOptionsPair(promise, make_shared<SocketOptions>(inWhichOptions)));
+        return promise;
+      }
+
+      auto tempOptions = make_shared<SocketOptions>(inWhichOptions);
+      auto result = internalGetOptions(*tempOptions);
+
+      if (result) {
+        promise->resolve(tempOptions);
+      } else {
+        promise->reject(ErrorAny::create(UseHTTP::HTTPStatusCode_BadRequest, "failed to get socket option"));
+      }
+      return promise;
+    }
+
+    //-------------------------------------------------------------------------
+    PromisePtr SCTPTransport::setOptions(const SocketOptions &inOptions)
+    {
+      auto promise = Promise::create(IORTCForInternal::queueDelegate());
+
+      AutoRecursiveLock lock(*this);
+
+      if ((isShuttingDown()) ||
+          (isShutdown())) {
+        promise->reject(ErrorAny::create(UseHTTP::HTTPStatusCode_Gone, "transport is closing or closed"));
+        return promise;
+      }
+
+      if (!mSocket) {
+        mSetSocketOptions.push_back(PromiseSocketOptionsPair(promise, make_shared<SocketOptions>(inOptions)));
+        return promise;
+      }
+
+      auto tempOptions = make_shared<SocketOptions>(inOptions);
+      auto result = internalSetOptions(*tempOptions);
+
+      if (result) {
+        promise->resolve();
+      } else {
+        promise->reject(ErrorAny::create(UseHTTP::HTTPStatusCode_BadRequest, "failed to set socket option"));
+      }
+      return promise;
     }
 
     //-------------------------------------------------------------------------
@@ -2037,6 +2098,17 @@ namespace ortc
 
       setState(InternalState_ShuttingDown);
 
+      for (auto iter = mGetSocketOptions.begin(); iter != mGetSocketOptions.end(); ++iter) {
+        auto promise = (*iter).first;
+        promise->reject(ErrorAny::create(UseHTTP::HTTPStatusCode_Gone, "transport is shutting down"));
+      }
+      mGetSocketOptions.clear();
+      for (auto iter = mSetSocketOptions.begin(); iter != mSetSocketOptions.end(); ++iter) {
+        auto promise = (*iter).first;
+        promise->reject(ErrorAny::create(UseHTTP::HTTPStatusCode_Gone, "transport is shutting down"));
+      }
+      mSetSocketOptions.clear();
+
       if (mGracefulShutdownReference) {
 
         {
@@ -2346,6 +2418,32 @@ namespace ortc
         }
       }
 
+      for (auto iter = mSetSocketOptions.begin(); iter != mSetSocketOptions.end(); ++iter) {
+        auto promise = (*iter).first;
+        auto options = (*iter).second;
+
+        auto result = internalSetOptions(*options);
+        if (result) {
+          promise->resolve(options);
+        } else {
+          promise->reject(ErrorAny::create(UseHTTP::HTTPStatusCode_BadRequest, "failed to set socket options"));
+        }
+      }
+      mSetSocketOptions.clear();
+
+      for (auto iter = mGetSocketOptions.begin(); iter != mGetSocketOptions.end(); ++iter) {
+        auto promise = (*iter).first;
+        auto options = (*iter).second;
+
+        auto result = internalGetOptions(*options);
+        if (result) {
+          promise->resolve(options);
+        } else {
+          promise->reject(ErrorAny::create(UseHTTP::HTTPStatusCode_BadRequest, "failed to get socket options"));
+        }
+      }
+      mGetSocketOptions.clear();
+
       ZS_LOG_DEBUG(log("sctp socket prepared") + ZS_PARAM("socket", (PTRNUMBER)sock))
       return true;
     }
@@ -2397,16 +2495,16 @@ namespace ortc
 
       if (!inPacket.mOrdered) {
         spa.sendv_sndinfo.snd_flags = SCTP_UNORDERED;
-        if ((inPacket.mMaxRetransmits.hasValue()) ||
-            (Milliseconds() == inPacket.mMaxPacketLifetime)) {
-          spa.sendv_flags |= SCTP_SEND_PRINFO_VALID;
-          spa.sendv_prinfo.pr_policy = SCTP_PR_SCTP_RTX;
-          spa.sendv_prinfo.pr_value = inPacket.mMaxRetransmits.value();
-        } else {
-          spa.sendv_flags |= SCTP_SEND_PRINFO_VALID;
-          spa.sendv_prinfo.pr_policy = SCTP_PR_SCTP_TTL;
-          spa.sendv_prinfo.pr_value = SafeInt<decltype(spa.sendv_prinfo.pr_value)>(inPacket.mMaxPacketLifetime.count());
-        }
+      }
+
+      if (inPacket.mMaxRetransmits.hasValue()) {
+        spa.sendv_flags |= SCTP_SEND_PRINFO_VALID;
+        spa.sendv_prinfo.pr_policy = SCTP_PR_SCTP_RTX;
+        spa.sendv_prinfo.pr_value = inPacket.mMaxRetransmits.value();
+      } else if (0 != inPacket.mMaxPacketLifetime.count()) {
+        spa.sendv_flags |= SCTP_SEND_PRINFO_VALID;
+        spa.sendv_prinfo.pr_policy = SCTP_PR_SCTP_TTL;
+        spa.sendv_prinfo.pr_value = SafeInt<decltype(spa.sendv_prinfo.pr_value)>(inPacket.mMaxPacketLifetime.count());
       }
 
       auto result = usrsctp_sendv(
@@ -2490,7 +2588,21 @@ namespace ortc
           ZS_LOG_TRACE(log("SCTP_NOTIFICATIONS_STOPPED_EVENT"))
           break;
         case SCTP_SEND_FAILED_EVENT:
-          ZS_LOG_TRACE(log("SCTP_SEND_FAILED_EVENT"))
+          {
+            auto &failure = notification.sn_send_failed_event;
+            ZS_LOG_ERROR(Debug, log("SCTP_SEND_FAILED_EVENT") + 
+              ZS_PARAM("ssfe_assoc_id", failure.ssfe_assoc_id) + 
+              ZS_PARAM("ssfe_type", failure.ssfe_type) + 
+              ZS_PARAM("ssfe_flags", failure.ssfe_flags) +
+              ZS_PARAM("ssfe_length", failure.ssfe_length) +
+              ZS_PARAM("ssfe_error", failure.ssfe_error) +
+              ZS_PARAM("ssfe_info_snd_sid", failure.ssfe_info.snd_sid) +
+              ZS_PARAM("ssfe_info_snd_flags", failure.ssfe_info.snd_flags) +
+              ZS_PARAM("ssfe_info_snd_ppid", failure.ssfe_info.snd_ppid) +
+              ZS_PARAM("ssfe_info_snd_context", failure.ssfe_info.snd_context) +
+              ZS_PARAM("ssfe_info_snd_assoc_id", failure.ssfe_info.snd_assoc_id)
+            );
+          }
           break;
         case SCTP_STREAM_RESET_EVENT:
           ZS_LOG_TRACE(log("SCTP_STREAM_RESET_EVENT"))
@@ -2627,6 +2739,329 @@ namespace ortc
       }
     }
 
+
+    //-------------------------------------------------------------------------
+    bool SCTPTransport::internalGetOptions(SocketOptions &ioOptions) const
+    {
+      AutoRecursiveLock lock(*this);
+
+      if (!mSocket) return false;
+
+      if (ioOptions.mRTO.hasValue()) {
+        sctp_rtoinfo info {};
+        memset(&info, 0, sizeof(info));
+        info.srto_assoc_id = SCTP_FUTURE_ASSOC;
+        socklen_t len = sizeof(info);
+        auto result = usrsctp_getsockopt(mSocket, IPPROTO_SCTP, SCTP_RTOINFO, &info, &len);
+        if (result < 0) return false;
+
+        ioOptions.mRTO.value().initial_ = Milliseconds(info.srto_initial);
+        ioOptions.mRTO.value().min_ = Milliseconds(info.srto_min);
+        ioOptions.mRTO.value().max_ = Milliseconds(info.srto_max);
+      }
+
+      if (ioOptions.mAssocParams.hasValue()) {
+        sctp_assocparams info{};
+        memset(&info, 0, sizeof(info));
+        info.sasoc_assoc_id = SCTP_FUTURE_ASSOC;
+        socklen_t len = sizeof(info);
+        auto result = usrsctp_getsockopt(mSocket, IPPROTO_SCTP, SCTP_ASSOCINFO, &info, &len);
+        if (result < 0) return false;
+
+        ioOptions.mAssocParams.value().peer_rwnd_ = info.sasoc_peer_rwnd;
+        ioOptions.mAssocParams.value().local_rwnd_ = info.sasoc_local_rwnd;
+        ioOptions.mAssocParams.value().cookie_life_ = info.sasoc_cookie_life;
+        ioOptions.mAssocParams.value().asocmaxrxt_ = info.sasoc_asocmaxrxt;
+        ioOptions.mAssocParams.value().number_peer_destinations_ = info.sasoc_number_peer_destinations;
+      }
+
+      if (ioOptions.mInitMsg.hasValue()) {
+        sctp_initmsg info{};
+        memset(&info, 0, sizeof(info));
+        socklen_t len = sizeof(info);
+        auto result = usrsctp_getsockopt(mSocket, IPPROTO_SCTP, SCTP_INITMSG, &info, &len);
+        if (result < 0) return false;
+
+        ioOptions.mInitMsg.value().num_ostreams_ = info.sinit_num_ostreams;
+        ioOptions.mInitMsg.value().max_instreams_ = info.sinit_max_instreams;
+        ioOptions.mInitMsg.value().max_attempts_ = info.sinit_max_attempts;
+        ioOptions.mInitMsg.value().max_init_timeo_ = Milliseconds(info.sinit_max_init_timeo);
+      }
+
+      if (ioOptions.mAutoClose.hasValue()) {
+        int info {};
+        socklen_t len = sizeof(info);
+        auto result = usrsctp_getsockopt(mSocket, IPPROTO_SCTP, SCTP_AUTOCLOSE, &info, &len);
+        if (result < 0) return false;
+
+        ioOptions.mAutoClose.value() = Seconds(info);
+      }
+
+      if (ioOptions.mDisableFragments.hasValue()) {
+        int info{};
+        socklen_t len = sizeof(info);
+        auto result = usrsctp_getsockopt(mSocket, IPPROTO_SCTP, SCTP_DISABLE_FRAGMENTS, &info, &len);
+        if (result < 0) return false;
+
+        ioOptions.mDisableFragments.value() = (0 == info ? false : true);
+      }
+
+      if (ioOptions.mPAddrParams.hasValue()) {
+        sctp_paddrparams  info{};
+        memset(&info, 0, sizeof(info));
+        info.spp_assoc_id = SCTP_FUTURE_ASSOC;
+        info.spp_address.ss_family = AF_CONN;
+
+        socklen_t len = sizeof(info);
+        auto result = usrsctp_getsockopt(mSocket, IPPROTO_SCTP, SCTP_PEER_ADDR_PARAMS, &info, &len);
+        if (result < 0) return false;
+
+        if (0 != (info.spp_flags & SPP_HB_DEMAND)) ioOptions.mPAddrParams.value().hb_demand_ = true;
+        if (0 != (info.spp_flags & SPP_HB_ENABLE)) ioOptions.mPAddrParams.value().hb_enabled_ = true;
+        if (0 != (info.spp_flags & SPP_HB_TIME_IS_ZERO)) ioOptions.mPAddrParams.value().hb_is_zero_ = true;
+
+        ioOptions.mPAddrParams.value().hbinterval_ = Milliseconds(info.spp_hbinterval);
+        ioOptions.mPAddrParams.value().pathmaxrxt_ = info.spp_pathmaxrxt;
+      }
+
+      if (ioOptions.mMaxSeg.hasValue()) {
+        sctp_assoc_value info{};
+        memset(&info, 0, sizeof(info));
+        info.assoc_id = SCTP_FUTURE_ASSOC;
+        socklen_t len = sizeof(info);
+        auto result = usrsctp_getsockopt(mSocket, IPPROTO_SCTP, SCTP_MAXSEG, &info, &len);
+        if (result < 0) return false;
+
+        ioOptions.mMaxSeg.value() = info.assoc_value;
+      }
+
+      if (ioOptions.mFragmentInterleave.hasValue()) {
+        int info{};
+        socklen_t len = sizeof(info);
+        auto result = usrsctp_getsockopt(mSocket, IPPROTO_SCTP, SCTP_FRAGMENT_INTERLEAVE, &info, &len);
+        if (result < 0) return false;
+
+        ioOptions.mFragmentInterleave.value() = info;
+      }
+
+      if (ioOptions.mPartialDeliveryPoint.hasValue()) {
+        int info{};
+        socklen_t len = sizeof(info);
+        auto result = usrsctp_getsockopt(mSocket, IPPROTO_SCTP, SCTP_PARTIAL_DELIVERY_POINT, &info, &len);
+        if (result < 0) return false;
+
+        ioOptions.mPartialDeliveryPoint.value() = SafeInt<uint32_t>(info);
+      }
+
+      if (ioOptions.mAutoASCONF.hasValue()) {
+        int info{};
+        socklen_t len = sizeof(info);
+        auto result = usrsctp_getsockopt(mSocket, IPPROTO_SCTP, SCTP_AUTO_ASCONF, &info, &len);
+        if (result < 0) return false;
+
+        ioOptions.mAutoASCONF.value() = (0 == info ? false : true);
+      }
+
+      if (ioOptions.mMaximumBurst.hasValue()) {
+        sctp_assoc_value info{};
+        memset(&info, 0, sizeof(info));
+        info.assoc_id = SCTP_FUTURE_ASSOC;
+        socklen_t len = sizeof(info);
+        auto result = usrsctp_getsockopt(mSocket, IPPROTO_SCTP, SCTP_MAX_BURST, &info, &len);
+        if (result < 0) return false;
+
+        ioOptions.mMaximumBurst.value() = info.assoc_value;
+      }
+
+      if (ioOptions.mContext.hasValue()) {
+        sctp_assoc_value info{};
+        memset(&info, 0, sizeof(info));
+        info.assoc_id = SCTP_FUTURE_ASSOC;
+        socklen_t len = sizeof(info);
+        auto result = usrsctp_getsockopt(mSocket, IPPROTO_SCTP, SCTP_CONTEXT, &info, &len);
+        if (result < 0) return false;
+
+        ioOptions.mContext.value() = info.assoc_value;
+      }
+
+      if (ioOptions.mSackInfo.hasValue()) {
+        sctp_sack_info info{};
+        memset(&info, 0, sizeof(info));
+        info.sack_assoc_id = SCTP_FUTURE_ASSOC;
+        socklen_t len = sizeof(info);
+        auto result = usrsctp_getsockopt(mSocket, IPPROTO_SCTP, SCTP_DELAYED_SACK, &info, &len);
+        if (result < 0) return false;
+
+        ioOptions.mSackInfo.value().delay_ = Milliseconds(info.sack_delay);
+        ioOptions.mSackInfo.value().freq_ = info.sack_freq;
+      }
+
+      if (ioOptions.mStatus.hasValue()) {
+        sctp_status info{};
+        memset(&info, 0, sizeof(info));
+        socklen_t len = sizeof(info);
+        auto result = usrsctp_getsockopt(mSocket, IPPROTO_SCTP, SCTP_STATUS, &info, &len);
+        if (result < 0) return false;
+
+        ioOptions.mStatus.value().state_ = info.sstat_state;
+        ioOptions.mStatus.value().rwnd_ = info.sstat_rwnd;
+        ioOptions.mStatus.value().unackdata_ = info.sstat_unackdata;
+        ioOptions.mStatus.value().penddata_ = info.sstat_penddata;
+        ioOptions.mStatus.value().instrms_ = info.sstat_instrms;
+        ioOptions.mStatus.value().outstrms_ = info.sstat_outstrms;
+        ioOptions.mStatus.value().fragmentation_point_ = info.sstat_fragmentation_point;
+      }
+
+      return true;
+    }
+
+    //-------------------------------------------------------------------------
+    bool SCTPTransport::internalSetOptions(const SocketOptions &inOptions)
+    {
+      AutoRecursiveLock lock(*this);
+
+      if (!mSocket) return false;
+
+      if (inOptions.mRTO.hasValue()) {
+        sctp_rtoinfo info{};
+        memset(&info, 0, sizeof(info));
+        info.srto_assoc_id = SCTP_FUTURE_ASSOC;
+        info.srto_initial = SafeInt<decltype(info.srto_initial)>(inOptions.mRTO.value().initial_.count());
+        info.srto_min = SafeInt<decltype(info.srto_min)>(inOptions.mRTO.value().min_.count());
+        info.srto_max = SafeInt<decltype(info.srto_max)>(inOptions.mRTO.value().max_.count());
+        auto result = usrsctp_setsockopt(mSocket, IPPROTO_SCTP, SCTP_RTOINFO, &info, sizeof(info));
+        if (result < 0) return false;
+      }
+
+      if (inOptions.mAssocParams.hasValue()) {
+        sctp_assocparams info{};
+        memset(&info, 0, sizeof(info));
+        info.sasoc_assoc_id = SCTP_FUTURE_ASSOC;
+        info.sasoc_peer_rwnd = inOptions.mAssocParams.value().peer_rwnd_;
+        info.sasoc_local_rwnd = inOptions.mAssocParams.value().local_rwnd_;
+        info.sasoc_cookie_life = inOptions.mAssocParams.value().cookie_life_;
+        info.sasoc_asocmaxrxt = inOptions.mAssocParams.value().asocmaxrxt_;
+        info.sasoc_number_peer_destinations = inOptions.mAssocParams.value().number_peer_destinations_;
+
+        auto result = usrsctp_setsockopt(mSocket, IPPROTO_SCTP, SCTP_ASSOCINFO, &info, sizeof(info));
+        if (result < 0) return false;
+      }
+
+      if (inOptions.mInitMsg.hasValue()) {
+        sctp_initmsg info{};
+        memset(&info, 0, sizeof(info));
+        info.sinit_num_ostreams = inOptions.mInitMsg.value().num_ostreams_;
+        info.sinit_max_instreams = inOptions.mInitMsg.value().max_instreams_;
+        info.sinit_max_attempts = inOptions.mInitMsg.value().max_attempts_;
+        info.sinit_max_init_timeo = SafeInt<decltype(info.sinit_max_init_timeo)>(inOptions.mInitMsg.value().max_init_timeo_.count());
+        auto result = usrsctp_setsockopt(mSocket, IPPROTO_SCTP, SCTP_INITMSG, &info, sizeof(info));
+        if (result < 0) return false;
+      }
+
+      if (inOptions.mAutoClose.hasValue()) {
+        int info  = SafeInt<decltype(info)>(inOptions.mAutoClose.value().count());
+        auto result = usrsctp_setsockopt(mSocket, IPPROTO_SCTP, SCTP_AUTOCLOSE, &info, sizeof(info));
+        if (result < 0) return false;
+      }
+
+      if (inOptions.mDisableFragments.hasValue()) {
+        int info{};
+        info = inOptions.mDisableFragments.value() ? 1 : 0;
+        auto result = usrsctp_setsockopt(mSocket, IPPROTO_SCTP, SCTP_DISABLE_FRAGMENTS, &info, sizeof(info));
+        if (result < 0) return false;
+      }
+
+      if (inOptions.mPAddrParams.hasValue()) {
+        sctp_paddrparams  info{};
+        memset(&info, 0, sizeof(info));
+        info.spp_assoc_id = SCTP_FUTURE_ASSOC;
+        info.spp_address.ss_family = AF_CONN;
+        if (inOptions.mPAddrParams.value().hb_demand_.hasValue()) {
+          if (inOptions.mPAddrParams.value().hb_demand_.value()) {
+            info.spp_flags = info.spp_flags | SPP_HB_DEMAND;
+          }
+        }
+        if (inOptions.mPAddrParams.value().hb_enabled_.hasValue()) {
+          if (inOptions.mPAddrParams.value().hb_enabled_.value()) {
+            info.spp_flags = info.spp_flags | SPP_HB_ENABLE;
+          } else {
+            info.spp_flags = info.spp_flags | SPP_HB_DISABLE;
+          }
+        }
+        if (inOptions.mPAddrParams.value().hb_is_zero_.hasValue()) {
+          if (inOptions.mPAddrParams.value().hb_is_zero_.value()) {
+            info.spp_flags = info.spp_flags | SPP_HB_TIME_IS_ZERO;
+          }
+        }
+        info.spp_hbinterval = SafeInt<decltype(info.spp_hbinterval)>(inOptions.mPAddrParams.value().hbinterval_.count());
+        info.spp_pathmaxrxt = inOptions.mPAddrParams.value().pathmaxrxt_;
+
+        auto result = usrsctp_setsockopt(mSocket, IPPROTO_SCTP, SCTP_PEER_ADDR_PARAMS, &info, sizeof(info));
+        if (result < 0) return false;
+      }
+
+      if (inOptions.mMaxSeg.hasValue()) {
+        sctp_assoc_value info{};
+        memset(&info, 0, sizeof(info));
+        info.assoc_id = SCTP_FUTURE_ASSOC;
+        info.assoc_value = inOptions.mMaxSeg.value();
+        auto result = usrsctp_setsockopt(mSocket, IPPROTO_SCTP, SCTP_MAXSEG, &info, sizeof(info));
+        if (result < 0) return false;
+      }
+
+      if (inOptions.mFragmentInterleave.hasValue()) {
+        int info{};
+        info = inOptions.mFragmentInterleave.value();
+        auto result = usrsctp_setsockopt(mSocket, IPPROTO_SCTP, SCTP_FRAGMENT_INTERLEAVE, &info, sizeof(info));
+        if (result < 0) return false;
+      }
+
+      if (inOptions.mPartialDeliveryPoint.hasValue()) {
+        int info{};
+        info = SafeInt<int>(inOptions.mPartialDeliveryPoint.value());
+        auto result = usrsctp_setsockopt(mSocket, IPPROTO_SCTP, SCTP_PARTIAL_DELIVERY_POINT, &info, sizeof(info));
+        if (result < 0) return false;
+      }
+
+      if (inOptions.mAutoASCONF.hasValue()) {
+        int info{};
+        info = inOptions.mAutoASCONF.value() ? 1 : 0;
+        auto result = usrsctp_setsockopt(mSocket, IPPROTO_SCTP, SCTP_AUTO_ASCONF, &info, sizeof(info));
+        if (result < 0) return false;
+      }
+
+      if (inOptions.mMaximumBurst.hasValue()) {
+        sctp_assoc_value info{};
+        memset(&info, 0, sizeof(info));
+        info.assoc_id = SCTP_ALL_ASSOC;
+        info.assoc_value = inOptions.mMaximumBurst.value();
+        auto result = usrsctp_setsockopt(mSocket, IPPROTO_SCTP, SCTP_MAX_BURST, &info, sizeof(info));
+        if (result < 0) return false;
+      }
+
+      if (inOptions.mContext.hasValue()) {
+        sctp_assoc_value info{};
+        memset(&info, 0, sizeof(info));
+        info.assoc_id = SCTP_ALL_ASSOC;
+        info.assoc_value = inOptions.mContext.value();
+        auto result = usrsctp_setsockopt(mSocket, IPPROTO_SCTP, SCTP_CONTEXT, &info, sizeof(info));
+        if (result < 0) return false;
+      }
+
+      if (inOptions.mSackInfo.hasValue()) {
+        sctp_sack_info info{};
+        memset(&info, 0, sizeof(info));
+        info.sack_assoc_id = SCTP_ALL_ASSOC;
+        info.sack_delay = SafeInt<decltype(info.sack_delay)>(inOptions.mSackInfo.value().delay_.count());
+        info.sack_freq = inOptions.mSackInfo.value().freq_;
+        auto result = usrsctp_setsockopt(mSocket, IPPROTO_SCTP, SCTP_DELAYED_SACK, &info, sizeof(info));
+        if (result < 0) return false;
+      }
+
+      return true;
+    }
+
+
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -2725,6 +3160,35 @@ namespace ortc
     hasher->update(":");
     hasher->update(mMaxSessionsPerPort);
     return hasher->finalizeAsString();
+  }
+
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  //---------------------------------------------------------------------------
+  #pragma mark
+  #pragma mark ISCTPTransportTypes::SocketOptions
+  #pragma mark
+
+  //---------------------------------------------------------------------------
+  bool ISCTPTransportTypes::SocketOptions::hasValue() const
+  {
+    if (mRTO.hasValue() ||
+        mAssocParams.hasValue() ||
+        mInitMsg.hasValue() ||
+        mAutoClose.hasValue() ||
+        mDisableFragments.hasValue() ||
+        mPAddrParams.hasValue() ||
+        mMaxSeg.hasValue() ||
+        mFragmentInterleave.hasValue() ||
+        mPartialDeliveryPoint.hasValue() ||
+        mAutoASCONF.hasValue() ||
+        mMaximumBurst.hasValue() ||
+        mContext.hasValue() ||
+        mSackInfo.hasValue() ||
+        mStatus.hasValue()) return true;
+
+    return false;
   }
 
   //---------------------------------------------------------------------------

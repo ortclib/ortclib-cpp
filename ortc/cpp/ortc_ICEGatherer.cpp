@@ -362,7 +362,7 @@ namespace ortc
 
         {
           UseBackOffTimerPatternPtr pattern = UseBackOffTimerPattern::create();
-          pattern->addNextRetryAfterFailureDuration(Seconds(1));
+          pattern->addNextRetryAfterFailureDuration(Milliseconds(10));
           pattern->addNextRetryAfterFailureDuration(Seconds(1));
           pattern->setMultiplierForLastRetryAfterFailureDuration(2.0);
           pattern->setMaxRetryAfterFailureDuration(Seconds(120));
@@ -397,6 +397,29 @@ namespace ortc
         ISettings::setBool(ORTC_SETTING_GATHERER_GATHER_PASSIVE_TCP_CANDIDATES, true);
 
         ISettings::setUInt(ORTC_SETTING_GATHERER_RECHECK_IP_ADDRESSES_IN_SECONDS, 60);
+
+        {
+          zsLib::RangeSelection<WORD> range;
+#ifdef _WIN32
+          range.allow(5000, 65535);
+          range.deny(443, 443);
+          range.deny(500, 500);
+          range.deny(1900, 1900);
+          range.deny(2869, 2869);
+          range.deny(3074, 3074);
+          range.deny(3076, 3076);
+          range.deny(4016, 4016);
+          range.deny(4211, 4211);
+          range.deny(4222, 4223);
+          range.deny(4500, 4500);
+          range.deny(4600, 4601);
+          range.deny(5355, 5355);
+          range.deny(49152, 57343);
+#else
+          range.allow(5000, 65535);
+#endif //_WIN32
+          range.exportToSetting(ORTC_SETTING_GATHERER_PORT_RESTRICTIONS);
+        }
       }
       
     };
@@ -573,7 +596,8 @@ namespace ortc
       mMaxTotalBuffers(ISettings::getUInt(ORTC_SETTING_GATHERER_MAX_TOTAL_INCOMING_PACKET_BUFFERING)),
       mMaxTCPBufferingSizePendingConnection(ISettings::getUInt(ORTC_SETTING_GATHERER_MAX_PENDING_OUTGOING_TCP_SOCKET_BUFFERING_IN_BYTES)),
       mMaxTCPBufferingSizeConnected(ISettings::getUInt(ORTC_SETTING_GATHERER_MAX_CONNECTED_TCP_SOCKET_BUFFERING_IN_BYTES)),
-      mGatherPassiveTCP(ISettings::getBool(ORTC_SETTING_GATHERER_GATHER_PASSIVE_TCP_CANDIDATES))
+      mGatherPassiveTCP(ISettings::getBool(ORTC_SETTING_GATHERER_GATHER_PASSIVE_TCP_CANDIDATES)),
+      mPortRestriction(RangeSelection::createFromSetting(ORTC_SETTING_GATHERER_PORT_RESTRICTIONS))
     {
       mSTUNPacketParseOptions = STUNPacket::ParseOptions(STUNPacket::RFC_AllowAll, false, "ortc::ICEGatherer", mID);
 
@@ -3205,7 +3229,7 @@ namespace ortc
             hostPort->mBindUDPBackOffTimer->notifyAttempting();
 
             IPAddress bindIP(hostPort->mHostData->mIP);
-            hostPort->mBoundUDPSocket = bind(firstAttempt, bindIP, IICETypes::Protocol_UDP);
+            bind(hostPort->mBoundUDPSocket, hostPort->mBoundUDPSocketDelegateHolder, firstAttempt, bindIP, IICETypes::Protocol_UDP);
             if (hostPort->mBoundUDPSocket) {
               ZS_EVENTING_4(
                             x, i, Debug, IceGathererHostPortBind, ol, IceGatherer, HostSocketBind,
@@ -3255,7 +3279,7 @@ namespace ortc
               hostPort->mBindTCPBackOffTimer->notifyAttempting();
 
               IPAddress bindIP(hostPort->mHostData->mIP);
-              hostPort->mBoundTCPSocket = bind(firstAttempt, bindIP, IICETypes::Protocol_TCP);
+              bind(hostPort->mBoundTCPSocket, hostPort->mBoundTCPSocketDelegateHolder, firstAttempt, bindIP, IICETypes::Protocol_TCP);
               if (hostPort->mBoundTCPSocket) {
                 ZS_EVENTING_4(
                               x, i, Debug, IceGathererHostPortBind, ol, IceGatherer, HostSocketBind,
@@ -4531,7 +4555,7 @@ namespace ortc
             return true;
           }
         }
-        if (0 == (FilterPolicy_NoIPv4Srflx & policy)) {
+        if (0 == (FilterPolicy_NoIPv4Relay & policy)) {
           if (hasTURNServers()) {
             ZS_LOG_TRACE(log("host port needed because relay ports are not filtered"))
             return true;
@@ -4571,7 +4595,7 @@ namespace ortc
             return true;
           }
         }
-        if (0 == (FilterPolicy_NoIPv6Srflx & policy)) {
+        if (0 == (FilterPolicy_NoIPv6Relay & policy)) {
           if (hasTURNServers()) {
             ZS_LOG_TRACE(log("host port needed because relay ports are not filtered"))
             return true;
@@ -4901,17 +4925,20 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    SocketPtr ICEGatherer::bind(
-                                bool firstAttempt,
-                                IPAddress &ioBindIP,
-                                IICETypes::Protocols protocol
-                                )
+    void ICEGatherer::bind(
+                           SocketPtr &outSocket,
+                           SocketDelegatePtr &outSocketDelegate,
+                           bool firstAttempt,
+                           IPAddress &ioBindIP,
+                           IICETypes::Protocols protocol
+                           )
     {
       ZS_LOG_DEBUG(log("attempting to bind to IP") + ZS_PARAM("ip", ioBindIP.string()));
 
       auto createFamily = (ioBindIP.isIPv6() ? Socket::Create::IPv6 : Socket::Create::IPv4);
 
       SocketPtr socket;
+      SocketDelegatePtr socketDelegate = SocketDelegate::create(IORTCForInternal::queueORTCPipeline(), mThisWeak.lock());
 
       try {
         switch (protocol) {
@@ -4927,6 +4954,10 @@ namespace ortc
           } else {
             ZS_LOG_WARNING(Debug, log("will not attempt to rebind to default port") + ZS_PARAM("ip address", ioBindIP.string()))
           }
+        } else if (!firstAttempt) {
+          WORD selectedPort = mPortRestriction.getRandomPosition(IHelper::random(0, 0xFFFF));
+          ioBindIP.setPort(selectedPort);
+          ZS_LOG_DEBUG(log("will attempt to bind to chosen port") + ZS_PARAM("ip address", ioBindIP.string()))
         }
 
         socket->bind(ioBindIP);
@@ -4941,11 +4972,15 @@ namespace ortc
 
         IPAddress local = socket->getLocalAddress();
 
-        socket->setDelegate(mThisWeak.lock());
+        socket->setDelegate(socketDelegate);
 
         WORD bindPort = local.getPort();
         ioBindIP.setPort(bindPort);
         if (0 == mDefaultPort) {
+          if (!mPortRestriction.isAllowed(bindPort)) {
+            ZS_LOG_WARNING(Detail, log("OS selected a port that is within the denied ports allowed (will attempt rebind on random, non OS chosen, and non denied port)") + ZS_PARAM("port", bindPort));
+            ZS_THROW_CUSTOM_PROPERTIES_1(Socket::Exceptions::Unspecified, 0, String("OS port selection was within denied port range: " + string(bindPort)));
+          }
           mDefaultPort = bindPort;
           ZS_LOG_TRACE(log("selected default bind port") + ZS_PARAMIZE(mDefaultPort))
         }
@@ -4978,14 +5013,15 @@ namespace ortc
     bind_success:
       {
         ZS_LOG_DEBUG(log("bind successful") + ZS_PARAM("bind ip", ioBindIP.string()))
-        return socket;
+        outSocket = socket;
+        outSocketDelegate = socketDelegate;
+        return;
       }
 
     bind_failure:
       {
         ZS_LOG_WARNING(Debug, log("bind failure") + ZS_PARAM("bind ip", ioBindIP.string()))
       }
-      return SocketPtr();
     }
     
     //-------------------------------------------------------------------------
@@ -5358,7 +5394,8 @@ namespace ortc
           try {
             totalRead = socket->receiveFrom(fromIP, readBuffer, sizeof(readBuffer), &wouldBlock);
           } catch(Socket::Exceptions::Unspecified &error) {
-            ZS_LOG_WARNING(Debug, log("socket read error") + ZS_PARAM("socket", string(socket)) + ZS_PARAM("error", error.errorCode()))
+            ZS_LOG_WARNING(Debug, log("socket read error") + ZS_PARAM("socket", string(socket)) + ZS_PARAM("error", error.errorCode()));
+            socket->onReadReadyReset();
             return false;
           }
 
@@ -5441,7 +5478,8 @@ namespace ortc
             mTCPPorts[tcpPort->mSocket] = HostAndTCPPortPair(hostPort, tcpPort);
             hostPort->mTCPPorts[tcpPort->mSocket] = HostAndTCPPortPair(hostPort, tcpPort);
 
-            tcpPort->mSocket->setDelegate(mThisWeak.lock());
+            tcpPort->mSocketDelegateHolder = SocketDelegate::create(IORTCForInternal::queueORTCPipeline(), mThisWeak.lock());
+            tcpPort->mSocket->setDelegate(tcpPort->mSocketDelegateHolder);
 
             tcpPort->mCandidate = hostPort->mCandidateTCPPassive;
 
@@ -5554,6 +5592,15 @@ namespace ortc
             tcpPort.mIncomingBuffer.Put(&(buffer[0]), read);
           } catch(Socket::Exceptions::Unspecified &error) {
             ZS_LOG_ERROR(Detail, log("unable to receive from socket") + ZS_PARAM("error", error.errorCode()) + tcpPort.toDebug());
+
+            // simulate a socket exception since the receive threw an exception
+            {
+              auto closeSocket = tcpPort.mSocket;
+              auto pThis = mThisWeak.lock();
+              postClosure([pThis, closeSocket] {
+                pThis->onException(closeSocket);
+              });
+            }
             goto process_packets;
           }
 
@@ -5731,7 +5778,17 @@ namespace ortc
           // consume the amount sent from the pending queue (and try sending more)
           tcpPort.mOutgoingBuffer.Skip(sent);
         } catch(Socket::Exceptions::Unspecified &error) {
-          ZS_LOG_ERROR(Detail, log("unable to send to socket") + ZS_PARAM("error", error.errorCode()) + tcpPort.toDebug())
+          ZS_LOG_ERROR(Detail, log("unable to send to socket") + ZS_PARAM("error", error.errorCode()) + tcpPort.toDebug());
+
+          // simulate a socket exception since the receive threw an exception
+          {
+            auto closeSocket = tcpPort.mSocket;
+            auto pThis = mThisWeak.lock();
+            postClosure([pThis, closeSocket] {
+              pThis->onException(closeSocket);
+            });
+          }
+
           goto finished_write;
         }
       }
@@ -6021,6 +6078,7 @@ namespace ortc
                       size, size, bufferSizeInBytes
                       );
         transport->notifyPacket(routerRoute, buffer, bufferSizeInBytes);
+        return;
       }
 
     buffer_data_now:
@@ -6320,7 +6378,8 @@ namespace ortc
                   bool woudlBlock = false;
 
                   tcpPort->mSocket->setBlocking(false);
-                  tcpPort->mSocket->setDelegate(mThisWeak.lock());
+                  tcpPort->mSocketDelegateHolder = SocketDelegate::create(IORTCForInternal::queueORTCPipeline(), mThisWeak.lock());
+                  tcpPort->mSocket->setDelegate(tcpPort->mSocketDelegateHolder);
                   tcpPort->mSocket->connect(remoteIP, &woudlBlock);
                 } catch(Socket::Exceptions::Unspecified &error) {
                   ZS_LOG_WARNING(Detail, log("failed to create an outgoing TCP connection") + ZS_PARAM("error", error.errorCode()) + ZS_PARAM("local ip", localIP.string()) + ZS_PARAM("remote ip", remoteIP.string()))
@@ -6500,7 +6559,8 @@ namespace ortc
 
         if (sent == bufferSizeInBytes) return true;
       } catch(Socket::Exceptions::Unspecified &error) {
-        ZS_LOG_ERROR(Debug, log("unable to send packet") + ZS_PARAM("error", error.errorCode()) + ZS_PARAM("to", remoteIP.string()) + ZS_PARAM("from", boundIP.string()))
+        ZS_LOG_ERROR(Debug, log("unable to send packet") + ZS_PARAM("error", error.errorCode()) + ZS_PARAM("to", remoteIP.string()) + ZS_PARAM("from", boundIP.string()));
+        socket->onWriteReadyReset();
         return false;
       }
 
