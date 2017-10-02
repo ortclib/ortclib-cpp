@@ -420,7 +420,10 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool ORTC::isMRPInstalled()
     {
-      return IRTPMediaEngineForORTC::isMRPInstalled();
+#define TODO_NEED_THIS_MRP_INSTALLED_API_IMPLEMENTED 1
+#define TODO_NEED_THIS_MRP_INSTALLED_API_IMPLEMENTED 2
+//      return IRTPMediaEngineForORTC::isMRPInstalled();
+      return true;
     }
 
     //-------------------------------------------------------------------------
