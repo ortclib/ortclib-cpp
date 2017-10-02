@@ -727,6 +727,11 @@ static_library("ortclib_static") {
   
   # Suppress warnings from the Chromium Clang plugin (bugs.webrtc.org/163).
   configs -= [ "//build/config/clang:find_bad_constructs" ]
+
+  public_deps = [ 
+    ":ortclib_events",
+    ":ortclib_idl",
+  ]
 }
 
 
@@ -760,8 +765,7 @@ shared_library("ortclib") {
     "../../third_party/boringssl/src/include",  
   ]
 
-  #sources = ["$target_gen_dir/../../../../../ortc/ortclib/ortc/idl//moj.cpp"]
-  sources = ortc_sources
+   sources = ortc_sources
 
   lib_dirs = [ 
     "/usr/lib",
@@ -776,10 +780,8 @@ shared_library("ortclib") {
     "//ortc/udns",
     "//ortc/idnkit",
     "//build/config:exe_and_shlib_deps",
-    ":ortclib_static",
     ":ortclib_generated_static",
     "//ortc/ortclib-services",
-    ":ortclib_idl",
   ]
 
   defines = [
@@ -842,9 +844,8 @@ static_library("ortclib_generated_static") {
     defines += [ "WEBRTC_WIN", ]
   }
   
-  deps = [ 
-    ":ortclib_events",
-    ":ortclib_idl",
+  public_deps = [ 
+    ":ortclib_static",
   ]
 
   # Suppress warnings from the Chromium Clang plugin (bugs.webrtc.org/163).
