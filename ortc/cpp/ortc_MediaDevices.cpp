@@ -164,7 +164,8 @@ namespace ortc
                                IMessageQueuePtr queue
                                ) :
       MessageQueueAssociator(queue),
-      SharedRecursiveLock(SharedRecursiveLock::create())
+      SharedRecursiveLock(SharedRecursiveLock::create()),
+      mSubscriptions(decltype(mSubscriptions)::create())
     {
       ZS_LOG_DETAIL(debug("created"))
     }

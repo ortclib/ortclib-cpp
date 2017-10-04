@@ -523,6 +523,7 @@ namespace ortc
                              ) :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
+      mSubscriptions(decltype(mSubscriptions)::create()),
       mKind(kind),
       mChannels(make_shared<ChannelWeakMap>()),
       mSSRCTableExpires(Seconds(ISettings::getUInt(ORTC_SETTING_RTP_RECEIVER_SSRC_TIMEOUT_IN_SECONDS))),

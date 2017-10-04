@@ -153,6 +153,8 @@ namespace ortc
                                          ) :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
+      mSubscriptions(decltype(mSubscriptions)::create()),
+      mSecureTransportSubscriptions(decltype(mSecureTransportSubscriptions)::create()),
       mICETransportRTP(ICETransport::convert(iceTransport))
     {
       ZS_LOG_DETAIL(debug("created"))

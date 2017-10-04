@@ -152,6 +152,7 @@ namespace ortc
                            ) :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
+      mSubscriptions(decltype(mSubscriptions)::create()),
       mRTPSender(RTPSender::convert(sender))
     {
       ZS_LOG_DETAIL(debug("created"))

@@ -387,7 +387,9 @@ namespace ortc
                                  ) :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
+      mSubscriptions(decltype(mSubscriptions)::create()),
       mICETransport(ICETransport::convert(iceTransport)),
+      mSecureTransportSubscriptions(decltype(mSecureTransportSubscriptions)::create()),
       mComponent(mICETransport->component()),
       mMaxPendingDTLSBuffer(ISettings::getUInt(ORTC_SETTING_DTLS_TRANSPORT_MAX_PENDING_DTLS_BUFFER)),
       mMaxPendingRTPPackets(ISettings::getUInt(ORTC_SETTING_DTLS_TRANSPORT_MAX_PENDING_RTP_PACKETS)),

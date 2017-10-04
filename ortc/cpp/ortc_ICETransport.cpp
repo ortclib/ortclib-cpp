@@ -221,7 +221,9 @@ namespace ortc
                                ) :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
+      mSubscriptions(decltype(mSubscriptions)::create()),
       mGatherer(ICEGatherer::convert(gatherer)),
+      mLegalRoutesComputeQueue(IORTCForInternal::queueORTC()),
       mRouteStateTracker(make_shared<RouteStateTracker>(mID)),
       mNoPacketsReceivedRecheckTime(ISettings::getUInt(ORTC_SETTING_ICE_TRANSPORT_NO_PACKETS_RECEVIED_RECHECK_CANDIDATES_IN_SECONDS)),
       mExpireRouteTime(ISettings::getUInt(ORTC_SETTING_ICE_TRANSPORT_EXPIRE_ROUTE_IN_SECONDS)),
@@ -229,8 +231,7 @@ namespace ortc
       mBlacklistConsent(ISettings::getBool(ORTC_SETTING_ICE_TRANSPORT_BLACKLIST_AFTER_CONSENT_REMOVAL)),
       mKeepWarmTimeBase(ISettings::getUInt(ORTC_SETTING_ICE_TRANSPORT_KEEP_WARM_TIME_BASE_IN_MILLISECONDS)),
       mKeepWarmTimeRandomizedAddTime(ISettings::getUInt(ORTC_SETTING_ICE_TRANSPORT_KEEP_WARM_TIME_RANDOMIZED_ADD_TIME_IN_MILLISECONDS)),
-      mMaxBufferedPackets(ISettings::getUInt(ORTC_SETTING_ICE_TRANSPORT_MAX_BUFFERED_FOR_SECURE_TRANSPORT)),
-      mLegalRoutesComputeQueue(IORTCForInternal::queueORTC())
+      mMaxBufferedPackets(ISettings::getUInt(ORTC_SETTING_ICE_TRANSPORT_MAX_BUFFERED_FOR_SECURE_TRANSPORT))
     {
       ZS_LOG_BASIC(debug("created"));
 

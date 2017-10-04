@@ -276,6 +276,7 @@ namespace ortc
                                                  ) :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
+      mSubscriptions(decltype(mSubscriptions)::create()),
       mSecureTransport(DTLSTransport::convert(secureTransport)),
       mMaxPorts(SafeInt<decltype(mMaxPorts)>(ISettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_LISTENER_MAX_PORTS))),
       mCurrentAllocationPort(SafeInt<decltype(mCurrentAllocationPort)>(ISettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_LISTENER_DEFAULT_PORT))),

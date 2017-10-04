@@ -583,6 +583,7 @@ namespace ortc
                              ) :
       MessageQueueAssociator(options.mQueue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
+      mSubscriptions(decltype(mSubscriptions)::create()),
       mGathererRouter(ICEGathererRouter::create()),
       mComponent(options.mComponent),
       mUsernameFrag(options.mUsernameFragment.hasData() ? options.mUsernameFragment : IHelper::randomString(ISettings::getUInt(ORTC_SETTING_GATHERER_USERNAME_FRAG_LENGTH))),

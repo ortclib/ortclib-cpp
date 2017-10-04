@@ -275,6 +275,7 @@ namespace ortc
                              ) :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
+      mSubscriptions(decltype(mSubscriptions)::create()),
       mDataTransport(transport),
       mIncoming(ORTC_SCTP_INVALID_DATA_CHANNEL_SESSION_ID != sessionID),
       mSessionID(ORTC_SCTP_INVALID_DATA_CHANNEL_SESSION_ID == sessionID ? (params->mID.hasValue() ? params->mID.value() : ORTC_SCTP_INVALID_DATA_CHANNEL_SESSION_ID) : sessionID),

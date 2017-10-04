@@ -445,8 +445,8 @@ namespace ortc
       WORD localPort() const override;
       Optional<WORD> remotePort() const override;
 
-      virtual PromiseWithSocketOptionsPtr getOptions(const SocketOptions &inWhichOptions);
-      virtual PromisePtr setOptions(const SocketOptions &inOptions);
+      PromiseWithSocketOptionsPtr getOptions(const SocketOptions &inWhichOptions) override;
+      PromisePtr setOptions(const SocketOptions &inOptions) override;
 
       virtual void start(
                          const Capabilities &remoteCapabilities,
@@ -742,11 +742,11 @@ ZS_DECLARE_TEAR_AWAY_METHOD_CONST_RETURN_0(state, States)
 ZS_DECLARE_TEAR_AWAY_METHOD_CONST_RETURN_0(port, WORD)
 ZS_DECLARE_TEAR_AWAY_METHOD_CONST_RETURN_0(localPort, WORD)
 ZS_DECLARE_TEAR_AWAY_METHOD_CONST_RETURN_0(remotePort, Optional<WORD>)
-  virtual PromiseWithSocketOptionsPtr getOptions(const SocketOptions &inWhichOptions)
+  PromiseWithSocketOptionsPtr getOptions(const SocketOptions &inWhichOptions) override
   {
     return getDelegate()->getOptions(inWhichOptions);
   }
-  virtual PromisePtr setOptions(const SocketOptions &inOptions)
+  PromisePtr setOptions(const SocketOptions &inOptions) override
   {
     return getDelegate()->setOptions(inOptions);
   }

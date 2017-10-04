@@ -417,6 +417,7 @@ namespace ortc
                                  ) throw(InvalidParameters) :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
+      mSubscriptions(decltype(mSubscriptions)::create()),
       mSecureTransport(secureTransport),
       mSRTPInit(SRTPInit::singleton())
     {

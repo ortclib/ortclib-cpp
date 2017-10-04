@@ -48,6 +48,7 @@
 #include <ortc/IMediaDevices.h>
 #include <ortc/IMediaElement.h>
 #include <ortc/IMediaStreamTrack.h>
+#include <ortc/IMediaStreamTrackSelector.h>
 #include <ortc/IRTPTypes.h>
 #include <ortc/IRTPListener.h>
 #include <ortc/IRTPSender.h>

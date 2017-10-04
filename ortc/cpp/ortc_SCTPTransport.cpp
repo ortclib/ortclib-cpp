@@ -711,6 +711,8 @@ namespace ortc
       SharedRecursiveLock(SharedRecursiveLock::create()),
       mSCTPInit(SCTPInit::singleton()),
       mMaxSessionsPerPort(ISettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_SESSIONS_PER_PORT)),
+      mSubscriptions(decltype(mSubscriptions)::create()),
+      mDataChannelSubscriptions(decltype(mDataChannelSubscriptions)::create()),
       mListener(listener),
       mSecureTransport(secureTransport),
       mDeliveryQueue(IORTCForInternal::queueORTCPipeline()),

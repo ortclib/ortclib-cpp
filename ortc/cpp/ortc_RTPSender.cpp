@@ -349,6 +349,8 @@ namespace ortc
                          ) :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
+      mSubscriptions(decltype(mSubscriptions)::create()),
+      mDTMFSubscriptions(decltype(mDTMFSubscriptions)::create()),
       mTrack(MediaStreamTrack::convert(track)),
       mChannels(make_shared<ParametersToChannelHolderMap>())
     {

@@ -429,6 +429,7 @@ namespace ortc
                              ) :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
+      mSubscriptions(decltype(mSubscriptions)::create()),
       mRTPTransport(transport),
       mMaxBufferedRTPPackets(SafeInt<decltype(mMaxBufferedRTPPackets)>(ISettings::getUInt(ORTC_SETTING_RTP_LISTENER_MAX_RTP_PACKETS_IN_BUFFER))),
       mMaxRTPPacketAge(ISettings::getUInt(ORTC_SETTING_RTP_LISTENER_MAX_AGE_RTP_PACKETS_IN_SECONDS)),
