@@ -2393,7 +2393,7 @@ namespace ortc
 
         deviceID = constraints->mAdvanced.front()->mDeviceID.mValue.value().mValue.value();
 
-        int audioDeviceIndex = getAudioDeviceIndex(voiceEngine, mDeviceID);
+        int audioDeviceIndex = getAudioDeviceIndex(voiceEngine, deviceID);
 
         if (webrtc::VoEHardware::GetInterface(voiceEngine)->SetRecordingDevice(audioDeviceIndex) == -1) {
           notifyPromisesReject();
@@ -3196,9 +3196,19 @@ namespace ortc
           codec.channels = codecIter->mNumChannels;
         switch (supportedCodec) {
           case IRTPTypes::SupportedCodec_Opus:
-            codec.rate = 48000;
+          {
+            auto opusParameters = IRTPTypes::OpusCodecParameters::convert(codecIter->mParameters);
+            if (opusParameters->mStereo.hasValue())
+              if (opusParameters->mStereo)
+                codec.channels = 2;
+              else
+                codec.channels = 1;
+            if (codec.channels == 1)
+              codec.pacsize /= 2;
+            codec.rate = 32000 * codec.channels;
             webrtc::VoECodec::GetInterface(voiceEngine)->SetRecPayloadType(channel, codec);
             goto set_rtcp_feedback;
+          }
           case IRTPTypes::SupportedCodec_Isac:
           case IRTPTypes::SupportedCodec_G722:
           case IRTPTypes::SupportedCodec_ILBC:
@@ -3876,9 +3886,16 @@ namespace ortc
         switch (supportedCodec) {
           case IRTPTypes::SupportedCodec_Opus:
           {
+            auto parameters = IRTPTypes::OpusCodecParameters::convert(codecIter->mParameters);
+            if (parameters->mStereo.hasValue())
+              if (parameters->mStereo)
+                codec.channels = 2;
+              else
+                codec.channels = 1;
+            if (codec.channels == 1)
+              codec.pacsize /= 2;
             codec.rate = 32000 * codec.channels;
             webrtc::VoECodec::GetInterface(voiceEngine)->SetSendCodec(channel, codec);
-            auto parameters = IRTPTypes::OpusCodecParameters::convert(codecIter->mParameters);
             if (parameters->mUseInbandFEC.hasValue())
               webrtc::VoECodec::GetInterface(voiceEngine)->SetFECStatus(channel, parameters->mUseInbandFEC);
             if (parameters->mUseDTX.hasValue())

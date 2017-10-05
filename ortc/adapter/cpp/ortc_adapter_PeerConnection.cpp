@@ -2274,7 +2274,7 @@ namespace ortc
             }
 
             mediaLineInfo->mLocalReceiverCapabilities = UseAdapterHelper::createUnion(mediaLineInfo->mLocalReceiverCapabilities ? (*mediaLineInfo->mLocalReceiverCapabilities) : (*IRTPReceiver::getCapabilities(IMediaStreamTrack::toKind(mediaLine.mMediaType))), *mediaLineInfo->mRemoteSenderCapabilities, mediaLineInfo->mIDPreference);
-            mediaLineInfo->mLocalSenderCapabilities = UseAdapterHelper::createUnion(mediaLineInfo->mLocalSenderCapabilities ? (*mediaLineInfo->mLocalSenderCapabilities) : (*IRTPSender::getCapabilities(IMediaStreamTrack::toKind(mediaLine.mMediaType))), *mediaLineInfo->mRemoteSenderCapabilities, mediaLineInfo->mIDPreference);
+            mediaLineInfo->mLocalSenderCapabilities = UseAdapterHelper::createUnion(mediaLineInfo->mLocalSenderCapabilities ? (*mediaLineInfo->mLocalSenderCapabilities) : (*IRTPSender::getCapabilities(IMediaStreamTrack::toKind(mediaLine.mMediaType))), *mediaLineInfo->mRemoteReceiverCapabilities, mediaLineInfo->mIDPreference);
 
             if (!UseAdapterHelper::hasSupportedMediaCodec(*mediaLineInfo->mLocalReceiverCapabilities)) {
               ZS_LOG_WARNING(Detail, log("no supported media codec found") + mediaLineInfo->toDebug());
