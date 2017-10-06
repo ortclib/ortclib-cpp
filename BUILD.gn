@@ -375,7 +375,7 @@ ortc_sources_cxx_generated = [
 
 ortc_sources = []
 
-if(is_win && !is_winuwp){
+if(!is_winuwp){
 ortc_sources = [
  "$target_gen_dir/../../../../../ortc/ortclib/ortc/idl/wrapper/generated/c/c_org_ortc_RTCSrtpTransportStats.h",
  "$target_gen_dir/../../../../../ortc/ortclib/ortc/idl/wrapper/generated/c/c_org_ortc_RTCRtpRtxCodecParameterSettings.h",
@@ -693,7 +693,7 @@ ortc_sources = [
 ]
 }
 
-if(is_win && is_winuwp){
+if(is_winuwp){
  ortc_sources = [
   "$target_gen_dir/../../../../../ortc/ortclib/ortc/idl/wrapper/generated/cx/cx_Helpers.cpp",
   "$target_gen_dir/../../../../../ortc/ortclib/ortc/idl/wrapper/generated/cx/cx_Helpers.h",
@@ -1089,6 +1089,12 @@ shared_library("ortclib") {
     "../../third_party/libsrtp/include",
     "../../third_party/libsrtp/crypto/include", 
     "../../third_party/boringssl/src/include",  
+    "../..",
+    "../../ortc",
+    "../ortclib",
+    "../ortclib/ortc",
+    "../ortclib/ortc/idl",
+    "../ortclib/ortc/idl/wrapper",
   ]
 
    sources = ortc_sources
