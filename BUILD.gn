@@ -725,8 +725,10 @@ static_library("ortclib_static") {
     defines += [ "WEBRTC_WIN", ]
   }
   
-  # Suppress warnings from the Chromium Clang plugin (bugs.webrtc.org/163).
-  configs -= [ "//build/config/clang:find_bad_constructs" ]
+  if (is_linux) {
+    # Suppress warnings from the Chromium Clang plugin (bugs.webrtc.org/163).
+    configs -= [ "//build/config/clang:find_bad_constructs" ]
+  }
 
   public_deps = [ 
     ":ortclib_events",
@@ -802,8 +804,10 @@ shared_library("ortclib") {
     ]
   }
 
-  # Suppress warnings from the Chromium Clang plugin (bugs.webrtc.org/163).
-  configs -= [ "//build/config/clang:find_bad_constructs" ]
+  if (is_linux) {
+    # Suppress warnings from the Chromium Clang plugin (bugs.webrtc.org/163).
+    configs -= [ "//build/config/clang:find_bad_constructs" ]
+  }
 
 }
 
@@ -848,8 +852,10 @@ static_library("ortclib_generated_static") {
     ":ortclib_static",
   ]
 
-  # Suppress warnings from the Chromium Clang plugin (bugs.webrtc.org/163).
-  configs -= [ "//build/config/clang:find_bad_constructs" ]
+  if (is_linux) {
+    # Suppress warnings from the Chromium Clang plugin (bugs.webrtc.org/163).
+    configs -= [ "//build/config/clang:find_bad_constructs" ]
+  }
 }
 
 compile_event_macro("ortclib_events") {
