@@ -50,7 +50,7 @@
 
 #include <webrtc/rtc_base/logging.h>
 #include <webrtc/system_wrappers/include/trace.h>
-#include <webrtc/base/tracelog.h>
+//#include <webrtc/rtc_base/tracelog.h>
 
 namespace ortc
 {
@@ -870,7 +870,7 @@ namespace ortc
 
       std::unique_ptr<WebRtcTraceCallback> traceCallback_;
       std::unique_ptr<WebRtcLogSink> logSink_;
-      rtc::TraceLog traceLog_;
+      //rtc::TraceLog traceLog_;
 
       States currentState_ {State_Pending};
       WORD lastError_ {};
