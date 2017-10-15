@@ -17,9 +17,6 @@ config("ortclib_config") {
         cflags_cc += [
             "-Wall",
             "-std=c++11",
-            "-stdlib=libc++",
-            "-lc++",
-            "-lc++abi",
         ]
      }
 
@@ -1147,13 +1144,15 @@ shared_library("ortclib") {
     "//ortc/cryptopp",
     "//ortc/udns",
     "//ortc/idnkit",
-    "//build/config:exe_and_shlib_deps",
     ":ortclib_generated_static",
     "//ortc/ortclib-services",
     "//third_party/boringssl:boringssl",
     "//third_party/usrsctp:usrsctp", 
-    "//third_party/libsrtp:libsrtp",    
-    "//webrtc/modules/video_capture",    
+    "//third_party/libsrtp:libsrtp",   
+    "//webrtc/modules/audio_device",
+    "//webrtc/system_wrappers:metrics_default",
+    "//webrtc/modules/video_capture:video_capture_module",
+    "//webrtc/modules/video_capture"
   ]
 
   defines = [
