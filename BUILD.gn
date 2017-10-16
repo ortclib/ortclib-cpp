@@ -1103,7 +1103,7 @@ shared_library("ortclib") {
       "/usr/lib",
       "/usr/lib/x86_64-linux-gnu",
     ]
-    libs = [ "uuid", "stdc++", "curl", "ssl", "crypto" ]
+    libs = [ "uuid", "curl", "ssl", "crypto" ]
   }
 
   if ((target_os == "winuwp_10") && (target_cpu == "x64") && is_debug) {
