@@ -29,6 +29,8 @@
  
  */
 
+#define ZS_DECLARE_TEMPLATE_GENERATE_IMPLEMENTATION
+
 #include <ortc/adapter/internal/ortc_adapter_MediaStream.h>
 
 #include <ortc/internal/ortc_MediaStreamTrack.h>
