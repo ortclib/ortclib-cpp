@@ -1109,38 +1109,38 @@ shared_library("ortclib") {
     libs = [ "uuid", "stdc++", "curl", "ssl", "crypto" ]
   }
 
-  if ((target_os == "winuwp_10") && (target_cpu == "x64") && (is_debug == "true")) {
+  if ((target_os == "winuwp_10") && (target_cpu == "x64") && is_debug) {
     lib_dirs = [
        "..\..\ortc\curl\x64-debug-dll\lib",
     ]
     libs = [ "libcurl.lib" ]    
-  } else if ((target_os == "winuwp_10") && (target_cpu == "x64") && (is_debug == "false")) {
+  } else if ((target_os == "winuwp_10") && (target_cpu == "x64") && !is_debug) {
     lib_dirs = [
        "..\..\ortc\curl\x64-release-dll\lib",
     ]
     libs = [ "libcurl.lib" ]
-  } else if ((target_os == "winuwp_10") && (target_cpu == "x86") && (is_debug == "true")) {
+  } else if ((target_os == "winuwp_10") && (target_cpu == "x86") && is_debug) {
     lib_dirs = [
        "..\..\ortc\curl\x86-debug-dll\lib",
     ]
     libs = [ "libcurl.lib" ]  
-  } else if ((target_os == "winuwp_10") && (target_cpu == "x86") && (is_debug == "false")) {
+  } else if ((target_os == "winuwp_10") && (target_cpu == "x86") && !is_debug) {
     lib_dirs = [
        "..\..\ortc\curl\x86-release-dll\lib",
     ]
     libs = [ "libcurl.lib" ]    
-  } else if (target_os == "win" && (is_debug == "true")) {
+  } else if (is_win && is_debug) {
     lib_dirs = [
        "..\..\ortc\curl\x86-debug-dll\lib",
     ]
     libs = [ "libcurl.lib" ]
-  } else if (target_os == "win" && (is_debug == "false")) {
+  } else if (is_win && !is_debug) {
     lib_dirs = [
        "..\..\ortc\curl\x86-release-dll\lib",
     ]
     libs = [ "libcurl.lib" ]  
   }
-    
+
   deps = [
     "//ortc/zsLib:zslib",
     "//ortc/zsLib-eventing:zslib-eventing",
