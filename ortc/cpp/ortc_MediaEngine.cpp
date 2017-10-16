@@ -545,18 +545,21 @@ namespace ortc
     bool MediaEngine::internalIsMediaTracing()
     {
       //return traceLog_.IsTracing();
+      return false;
     }
 
     //-------------------------------------------------------------------------
     bool MediaEngine::internalSaveMediaTrace(String filename)
     {
       //return traceLog_.Save(filename);
+      return false;
     }
 
     //-------------------------------------------------------------------------
     bool MediaEngine::internalSaveMediaTrace(String host, int port)
     {
       //return traceLog_.Save(host, port);
+      return false;
     }
 
 
