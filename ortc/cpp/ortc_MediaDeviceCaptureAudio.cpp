@@ -66,7 +66,7 @@
 #include <float.h>
 #include <math.h>
 
-#include <webrtc/base/timeutils.h>
+#include <webrtc/rtc_base/timeutils.h>
 #include <webrtc/call/rtc_event_log.h>
 #include <webrtc/voice_engine/include/voe_codec.h>
 #include <webrtc/voice_engine/include/voe_rtp_rtcp.h>

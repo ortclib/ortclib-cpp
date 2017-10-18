@@ -42,7 +42,7 @@
 #include "config.h"
 #include "testing.h"
 
-#include <webrtc/base/logging.h>
+#include <webrtc/rtc_base/logging.h>
 #include <webrtc/system_wrappers/include/trace.h>
 
 namespace ortc { namespace test { ZS_DECLARE_SUBSYSTEM(ortc_test) } }

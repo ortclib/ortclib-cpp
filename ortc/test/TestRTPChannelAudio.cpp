@@ -43,7 +43,7 @@
 #include "config.h"
 #include "testing.h"
 
-#include <webrtc/base/logging.h>
+#include <webrtc/rtc_base/logging.h>
 #include <webrtc/system_wrappers/include/trace.h>
 #include <webrtc/modules/audio_device/audio_device_impl.h>
 
