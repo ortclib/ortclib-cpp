@@ -1062,16 +1062,18 @@ static_library("ortclib_static") {
 
 shared_library("ortclib") {
 
- cflags_cc = [ 
-            "/WX-",
-            "/wd4068",
-        ]
   configs -= [ "//build/config/compiler:no_rtti" ]
   configs -= [ "//build/config/compiler:chromium_code" ]
 
   if (!is_win) {
     configs -= [ "//build/config/gcc:no_exceptions" ]
+  } else {
+    cflags_cc = [ 
+      "/WX-",
+      "/wd4068",
+    ]
   }
+  
 
      
   include_dirs = [ 
