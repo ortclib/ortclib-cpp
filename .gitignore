@@ -22,3 +22,4 @@ ortc/internal/ortc.events_win_etw.man
 ipch/
 *.user
 ortc/idl/wrapper/generated/
+ortc/idl/wrapper/cx
