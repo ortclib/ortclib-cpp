@@ -1135,13 +1135,11 @@ shared_library("ortclib") {
   } else if (is_win && is_debug) {
     lib_dirs = [
        "..\..\ortc\curl\x86-debug-dll\lib",
-       "C:/Program Files (x86)/Windows Kits/10/Lib/10.0.14393.0/um/x86",       
     ]
     libs = [ "libcurl.lib", "userenv.lib" ]
   } else if (is_win && !is_debug) {
     lib_dirs = [
        "..\..\ortc\curl\x86-release-dll\lib",
-       "C:/Program Files (x86)/Windows Kits/10/Lib/10.0.14393.0/um/x86",
     ]
     libs = [ "libcurl.lib", "userenv.lib" ]  
   }
