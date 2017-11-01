@@ -45,6 +45,11 @@ config("ortclib_config") {
         "../ortclib/ortc/idl",
         "../ortclib/ortc/idl/wrapper",
     ]
+    
+    if (is_winuwp)
+  {
+    include_dirs += [ "../ortclib/ortc/idl/wrapper/cx", ]
+  }
 }
 
 ortclib_sources = [
@@ -1093,7 +1098,8 @@ shared_library("ortclib") {
     "../../third_party/boringssl/include",
     "../../third_party/libsrtp/include",
     "../../third_party/libsrtp/crypto/include", 
-    "../../third_party/boringssl/src/include",  
+    "../../third_party/boringssl/src/include", 
+    "../../third_party/libyuv/include",    
     "../..",
     "../../ortc",
     "../ortclib",
@@ -1102,8 +1108,19 @@ shared_library("ortclib") {
     "../ortclib/ortc/idl/wrapper",
   ]
 
-   sources = ortc_sources
+  include_dirs += [ "../ortclib/ortc/idl/wrapper/cx", ]
+  
+  sources = ortc_sources
 
+  sources += [
+    "../ortclib/ortc/idl/wrapper/cx/cx_custom_MediaSourceHelper.cc",
+    "../ortclib/ortc/idl/wrapper/cx/cx_custom_Org_Ortc_Dispatcher.cpp",
+    "../ortclib/ortc/idl/wrapper/cx/cx_custom_Org_Ortc_MediaControl.cpp",
+    "../ortclib/ortc/idl/wrapper/cx/cx_custom_Org_Ortc_MediaSource.cpp",
+    "../ortclib/ortc/idl/wrapper/cx/cx_custom_RTMediaStreamSource.cc",
+    "../ortclib/ortc/idl/wrapper/cx/cx_custom_WebRtcMediaSource.cc",
+    "../ortclib/ortc/idl/wrapper/cx/cx_custom_WebRtcMediaStream.cc",
+  ]
   if (is_linux) {
     lib_dirs = [
       "/usr/lib",
@@ -1163,7 +1180,6 @@ shared_library("ortclib") {
 
   defines = [
     "SHARED",
-    "ORTC_WRAPPER_C_GENERATED_IMPLEMENTATION",
     "USE_ETW",
     "USE_OPENSSL=1",
     "NOMINMAX",    
@@ -1198,6 +1214,7 @@ static_library("ortclib_generated_static") {
     configs -= [ "//build/config/gcc:no_exceptions" ]
   }
 
+  
   #To include sources generated from IDL set sources value to ortc_sources
   sources = ortc_sources_cxx_glue
   sources += ortc_sources_cxx_generated
