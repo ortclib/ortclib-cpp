@@ -1153,12 +1153,12 @@ shared_library("ortclib") {
     lib_dirs = [
        "..\..\ortc\curl\x86-debug-dll\lib",
     ]
-    libs = [ "libcurl.lib" ]
+    libs = [ "libcurl.lib", "userenv.lib" ]
   } else if (is_win && !is_debug) {
     lib_dirs = [
        "..\..\ortc\curl\x86-release-dll\lib",
     ]
-    libs = [ "libcurl.lib" ]  
+    libs = [ "libcurl.lib", "userenv.lib" ]  
   }
 
   deps = [
