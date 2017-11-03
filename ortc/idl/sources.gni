@@ -11,6 +11,8 @@ ortc_sources_cxx_glue = [
  "ortc/idl/wrapper/impl_org_ortc_ConstrainBoolean.h",
  "ortc/idl/wrapper/impl_org_ortc_RTCDtlsFingerprint.h",
  "ortc/idl/wrapper/impl_org_ortc_DoubleRange.h",
+ "ortc/idl/wrapper/impl_org_ortc_Dispatcher.cpp",
+ "ortc/idl/wrapper/impl_org_ortc_OrtcLibWithDispatcher.cpp",
  "ortc/idl/wrapper/impl_org_ortc_RTCRtpParameters.h",
  "ortc/idl/wrapper/impl_org_ortc_adapter_RTCSessionDescriptionMediaLineDetails.h",
  "ortc/idl/wrapper/impl_org_ortc_adapter_RTCOfferOptions.cpp",
