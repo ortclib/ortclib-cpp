@@ -1113,13 +1113,9 @@ shared_library("ortclib") {
   sources = ortc_sources
 
   sources += [
-    "../ortclib/ortc/idl/wrapper/cx/cx_custom_MediaSourceHelper.cc",
     "../ortclib/ortc/idl/wrapper/cx/cx_custom_Org_Ortc_Dispatcher.cpp",
     "../ortclib/ortc/idl/wrapper/cx/cx_custom_Org_Ortc_MediaControl.cpp",
     "../ortclib/ortc/idl/wrapper/cx/cx_custom_Org_Ortc_MediaSource.cpp",
-    "../ortclib/ortc/idl/wrapper/cx/cx_custom_RTMediaStreamSource.cc",
-    "../ortclib/ortc/idl/wrapper/cx/cx_custom_WebRtcMediaSource.cc",
-    "../ortclib/ortc/idl/wrapper/cx/cx_custom_WebRtcMediaStream.cc",
   ]
   if (is_linux) {
     lib_dirs = [
