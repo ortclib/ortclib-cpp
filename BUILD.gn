@@ -46,7 +46,7 @@ config("ortclib_config") {
         "../ortclib/ortc/idl/wrapper",
     ]
     
-    if (is_winuwp)
+  if (is_winuwp)
   {
     include_dirs += [ "../ortclib/ortc/idl/wrapper/cx", ]
   }
@@ -1107,16 +1107,19 @@ shared_library("ortclib") {
     "../ortclib/ortc/idl",
     "../ortclib/ortc/idl/wrapper",
   ]
-
-  include_dirs += [ "../ortclib/ortc/idl/wrapper/cx", ]
   
   sources = ortc_sources
 
+  if (is_winuwp)
+  {
+    include_dirs += [ "../ortclib/ortc/idl/wrapper/cx", ]
+    
   sources += [
     "../ortclib/ortc/idl/wrapper/cx/cx_custom_Org_Ortc_Dispatcher.cpp",
     "../ortclib/ortc/idl/wrapper/cx/cx_custom_Org_Ortc_MediaControl.cpp",
     "../ortclib/ortc/idl/wrapper/cx/cx_custom_Org_Ortc_MediaSource.cpp",
   ]
+  }
   if (is_linux) {
     lib_dirs = [
       "/usr/lib",
@@ -1215,6 +1218,14 @@ static_library("ortclib_generated_static") {
   sources = ortc_sources_cxx_glue
   sources += ortc_sources_cxx_generated
 
+  if (!is_winuwp)
+  {
+    sources -= [ 
+      "ortc/idl/wrapper/impl_org_ortc_Dispatcher.cpp",
+      "ortc/idl/wrapper/impl_org_ortc_OrtcLibWithDispatcher.cpp",
+    ]
+  }
+  
   defines = [
     "_LIB",
     "USE_ETW",
