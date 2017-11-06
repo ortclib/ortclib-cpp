@@ -29,6 +29,8 @@
  
  */
 
+#define ZS_DECLARE_TEMPLATE_GENERATE_IMPLEMENTATION
+ 
 #include <ortc/internal/ortc_RTPListener.h>
 #include <ortc/internal/ortc_RTPReceiver.h>
 #include <ortc/internal/ortc_RTPSender.h>

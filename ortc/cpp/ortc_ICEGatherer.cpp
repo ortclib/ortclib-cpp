@@ -29,6 +29,8 @@
  
  */
 
+#define ZS_DECLARE_TEMPLATE_GENERATE_IMPLEMENTATION
+
 #include <ortc/internal/ortc_ICEGatherer.h>
 #include <ortc/internal/ortc_ICETransport.h>
 #include <ortc/internal/ortc_Helper.h>

@@ -1,4 +1,4 @@
-/*
+  /*
 
  Copyright (c) 2014, Hookflash Inc. / Hookflash Inc.
  All rights reserved.
@@ -28,6 +28,8 @@
  either expressed or implied, of the FreeBSD Project.
  
  */
+
+#define ZS_DECLARE_TEMPLATE_GENERATE_IMPLEMENTATION
 
 #include <ortc/internal/ortc_SRTPSDESTransport.h>
 #include <ortc/internal/ortc_ICETransport.h>
