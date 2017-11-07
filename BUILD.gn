@@ -1130,32 +1130,32 @@ shared_library("ortclib") {
 
   if ((target_os == "winuwp_10") && (target_cpu == "x64") && is_debug) {
     lib_dirs = [
-       "..\..\ortc\curl\x64-debug-dll\lib",
+       "..\..\ortc\curl\x64-debug-static\lib",
     ]
     libs = [ "libcurl.lib" ]    
   } else if ((target_os == "winuwp_10") && (target_cpu == "x64") && !is_debug) {
     lib_dirs = [
-       "..\..\ortc\curl\x64-release-dll\lib",
+       "..\..\ortc\curl\x64-release-static\lib",
     ]
     libs = [ "libcurl.lib" ]
   } else if ((target_os == "winuwp_10") && (target_cpu == "x86") && is_debug) {
     lib_dirs = [
-       "..\..\ortc\curl\x86-debug-dll\lib",
+       "..\..\ortc\curl\x86-debug-static\lib",
     ]
     libs = [ "libcurl.lib" ]  
   } else if ((target_os == "winuwp_10") && (target_cpu == "x86") && !is_debug) {
     lib_dirs = [
-       "..\..\ortc\curl\x86-release-dll\lib",
+       "..\..\ortc\curl\x86-release-static\lib",
     ]
     libs = [ "libcurl.lib" ]    
   } else if (is_win && is_debug) {
     lib_dirs = [
-       "..\..\ortc\curl\x86-debug-dll\lib",
+       "..\..\ortc\curl\x86-debug-static\lib",
     ]
     libs = [ "libcurl.lib", "userenv.lib" ]
   } else if (is_win && !is_debug) {
     lib_dirs = [
-       "..\..\ortc\curl\x86-release-dll\lib",
+       "..\..\ortc\curl\x86-release-static\lib",
     ]
     libs = [ "libcurl.lib", "userenv.lib" ]  
   }
