@@ -108,13 +108,13 @@
 #endif //__APPPLE__
 
 
-#ifdef _LINUX
+#ifdef __linux__
 
 // Linux has these options
 #define HAVE_SYS_TYPES_H 1
 #define HAVE_IFADDRS_H 1
 #define HAVE_NET_IF_H 1
-#define HAVE_NETINIT6_IN6_VAR_H 1
+//#define HAVE_NETINIT6_IN6_VAR_H 1
 #define HAVE_GETIFADDRS 1
 
 #ifdef _ANDROID
@@ -125,4 +125,4 @@
 #undef HAVE_IFADDRS_H
 
 #endif //_ANDROID
-#endif //_LINUX
+#endif //__linux__

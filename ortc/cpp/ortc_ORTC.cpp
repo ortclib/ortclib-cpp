@@ -32,7 +32,9 @@
 
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/ortc.events.h>
+#include <ortc/internal/ortc.events.jman.h>
 #include <ortc/internal/ortc.stats.events.h>
+#include <ortc/internal/ortc.stats.events.jman.h>
 #include <ortc/internal/ortc_MediaEngine.h>
 
 #include <ortc/services/IHelper.h>
