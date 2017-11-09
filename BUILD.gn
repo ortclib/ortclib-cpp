@@ -1179,6 +1179,7 @@ shared_library("ortclib") {
 
   defines = [
     "SHARED",
+    "ORTC_WRAPPER_C_GENERATED_IMPLEMENTATION",
     "USE_ETW",
     "USE_OPENSSL=1",
     "NOMINMAX",    
