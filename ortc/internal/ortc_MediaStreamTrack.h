@@ -695,7 +695,7 @@ namespace ortc
 
       PromiseWithRTPMediaEngineDeviceResourcePtr mDeviceResourceLifetimeHolderPromise;
       UseDeviceResourcePtr mDeviceResource;
-      IMediaStreamTrackRenderCallbackPtr mVideoRendererCallback;
+	  std::vector<IMediaStreamTrackRenderCallbackPtr> mVideoRendererCallbacks;
 
       PromisePtr mCloseDevicePromise;
 

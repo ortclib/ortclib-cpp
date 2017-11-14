@@ -502,7 +502,7 @@ namespace ortc
     {
       AutoRecursiveLock lock(*this);
 
-      mVideoRendererCallback = callback;
+	  mVideoRendererCallbacks.push_back(callback);
       if (mDeviceResource)
         mDeviceResource->setVideoRenderCallback(callback);
     }
@@ -974,8 +974,12 @@ namespace ortc
         return false;
       }
 
-      if (mVideoRendererCallback)
-        mDeviceResource->setVideoRenderCallback(mVideoRendererCallback);
+	  if (!mVideoRendererCallbacks.empty()) {
+		  for (auto i = 0; i < mVideoRendererCallbacks.size(); i++)
+		  {
+			  mDeviceResource->setVideoRenderCallback(mVideoRendererCallbacks.at(i));
+		  }
+	  }
 
       ZS_LOG_DEBUG(log("media device is setup") + ZS_PARAM("device", mDeviceResource->getID()))
 

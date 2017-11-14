@@ -2017,8 +2017,9 @@ namespace ortc
       AutoRecursiveLock lock(*this);
 
       if (kind == Kinds::Kind_Video) {
-        mVideoRenderCallbackReferenceHolder = callback;
-        mVideoRendererCallback = dynamic_cast<IMediaStreamTrackRenderCallback*>(callback.get());
+		mVideoRenderCallbackReferenceHolders.push_back(callback);
+		mVideoRendererCallbacks.push_back(dynamic_cast<IMediaStreamTrackRenderCallback*>(callback.get()));
+
       }
     }
 
@@ -2040,9 +2041,12 @@ namespace ortc
 
       AutoRecursiveLock lock(*this);
 
-      if (mVideoRendererCallback) {
-        mVideoRendererCallback->RenderFrame(1, *videoFrame);
-      }
+	  if (!mVideoRendererCallbacks.empty()) {
+		  for (int i = 0; i < mVideoRendererCallbacks.size(); i++) {
+			  auto item = mVideoRendererCallbacks.at(i);
+			  item->RenderFrame(1, *videoFrame);
+		  }
+	  }
     }
 
     //-------------------------------------------------------------------------
@@ -2162,8 +2166,12 @@ namespace ortc
     {
       {
         AutoRecursiveLock lock(*this);
-
-        if (mVideoRendererCallback) mVideoRendererCallback->RenderFrame(1, *frame);
+		if (!mVideoRendererCallbacks.empty()) {
+			for (int i = 0; i < mVideoRendererCallbacks.size(); i++) {
+				auto item = mVideoRendererCallbacks.at(i);
+				item->RenderFrame(1, *frame);
+			}
+		}
       }
 
       auto track = mTrack.lock();

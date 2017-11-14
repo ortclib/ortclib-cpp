@@ -1307,8 +1307,8 @@ namespace ortc
         VideoCaptureTransportPtr mTransport;  // keep lifetime of webrtc callback separate from this object
 
         rtc::scoped_refptr<webrtc::VideoCaptureModule> mVideoCaptureModule;
-        IMediaStreamTrackRenderCallback* mVideoRendererCallback {NULL};
-        IMediaStreamTrackRenderCallbackPtr mVideoRenderCallbackReferenceHolder;
+		std::vector<IMediaStreamTrackRenderCallback*> mVideoRendererCallbacks;
+		std::vector<IMediaStreamTrackRenderCallbackPtr> mVideoRenderCallbackReferenceHolders;
 
         std::atomic<ULONG> mFramesSent {};
         std::atomic<ULONG> mFramesReceived {};
