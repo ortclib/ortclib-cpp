@@ -8,12 +8,14 @@ ortc/internal/ortc.stats.events_win_etw.h
 ortc/internal/ortc.stats.events_win.h
 ortc/internal/ortc.stats.events.h
 ortc/internal/ortc.stats.events.jman
+ortc/internal/ortc.stats.events.jman.h
 ortc/internal/ortc.stats.events_win_etw.wprp
 ortc/internal/ortc.stats.events_win_etw.man
 ortc/internal/ortc.events_win_etw.h
 ortc/internal/ortc.events_win.h
 ortc/internal/ortc.events.h
 ortc/internal/ortc.events.jman
+ortc/internal/ortc.events.jman.h
 ortc/internal/ortc.events_win_etw.wprp
 ortc/internal/ortc.events_win_etw.man
 *.db
