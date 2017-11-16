@@ -1049,6 +1049,12 @@ static_library("ortclib_static") {
     ]
   }
 
+  if (is_ios || is_mac) {
+    defines += [
+      "WEBRTC_POSIX",
+    ]
+  }
+
   if (is_win) {
     defines += [ "WEBRTC_WIN", ]
   }
@@ -1071,7 +1077,17 @@ shared_library("ortclib") {
   configs -= [ "//build/config/compiler:chromium_code" ]
 
   if (!is_win) {
-    configs -= [ "//build/config/gcc:no_exceptions" ]
+    configs -= [ "//build/config/gcc:no_exceptions", ]
+    if (is_ios || is_mac) {
+      cflags_cc = [
+        "-Wall",
+        "-std=c++11", 
+        "-g",
+      ]
+      ldflags = [
+        "-ObjC",
+      ]
+    }
   } else {
     cflags_cc = [ 
       "/WX-",
@@ -1158,7 +1174,12 @@ shared_library("ortclib") {
        "..\..\ortc\curl\x86-release-static\lib",
     ]
     libs = [ "libcurl.lib", "userenv.lib" ]  
-  }
+  } else {
+    lib_dirs = [
+      "..\..\ortc\curl\curl\ios-appstore\lib",
+    ]
+    libs = [ "libcurl.a" ]  
+  } 
 
   deps = [
     "//ortc/zsLib:zslib",
@@ -1188,6 +1209,12 @@ shared_library("ortclib") {
     "_UNICODE",
     "UNICODE",
   ]
+
+  if (is_ios || is_mac) {
+    defines += [
+    "WEBRTC_POSIX",
+    ]
+  }
 
   if (is_linux) {
     defines += [
