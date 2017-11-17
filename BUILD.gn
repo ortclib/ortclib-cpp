@@ -1174,8 +1174,8 @@ shared_library("ortclib") {
        "..\..\ortc\curl\x86-release-static\lib",
     ]
     libs = [ "libcurl.lib", "userenv.lib" ]  
-  } else {
-    lib_dirs = [
+  } else if (is_mac || is_ios){
+    lib_dirs += [
       "..\..\ortc\curl\curl\ios-appstore\lib",
     ]
     libs = [ "libcurl.a" ]  
