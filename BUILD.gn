@@ -1169,12 +1169,12 @@ shared_library("ortclib") {
     lib_dirs = [
        "..\..\ortc\curl\x86-debug-static\lib",
     ]
-    libs = [ "libcurl.lib", "userenv.lib" ]
+    libs = [ "libcurl.lib", "userenv.lib", "normaliz.lib" ]
   } else if (is_win && !is_debug) {
     lib_dirs = [
        "..\..\ortc\curl\x86-release-static\lib",
     ]
-    libs = [ "libcurl.lib", "userenv.lib" ]  
+    libs = [ "libcurl.lib", "userenv.lib", "normaliz.lib" ]  
   } else if (is_mac || is_ios){
     libs = [ "../../ortc/curl/curl/ios-appstore/lib/libcurl.a" ]  
   } 
