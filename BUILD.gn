@@ -1095,6 +1095,9 @@ shared_library("ortclib") {
       "/wd4068",
     ]
   }
+  ldflags = [
+         "/FIXED:NO",
+       ]
   
 
      
