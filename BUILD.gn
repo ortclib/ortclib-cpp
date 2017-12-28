@@ -1071,7 +1071,7 @@ static_library("ortclib_static") {
 }
 
 
-shared_library("ortclib") {
+shared_library("libOrtc") {
 
   configs -= [ "//build/config/compiler:no_rtti" ]
   configs -= [ "//build/config/compiler:chromium_code" ]
@@ -1094,13 +1094,12 @@ shared_library("ortclib") {
       "/WX-",
       "/wd4068",
     ]
-  }
-  ldflags = [
+    if (!is_winuwp) {
+      ldflags = [
          "/FIXED:NO",
        ]
-  
-
-     
+    }
+  } 
   include_dirs = [ 
     ".",
     "..",
