@@ -1139,6 +1139,9 @@ shared_library("ortclib") {
     "../ortclib/ortc/idl/wrapper/cx/cx_custom_Org_Ortc_MediaSource.cpp",
   ]
   }
+
+  is_ortclib_curl_defined = false
+  if (is_ortclib_curl_defined) {
   if (is_linux) {
     lib_dirs = [
       "/usr/lib",
@@ -1180,6 +1183,19 @@ shared_library("ortclib") {
   } else if (is_mac || is_ios){
     libs = [ "../../ortc/curl/curl/ios-appstore/lib/libcurl.a" ]  
   } 
+  } else {
+    if (is_linux) {
+      lib_dirs = [
+        "/usr/lib",
+        "/usr/lib/x86_64-linux-gnu",
+      ]
+      libs = [ "uuid", "ssl", "crypto" ]
+    } else if (is_win && is_debug) {
+      libs = [ "userenv.lib", "normaliz.lib" ]
+    } else if (is_win && !is_debug) {
+      libs = [ "userenv.lib", "normaliz.lib" ]  
+    }
+  }
 
   deps = [
     "//ortc/zsLib:zslib",
