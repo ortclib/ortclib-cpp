@@ -75,15 +75,22 @@ namespace org
       enum Component
       {
         /// <summary>
+        /// All components.
+        /// </summary>
+        all,
+        /// <summary>
         /// The low level socket, aynchronous eventing, and OS abstraction
         /// library.
         /// </summary>
-        zsLib,
+        zslib,
         /// <summary>
-        /// The socket monitor within the low level socket abstraction
-        /// library.
+        /// The socket abstraction library.
         /// </summary>
-        zsLibSocket,
+        socket,
+        /// <summary>
+        /// The eventing services library (ETW).
+        /// </summary>
+        eventing,
         /// <summary>
         /// The servers support library for the ORTC library.
         /// </summary>
@@ -91,102 +98,106 @@ namespace org
         /// <summary>
         /// The DNS services support library for the ORTC library.
         /// </summary>
-        servicesDns,
+        dns,
         /// <summary>
         /// The TURN services support library for the ORTC library.
         /// </summary>
-        servicesTurn,
+        turn,
         /// <summary>
         /// The HTTP services support library for the ORTC library.
         /// </summary>
-        servicesHttp,
+        http,
+        /// <summary>
+        /// The logger tracer at the services layer.
+        /// </summary>
+        logger,
         /// <summary>
         /// The wire level tracing of services support for the ORTC library.
         /// This component also includes the details of the STUN packet(s).
         /// </summary>
-        servicesWire,
+        wire,
         /// <summary>
         /// All STUN related request processing (minus the STUN on the wire).
         /// </summary>
-        servicesStun,
+        stun,
         /// <summary>
         /// The C++ ORTC library (for all objects who don't have their own
         /// trace level).
         /// </summary>
-        ortcLib,
+        ortc,
         /// <summary>
         /// The C++ ORTC media area.
         /// </summary>
-        ortcLibWebrtc,
+        webrtc,
         /// <summary>
         /// The C++ ORTC DTLS transport object.
         /// </summary>
-        ortcLibDtlsTransport,
+        dtlsTransport,
         /// <summary>
         /// The C++ ORTC ICE gatherer object.
         /// </summary>
-        ortcLibIceGatherer,
+        iceGatherer,
         /// <summary>
         /// The C++ ORTC ICE gatherer router object.
         /// </summary>
-        ortcLibIceGathererRouter,
+        iceGathererRouter,
         /// <summary>
         /// The C++ ORTC ICE transport object.
         /// </summary>
-        ortcLibIceTransport,
+        iceTransport,
         /// <summary>
         /// The C++ ORTC ICE transport controller object.
         /// </summary>
-        ortcLibIceTransportController,
+        iceTransportController,
         /// <summary>
         /// The C++ ORTC media devices object.
         /// </summary>
-        ortcLibMediaDevices,
+        mediaDevices,
         /// <summary>
         /// The C++ ORTC media stream track object.
         /// </summary>
-        ortcLibMediaStreamTrack,
+        mediaStreamTrack,
         /// <summary>
         /// The C++ ORTC rtp / rtcp packet related traces.
         /// </summary>
-        ortcLibRtpRtcpPacket,
+        rtpRtcpPacket,
         /// <summary>
         /// The C++ ORTC rtp listener object.
         /// </summary>
-        ortcLibRtpListener,
+        rtpListener,
         /// <summary>
         /// The C++ ORTC rtp listener object.
         /// </summary>
-        ortcLibRtpMediaEngine,
+        rtpMediaEngine,
         /// <summary>
         /// The C++ ORTC rtp receiver object.
         /// </summary>
-        ortcLibRtpReceiver,
+        rtpReceiver,
         /// <summary>
         /// The C++ ORTC rtp sender object.
         /// </summary>
-        ortcLibRtpSender,
+        rtpSender,
         /// <summary>
         /// The C++ ORTC rtp type structure tracing (parsers, helpers and
         /// other).
         /// </summary>
-        ortcLibRtpTypes,
+        rtpTypes,
         /// <summary>
         /// The C++ SCTP and data channel related objects.
         /// </summary>
-        ortcLibSctpDataChannel,
+        sctpDataChannel,
         /// <summary>
         /// The C++ SRTP related objects.
         /// </summary>
-        ortcLibSrtp,
+        srtp,
         /// <summary>
         /// The C++ SRTP related objects.
         /// </summary>
-        ortcLibStats,
+        stats,
         /// <summary>
         /// The C++ ORTC Adapter library.
         /// </summary>
-        ortcLibAdapter,
+        adapter,
       };
     }
 
@@ -197,15 +208,11 @@ namespace org
     interface Logger
     {
       /// <summary>
-      /// Set the default log level for all componenets.
-      /// </summary>
-      [static]
-      void setDefaultLogLevel(log::Level level);
-      /// <summary>
       /// Set the log level for a specific component.
       /// </summary>
       [static, default]
       void setLogLevel(log::Component component, log::Level level);
+
       /// <summary>
       /// Sets the log level for a component by its component string name.
       /// </summary>
@@ -297,13 +304,21 @@ namespace org
       /// <summary>
       /// Set the default eventing level for all componenets.
       /// </summary>
-      [static]
-      void setDefaultEventingLevel(log::Level level);
+      [static, default]
+      void setDefaultEventingLevel(log::Component component, log::Level level);
+
+      /// <summary>
+      /// Sets the log eventing for a component by its component string name.
+      /// </summary>
+      [static, altname(setDefaultEventingLevelByName)]
+      void setDefaultEventingLevel(string component, log::Level level);
+
       /// <summary>
       /// Set the eventing level for a specific component.
       /// </summary>
       [static, default]
       void setEventingLevel(log::Component component, log::Level level);
+
       /// <summary>
       /// Sets the log eventing for a component by its component string name.
       /// </summary>

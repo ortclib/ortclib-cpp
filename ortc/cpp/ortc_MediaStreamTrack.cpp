@@ -66,7 +66,7 @@
 #endif //_DEBUG
 
 
-namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_mediastreamtrack) }
+namespace ortc { ZS_DECLARE_SUBSYSTEM(org_ortc_media_stream_track) }
 
 namespace ortc
 {
@@ -391,12 +391,29 @@ namespace ortc
     
     //-------------------------------------------------------------------------
     void MediaStreamTrack::trace(
-                                 MediaStreamTrackPtr object,
+                                 const char *func,
                                  const char *message
-                                 )
+                                 ) const
     {
-      if (!object) return;
-      return object->trace(message);
+      ZS_EVENTING_17(x, i, Basic, MediaStreamTrackTrace, ol, MediaEngine, Info,
+        puid, id, id_,
+        string, func, func,
+        string, message, message,
+        bool, gracefulShutdownReference, (bool)gracefulShutdownReference_,
+        string, currentState, ortc::IMediaStreamTrackTypes::toString(currentState_),
+        word, lastError, lastError_,
+        string, lastErrorReason, lastErrorReason_,
+        string, trackId, trackId_,
+        string, label, label_,
+        string, kind, ortc::IMediaStreamTrackTypes::toString(kind_),
+        bool, enabled, enabled_,
+        bool, muted, muted_,
+        string, type, MediaStreamTrack::toString(type_),
+        string, deviceId, deviceId_,
+        size_t, subscribers, subscribers_ ? subscribers_->size() : 0,
+        size_t, channels, channels_ ? channels_->size() : 0,
+        puid, statsTimer, statsTimer_ ? statsTimer_->getID() : 0
+      );
     }
 
     //-------------------------------------------------------------------------
@@ -813,28 +830,6 @@ namespace ortc
     #pragma mark
     #pragma mark MediaStreamTrack => (internal)
     #pragma mark
-
-    //-------------------------------------------------------------------------
-    void MediaStreamTrack::trace(const char *message) const
-    {
-      ZS_EVENTING_15(x, i, Trace, MediaStreamTrackTrace, ol, MediaEngine, Info,
-        puid, id, id_,
-        bool, gracefulShutdownReference, (bool)gracefulShutdownReference_,
-        string, currentState, ortc::IMediaStreamTrackTypes::toString(currentState_),
-        word, lastError, lastError_,
-        string, lastErrorReason, lastErrorReason_,
-        string, trackId, trackId_,
-        string, label, label_,
-        string, kind, ortc::IMediaStreamTrackTypes::toString(kind_),
-        bool, enabled, enabled_,
-        bool, muted, muted_,
-        string, type, MediaStreamTrack::toString(type_),
-        string, deviceId, deviceId_,
-        size_t, subscribers, subscribers_ ? subscribers_->size() : 0,
-        size_t, channels, channels_ ? channels_->size() : 0,
-        puid, statsTimer, statsTimer_ ? statsTimer_->getID() : 0
-      );
-    }
 
     //-------------------------------------------------------------------------
     bool MediaStreamTrack::isShuttingDown() const
@@ -1846,15 +1841,6 @@ namespace ortc
   #pragma mark
   #pragma mark IMediaStreamTrack
   #pragma mark
-
-  //---------------------------------------------------------------------------
-  void IMediaStreamTrack::trace(
-                                IMediaStreamTrackPtr object,
-                                const char *message
-                                )
-  {
-    internal::MediaStreamTrack::trace(internal::MediaStreamTrack::convert(object), message);
-  }
 
   //---------------------------------------------------------------------------
   IMediaStreamTrackPtr IMediaStreamTrack::convert(AnyPtr any)

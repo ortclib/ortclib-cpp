@@ -74,7 +74,7 @@
 #define ASSERT(x)
 #endif //_DEBUG
 
-namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_dtlstransport) }
+namespace ortc { ZS_DECLARE_SUBSYSTEM(org_ortc_dtls_transport) }
 
 namespace ortc
 {
@@ -1035,7 +1035,8 @@ namespace ortc
                     puid, id, mID,
                     enum, viaComponent, zsLib::to_underlying(viaComponent)
                     );
-      packet->trace(__func__);
+
+      ZS_EVENTING_TRACE_OBJECT(Trace, *packet, "dtls received stun packet");
 
       ZS_LOG_TRACE(log("handle receive STUN packet") + packet->toDebug())
 

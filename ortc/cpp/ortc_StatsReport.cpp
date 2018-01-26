@@ -60,7 +60,7 @@
 
 using namespace date;
 
-namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_stats) }
+namespace ortc { ZS_DECLARE_SUBSYSTEM(org_ortc_stats) }
 
 namespace ortc
 {

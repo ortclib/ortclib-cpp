@@ -57,7 +57,7 @@
 #endif //_DEBUG
 
 
-namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_rtpsender) }
+namespace ortc { ZS_DECLARE_SUBSYSTEM(org_ortc_rtp_sender) }
 
 namespace ortc
 {

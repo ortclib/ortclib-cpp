@@ -48,7 +48,7 @@
 #pragma warning(3 : 4062)
 #endif //_MSC_VER
 
-namespace ortc { namespace adapter { ZS_DECLARE_SUBSYSTEM(ortclib_adapter) } }
+namespace ortc { namespace adapter { ZS_DECLARE_SUBSYSTEM(org_ortc_adapter) } }
 
 namespace ortc
 {

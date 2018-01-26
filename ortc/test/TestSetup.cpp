@@ -74,7 +74,7 @@ using namespace Windows::UI::Core;
 #endif //defined(WINUWP) && !defined(HAVE_GETADAPTERADDRESSES)
 
 
-namespace ortc { namespace test { ZS_DECLARE_SUBSYSTEM(ortc_test) } }
+namespace ortc { namespace test { ZS_DECLARE_SUBSYSTEM(org_ortc_test) } }
 
 //using zsLib::String;
 //using zsLib::ULONG;

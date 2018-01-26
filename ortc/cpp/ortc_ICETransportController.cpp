@@ -46,7 +46,7 @@
 
 #include <cryptopp/sha.h>
 
-namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_icetransport_controller) }
+namespace ortc { ZS_DECLARE_SUBSYSTEM(org_ortc_ice_transport_controller) }
 
 namespace ortc
 {

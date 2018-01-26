@@ -232,6 +232,12 @@
           "name": "Parse"
         },
         {
+          "name": "Install"
+        },
+        {
+          "name": "Remove"
+        },
+        {
           "name": "Event"
         },
         {

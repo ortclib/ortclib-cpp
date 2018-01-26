@@ -868,7 +868,10 @@ namespace ortc
         RelayPortPtr mRelayPort;  // send via relay port
         TCPPortPtr mTCPPort;      // send via TCP socket
 
-        void trace(const char *function, const char *message = NULL) const;
+        void trace(
+                   const char *function = NULL,
+                   const char *message = NULL
+                   ) const;
         ElementPtr toDebug() const;
       };
 

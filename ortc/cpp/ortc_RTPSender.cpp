@@ -72,7 +72,7 @@
 #endif //_DEBUG
 
 
-namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_rtpsender) }
+namespace ortc { ZS_DECLARE_SUBSYSTEM(org_ortc_rtp_sender) }
 
 namespace ortc
 {
@@ -883,7 +883,7 @@ namespace ortc
                     );
 
       ZS_LOG_TRACE(log("received packet") + ZS_PARAM("via", IICETypes::toString(viaTransport)))
-      packet->trace("received packet");
+      ZS_EVENTING_TRACE_OBJECT(Insane, *packet, "rtp sender received packet");
 
       ParametersToChannelHolderMapPtr channels;
 

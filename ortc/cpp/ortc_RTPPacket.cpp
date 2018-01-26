@@ -68,7 +68,7 @@
 #define RTP_GET_BITS(xByte, xBitPattern, xLowestBit) (((xByte) >> (xLowestBit)) & (xBitPattern))
 #define RTP_PACK_BITS(xByte, xBitPattern, xLowestBit) (((xByte) & (xBitPattern)) << (xLowestBit))
 
-namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_rtp_rtcp_packet) }
+namespace ortc { ZS_DECLARE_SUBSYSTEM(org_ortc_rtp_rtcp_packet) }
 
 namespace ortc
 {
@@ -147,9 +147,13 @@ namespace ortc
   #pragma mark
 
   //---------------------------------------------------------------------------
-  void RTPPacket::HeaderExtension::trace(const char *message) const
+  void RTPPacket::HeaderExtension::trace(
+                                         const char *func,
+                                         const char *message
+                                         ) const
   {
-    ZS_EVENTING_5(x, i, Insane, RTPPacketHeaderExtension, ol, RtpPacket, Info, 
+    ZS_EVENTING_6(x, i, Basic, RTPPacketHeaderExtension, ol, RtpPacket, Info, 
+      string, func, func,
       string, message, message,
       byte, id, mID,
       binary, data, mData, 
@@ -208,9 +212,13 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  void RTPPacket::ClientToMixerExtension::trace(const char *message) const
+  void RTPPacket::ClientToMixerExtension::trace(
+                                                const char *func,
+                                                const char *message
+                                                ) const
   {
-    ZS_EVENTING_7(x, i, Insane, RTPPacketClientToMixerExtension, ol, RtpPacket, Info,
+    ZS_EVENTING_8(x, i, Basic, RTPPacketClientToMixerExtension, ol, RtpPacket, Info,
+      string, func, func,
       string, message, message,
       byte, id, mID,
       binary, data, mData,
@@ -289,9 +297,13 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  void RTPPacket::MixerToClientExtension::trace(const char *message) const
+  void RTPPacket::MixerToClientExtension::trace(
+                                                const char *func,
+                                                const char *message
+                                                ) const
   {
-    ZS_EVENTING_6(x, i, Insane, RTPPacketMixerToClientExtension, ol, RtpPacket, Info,
+    ZS_EVENTING_7(x, i, Basic, RTPPacketMixerToClientExtension, ol, RtpPacket, Info,
+      string, func, func,
       string, message, message,
       byte, id, mID,
       binary, data, mData,
@@ -354,9 +366,13 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  void RTPPacket::StringHeaderExtension::trace(const char *message) const
+  void RTPPacket::StringHeaderExtension::trace(
+                                               const char *func,
+                                               const char *message
+                                               ) const
   {
-    ZS_EVENTING_6(x, i, Insane, RTPPacketStringHeaderExtension, ol, RtpPacket, Info,
+    ZS_EVENTING_7(x, i, Basic, RTPPacketStringHeaderExtension, ol, RtpPacket, Info,
+      string, func, func,
       string, message, message,
       byte, id, mID,
       binary, data, mData,
@@ -469,9 +485,13 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  void RTPPacket::NumberHeaderExtension::trace(const char *message) const
+  void RTPPacket::NumberHeaderExtension::trace(
+                                               const char *func,
+                                               const char *message
+                                               ) const
   {
-    ZS_EVENTING_6(x, i, Insane, RTPPacketNumberHeaderExtension, ol, RtpPacket, Info,
+    ZS_EVENTING_7(x, i, Basic, RTPPacketNumberHeaderExtension, ol, RtpPacket, Info,
+      string, func, func,
       string, message, message,
       byte, id, mID,
       binary, data, mData,
@@ -490,9 +510,13 @@ namespace ortc
   #pragma mark
 
   //---------------------------------------------------------------------------
-  void RTPPacket::MidHeaderExtension::trace(const char *message) const
+  void RTPPacket::MidHeaderExtension::trace(
+                                            const char *func,
+                                            const char *message
+                                            ) const
   {
-    ZS_EVENTING_6(x, i, Insane, RTPPacketMidHeaderExtension, ol, RtpPacket, Info,
+    ZS_EVENTING_7(x, i, Basic, RTPPacketMidHeaderExtension, ol, RtpPacket, Info,
+      string, func, func,
       string, message, message,
       byte, id, mID,
       bool, data, mData ? true : false,
@@ -511,9 +535,13 @@ namespace ortc
   #pragma mark
 
   //---------------------------------------------------------------------------
-  void RTPPacket::RidHeaderExtension::trace(const char *message) const
+  void RTPPacket::RidHeaderExtension::trace(
+                                            const char *func,
+                                            const char *message
+                                            ) const
   {
-    ZS_EVENTING_6(x, i, Insane, RTPPacketRidHeaderExtension, ol, RtpPacket, Info,
+    ZS_EVENTING_7(x, i, Insane, RTPPacketRidHeaderExtension, ol, RtpPacket, Info,
+      string, func, func,
       string, message, message,
       byte, id, mID,
       binary, data, mData,
@@ -625,9 +653,13 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  void RTPPacket::VideoOrientationHeaderExtension::trace(const char *message) const
+  void RTPPacket::VideoOrientationHeaderExtension::trace(
+                                                         const char *func,
+                                                         const char *message
+                                                         ) const
   {
-    ZS_EVENTING_8(x, i, Insane, RTPPacketVideoOrientationHeaderExtension, ol, RtpPacket, Info,
+    ZS_EVENTING_9(x, i, Basic, RTPPacketVideoOrientationHeaderExtension, ol, RtpPacket, Info,
+      string, func, func,
       string, message, message,
       byte, id, mID,
       binary, data, mData,
@@ -846,35 +878,37 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  void RTPPacket::trace(const char *message) const
+  void RTPPacket::trace(
+                        const char *func,
+                        const char *message
+                        ) const
   {
-    if (ZS_EVENTING_IS_LOGGING(Insane)) {
-      ZS_EVENTING_20(x, i, Insane, RTPPacketTrace, ol, RtpPacket, Info,
-        string, message, message,
-        puid, mediaChannelID, mMediaChannelID,
-        binary, buffer, mBuffer ? mBuffer->BytePtr() : NULL,
-        size, size, mBuffer ? mBuffer->SizeInBytes() : 0,
-        byte, version, mVersion,
-        size_t, padding, mPadding,
-        byte, cc, mCC,
-        bool, m, mM,
-        byte, pt, mPT,
-        word, sequenceNumber, mSequenceNumber,
-        dword, timestamp, mTimestamp,
-        dword, ssrc, mSSRC,
-        size_t, headerSize, mHeaderSize,
-        size_t, headerExtensionSize, mHeaderExtensionSize,
-        size_t, payloadSize, mPayloadSize,
-        size_t, totalHeaderExtensions, mTotalHeaderExtensions,
-        byte, headerExtensionAppBits, mHeaderExtensionAppBits,
-        size_t, headerExtensionPrepaddedSize, mHeaderExtensionPrepaddedSize,
-        binary, headerExtensionParseStoppedPos, mHeaderExtensionParseStoppedPos,
-        size, headerExtensionParseStoppedSize, mHeaderExtensionParseStoppedSize
-      );
+    ZS_EVENTING_21(x, i, Basic, RTPPacketTrace, ol, RtpPacket, Info,
+      string, func, func,
+      string, message, message,
+      puid, mediaChannelID, mMediaChannelID,
+      binary, buffer, mBuffer ? mBuffer->BytePtr() : NULL,
+      size, size, mBuffer ? mBuffer->SizeInBytes() : 0,
+      byte, version, mVersion,
+      size_t, padding, mPadding,
+      byte, cc, mCC,
+      bool, m, mM,
+      byte, pt, mPT,
+      word, sequenceNumber, mSequenceNumber,
+      dword, timestamp, mTimestamp,
+      dword, ssrc, mSSRC,
+      size_t, headerSize, mHeaderSize,
+      size_t, headerExtensionSize, mHeaderExtensionSize,
+      size_t, payloadSize, mPayloadSize,
+      size_t, totalHeaderExtensions, mTotalHeaderExtensions,
+      byte, headerExtensionAppBits, mHeaderExtensionAppBits,
+      size_t, headerExtensionPrepaddedSize, mHeaderExtensionPrepaddedSize,
+      binary, headerExtensionParseStoppedPos, mHeaderExtensionParseStoppedPos,
+      size, headerExtensionParseStoppedSize, mHeaderExtensionParseStoppedSize
+    );
 
-      for (auto current = mHeaderExtensions; NULL != current; current = current->mNext) {
-        current->trace(message);
-      }
+    for (auto current = mHeaderExtensions; NULL != current; current = current->mNext) {
+      current->trace(func, message);
     }
   }
 
@@ -933,7 +967,7 @@ namespace ortc
       // going to strip the extension header out entirely
 
       if (!RTP_HEADER_EXTENSION(buffer)) {
-        trace("no extension present (thus no need to strip extension from RTP packet)");
+        ZS_EVENTING_TRACE_OBJECT(Insane, *this, "no extension present (thus no need to strip extension from RTP packet)");
         return;
       }
 
@@ -968,7 +1002,7 @@ namespace ortc
       mHeaderExtensionParseStoppedPos = NULL;
       mHeaderExtensionParseStoppedSize = 0;
 
-      trace("stripped existing extension header");
+      ZS_EVENTING_TRACE_OBJECT(Insane, *this, "stripped existing extension header");
       return;
     }
 
@@ -992,7 +1026,7 @@ namespace ortc
 
     writeHeaderExtensions(firstExtension, twoByteHeader);
 
-    trace("header extension changed");
+    ZS_EVENTING_TRACE_OBJECT(Insane, *this, "header extension changed");
   }
 
   //---------------------------------------------------------------------------
@@ -1096,7 +1130,7 @@ namespace ortc
 
     if (0 == mHeaderExtensionSize) {
       // no extensions present
-      trace("parsed");
+      ZS_EVENTING_TRACE_OBJECT(Insane, *this, "parsed");
       return true;
     }
 
@@ -1123,7 +1157,7 @@ namespace ortc
 
     size_t remaining = mHeaderExtensionSize - sizeof(DWORD);
     if (0 == remaining) {
-      trace("parsed");
+      ZS_EVENTING_TRACE_OBJECT(Insane, *this, "parsed");
       return true;
     }
 
@@ -1262,7 +1296,7 @@ namespace ortc
 
     mTotalHeaderExtensions = totalFound;
 
-    trace("parsed");
+    ZS_EVENTING_TRACE_OBJECT(Insane, *this, "parsed");
     return true;
   }
     
@@ -1478,7 +1512,8 @@ namespace ortc
     if (0 != mPadding) {
       newBuffer[newSize-1] = static_cast<BYTE>(mPadding);
     }
-    trace("generated");
+
+    ZS_EVENTING_TRACE_OBJECT(Insane, *this, "generated");
   }
 
 } // namespace ortc

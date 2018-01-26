@@ -46,6 +46,7 @@
 
 #include <usrsctp.h>
 #include <queue>
+#include <set>
 
 #define ORTC_SETTING_SCTP_TRANSPORT_MAX_SESSIONS_PER_PORT "ortc/sctp/max-sessions-per-port"
 
@@ -184,7 +185,7 @@ namespace ortc
         String mErrorReason;
       };
 
-      virtual PUID getID() const = 0;
+      virtual PUID getRealID() const = 0;
 
       virtual void registerNewDataChannel(
                                           UseDataChannelPtr &ioDataChannel,
@@ -233,12 +234,12 @@ namespace ortc
                                    WORD localPort
                                    );
 
-      virtual PUID getID() const = 0;
+      virtual PUID getRealID() const = 0;
 
-      virtual void start(
-                         const Capabilities &remoteCapabilities,
-                         WORD remotePort
-                         ) throw (InvalidStateError, InvalidParameters) = 0;
+      virtual void startFromListener(
+                                     const Capabilities &remoteCapabilities,
+                                     WORD remotePort
+                                     ) throw (InvalidStateError, InvalidParameters) = 0;
 
       virtual bool handleDataPacket(
                                     const BYTE *buffer,
@@ -330,6 +331,7 @@ namespace ortc
                           public ISCTPTransportForSettings,
                           public ISCTPTransportForDataChannel,
                           public ISCTPTransportForSCTPTransportListener,
+                          public ISCTPTransportDelegate,
                           public IWakeDelegate,
                           public zsLib::ITimerDelegate,
                           public ISCTPTransportAsyncDelegate,
@@ -357,6 +359,7 @@ namespace ortc
 
       typedef PUID DataChannelID;
       typedef std::map<DataChannelID, UseDataChannelPtr> DataChannelMap;
+      typedef std::set<DataChannelID> DataChannelIDSet;
 
       typedef WORD SessionID;
       typedef std::map<SessionID, UseDataChannelPtr> DataChannelSessionMap;
@@ -390,6 +393,7 @@ namespace ortc
       SCTPTransport(
                     const make_private &,
                     IMessageQueuePtr queue,
+                    ISCTPTransportDelegatePtr originalDelegate,
                     UseListenerPtr listener,
                     UseSecureTransportPtr secureTransport,
                     WORD localPort = 0,
@@ -435,7 +439,7 @@ namespace ortc
                                       WORD localPort = 0
                                       ) throw (InvalidParameters, InvalidStateError);
 
-      PUID getID() const override {return mID;}
+      PUID getID() const override;
 
       IDTLSTransportPtr transport() const override;
       ISCTPTransportTypes::States state() const override;
@@ -469,7 +473,7 @@ namespace ortc
                                   WORD &ioSessionID
                                   ) override;
 
-      // (duplicate) virtual PUID getID() const = 0;
+      PUID getRealID() const override { return mID; }
       ISCTPTransportForDataChannelSubscriptionPtr subscribe(ISCTPTransportForDataChannelDelegatePtr delegate) override;
 
       // (duplicate) virtual bool isShuttingDown() const override;
@@ -501,10 +505,10 @@ namespace ortc
                                    WORD localPort
                                    );
 
-      // (duplicate) virtual void start(
-      //                                const Capabilities &remoteCapabilities,
-      //                                WORD remotePort
-      //                                ) throw (InvalidStateError, InvalidParameters) = 0;
+      void startFromListener(
+                             const Capabilities &remoteCapabilities,
+                             WORD remotePort
+                             ) throw (InvalidStateError, InvalidParameters) override;
 
       bool handleDataPacket(
                             const BYTE *buffer,
@@ -525,6 +529,20 @@ namespace ortc
                                 const BYTE *buffer,
                                 size_t bufferLengthInBytes
                                 );
+      
+      //-----------------------------------------------------------------------
+      #pragma mark
+      #pragma mark SCTPTransport => ISCTPTransportDelegate
+      #pragma mark
+
+      virtual void onSCTPTransportStateChange(
+                                              ISCTPTransportPtr transport,
+                                              ISCTPTransportTypes::States state
+                                              ) override;
+      virtual void onSCTPTransportDataChannel(
+                                              ISCTPTransportPtr transport,
+                                              IDataChannelPtr channel
+                                              ) override;
 
       //-----------------------------------------------------------------------
       #pragma mark
@@ -620,8 +638,6 @@ namespace ortc
       struct TearAwayData
       {
         UseListenerPtr mListener;
-        ISCTPTransportDelegateWeakPtr mDelegate;
-        ISCTPTransportSubscriptionPtr mDefaultSubscription;
       };
 
     protected:
@@ -631,6 +647,7 @@ namespace ortc
       #pragma mark
 
       AutoPUID mID;
+      mutable std::atomic<bool> mObtainedID {};
       SCTPTransportWeakPtr mThisWeak;
       SCTPTransportPtr mGracefulShutdownReference;
 
@@ -638,6 +655,7 @@ namespace ortc
       size_t mMaxSessionsPerPort {};
 
       ISCTPTransportDelegateSubscriptions mSubscriptions;
+      ISCTPTransportSubscriptionPtr mDefaultSubscription;
 
       ISCTPTransportForDataChannelDelegateSubscriptions mDataChannelSubscriptions;
 
@@ -649,10 +667,18 @@ namespace ortc
 
       UseListenerWeakPtr mListener;
 
+      // If the transport is started after an existing transport was created
+      // by the remote party then two SCTP transports will exist pointing
+      // to the same local:remote mapping. This redirection forwards all
+      // requests to the existing object to prevent mapping confusion.
+      SCTPTransportPtr mRedirectToExistingTransport;
+      ISCTPTransportSubscriptionPtr mRedirectToExistingTransportSubscription;
+
       UseSecureTransportWeakPtr mSecureTransport; // no lock needed
       ISecureTransportSubscriptionPtr mSecureTransportSubscription;
 
       CapabilitiesPtr mCapabilities;
+      bool mStartedFromListener {};
 
       SCTPTransportWeakPtr *mThisSocket {};
       ISCTPTransportWeakPtr mTearAway;
@@ -673,6 +699,8 @@ namespace ortc
       bool mAttemptResetLater {false};
       DataChannelSessionMap mPendingResetSessions;
       DataChannelSessionMap mQueuedResetSessions;
+
+      DataChannelIDSet mFilterSessionRequests;
 
       bool mSettledRole {false};
       WORD mCurrentAllocationSessionID {};

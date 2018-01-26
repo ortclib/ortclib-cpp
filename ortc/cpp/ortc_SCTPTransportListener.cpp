@@ -57,7 +57,7 @@
 #endif //_DEBUG
 
 
-namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_sctp_datachannel) }
+namespace ortc { ZS_DECLARE_SUBSYSTEM(org_ortc_sctp_data_channel) }
 
 namespace ortc
 {
@@ -466,7 +466,7 @@ namespace ortc
           if (found != mTransports.end()) {
             ioTransport = (*found).second;
 
-            ZS_LOG_TRACE(log("found existing transport") + ZS_PARAM("transport", ioTransport->getID()) + ZS_PARAM("local port", localPort) + ZS_PARAM("remote port", remotePort) + ZS_PARAM("tuple id", tupleID));
+            ZS_LOG_TRACE(log("found existing transport") + ZS_PARAM("transport", ioTransport->getRealID()) + ZS_PARAM("local port", localPort) + ZS_PARAM("remote port", remotePort) + ZS_PARAM("tuple id", tupleID));
 
             if ((ioTransport->isShuttingDown()) ||
                 (ioTransport->isShutdown())) {
@@ -486,7 +486,7 @@ namespace ortc
                           word, remotePort, ioRemotePort
                           );
 
-            ZS_LOG_DEBUG(log("found existing transport") + ZS_PARAM("transport", ioTransport->getID()) + ZS_PARAM("local port", localPort) + ZS_PARAM("remote port", remotePort) + ZS_PARAM("tuple id", tupleID));
+            ZS_LOG_DEBUG(log("found existing transport") + ZS_PARAM("transport", ioTransport->getRealID()) + ZS_PARAM("local port", localPort) + ZS_PARAM("remote port", remotePort) + ZS_PARAM("tuple id", tupleID));
             return;
           }
 
@@ -541,7 +541,7 @@ namespace ortc
                       word, localPort, ioLocalPort,
                       word, remotePort, ioRemotePort
                       );
-        ZS_LOG_DEBUG(log("registered local/remote port pairing") + ZS_PARAM("transport", ioTransport->getID()) + ZS_PARAM("local port", localPort) + ZS_PARAM("remote port", remotePort) + ZS_PARAM("tuple id", tupleID));
+        ZS_LOG_DEBUG(log("registered local/remote port pairing") + ZS_PARAM("transport", ioTransport->getRealID()) + ZS_PARAM("local port", localPort) + ZS_PARAM("remote port", remotePort) + ZS_PARAM("tuple id", tupleID));
 
         mTransports[tupleID] = ioTransport;
       }
@@ -571,16 +571,16 @@ namespace ortc
       ZS_EVENTING_4(
                     x, i, Detail, SctpTransportListenerSctpTransportEvent, ol, SctpTransportListener, InternalEvent,
                     puid, id, mID,
-                    puid, secureTransportId, transport->getID(),
+                    puid, secureTransportId, transport->getRealID(),
                     word, localPort, localPort,
                     word, remotePort, remotePort
                     );
 
-      ZS_LOG_DEBUG(log("announcing incoming transport") + ZS_PARAM("transport", transport->getID()))
+      ZS_LOG_DEBUG(log("announcing incoming transport") + ZS_PARAM("transport", transport->getRealID()))
 
       mSubscriptions.delegate()->onSCTPTransport(SCTPTransport::convert(transport));
 
-      mAnnouncedTransports[transport->getID()] = transport;
+      mAnnouncedTransports[transport->getRealID()] = transport;
     }
 
     //-------------------------------------------------------------------------
@@ -593,7 +593,7 @@ namespace ortc
       ZS_EVENTING_4(
                     x, i, Detail, SctpTransportListenerSctpTransportShutdownEvent, ol, SctpTransportListener, InternalEvent,
                     puid, id, mID,
-                    puid, sctpTransportId, transport.getID(),
+                    puid, sctpTransportId, transport.getRealID(),
                     word, localPort, localPort,
                     word, remotePort, remotePort
                     );
@@ -607,13 +607,13 @@ namespace ortc
 
       auto tuple = UseListenerHelper::createTuple(localPort, remotePort);
 
-      ZS_LOG_DETAIL(log("notified shutdown of SCTP transport") + ZS_PARAM("tuple", tuple) + ZS_PARAM("local port", localPort) + ZS_PARAM("remote port", remotePort) + ZS_PARAM("transport id", transport.getID()))
+      ZS_LOG_DETAIL(log("notified shutdown of SCTP transport") + ZS_PARAM("tuple", tuple) + ZS_PARAM("local port", localPort) + ZS_PARAM("remote port", remotePort) + ZS_PARAM("transport id", transport.getRealID()))
 
       {
         auto found = mTransports.find(tuple);
         if (found != mTransports.end()) {
           auto registeredTransport = (*found).second;
-          if (registeredTransport->getID() == transport.getID()) {
+          if (registeredTransport->getRealID() == transport.getRealID()) {
             deallocatePort(mAllocatedLocalPorts, localPort);
             deallocatePort(mAllocatedRemotePorts, remotePort);
             mTransports.erase(found);
@@ -622,12 +622,12 @@ namespace ortc
       }
 
       {
-        auto found = mAnnouncedTransports.find(transport.getID());
+        auto found = mAnnouncedTransports.find(transport.getRealID());
         if (found != mAnnouncedTransports.end()) mAnnouncedTransports.erase(found);
       }
 
       {
-        auto found = mPendingTransports.find(transport.getID());
+        auto found = mPendingTransports.find(transport.getRealID());
         if (found != mPendingTransports.end()) mPendingTransports.erase(found);
       }
 
@@ -692,15 +692,15 @@ namespace ortc
           ZS_EVENTING_4(
                         x, i, Detail, SctpTransportListenerSctpTransportCreatedEvent, ol, SctpTransportListener, Receive,
                         puid, id, mID,
-                        puid, sctpTransportId, transport->getID(),
+                        puid, sctpTransportId, transport->getRealID(),
                         word, localPort, localPort,
                         word, remotePort, remotePort
                         );
 
           if (mRemoteCapabilities) {
-            transport->start(*mRemoteCapabilities, remotePort);
+            transport->startFromListener(*mRemoteCapabilities, remotePort);
           } else {
-            mPendingTransports[transport->getID()] = TransportPortPair(transport, remotePort);
+            mPendingTransports[transport->getRealID()] = TransportPortPair(transport, remotePort);
           }
           allocatePort(mAllocatedLocalPorts, localPort);
           allocatePort(mAllocatedRemotePorts, remotePort);
@@ -713,7 +713,7 @@ namespace ortc
       ZS_EVENTING_4(
                     x, i, Trace, SctpTransportListenerDeliverIncomingDataPacket, ol, SctpTransportListener, Receive,
                     puid, id, mID,
-                    puid, sctpTransportId, transport->getID(),
+                    puid, sctpTransportId, transport->getRealID(),
                     buffer, dataPacket, buffer,
                     size,size, bufferLengthInBytes
                     );
@@ -891,11 +891,11 @@ namespace ortc
             mTransports.erase(current);
 
             {
-              auto found = mPendingTransports.find(transport->getID());
+              auto found = mPendingTransports.find(transport->getRealID());
               if (found != mPendingTransports.end()) mPendingTransports.erase(found);
             }
             {
-              auto found = mAnnouncedTransports.find(transport->getID());
+              auto found = mAnnouncedTransports.find(transport->getRealID());
               if (found != mAnnouncedTransports.end()) mAnnouncedTransports.erase(found);
             }
             continue;
@@ -958,7 +958,7 @@ namespace ortc
       {
         auto port = (*iter).second.second;
         UseSCTPTransportPtr transport = (*iter).second.first;
-        transport->start(*mRemoteCapabilities, port);
+        transport->startFromListener(*mRemoteCapabilities, port);
       }
       mPendingTransports.clear();
 

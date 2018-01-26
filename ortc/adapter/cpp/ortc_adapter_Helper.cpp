@@ -45,7 +45,7 @@
 //#define USE_TEMPORAL_LAYERS
 //#define USE_SPATIAL_LAYERS
 
-namespace ortc { namespace adapter { ZS_DECLARE_SUBSYSTEM(ortclib_adapter) } }
+namespace ortc { namespace adapter { ZS_DECLARE_SUBSYSTEM(org_ortc_adapter) } }
 
 namespace ortc
 {

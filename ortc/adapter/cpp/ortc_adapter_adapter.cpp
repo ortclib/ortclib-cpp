@@ -41,7 +41,7 @@
 //#include <zsLib/XML.h>
 
 
-namespace ortc { namespace adapter { ZS_IMPLEMENT_SUBSYSTEM(ortclib_adapter); } }
+namespace ortc { namespace adapter { ZS_IMPLEMENT_SUBSYSTEM(org_ortc_adapter); } }
 
 namespace ortc
 {

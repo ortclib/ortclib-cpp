@@ -48,7 +48,7 @@
 #define ASSERT(x)
 #endif //_DEBUG
 
-namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_mediaengine) }
+namespace ortc { ZS_DECLARE_SUBSYSTEM(org_ortc_media_engine) }
 
 namespace ortc
 {

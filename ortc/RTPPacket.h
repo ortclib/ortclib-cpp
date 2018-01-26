@@ -104,7 +104,10 @@ namespace ortc
 
       HeaderExtension *mNext {};
 
-      virtual void trace(const char *message) const;
+      virtual void trace(
+                         const char *func = NULL,
+                         const char *message = NULL
+                         ) const;
     };
 
     //-----------------------------------------------------------------------
@@ -126,7 +129,10 @@ namespace ortc
       bool voiceActivity() const;
       BYTE level() const;
 
-      virtual void trace(const char *message) const override;
+      virtual void trace(
+                         const char *func = NULL,
+                         const char *message = NULL
+                         ) const override;
 
     public:
       BYTE mLevelBuffer {};
@@ -155,7 +161,10 @@ namespace ortc
       BYTE unusedBit(size_t index) const;
       BYTE level(size_t index) const;
 
-      virtual void trace(const char *message) const override;
+      virtual void trace(
+                         const char *func = NULL,
+                         const char *message = NULL
+                         ) const override;
 
     public:
       BYTE mLevelBuffer[kMaxLevelCount] {};
@@ -178,7 +187,10 @@ namespace ortc
 
       const char *str() const;
 
-      virtual void trace(const char *message) const override;
+      virtual void trace(
+                         const char *func = NULL,
+                         const char *message = NULL
+                         ) const override;
 
     public:
       BYTE mStringBuffer[kMaxStringLength+sizeof(char)] {};
@@ -209,7 +221,10 @@ namespace ortc
 
       String str() const;
 
-      virtual void trace(const char *message) const override;
+      virtual void trace(
+                         const char *func = NULL,
+                         const char *message = NULL
+                         ) const override;
 
     public:
       BYTE mNumberBuffer[kMaxNumberByteLength] {};
@@ -234,7 +249,10 @@ namespace ortc
 
       const char *mid() const {return str();}
 
-      virtual void trace(const char *message) const override;
+      virtual void trace(
+                         const char *func = NULL,
+                         const char *message = NULL
+                         ) const override;
 
     public:
     };
@@ -258,7 +276,10 @@ namespace ortc
 
       const char *rid() const {return str();}
 
-      virtual void trace(const char *message) const override;
+      virtual void trace(
+                         const char *func = NULL,
+                         const char *message = NULL
+                         ) const override;
 
     public:
     };
@@ -294,7 +315,10 @@ namespace ortc
       virtual UINT degreesClockwise() const;
       virtual UINT degreesCounterClockwise() const;
 
-      virtual void trace(const char *message) const override;
+      virtual void trace(
+                         const char *func = NULL,
+                         const char *message = NULL
+                         ) const override;
 
     public:
       BYTE mEncoded[1] {};
@@ -392,7 +416,10 @@ namespace ortc
 
     void changeHeaderExtensions(HeaderExtension *firstExtension);
 
-    void trace(const char *message = NULL) const;
+    void trace(
+               const char *func = NULL,
+               const char *message = NULL
+               ) const;
 
   protected:
     //-----------------------------------------------------------------------

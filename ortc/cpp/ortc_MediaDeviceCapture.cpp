@@ -68,7 +68,7 @@
 #pragma GCC diagnostic ignored "-Wunused-local-typedef"
 #endif //__GNUC__
 
-namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_mediaengine) }
+namespace ortc { ZS_DECLARE_SUBSYSTEM(org_ortc_media_engine) }
 
 namespace ortc
 {

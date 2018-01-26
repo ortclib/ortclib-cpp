@@ -86,6 +86,8 @@ namespace ortc
 
       virtual void requestShutdown() = 0;
       virtual void notifyClosed() = 0;
+
+      virtual void notifyRemapFailure() = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -100,6 +102,7 @@ namespace ortc
     {
       virtual void onRequestShutdown() = 0;
       virtual void onNotifiedClosed() = 0;
+      virtual void onNotifiedRemapFailure() = 0;
     };
   }
 }
@@ -107,6 +110,7 @@ namespace ortc
 ZS_DECLARE_PROXY_BEGIN(ortc::internal::IDataChannelAsyncDelegate)
 ZS_DECLARE_PROXY_METHOD_0(onRequestShutdown)
 ZS_DECLARE_PROXY_METHOD_0(onNotifiedClosed)
+ZS_DECLARE_PROXY_METHOD_0(onNotifiedRemapFailure)
 ZS_DECLARE_PROXY_END()
 
 namespace ortc
@@ -243,6 +247,8 @@ namespace ortc
       void requestShutdown() override;
       void notifyClosed() override;
 
+      void notifyRemapFailure() override;
+
       //-----------------------------------------------------------------------
       #pragma mark
       #pragma mark DataChannel => ISCTPTransportForDataChannelDelegate
@@ -257,6 +263,7 @@ namespace ortc
 
       void onRequestShutdown() override;
       void onNotifiedClosed() override;
+      void onNotifiedRemapFailure() override;
 
       //-----------------------------------------------------------------------
       #pragma mark

@@ -46,7 +46,7 @@
 #include <zsLib/Socket.h>
 #include <zsLib/XML.h>
 
-namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
+namespace ortc { ZS_DECLARE_SUBSYSTEM(org_ortc) }
 
 namespace ortc
 {

@@ -22,7 +22,7 @@ using ::std::map;
 
 #include <ortc/services/ILogger.h>
 
-namespace wrapper { namespace impl { namespace org { namespace ortc { ZS_DECLARE_SUBSYSTEM(ortc_wrapper); } } } }
+namespace wrapper { namespace impl { namespace org { namespace ortc { ZS_DECLARE_SUBSYSTEM(org_ortc_wrapper); } } } }
 
 using namespace wrapper::impl::org::ortc;
 
@@ -31,12 +31,6 @@ ZS_DECLARE_TYPEDEF_PTR(::ortc::services::ILogger, UseLogger);
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::Logger::~Logger()
 {
-}
-
-//------------------------------------------------------------------------------
-void wrapper::org::ortc::Logger::setDefaultLogLevel(wrapper::org::ortc::log::Level level)
-{
-  UseLogger::setLogLevel(Helper::toNative(level));
 }
 
 //------------------------------------------------------------------------------
@@ -147,9 +141,21 @@ void wrapper::org::ortc::Logger::uninstallDebuggerLogger()
 }
 
 //------------------------------------------------------------------------------
-void wrapper::org::ortc::Logger::setDefaultEventingLevel(wrapper::org::ortc::log::Level level)
+void wrapper::org::ortc::Logger::setDefaultEventingLevel(
+  wrapper::org::ortc::log::Component component,
+  wrapper::org::ortc::log::Level level
+  )
 {
-  UseLogger::setEventingLevel(Helper::toNative(level));
+  UseLogger::setDefaultEventingLevel(Helper::toNative(component), Helper::toNative(level));
+}
+
+//------------------------------------------------------------------------------
+void wrapper::org::ortc::Logger::setDefaultEventingLevel(
+  String component,
+  wrapper::org::ortc::log::Level level
+  )
+{
+  UseLogger::setDefaultEventingLevel(component, Helper::toNative(level));
 }
 
 //------------------------------------------------------------------------------

@@ -26,7 +26,7 @@ using ::std::list;
 using ::std::set;
 using ::std::map;
 
-namespace wrapper { namespace impl { namespace org { namespace ortc { ZS_DECLARE_SUBSYSTEM(ortc_wrapper); } } } }
+namespace wrapper { namespace impl { namespace org { namespace ortc { ZS_DECLARE_SUBSYSTEM(org_ortc_wrapper); } } } }
 
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::MediaStreamTrack::NativeType, NativeType);
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::MediaStreamTrack::NativeTypeSubscription, NativeTypeSubscription);

@@ -88,7 +88,7 @@ enum WindowsErrorCompatibility {
   ((sizeof(a) / sizeof(*(a))) /                     \
   static_cast<size_t>(!(sizeof(a) % sizeof(*(a)))))
 
-namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_sctp_datachannel) }
+namespace ortc { ZS_DECLARE_SUBSYSTEM(org_ortc_sctp_data_channel) }
 
 namespace ortc
 {
@@ -276,9 +276,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-#pragma mark
-#pragma mark SCTPTransportSettingsDefaults
-#pragma mark
+    #pragma mark
+    #pragma mark SCTPTransportSettingsDefaults
+    #pragma mark
 
     class SCTPTransportSettingsDefaults : public ISettingsApplyDefaultsDelegate
     {
@@ -323,21 +323,21 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-#pragma mark
-#pragma mark SCTPInit
-#pragma mark
+    #pragma mark
+    #pragma mark SCTPInit
+    #pragma mark
 
-//-------------------------------------------------------------------------
-//-------------------------------------------------------------------------
-//-------------------------------------------------------------------------
-//-------------------------------------------------------------------------
-#pragma mark
-#pragma mark SCTPInit
-#pragma mark
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark SCTPInit
+    #pragma mark
 
-// code borrowed from:
-// https://chromium.googlesource.com/external/webrtc/+/master/talk/media/sctp/sctpdataengine.cc
-// https://chromium.googlesource.com/external/webrtc/+/master/talk/media/sctp/sctpdataengine.h
+    // code borrowed from:
+    // https://chromium.googlesource.com/external/webrtc/+/master/talk/media/sctp/sctpdataengine.cc
+    // https://chromium.googlesource.com/external/webrtc/+/master/talk/media/sctp/sctpdataengine.h
 
     class SCTPInit : public ISingletonManagerDelegate
     {
@@ -522,7 +522,6 @@ namespace ortc
 
         const SCTPPayloadProtocolIdentifier ppid = static_cast<SCTPPayloadProtocolIdentifier>(ntohl(rcv.rcv_ppid));
 
-
         if (0 == (flags & MSG_NOTIFICATION)) {
           switch (ppid) {
           case SCTP_PPID_CONTROL:
@@ -568,11 +567,11 @@ namespace ortc
 
     protected:
       //-----------------------------------------------------------------------
-#pragma mark
-#pragma mark SCTPInit => (internal)
-#pragma mark
+      #pragma mark
+      #pragma mark SCTPInit => (internal)
+      #pragma mark
 
-//-----------------------------------------------------------------------
+      //-----------------------------------------------------------------------
       Log::Params log(const char *message) const
       {
         ElementPtr objectEl = Element::create("ortc::SCTPInit");
@@ -673,13 +672,13 @@ namespace ortc
     const char *SCTPTransport::toString(InternalStates state)
     {
       switch (state) {
-      case InternalState_New:                     return "new";
-      case InternalState_Connecting:              return "connecting";
-      case InternalState_ConnectingDisrupted:     return "connecting disrupted";
-      case InternalState_Ready:                   return "ready";
-      case InternalState_Disconnected:            return "disconnected";
-      case InternalState_ShuttingDown:            return "shutting down";
-      case InternalState_Shutdown:                return "shutdown";
+        case InternalState_New:                     return "new";
+        case InternalState_Connecting:              return "connecting";
+        case InternalState_ConnectingDisrupted:     return "connecting disrupted";
+        case InternalState_Ready:                   return "ready";
+        case InternalState_Disconnected:            return "disconnected";
+        case InternalState_ShuttingDown:            return "shutting down";
+        case InternalState_Shutdown:                return "shutdown";
       }
       return "UNDEFINED";
     }
@@ -688,27 +687,28 @@ namespace ortc
     ISCTPTransportTypes::States SCTPTransport::toState(InternalStates state)
     {
       switch (state) {
-      case InternalState_New:                   return ISCTPTransportTypes::State_New;
-      case InternalState_Connecting:            return ISCTPTransportTypes::State_Connecting;
-      case InternalState_ConnectingDisrupted:   return ISCTPTransportTypes::State_Connecting;
-      case InternalState_Ready:                 return ISCTPTransportTypes::State_Connected;
-      case InternalState_Disconnected:          return ISCTPTransportTypes::State_Connected;
-      case InternalState_ShuttingDown:          return ISCTPTransportTypes::State_Closed;
-      case InternalState_Shutdown:              return ISCTPTransportTypes::State_Closed;
+        case InternalState_New:                   return ISCTPTransportTypes::State_New;
+        case InternalState_Connecting:            return ISCTPTransportTypes::State_Connecting;
+        case InternalState_ConnectingDisrupted:   return ISCTPTransportTypes::State_Connecting;
+        case InternalState_Ready:                 return ISCTPTransportTypes::State_Connected;
+        case InternalState_Disconnected:          return ISCTPTransportTypes::State_Connected;
+        case InternalState_ShuttingDown:          return ISCTPTransportTypes::State_Closed;
+        case InternalState_Shutdown:              return ISCTPTransportTypes::State_Closed;
       }
-      ZS_THROW_NOT_IMPLEMENTED(String("state is not implemented:") + toString(state))
-        return ISCTPTransportTypes::State_Closed;
+      ZS_THROW_NOT_IMPLEMENTED(String("state is not implemented:") + toString(state));
+      return ISCTPTransportTypes::State_Closed;
     }
 
     //-------------------------------------------------------------------------
     SCTPTransport::SCTPTransport(
-      const make_private &,
-      IMessageQueuePtr queue,
-      UseListenerPtr listener,
-      UseSecureTransportPtr secureTransport,
-      WORD localPort,
-      WORD remotePort
-    ) :
+                                 const make_private &,
+                                 IMessageQueuePtr queue,
+                                 ISCTPTransportDelegatePtr originalDelegate,
+                                 UseListenerPtr listener,
+                                 UseSecureTransportPtr secureTransport,
+                                 WORD localPort,
+                                 WORD remotePort
+                                 ) :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
       mSCTPInit(SCTPInit::singleton()),
@@ -736,18 +736,21 @@ namespace ortc
 
       ZS_LOG_DETAIL(debug("created"));
 
-      ORTC_THROW_INVALID_STATE_IF(!mSCTPInit)
+      ORTC_THROW_INVALID_STATE_IF(!mSCTPInit);
+
+      if (originalDelegate) {
+        mDefaultSubscription = mSubscriptions.subscribe(originalDelegate, IORTCForInternal::queueDelegate());
+      }
     }
 
     //-------------------------------------------------------------------------
     void SCTPTransport::init()
     {
       AutoRecursiveLock lock(*this);
-      //IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
 
-      ZS_LOG_DETAIL(debug("SCTP init"))
+      ZS_LOG_DETAIL(debug("SCTP init"));
 
-        auto secureTransport = mSecureTransport.lock();
+      auto secureTransport = mSecureTransport.lock();
       if (secureTransport) {
         mSecureTransportSubscription = secureTransport->subscribe(mThisWeak.lock());
       }
@@ -760,8 +763,8 @@ namespace ortc
     {
       if (isNoop()) return;
 
-      ZS_LOG_DETAIL(log("destroyed"))
-        mThisWeak.reset();
+      ZS_LOG_DETAIL(log("destroyed"));
+      mThisWeak.reset();
       mThisSocket->reset();
 
       cancel();
@@ -819,7 +822,6 @@ namespace ortc
       return PromiseWithStatsReport::createRejected(IORTCForInternal::queueDelegate());
     }
 
-
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -833,6 +835,29 @@ namespace ortc
     {
       if (!transport) return ElementPtr();
       return transport->toDebug();
+    }
+
+    //-------------------------------------------------------------------------
+    PUID SCTPTransport::getID() const
+    {
+      AutoRecursiveLock lock(*this);
+
+      // Caller has seen the real ID thus do not hide the real ID.
+      if (mObtainedID) return mID;
+
+      // Ideally the redirect transport and this transport woud have the same
+      // ID but that's not possible. To the external world hide the ID of
+      // this transport's real ID if the redirect transport is in place. But
+      // do not hide the ID if the real ID has been revealed before the
+      // redirect was put into place.
+      if (mRedirectToExistingTransport) {
+        // Once a redirect is in place the redirect linkage cannot be broken.
+        return mRedirectToExistingTransport->getID();
+      }
+
+      // Caller has obtained real ID so this ID cannot change for this object.
+      mObtainedID = true; // mutuable
+      return mID;
     }
 
     //-------------------------------------------------------------------------
@@ -860,12 +885,19 @@ namespace ortc
         inLocalPort = allocatedLocalPort.value();
       }
 
-      SCTPTransportPtr pThis(make_shared<SCTPTransport>(make_private{}, IORTCForInternal::queueORTC(), listener, useSecureTransport));
+      SCTPTransportPtr pThis(make_shared<SCTPTransport>(make_private{}, IORTCForInternal::queueORTC(), delegate, listener, useSecureTransport));
       pThis->mThisWeak = pThis;
       pThis->mThisSocket = new SCTPTransportWeakPtr(pThis);
 
       ISCTPTransportPtr registeredTransport = pThis;
 
+      // A tear away is created to allow caller to hold an instance of the tear
+      // away as a means to ensure an instance of the listener is held as
+      // well as this object since both objects are needed. This object cannot
+      // hold an instance directly to the listener as the listener holds
+      // instances to every SCTP transport as that would cause a circular
+      // reference. Thus by using a tear away to hold the references to this
+      // object and the listener prevents the circular reference.
       auto tearAway = ISCTPTransportTearAway::create(registeredTransport, make_shared<TearAwayData>());
       ORTC_THROW_INVALID_STATE_IF(!tearAway);
 
@@ -873,7 +905,6 @@ namespace ortc
       ORTC_THROW_INVALID_STATE_IF(!tearAwayData);
 
       tearAwayData->mListener = listener;
-      tearAwayData->mDelegate = delegate;
 
       AutoRecursiveLock lock(*pThis);
       pThis->mTearAway = tearAway;
@@ -887,39 +918,47 @@ namespace ortc
     ISCTPTransportTypes::States SCTPTransport::state() const
     {
       AutoRecursiveLock lock(*this);
+      if (mRedirectToExistingTransport) return mRedirectToExistingTransport->state();
       return mLastReportedState;
     }
 
     //-------------------------------------------------------------------------
     IDTLSTransportPtr SCTPTransport::transport() const
     {
+      // NOTE: Redirect and this object must share same secure transport.
       return DTLSTransport::convert(mSecureTransport.lock());
     }
 
     //-------------------------------------------------------------------------
     WORD SCTPTransport::port() const
     {
+      // NOTE: Redirect and this object must share same secure port.
       return mLocalPort;
     }
 
     //-------------------------------------------------------------------------
     WORD SCTPTransport::localPort() const
     {
+      // NOTE: Redirect and this object must share same secure port.
       return mLocalPort;
     }
 
     //-------------------------------------------------------------------------
     Optional<WORD> SCTPTransport::remotePort() const
     {
+      // NOTE: Redirect and this object must share same secure port.
       return mRemotePort;
     }
 
     //-------------------------------------------------------------------------
     ISCTPTransportTypes::PromiseWithSocketOptionsPtr SCTPTransport::getOptions(const SocketOptions &inWhichOptions)
     {
+      AutoRecursiveLock lock(*this);
+
+      if (mRedirectToExistingTransport) return mRedirectToExistingTransport->getOptions(inWhichOptions);
+
       auto promise = PromiseWithSocketOptions::create(IORTCForInternal::queueDelegate());
 
-      AutoRecursiveLock lock(*this);
       if ((isShuttingDown()) ||
           (isShutdown())) {
         promise->reject(ErrorAny::create(UseHTTP::HTTPStatusCode_Gone, "transport is closing or closed"));
@@ -945,9 +984,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     PromisePtr SCTPTransport::setOptions(const SocketOptions &inOptions)
     {
-      auto promise = Promise::create(IORTCForInternal::queueDelegate());
-
       AutoRecursiveLock lock(*this);
+
+      if (mRedirectToExistingTransport) return mRedirectToExistingTransport->setOptions(inOptions);
+
+      auto promise = Promise::create(IORTCForInternal::queueDelegate());
 
       if ((isShuttingDown()) ||
           (isShutdown())) {
@@ -991,14 +1032,34 @@ namespace ortc
       ZS_LOG_DEBUG(log("start called") + remoteCapabilities.toDebug());
 
       AutoRecursiveLock lock(*this);
+
+      if (mRedirectToExistingTransport) {
+        mRedirectToExistingTransport->start(remoteCapabilities, inRemotePort);
+        return;
+      }
+
       if ((isShuttingDown()) ||
           (isShutdown())) {
         ORTC_THROW_INVALID_STATE("already shutting down");
       }
 
       if (mCapabilities) {
-        ORTC_THROW_INVALID_STATE("already started");
+        ORTC_THROW_INVALID_STATE_IF(!mStartedFromListener);
+        if (mStartedFromListener) {
+          // Not allowed to change capabilities after declaring the
+          // capabilities to the sctp transport listener.
+          ORTC_THROW_INVALID_STATE_IF(mCapabilities->mMaxMessageSize != remoteCapabilities.mMaxMessageSize);
+          ORTC_THROW_INVALID_STATE_IF(mCapabilities->mMaxSessionsPerPort != remoteCapabilities.mMaxSessionsPerPort);
+        }
+        ZS_LOG_DEBUG(log("already started"));
+        mStartedFromListener = false;
+
+        // Needed to ensure any moved requests from a redirection get handled.
+        IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
+        return;
       }
+
+      mStartedFromListener = false;
 
       if (0 != inRemotePort) {
         mRemotePort = inRemotePort;
@@ -1023,33 +1084,134 @@ namespace ortc
         ORTC_THROW_INVALID_PARAMETERS("unable to allocate port, local port=" + string(mLocalPort) + ", remote port=" + string(remotePort));
       }
 
-      auto usePThis = SCTPTransport::convert(forListener);
-
       mLocalPort = localPort;
       mRemotePort = remotePort;
+      mCapabilities = make_shared<Capabilities>(remoteCapabilities);
 
-      auto originalTearAwayInterface = mTearAway.lock();
-      auto tearAway = ISCTPTransportTearAway::tearAway(originalTearAwayInterface);
-      if (tearAway) {
-        tearAway->setDelegate(usePThis);
-
-        auto tearAwayData = ISCTPTransportTearAway::data(originalTearAwayInterface);
-        if (tearAwayData) {
-          auto delegate = tearAwayData->mDelegate.lock();
-          if ((!tearAwayData->mDefaultSubscription) &&
-              (delegate)) {
-            tearAwayData->mDefaultSubscription = usePThis->subscribe(delegate);
-            tearAwayData->mDelegate.reset();
-          }
-        }
-      }
-
+      // The SCTP transport used in the mapping of local:remote may already
+      // exist if the remote party initialized an SCTP transport before the
+      // local side has a chance to start its SCTP transport. This ensures
+      // this object remaps all requrests to an existing SCTP transport rather
+      // than creating a duplicate transport.
       if (forListener != originalForListener) {
-        cancel();
+        mRedirectToExistingTransport = SCTPTransport::convert(forListener);
+
+        if (mRedirectToExistingTransport) {
+          AutoRecursiveLock lock(*mRedirectToExistingTransport);
+
+          if ((mRedirectToExistingTransport->isShuttingDown()) ||
+              (mRedirectToExistingTransport->isShutdown())) {
+            ORTC_THROW_INVALID_STATE("already shutting down");
+          }
+
+          // Need to move get/set options to new transport
+          {
+            for (auto iter = mGetSocketOptions.begin(); iter != mGetSocketOptions.end(); ++iter) {
+              auto &value = (*iter);
+              mRedirectToExistingTransport->mGetSocketOptions.push_back(value);
+            }
+            for (auto iter = mSetSocketOptions.begin(); iter != mSetSocketOptions.end(); ++iter) {
+              auto &value = (*iter);
+              mRedirectToExistingTransport->mSetSocketOptions.push_back(value);
+            }
+
+            mGetSocketOptions.clear();
+            mSetSocketOptions.clear();
+          }
+
+          // Need to move the existing data channels to the redirected transport.
+          {
+            for (auto iter = mSessions.begin(); iter != mSessions.end(); ++iter) {
+              auto &sessionID = (*iter).first;
+              auto &dataChannel = (*iter).second;
+              if (!dataChannel) continue;
+
+              bool remapped = false;
+
+              try {
+                SessionID tempID = sessionID;
+                UseDataChannelPtr channel = dataChannel;
+
+                if (!mRedirectToExistingTransport->isSessionAvailable(sessionID)) goto skip_register;
+                mRedirectToExistingTransport->registerNewDataChannel(channel, tempID);
+                remapped = true;
+              } catch(const InvalidParameters &e) {
+                goto skip_register;
+              } catch(const InvalidStateError &e) {
+                goto skip_register;
+              }
+
+            skip_register:
+              {
+                if (!remapped) {
+                  mFilterSessionRequests.insert(sessionID);
+                  dataChannel->notifyRemapFailure();
+                  continue;
+                }
+
+                auto found = mAnnouncedIncomingDataChannels.find(dataChannel->getID());
+                if (found != mAnnouncedIncomingDataChannels.end()) {
+                  mRedirectToExistingTransport->mAnnouncedIncomingDataChannels[dataChannel->getID()] = dataChannel;
+                }
+              }
+            }
+
+            // sessions being reset should also be moved to a new transport
+            for (auto iter = mPendingResetSessions.begin(); iter != mPendingResetSessions.end(); ++iter) {
+              auto &sessionID = (*iter).first;
+              auto &dataChannel = (*iter).second;
+              if (!dataChannel) continue;
+
+              if (!mRedirectToExistingTransport->isSessionAvailable(sessionID)) {
+                mFilterSessionRequests.insert(sessionID);
+                dataChannel->notifyClosed();
+                continue;
+              }
+              auto found = mAnnouncedIncomingDataChannels.find(dataChannel->getID());
+              if (found != mAnnouncedIncomingDataChannels.end()) {
+                mRedirectToExistingTransport->mAnnouncedIncomingDataChannels[dataChannel->getID()] = dataChannel;
+              }
+              mRedirectToExistingTransport->mPendingResetSessions[sessionID] = dataChannel;
+            }
+
+            // sessions queued to reset should also be moved to a new transport
+            for (auto iter = mQueuedResetSessions.begin(); iter != mQueuedResetSessions.end(); ++iter) {
+              auto &sessionID = (*iter).first;
+              auto &dataChannel = (*iter).second;
+              if (!dataChannel) continue;
+
+              if (!mRedirectToExistingTransport->isSessionAvailable(sessionID)) {
+                mFilterSessionRequests.insert(sessionID);
+                dataChannel->notifyClosed();
+                continue;
+              }
+              auto found = mAnnouncedIncomingDataChannels.find(dataChannel->getID());
+              if (found != mAnnouncedIncomingDataChannels.end()) {
+                mRedirectToExistingTransport->mAnnouncedIncomingDataChannels[dataChannel->getID()] = dataChannel;
+              }
+              mRedirectToExistingTransport->mQueuedResetSessions[sessionID] = dataChannel;
+            }
+
+            // everything is now moved
+            mSessions.clear();
+            mPendingResetSessions.clear();
+            mQueuedResetSessions.clear();
+            mAnnouncedIncomingDataChannels.clear();
+
+            // finally is socket is setup then kill the socket
+            if (mSocket) {
+              usrsctp_close(mSocket);
+              mSocket = NULL;
+              usrsctp_deregister_address(mThisSocket);
+            }
+          }
+
+          mRedirectToExistingTransportSubscription = mRedirectToExistingTransport->subscribe(mThisWeak.lock());
+          mRedirectToExistingTransport->start(remoteCapabilities, inRemotePort);
+        }
         return;
       }
 
-      mCapabilities = make_shared<Capabilities>(remoteCapabilities);
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
 
@@ -1060,13 +1222,14 @@ namespace ortc
       ZS_LOG_DEBUG(log("stop called"))
 
       AutoRecursiveLock lock(*this);
+      if (mRedirectToExistingTransport) return mRedirectToExistingTransport->stop();
       cancel();
     }
 
     //-------------------------------------------------------------------------
     ISCTPTransportSubscriptionPtr SCTPTransport::subscribe(ISCTPTransportDelegatePtr originalDelegate)
     {
-      ZS_LOG_DETAIL(log("subscribing to transport state"))
+      ZS_LOG_DETAIL(log("subscribing to transport state"));
 
       AutoRecursiveLock lock(*this);
 
@@ -1077,15 +1240,29 @@ namespace ortc
       if (delegate) {
         SCTPTransportPtr pThis = mThisWeak.lock();
 
-        for (auto iter = mAnnouncedIncomingDataChannels.begin(); iter != mAnnouncedIncomingDataChannels.end(); ++iter) {
-          // NOTE: ID of data channels are always greater than last so order
-          // should be guarenteed.
-          auto dataChannel = (*iter).second;
-          delegate->onSCTPTransportDataChannel(mThisWeak.lock(), DataChannel::convert(dataChannel));
-        }
+        if (mRedirectToExistingTransport) {
+          AutoRecursiveLock lock(*mRedirectToExistingTransport);
 
-        if (State_New != mLastReportedState) {
-          delegate->onSCTPTransportStateChange(pThis, mLastReportedState);
+          for (auto iter = mRedirectToExistingTransport->mAnnouncedIncomingDataChannels.begin(); iter != mRedirectToExistingTransport->mAnnouncedIncomingDataChannels.end(); ++iter) {
+            // NOTE: ID of data channels are always greater than last so order should be guarenteed.
+            auto dataChannel = (*iter).second;
+            delegate->onSCTPTransportDataChannel(pThis, DataChannel::convert(dataChannel));
+          }
+
+          if (State_New != mRedirectToExistingTransport->mLastReportedState) {
+            delegate->onSCTPTransportStateChange(pThis, mRedirectToExistingTransport->mLastReportedState);
+          }
+        } else {
+          for (auto iter = mAnnouncedIncomingDataChannels.begin(); iter != mAnnouncedIncomingDataChannels.end(); ++iter) {
+            // NOTE: ID of data channels are always greater than last so order
+            // should be guarenteed.
+            auto dataChannel = (*iter).second;
+            delegate->onSCTPTransportDataChannel(pThis, DataChannel::convert(dataChannel));
+          }
+
+          if (State_New != mLastReportedState) {
+            delegate->onSCTPTransportStateChange(pThis, mLastReportedState);
+          }
         }
       }
 
@@ -1111,6 +1288,11 @@ namespace ortc
                                                )
     {
       AutoRecursiveLock lock(*this);
+
+      if (mRedirectToExistingTransport) {
+        mRedirectToExistingTransport->registerNewDataChannel(ioDataChannel, ioSessionID);
+        return;
+      }
 
       UseDataChannelPtr dataChannel = ioDataChannel;
       WORD sessionID = ioSessionID;
@@ -1219,7 +1401,9 @@ namespace ortc
       ZS_LOG_DETAIL(log("datachannel subscribing to SCTP Transport"))
       
       AutoRecursiveLock lock(*this);
-      
+
+      if (mRedirectToExistingTransport) return mRedirectToExistingTransport->subscribe(originalDelegate);
+
       ISCTPTransportForDataChannelSubscriptionPtr subscription = mDataChannelSubscriptions.subscribe(originalDelegate, IORTCForInternal::queueORTC());
       
       ISCTPTransportForDataChannelDelegatePtr delegate = mDataChannelSubscriptions.delegate(subscription, true);
@@ -1242,6 +1426,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool SCTPTransport::isReady() const
     {
+      AutoRecursiveLock lock(*this);
+      if (mRedirectToExistingTransport) return mRedirectToExistingTransport->isReady();
       return InternalState_Ready == mCurrentState;
     }
 
@@ -1255,6 +1441,12 @@ namespace ortc
       ZS_THROW_INVALID_ARGUMENT_IF(!params)
 
       AutoRecursiveLock lock(*this);
+
+      if (mRedirectToExistingTransport) {
+        if (mFilterSessionRequests.end() != mFilterSessionRequests.find(params->mID.value())) return;
+        mRedirectToExistingTransport->announceIncoming(dataChannel, params);
+        return;
+      }
 
       auto found = mSessions.find(params->mID.value());
       if (found == mSessions.end()) {
@@ -1296,9 +1488,15 @@ namespace ortc
                     size, size, ((bool)packet->mBuffer) ? size_t((SafeInt<unsigned int>(packet->mBuffer->SizeInBytes()))) : 0
                     );
 
-      ZS_DECLARE_TYPEDEF_PTR(ISCTPTransportForDataChannel::RejectReason, RejectReason)
+      ZS_DECLARE_TYPEDEF_PTR(ISCTPTransportForDataChannel::RejectReason, RejectReason);
+
       {
         AutoRecursiveLock lock(*this);
+
+        if (mRedirectToExistingTransport) {
+          if (mFilterSessionRequests.end() != mFilterSessionRequests.find(packet->mSessionID)) return Promise::createRejected(RejectReason::create(UseHTTP::HTTPStatusCode_Conflict, "cannot send because of a remap conflict"), IORTCForInternal::queueORTC());;
+          return mRedirectToExistingTransport->sendDataNow(packet);
+        }
 
         if ((isShuttingDown()) ||
             (isShutdown())) {
@@ -1354,6 +1552,12 @@ namespace ortc
                     );
 
       AutoRecursiveLock lock(*this);
+
+      if (mRedirectToExistingTransport) {
+        if (mFilterSessionRequests.end() != mFilterSessionRequests.find(sessionID)) return;
+        mRedirectToExistingTransport->requestShutdown(dataChannel, sessionID);
+        return;
+      }
 
       if (isShutdown()) {
         ZS_LOG_WARNING(Trace, log("already shutdown transport"))
@@ -1437,11 +1641,32 @@ namespace ortc
                                                         WORD localPort
                                                         )
     {
-      SCTPTransportPtr pThis(make_shared<SCTPTransport>(make_private {}, IORTCForInternal::queueORTC(), listener, secureTransport, localPort));
+      SCTPTransportPtr pThis(make_shared<SCTPTransport>(make_private {}, IORTCForInternal::queueORTC(), ISCTPTransportDelegatePtr(), listener, secureTransport, localPort));
       pThis->mThisWeak = pThis;
       pThis->mThisSocket = new SCTPTransportWeakPtr(pThis);
       pThis->init();
       return pThis;
+    }
+
+    //-------------------------------------------------------------------------
+    void SCTPTransport::startFromListener(
+                                          const Capabilities &remoteCapabilities,
+                                          WORD remotePort
+                                          ) throw (InvalidStateError, InvalidParameters)
+    {
+      AutoRecursiveLock lock(*this);
+
+      if (mRedirectToExistingTransport) {
+        mRedirectToExistingTransport->startFromListener(remoteCapabilities, remotePort);
+        return;
+      }
+
+      if (mCapabilities) {
+        ZS_LOG_DEBUG(log("already started from remote"));
+        return;
+      }
+      start(remoteCapabilities, remotePort);
+      mStartedFromListener = true;
     }
 
     //-------------------------------------------------------------------------
@@ -1464,6 +1689,8 @@ namespace ortc
 
       {
         AutoRecursiveLock lock(*this);
+
+        if (mRedirectToExistingTransport) return mRedirectToExistingTransport->handleDataPacket(buffer, bufferLengthInBytes);
 
         {
           if (isShutdown()) {
@@ -1539,9 +1766,52 @@ namespace ortc
                     size, size, bufferLengthInBytes
                     );
 
+      // NOTE: No need to redirect to existing transport as same secure
+      // secure transport is used.
       return transport->sendDataPacket(buffer, bufferLengthInBytes);
     }
 
+
+
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    //-------------------------------------------------------------------------
+    #pragma mark
+    #pragma mark SCTPTransport => ISCTPTransportDelegate
+    #pragma mark
+
+    //-------------------------------------------------------------------------
+    void SCTPTransport::onSCTPTransportStateChange(
+                                                   ISCTPTransportPtr transport,
+                                                   ISCTPTransportTypes::States state
+                                                   )
+    {
+      auto pThis = mThisWeak.lock();
+
+      ZS_EVENTING_1(x, i, Detail, SctpTransportInternalSCTPTransportStateChange, ol, SctpTransport, InternalEvent, puid, id, mID);
+
+      AutoRecursiveLock lock(*this);
+
+      // simulate redirect transport event as if it came from this transport
+      mSubscriptions.delegate()->onSCTPTransportStateChange(pThis, state);
+    }
+
+    //-------------------------------------------------------------------------
+    void SCTPTransport::onSCTPTransportDataChannel(
+                                                   ISCTPTransportPtr transport,
+                                                   IDataChannelPtr channel
+                                                   )
+    {
+      auto pThis = mThisWeak.lock();
+
+      ZS_EVENTING_1(x, i, Detail, SctpTransportInternalSCTPTransportDataChannel, ol, SctpTransport, InternalEvent, puid, id, mID);
+
+      AutoRecursiveLock lock(*this);
+
+      // simulate redirect transport event as if it came from this transport
+      mSubscriptions.delegate()->onSCTPTransportDataChannel(pThis, channel);
+    }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -1613,6 +1883,10 @@ namespace ortc
         ZS_THROW_INVALID_ASSUMPTION_IF(notification.sn_header.sn_length != packet->mBuffer->SizeInBytes())
 
         AutoRecursiveLock lock(*this);
+        if (mRedirectToExistingTransport) {
+          mRedirectToExistingTransport->handleNotificationPacket(notification);
+          return;
+        }
         handleNotificationPacket(notification);
         return;
       }
@@ -1621,6 +1895,12 @@ namespace ortc
 
       {
         AutoRecursiveLock lock(*this);
+
+        if (mRedirectToExistingTransport) {
+          if (mFilterSessionRequests.end() != mFilterSessionRequests.find(packet->mSessionID)) return;
+          mRedirectToExistingTransport->onIncomingPacket(packet);
+          return;
+        }
 
         // scope: check active sessions
         {
@@ -1693,6 +1973,10 @@ namespace ortc
       ZS_LOG_TRACE(log("on notified to shutdown"))
 
       AutoRecursiveLock lock(*this);
+      if (mRedirectToExistingTransport) {
+        mRedirectToExistingTransport->onNotifiedToShutdown();
+        return;
+      }
       cancel();
     }
 
@@ -1756,6 +2040,8 @@ namespace ortc
     ElementPtr SCTPTransport::toDebug() const
     {
       AutoRecursiveLock lock(*this);
+
+      if (mRedirectToExistingTransport) return mRedirectToExistingTransport->toDebug();
 
       ElementPtr resultEl = Element::create("ortc::SCTPTransport");
 
@@ -1831,7 +2117,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     void SCTPTransport::step()
     {
-      ZS_LOG_DEBUG(debug("step"))
+      ZS_LOG_DEBUG(debug("step"));
+
+      if (mRedirectToExistingTransport) {
+        mRedirectToExistingTransport->step();
+        return;
+      }
 
       if ((isShuttingDown()) ||
           (isShutdown())) {
@@ -1903,7 +2194,31 @@ namespace ortc
         }
         case ISecureTransportTypes::State_Connected:
         {
-          ZS_LOG_TRACE(log("secure transport already notified ready"))
+          ZS_LOG_TRACE(log("secure transport already notified ready"));
+          InternalStates currentState = mCurrentState;
+          switch (currentState)
+          {
+            case InternalState_New:
+            case InternalState_Connecting:
+            case InternalState_ConnectingDisrupted:
+            {
+              setState(InternalState_Connecting);
+              break;
+            }
+            case InternalState_Ready:
+            case InternalState_Disconnected:
+            {
+              setState(InternalState_Ready);
+              break;
+            }
+            case InternalState_ShuttingDown:
+            case InternalState_Shutdown:
+            {
+              ZS_LOG_WARNING(Trace, log("already shutting down"))
+              cancel();
+              return false;
+            }
+          }
           break;
         }
         case ISecureTransportTypes::State_Disconnected:
@@ -1942,12 +2257,10 @@ namespace ortc
         }
       }
 
-
-      if (!mSettledRole) {
+      if (mSettledRole) {
         ZS_LOG_TRACE(log("role of secure transport already settled"))
         return true;
       }
-
 
       ZS_LOG_DEBUG(log("secure transport notified ready"))
 

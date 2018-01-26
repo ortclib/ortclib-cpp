@@ -54,7 +54,7 @@
 #define RTCP_GET_BITS(xByte, xBitPattern, xLowestBit) (((xByte) >> (xLowestBit)) & (xBitPattern))
 #define RTCP_PACK_BITS(xByte, xBitPattern, xLowestBit) (((xByte) & (xBitPattern)) << (xLowestBit))
 
-namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_rtp_rtcp_packet) }
+namespace ortc { ZS_DECLARE_SUBSYSTEM(org_ortc_rtp_rtcp_packet) }
 
 namespace ortc
 {
@@ -1418,7 +1418,7 @@ namespace ortc
                             RTCPPacket::Report *common
                             )
     {
-      ZS_EVENTING_8(x, i, Insane, RTCPPacketTraceReport, ol, RtcpPacket, Info,
+      ZS_EVENTING_8(x, i, Basic, RTCPPacketTraceReport, ol, RtcpPacket, Info,
         puid, mediaChannelID, mediaChannelID,
         bool, next, NULL != common->next(),
         buffer, buffer, common->ptr(),
@@ -1440,7 +1440,7 @@ namespace ortc
       if (NULL == block) return;
 
       for (; NULL != block; block = block->next()) {
-        ZS_EVENTING_8(x, i, Insane, RTCPPacketTraceSenderReceiverCommonReportBlock, ol, RtcpPacket, Info,
+        ZS_EVENTING_8(x, i, Basic, RTCPPacketTraceSenderReceiverCommonReportBlock, ol, RtcpPacket, Info,
           puid, mediaChannelID, mediaChannelID,
           dword, ssrc, block->ssrc(),
           byte, fractionLost, block->fractionLost(),
@@ -1460,7 +1460,7 @@ namespace ortc
                                                 )
     {
       traceReport(mediaChannelID, common);
-      ZS_EVENTING_5(x, i, Insane, RTCPPacketTraceSenderReceiverCommonReport, ol, RtcpPacket, Info,
+      ZS_EVENTING_5(x, i, Basic, RTCPPacketTraceSenderReceiverCommonReport, ol, RtcpPacket, Info,
         puid, mediaChannelID, mediaChannelID,
         string, ssrcType, (RTCPPacket::ReceiverReport::kPayloadType != common->pt() ? "ssrc of sender" : "ssrc of packet sender"),
         dword, ssrc, common->ssrcOfSender(),
@@ -1480,7 +1480,7 @@ namespace ortc
 
       if (RTCPPacket::SDES::Chunk::Priv::kItemType == type) {
         RTCPPacket::SDES::Chunk::Priv *priv = reinterpret_cast<RTCPPacket::SDES::Chunk::Priv *>(common);
-        ZS_EVENTING_6(x, i, Insane, RTCPPacketTraceChunkStringItemPriv, ol, RtcpPacket, Info,
+        ZS_EVENTING_6(x, i, Basic, RTCPPacketTraceChunkStringItemPriv, ol, RtcpPacket, Info,
           puid, mediaChannelID, mediaChannelID,
           byte, type, common->type(),
           size_t, prefixLength, priv->prefixLength(),
@@ -1489,7 +1489,7 @@ namespace ortc
           string, value, common->value()
         );
       } else {
-        ZS_EVENTING_4(x, i, Insane, RTCPPacketTraceChunkStringItem, ol, RtcpPacket, Parse,
+        ZS_EVENTING_4(x, i, Basic, RTCPPacketTraceChunkStringItem, ol, RtcpPacket, Parse,
           puid, mediaChannelID, mediaChannelID,
           byte, type, common->type(),
           size_t, length, common->length(),
@@ -1523,7 +1523,7 @@ namespace ortc
       if (NULL == values) return;
 
       for (size_t index = 0; index < count; ++index) {
-        ZS_EVENTING_4(x, i, Insane, RTCPPacketTraceDWORDs, ol, RtcpPacket, Info,
+        ZS_EVENTING_4(x, i, Basic, RTCPPacketTraceDWORDs, ol, RtcpPacket, Info,
           puid, mediaChannelID, mediaChannelID,
           string, type, type,
           size_t, index, index,
@@ -1539,7 +1539,7 @@ namespace ortc
                                      )
     {
       traceReport(mediaChannelID, common);
-      ZS_EVENTING_6(x, i, Insane, RTCPPacketTraceFeedbackMessage, ol, RtcpPacket, Info,
+      ZS_EVENTING_6(x, i, Basic, RTCPPacketTraceFeedbackMessage, ol, RtcpPacket, Info,
         puid, mediaChannelID, mediaChannelID,
         byte, fmt, common->fmt(),
         dword, ssrcOfPacketSender, common->ssrcOfPacketSender(),
@@ -1556,7 +1556,7 @@ namespace ortc
                                  RTCPPacket::TransportLayerFeedbackMessage::TMMBRCommon *common
                                  )
     {
-      ZS_EVENTING_6(x, i, Insane, RTCPPacketTraceFeedbackMessageTMMBRCommon, ol, RtcpPacket, Info,
+      ZS_EVENTING_6(x, i, Basic, RTCPPacketTraceFeedbackMessageTMMBRCommon, ol, RtcpPacket, Info,
         puid, mediaChannelID, mediaChannelID,
         byte, fmt, fmt,
         dword, ssrc, common->ssrc(),
@@ -1573,7 +1573,7 @@ namespace ortc
                                         RTCPPacket::PayloadSpecificFeedbackMessage::CodecControlCommon *common
                                         )
     {
-      ZS_EVENTING_5(x, i, Insane, RTCPPacketTraceFeedbackMessageCodecControlCommon, ol, RtcpPacket, Info,
+      ZS_EVENTING_5(x, i, Basic, RTCPPacketTraceFeedbackMessageCodecControlCommon, ol, RtcpPacket, Info,
         puid, mediaChannelID, mediaChannelID,
         byte, fmt, fmt,
         dword, ssrc, common->ssrc(),
@@ -1588,7 +1588,7 @@ namespace ortc
                                    RTCPPacket::XR::ReportBlock *common
                                    )
     {
-      ZS_EVENTING_6(x, i, Insane, RTCPPacketTraceXRReportBlock, ol, RtcpPacket, Info,
+      ZS_EVENTING_6(x, i, Basic, RTCPPacketTraceXRReportBlock, ol, RtcpPacket, Info,
         puid, mediaChannelID, mediaChannelID,
         bool, next, (NULL != common->next()),
         byte, blockType, common->blockType(),
@@ -1605,7 +1605,7 @@ namespace ortc
                                       )
     {
       traceXRReportBlock(mediaChannelID, common);
-      ZS_EVENTING_6(x, i, Insane, RTCPPacketTraceXRReportBlockRange, ol, RtcpPacket, Info,
+      ZS_EVENTING_6(x, i, Basic, RTCPPacketTraceXRReportBlockRange, ol, RtcpPacket, Info,
         puid, mediaChannelID, mediaChannelID,
         byte, reserved, common->reserved(),
         byte, thinning, common->thinning(),
@@ -1635,19 +1635,19 @@ namespace ortc
 
         if (RTCPPacket::XR::isRunLengthChunk(chunk)) {
           RTCPPacket::XR::RunLength rl(chunk);
-          ZS_EVENTING_3(x, i, Insane, RTCPPacketTraceXRRLEReportBlockChunkRunLength, ol, RtcpPacket, Info,
+          ZS_EVENTING_3(x, i, Basic, RTCPPacketTraceXRRLEReportBlockChunkRunLength, ol, RtcpPacket, Info,
             puid, mediaChannelID, mediaChannelID,
             byte, runType, rl.runType(),
             size_t, runLength, rl.runLength()
           );
         } else if (RTCPPacket::XR::isBitVectorChunk(chunk)) {
           RTCPPacket::XR::BitVector bv(chunk);
-          ZS_EVENTING_2(x, i, Insane, RTCPPacketTraceXRRLEReportBlockChunkBitVector, ol, RtcpPacket, Info,
+          ZS_EVENTING_2(x, i, Basic, RTCPPacketTraceXRRLEReportBlockChunkBitVector, ol, RtcpPacket, Info,
             puid, mediaChannelID, mediaChannelID,
             word, bitVector, bv.bitVector()
           );
         } else {
-          ZS_EVENTING_2(x, i, Insane, RTCPPacketTraceXRRLEReportBlockChunkUnknown, ol, RtcpPacket, Info,
+          ZS_EVENTING_2(x, i, Basic, RTCPPacketTraceXRRLEReportBlockChunkUnknown, ol, RtcpPacket, Info,
             puid, mediaChannelID, mediaChannelID,
             word, chunk, chunk
           );
@@ -1662,7 +1662,7 @@ namespace ortc
                                   )
     {
       traceSenderReceiverCommonReport(mediaChannelID, sr);
-      ZS_EVENTING_7(x, i, Insane, RTCPPacketTraceSenderReport, ol, RtcpPacket, Info,
+      ZS_EVENTING_7(x, i, Basic, RTCPPacketTraceSenderReport, ol, RtcpPacket, Info,
         puid, mediaChannelID, mediaChannelID,
         dword, ntpTimestampMS, sr->ntpTimestampMS(),
         dword, ntpTimestampLS, sr->ntpTimestampLS(),
@@ -1681,7 +1681,7 @@ namespace ortc
     {
       ElementPtr subEl = Element::create("ReceiverReport");
       traceSenderReceiverCommonReport(mediaChannelID, rr);
-      ZS_EVENTING_2(x, i, Insane, RTCPPacketTraceReceiverReport, ol, RtcpPacket, Info,
+      ZS_EVENTING_2(x, i, Basic, RTCPPacketTraceReceiverReport, ol, RtcpPacket, Info,
         puid, mediaChannelID, mediaChannelID,
         bool, nextReceiverReport, (NULL != rr->nextReceiverReport())
       );
@@ -1695,7 +1695,7 @@ namespace ortc
     {
       traceReport(mediaChannelID, sdes);
 
-      ZS_EVENTING_3(x, i, Insane, RTCPPacketTraceSDES, ol, RtcpPacket, Info,
+      ZS_EVENTING_3(x, i, Basic, RTCPPacketTraceSDES, ol, RtcpPacket, Info,
         puid, mediaChannelID, mediaChannelID,
         size_t, sc, sdes->sc(),
         bool, nextSDES, (NULL != sdes->nextSDES())
@@ -1704,7 +1704,7 @@ namespace ortc
       RTCPPacket::SDES::Chunk *chunk = sdes->firstChunk();
       if (NULL != chunk) {
         for (; NULL != chunk; chunk = chunk->next()) {
-          ZS_EVENTING_14(x, i, Insane, RTCPPacketTraceSDESChunk, ol, RtcpPacket, Info,
+          ZS_EVENTING_14(x, i, Basic, RTCPPacketTraceSDESChunk, ol, RtcpPacket, Info,
             puid, mediaChannelID, mediaChannelID,
             dword, ssrc, chunk->ssrc(),
             size_t, count, chunk->count(),
@@ -1743,7 +1743,7 @@ namespace ortc
                          )
     {
       traceReport(mediaChannelID, bye);
-      ZS_EVENTING_3(x, i, Insane, RTCPPacketTraceBye, ol, RtcpPacket, Info,
+      ZS_EVENTING_3(x, i, Basic, RTCPPacketTraceBye, ol, RtcpPacket, Info,
         puid, mediaChannelID, mediaChannelID,
         string, reasonForLeaving, bye->reasonForLeaving(),
         bool, nextBye, (NULL != bye->nextBye())
@@ -1758,7 +1758,7 @@ namespace ortc
                          )
     {
       traceReport(mediaChannelID, app);
-      ZS_EVENTING_7(x, i, Insane, RTCPPacketTraceApp, ol, RtcpPacket, Info,
+      ZS_EVENTING_7(x, i, Basic, RTCPPacketTraceApp, ol, RtcpPacket, Info,
         puid, mediaChannelID, mediaChannelID,
         byte, subtype, app->subtype(),
         dword, ssrc, app->ssrc(),
@@ -1777,7 +1777,7 @@ namespace ortc
     {
       traceFeedbackMessage(mediaChannelID, fm);
 
-      ZS_EVENTING_3(x, i, Insane, RTCPPacketTraceTransportLayerFeedbackMessage, ol, RtcpPacket, Info,
+      ZS_EVENTING_3(x, i, Basic, RTCPPacketTraceTransportLayerFeedbackMessage, ol, RtcpPacket, Info,
         puid, mediaChannelID, mediaChannelID,
         bool, unknown, (NULL != fm->unknown()),
         bool, nextTransportLayerFeedbackMessage, (NULL != fm->nextTransportLayerFeedbackMessage())
@@ -1789,7 +1789,7 @@ namespace ortc
           for (size_t index = 0; index < count; ++index) {
             auto format = fm->genericNACKAtIndex(index);
 
-            ZS_EVENTING_3(x, i, Insane, RTCPPacketTransportLayerFeedbackMessageGenericNACK, ol, RtcpPacket, Info,
+            ZS_EVENTING_3(x, i, Basic, RTCPPacketTransportLayerFeedbackMessageGenericNACK, ol, RtcpPacket, Info,
               puid, mediaChannelID, mediaChannelID,
               word, pid, format->pid(),
               word, blp, format->blp()
@@ -1834,7 +1834,7 @@ namespace ortc
       {
         auto format = fm->pli();
         if (NULL != format) {
-          ZS_EVENTING_1(x, i, Insane, RTCPPacketTracePayloadSpecificFeedbackMessagePLI, ol, RtcpPacket, Info, puid, mediaChannelID, mediaChannelID);
+          ZS_EVENTING_1(x, i, Basic, RTCPPacketTracePayloadSpecificFeedbackMessagePLI, ol, RtcpPacket, Info, puid, mediaChannelID, mediaChannelID);
         }
       }
 
@@ -1844,7 +1844,7 @@ namespace ortc
           for (size_t index = 0; index < count; ++index) {
             auto format = fm->sliAtIndex(index);
 
-            ZS_EVENTING_5(x, i, Insane, RTCPPacketTracePayloadSpecificFeedbackMessageSLI, ol, RtcpPacket, Info,
+            ZS_EVENTING_5(x, i, Basic, RTCPPacketTracePayloadSpecificFeedbackMessageSLI, ol, RtcpPacket, Info,
               puid, mediaChannelID, mediaChannelID,
               size_t, index, index,
               word, first, format->first(),
@@ -1858,7 +1858,7 @@ namespace ortc
       {
         auto format = fm->rpsi();
         if (NULL != format) {
-          ZS_EVENTING_5(x, i, Insane, RTCPPacketTracePayloadSpecificFeedbackMessageRPSI, ol, RtcpPacket, Info,
+          ZS_EVENTING_5(x, i, Basic, RTCPPacketTracePayloadSpecificFeedbackMessageRPSI, ol, RtcpPacket, Info,
             puid, mediaChannelID, mediaChannelID,
             byte, zeroBit, format->zeroBit(),
             byte, payloadType, format->payloadType(),
@@ -1885,7 +1885,7 @@ namespace ortc
             auto format = fm->tstrAtIndex(index);
             traceCodecControlCommon(mediaChannelID, RTCPPacket::PayloadSpecificFeedbackMessage::TSTR::kFmt, format);
 
-            ZS_EVENTING_4(x, i, Insane, RTCPPacketTracePayloadSpecificFeedbackMessageTSTx, ol, RtcpPacket, Info,
+            ZS_EVENTING_4(x, i, Basic, RTCPPacketTracePayloadSpecificFeedbackMessageTSTx, ol, RtcpPacket, Info,
               puid, mediaChannelID, mediaChannelID,
               string, type, "TSTR",
               size_t, index, index,
@@ -1902,7 +1902,7 @@ namespace ortc
             auto format = fm->tstnAtIndex(index);
             traceCodecControlCommon(mediaChannelID, RTCPPacket::PayloadSpecificFeedbackMessage::TSTN::kFmt, format);
 
-            ZS_EVENTING_4(x, i, Insane, RTCPPacketTracePayloadSpecificFeedbackMessageTSTx, ol, RtcpPacket, Info,
+            ZS_EVENTING_4(x, i, Basic, RTCPPacketTracePayloadSpecificFeedbackMessageTSTx, ol, RtcpPacket, Info,
               puid, mediaChannelID, mediaChannelID,
               string, type, "TSTN",
               size_t, index, index,
@@ -1919,7 +1919,7 @@ namespace ortc
             auto format = fm->vbcmAtIndex(index);
             traceCodecControlCommon(mediaChannelID, RTCPPacket::PayloadSpecificFeedbackMessage::TSTN::kFmt, format);
 
-            ZS_EVENTING_6(x, i, Insane, RTCPPacketTracePayloadSpecificFeedbackMessageVBCM, ol, RtcpPacket, Info,
+            ZS_EVENTING_6(x, i, Basic, RTCPPacketTracePayloadSpecificFeedbackMessageVBCM, ol, RtcpPacket, Info,
               puid, mediaChannelID, mediaChannelID,
               size_t, index, index,
               byte, zeroBit, format->zeroBit(),
@@ -1937,7 +1937,7 @@ namespace ortc
 
         if ((NULL != format) &&
             (NULL == remb)) {
-          ZS_EVENTING_3(x, i, Insane, RTCPPacketTracePayloadSpecificFeedbackMessageAFB, ol, RtcpPacket, Info,
+          ZS_EVENTING_3(x, i, Basic, RTCPPacketTracePayloadSpecificFeedbackMessageAFB, ol, RtcpPacket, Info,
             puid, mediaChannelID, mediaChannelID,
             buffer, data, format->data(),
             size, dataSize, format->dataSize()
@@ -1948,7 +1948,7 @@ namespace ortc
       {
         auto format = fm->remb();
         if (NULL != format) {
-          ZS_EVENTING_4(x, i, Insane, RTCPPacketTracePayloadSpecificFeedbackMessageREMB, ol, RtcpPacket, Info,
+          ZS_EVENTING_4(x, i, Basic, RTCPPacketTracePayloadSpecificFeedbackMessageREMB, ol, RtcpPacket, Info,
             puid, mediaChannelID, mediaChannelID,
             size_t, numSSRC, format->numSSRC(),
             byte, brExp, format->brExp(),
@@ -1967,7 +1967,7 @@ namespace ortc
     {
       traceReport(mediaChannelID, xr);
 
-      ZS_EVENTING_5(x, i, Insane, RTCPPacketTraceXR, ol, RtcpPacket, Info,
+      ZS_EVENTING_5(x, i, Basic, RTCPPacketTraceXR, ol, RtcpPacket, Info,
         puid, mediaChannelID, mediaChannelID,
         byte, numSSRC, xr->reserved(),
         dword, ssrc, xr->ssrc(),
@@ -1980,7 +1980,7 @@ namespace ortc
         if (count > 0) {
           for (size_t index = 0; index < count; ++index) {
             auto format = xr->lossRLEReportBlockAtIndex(index);
-            ZS_EVENTING_4(x, i, Insane, RTCPPacketTraceXRTypeRLEReportBlock, ol, RtcpPacket, Info,
+            ZS_EVENTING_4(x, i, Basic, RTCPPacketTraceXRTypeRLEReportBlock, ol, RtcpPacket, Info,
               puid, mediaChannelID, mediaChannelID,
               string, type, "LossRLE", 
               size_t, index, index,
@@ -1996,7 +1996,7 @@ namespace ortc
         if (count > 0) {
           for (size_t index = 0; index < count; ++index) {
             auto format = xr->duplicateRLEReportBlockAtIndex(index);
-            ZS_EVENTING_4(x, i, Insane, RTCPPacketTraceXRTypeRLEReportBlock, ol, RtcpPacket, Info,
+            ZS_EVENTING_4(x, i, Basic, RTCPPacketTraceXRTypeRLEReportBlock, ol, RtcpPacket, Info,
               puid, mediaChannelID, mediaChannelID,
               string, type, "DuplicateRLE",
               size_t, index, index,
@@ -2012,7 +2012,7 @@ namespace ortc
         if (count > 0) {
           for (size_t index = 0; index < count; ++index) {
             auto format = xr->packetReceiptTimesReportBlockAtIndex(index);
-            ZS_EVENTING_4(x, i, Insane, RTCPPacketTraceXRTypeRLEReportBlock, ol, RtcpPacket, Info,
+            ZS_EVENTING_4(x, i, Basic, RTCPPacketTraceXRTypeRLEReportBlock, ol, RtcpPacket, Info,
               puid, mediaChannelID, mediaChannelID,
               string, type, "PacketReceiptTimes",
               size_t, index, index,
@@ -2029,7 +2029,7 @@ namespace ortc
         if (count > 0) {
           for (size_t index = 0; index < count; ++index) {
             auto format = xr->receiverReferenceTimeReportBlockAtIndex(index);
-            ZS_EVENTING_6(x, i, Insane, RTCPPacketTraceXRReceiverReferenceTimeReportBlock, ol, RtcpPacket, Info,
+            ZS_EVENTING_6(x, i, Basic, RTCPPacketTraceXRReceiverReferenceTimeReportBlock, ol, RtcpPacket, Info,
               puid, mediaChannelID, mediaChannelID,
               size_t, index, index,
               dword, ntpTimestampMS, format->ntpTimestampMS(),
@@ -2049,7 +2049,7 @@ namespace ortc
             auto format = xr->dlrrReportBlockAtIndex(index);
             size_t subBlockCount = format->subBlockCount();
 
-            ZS_EVENTING_4(x, i, Insane, RTCPPacketTraceXRDLRRReportBlock, ol, RtcpPacket, Info,
+            ZS_EVENTING_4(x, i, Basic, RTCPPacketTraceXRDLRRReportBlock, ol, RtcpPacket, Info,
               puid, mediaChannelID, mediaChannelID,
               size_t, index, index,
               size_t, subBlockCount, subBlockCount,
@@ -2060,7 +2060,7 @@ namespace ortc
               for (size_t indexSubBlock = 0; indexSubBlock < subBlockCount; ++indexSubBlock)
               {
                 auto subBlock = format->subBlockAtIndex(indexSubBlock);
-                ZS_EVENTING_6(x, i, Insane, RTCPPacketTraceXRDLRRReportBlockSubBlock, ol, RtcpPacket, Info,
+                ZS_EVENTING_6(x, i, Basic, RTCPPacketTraceXRDLRRReportBlockSubBlock, ol, RtcpPacket, Info,
                   puid, mediaChannelID, mediaChannelID,
                   size_t, index, indexSubBlock,
                   size_t, subBlockCount, subBlockCount,
@@ -2080,7 +2080,7 @@ namespace ortc
         if (count > 0) {
           for (size_t index = 0; index < count; ++index) {
             auto format = xr->statisticsSummaryReportBlockAtIndex(index);
-            ZS_EVENTING_22(x, i, Insane, RTCPPacketTraceXRStatisticsSummary, ol, RtcpPacket, Info,
+            ZS_EVENTING_22(x, i, Basic, RTCPPacketTraceXRStatisticsSummary, ol, RtcpPacket, Info,
               puid, mediaChannelID, mediaChannelID,
               size_t, index, index,
               bool, lossReportFlag, format->lossReportFlag(),
@@ -2114,7 +2114,7 @@ namespace ortc
         if (count > 0) {
           for (size_t index = 0; index < count; ++index) {
             auto format = xr->voIPMetricsReportBlockAtIndex(index);
-            ZS_EVENTING_27(x, i, Insane, RTCPPacketTraceXRVoIPMetricsReportBlock, ol, RtcpPacket, Info,
+            ZS_EVENTING_27(x, i, Basic, RTCPPacketTraceXRVoIPMetricsReportBlock, ol, RtcpPacket, Info,
               puid, mediaChannelID, mediaChannelID,
               size_t, index, index,
               dword, ssrcOfSource, format->ssrcOfSource(),
@@ -2154,7 +2154,7 @@ namespace ortc
         if (count > 0) {
           for (size_t index = 0; index < count; ++index) {
             auto format = xr->unknownReportBlockAtIndex(index);
-            ZS_EVENTING_4(x, i, Insane, RTCPPacketTraceXRTypeRLEReportBlock, ol, RtcpPacket, Info,
+            ZS_EVENTING_4(x, i, Basic, RTCPPacketTraceXRTypeRLEReportBlock, ol, RtcpPacket, Info,
               puid, mediaChannelID, mediaChannelID,
               string, type, "UnknownReportBlock",
               size_t, index, index,
@@ -2999,12 +2999,14 @@ namespace ortc
   }
 
   //-------------------------------------------------------------------------
-  void RTCPPacket::trace(const char *message) const
+  void RTCPPacket::trace(
+    const char *func,
+    const char *message
+    ) const
   {
-    if (!ZS_EVENTING_IS_LOGGING(Insane)) return;
-
-    ZS_EVENTING_7(x, i, Insane, RTCPPacketTrace, ol, RtcpPacket, Info,
+    ZS_EVENTING_8(x, i, Basic, RTCPPacketTrace, ol, RtcpPacket, Info,
       puid, mediaChannelID, mMediaChannelID,
+      string, func, func,
       string, message, message,
       buffer, buffer, ((bool)mBuffer) ? mBuffer->BytePtr() : NULL,
       size, size, ((bool)mBuffer) ? mBuffer->SizeInBytes() : 0,
@@ -3067,7 +3069,7 @@ namespace ortc
         default:
         {
           UnknownReport *unknown = static_cast<UnknownReport *>(report);
-          ZS_EVENTING_2(x, i, Insane, RTCPPacketTraceUnknownReport, ol, RtcpPacket, Info,
+          ZS_EVENTING_2(x, i, Basic, RTCPPacketTraceUnknownReport, ol, RtcpPacket, Info,
             puid, mediaChannelID, mMediaChannelID,
             bool, next, (NULL != unknown->nextUnknown())
           );
@@ -3099,7 +3101,7 @@ namespace ortc
         size_t, remaining, 0,
         size_t, length, size
       );
-      trace("packet length is too short");
+      ZS_EVENTING_TRACE_OBJECT(Insane, *this, "packet length is too short");
       return false;
     }
 
@@ -3118,7 +3120,7 @@ namespace ortc
             puid, mediaChannelID, mMediaChannelID,
             byte, version, version
           );
-          trace("illegal version found");
+          ZS_EVENTING_TRACE_OBJECT(Insane, *this, "illegal version found");
           return false;
         }
 
@@ -3134,7 +3136,7 @@ namespace ortc
               size_t, remaining, remaining,
               size_t, length, length
             );
-            trace("found illegal second padding bit set in compound RTCP block");
+            ZS_EVENTING_TRACE_OBJECT(Insane, *this, "found illegal second padding bit set in compound RTCP block");
             return false;
           }
 
@@ -3148,7 +3150,7 @@ namespace ortc
             size_t, remaining, remaining,
             size_t, length, length
           );
-          trace("malformed padding size in RTCP packet");
+          ZS_EVENTING_TRACE_OBJECT(Insane, *this, "malformed padding size in RTCP packet");
           return false;
         }
 
@@ -3161,7 +3163,7 @@ namespace ortc
             size_t, remaining, remaining,
             size_t, length, length
           );
-          trace("insufficient length remaining for RTCP block");
+          ZS_EVENTING_TRACE_OBJECT(Insane, *this, "insufficient length remaining for RTCP block");
           return false;
         }
 
@@ -3195,7 +3197,7 @@ namespace ortc
     }
 
     if (0 == mAllocationSize) {
-      trace("no RTCP packets were processed");
+      ZS_EVENTING_TRACE_OBJECT(Insane, *this, "no RTCP packets were processed");
       return true;
     }
 
@@ -3295,7 +3297,7 @@ namespace ortc
       }
     }
 
-    trace("parsed");
+    ZS_EVENTING_TRACE_OBJECT(Insane, *this, "parsed");
     return true;
   }
 
@@ -3486,7 +3488,7 @@ namespace ortc
                 size_t, remaining, remaining,
                 size_t, length, length
               );
-              trace("malformed SDES Priv prefix found");
+              ZS_EVENTING_TRACE_OBJECT(Insane, *this, "malformed SDES Priv prefix found");
               return false;
             }
             break;
@@ -3501,7 +3503,7 @@ namespace ortc
               puid, mediaChannelID, mMediaChannelID,
               byte, type, type
             );
-            trace("SDES item type is not understood");
+            ZS_EVENTING_TRACE_OBJECT(Insane, *this, "SDES item type is not understood");
             break;
           }
         }
@@ -4823,7 +4825,7 @@ namespace ortc
           puid, mediaChannelID, mMediaChannelID,
           size_t, sc, report->sc()
         );
-        trace("BYE report count > 0 but does not contain SSRCs");
+        ZS_EVENTING_TRACE_OBJECT(Insane, *this, "BYE report count > 0 but does not contain SSRCs");
         return false;
       }
 

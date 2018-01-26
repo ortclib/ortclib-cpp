@@ -47,7 +47,7 @@
 #include <webrtc/system_wrappers/include/trace.h>
 #include <webrtc/modules/audio_device/audio_device_impl.h>
 
-namespace ortc { namespace test { ZS_DECLARE_SUBSYSTEM(ortc_test) } }
+namespace ortc { namespace test { ZS_DECLARE_SUBSYSTEM(org_ortc_test) } }
 
 using zsLib::String;
 using zsLib::ULONG;

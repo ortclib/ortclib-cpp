@@ -61,7 +61,7 @@
 #endif //_DEBUG
 
 
-namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_sctp_datachannel) }
+namespace ortc { ZS_DECLARE_SUBSYSTEM(org_ortc_sctp_data_channel) }
 
 namespace ortc
 {
@@ -286,7 +286,7 @@ namespace ortc
       ZS_EVENTING_5(
                     x, i, Detail, DataChannelCreate, ol, DataChannel, Start,
                     puid, id, mID,
-                    puid, dataTransportId, ((bool)transport) ? transport->getID() : 0,
+                    puid, dataTransportId, ((bool)transport) ? transport->getRealID() : 0,
                     string, parameters, ((bool)mParameters) ? IHelper::toString(mParameters->createElement("params")) : String(),
                     bool, incoming, mIncoming,
                     word, sessionId, mSessionID
@@ -693,10 +693,18 @@ namespace ortc
     //-------------------------------------------------------------------------
     void DataChannel::notifyClosed()
     {
-      ZS_EVENTING_1(x, i, Trace, DataChannelSCTPTransportRequestNotifyClosed, ol, DataChannel, InternalEvent, puid, id, mID);
+      ZS_EVENTING_1(x, i, Trace, DataChannelSCTPTransportInternalNotifyClosed, ol, DataChannel, InternalEvent, puid, id, mID);
 
       ZS_LOG_TRACE(log("notify closed"));
       IDataChannelAsyncDelegateProxy::create(mThisWeak.lock())->onNotifiedClosed();
+    }
+
+    void DataChannel::notifyRemapFailure()
+    {
+      ZS_EVENTING_1(x, i, Trace, DataChannelSCTPTransportInternalNotifyRemapFailure, ol, DataChannel, InternalEvent, puid, id, mID);
+
+      ZS_LOG_TRACE(log("notify remap failure"));
+      IDataChannelAsyncDelegateProxy::create(mThisWeak.lock())->onNotifiedRemapFailure();
     }
 
     //-------------------------------------------------------------------------
@@ -737,12 +745,26 @@ namespace ortc
     //-------------------------------------------------------------------------
     void DataChannel::onNotifiedClosed()
     {
-      ZS_LOG_TRACE(log("on notified closed"))
+      ZS_LOG_TRACE(log("on notified closed"));
 
       AutoRecursiveLock lock(*this);
       mNotifiedClosed = true;
       cancel();
     }
+
+    //-------------------------------------------------------------------------
+    void DataChannel::onNotifiedRemapFailure()
+    {
+      ZS_LOG_TRACE(log("on notified remap failure"));
+
+      AutoRecursiveLock lock(*this);
+
+      setError(UseHTTP::HTTPStatusCode_Conflict, "Data channel moved from locally created SCTP transport to remote incoming SCTP transport except incoming transport already has a data channel with the same ID mapped.");
+
+      mNotifiedClosed = true;
+      cancel();
+    }
+
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
@@ -849,7 +871,7 @@ namespace ortc
       IHelper::debugAppend(resultEl, "default subscription", (bool)mDefaultSubscription);
 
       auto dataTransport = mDataTransport.lock();
-      IHelper::debugAppend(resultEl, "data transport", dataTransport ? dataTransport->getID() : 0);
+      IHelper::debugAppend(resultEl, "data transport", dataTransport ? dataTransport->getRealID() : 0);
       IHelper::debugAppend(resultEl, "data transport subscription", (bool)mDataTransportSubscription);
 
       IHelper::debugAppend(resultEl, "state", toString(mCurrentState));

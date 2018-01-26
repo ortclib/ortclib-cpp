@@ -45,7 +45,7 @@
 #include <webrtc/rtc_base/logging.h>
 #include <webrtc/system_wrappers/include/trace.h>
 
-namespace ortc { namespace test { ZS_DECLARE_SUBSYSTEM(ortc_test) } }
+namespace ortc { namespace test { ZS_DECLARE_SUBSYSTEM(org_ortc_test) } }
 
 using zsLib::String;
 using zsLib::ULONG;

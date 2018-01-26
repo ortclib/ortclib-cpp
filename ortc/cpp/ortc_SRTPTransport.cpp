@@ -70,7 +70,7 @@
 #define ASSERT(x)
 #endif //_DEBUG
 
-namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_srtp) }
+namespace ortc { ZS_DECLARE_SUBSYSTEM(org_ortc_srtp) }
 
 #define ORTC_SRTPTRANSPORT_ILLEGAL_MKI_LEGNTH (0xFFFF)
 

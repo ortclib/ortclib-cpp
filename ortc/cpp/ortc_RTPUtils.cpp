@@ -48,7 +48,7 @@ namespace std {
 }
 #endif //_WIN32
 
-namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_rtptypes) }
+namespace ortc { ZS_DECLARE_SUBSYSTEM(org_ortc_rtp_types) }
 
 namespace ortc
 {

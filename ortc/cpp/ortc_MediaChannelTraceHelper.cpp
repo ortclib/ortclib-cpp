@@ -45,7 +45,7 @@
 #endif //_DEBUG
 
 
-namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_mediastreamtrack) }
+namespace ortc { ZS_DECLARE_SUBSYSTEM(org_ortc_media_stream_track) }
 
 namespace ortc
 {

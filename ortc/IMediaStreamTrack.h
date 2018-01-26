@@ -408,14 +408,14 @@ namespace ortc
                                   public IMediaStreamTrackTypes,
                                   public IStatsProvider
   {
-    static void trace(
-                      IMediaStreamTrackPtr object,
-                      const char *message = NULL
-                      );
-
     static IMediaStreamTrackPtr convert(AnyPtr any);
 
     virtual MediaChannelID getID() const = 0;
+
+    virtual void trace(
+                       const char *func = NULL,
+                       const char *message = NULL
+                       ) const = 0;
 
     virtual IMediaStreamTrackSubscriptionPtr subscribe(IMediaStreamTrackDelegatePtr delegate) = 0;
 

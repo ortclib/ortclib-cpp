@@ -56,7 +56,7 @@
 
 #include <cryptopp/sha.h>
 
-namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_icetransport) }
+namespace ortc { ZS_DECLARE_SUBSYSTEM(org_ortc_ice_transport) }
 
 namespace ortc
 {
@@ -966,7 +966,7 @@ namespace ortc
                       bool, keepWarm, keepWarm
                       );
 
-        route->trace(__func__, "keepp warm blacklisted");
+        ZS_EVENTING_TRACE_OBJECT(Detail, *route, "keep warm blacklisted");
         ZS_LOG_WARNING(Detail, log("cannot keep warm as route is blacklisted") + route->toDebug())
         return;
       }
@@ -979,8 +979,7 @@ namespace ortc
                     bool, keepWarm, keepWarm
                     );
 
-      route->trace(__func__, "keep warm");
-
+      ZS_EVENTING_TRACE_OBJECT(Debug, *route, "route found for keep warm");
       ZS_LOG_DETAIL(log("route found for keep warm") + route->toDebug() + ZS_PARAMIZE(keepWarm) + ZS_PARAMIZE(hash))
 
       route->mKeepWarm = keepWarm;
@@ -1013,8 +1012,8 @@ namespace ortc
                     puid, id, mID,
                     puid, routerRouteId, routerRoute->mID
                     );
-      routerRoute->trace(__func__, "received stun packet");
-      packet->trace(__func__);
+      ZS_EVENTING_TRACE_OBJECT(Trace, *routerRoute, "received stun packet")
+      ZS_EVENTING_TRACE_OBJECT(Trace, *packet, "received stun packet");
 
       {
         AutoRecursiveLock lock(*this);
@@ -1063,8 +1062,8 @@ namespace ortc
               sendPacket(routerRoute, response);
 
               setBlacklisted(route);
-              route->trace(__func__, "blacklist response to stun binding request");
-              response->trace(__func__);
+              ZS_EVENTING_TRACE_OBJECT(Debug, *route, "blacklist response to stun binding request");
+              ZS_EVENTING_TRACE_OBJECT(Debug, *response, "blacklist response to stun binding request");
               return;
             }
           }
@@ -1077,8 +1076,8 @@ namespace ortc
 
           ZS_LOG_WARNING(Debug, log("returning conflict error to remote party") + routerRoute->toDebug() + response->toDebug())
           sendPacket(routerRoute, response);
-          route->trace(__func__, "blacklist response to stun binding request");
-          response->trace(__func__);
+          ZS_EVENTING_TRACE_OBJECT(Debug, *route, "returning conflict error to remote party");
+          ZS_EVENTING_TRACE_OBJECT(Debug, *response, "returning conflict error to remote party");
           return;
         }
 
@@ -1086,7 +1085,7 @@ namespace ortc
         if (Time() == route->mLastReceivedResponse) {
           if (route->mOutgoingCheck) {
             ZS_LOG_DEBUG(log("forcing a trigger check response immediately") + route->toDebug())
-            route->trace(__func__, "activate trigger check");
+            ZS_EVENTING_TRACE_OBJECT(Trace, *route, "activate trigger check");
             route->mOutgoingCheck->retryRequestNow();
           }
         }
@@ -1098,7 +1097,7 @@ namespace ortc
             (route->isIgnored())) {
           if (mRemoteParameters.mUsernameFragment.hasData()) {
             ZS_LOG_DETAIL(log("going to activate candidate pair because of incoming request") + route->toDebug())
-            route->trace(__func__, "activate route (due to incoming request)");
+            ZS_EVENTING_TRACE_OBJECT(Debug, *route, "activate route (due to incoming request)");
             setInProgress(route);
           } else {
             mNextActivationCausesAllRoutesThatReceivedChecksToActivate = true;
@@ -1107,8 +1106,8 @@ namespace ortc
 
         auto response = createBindResponse(packet, route);
 
-        route->trace(__func__, "create response to stun binding request");
-        response->trace(__func__);
+        ZS_EVENTING_TRACE_OBJECT(Trace, *route, "create response to stun binding request");
+        ZS_EVENTING_TRACE_OBJECT(Trace, *response, "create response to stun binding request");
 
         ZS_LOG_TRACE(log("sending binding response to remote party") + route->toDebug() + response->toDebug())
         sendPacket(routerRoute, response);
@@ -1146,7 +1145,7 @@ namespace ortc
             mLastReceivedUseCandidate = mLastReceivedPacket;
 
             if (previousRoute != mActiveRoute) {
-              mActiveRoute->trace(__func__, reason);
+              ZS_EVENTING_TRACE_OBJECT(Trace, *mActiveRoute, reason);
               ZS_LOG_DEBUG(log("controlling side indicates to use this route") + mActiveRoute->toDebug())
               wakeUp();
             }
@@ -1186,14 +1185,15 @@ namespace ortc
         auto found = mGathererRoutes.find(routerRoute->mID);
         if (found == mGathererRoutes.end()) {
           ZS_LOG_WARNING(Detail, log("route was not found") + routerRoute->toDebug() + ZS_PARAMIZE(bufferSizeInBytes))
+          ZS_EVENTING_TRACE_OBJECT(Debug, *routerRoute, "route was not found");
           return;
         }
 
         auto route = (*found).second;
 
         if (route->isBlacklisted()) {
-          ZS_LOG_WARNING(Debug, log("no consent given on this route") + route->toDebug() + ZS_PARAMIZE(bufferSizeInBytes))
-          route->trace(__func__, "ignoring incoming packet (route was blacklisted)");
+          ZS_LOG_WARNING(Debug, log("no consent given on this route") + route->toDebug() + ZS_PARAMIZE(bufferSizeInBytes));
+          ZS_EVENTING_TRACE_OBJECT(Debug, *route, "ignoring incoming packet (route was blacklisted)");
           return;
         }
 
@@ -1202,8 +1202,8 @@ namespace ortc
         updateAfterPacket(route);
 
         if (!mActiveRoute) {
-          ZS_LOG_WARNING(Debug, log("no active route chosen (thus must ignore packet)") + route->toDebug() + ZS_PARAMIZE(bufferSizeInBytes))
-          route->trace(__func__, "ignoring incoming packet (no route was chosen)");
+          ZS_LOG_WARNING(Debug, log("no active route chosen (thus must ignore packet)") + route->toDebug() + ZS_PARAMIZE(bufferSizeInBytes));
+          ZS_EVENTING_TRACE_OBJECT(Trace, *route, "ignoring incoming packet (no route was chosen)");
           return;
         }
 
@@ -1553,7 +1553,7 @@ namespace ortc
                     size, size, bufferSizeInBytes
                     );
 
-      routerRoute->trace(__func__, "gatherer to use this route to send secure packet");
+      ZS_EVENTING_TRACE_OBJECT(Insane, *routerRoute, "gatherer to use this route to send secure packet");
       return gatherer->sendPacket(*this, routerRoute, buffer, bufferSizeInBytes);
     }
 
@@ -1602,8 +1602,8 @@ namespace ortc
                     puid, id, mID,
                     puid, routerRouteId, routerRoute->mID
                     );
-      routerRoute->trace(__func__, "retry received stun packet");
-      stunPacket->trace(__func__);
+      ZS_EVENTING_TRACE_OBJECT(Insane, *routerRoute, "retry received stun packet");
+      ZS_EVENTING_TRACE_OBJECT(Trace, *stunPacket, "retry received stun packet");
 
       ZS_LOG_TRACE(log("retrying to handle packet again") + routerRoute->toDebug() + stunPacket->toDebug())
 
@@ -1880,7 +1880,7 @@ namespace ortc
                     puid, routeId, route->mID
                     );
 
-      route->trace(__func__, "unfrozen promise settled");
+      ZS_EVENTING_TRACE_OBJECT(Trace, *route, "unfrozen promise settled");
 
       mFrozen.erase(found);
       route->mFrozenPromise.reset();
@@ -2195,7 +2195,7 @@ namespace ortc
                     puid, stunReuqesterId, requester->getID(),
                     string, fromIpAddress, fromIPAddress.string()
                     );
-      response->trace(__func__);
+      ZS_EVENTING_TRACE_OBJECT(Trace, *response, "ice transport response received");
 
       AutoRecursiveLock lock(*this);
 
@@ -2722,7 +2722,7 @@ namespace ortc
         route->mCandidatePair = candidatePair;
         route->mCandidatePairHash = hash;
 
-        route->trace(__func__, "new legal route");
+        ZS_EVENTING_TRACE_OBJECT(Debug, *route, "new legal route");
 
         ZS_LOG_DEBUG(log("found new legal route") + route->toDebug());
         mLegalRoutes[hash] = route;
@@ -2923,7 +2923,7 @@ namespace ortc
                       puid, activeRouteId, mActiveRoute->mID
                       );
 
-        mActiveRoute->trace(__func__, reason);
+        ZS_EVENTING_TRACE_OBJECT(Debug, *mActiveRoute, reason);
         ZS_LOG_DETAIL(log("new route chosen") + mActiveRoute->toDebug())
         mSubscriptions.delegate()->onICETransportCandidatePairChanged(mThisWeak.lock(), cloneCandidatePair(mActiveRoute));
       } else {
@@ -2982,7 +2982,7 @@ namespace ortc
       ZS_LOG_DEBUG(log("nominating candidate") + mActiveRoute->toDebug())
 
       mUseCandidateRoute = mActiveRoute;
-      mUseCandidateRoute->trace(__func__, "nominate candidate");
+      ZS_EVENTING_TRACE_OBJECT(Debug, *mUseCandidateRoute, "nominate candidate");
 
       mUseCandidateRequest = createBindRequest(mUseCandidateRoute, true);
 
@@ -3025,7 +3025,7 @@ namespace ortc
           continue;
         }
 
-        route->trace(__func__, "dewarm");
+        ZS_EVENTING_TRACE_OBJECT(Debug, *route, "route cannot be kept warm any longer (expired)");
 
         ZS_LOG_DEBUG(log("route cannot be kept warm any longer (expired)") + ZS_PARAM("difference", (now - route->mLastReceivedResponse)) + route->toDebug() + ZS_PARAM("expires (s)", mExpireRouteTime))
 
@@ -3081,7 +3081,7 @@ namespace ortc
             continue;
           }
 
-          route->trace(__func__, "keep warm");
+          ZS_EVENTING_TRACE_OBJECT(Debug, *route, "installing keep warm timer");
 
           ZS_LOG_DEBUG(log("installing keep warm timer") + route->toDebug())
 
@@ -3492,7 +3492,7 @@ namespace ortc
         auto latest = getLastRemoteActivity(mActiveRoute);
         if (Time() != latest) {
           if (latest + mExpireRouteTime < now) {
-            mActiveRoute->trace(__func__, "expire route");
+            ZS_EVENTING_TRACE_OBJECT(Debug, *mActiveRoute, "expire route");
             if (mBlacklistConsent) {
               ZS_LOG_WARNING(Detail, log("blacklisting consent on active route") + ZS_PARAM("difference", (now - latest)) + mActiveRoute->toDebug())
               setBlacklisted(mActiveRoute);
@@ -3524,7 +3524,7 @@ namespace ortc
             continue;
           }
 
-          route->trace(__func__, "warm route expired");
+          ZS_EVENTING_TRACE_OBJECT(Debug, *route, "warm route expired");
 
           expired = true;
           mWarmRoutes.erase(current);
@@ -3772,7 +3772,7 @@ namespace ortc
           activate_previous_route:
             {
               ZS_LOG_DEBUG(log("activating route due to possible failure situation about to happen") + route->toDebug())
-              route->trace(__func__, "activate route (due to potential failure condition as no remote activity detected)");
+              ZS_EVENTING_TRACE_OBJECT(Debug, *route, "activate route (due to potential failure condition as no remote activity detected)");
               setInProgress(route);
               goto check_activation_timer;
             }
@@ -3834,7 +3834,7 @@ namespace ortc
       auto pThis = mThisWeak.lock();
       if (!pThis) return;
 
-      route->trace(__func__, "forced active");
+      ZS_EVENTING_TRACE_OBJECT(Trace, *route, "forcing route to generate activity");
 
       // install a temporary keep warm timer (to force route activate sooner)
       route->mNextKeepWarm = ITimer::create(mThisWeak.lock(), zsLib::now() + Milliseconds(IHelper::random(0, static_cast<size_t>(mKeepWarmTimeRandomizedAddTime.count()))));
@@ -3848,7 +3848,7 @@ namespace ortc
     {
       if (!route) return;
 
-      route->trace(__func__, "shutdown");
+      ZS_EVENTING_TRACE_OBJECT(Trace, *route, "ice transport shutting down route");
 
       ZS_LOG_TRACE(log("shutting down route") + route->toDebug())
 
@@ -3973,7 +3973,7 @@ namespace ortc
 
     insert_pending:
       {
-        route->trace(__func__, "pending");
+        ZS_EVENTING_TRACE_OBJECT(Debug, *route, "route is now being set to the pending state");
 
         ZS_LOG_DEBUG(log("route is now being set to the pending state") + route->toDebug())
 
@@ -4044,7 +4044,7 @@ namespace ortc
 
     freeze:
       {
-        route->trace(__func__, "frozen");
+        ZS_EVENTING_TRACE_OBJECT(Debug, *route, "route is now being frozen");
 
         ZS_LOG_DEBUG(log("route is now being frozen") + route->toDebug())
 
@@ -4090,7 +4090,7 @@ namespace ortc
 
     in_progress:
       {
-        route->trace(__func__, "in progress");
+        ZS_EVENTING_TRACE_OBJECT(Debug, *route, "route is now being set in progress");
 
         ZS_LOG_DEBUG(log("route is now being set in progress") + route->toDebug())
 
@@ -4132,7 +4132,7 @@ namespace ortc
 
     succeeded:
       {
-        route->trace(__func__, "succeeded");
+        ZS_EVENTING_TRACE_OBJECT(Debug, *route, "route is now successful");
 
         ZS_LOG_DEBUG(log("route is now successful") + route->toDebug())
 
@@ -4178,7 +4178,7 @@ namespace ortc
 
     failed:
       {
-        route->trace(__func__, "failed");
+        ZS_EVENTING_TRACE_OBJECT(Debug, *route, "route is now a failure");
 
         ZS_LOG_DEBUG(log("route is now a failure") + route->toDebug())
 
@@ -4214,7 +4214,7 @@ namespace ortc
 
     ignored:
       {
-        route->trace(__func__, "ignored");
+        ZS_EVENTING_TRACE_OBJECT(Debug, *route, "route is now being ignored");
 
         ZS_LOG_DEBUG(log("route is now being ignored") + route->toDebug())
 
@@ -4250,7 +4250,7 @@ namespace ortc
 
     blacklist:
       {
-        route->trace(__func__, "blacklisted");
+        ZS_EVENTING_TRACE_OBJECT(Detail, *route, "route is now blacklisted");
 
         ZS_LOG_DEBUG(log("route is now blacklisted") + route->toDebug())
 
@@ -4316,11 +4316,11 @@ namespace ortc
         if (Time() != route->mLastReceivedResponse) {
           ZS_LOG_DEBUG(log("setting route to active since received a response and no other route is available") + route->toDebug())
           mActiveRoute = route;
-          mActiveRoute->trace(__func__, "choosing as active route (as response was received and no other route is available)");
+          ZS_EVENTING_TRACE_OBJECT(Debug, *mActiveRoute, "choosing as active route (as response was received and no other route is available)");
         } else if (Time() != route->mLastReceivedCheck) {
           ZS_LOG_DEBUG(log("setting route to active since received a validated incoming request") + route->toDebug())
           mActiveRoute = route;
-          mActiveRoute->trace(__func__, "choosing as active route (as incoming check was received on this route)");
+          ZS_EVENTING_TRACE_OBJECT(Debug, *mActiveRoute, "choosing as active route (as incoming check was received on this route)");
         }
       }
 
@@ -4402,7 +4402,7 @@ namespace ortc
         return false;
       }
 
-      route->trace(__func__, "gatherer route installed");
+      ZS_EVENTING_TRACE_OBJECT(Insane, *route, "gatherer route installed");
 
       mGathererRoutes[route->mGathererRoute->mID] = route;
       return true;
@@ -4426,7 +4426,7 @@ namespace ortc
                       size_t, totalRoutes, routes.size()
                       );
 
-        route->trace(__func__, "installed foundation");
+        ZS_EVENTING_TRACE_OBJECT(Debug, *route, "installed foundation");
 
         mFoundationRoutes[foundation] = routes;
         return;
@@ -4448,7 +4448,7 @@ namespace ortc
                       size_t, totalRoutes, routes.size()
                       );
 
-        route->trace(__func__, "installed foundation");
+        ZS_EVENTING_TRACE_OBJECT(Debug, *route, "installed foundation");
       }
     }
 
@@ -4582,7 +4582,7 @@ namespace ortc
         mGatherer->removeRoute(route->mGathererRoute);
       }
 
-      route->trace(__func__, "removing fatherer route");
+      ZS_EVENTING_TRACE_OBJECT(Trace, *route, "removing gatherer route");
       route->mGathererRoute.reset();
     }
     
@@ -4730,7 +4730,8 @@ namespace ortc
           puid, id, mID,
           puid, stunRequesterId, ((bool)result) ? result->getID() : 0
         );
-        route->trace(__func__, "create binding request");
+        ZS_EVENTING_TRACE_OBJECT(Debug, *stunPacket, "create binding request");
+        ZS_EVENTING_TRACE_OBJECT(Debug, *route, "create binding request");
       }
 
       return result;
@@ -4755,8 +4756,8 @@ namespace ortc
 
       fix(stunPacket);
 
-      route->trace(__func__, "create binding response");
-      stunPacket->trace(__func__);
+      ZS_EVENTING_TRACE_OBJECT(Trace, *route, "create binding response");
+      ZS_EVENTING_TRACE_OBJECT(Trace, *stunPacket, "create binding response");
 
       return stunPacket;
     }
@@ -4814,7 +4815,7 @@ namespace ortc
                     buffer, packet, packetized->BytePtr(),
                     size, size, packetized->SizeInBytes()
                     );
-      packet->trace(__func__);
+      ZS_EVENTING_TRACE_OBJECT(Insane, *packet, "ice transport send packet");
       mGatherer->sendPacket(*this, routerRoute, packetized->BytePtr(), packetized->SizeInBytes());
     }
 
@@ -4850,8 +4851,8 @@ namespace ortc
         response->mMappedAddress = routerRoute->mRemoteIP;
         setRole(response);
 
-        routerRoute->trace(__func__, "role conflict detected");
-        response->trace(__func__);
+        ZS_EVENTING_TRACE_OBJECT(Debug, *routerRoute, "ice transport role conflict detected");
+        ZS_EVENTING_TRACE_OBJECT(Debug, *response, "ice transport role conflict detected");
 
         ZS_LOG_WARNING(Detail, log("returning conflict error to remote party") + routerRoute->toDebug() + response->toDebug())
         sendPacket(routerRoute, response);
@@ -4915,7 +4916,7 @@ namespace ortc
           // add to gathering routes
           route->mGathererRoute = routerRoute;
 
-          route->trace(__func__, "added gatherer route");
+          ZS_EVENTING_TRACE_OBJECT(Trace, *route, "added gatherer route");
 
           mGathererRoutes[route->mGathererRoute->mID] = route;
           return route;
@@ -4956,8 +4957,8 @@ namespace ortc
         route->mCandidatePair->mRemote = remoteCandidate;
         route->mCandidatePairHash = route->mCandidatePair->hash();
 
-        route->trace("added missing route (because of incoming stun packet)");
-        packet->trace(__func__);
+        ZS_EVENTING_TRACE_OBJECT(Trace, *route, "ice transport added missing route (because of incoming stun packet)");
+        ZS_EVENTING_TRACE_OBJECT(Trace, *packet, "ice transport added missing route (because of incoming stun packet)");
 
         // add as legal routes
         mLegalRoutes[route->mCandidatePairHash] = route;
@@ -5021,7 +5022,7 @@ namespace ortc
                       puid, secureTransportId, transport->getID()
                       );
 
-        packet->trace(__func__);
+        ZS_EVENTING_TRACE_OBJECT(Insane, *packet, "ice transport delivering packet");
         transport->handleReceivedSTUNPacket(mComponent, packet);
       }
     }
@@ -5172,7 +5173,7 @@ namespace ortc
     void ICETransport::Route::trace(const char *function, const char *message) const
     {
       ZS_EVENTING_COMPACT_41(
-                             x, i, Trace, IceTransportRouteTrace, ol, IceTransport, Info,
+                             x, i, Basic, IceTransportRouteTrace, ol, IceTransport, Info,
                              puid/routeId, mID,
                              string/callingMethod, function,
                              string/message, message,

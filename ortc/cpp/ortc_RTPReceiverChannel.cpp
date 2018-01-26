@@ -61,7 +61,7 @@
 #define ASSERT(x)
 #endif //_DEBUG
 
-namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_rtpreceiver) }
+namespace ortc { ZS_DECLARE_SUBSYSTEM(org_ortc_rtp_receiver) }
 
 namespace ortc
 {

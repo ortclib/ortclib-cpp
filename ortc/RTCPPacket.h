@@ -1472,7 +1472,10 @@ namespace ortc
     XR *xrAtIndex(size_t index) const;
     UnknownReport *unknownAtIndex(size_t index) const;
 
-    void trace(const char *message = NULL) const;
+    void trace(
+               const char *func = NULL,
+               const char *message = NULL
+               ) const;
 
   protected:
     //-----------------------------------------------------------------------

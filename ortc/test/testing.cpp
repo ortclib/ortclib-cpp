@@ -39,7 +39,7 @@
 
 #include <iostream>
 
-namespace ortc { namespace test { ZS_IMPLEMENT_SUBSYSTEM(ortc_test) } }
+namespace ortc { namespace test { ZS_IMPLEMENT_SUBSYSTEM(org_ortc_test) } }
 
 
 #ifdef _WIN32

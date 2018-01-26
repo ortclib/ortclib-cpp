@@ -26,7 +26,7 @@ using ::std::list;
 using ::std::set;
 using ::std::map;
 
-namespace wrapper { namespace impl { namespace org { namespace ortc { namespace adapter { ZS_DECLARE_SUBSYSTEM(ortc_adapter_wrapper); } } } } }
+namespace wrapper { namespace impl { namespace org { namespace ortc { namespace adapter { ZS_DECLARE_SUBSYSTEM(org_ortc_wrapper_adapter); } } } } }
 
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::adapter::MediaStream::MediaStream()

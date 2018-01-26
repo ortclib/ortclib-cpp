@@ -79,7 +79,10 @@ namespace ortc
 
       virtual Kinds kind() const = 0;
       virtual String id() const = 0;
-      virtual void trace(const char *message) const = 0;
+      virtual void trace(
+                         const char *func = NULL,
+                         const char *message = NULL
+                         ) const = 0;
     };
 
     //-------------------------------------------------------------------------
@@ -239,12 +242,12 @@ namespace ortc
       #pragma mark MediaStreamTrack => ortc::IMediaStreamTrack
       #pragma mark
 
-      static void trace(
-                        MediaStreamTrackPtr object,
-                        const char *message = NULL
-                        );
-
       PUID getID() const override {return id_;}
+
+      void trace(
+                 const char *func = NULL,
+                 const char *message = NULL
+                 ) const override;
 
       IMediaStreamTrackSubscriptionPtr subscribe(IMediaStreamTrackDelegatePtr delegate) override;
 
@@ -411,8 +414,6 @@ namespace ortc
       #pragma mark
       #pragma mark MediaStreamTrack => (internal)
       #pragma mark
-
-      void trace(const char *message) const override;
 
       bool isShuttingDown() const;
       bool isShutdown() const;

@@ -40,10 +40,11 @@
 
 #include <ortc/services/IHelper.h>
 
+#include <zsLib/eventing/Log.h>
 #include <zsLib/Log.h>
 #include <zsLib/XML.h>
 
-namespace ortc { namespace adapter { ZS_DECLARE_SUBSYSTEM(ortclib_adapter); } }
+namespace ortc { namespace adapter { ZS_DECLARE_SUBSYSTEM(org_ortc_adapter); } }
 
 namespace ortc
 {
@@ -327,7 +328,7 @@ namespace ortc
         AutoRecursiveLock lock(*this);
         auto result = getTrackByID(track->id());
         if (nullptr != result) {
-          IMediaStreamTrack::trace(track, "already added track (not added again)");
+          ZS_EVENTING_TRACE_OBJECT_PTR(Detail, track, "already added track (not added again)");
           ZS_LOG_WARNING(Debug, log("already added track (not added again)"));
           return;
         }

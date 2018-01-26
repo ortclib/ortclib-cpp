@@ -628,7 +628,10 @@ namespace ortc
         bool isFailed() const {return State_Failed == mState;}
         bool isBlacklisted() const {return State_Blacklisted == mState;}
 
-        void trace(const char *function, const char *message = NULL) const;
+        void trace(
+                   const char *function = NULL,
+                   const char *message = NULL
+                   ) const;
 
       protected:
         Log::Params log(const char *message) const;

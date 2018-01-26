@@ -45,6 +45,7 @@
 #include <zsLib/ISettings.h>
 #include <zsLib/Numeric.h>
 #include <zsLib/Stringize.h>
+#include <zsLib/eventing/Log.h>
 #include <zsLib/Log.h>
 #include <zsLib/XML.h>
 
@@ -60,7 +61,7 @@
 #endif //_DEBUG
 
 
-namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_mediadevices) }
+namespace ortc { ZS_DECLARE_SUBSYSTEM(org_ortc_media_devices) }
 
 namespace ortc
 {
@@ -1061,7 +1062,7 @@ namespace ortc
     for (auto iter = begin(); iter != end(); ++iter)
     {
       auto &track = (*iter);
-      IMediaStreamTrack::trace(track);
+      ZS_EVENTING_TRACE_OBJECT_PTR(Trace, track, "media stream track list debug");
     }
 
     return resultEl;

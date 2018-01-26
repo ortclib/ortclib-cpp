@@ -11,8 +11,8 @@
 #include <zsLib/Log.h>
 #include <zsLib/IMessageQueueThread.h>
 
-namespace wrapper { namespace impl { namespace org { namespace ortc { ZS_DECLARE_SUBSYSTEM(ortc_wrapper); } } } }
-namespace wrapper { namespace impl { namespace org { namespace ortc { namespace adapter { ZS_DECLARE_SUBSYSTEM(ortc_adapter_wrapper); } } } } }
+namespace wrapper { namespace impl { namespace org { namespace ortc { ZS_DECLARE_SUBSYSTEM(org_ortc_wrapper); } } } }
+namespace wrapper { namespace impl { namespace org { namespace ortc { namespace adapter { ZS_DECLARE_SUBSYSTEM(org_ortc_wrapper_adapter); } } } } }
 
 namespace wrapper {
   namespace impl {
@@ -64,33 +64,36 @@ namespace wrapper {
         {
           const char *componentStr{};
           switch (component) {
-            case wrapper::org::ortc::log::Component_zsLib:                          componentStr = "zsLib"; break;
-            case wrapper::org::ortc::log::Component_zsLibSocket:                    componentStr = "zsLib_socket"; break;
-            case wrapper::org::ortc::log::Component_services:                       componentStr = "ortc_services"; break;
-            case wrapper::org::ortc::log::Component_servicesDns:                    componentStr = "ortc_services_dns"; break;
-            case wrapper::org::ortc::log::Component_servicesTurn:                   componentStr = "ortc_services_turn"; break;
-            case wrapper::org::ortc::log::Component_servicesHttp:                   componentStr = "ortc_services_http"; break;
-            case wrapper::org::ortc::log::Component_servicesWire:                   componentStr = "ortc_services_wire"; break;
-            case wrapper::org::ortc::log::Component_servicesStun:                   componentStr = "ortc_services_stun"; break;
-            case wrapper::org::ortc::log::Component_ortcLib:                        componentStr = "ortclib"; break;
-            case wrapper::org::ortc::log::Component_ortcLibWebrtc:                  componentStr = "ortclib_webrtc"; break;
-            case wrapper::org::ortc::log::Component_ortcLibDtlsTransport:           componentStr = "ortclib_dtlstransport"; break;
-            case wrapper::org::ortc::log::Component_ortcLibIceGatherer:             componentStr = "ortclib_icegatherer"; break;
-            case wrapper::org::ortc::log::Component_ortcLibIceGathererRouter:       componentStr = "ortclib_icegatherer_router"; break;
-            case wrapper::org::ortc::log::Component_ortcLibIceTransport:            componentStr = "ortclib_icetransport"; break;
-            case wrapper::org::ortc::log::Component_ortcLibIceTransportController:  componentStr = "ortclib_icetransport_controller"; break;
-            case wrapper::org::ortc::log::Component_ortcLibMediaDevices:            componentStr = "ortclib_mediadevices"; break;
-            case wrapper::org::ortc::log::Component_ortcLibMediaStreamTrack:        componentStr = "ortclib_mediastreamtrack"; break;
-            case wrapper::org::ortc::log::Component_ortcLibRtpRtcpPacket:           componentStr = "ortclib_rtp_rtcp_packet"; break;
-            case wrapper::org::ortc::log::Component_ortcLibRtpListener:             componentStr = "ortclib_rtplistener"; break;
-            case wrapper::org::ortc::log::Component_ortcLibRtpMediaEngine:          componentStr = "ortclib_rtpmediaengine"; break;
-            case wrapper::org::ortc::log::Component_ortcLibRtpReceiver:             componentStr = "ortclib_rtpreceiver"; break;
-            case wrapper::org::ortc::log::Component_ortcLibRtpSender:               componentStr = "ortclib_rtpsender"; break;
-            case wrapper::org::ortc::log::Component_ortcLibRtpTypes:                componentStr = "ortclib_rtptypes"; break;
-            case wrapper::org::ortc::log::Component_ortcLibSctpDataChannel:         componentStr = "ortclib_sctp_datachannel"; break;
-            case wrapper::org::ortc::log::Component_ortcLibSrtp:                    componentStr = "ortclib_srtp"; break;
-            case wrapper::org::ortc::log::Component_ortcLibStats:                   componentStr = "ortclib_stats"; break;
-            case wrapper::org::ortc::log::Component_ortcLibAdapter:                 componentStr = "ortclib_adapter"; break;
+            case wrapper::org::ortc::log::Component_all:                     return NULL;
+            case wrapper::org::ortc::log::Component_zslib:                   componentStr = "zslib"; break;
+            case wrapper::org::ortc::log::Component_socket:                  componentStr = "zslib_socket"; break;
+            case wrapper::org::ortc::log::Component_eventing:                componentStr = "zslib_eventing"; break;
+            case wrapper::org::ortc::log::Component_services:                componentStr = "org_ortc_services"; break;
+            case wrapper::org::ortc::log::Component_dns:                     componentStr = "org_ortc_services_dns"; break;
+            case wrapper::org::ortc::log::Component_turn:                    componentStr = "org_ortc_services_turn"; break;
+            case wrapper::org::ortc::log::Component_http:                    componentStr = "org_ortc_services_http"; break;
+            case wrapper::org::ortc::log::Component_logger:                  componentStr = "org_ortc_services_logger"; break;
+            case wrapper::org::ortc::log::Component_wire:                    componentStr = "org_ortc_services_wire"; break;
+            case wrapper::org::ortc::log::Component_stun:                    componentStr = "org_ortc_services_stun"; break;
+            case wrapper::org::ortc::log::Component_ortc:                    componentStr = "org_ortc"; break;
+            case wrapper::org::ortc::log::Component_webrtc:                  componentStr = "org_ortc_webrtc"; break;
+            case wrapper::org::ortc::log::Component_dtlsTransport:           componentStr = "org_ortc_dtls_transport"; break;
+            case wrapper::org::ortc::log::Component_iceGatherer:             componentStr = "org_ortc_ice_gatherer"; break;
+            case wrapper::org::ortc::log::Component_iceGathererRouter:       componentStr = "org_ortc_ice_gatherer_router"; break;
+            case wrapper::org::ortc::log::Component_iceTransport:            componentStr = "org_ortc_ice_transport"; break;
+            case wrapper::org::ortc::log::Component_iceTransportController:  componentStr = "org_ortc_ice_transport_controller"; break;
+            case wrapper::org::ortc::log::Component_mediaDevices:            componentStr = "org_ortc_media_devices"; break;
+            case wrapper::org::ortc::log::Component_mediaStreamTrack:        componentStr = "org_ortc_media_stream_track"; break;
+            case wrapper::org::ortc::log::Component_rtpRtcpPacket:           componentStr = "org_ortc_rtp_rtcp_packet"; break;
+            case wrapper::org::ortc::log::Component_rtpListener:             componentStr = "org_ortc_rtp_listener"; break;
+            case wrapper::org::ortc::log::Component_rtpMediaEngine:          componentStr = "org_ortc_rtp_media_engine"; break;
+            case wrapper::org::ortc::log::Component_rtpReceiver:             componentStr = "org_ortc_rtp_receiver"; break;
+            case wrapper::org::ortc::log::Component_rtpSender:               componentStr = "org_ortc_rtp_sender"; break;
+            case wrapper::org::ortc::log::Component_rtpTypes:                componentStr = "org_ortc_rtp_types"; break;
+            case wrapper::org::ortc::log::Component_sctpDataChannel:         componentStr = "org_ortc_sctp_data_channel"; break;
+            case wrapper::org::ortc::log::Component_srtp:                    componentStr = "org_ortc_srtp"; break;
+            case wrapper::org::ortc::log::Component_stats:                   componentStr = "org_ortc_stats"; break;
+            case wrapper::org::ortc::log::Component_adapter:                 componentStr = "org_ortc_adapter"; break;
           };
           ZS_THROW_INVALID_ARGUMENT_IF(!componentStr);
           return componentStr;

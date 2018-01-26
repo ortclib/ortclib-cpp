@@ -40,7 +40,7 @@
 
 #include <zsLib/XML.h>
 
-namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_icegatherer_router) }
+namespace ortc { ZS_DECLARE_SUBSYSTEM(org_ortc_ice_gatherer_router) }
 
 namespace ortc
 {
@@ -139,7 +139,7 @@ namespace ortc
                         string, remoteIp, remoteIP.string()
                         );
 
-          route->trace(__func__, "found");
+          ZS_EVENTING_TRACE_OBJECT(Insane, *route, "found route");
           ZS_LOG_TRACE(log("route found") + route->toDebug() + ZS_PARAM("create route", createRouteIfNeeded))
           return route;
         }
@@ -189,7 +189,7 @@ namespace ortc
                     word, localCandidatePort, ((bool)localCandidate) ? localCandidate->mPort : static_cast<WORD>(0),
                     string, remoteIp, remoteIP.string()
                     );
-      route->trace(__func__, "created");
+      ZS_EVENTING_TRACE_OBJECT(Trace, *route, "route created");
 
       mRoutes[search] = route;
 
@@ -224,7 +224,6 @@ namespace ortc
         auto remoteIP = ((*current).first).second;
 
         if (route) {
-          //IceGathererRouterInternalEvent(__func__, mID, "keep", candidateHash, NULL, 0, remoteIP.string());
           ZS_EVENTING_6(
                         x, i, Trace, IceGathererRouterInternalEvent, ol, IceGathererRouter, InternalEvent,
                         puid, id, mID,
@@ -234,12 +233,11 @@ namespace ortc
                         word, localCandidatePort, 0,
                         string, remoteIp, remoteIP.string()
                         );
-          route->trace(__func__, "keep");
+          ZS_EVENTING_TRACE_OBJECT(Insane, *route, "route still in use (not pruning)");
           ZS_LOG_TRACE(log("route still in use") + ZS_PARAM("candidate hash", candidateHash) + ZS_PARAM("remote ip", remoteIP.string()))
           continue;
         }
 
-        //IceGathererRouterInternalEvent(__func__, mID, "prune", candidateHash, NULL, 0, remoteIP.string());
         ZS_EVENTING_6(
                       x, i, Trace, IceGathererRouterInternalEvent, ol, IceGathererRouter, InternalEvent,
                       puid, id, mID,
@@ -329,28 +327,8 @@ namespace ortc
                                          ) const
     {
       if (mLocalCandidate) {
-        /*
-        IceGathererRouterRouteTrace(
-                                                  __func__,
-                                                  function,
-                                                  message,
-                                                  mID,
-                                                  mLocalCandidate->mInterfaceType,
-                                                  mLocalCandidate->mFoundation,
-                                                  mLocalCandidate->mPriority,
-                                                  mLocalCandidate->mUnfreezePriority,
-                                                  IICETypes::toString(mLocalCandidate->mProtocol),
-                                                  mLocalCandidate->mIP,
-                                                  mLocalCandidate->mPort,
-                                                  IICETypes::toString(mLocalCandidate->mCandidateType),
-                                                  IICETypes::toString(mLocalCandidate->mTCPType),
-                                                  mLocalCandidate->mRelatedAddress,
-                                                  mLocalCandidate->mRelatedPort,
-                                                  mRemoteIP.string()
-                                                  );
-                                                  */
         ZS_EVENTING_15(
-                       x, i, Trace, IceGathererRouterRouteTrace, ol, IceGathererRouter, Info,
+                       x, i, Basic, IceGathererRouterRouteTrace, ol, IceGathererRouter, Info,
                        puid, routeId, mID,
                        string, callingMethod, function,
                        string, message, message,
@@ -368,28 +346,8 @@ namespace ortc
                        string, remoteIp, mRemoteIP.string()
                        );
       } else {
-        /*
-        EventWriteOrtcIceGathererRouterRouteTrace(
-                                                  __func__,
-                                                  function,
-                                                  message,
-                                                  mID,
-                                                  NULL,
-                                                  NULL,
-                                                  0,
-                                                  0,
-                                                  NULL,
-                                                  NULL,
-                                                  0,
-                                                  NULL,
-                                                  NULL,
-                                                  NULL,
-                                                  0,
-                                                  mRemoteIP.string()
-                                                  );
-                                                  */
         ZS_EVENTING_15(
-                       x, i, Trace, IceGathererRouterRouteTrace, ol, IceGathererRouter, Info,
+                       x, i, Basic, IceGathererRouterRouteTrace, ol, IceGathererRouter, Info,
                        puid, routeId, mID,
                        string, callingMethod, function,
                        string, message, message,

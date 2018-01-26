@@ -33,7 +33,7 @@
 
 #include <zsLib/Log.h>
 
-namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_webrtc) }
+namespace ortc { ZS_DECLARE_SUBSYSTEM(org_ortc_webrtc) }
 
 namespace ortc
 {

@@ -96,7 +96,7 @@ using namespace Windows::Networking::Connectivity;
 
 #define ORTC_ICEGATHERER_TO_ORDER(xInterfaceType, xOrder) ((((ULONG)xInterfaceType)*100)+xOrder)
 
-namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_icegatherer) }
+namespace ortc { ZS_DECLARE_SUBSYSTEM(org_ortc_ice_gatherer) }
 
 namespace ortc
 {
@@ -1156,7 +1156,7 @@ namespace ortc
 
       auto route = (*found).second;
 
-      route->trace(__func__, "remove");
+      ZS_EVENTING_TRACE_OBJECT(Trace, *route, "remove route");
 
       ZS_LOG_DEBUG(log("removing route") + route->toDebug())
 
@@ -1630,7 +1630,7 @@ namespace ortc
                           puid, id, mID,
                           puid, routerRouteId, buffer->mRouterRoute->mID
                           );
-            buffer->mSTUNPacket->trace(__func__);
+            ZS_EVENTING_TRACE_OBJECT(Debug, *(buffer->mSTUNPacket), "buffer clean-up");
           }
 
           ZS_LOG_TRACE(log("buffering for too long (or too many buffered packets)") + ZS_PARAM("buffer time", (now - buffer->mTimestamp)) + buffer->toDebug())
@@ -5976,7 +5976,7 @@ namespace ortc
                       puid, routerRouteId, routerRoute->mID,
                       bool, wasBuffered, false
                       );
-        stunPacket->trace(__func__);
+        ZS_EVENTING_TRACE_OBJECT(Trace, *stunPacket, "forwarding packet to transport");
         transport->notifyPacket(routerRoute, stunPacket);
         return SecureByteBlockPtr();
       }
@@ -5999,7 +5999,7 @@ namespace ortc
                       );
 
         ZS_LOG_ERROR(Debug, log("candidate password integrity failed") + ZS_PARAM("request", stunPacket->toDebug()) + ZS_PARAM("reply", response->toDebug()))
-        response->trace(__func__);
+        ZS_EVENTING_TRACE_OBJECT(Debug, *response, "candidate password integrity check failed");
         return response->packetize(STUNPacket::RFC_5245_ICE);
       }
 
@@ -6026,7 +6026,7 @@ namespace ortc
                       puid, id, mID,
                       puid, routerRouteId, routerRoute->mID
                       );
-        stunPacket->trace(__func__);
+        ZS_EVENTING_TRACE_OBJECT(Trace, *stunPacket, "buffering packet where no transport is installed");
 
         ZS_LOG_TRACE(log("buffering stun packet until ice transport installed to handle packet") + packet->toDebug())
         mBufferedPackets.push_back(packet);
@@ -6453,12 +6453,12 @@ namespace ortc
             goto failed_resolve_local_candidate;
           }
 
-          route->trace(__func__, "install route");
+          ZS_EVENTING_TRACE_OBJECT(Trace, *route, "install route");
 
           ZS_LOG_TRACE(log("installing route") + route->toDebug());
 
           ZS_EVENTING_4(
-                        x, i, Debug, IceGathererInstallQuickRoute, ol, IceGatherer, Receive,
+                        x, i, Debug, IceGathererInstallQuickRoute, ol, IceGatherer, Install,
                         puid, id, mID,
                         pointer, candidate, search.first.get(),
                         string, ip, search.second.string(),
@@ -6524,7 +6524,7 @@ namespace ortc
         auto route = (*current).second;
         if (route->mTransportID != transportID) continue;
 
-        route->trace(__func__, "remove all related");
+        ZS_EVENTING_TRACE_OBJECT(Debug, *route, "need to remove route because of unbinding previous transport");
 
         ZS_LOG_WARNING(Detail, log("need to remove route because of unbinding previous transport") + route->toDebug())
 
@@ -7102,11 +7102,14 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void ICEGatherer::Route::trace(const char *function, const char *message) const
+    void ICEGatherer::Route::trace(
+                                   const char *function,
+                                   const char *message
+                                   ) const
     {
       if (mLocalCandidate) {
         ZS_EVENTING_20(
-                       x, i, Trace, IceGathererRouteTrace, ol, IceGatherer, Info,
+                       x, i, Basic, IceGathererRouteTrace, ol, IceGatherer, Info,
                        puid, routeId, mID,
                        string, callingMethod, function,
                        string, message, message,
@@ -7131,7 +7134,7 @@ namespace ortc
 
       } else {
         ZS_EVENTING_20(
-                       x, i, Trace, IceGathererRouteTrace, ol, IceGatherer, Info,
+                       x, i, Basic, IceGathererRouteTrace, ol, IceGatherer, Info,
                        puid, routeId, mID,
                        string, callingMethod, function,
                        string, message, message,

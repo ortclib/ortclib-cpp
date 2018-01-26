@@ -52,7 +52,7 @@
 #pragma GCC diagnostic ignored "-Wunused-local-typedef"
 #endif //__GNUC__
 
-namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib) }
+namespace ortc { ZS_DECLARE_SUBSYSTEM(org_ortc) }
 
 namespace ortc
 {

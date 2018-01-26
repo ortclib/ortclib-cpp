@@ -68,7 +68,7 @@
 #endif //_DEBUG
 
 
-namespace ortc { ZS_DECLARE_SUBSYSTEM(ortclib_rtpreceiver) }
+namespace ortc { ZS_DECLARE_SUBSYSTEM(org_ortc_rtp_receiver) }
 
 namespace ortc
 {
@@ -1631,7 +1631,7 @@ namespace ortc
 
 
       ZS_LOG_TRACE(log("received packet") + ZS_PARAM("via", IICETypes::toString(viaTransport)));
-      packet->trace("received packet");
+      ZS_EVENTING_TRACE_OBJECT(Insane, *packet, "rtp receiver received packet");
 
       ChannelHolderPtr channelHolder;
 
@@ -1702,7 +1702,7 @@ namespace ortc
                     );
 
       ZS_LOG_TRACE(log("received packet") + ZS_PARAM("via", IICETypes::toString(viaTransport)));
-      packet->trace("received packet");
+      ZS_EVENTING_TRACE_OBJECT(Insane, *packet, "rtp receiver received packet");
 
       ChannelWeakMapPtr channels;
 

@@ -39,43 +39,43 @@
 #include <ortc/internal/ortc.events.h>
 #include <zsLib/Log.h>
 
-namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(ortclib) }
-namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(ortclib_webrtc) }
-namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(ortclib_dtlstransport) }
-namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(ortclib_icegatherer) }
-namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(ortclib_icegatherer_router) }
-namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(ortclib_icetransport) }
-namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(ortclib_icetransport_controller) }
-namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(ortclib_mediadevices) }
-namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(ortclib_mediaengine) }
-namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(ortclib_mediastreamtrack) }
-namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(ortclib_rtp_rtcp_packet) }
-namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(ortclib_rtplistener) }
-namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(ortclib_rtpreceiver) }
-namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(ortclib_rtpsender) }
-namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(ortclib_rtptypes) }
-namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(ortclib_sctp_datachannel) }
-namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(ortclib_srtp) }
-namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(ortclib_stats) }
+namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(org_ortc) }
+namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(org_ortc_webrtc) }
+namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(org_ortc_dtls_transport) }
+namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(org_ortc_ice_gatherer) }
+namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(org_ortc_ice_gatherer_router) }
+namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(org_ortc_ice_transport) }
+namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(org_ortc_ice_transport_controller) }
+namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(org_ortc_media_devices) }
+namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(org_ortc_media_engine) }
+namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(org_ortc_media_stream_track) }
+namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(org_ortc_rtp_rtcp_packet) }
+namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(org_ortc_rtp_listener) }
+namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(org_ortc_rtp_receiver) }
+namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(org_ortc_rtp_sender) }
+namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(org_ortc_rtp_types) }
+namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(org_ortc_sctp_data_channel) }
+namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(org_ortc_srtp) }
+namespace ortc { ZS_IMPLEMENT_SUBSYSTEM(org_ortc_stats) }
 
 ZS_EVENTING_EXCLUSIVE(OrtcLib);
-ZS_EVENTING_SUBSYSTEM_DEFAULT_LEVEL(ortclib, Debug);
-ZS_EVENTING_SUBSYSTEM_DEFAULT_LEVEL(ortclib_webrtc, Debug);
-ZS_EVENTING_SUBSYSTEM_DEFAULT_LEVEL(ortclib_dtlstransport, Debug);
-ZS_EVENTING_SUBSYSTEM_DEFAULT_LEVEL(ortclib_icegatherer, Debug);
-ZS_EVENTING_SUBSYSTEM_DEFAULT_LEVEL(ortclib_icegatherer_router, Debug);
-ZS_EVENTING_SUBSYSTEM_DEFAULT_LEVEL(ortclib_icetransport, Debug);
-ZS_EVENTING_SUBSYSTEM_DEFAULT_LEVEL(ortclib_icetransport_controller, Debug);
-ZS_EVENTING_SUBSYSTEM_DEFAULT_LEVEL(ortclib_mediadevices, Debug);
-ZS_EVENTING_SUBSYSTEM_DEFAULT_LEVEL(ortclib_mediaengine, Debug);
-ZS_EVENTING_SUBSYSTEM_DEFAULT_LEVEL(ortclib_mediastreamtrack, Debug);
-ZS_EVENTING_SUBSYSTEM_DEFAULT_LEVEL(ortclib_rtp_rtcp_packet, Debug);
-ZS_EVENTING_SUBSYSTEM_DEFAULT_LEVEL(ortclib_rtplistener, Debug);
-ZS_EVENTING_SUBSYSTEM_DEFAULT_LEVEL(ortclib_rtpreceiver, Debug);
-ZS_EVENTING_SUBSYSTEM_DEFAULT_LEVEL(ortclib_rtpsender, Debug);
-ZS_EVENTING_SUBSYSTEM_DEFAULT_LEVEL(ortclib_rtptypes, Debug);
-ZS_EVENTING_SUBSYSTEM_DEFAULT_LEVEL(ortclib_sctp_datachannel, Debug);
-ZS_EVENTING_SUBSYSTEM_DEFAULT_LEVEL(ortclib_srtp, Debug);
+ZS_EVENTING_SUBSYSTEM_DEFAULT_LEVEL(org_ortc, Debug);
+ZS_EVENTING_SUBSYSTEM_DEFAULT_LEVEL(org_ortc_webrtc, Debug);
+ZS_EVENTING_SUBSYSTEM_DEFAULT_LEVEL(org_ortc_dtlstransport, Debug);
+ZS_EVENTING_SUBSYSTEM_DEFAULT_LEVEL(org_ortc_ice_gatherer, Debug);
+ZS_EVENTING_SUBSYSTEM_DEFAULT_LEVEL(org_ortc_ice_gatherer_router, Debug);
+ZS_EVENTING_SUBSYSTEM_DEFAULT_LEVEL(org_ortc_ice_transport, Debug);
+ZS_EVENTING_SUBSYSTEM_DEFAULT_LEVEL(org_ortc_ice_transport_controller, Debug);
+ZS_EVENTING_SUBSYSTEM_DEFAULT_LEVEL(org_ortc_media_devices, Debug);
+ZS_EVENTING_SUBSYSTEM_DEFAULT_LEVEL(org_ortc_media_engine, Debug);
+ZS_EVENTING_SUBSYSTEM_DEFAULT_LEVEL(org_ortc_media_stream_track, Debug);
+ZS_EVENTING_SUBSYSTEM_DEFAULT_LEVEL(org_ortc_rtp_rtcp_packet, Debug);
+ZS_EVENTING_SUBSYSTEM_DEFAULT_LEVEL(org_ortc_rtp_listener, Debug);
+ZS_EVENTING_SUBSYSTEM_DEFAULT_LEVEL(org_ortc_rtp_receiver, Debug);
+ZS_EVENTING_SUBSYSTEM_DEFAULT_LEVEL(org_ortc_rtp_sender, Debug);
+ZS_EVENTING_SUBSYSTEM_DEFAULT_LEVEL(org_ortc_rtp_types, Debug);
+ZS_EVENTING_SUBSYSTEM_DEFAULT_LEVEL(org_ortc_sctp_data_channel, Debug);
+ZS_EVENTING_SUBSYSTEM_DEFAULT_LEVEL(org_ortc_srtp, Debug);
 ZS_EVENTING_EXCLUSIVE(x);
 
 ZS_EVENTING_EXCLUSIVE(OrtcLibStatsReport);
@@ -88,8 +88,8 @@ namespace ortc
   {
     void initSubsystems()
     {
-      ZS_GET_SUBSYSTEM_LOG_LEVEL(ZS_GET_OTHER_SUBSYSTEM(ortc, ortclib));
-      ZS_GET_SUBSYSTEM_LOG_LEVEL(ZS_GET_OTHER_SUBSYSTEM(ortc, ortclib_webrtc));
+      ZS_GET_SUBSYSTEM_LOG_LEVEL(ZS_GET_OTHER_SUBSYSTEM(ortc, org_ortc));
+      ZS_GET_SUBSYSTEM_LOG_LEVEL(ZS_GET_OTHER_SUBSYSTEM(ortc, org_ortc_webrtc));
     }
   }
 }
