@@ -154,6 +154,12 @@ void WrapperImplType::onDataChannelStateChange(
 )
 {
   onStateChange(RTCDataChannelStateChangeEvent::toWrapper(state));
+
+  switch (state) {
+    case ::ortc::IDataChannelTypes::State_Open:   onOpen(); break;
+    case ::ortc::IDataChannelTypes::State_Closed: onClose(); break;
+    default: break;
+  }
 }
 
 //------------------------------------------------------------------------------
