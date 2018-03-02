@@ -117,12 +117,13 @@
 //#define HAVE_NETINIT6_IN6_VAR_H 1
 #define HAVE_GETIFADDRS 1
 
-#ifdef _ANDROID
+#ifdef ANDROID
 
 // Android supports these additional features
 
 // Android does not support these features
 #undef HAVE_IFADDRS_H
+#undef HAVE_GETIFADDRS
 
 #endif //_ANDROID
 #endif //__linux__
