@@ -113,7 +113,6 @@ ortclib_sources = [
   "ortc/adapter/internal/ortc_adapter_SDPParser.h",
   "ortc/adapter/internal/ortc_adapter_SessionDescription.h",
   "ortc/adapter/internal/types.h",
-  "ortc/cpp/ifaddrs-android.cc",
   "ortc/cpp/ortc.cpp",
   "ortc/cpp/ortc_Capabilities.cpp",
   "ortc/cpp/ortc_Certificate.cpp",
@@ -1048,7 +1047,7 @@ static_library("ortclib_static") {
     "UNICODE",
   ]
 
-  if (is_linux) {
+  if (is_linux || is_android) {
     defines += [
     "WEBRTC_POSIX",
     "WEBRTC_BUILD_LIBEVENT",
@@ -1224,7 +1223,7 @@ shared_library("libOrtc") {
     ]
   }
 
-  if (is_linux) {
+  if (is_linux || is_android) {
     defines += [
     "WEBRTC_POSIX",
     "WEBRTC_BUILD_LIBEVENT",
@@ -1309,8 +1308,7 @@ compile_idl_macro("ortclib_idl") {
     "ortc/idl/config.json",
   ]
     
-  #outputs = ["$target_gen_dir/ortc/veselko/moj.cpp"]
-  outputs = ortc_sources
+ outputs = ortc_sources
 
   sourcePathPrefix =  "ortc/idl/"
 }
