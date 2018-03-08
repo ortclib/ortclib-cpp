@@ -1147,10 +1147,20 @@ shared_library("libOrtc") {
   ]
   }
   if (is_linux) {
-    lib_dirs = [
-      "/usr/lib",
-      "/usr/lib/x86_64-linux-gnu",
-    ]
+
+    if (target_cpu == "x64") {
+      lib_dirs = [
+        "/usr/lib",
+        "/usr/lib/x86_64-linux-gnu",
+      ]
+    } else if (target_cpu == "x86") {
+      lib_dirs = [
+        "/usr/lib",
+        "/usr/lib/i386-linux-gnu",
+        "/lib/i386-linux-gnu",
+      ]
+    }
+    
     libs = [ "uuid", "curl", "ssl", "crypto" ]
   }
 
