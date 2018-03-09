@@ -76,7 +76,7 @@
 #include <netinet6/in6_var.h>
 #endif //HAVE_NETINIT6_IN6_VAR_H
 
-#ifdef _ANDROID
+#ifdef ANDROID
 #include <ortc/internal/ifaddrs-android.h>
 #else
 #endif

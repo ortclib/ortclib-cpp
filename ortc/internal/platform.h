@@ -125,5 +125,5 @@
 #undef HAVE_IFADDRS_H
 #undef HAVE_GETIFADDRS
 
-#endif //_ANDROID
+#endif //ANDROID
 #endif //__linux__
