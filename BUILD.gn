@@ -13,7 +13,7 @@ config("ortclib_config") {
           "/GR",
       ]
       
-      if (!is_target_winuwp)
+      if (current_os != "winuwp")
       {
         cflags_cc += ["/EHsc"]
       }
@@ -52,7 +52,7 @@ config("ortclib_config") {
         "../ortclib/ortc/idl/wrapper",
     ]
     
-  if (is_target_winuwp)
+  if (current_os == "winuwp")
   {
     include_dirs += [ "../ortclib/ortc/idl/wrapper/cx", ]
   }
@@ -382,7 +382,7 @@ ortc_sources_cxx_generated = [
 
 ortc_sources = []
 
-if(!is_target_winuwp){
+if(current_os != "winuwp"){
 ortc_sources = [
  "$target_gen_dir/../../../../../ortc/ortclib/ortc/idl/wrapper/generated/c/c_org_ortc_RTCSrtpTransportStats.h",
  "$target_gen_dir/../../../../../ortc/ortclib/ortc/idl/wrapper/generated/c/c_org_ortc_RTCRtpRtxCodecParameterSettings.h",
@@ -700,7 +700,7 @@ ortc_sources = [
 ]
 }
 
-if(is_target_winuwp){
+if(current_os == "winuwp"){
  ortc_sources = [
   "$target_gen_dir/../../../../../ortc/ortclib/ortc/idl/wrapper/generated/cx/cx_Helpers.cpp",
   "$target_gen_dir/../../../../../ortc/ortclib/ortc/idl/wrapper/generated/cx/cx_Helpers.h",
@@ -1099,7 +1099,7 @@ shared_library("libOrtc") {
       "/WX-",
       "/wd4068",
     ]
-    if (!is_target_winuwp) {
+    if (current_os != "winuwp") {
       ldflags = [
          "/FIXED:NO",
        ]
@@ -1136,7 +1136,7 @@ shared_library("libOrtc") {
   
   sources = ortc_sources
 
-  if (is_target_winuwp)
+  if (current_os == "winuwp")
   {
     include_dirs += [ "../ortclib/ortc/idl/wrapper/cx", ]
     
@@ -1164,22 +1164,22 @@ shared_library("libOrtc") {
     libs = [ "uuid", "curl", "ssl", "crypto" ]
   }
 
-  if (is_target_winuwp && (target_cpu == "x64") && is_debug) {
+  if ((current_os == "winuwp") && (target_cpu == "x64") && is_debug) {
     lib_dirs = [
        "..\..\ortc\curl\x64-debug-static\lib",
     ]
     libs = [ "libcurl.lib" ]    
-  } else if (is_target_winuwp && (target_cpu == "x64") && !is_debug) {
+  } else if ((current_os == "winuwp") && (target_cpu == "x64") && !is_debug) {
     lib_dirs = [
        "..\..\ortc\curl\x64-release-static\lib",
     ]
     libs = [ "libcurl.lib" ]
-  } else if (is_target_winuwp && (target_cpu == "x86") && is_debug) {
+  } else if ((current_os == "winuwp") && (target_cpu == "x86") && is_debug) {
     lib_dirs = [
        "..\..\ortc\curl\x86-debug-static\lib",
     ]
     libs = [ "libcurl.lib" ]  
-  } else if (is_target_winuwp && (target_cpu == "x86") && !is_debug) {
+  } else if ((current_os == "winuwp") && (target_cpu == "x86") && !is_debug) {
     lib_dirs = [
        "..\..\ortc\curl\x86-release-static\lib",
     ]
@@ -1263,7 +1263,7 @@ static_library("ortclib_generated_static") {
   sources = ortc_sources_cxx_glue
   sources += ortc_sources_cxx_generated
 
-  if (!is_target_winuwp)
+  if (current_os != "winuwp")
   {
     sources -= [ 
       "ortc/idl/wrapper/impl_org_ortc_Dispatcher.cpp",
