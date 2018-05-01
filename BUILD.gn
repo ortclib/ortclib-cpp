@@ -113,6 +113,7 @@ ortclib_sources = [
   "ortc/adapter/internal/ortc_adapter_SDPParser.h",
   "ortc/adapter/internal/ortc_adapter_SessionDescription.h",
   "ortc/adapter/internal/types.h",
+  "ortc/cpp/ifaddrs-android.cc",
   "ortc/cpp/ortc.cpp",
   "ortc/cpp/ortc_Capabilities.cpp",
   "ortc/cpp/ortc_Certificate.cpp",
@@ -219,6 +220,12 @@ ortclib_sources = [
   "ortc/internal/platform.h",
   "ortc/internal/types.h",
 ]
+
+if (is_android) {
+    ortclib_sources -= [
+      "ortc/cpp/ifaddrs-android.cc",
+    ]
+}
 
 ortc_sources_cxx_generated = [
  "$target_gen_dir/../../../../../ortc/ortclib/ortc/idl/wrapper/generated/org_ortc_adapter_RTCSessionDescriptionRtpMediaLine.h",
