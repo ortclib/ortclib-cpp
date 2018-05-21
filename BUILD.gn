@@ -1216,10 +1216,10 @@ shared_library("libOrtc") {
     "//third_party/boringssl:boringssl",
     "//third_party/usrsctp:usrsctp",
     "//third_party/libsrtp:libsrtp",
-    "//webrtc/modules/audio_device",
-    "//webrtc/system_wrappers:metrics_default",
-    "//webrtc/modules/video_capture:video_capture_module",
-    "//webrtc/modules/video_capture"
+    "//modules/audio_device",
+    "//system_wrappers:metrics_default",
+    "//modules/video_capture:video_capture_module",
+    "//modules/video_capture"
   ]
 
   defines = [
