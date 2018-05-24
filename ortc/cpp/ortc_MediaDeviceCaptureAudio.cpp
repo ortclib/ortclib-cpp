@@ -66,16 +66,16 @@
 #include <float.h>
 #include <math.h>
 
-#include <webrtc/rtc_base/timeutils.h>
-#include <webrtc/call/rtc_event_log.h>
-#include <webrtc/voice_engine/include/voe_codec.h>
-#include <webrtc/voice_engine/include/voe_rtp_rtcp.h>
-#include <webrtc/voice_engine/include/voe_network.h>
-#include <webrtc/voice_engine/include/voe_hardware.h>
-#include <webrtc/system_wrappers/include/cpu_info.h>
-#include <webrtc/voice_engine/include/voe_audio_processing.h>
-#include <webrtc/modules/video_capture/video_capture_factory.h>
-#include <webrtc/modules/audio_coding/codecs/builtin_audio_decoder_factory.h>
+#include <rtc_base/timeutils.h>
+#include <call/rtc_event_log.h>
+#include <voice_engine/include/voe_codec.h>
+#include <voice_engine/include/voe_rtp_rtcp.h>
+#include <voice_engine/include/voe_network.h>
+#include <voice_engine/include/voe_hardware.h>
+#include <system_wrappers/include/cpu_info.h>
+#include <voice_engine/include/voe_audio_processing.h>
+#include <modules/video_capture/video_capture_factory.h>
+#include <modules/audio_coding/codecs/builtin_audio_decoder_factory.h>
 #ifdef WINRT
 #include <third_party/h264_winrt/h264_winrt_factory.h>
 #endif

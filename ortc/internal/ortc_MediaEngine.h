@@ -48,8 +48,8 @@
 #include <zsLib/IWakeDelegate.h>
 #include <zsLib/ITimer.h>
 
-#include <webrtc/rtc_base/logging.h>
-#include <webrtc/system_wrappers/include/trace.h>
+#include <rtc_base/logging.h>
+//#include <system_wrappers/include/trace.h>
 //#include <webrtc/rtc_base/tracelog.h>
 
 namespace ortc

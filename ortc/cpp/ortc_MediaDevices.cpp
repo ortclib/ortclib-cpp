@@ -51,8 +51,8 @@
 
 #include <cryptopp/sha.h>
 
-#include <webrtc/modules/video_capture/video_capture_factory.h>
-#include <webrtc/modules/audio_device/audio_device_impl.h>
+#include <modules/video_capture/video_capture_factory.h>
+#include <modules/audio_device/audio_device_impl.h>
 
 #ifdef _DEBUG
 #define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))
