@@ -354,7 +354,7 @@ namespace ortc
                              ) :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
-      traceCallback_(new WebRtcTraceCallback()),
+      //traceCallback_(new WebRtcTraceCallback()),
       logSink_(new WebRtcLogSink())
     {
       ZS_EVENTING_1(x, i, Detail, MediaEngineCreate, ol, MediaEngine, Start, puid, id, id_);
@@ -363,8 +363,8 @@ namespace ortc
     //-------------------------------------------------------------------------
     void MediaEngine::init()
     {
-      webrtc::Trace::CreateTrace();
-      webrtc::Trace::SetTraceCallback(traceCallback_.get());
+      //webrtc::Trace::CreateTrace();
+      //webrtc::Trace::SetTraceCallback(traceCallback_.get());
 
       auto level = IORTCForInternal::webrtcLogLevel();
       if (level.hasValue()) {
@@ -385,8 +385,8 @@ namespace ortc
     {
       if (isNoop()) return;
 
-      webrtc::Trace::SetTraceCallback(nullptr);
-      webrtc::Trace::ReturnTrace();
+      //webrtc::Trace::SetTraceCallback(nullptr);
+      //webrtc::Trace::ReturnTrace();
 
       thisWeak_.reset();
 
@@ -499,10 +499,10 @@ namespace ortc
     //-------------------------------------------------------------------------
     void MediaEngine::internalSetLogLevel(Log::Level level)
     {
-      webrtc::TraceLevel traceLevel{ webrtc::kTraceAll };
+      //webrtc::TraceLevel traceLevel{ webrtc::kTraceAll };
       rtc::LoggingSeverity rtcLevel{ rtc::LS_INFO };
 
-      switch (level)
+      /*switch (level)
       {
       case Log::Level::None:    rtcLevel = rtc::LS_NONE; traceLevel = static_cast<webrtc::TraceLevel>(webrtc::kTraceNone); break;
       case Log::Level::Basic:   rtcLevel = rtc::LS_ERROR; traceLevel = static_cast<webrtc::TraceLevel>(webrtc::kTraceCritical | webrtc::kTraceError); break;
@@ -510,12 +510,12 @@ namespace ortc
       case Log::Level::Debug:   rtcLevel = rtc::LS_INFO; traceLevel = static_cast<webrtc::TraceLevel>(webrtc::kTraceDefault); break;
       case Log::Level::Trace:   rtcLevel = rtc::LS_VERBOSE; traceLevel = static_cast<webrtc::TraceLevel>(webrtc::kTraceDefault | webrtc::kTraceModuleCall | webrtc::kTraceTimer | webrtc::kTraceDebug); break;
       case Log::Level::Insane:  rtcLevel = rtc::LS_SENSITIVE; traceLevel = static_cast<webrtc::TraceLevel>(webrtc::kTraceAll); break;
-      }
+      }*/
 
       rtc::LogMessage::RemoveLogToStream(logSink_.get());
       rtc::LogMessage::AddLogToStream(logSink_.get(), rtcLevel);
 
-      webrtc::Trace::set_level_filter(traceLevel);
+      //webrtc::Trace::set_level_filter(traceLevel);
     }
 
     //-------------------------------------------------------------------------
@@ -1858,7 +1858,7 @@ namespace ortc
     #pragma mark
 
     //-------------------------------------------------------------------------
-    void MediaEngine::WebRtcTraceCallback::Print(webrtc::TraceLevel trace, const char* message, int length)
+    /*void MediaEngine::WebRtcTraceCallback::Print(webrtc::TraceLevel trace, const char* message, int length)
     {
       static const size_t stripLength = 34;
 
@@ -1892,7 +1892,7 @@ namespace ortc
         std::string msg(message + (stripLength-1), length - stripLength);
         webrtcTrace(severity, level, msg.c_str());
       }
-    }
+    }*/
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------

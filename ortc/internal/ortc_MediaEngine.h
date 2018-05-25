@@ -752,11 +752,11 @@ namespace ortc
       #pragma mark MediaEngine::WebRtcTraceCallback
       #pragma mark
 
-      class WebRtcTraceCallback : public webrtc::TraceCallback
+      /*class WebRtcTraceCallback : public webrtc::TraceCallback
       {
       public:
         void Print(webrtc::TraceLevel level, const char* message, int length) override;
-      };
+      };*/
 
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
@@ -868,7 +868,7 @@ namespace ortc
 
       MediaEnginePtr gracefulShutdownReference_;
 
-      std::unique_ptr<WebRtcTraceCallback> traceCallback_;
+      //std::unique_ptr<WebRtcTraceCallback> traceCallback_;
       std::unique_ptr<WebRtcLogSink> logSink_;
       //rtc::TraceLog traceLog_;
 
