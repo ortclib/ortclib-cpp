@@ -79,7 +79,7 @@ String wrapper::impl::org::ortc::RTCOutboundRtpStreamStats::get_id()
 //------------------------------------------------------------------------------
 Optional< uint32_t > wrapper::impl::org::ortc::RTCOutboundRtpStreamStats::get_ssrc()
 {
-  return native_->mSSRC;
+  return (Optional< uint32_t >)native_->mSSRC;
 }
 
 //------------------------------------------------------------------------------

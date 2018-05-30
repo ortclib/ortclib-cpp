@@ -101,7 +101,7 @@ void wrapper::impl::org::ortc::RTCRtpStreamStats::wrapper_init_org_ortc_RTCRtpSt
 //------------------------------------------------------------------------------
 Optional< uint32_t > wrapper::impl::org::ortc::RTCRtpStreamStats::get_ssrc()
 {
-  return native_->mSSRC;
+  return (Optional< uint32_t >)native_->mSSRC;
 }
 
 //------------------------------------------------------------------------------
