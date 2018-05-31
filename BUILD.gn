@@ -1205,7 +1205,6 @@ shared_library("libOrtc") {
   deps = [
     "//third_party/ortc/zsLib:zslib",
     "//third_party/ortc/zsLib-eventing:zslib-eventing",
-    "//third_party/cryptopp:cryptopp",
     "//third_party/idnkit:idnkit",
     "//third_party/udns:udns",
     ":ortclib_generated_static",
@@ -1219,6 +1218,11 @@ shared_library("libOrtc") {
     "//modules/video_capture"
   ]
 
+  if (is_win && (current_os != "winuwp")) {
+    deps += [ "//third_party/cryptopp(//build/toolchain/win:$current_cpu)", ]
+  } else {
+    deps += [ "//third_party/cryptopp", ]
+  }
   defines = [
     "SHARED",
     "ORTC_WRAPPER_C_GENERATED_IMPLEMENTATION",
