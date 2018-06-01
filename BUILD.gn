@@ -16,6 +16,9 @@ config("ortclib_config") {
       if (current_os != "winuwp")
       {
         cflags_cc += ["/EHsc"]
+        defines = [
+          "CRYPTOPP_IGNORE_CALNG_LIMITATION",
+        ]
       }
     } else {
         cflags_cc = [ "-g" ]
@@ -1248,6 +1251,12 @@ shared_library("libOrtc") {
     ]
   }
 
+  if (is_win && (current_os != "winuwp")) {
+    defines += [
+      "CRYPTOPP_IGNORE_CALNG_LIMITATION",
+    ]
+  }
+  
   if (is_linux) {
     # Suppress warnings from the Chromium Clang plugin (bugs.webrtc.org/163).
     configs -= [ "//build/config/clang:find_bad_constructs" ]
