@@ -417,14 +417,14 @@ namespace ortc
       delete info;
 
       webrtc::AudioDeviceModule::AudioLayer audioLayer;
-#ifdef WINRT
+#ifdef WINUWP
       audioLayer = webrtc::AudioDeviceModule::kWindowsWasapiAudio;
 #else
       audioLayer = webrtc::AudioDeviceModule::kPlatformDefaultAudio;
 #endif
 
       rtc::scoped_refptr<webrtc::AudioDeviceModule> audioDevice =
-        webrtc::AudioDeviceModuleImpl::Create(1, audioLayer);
+        webrtc::AudioDeviceModule::Create(audioLayer);
       if (!audioDevice) {
         promise->reject();
         return;
