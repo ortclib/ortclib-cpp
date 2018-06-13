@@ -82,8 +82,8 @@ namespace org
       [getter]
       string              statsTypeOther;
       /// <summary>
-      /// Gets or sets the identifer for the RTCStats object. The identifer
-      /// is unique within a RTCStatsReport but is not guarenteed to be unique
+      /// Gets or sets the identifier for the RTCStats object. The identifier
+      /// is unique within a RTCStatsReport but is not guaranteed to be unique
       /// across RTCStatsReports.
       /// </summary>
       [getter]
@@ -405,7 +405,7 @@ namespace org
     };
 
     /// <summary>
-    /// The RTCMediaStreamStats object contains the stastics for the
+    /// The RTCMediaStreamStats object contains the statistics for the
     /// RTCMediaStream object.
     /// </summary>
     struct RTCMediaStreamStats : RTCStats
@@ -441,7 +441,7 @@ namespace org
 
 
     /// <summary>
-    /// The RTCMediaStreamTrackStats object contains the stastics for the
+    /// The RTCMediaStreamTrackStats object contains the statistics for the
     /// RTCMediaStreamTrack object.
     /// </summary>
     struct RTCMediaStreamTrackStats : RTCStats
@@ -563,7 +563,7 @@ namespace org
     struct RTCDataChannelStats : RTCStats
     {
       /// <summary>
-      /// Gets or sets the data channle label.
+      /// Gets or sets the data channel label.
       /// </summary>
       [getter]
       string                    label;
@@ -624,7 +624,7 @@ namespace org
     };
 
     /// <summary>
-    /// The RTCIceGathererStats object contains the stastics information
+    /// The RTCIceGathererStats object contains the statistics information
     /// related to the RTCIceGatherer object.
     /// </summary>
     struct RTCIceGathererStats : RTCStats
@@ -970,7 +970,7 @@ namespace org
       string fingerprintAlgorithm;
       /// <summary>
       /// Gets or sets the DER-encoded, base-64 representation of a
-      /// certifiate.
+      /// certificate.
       /// </summary>
       [getter]
       string base64Certificate;

@@ -508,7 +508,7 @@ namespace org
       [optional]
       unsigned long maxFr;
       /// <summary>
-      /// Gets or sets the maximum frame size in macroblocks that the decoder
+      /// Gets or sets the maximum frame size in macro-blocks that the decoder
       /// is capable of decoding.
       /// </summary>
       [optional]
@@ -567,21 +567,21 @@ namespace org
       PacketizationModeList packetizationModes;
 
       /// <summary>
-      /// Gets or sets an integer indicating the maximum macroblock processing
-      /// rate in units of macroblocks per second.
+      /// Gets or sets an integer indicating the maximum macro-block processing
+      /// rate in units of macro-blocks per second.
       /// </summary>
       [optional]
       unsigned long long maxMbps;
       /// <summary>
-      /// Gets or sets an integer indicating the maximum static macroblock
-      /// processing rate in units of static macroblocks per second, under the
-      /// hypothetical assumption that all macroblocks are static macroblocks.
+      /// Gets or sets an integer indicating the maximum static macro-block
+      /// processing rate in units of static macro-blocks per second, under the
+      /// hypothetical assumption that all macro-blocks are static macro-blocks.
       /// </summary>
       [optional]
       unsigned long long maxSMbps;
       /// <summary>
       /// Gets or sets an integer indicating the maximum frame size in units
-      /// of macroblocks.
+      /// of macro-blocks.
       /// </summary>
       [optional]
       unsigned long long maxFs;
@@ -594,7 +594,7 @@ namespace org
       unsigned long long maxCpb;
       /// <summary>
       /// Gets or sets an integer indicating the maximum decoded picture
-      /// buffer size in units of 8 / 3 macroblocks.
+      /// buffer size in units of 8 / 3 macro-blocks.
       /// </summary>
       [optional]
       unsigned long long maxDpb;
@@ -617,7 +617,7 @@ namespace org
       [constructor, altname(RTCRtpH264CodecCapabilityParametersClone)]
       void RTCRtpH264CodecCapabilityParameters(RTCRtpH264CodecCapabilityParameters source);
       /// <summary>
-      /// Constructs an instance of an RTCRtpH264CodecCapabilityParameters object by extrating object data from a JSON object.
+      /// Constructs an instance of an RTCRtpH264CodecCapabilityParameters object by extracting object data from a JSON object.
       /// </summary>
       [constructor, default, altname(RTCRtpH264CodecCapabilityParametersWithJson)]
       void RTCRtpH264CodecCapabilityParameters(Json json);
@@ -882,7 +882,7 @@ namespace org
     };
 
     /// <summary>
-    /// The RTCRtpHeaderExtension dictionary configers the header extensions
+    /// The RTCRtpHeaderExtension dictionary configures the header extensions
     /// for use within an RTCRtpSender or RTCRtpReceiver.
     /// </summary>
     [dictionary]
@@ -1032,7 +1032,7 @@ namespace org
       SsrcType                ssrc;
       /// <summary>
       /// Gets or sets the codec payload type per-encoding. If unset, the
-      /// ORTC engine will choose the first codec in parameters.Codecs[] of
+      /// ORTC engine will choose the first codec in parameters. Codecs[] of
       /// the appropriate kind.
       /// </summary>
       [optional]
@@ -1331,7 +1331,7 @@ namespace org
       [constructor, altname(RTCRtpH264CodecParameterSettingsClone)]
       void RTCRtpH264CodecParameterSettings(RTCRtpH264CodecParameterSettings source);
       /// <summary>
-      /// Constructs an instance of an RTCRtpH264CodecParameterSettings object by extrating object data from a JSON object.
+      /// Constructs an instance of an RTCRtpH264CodecParameterSettings object by extracting object data from a JSON object.
       /// </summary>
       [constructor, default, altname(RTCRtpH264CodecParameterSettingsWithJson)]
       void RTCRtpH264CodecParameterSettings(Json json);
@@ -1351,7 +1351,7 @@ namespace org
       [constructor, altname(RTCRtpRtxCodecParameterSettingsClone)]
       void RTCRtpRtxCodecParameterSettings(RTCRtpRtxCodecParameterSettings source);
       /// <summary>
-      /// Constructs an instance of an RTCRtpRtxCodecParameterSettings object by extrating object data from a JSON object.
+      /// Constructs an instance of an RTCRtpRtxCodecParameterSettings object by extracting object data from a JSON object.
       /// </summary>
       [constructor, default, altname(RTCRtpRtxCodecParameterSettingsWithJson)]
       void RTCRtpRtxCodecParameterSettings(Json json);
@@ -1371,7 +1371,7 @@ namespace org
       [constructor, altname(RTCRtpFlexFecCodecParameterSettingsClone)]
       void RTCRtpFlexFecCodecParameterSettings(RTCRtpFlexFecCodecParameterSettings source);
       /// <summary>
-      /// Constructs an instance of an RTCRtpFlexFecCodecParameterSettings object by extrating object data from a JSON object.
+      /// Constructs an instance of an RTCRtpFlexFecCodecParameterSettings object by extracting object data from a JSON object.
       /// </summary>
       [constructor, default, altname(RTCRtpFlexFecCodecParameterSettingsWithJson)]
       void RTCRtpFlexFecCodecParameterSettings(Json json);
@@ -1389,7 +1389,7 @@ namespace org
       /// <summary>
       /// Gets or sets sequence of payload types to be encapsulated in RED,
       /// each of which must be unique. If payloadTypes is unset, this means
-      /// that any codec other than "red" or "rtx" can be encapsulsated in
+      /// that any codec other than "red" or "rtx" can be encapsulated in
       /// RED.
       /// </summary>
       PayloadTypeList payloadTypes;

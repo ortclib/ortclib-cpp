@@ -136,7 +136,7 @@ namespace org
       [static]
       void stopMediaTracing();
       /// <summary>
-      /// Indiceates whether tracing system is activated.
+      /// Indicates whether tracing system is activated.
       /// </summary>
       [static]
       bool isMediaTracing();

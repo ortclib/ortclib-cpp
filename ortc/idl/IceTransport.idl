@@ -251,12 +251,12 @@ namespace org
       void removeRemoteCandidate(RTCIceGathererCandidate remoteCandidate) throws (InvalidStateError, InvalidParameters);
 
       /// <summary>
-      /// Keep a particular local/remote canadidate path alive with keep alives to ensure the path is always kept alive.
+      /// Keep a particular local/remote candidate path alive with keep-alives to ensure the path is always kept alive.
       /// </summary>
       [default]
       void keepWarm(RTCIceCandidatePair candidatePair) throws (InvalidStateError);
       /// <summary>
-      /// Tell engine to keep a particular local/remote canadidate path alive or not to ensure the path is always kept alive.
+      /// Tell engine to keep a particular local/remote candidate path alive or not to ensure the path is always kept alive.
       /// </summary>
       [altname(setKeepWarm)]
       void keepWarm(

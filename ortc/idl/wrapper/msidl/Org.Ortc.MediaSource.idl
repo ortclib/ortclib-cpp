@@ -1,0 +1,45 @@
+import "forwards.idl";
+import "output.idl";
+
+namespace Org
+{
+    namespace Ortc
+    {
+
+
+        /// <summary>
+        /// MediaSource represents an object holder for a platform specific
+        /// media source.
+        /// </summary>
+        [version(1.0)]
+        [uuid(4e781912-6b0a-4d4f-06ee-f41b1ff03a4a)]
+        interface IMediaSource : IInspectable
+        {
+
+            /// <summary>
+            /// Gets or sets the platform specific media source.
+            /// </summary>
+            Object Source { get; set; };
+
+            /// <summary>
+            /// Gets or sets the media track associated to the media source.
+            /// </summary>
+            Object Track { get; };
+        };
+
+        /// <summary>
+        /// MediaSource represents an object holder for a platform specific
+        /// media source.
+        /// </summary>
+        runtimeclass MediaSource : [default] IMediaSource
+        {
+
+            /// <summary>
+            /// Cast from Org.Ortc.IMediaSource to Org.Ortc.MediaSource
+            /// </summary>
+            static Org.Ortc.MediaSource CastFromIMediaSource(Org.Ortc.IMediaSource source);
+        };
+
+    } // namespace Ortc
+} // namespace Org
+

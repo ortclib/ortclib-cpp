@@ -33,23 +33,23 @@ namespace org
 {
   namespace ortc
   {
-    /// <summmary>
+    /// <summary>
     /// The RTCIceTransportController object assists in the managing of ICE
     /// freezing and bandwidth estimation.
-    /// </summmary>
+    /// </summary>
     interface RTCIceTransportController
     {
       typedef std::list<RTCIceTransport> IceTransportList;
 
-      /// <summmary>
+      /// <summary>
       /// Constructs an instance of the RTCIceTransportController.
-      /// </summmary>
+      /// </summary>
       [constructor]
       void RTCIceTransportController();
 
-      /// <summmary>
+      /// <summary>
       /// Get a unique object instance identifier for this object.
-      /// </summmary>
+      /// </summary>
       [getter]
       puid objectId;
 

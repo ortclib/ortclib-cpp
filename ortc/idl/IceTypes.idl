@@ -97,7 +97,7 @@ namespace org
       /// RTCIceParameters.UseUnfreezePriority is true then this priority is
       /// used to determine the unfreezing search order in which to check ICE
       /// candidates. The higher priority candidates will be searched as
-      /// posssible pairings before lower priority candidates. This is a
+      /// possible pairings before lower priority candidates. This is a
       /// useful option as setting up a connection via a relay may be faster
       /// than exhaustively searching for the most optimal candidate pairing
       /// which is determined by standard Priority.
@@ -175,7 +175,7 @@ namespace org
     {
       /// <summary>
       /// Set this value to true if the remote ICE implementation also
-      /// supports the separation of canddiate choise priorty versus
+      /// supports the separation of candidate choice priority versus
       /// the priority to unfreeze the candidates. This allows the ICE engine
       /// to search for a candidate that is more likely to work before trying
       /// to find the most optimal candidate to use long term.

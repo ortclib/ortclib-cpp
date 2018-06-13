@@ -109,7 +109,7 @@ namespace org
       /// </summary>
       uint16            tag;
       /// <summary>
-      /// Gets or sets the the ciphersuite to be utilized, in the syntax
+      /// Gets or sets the the cipher-suite to be utilized, in the syntax
       /// defined for 'srtp-crypto-suite' in [RFC4568] Section 9.2;
       /// </summary>
       string            cryptoSuite;
