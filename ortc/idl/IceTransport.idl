@@ -106,7 +106,7 @@ namespace org
       /// specified RTCIceGatherer. 
       /// </summary>
       [constructor, altname(RTCIceTransportWithGatherer)]
-      void RTCIceTransport(RTCIceGatherer gatherer) throws (InvalidStateError);
+      void RTCIceTransport(RTCIceGatherer gatherer) throws (InvalidParameters, InvalidStateError);
 
       /// <summary>
       /// Gets an unique object instance identifier for this object.

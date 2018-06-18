@@ -52,24 +52,24 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrackChannelDelegate
-    #pragma mark
+    //
+    // IMediaStreamTrackChannelDelegate
+    //
 
     interaction IMediaStreamTrackChannelDelegate
     {
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::ImmutableMediaChannelTrace, ImmutableMediaChannelTrace);
 
-      virtual void notifyMediaChannelCancelled(ImmutableMediaChannelTracePtr trace) = 0;
+      virtual void notifyMediaChannelCancelled(ImmutableMediaChannelTracePtr trace) noexcept = 0;
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrackChannelMediaDelegate
-    #pragma mark
+    //
+    // IMediaStreamTrackChannelMediaDelegate
+    //
 
     interaction IMediaStreamTrackChannelMediaDelegate : public IMediaStreamTrackChannelDelegate
     {
@@ -80,20 +80,20 @@ namespace ortc
       virtual void notifyMediaChannelAudioFrame(
                                                 ImmutableMediaChannelTracePtr trace,
                                                 AudioFramePtr frame
-                                                ) = 0;
+                                                ) noexcept = 0;
       virtual void notifyMediaChannelVideoFrame(
                                                 ImmutableMediaChannelTracePtr trace,
                                                 AudioFramePtr frame
-                                                ) = 0;
+                                                ) noexcept = 0;
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrackChannelRTPDelegate
-    #pragma mark
+    //
+    // IMediaStreamTrackChannelRTPDelegate
+    //
 
     interaction IMediaStreamTrackChannelRTPDelegate : public IMediaStreamTrackChannelDelegate
     {
@@ -104,20 +104,20 @@ namespace ortc
       virtual void notifyMediaChannelRTPPacket(
                                                ImmutableMediaChannelTracePtr trace,
                                                RTPPacketPtr packet
-                                               ) = 0;
+                                               ) noexcept = 0;
       virtual void notifyMediaChannelRTCPPacket(
                                                 ImmutableMediaChannelTracePtr trace,
                                                 RTPPacketPtr packet
-                                                ) = 0;
+                                                ) noexcept = 0;
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrackChannelForMediaStreamTrack
-    #pragma mark
+    //
+    // IMediaStreamTrackChannelForMediaStreamTrack
+    //
 
     interaction IMediaStreamTrackChannelForMediaStreamTrack
     {
@@ -131,48 +131,48 @@ namespace ortc
       static ForMediaStreamTrackPtr create(
                                            size_t timeIndex,
                                            ImmutableMediaChannelTracePtr trace
-                                           );
+                                           ) noexcept;
 
-      virtual PUID getID() const = 0;
+      virtual PUID getID() const noexcept = 0;
 
-      virtual void shutdown() = 0;
+      virtual void shutdown() noexcept = 0;
 
       virtual void notifyAudioFrame(
                                     size_t timeIndex,
                                     ImmutableMediaChannelTracePtr trace,
                                     AudioFramePtr frame
-                                    ) = 0;
+                                    ) noexcept = 0;
       virtual void notifyVideoFrame(
                                     size_t timeIndex,
                                     ImmutableMediaChannelTracePtr trace,
                                     VideoFramePtr frame
-                                    ) = 0;
+                                    ) noexcept = 0;
 
       virtual void notifyRTPPacket(
                                    size_t timeIndex,
                                    ImmutableMediaChannelTracePtr trace,
                                    RTPPacketPtr packet
-                                   ) = 0;
+                                   ) noexcept = 0;
       virtual void notifyRTCPPacket(
                                     size_t timeIndex,
                                     ImmutableMediaChannelTracePtr trace,
                                     RTPPacketPtr packet
-                                    ) = 0;
+                                    ) noexcept = 0;
 
-      virtual void subscribeComplete() = 0;
+      virtual void subscribeComplete() noexcept = 0;
 
-      virtual bool shouldCancel(size_t cleanOlderThanTimeIndex) = 0;
+      virtual bool shouldCancel(size_t cleanOlderThanTimeIndex) noexcept = 0;
 
-      virtual void notifyMediaChannelGone(ImmutableMediaChannelTracePtr trace) = 0;
+      virtual void notifyMediaChannelGone(ImmutableMediaChannelTracePtr trace) noexcept = 0;
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrackChannelForMediaStreamTrackSubscriber
-    #pragma mark
+    //
+    // IMediaStreamTrackChannelForMediaStreamTrackSubscriber
+    //
 
     interaction IMediaStreamTrackChannelForMediaStreamTrackSubscriber
     {
@@ -180,16 +180,16 @@ namespace ortc
 
       typedef PUID SubscriberObjectID;
 
-      virtual void notifyCancelled(SubscriberObjectID subscriberID) = 0;
+      virtual void notifyCancelled(SubscriberObjectID subscriberID) noexcept = 0;
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrackChannelForMediaStreamTrackSubscriberMedia
-    #pragma mark
+    //
+    // IMediaStreamTrackChannelForMediaStreamTrackSubscriberMedia
+    //
 
     interaction IMediaStreamTrackChannelForMediaStreamTrackSubscriberMedia : public IMediaStreamTrackChannelForMediaStreamTrackSubscriber
     {
@@ -200,16 +200,16 @@ namespace ortc
       virtual void subscribeMedia(
                                   SubscriberObjectID subscriberID,
                                   IMediaStreamTrackChannelMediaDelegatePtr delegate
-                                  ) = 0;
+                                  ) noexcept = 0;
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrackChannelForMediaStreamTrackSubscriberRTP
-    #pragma mark
+    //
+    // IMediaStreamTrackChannelForMediaStreamTrackSubscriberRTP
+    //
 
     interaction IMediaStreamTrackChannelForMediaStreamTrackSubscriberRTP : public IMediaStreamTrackChannelForMediaStreamTrackSubscriber
     {
@@ -223,7 +223,7 @@ namespace ortc
                                 SubscriberObjectID subscriberID,
                                 ImmutableParametersPtr params,
                                 IMediaStreamTrackChannelRTPDelegatePtr delegate
-                                ) = 0;
+                                ) noexcept = 0;
     };
 
 

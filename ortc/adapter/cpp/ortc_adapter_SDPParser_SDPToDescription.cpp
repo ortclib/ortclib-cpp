@@ -67,18 +67,18 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark Helpers
-      #pragma mark
+      //
+      // Helpers
+      //
 
       //-----------------------------------------------------------------------
-      static Log::Params slog(const char *message)
+      static Log::Params slog(const char *message) noexcept
       {
         return Log::Params(message, "ortc::adapter::SDPParser");
       }
 
       //-----------------------------------------------------------------------
-      static String createTransportIDFromIndex(size_t index)
+      static String createTransportIDFromIndex(size_t index) noexcept
       {
         auto hasher = IHasher::sha1();
         hasher->update("transport_index:");
@@ -87,7 +87,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      static String createMediaLineIDFromIndex(size_t index)
+      static String createMediaLineIDFromIndex(size_t index) noexcept
       {
         auto hasher = IHasher::sha1();
         hasher->update("media_line_index:");
@@ -96,7 +96,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      static String createSenderIDFromIndex(size_t index)
+      static String createSenderIDFromIndex(size_t index) noexcept
       {
         auto hasher = IHasher::sha1();
         hasher->update("sender_index:");
@@ -108,15 +108,15 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SDPParser
-      #pragma mark
+      //
+      // SDPParser
+      //
 
       //-----------------------------------------------------------------------
       void SDPParser::createDescriptionDetails(
                                                const SDP &sdp,
                                                Description &ioDescription
-                                               )
+                                               ) noexcept
       {
         bool needsDetails = ((bool)sdp.mOLine) ||
           ((bool)sdp.mSLine) ||
@@ -161,7 +161,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      static IDTLSTransportTypes::Roles toDtlsRole(const char *setup)
+      static IDTLSTransportTypes::Roles toDtlsRole(const char *setup) noexcept
       {
         String str(setup);
 
@@ -190,7 +190,7 @@ namespace ortc
       static void convertCrypto(
                                 const ISDPTypes::ACryptoLineList &inCryptoLines,
                                 ISRTPSDESTransportTypes::Parameters &outCrypto
-                                )
+                                ) noexcept(false)
       {
         for (auto iter = inCryptoLines.begin(); iter != inCryptoLines.end(); ++iter) {
           auto &acrypto = *(*iter);
@@ -245,7 +245,7 @@ namespace ortc
       static void convertDTLSFingerprints(
                                           const ISDPTypes::AFingerprintLineList &inFingerprintLines,
                                           IDTLSTransportTypes::Parameters &outParameters
-                                          )
+                                          ) noexcept
       {
 
         for (auto iter = inFingerprintLines.begin(); iter != inFingerprintLines.end(); ++iter) {
@@ -258,7 +258,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      static IICETypes::CandidatePtr convertCandidate(const ISDPTypes::ACandidateLine &acandidate)
+      static IICETypes::CandidatePtr convertCandidate(const ISDPTypes::ACandidateLine &acandidate) noexcept(false)
       {
         auto candidate = make_shared<IICETypes::Candidate>();
 
@@ -307,7 +307,7 @@ namespace ortc
                                     const ISDPTypes::ACandidateLineList &inCandidateLines,
                                     ISessionDescriptionTypes::ICECandidateList &outRTPCandidates,
                                     ISessionDescriptionTypes::Transport::ParametersPtr &ioRTCPTransport
-                                    )
+                                    ) noexcept
       {
         for (auto iter = inCandidateLines.begin(); iter != inCandidateLines.end(); ++iter)
         {
@@ -329,7 +329,7 @@ namespace ortc
       void SDPParser::createTransports(
                                        const SDP &sdp,
                                        Description &ioDescription
-                                       )
+                                       ) noexcept
       {
         size_t index = 0;
 
@@ -383,7 +383,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      static ISessionDescriptionTypes::MediaDirections toDirection(ISDPTypes::Directions direction)
+      static ISessionDescriptionTypes::MediaDirections toDirection(ISDPTypes::Directions direction) noexcept(false)
       {
         switch (direction)
         {
@@ -402,7 +402,7 @@ namespace ortc
                                 const ISDPTypes::MLine &mline,
                                 ISessionDescriptionTypes::Description &description,
                                 ISessionDescriptionTypes::MediaLine &mediaLine
-                                )
+                                ) noexcept
       {
         mediaLine.mDetails = make_shared<ISessionDescriptionTypes::MediaLine::Details>();
         mediaLine.mDetails->mInternalIndex = index;
@@ -493,7 +493,7 @@ namespace ortc
       static void fixIntoCodecSpecificList(
                                            const ISDPTypes::StringList &formatSpecificList,
                                            ISDPTypes::KeyValueList &outKeyValues
-                                           )
+                                           ) noexcept(false)
       {
         String params = IHelper::combine(formatSpecificList, ";");
 
@@ -523,7 +523,7 @@ namespace ortc
                                    IRTPTypes::SupportedCodecs supportedCodec,
                                    IRTPTypes::CodecCapability &codecCapability,
                                    const ISDPTypes::AFMTPLine &format
-                                   )
+                                   ) noexcept(false)
       {
         switch (supportedCodec) {
           case IRTPTypes::SupportedCodec_Unknown:  return;
@@ -794,15 +794,19 @@ namespace ortc
 
       //-----------------------------------------------------------------------
       bool fillCapabilities(
-                            ISDPTypes::Locations location,
-                            const ISDPTypes::SDP &sdp,
+                            ZS_MAYBE_USED() ISDPTypes::Locations location,
+                            ZS_MAYBE_USED() const ISDPTypes::SDP &sdp,
                             const ISDPTypes::MLine &mline,
-                            ISessionDescriptionTypes::Description &description,
-                            ISessionDescriptionTypes::MediaLine &mediaLine,
+                            ZS_MAYBE_USED() ISessionDescriptionTypes::Description &description,
+                            ZS_MAYBE_USED() ISessionDescriptionTypes::MediaLine &mediaLine,
                             IRTPTypes::Capabilities &senderCapabilities,
                             IRTPTypes::Capabilities &receiverCapabilities
-                            )
+                            ) noexcept(false)
       {
+        ZS_MAYBE_USED(location);
+        ZS_MAYBE_USED(sdp);
+        ZS_MAYBE_USED(description);
+        ZS_MAYBE_USED(mediaLine);
         auto matchCodecKind = IRTPTypes::toCodecKind(mline.mMedia);
         if ((IRTPTypes::CodecKind_Audio != matchCodecKind) &&
             (IRTPTypes::CodecKind_Video != matchCodecKind)) {
@@ -964,7 +968,7 @@ namespace ortc
                                           Locations location,
                                           const SDP &sdp,
                                           Description &ioDescription
-                                          )
+                                          ) noexcept
       {
         size_t index = 0;
 
@@ -993,11 +997,12 @@ namespace ortc
 
       //-----------------------------------------------------------------------
       void SDPParser::createSCTPMediaLines(
-                                           Locations location,
+                                           ZS_MAYBE_USED() Locations location,
                                            const SDP &sdp,
                                            Description &ioDescription
-                                           )
+                                           ) noexcept
       {
+        ZS_MAYBE_USED(location);
         size_t index = 0;
 
         for (auto iter = sdp.mMLines.begin(); iter != sdp.mMLines.end(); ++iter, ++index)
@@ -1030,7 +1035,7 @@ namespace ortc
       static void fillREDFormatParameters(
                                           const ISDPTypes::MLine &mline,
                                           IRTPTypes::Parameters &parameters
-                                          )
+                                          ) noexcept(false)
       {
         String redStr(IRTPTypes::toString(IRTPTypes::SupportedCodec_RED));
         for (auto iterCodec = parameters.mCodecs.begin(); iterCodec != parameters.mCodecs.end(); ++iterCodec) {
@@ -1067,11 +1072,12 @@ namespace ortc
 
       //-----------------------------------------------------------------------
       static void fillStreamIDs(
-                                const ISDPTypes::SDP &sdp,
+                                ZS_MAYBE_USED() const ISDPTypes::SDP &sdp,
                                 const ISDPTypes::MLine &mline,
                                 ISessionDescriptionTypes::RTPSender &sender
-                                )
+                                ) noexcept
       {
+        ZS_MAYBE_USED(sdp);
         // scope: first check for MSID lines
         {
           for (auto iter = mline.mAMSIDLines.begin(); iter != mline.mAMSIDLines.end(); ++iter) {
@@ -1115,11 +1121,12 @@ namespace ortc
 
       //-----------------------------------------------------------------------
       void SDPParser::createRTPSenderLines(
-                                           Locations location,
+                                           ZS_MAYBE_USED() Locations location,
                                            const SDP &sdp,
                                            Description &ioDescription
-                                           )
+                                           ) noexcept(false)
       {
+        ZS_MAYBE_USED(location);
         size_t index = 0;
 
         for (auto iter = sdp.mMLines.begin(); iter != sdp.mMLines.end(); ++iter, ++index)
@@ -1164,8 +1171,7 @@ namespace ortc
           fillREDFormatParameters(mline, *sender->mParameters);
           fillStreamIDs(sdp, mline, *sender);
 
-#define TODO_FIX_FOR_SIMULCAST_SDP_WHEN_SPECIFICATION_IS_MORE_SETTLED 1
-#define TODO_FIX_FOR_SIMULCAST_SDP_WHEN_SPECIFICATION_IS_MORE_SETTLED 2
+#pragma ZS_BUILD_NOTE("TODO","Fix for simulcast sdp when spec settled")
 
           IRTPTypes::EncodingParameters encoding;
 
@@ -1213,7 +1219,7 @@ namespace ortc
       ISDPTypes::DescriptionPtr SDPParser::createDescription(
                                                              Locations location,
                                                              const SDP &sdp
-                                                             )
+                                                             ) noexcept(false)
       {
         DescriptionPtr result(make_shared<Description>());
 
@@ -1231,7 +1237,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      IICETypes::GatherCandidatePtr SDPParser::getCandidateFromSDP(const char *candidate)
+      IICETypes::GatherCandidatePtr SDPParser::getCandidateFromSDP(const char *candidate) noexcept
       {
         String str(candidate);
 
@@ -1267,7 +1273,6 @@ namespace ortc
           return result;
         } catch(const InvalidParameters &) {
           ZS_LOG_WARNING(Debug, internal::slog("unable to convert to candidate") + ZS_PARAM("candidate", str));
-          return result;
         }
 
         return result;

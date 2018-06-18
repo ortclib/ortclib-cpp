@@ -55,9 +55,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaDeviceCapture
-    #pragma mark
+    //
+    // IMediaDeviceCapture
+    //
 
     interaction IMediaDeviceCapture : public IMediaDevice
     {
@@ -72,18 +72,18 @@ namespace ortc
                                                  Kinds kind,
                                                  const TrackConstraints &constraints,
                                                  IMediaDeviceCaptureDelegatePtr delegate
-                                                 );
+                                                 ) noexcept;
 
-      virtual ~IMediaDeviceCapture() {}
+      virtual ~IMediaDeviceCapture() noexcept {}
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaDeviceCaptureDelegate
-    #pragma mark
+    //
+    // IMediaDeviceCaptureDelegate
+    //
 
     interaction IMediaDeviceCaptureDelegate
     {
@@ -95,11 +95,11 @@ namespace ortc
       virtual void notifyMediaDeviceCaptureAudioFrame(
                                                       ImmutableMediaChannelTracePtr trace,
                                                       AudioFramePtr frame
-                                                      ) = 0;
+                                                      ) noexcept = 0;
       virtual void notifyMediaDeviceCaptureVideoFrame(
                                                       ImmutableMediaChannelTracePtr trace,
                                                       VideoFramePtr frame
-                                                      ) = 0;
+                                                      ) noexcept = 0;
       virtual void onMediaDeviceCaptureStateChanged(
                                                     IMediaDeviceCapturePtr device,
                                                     States state
@@ -110,52 +110,52 @@ namespace ortc
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaDeviceCaptureSubscription
-    #pragma mark
+    //
+    // IMediaDeviceCaptureSubscription
+    //
 
     interaction IMediaDeviceCaptureSubscription
     {
-      virtual PUID getID() const = 0;
+      virtual PUID getID() const noexcept = 0;
 
-      virtual void cancel() = 0;
+      virtual void cancel() noexcept = 0;
 
-      virtual void background() = 0;
+      virtual void background() noexcept = 0;
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaDeviceCaptureAudio
-    #pragma mark
+    //
+    // IMediaDeviceCaptureAudio
+    //
 
     interaction IMediaDeviceCaptureAudio : public IMediaDeviceCapture
     {
-      virtual ~IMediaDeviceCaptureAudio() {}
+      virtual ~IMediaDeviceCaptureAudio() noexcept {}
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaDeviceCaptureVideo
-    #pragma mark
+    //
+    // IMediaDeviceCaptureVideo
+    //
 
     interaction IMediaDeviceCaptureVideo : public IMediaDeviceCapture
     {
-      virtual ~IMediaDeviceCaptureVideo() {}
+      virtual ~IMediaDeviceCaptureVideo() noexcept {}
     };
 
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaDeviceCaptureForMediaEngine
-    #pragma mark
+    //
+    // IMediaDeviceCaptureForMediaEngine
+    //
 
     interaction IMediaDeviceCaptureForMediaEngine : public IMediaDeviceForMediaEngine
     {
@@ -172,7 +172,7 @@ namespace ortc
                                                MediaDeviceObjectID repaceExistingDeviceObjectID,
                                                TrackConstraintsPtr constraints,
                                                IMediaDeviceCaptureDelegatePtr delegate
-                                               ) = 0;
+                                               ) noexcept = 0;
     };
 
     
@@ -180,9 +180,9 @@ namespace ortc
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaDeviceCaptureAudioForMediaEngine
-    #pragma mark
+    //
+    // IMediaDeviceCaptureAudioForMediaEngine
+    //
 
     interaction IMediaDeviceCaptureAudioForMediaEngine : public IMediaDeviceCaptureForMediaEngine
     {
@@ -193,7 +193,7 @@ namespace ortc
       static ForMediaEnginePtr create(
                                       UseMediaEnginePtr mediaEngine,
                                       const String &deviceID
-                                      );
+                                      ) noexcept;
     };
 
 
@@ -201,9 +201,9 @@ namespace ortc
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaDeviceCaptureVideoForMediaEngine
-    #pragma mark
+    //
+    // IMediaDeviceCaptureVideoForMediaEngine
+    //
 
     interaction IMediaDeviceCaptureVideoForMediaEngine : public IMediaDeviceCaptureForMediaEngine
     {
@@ -214,7 +214,7 @@ namespace ortc
       static ForMediaEnginePtr create(
                                       UseMediaEnginePtr mediaEngine,
                                       const String &deviceID
-                                      );
+                                      ) noexcept;
     };
   }
 }
@@ -225,9 +225,9 @@ ZS_DECLARE_PROXY_TYPEDEF(ortc::IMediaStreamTrackTypes::VideoFramePtr, VideoFrame
 ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::IMediaDeviceCapturePtr, IMediaDeviceCapturePtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IMediaStreamTrackTypes::ImmutableMediaChannelTracePtr, ImmutableMediaChannelTracePtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::IMediaDevice::States, States)
-ZS_DECLARE_PROXY_METHOD_SYNC_2(notifyMediaDeviceCaptureAudioFrame, ImmutableMediaChannelTracePtr, AudioFramePtr)
-ZS_DECLARE_PROXY_METHOD_SYNC_2(notifyMediaDeviceCaptureVideoFrame, ImmutableMediaChannelTracePtr, VideoFramePtr)
-ZS_DECLARE_PROXY_METHOD_2(onMediaDeviceCaptureStateChanged, IMediaDeviceCapturePtr, States)
+ZS_DECLARE_PROXY_METHOD_SYNC(notifyMediaDeviceCaptureAudioFrame, ImmutableMediaChannelTracePtr, AudioFramePtr)
+ZS_DECLARE_PROXY_METHOD_SYNC(notifyMediaDeviceCaptureVideoFrame, ImmutableMediaChannelTracePtr, VideoFramePtr)
+ZS_DECLARE_PROXY_METHOD(onMediaDeviceCaptureStateChanged, IMediaDeviceCapturePtr, States)
 ZS_DECLARE_PROXY_END()
 
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_BEGIN(ortc::internal::IMediaDeviceCaptureDelegate, ortc::internal::IMediaDeviceCaptureSubscription)
@@ -236,7 +236,7 @@ ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IMediaStreamTrackTypes::VideoFrameP
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::internal::IMediaDeviceCapturePtr, IMediaDeviceCapturePtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IMediaStreamTrackTypes::ImmutableMediaChannelTracePtr, ImmutableMediaChannelTracePtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::internal::IMediaDevice::States, States)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_SYNC_2(notifyMediaDeviceCaptureAudioFrame, ImmutableMediaChannelTracePtr, AudioFramePtr)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_SYNC_2(notifyMediaDeviceCaptureVideoFrame, ImmutableMediaChannelTracePtr, VideoFramePtr)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onMediaDeviceCaptureStateChanged, IMediaDeviceCapturePtr, States)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_SYNC(notifyMediaDeviceCaptureAudioFrame, ImmutableMediaChannelTracePtr, AudioFramePtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_SYNC(notifyMediaDeviceCaptureVideoFrame, ImmutableMediaChannelTracePtr, VideoFramePtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD(onMediaDeviceCaptureStateChanged, IMediaDeviceCapturePtr, States)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()

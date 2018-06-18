@@ -44,22 +44,22 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark ICertificateTypes
-  #pragma mark
+  //
+  // ICertificateTypes
+  //
   
   interaction ICertificateTypes
   {
-    ZS_DECLARE_STRUCT_PTR(Fingerprint)
-    ZS_DECLARE_TYPEDEF_PTR(std::list<Fingerprint>, FingerprintList)
+    ZS_DECLARE_STRUCT_PTR(Fingerprint);
+    ZS_DECLARE_TYPEDEF_PTR(std::list<Fingerprint>, FingerprintList);
 
     typedef PromiseWith<ICertificate> PromiseWithCertificate;
-    ZS_DECLARE_PTR(PromiseWithCertificate)
+    ZS_DECLARE_PTR(PromiseWithCertificate);
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark Fingerprint
-    #pragma mark
+    //
+    // Fingerprint
+    //
 
     struct Fingerprint
     {
@@ -67,13 +67,13 @@ namespace ortc
       String mValue;
 
       Fingerprint() {}
-      Fingerprint(const Fingerprint &op2) {(*this) = op2;}
-      Fingerprint(ElementPtr elem);
+      Fingerprint(const Fingerprint &op2) noexcept {(*this) = op2;}
+      Fingerprint(ElementPtr elem) noexcept;
 
-      ElementPtr createElement(const char *objectName = "fingerprint") const;
+      ElementPtr createElement(const char *objectName = "fingerprint") const noexcept;
 
-      ElementPtr toDebug() const;
-      String hash() const;
+      ElementPtr toDebug() const noexcept;
+      String hash() const noexcept;
     };
   };
 
@@ -81,26 +81,26 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark ICertificate
-  #pragma mark
+  //
+  // ICertificate
+  //
 
   interaction ICertificate : public ICertificateTypes,
                              public IStatsProvider,
                              public Any
   {
-    static ElementPtr toDebug(ICertificatePtr certificate);
+    static ElementPtr toDebug(ICertificatePtr certificate) noexcept;
 
-    static ICertificatePtr convert(AnyPtr any);
+    static ICertificatePtr convert(AnyPtr any) noexcept;
 
-    static PromiseWithCertificatePtr generateCertificate(ElementPtr keygenAlgorithm) throw (NotSupportedError);
-    static PromiseWithCertificatePtr generateCertificate(const char *keygenAlgorithm = NULL) throw (NotSupportedError);
+    static PromiseWithCertificatePtr generateCertificate(ElementPtr keygenAlgorithm) noexcept(false); // throws NotSupportedError
+    static PromiseWithCertificatePtr generateCertificate(const char *keygenAlgorithm = NULL) noexcept(false); // throws NotSupportedError
 
-    virtual PUID getID() const = 0;
+    virtual PUID getID() const noexcept = 0;
 
-    virtual Time expires() const = 0;
+    virtual Time expires() const noexcept = 0;
 
-    virtual FingerprintPtr fingerprint() const = 0;
+    virtual FingerprintPtr fingerprint() const noexcept = 0;
   };
 
 }

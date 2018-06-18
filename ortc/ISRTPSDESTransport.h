@@ -45,26 +45,26 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark ISRTPSDESTransportTypes
-  #pragma mark
+  //
+  // ISRTPSDESTransportTypes
+  //
   
   interaction ISRTPSDESTransportTypes
   {
     typedef String SessionParam;
 
-    ZS_DECLARE_STRUCT_PTR(Parameters)
-    ZS_DECLARE_STRUCT_PTR(CryptoParameters)
-    ZS_DECLARE_STRUCT_PTR(KeyParameters)
+    ZS_DECLARE_STRUCT_PTR(Parameters);
+    ZS_DECLARE_STRUCT_PTR(CryptoParameters);
+    ZS_DECLARE_STRUCT_PTR(KeyParameters);
 
-    ZS_DECLARE_TYPEDEF_PTR(std::list<CryptoParameters>, CryptoParametersList)
-    ZS_DECLARE_TYPEDEF_PTR(std::list<KeyParameters>, KeyParametersList)
-    ZS_DECLARE_TYPEDEF_PTR(std::list<SessionParam>, SessionParamList)
+    ZS_DECLARE_TYPEDEF_PTR(std::list<CryptoParameters>, CryptoParametersList);
+    ZS_DECLARE_TYPEDEF_PTR(std::list<KeyParameters>, KeyParametersList);
+    ZS_DECLARE_TYPEDEF_PTR(std::list<SessionParam>, SessionParamList);
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark CryptoParameters
-    #pragma mark
+    //
+    // CryptoParameters
+    //
 
     struct CryptoParameters { // see RFC 4568 sect 9.2
       WORD              mTag {};
@@ -72,39 +72,39 @@ namespace ortc
       KeyParametersList mKeyParams;
       SessionParamList  mSessionParams;
 
-      CryptoParameters() {}
-      CryptoParameters(const CryptoParameters &op2) {(*this) = op2;}
-      CryptoParameters(ElementPtr elem);
+      CryptoParameters() noexcept {}
+      CryptoParameters(const CryptoParameters &op2) noexcept {(*this) = op2;}
+      CryptoParameters(ElementPtr elem) noexcept;
 
-      ElementPtr createElement(const char *objectName) const;
+      ElementPtr createElement(const char *objectName) const noexcept;
 
-      ElementPtr toDebug() const;
-      String hash() const;
+      ElementPtr toDebug() const noexcept;
+      String hash() const noexcept;
     };
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark Parameters
-    #pragma mark
+    //
+    // Parameters
+    //
 
     struct Parameters {
       CryptoParametersList mCryptoParams;
 
-      Parameters() {}
-      Parameters(const Parameters &op2) {(*this) = op2;}
-      Parameters(ElementPtr rootEl);
+      Parameters() noexcept {}
+      Parameters(const Parameters &op2) noexcept {(*this) = op2;}
+      Parameters(ElementPtr rootEl) noexcept;
 
-      static ParametersPtr create(ElementPtr rootEl) { if (!rootEl) return ParametersPtr(); return make_shared<Parameters>(rootEl); }
-      ElementPtr createElement(const char *objectName) const;
+      static ParametersPtr create(ElementPtr rootEl) noexcept { if (!rootEl) return ParametersPtr(); return make_shared<Parameters>(rootEl); }
+      ElementPtr createElement(const char *objectName) const noexcept;
 
-      ElementPtr toDebug() const;
-      String hash() const;
+      ElementPtr toDebug() const noexcept;
+      String hash() const noexcept;
     };
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark KeyParameters
-    #pragma mark
+    //
+    // KeyParameters
+    //
 
     struct KeyParameters {    // see RFC 4568 sect 9.2
       String  mKeyMethod;     // must be "inline"
@@ -113,14 +113,14 @@ namespace ortc
       String  mMKIValue;      // base 10 expressed value of Master Key Identifier (MKI) converted to string
       WORD    mMKILength {};  // number of bytes allocated on each SRTP packet for Master Key Identifier (MKI) [max = 128 bytes]
 
-      KeyParameters() {}
-      KeyParameters(const KeyParameters &op2) {(*this) = op2;}
-      KeyParameters(ElementPtr elem);
+      KeyParameters() noexcept {}
+      KeyParameters(const KeyParameters &op2) noexcept {(*this) = op2;}
+      KeyParameters(ElementPtr elem) noexcept;
 
-      ElementPtr createElement(const char *objectName) const;
+      ElementPtr createElement(const char *objectName) const noexcept;
 
-      ElementPtr toDebug() const;
-      String hash() const;
+      ElementPtr toDebug() const noexcept;
+      String hash() const noexcept;
     };
   };
 
@@ -128,44 +128,44 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark ISRTPSDESTransport
-  #pragma mark
+  //
+  // ISRTPSDESTransport
+  //
 
   interaction ISRTPSDESTransport : public ISRTPSDESTransportTypes,
                                    public IRTPTransport,
                                    public IStatsProvider
   {
-    static ElementPtr toDebug(ISRTPSDESTransportPtr transport);
+    static ElementPtr toDebug(ISRTPSDESTransportPtr transport) noexcept;
 
-    static ISRTPSDESTransportPtr convert(IRTPTransportPtr rtpTransport);
+    static ISRTPSDESTransportPtr convert(IRTPTransportPtr rtpTransport) noexcept;
 
     static ISRTPSDESTransportPtr create(
                                         ISRTPSDESTransportDelegatePtr delegate,
                                         IICETransportPtr iceTransport,
                                         const CryptoParameters &encryptParameters,
                                         const CryptoParameters &decryptParameters
-                                        );
+                                        ) noexcept;
 
-    virtual PUID getID() const = 0;
+    virtual PUID getID() const noexcept = 0;
 
-    virtual ISRTPSDESTransportSubscriptionPtr subscribe(ISRTPSDESTransportDelegatePtr delegate) = 0;
+    virtual ISRTPSDESTransportSubscriptionPtr subscribe(ISRTPSDESTransportDelegatePtr delegate) noexcept = 0;
 
-    virtual IICETransportPtr transport() const = 0;
-    virtual IICETransportPtr rtcpTransport() const = 0;
+    virtual IICETransportPtr transport() const noexcept = 0;
+    virtual IICETransportPtr rtcpTransport() const noexcept = 0;
 
-    static ParametersPtr getLocalParameters();
+    static ParametersPtr getLocalParameters() noexcept;
 
-    virtual void stop() = 0;
+    virtual void stop() noexcept = 0;
   };
 
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark ISRTPSDESTransportDelegate
-  #pragma mark
+  //
+  // ISRTPSDESTransportDelegate
+  //
 
   interaction ISRTPSDESTransportDelegate
   {
@@ -187,30 +187,30 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark ISRTPSDESTransportSubscription
-  #pragma mark
+  //
+  // ISRTPSDESTransportSubscription
+  //
 
   interaction ISRTPSDESTransportSubscription
   {
-    virtual PUID getID() const = 0;
+    virtual PUID getID() const noexcept = 0;
 
-    virtual void cancel() = 0;
+    virtual void cancel() noexcept = 0;
 
-    virtual void background() = 0;
+    virtual void background() noexcept = 0;
   };
 }
 
 ZS_DECLARE_PROXY_BEGIN(ortc::ISRTPSDESTransportDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::ISRTPSDESTransportPtr, ISRTPSDESTransportPtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::ErrorAnyPtr, ErrorAnyPtr)
-ZS_DECLARE_PROXY_METHOD_3(onSRTPSDESTransportLifetimeRemaining, ISRTPSDESTransportPtr, ULONG, ULONG)
-ZS_DECLARE_PROXY_METHOD_2(onSRTPSDESTransportError, ISRTPSDESTransportPtr, ErrorAnyPtr)
+ZS_DECLARE_PROXY_METHOD(onSRTPSDESTransportLifetimeRemaining, ISRTPSDESTransportPtr, ULONG, ULONG)
+ZS_DECLARE_PROXY_METHOD(onSRTPSDESTransportError, ISRTPSDESTransportPtr, ErrorAnyPtr)
 ZS_DECLARE_PROXY_END()
 
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_BEGIN(ortc::ISRTPSDESTransportDelegate, ortc::ISRTPSDESTransportSubscription)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::ISRTPSDESTransportPtr, ISRTPSDESTransportPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::ErrorAnyPtr, ErrorAnyPtr)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_3(onSRTPSDESTransportLifetimeRemaining, ISRTPSDESTransportPtr, ULONG, ULONG)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onSRTPSDESTransportError, ISRTPSDESTransportPtr, ErrorAnyPtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD(onSRTPSDESTransportLifetimeRemaining, ISRTPSDESTransportPtr, ULONG, ULONG)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD(onSRTPSDESTransportError, ISRTPSDESTransportPtr, ErrorAnyPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()

@@ -52,9 +52,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IStatsReportForInternal
-    #pragma mark
+    //
+    // IStatsReportForInternal
+    //
 
     interaction IStatsReportForInternal
     {
@@ -68,23 +68,23 @@ namespace ortc
       typedef String StatID;
       typedef std::map<StatID, StatsPtr> StatMap;
 
-      static StatsReportPtr create(const StatMap &stats);
+      static StatsReportPtr create(const StatMap &stats) noexcept;
 
       static PromiseWithStatsReportPtr collectReports(
                                                       const PromiseWithStatsReportList &promises,
                                                       PromiseWithStatsReportPtr previouslyCreatedPromiseToResolve = PromiseWithStatsReportPtr()
-                                                      );
+                                                      ) noexcept;
 
-      virtual ~IStatsReportForInternal() {}
+      virtual ~IStatsReportForInternal() noexcept {}
     };
     
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark StatsReport
-    #pragma mark
+    //
+    // StatsReport
+    //
     
     class StatsReport : public Noop,
                         public MessageQueueAssociator,
@@ -112,79 +112,79 @@ namespace ortc
                   const make_private &,
                   IMessageQueuePtr queue,
                   const StatMap &stats
-                  );
+                  ) noexcept;
 
     protected:
-      StatsReport(Noop) :
+      StatsReport(Noop) noexcept :
         Noop(true),
         MessageQueueAssociator(IMessageQueuePtr()),
         SharedRecursiveLock(SharedRecursiveLock::create())
       {}
 
-      void init();
+      void init() noexcept;
 
       void init(
                 PromiseWithStatsReportPtr resolvePromise,
                 const PromiseWithStatsReportList &promises
-                );
+                ) noexcept;
 
     public:
-      virtual ~StatsReport();
+      virtual ~StatsReport() noexcept;
 
-      static StatsReportPtr convert(IStatsReportPtr object);
-      static StatsReportPtr convert(ForInternalPtr object);
+      static StatsReportPtr convert(IStatsReportPtr object) noexcept;
+      static StatsReportPtr convert(ForInternalPtr object) noexcept;
 
     protected:
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark StatsReport => IStatsReport
-      #pragma mark
+      //
+      // StatsReport => IStatsReport
+      //
 
-      static ElementPtr toDebug(StatsReportPtr report);
+      static ElementPtr toDebug(StatsReportPtr report) noexcept;
 
-      PUID getID() const override {return mID;}
+      PUID getID() const noexcept override {return mID;}
 
-      IDListPtr getStatesIDs() const override;
-      StatsPtr getStats(const char *id) const override;
+      IDListPtr getStatesIDs() const noexcept override;
+      StatsPtr getStats(const char *id) const noexcept override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark StatsReport => IStatsReportForInternal
-      #pragma mark
+      //
+      // StatsReport => IStatsReportForInternal
+      //
 
-      static StatsReportPtr create(const StatMap &stats);
+      static StatsReportPtr create(const StatMap &stats) noexcept;
 
       static PromiseWithStatsReportPtr collectReports(
                                                       const PromiseWithStatsReportList &promises,
                                                       PromiseWithStatsReportPtr previouslyCreatedPromiseToResolve = PromiseWithStatsReportPtr()
-                                                      );
+                                                      ) noexcept;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark StatsReport => IPromiseSettledDelegate
-      #pragma mark
+      //
+      // StatsReport => IPromiseSettledDelegate
+      //
 
       void onPromiseSettled(PromisePtr promise) override;
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark StatsReport => (internal)
-      #pragma mark
+      //
+      // StatsReport => (internal)
+      //
 
-      Log::Params log(const char *message) const;
-      static Log::Params slog(const char *message);
-      Log::Params debug(const char *message) const;
-      virtual ElementPtr toDebug() const;
+      Log::Params log(const char *message) const noexcept;
+      static Log::Params slog(const char *message) noexcept;
+      Log::Params debug(const char *message) const noexcept;
+      virtual ElementPtr toDebug() const noexcept;
 
-      void cancel();
+      void cancel() noexcept;
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark StatsReport => (data)
-      #pragma mark
+      //
+      // StatsReport => (data)
+      //
 
       AutoPUID mID;
       StatsReportWeakPtr mThisWeak;
@@ -199,9 +199,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IStatsReportFactory
-    #pragma mark
+    //
+    // IStatsReportFactory
+    //
 
     interaction IStatsReportFactory
     {
@@ -209,14 +209,14 @@ namespace ortc
       ZS_DECLARE_TYPEDEF_PTR(IStatsProviderTypes::PromiseWithStatsReport, PromiseWithStatsReport);
       ZS_DECLARE_TYPEDEF_PTR(std::list<PromiseWithStatsReportPtr>, PromiseWithStatsReportList);
 
-      static IStatsReportFactory &singleton();
+      static IStatsReportFactory &singleton() noexcept;
 
-      virtual StatsReportPtr create(const StatMap &stats);
+      virtual StatsReportPtr create(const StatMap &stats) noexcept;
 
       virtual PromiseWithStatsReportPtr collectReports(
                                                        const PromiseWithStatsReportList &promises,
                                                        PromiseWithStatsReportPtr previouslyCreatedPromiseToResolve = PromiseWithStatsReportPtr()
-                                                       );
+                                                       ) noexcept;
     };
 
     class StatsReportFactory : public IFactory<IStatsReportFactory> {};

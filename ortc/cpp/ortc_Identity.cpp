@@ -47,13 +47,6 @@
 #include <cryptopp/sha.h>
 
 
-#ifdef _DEBUG
-#define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))
-#else
-#define ASSERT(x)
-#endif //_DEBUG
-
-
 namespace ortc { ZS_DECLARE_SUBSYSTEM(org_ortc) }
 
 namespace ortc
@@ -71,37 +64,37 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark (helpers)
-    #pragma mark
+    //
+    // (helpers)
+    //
 
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IdentitySettingsDefaults
-    #pragma mark
+    //
+    // IdentitySettingsDefaults
+    //
 
     class IdentitySettingsDefaults : public ISettingsApplyDefaultsDelegate
     {
     public:
       //-----------------------------------------------------------------------
-      ~IdentitySettingsDefaults()
+      ~IdentitySettingsDefaults() noexcept
       {
         ISettings::removeDefaults(*this);
       }
 
       //-----------------------------------------------------------------------
-      static IdentitySettingsDefaultsPtr singleton()
+      static IdentitySettingsDefaultsPtr singleton() noexcept
       {
         static SingletonLazySharedPtr<IdentitySettingsDefaults> singleton(create());
         return singleton.singleton();
       }
 
       //-----------------------------------------------------------------------
-      static IdentitySettingsDefaultsPtr create()
+      static IdentitySettingsDefaultsPtr create() noexcept
       {
         auto pThis(make_shared<IdentitySettingsDefaults>());
         ISettings::installDefaults(pThis);
@@ -109,7 +102,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      virtual void notifySettingsApplyDefaults() override
+      virtual void notifySettingsApplyDefaults() noexcept override
       {
         //      ISettings::setUInt(ORTC_SETTING__IDENTITY_, 0);
       }
@@ -117,7 +110,7 @@ namespace ortc
     };
 
     //-------------------------------------------------------------------------
-    void installIdentitySettingsDefaults()
+    void installIdentitySettingsDefaults() noexcept
     {
       IdentitySettingsDefaults::singleton();
     }
@@ -126,44 +119,44 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark Identity
-    #pragma mark
+    //
+    // Identity
+    //
     
     //-------------------------------------------------------------------------
     Identity::Identity(
                        const make_private &,
                        IMessageQueuePtr queue,
                        IDTLSTransportPtr transport
-                       ) :
+                       ) noexcept :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create())
     {
-      ZS_LOG_DETAIL(debug("created"))
+      ZS_LOG_DETAIL(debug("created"));
 
-      ZS_THROW_NOT_IMPLEMENTED("identity API in specification is not ready")
+      ZS_ASSERT_FAIL("identity API in specification is not ready");
     }
 
     //-------------------------------------------------------------------------
-    void Identity::init()
+    void Identity::init() noexcept
     {
       AutoRecursiveLock lock(*this);
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
 
     //-------------------------------------------------------------------------
-    Identity::~Identity()
+    Identity::~Identity() noexcept
     {
       if (isNoop()) return;
 
-      ZS_LOG_DETAIL(log("destroyed"))
+      ZS_LOG_DETAIL(log("destroyed"));
       mThisWeak.reset();
 
       cancel();
     }
 
     //-------------------------------------------------------------------------
-    IdentityPtr Identity::convert(IIdentityPtr object)
+    IdentityPtr Identity::convert(IIdentityPtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(Identity, object);
     }
@@ -172,19 +165,19 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark Identity => IIdentity
-    #pragma mark
+    //
+    // Identity => IIdentity
+    //
     
     //-------------------------------------------------------------------------
-    ElementPtr Identity::toDebug(IdentityPtr object)
+    ElementPtr Identity::toDebug(IdentityPtr object) noexcept
     {
       if (!object) return ElementPtr();
       return object->toDebug();
     }
 
     //-------------------------------------------------------------------------
-    IdentityPtr Identity::create(IDTLSTransportPtr transport)
+    IdentityPtr Identity::create(IDTLSTransportPtr transport) noexcept
     {
       IdentityPtr pThis(make_shared<Identity>(make_private {}, IORTCForInternal::queueORTC(), transport));
       pThis->mThisWeak = pThis;
@@ -193,34 +186,38 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    IIdentityTypes::AssertionPtr Identity::peerIdentity() const
+    IIdentityTypes::AssertionPtr Identity::peerIdentity() const noexcept
     {
-      ZS_THROW_NOT_IMPLEMENTED("identity API in specification is not ready")
+      ZS_ASSERT_FAIL("identity API in specification is not ready");
       return AssertionPtr();
     }
 
     //-------------------------------------------------------------------------
-    IDTLSTransportPtr Identity::transport() const
+    IDTLSTransportPtr Identity::transport() const noexcept
     {
-      ZS_THROW_NOT_IMPLEMENTED("identity API in specification is not ready")
+      ZS_ASSERT_FAIL("identity API in specification is not ready");
       return IDTLSTransportPtr();
     }
 
     //-------------------------------------------------------------------------
     IIdentityTypes::PromiseWithResultPtr Identity::getIdentityAssertion(
-                                                                        const char *provider,
-                                                                        const char *protoocol,
-                                                                        const char *username
-                                                                        ) throw (InvalidStateError)
+                                                                        ZS_MAYBE_USED() const char *provider,
+                                                                        ZS_MAYBE_USED() const char *protoocol,
+                                                                        ZS_MAYBE_USED() const char *username
+                                                                        ) noexcept(false)
     {
-      ZS_THROW_NOT_IMPLEMENTED("identity API in specification is not ready")
+      ZS_MAYBE_USED(provider);
+      ZS_MAYBE_USED(protoocol);
+      ZS_MAYBE_USED(username);
+      ZS_ASSERT_FAIL("identity API in specification is not ready")
       return PromiseWithResultPtr();
     }
 
     //-------------------------------------------------------------------------
-    IIdentityTypes::PromiseWithAssertionPtr Identity::setIdentityAssertion(const String &assertion)
+    IIdentityTypes::PromiseWithAssertionPtr Identity::setIdentityAssertion(ZS_MAYBE_USED() const String &assertion) noexcept
     {
-      ZS_THROW_NOT_IMPLEMENTED("identity API in specification is not ready")
+      ZS_MAYBE_USED(assertion);
+      ZS_ASSERT_FAIL("identity API in specification is not ready")
       return PromiseWithAssertionPtr();
     }
 
@@ -228,23 +225,23 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark Identity => IIdentityForRTPSender
-    #pragma mark
+    //
+    // Identity => IIdentityForRTPSender
+    //
 
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark Identity => IWakeDelegate
-    #pragma mark
+    //
+    // Identity => IWakeDelegate
+    //
 
     //-------------------------------------------------------------------------
     void Identity::onWake()
     {
-      ZS_LOG_DEBUG(log("wake"))
+      ZS_LOG_DEBUG(log("wake"));
 
       AutoRecursiveLock lock(*this);
       step();
@@ -254,39 +251,38 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark Identity => ITimerDelegate
-    #pragma mark
+    //
+    // Identity => ITimerDelegate
+    //
 
     //-------------------------------------------------------------------------
     void Identity::onTimer(ITimerPtr timer)
     {
-      ZS_LOG_DEBUG(log("timer") + ZS_PARAM("timer id", timer->getID()))
+      ZS_LOG_DEBUG(log("timer") + ZS_PARAM("timer id", timer->getID()));
 
       AutoRecursiveLock lock(*this);
-#define TODO 1
-#define TODO 2
+#pragma ZS_BUILD_NOTE("NEEDED?","Is a timer needed?")
     }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark Identity => IIdentityAsyncDelegate
-    #pragma mark
+    //
+    // Identity => IIdentityAsyncDelegate
+    //
 
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark Identity => (internal)
-    #pragma mark
+    //
+    // Identity => (internal)
+    //
 
     //-------------------------------------------------------------------------
-    Log::Params Identity::log(const char *message) const
+    Log::Params Identity::log(const char *message) const noexcept
     {
       ElementPtr objectEl = Element::create("ortc::Identity");
       IHelper::debugAppend(objectEl, "id", mID);
@@ -294,13 +290,13 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    Log::Params Identity::debug(const char *message) const
+    Log::Params Identity::debug(const char *message) const noexcept
     {
       return Log::Params(message, toDebug());
     }
 
     //-------------------------------------------------------------------------
-    ElementPtr Identity::toDebug() const
+    ElementPtr Identity::toDebug() const noexcept
     {
       AutoRecursiveLock lock(*this);
 
@@ -316,27 +312,27 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool Identity::isShuttingDown() const
+    bool Identity::isShuttingDown() const noexcept
     {
       if (mGracefulShutdownReference) return true;
       return false;
     }
 
     //-------------------------------------------------------------------------
-    bool Identity::isShutdown() const
+    bool Identity::isShutdown() const noexcept
     {
       if (mGracefulShutdownReference) return false;
       return mShutdown;
     }
 
     //-------------------------------------------------------------------------
-    void Identity::step()
+    void Identity::step() noexcept
     {
       ZS_LOG_DEBUG(debug("step"))
 
       if ((isShuttingDown()) ||
           (isShutdown())) {
-        ZS_LOG_DEBUG(debug("step forwarding to cancel"))
+        ZS_LOG_DEBUG(debug("step forwarding to cancel"));
         cancel();
         return;
       }
@@ -349,40 +345,39 @@ namespace ortc
 
     not_ready:
       {
-        ZS_LOG_TRACE(debug("not ready"))
+        ZS_LOG_TRACE(debug("not ready"));
         return;
       }
 
     ready:
       {
-        ZS_LOG_TRACE(log("ready"))
+        ZS_LOG_TRACE(log("ready"));
       }
     }
 
     //-------------------------------------------------------------------------
-    bool Identity::stepBogusDoSomething()
+    bool Identity::stepBogusDoSomething() noexcept
     {
       if ( /* step already done */ false ) {
-        ZS_LOG_TRACE(log("already completed do something"))
+        ZS_LOG_TRACE(log("already completed do something"));
         return true;
       }
 
       if ( /* cannot do step yet */ false) {
-        ZS_LOG_DEBUG(log("waiting for XYZ to complete before continuing"))
+        ZS_LOG_DEBUG(log("waiting for XYZ to complete before continuing"));
         return false;
       }
 
-      ZS_LOG_DEBUG(log("doing step XYZ"))
+      ZS_LOG_DEBUG(log("doing step XYZ"));
 
       // ....
-#define TODO 1
-#define TODO 2
+#pragma ZS_BUILD_NOTE("TODO","Do something when identity is a real thing")
       
       return true;
     }
 
     //-------------------------------------------------------------------------
-    void Identity::cancel()
+    void Identity::cancel() noexcept
     {
       //.......................................................................
       // try to gracefully shutdown
@@ -392,8 +387,7 @@ namespace ortc
       if (!mGracefulShutdownReference) mGracefulShutdownReference = mThisWeak.lock();
 
       if (mGracefulShutdownReference) {
-#define TODO_OBJECT_IS_BEING_KEPT_ALIVE_UNTIL_SCTP_SESSION_IS_SHUTDOWN 1
-#define TODO_OBJECT_IS_BEING_KEPT_ALIVE_UNTIL_SCTP_SESSION_IS_SHUTDOWN 2
+#pragma ZS_BUILD_NOTE("NEEDED?","Keep object alive if needed during graceful shutdown")
 
         // grace shutdown process done here
 
@@ -414,18 +408,18 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IIdentityFactory
-    #pragma mark
+    //
+    // IIdentityFactory
+    //
 
     //-------------------------------------------------------------------------
-    IIdentityFactory &IIdentityFactory::singleton()
+    IIdentityFactory &IIdentityFactory::singleton() noexcept
     {
       return IdentityFactory::singleton();
     }
 
     //-------------------------------------------------------------------------
-    IdentityPtr IIdentityFactory::create(IDTLSTransportPtr transport)
+    IdentityPtr IIdentityFactory::create(IDTLSTransportPtr transport) noexcept
     {
       if (this) {}
       return internal::Identity::create(transport);
@@ -437,12 +431,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IIdentityTypes::Result
-  #pragma mark
+  //
+  // IIdentityTypes::Result
+  //
 
   //---------------------------------------------------------------------------
-  IIdentityTypes::ResultPtr IIdentityTypes::Result::convert(AnyPtr any)
+  IIdentityTypes::ResultPtr IIdentityTypes::Result::convert(AnyPtr any) noexcept
   {
     return ZS_DYNAMIC_PTR_CAST(Result, any);
   }
@@ -451,12 +445,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IIdentityTypes::Result
-  #pragma mark
+  //
+  // IIdentityTypes::Result
+  //
 
   //---------------------------------------------------------------------------
-  IIdentityTypes::ErrorPtr IIdentityTypes::Error::convert(AnyPtr any)
+  IIdentityTypes::ErrorPtr IIdentityTypes::Error::convert(AnyPtr any) noexcept
   {
     return ZS_DYNAMIC_PTR_CAST(Error, any);
   }
@@ -465,18 +459,18 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IIdentityTypes
-  #pragma mark
+  //
+  // IIdentityTypes
+  //
 
   //---------------------------------------------------------------------------
-  ElementPtr IIdentity::toDebug(IIdentityPtr transport)
+  ElementPtr IIdentity::toDebug(IIdentityPtr transport) noexcept
   {
     return internal::Identity::toDebug(internal::Identity::convert(transport));
   }
 
   //---------------------------------------------------------------------------
-  IIdentityPtr IIdentity::create(IDTLSTransportPtr transport)
+  IIdentityPtr IIdentity::create(IDTLSTransportPtr transport) noexcept
   {
     return internal::IIdentityFactory::singleton().create(transport);
   }

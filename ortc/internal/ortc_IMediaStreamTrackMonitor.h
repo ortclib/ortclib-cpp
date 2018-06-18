@@ -56,9 +56,9 @@ namespace ortc
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrackMonitorTypes
-    #pragma mark
+    //
+    // IMediaStreamTrackMonitorTypes
+    //
   
     interaction IMediaStreamTrackMonitorTypes
     {
@@ -125,32 +125,32 @@ namespace ortc
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrackMonitor
-    #pragma mark
+    //
+    // IMediaStreamTrackMonitor
+    //
 
     interaction IMediaStreamTrackMonitor : public IMediaStreamTrackMonitorTypes
     {
-      static IMediaStreamTrackMonitorPtr create(ortc::IMediaStreamTrackPtr track);
+      static IMediaStreamTrackMonitorPtr create(ortc::IMediaStreamTrackPtr track) noexcept;
 
-      virtual PUID getID() const = 0;
+      virtual PUID getID() const noexcept = 0;
 
-      virtual void stop() const = 0;
+      virtual void stop() const noexcept = 0;
 
       virtual void notifyMediaChannelAvailable(
                                                NotifyMediaChannelAvailableInput &input,
                                                NotifyMediaChannelAvailableInput &output
-                                               ) = 0;
+                                               ) noexcept = 0;
 
       virtual void notifyMediaChannelSubscribedMedia(
                                                      NotifyMediaChannelSubscribedMediaInput &input,
                                                      NotifyMediaChannelSubscribedMediaInput &output
-                                                     ) = 0;
+                                                     ) noexcept = 0;
 
       virtual void notifyMediaChannelSubscribedRTP(
                                                    NotifyMediaChannelSubscribedRTPInput &input,
                                                    NotifyMediaChannelSubscribedRTPInput &output
-                                                   ) = 0;
+                                                   ) noexcept = 0;
 
     };
 
@@ -158,80 +158,80 @@ namespace ortc
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrackMonitorDelegate
-    #pragma mark
+    //
+    // IMediaStreamTrackMonitorDelegate
+    //
 
     interaction IMediaStreamTrackMonitorDelegate
     {
-      virtual ~IMediaStreamTrackMonitorDelegate() {}
+      virtual ~IMediaStreamTrackMonitorDelegate() noexcept {}
     };
 
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrackMonitorSubscription
-    #pragma mark
+    //
+    // IMediaStreamTrackMonitorSubscription
+    //
   
     interaction IMediaStreamTrackMonitorSubscription
     {
-      virtual PUID getID() const = 0;
+      virtual PUID getID() const noexcept = 0;
     
-      virtual void cancel() = 0;
+      virtual void cancel() noexcept = 0;
 
-      virtual void background() = 0;
+      virtual void background() noexcept = 0;
     };
 
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrackMonitorMediaChannel
-    #pragma mark
+    //
+    // IMediaStreamTrackMonitorMediaChannel
+    //
   
     interaction IMediaStreamTrackMonitorMediaChannel : public IMediaStreamTrackMonitorTypes
     {
       virtual void notifyMediaChannelGone(
                                           MonitorChannelID id,
                                           MonitorChannelContextPtr context
-                                          ) = 0;
+                                          ) noexcept = 0;
 
       virtual void notifyMediaChannelRTPPacket(
                                                MonitorChannelID id,
                                                MonitorChannelContextPtr context,
                                                RTPPacketPtr packet,
                                                bool &outFilterPacket
-                                               ) = 0;
+                                               ) noexcept = 0;
 
       virtual void notifyMediaChannelRTCPPacket(
                                                 MonitorChannelID id,
                                                 MonitorChannelContextPtr context,
                                                 RTCPPacketPtr packet,
                                                 bool &outFilterPacket
-                                                ) = 0;
+                                                ) noexcept = 0;
     };
 
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrackMonitorMediaChannelDelegate
-    #pragma mark
+    //
+    // IMediaStreamTrackMonitorMediaChannelDelegate
+    //
 
     interaction IMediaStreamTrackMonitorMediaChannelDelegate : public IMediaStreamTrackMonitorTypes
     {
       virtual void notifyMonitorMediaChannelRTPPacket(
                                                       MonitorChannelID id,
                                                       RTPPacketPtr packet
-                                                      ) = 0;
+                                                      ) noexcept = 0;
       virtual void notifyMonitorMediaChannelRTCPPacket(
                                                        MonitorChannelID id,
                                                        RTPPacketPtr packet
-                                                       ) = 0;
+                                                       ) noexcept = 0;
     };
 
 
@@ -239,96 +239,96 @@ namespace ortc
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrackMonitorSubscriberMedia
-    #pragma mark
+    //
+    // IMediaStreamTrackMonitorSubscriberMedia
+    //
   
     interaction IMediaStreamTrackMonitorSubscriberMedia : public IMediaStreamTrackMonitorTypes
     {
       virtual void notifyMonitorSubscriberMediaGone(
                                                     MonitorSubscriberMediaID id,
                                                     MonitorSubscriberMediaContextPtr context
-                                                    ) = 0;
+                                                    ) noexcept = 0;
 
       virtual void notifyMonitorSubscriberMediaAudio(
                                                      MonitorSubscriberMediaID id,
                                                      MonitorSubscriberMediaContextPtr context,
                                                      AudioFramePtr frame,
                                                      bool &outFilterFrame
-                                                     ) = 0;
+                                                     ) noexcept = 0;
 
       virtual void notifyMonitorSubscriberMediaVideo(
                                                      MonitorSubscriberMediaID id,
                                                      MonitorSubscriberMediaContextPtr context,
                                                      VideoFramePtr frame,
                                                      bool &outFilterFrame
-                                                     ) = 0;
+                                                     ) noexcept = 0;
     };
 
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrackMonitorSubscriberMediaDelegate
-    #pragma mark
+    //
+    // IMediaStreamTrackMonitorSubscriberMediaDelegate
+    //
 
     interaction IMediaStreamTrackMonitorSubscriberMediaDelegate : public IMediaStreamTrackMonitorTypes
     {
       virtual void notifyMonitorSubscriberMediaAudio(
                                                      MonitorSubscriberMediaID id,
                                                      AudioFramePtr frame
-                                                     ) = 0;
+                                                     ) noexcept = 0;
       virtual void notifyMonitorSubscriberMediaVideo(
                                                      MonitorSubscriberMediaID id,
                                                      VideoFramePtr frame
-                                                     ) = 0;
+                                                     ) noexcept = 0;
     };
 
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrackMonitorSubscriberRTP
-    #pragma mark
+    //
+    // IMediaStreamTrackMonitorSubscriberRTP
+    //
   
     interaction IMediaStreamTrackMonitorSubscriberRTP : public IMediaStreamTrackMonitorTypes
     {
       virtual void notifyMonitorSubscriberRTPGone(
                                                   MonitorSubscriberRTPID id,
                                                   MonitorSubscriberMediaContextPtr context
-                                                  ) = 0;
+                                                  ) noexcept = 0;
 
       virtual void notifyMonitorSubscriberEncoderRTPPacket(
                                                            MonitorSubscriberRTPID id,
                                                            MonitorSubscriberMediaContextPtr context,
                                                            RTPPacketPtr packet,
                                                            bool &outFilterPacket
-                                                           ) = 0;
+                                                           ) noexcept = 0;
 
       virtual void notifyMonitorSubscriberEncoderRTPRTCPPacket(
                                                                MonitorSubscriberRTPID id,
                                                                MonitorSubscriberMediaContextPtr context,
                                                                RTCPPacketPtr packet,
                                                                bool &outFilterPacket
-                                                               ) = 0;
+                                                               ) noexcept = 0;
 
       virtual void notifyMonitorSubscriberRTPFeedback(
                                                       MonitorSubscriberRTPID id,
                                                       MonitorSubscriberMediaContextPtr context,
                                                       RTCPPacketPtr packet,
                                                       bool &outFilterPacket
-                                                      ) = 0;
+                                                      ) noexcept = 0;
     };
 
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrackMonitorSubscriberRTPDelegate
-    #pragma mark
+    //
+    // IMediaStreamTrackMonitorSubscriberRTPDelegate
+    //
 
     interaction IMediaStreamTrackMonitorSubscriberRTPDelegate : public IMediaStreamTrackMonitorTypes
     {

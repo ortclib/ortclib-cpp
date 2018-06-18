@@ -56,13 +56,6 @@
 #include <cryptopp/sha.h>
 
 
-#ifdef _DEBUG
-#define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))
-#else
-#define ASSERT(x)
-#endif //_DEBUG
-
-
 namespace ortc { ZS_DECLARE_SUBSYSTEM(org_ortc_rtp_listener) }
 
 namespace ortc
@@ -80,12 +73,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark (helpers)
-    #pragma mark
+    //
+    // (helpers)
+    //
 
     //-------------------------------------------------------------------------
-    static bool shouldFilter(IRTPTypes::HeaderExtensionURIs extensionURI)
+    static bool shouldFilter(IRTPTypes::HeaderExtensionURIs extensionURI) noexcept
     {
       switch (extensionURI) {
         case IRTPTypes::HeaderExtensionURI_Unknown:                           return true;
@@ -108,28 +101,28 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPListenerSettingsDefaults
-    #pragma mark
+    //
+    // RTPListenerSettingsDefaults
+    //
 
     class RTPListenerSettingsDefaults : public ISettingsApplyDefaultsDelegate
     {
     public:
       //-----------------------------------------------------------------------
-      ~RTPListenerSettingsDefaults()
+      ~RTPListenerSettingsDefaults() noexcept
       {
         ISettings::removeDefaults(*this);
       }
 
       //-----------------------------------------------------------------------
-      static RTPListenerSettingsDefaultsPtr singleton()
+      static RTPListenerSettingsDefaultsPtr singleton() noexcept
       {
         static SingletonLazySharedPtr<RTPListenerSettingsDefaults> singleton(create());
         return singleton.singleton();
       }
 
       //-----------------------------------------------------------------------
-      static RTPListenerSettingsDefaultsPtr create()
+      static RTPListenerSettingsDefaultsPtr create() noexcept
       {
         auto pThis(make_shared<RTPListenerSettingsDefaults>());
         ISettings::installDefaults(pThis);
@@ -137,7 +130,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      virtual void notifySettingsApplyDefaults() override
+      virtual void notifySettingsApplyDefaults() noexcept override
       {
         ISettings::setUInt(ORTC_SETTING_RTP_LISTENER_MAX_RTP_PACKETS_IN_BUFFER, 100);
         ISettings::setUInt(ORTC_SETTING_RTP_LISTENER_MAX_AGE_RTP_PACKETS_IN_SECONDS, 30);
@@ -154,7 +147,7 @@ namespace ortc
     };
 
     //-------------------------------------------------------------------------
-    void installRTPListenerSettingsDefaults()
+    void installRTPListenerSettingsDefaults() noexcept
     {
       RTPListenerSettingsDefaults::singleton();
     }
@@ -164,19 +157,19 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPListenerForSecureTransport
-    #pragma mark
+    //
+    // IRTPListenerForSecureTransport
+    //
 
     //-------------------------------------------------------------------------
-    ElementPtr IRTPListenerForSecureTransport::toDebug(ForSecureTransportPtr listener)
+    ElementPtr IRTPListenerForSecureTransport::toDebug(ForSecureTransportPtr listener) noexcept
     {
       if (!listener) return ElementPtr();
       return ZS_DYNAMIC_PTR_CAST(RTPListener, listener)->toDebug();
     }
 
     //-------------------------------------------------------------------------
-    RTPListenerPtr IRTPListenerForSecureTransport::create(IRTPTransportPtr transport)
+    RTPListenerPtr IRTPListenerForSecureTransport::create(IRTPTransportPtr transport) noexcept
     {
       return IRTPListenerFactory::singleton().create(transport);
     }
@@ -185,19 +178,19 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPListenerForRTPReceiver
-    #pragma mark
+    //
+    // IRTPListenerForRTPReceiver
+    //
 
     //-------------------------------------------------------------------------
-    ElementPtr IRTPListenerForRTPReceiver::toDebug(ForRTPReceiverPtr listener)
+    ElementPtr IRTPListenerForRTPReceiver::toDebug(ForRTPReceiverPtr listener) noexcept
     {
       if (!listener) return ElementPtr();
       return ZS_DYNAMIC_PTR_CAST(RTPListener, listener)->toDebug();
     }
 
     //-------------------------------------------------------------------------
-    IRTPListenerForRTPReceiver::ForRTPReceiverPtr IRTPListenerForRTPReceiver::getListener(IRTPTransportPtr rtpTransport)
+    IRTPListenerForRTPReceiver::ForRTPReceiverPtr IRTPListenerForRTPReceiver::getListener(IRTPTransportPtr rtpTransport) noexcept(false)
     {
       ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForRTPListener, UseSecureTransport)
 
@@ -228,23 +221,23 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPListenerForRTPReceiver
-    #pragma mark
+    //
+    // IRTPListenerForRTPReceiver
+    //
 
     //-------------------------------------------------------------------------
-    ElementPtr IRTPListenerForRTPSender::toDebug(ForRTPSenderPtr listener)
+    ElementPtr IRTPListenerForRTPSender::toDebug(ForRTPSenderPtr listener) noexcept
     {
       if (!listener) return ElementPtr();
       return ZS_DYNAMIC_PTR_CAST(RTPListener, listener)->toDebug();
     }
 
     //-------------------------------------------------------------------------
-    IRTPListenerForRTPSender::ForRTPSenderPtr IRTPListenerForRTPSender::getListener(IRTPTransportPtr rtpTransport)
+    IRTPListenerForRTPSender::ForRTPSenderPtr IRTPListenerForRTPSender::getListener(IRTPTransportPtr rtpTransport) noexcept(false)
     {
       ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForRTPListener, UseSecureTransport)
 
-      ORTC_THROW_INVALID_PARAMETERS_IF(!rtpTransport)
+      ORTC_THROW_INVALID_PARAMETERS_IF(!rtpTransport);
 
       UseSecureTransportPtr secureTransport;
 
@@ -271,12 +264,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPListener::RegisteredHeaderExtension
-    #pragma mark
+    //
+    // RTPListener::RegisteredHeaderExtension
+    //
     
     //---------------------------------------------------------------------------
-    ElementPtr RTPListener::RegisteredHeaderExtension::toDebug() const
+    ElementPtr RTPListener::RegisteredHeaderExtension::toDebug() const noexcept
     {
       ElementPtr resultEl = Element::create("ortc::RTPListener::RegisteredHeaderExtension");
 
@@ -303,19 +296,19 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPListener::ReceiverInfo
-    #pragma mark
+    //
+    // RTPListener::ReceiverInfo
+    //
 
     //-------------------------------------------------------------------------
-    RTPListener::SSRCInfoPtr RTPListener::ReceiverInfo::registerSSRCUsage(SSRCInfoPtr ssrcInfo)
+    RTPListener::SSRCInfoPtr RTPListener::ReceiverInfo::registerSSRCUsage(SSRCInfoPtr ssrcInfo) noexcept
     {
       mRegisteredSSRCs[ssrcInfo->mSSRC] = ssrcInfo;
       return ssrcInfo;
     }
 
     //-------------------------------------------------------------------------
-    void RTPListener::ReceiverInfo::unregisterSSRCUsage(SSRCType ssrc)
+    void RTPListener::ReceiverInfo::unregisterSSRCUsage(SSRCType ssrc) noexcept
     {
       auto found = mRegisteredSSRCs.find(ssrc);
       if (found == mRegisteredSSRCs.end()) return;
@@ -323,7 +316,7 @@ namespace ortc
     }
 
     //---------------------------------------------------------------------------
-    ElementPtr RTPListener::ReceiverInfo::toDebug() const
+    ElementPtr RTPListener::ReceiverInfo::toDebug() const noexcept
     {
       ElementPtr resultEl = Element::create("ortc::RTPListener::ReceiverInfo");
 
@@ -342,18 +335,18 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPListener::SSRCInfo
-    #pragma mark
+    //
+    // RTPListener::SSRCInfo
+    //
 
     //---------------------------------------------------------------------------
-    RTPListener::SSRCInfo::SSRCInfo() :
+    RTPListener::SSRCInfo::SSRCInfo() noexcept :
       mLastUsage(zsLib::now())
     {
     }
 
     //---------------------------------------------------------------------------
-    ElementPtr RTPListener::SSRCInfo::toDebug() const
+    ElementPtr RTPListener::SSRCInfo::toDebug() const noexcept
     {
       ElementPtr resultEl = Element::create("ortc::RTPListener::SSRCInfo");
 
@@ -369,12 +362,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPListener::UnhandledEventInfo
-    #pragma mark
+    //
+    // RTPListener::UnhandledEventInfo
+    //
 
     //---------------------------------------------------------------------------
-    bool RTPListener::UnhandledEventInfo::operator<(const UnhandledEventInfo &op2) const
+    bool RTPListener::UnhandledEventInfo::operator<(const UnhandledEventInfo &op2) const noexcept
     {
       if (mSSRC < op2.mSSRC) return true;
       if (mSSRC > op2.mSSRC) return false;
@@ -390,7 +383,7 @@ namespace ortc
     }
     
     //---------------------------------------------------------------------------
-    ElementPtr RTPListener::UnhandledEventInfo::toDebug() const
+    ElementPtr RTPListener::UnhandledEventInfo::toDebug() const noexcept
     {
       ElementPtr resultEl = Element::create("ortc::RTPListener::UnhandledEventInfo");
 
@@ -406,12 +399,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPListener
-    #pragma mark
+    //
+    // RTPListener
+    //
     
     //---------------------------------------------------------------------------
-    const char *RTPListener::toString(States state)
+    const char *RTPListener::toString(States state) noexcept
     {
       switch (state) {
         case State_Pending:       return "pending";
@@ -428,7 +421,7 @@ namespace ortc
                              IMessageQueuePtr queue,
                              IRTPListenerDelegatePtr originalDelegate,
                              UseRTPTransportPtr transport
-                             ) :
+                             ) noexcept :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
       mSubscriptions(decltype(mSubscriptions)::create()),
@@ -463,7 +456,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPListener::init()
+    void RTPListener::init() noexcept
     {
       AutoRecursiveLock lock(*this);
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
@@ -480,7 +473,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    RTPListener::~RTPListener()
+    RTPListener::~RTPListener() noexcept
     {
       if (isNoop()) return;
 
@@ -492,26 +485,26 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    RTPListenerPtr RTPListener::convert(IRTPListenerPtr object)
+    RTPListenerPtr RTPListener::convert(IRTPListenerPtr object) noexcept
     {
       IRTPListenerPtr original = IRTPListenerTearAway::original(object);
       return ZS_DYNAMIC_PTR_CAST(RTPListener, original);
     }
 
     //-------------------------------------------------------------------------
-    RTPListenerPtr RTPListener::convert(ForSecureTransportPtr object)
+    RTPListenerPtr RTPListener::convert(ForSecureTransportPtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(RTPListener, object);
     }
 
     //-------------------------------------------------------------------------
-    RTPListenerPtr RTPListener::convert(ForRTPReceiverPtr object)
+    RTPListenerPtr RTPListener::convert(ForRTPReceiverPtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(RTPListener, object);
     }
 
     //-------------------------------------------------------------------------
-    RTPListenerPtr RTPListener::convert(ForRTPSenderPtr object)
+    RTPListenerPtr RTPListener::convert(ForRTPSenderPtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(RTPListener, object);
     }
@@ -520,12 +513,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPListener => IRTPListener
-    #pragma mark
+    //
+    // RTPListener => IRTPListener
+    //
     
     //-------------------------------------------------------------------------
-    ElementPtr RTPListener::toDebug(RTPListenerPtr transport)
+    ElementPtr RTPListener::toDebug(RTPListenerPtr transport) noexcept
     {
       if (!transport) return ElementPtr();
       return transport->toDebug();
@@ -536,21 +529,21 @@ namespace ortc
                                         IRTPListenerDelegatePtr delegate,
                                         IRTPTransportPtr transport,
                                         Optional<HeaderExtensionParametersList> headerExtensions
-                                        )
+                                        ) noexcept(false)
     {
       ORTC_THROW_INVALID_PARAMETERS_IF(!transport)
 
       auto useSecureTransport = UseSecureTransport::convert(transport);
-      ASSERT(((bool)useSecureTransport))
+      ZS_ASSERT(((bool)useSecureTransport))
 
       auto listener = useSecureTransport->getListener();
-      ORTC_THROW_INVALID_STATE_IF(!listener)
+      ZS_ASSERT(listener);
 
       auto tearAway = IRTPListenerTearAway::create(listener, make_shared<TearAwayData>());
-      ORTC_THROW_INVALID_STATE_IF(!tearAway)
+      ZS_ASSERT(tearAway);
 
       auto tearAwayData = IRTPListenerTearAway::data(tearAway);
-      ORTC_THROW_INVALID_STATE_IF(!tearAwayData)
+      ZS_ASSERT(tearAwayData);
 
       tearAwayData->mRTPTransport = transport;
 
@@ -567,7 +560,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    IRTPListenerSubscriptionPtr RTPListener::subscribe(IRTPListenerDelegatePtr originalDelegate)
+    IRTPListenerSubscriptionPtr RTPListener::subscribe(IRTPListenerDelegatePtr originalDelegate) noexcept
     {
       ZS_LOG_DETAIL(log("subscribing to transport state"))
 
@@ -596,13 +589,13 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    IRTPTransportPtr RTPListener::transport() const
+    IRTPTransportPtr RTPListener::transport() const noexcept
     {
       return mRTPTransport.lock();
     }
 
     //-------------------------------------------------------------------------
-    void RTPListener::setHeaderExtensions(const HeaderExtensionParametersList &headerExtensions)
+    void RTPListener::setHeaderExtensions(const HeaderExtensionParametersList &headerExtensions) noexcept(false)
     {
       AutoRecursiveLock lock(*this);
 
@@ -626,15 +619,15 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPListener => IStatsProvider
-    #pragma mark
+    //
+    // RTPListener => IStatsProvider
+    //
 
     //-------------------------------------------------------------------------
-    RTPListener::PromiseWithStatsReportPtr RTPListener::getStats(const StatsTypeSet &stats) const
+    RTPListener::PromiseWithStatsReportPtr RTPListener::getStats(ZS_MAYBE_USED() const StatsTypeSet &stats) const noexcept
     {
-#define TODO 1
-#define TODO 2
+      ZS_MAYBE_USED(stats);
+#pragma ZS_BUILD_NOTE("TODO","Implement getStats")
       return PromiseWithStatsReport::createRejected(IORTCForInternal::queueDelegate());
     }
 
@@ -642,12 +635,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPListener => IRTPListenerForSecureTransport
-    #pragma mark
+    //
+    // RTPListener => IRTPListenerForSecureTransport
+    //
 
     //-------------------------------------------------------------------------
-    RTPListenerPtr RTPListener::create(IRTPTransportPtr transport)
+    RTPListenerPtr RTPListener::create(IRTPTransportPtr transport) noexcept
     {
       RTPListenerPtr pThis(make_shared<RTPListener>(make_private {}, IORTCForInternal::queueORTC(), IRTPListenerDelegatePtr(), transport));
       pThis->mThisWeak = pThis;
@@ -661,7 +654,7 @@ namespace ortc
                                       IICETypes::Components packetType,
                                       const BYTE *buffer,
                                       size_t bufferLengthInBytes
-                                      )
+                                      ) noexcept
     {
       ZS_EVENTING_5(
                     x, i, Trace, RtpListenerReceivedIncomingPacket, ol, RtpListener, Receive,
@@ -741,7 +734,7 @@ namespace ortc
 
         Time tick = zsLib::now();
 
-        ASSERT(IICETypes::Component_RTP == viaComponent);
+        ZS_ASSERT(IICETypes::Component_RTP == viaComponent);
 
         ZS_EVENTING_5(
                       x, i, Debug, RtpListenerBufferIncomingPacket, ol, RtpListener, Buffer,
@@ -841,9 +834,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPListener => IRTPListenerForRTPReceiver
-    #pragma mark
+    //
+    // RTPListener => IRTPListenerForRTPReceiver
+    //
 
     //-------------------------------------------------------------------------
     void RTPListener::registerReceiver(
@@ -851,7 +844,7 @@ namespace ortc
                                        UseReceiverPtr inReceiver,
                                        const Parameters &inParams,
                                        RTCPPacketList *outPacketList
-                                       )
+                                       ) noexcept(false)
     {
       ZS_LOG_TRACE(log("registering RTP receiver") + ZS_PARAM("receiver", inReceiver->getID()) + inParams.toDebug())
 
@@ -977,7 +970,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPListener::unregisterReceiver(UseReceiver &inReceiver)
+    void RTPListener::unregisterReceiver(UseReceiver &inReceiver) noexcept
     {
       AutoRecursiveLock lock(*this);
 
@@ -1004,7 +997,7 @@ namespace ortc
           ReceiverObjectMapPtr receivers(make_shared<ReceiverObjectMap>(*mReceivers));
 
           auto found = receivers->find(receiverID);
-          ASSERT(found != receivers->end())
+          ZS_ASSERT(found != receivers->end())
 
           auto receiverInfo = (*found).second;
 
@@ -1065,7 +1058,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPListener::getPackets(RTCPPacketList &outPacketList)
+    void RTPListener::getPackets(RTCPPacketList &outPacketList) noexcept
     {
       AutoRecursiveLock lock(*this);
 
@@ -1084,9 +1077,9 @@ namespace ortc
                                       const String &rid,
                                       IRTPTypes::SSRCType ssrc,
                                       IRTPTypes::PayloadType payloadType
-                                      )
+                                      ) noexcept
     {
-      ZS_LOG_TRACE(log("notified that a receiver did not handle a delivered packet") + ZS_PARAM("ssrc", ssrc) + ZS_PARAM("payload", payloadType))
+      ZS_LOG_TRACE(log("notified that a receiver did not handle a delivered packet") + ZS_PARAM("ssrc", ssrc) + ZS_PARAM("payload", payloadType));
 
       AutoRecursiveLock lock(*this);
       processUnhandled(muxID, rid, ssrc, payloadType, zsLib::now());
@@ -1096,16 +1089,16 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPListener => IRTPListenerForRTPSender
-    #pragma mark
+    //
+    // RTPListener => IRTPListenerForRTPSender
+    //
 
     //-------------------------------------------------------------------------
     void RTPListener::registerSender(
                                      UseSenderPtr inSender,
                                      const Parameters &inParams,
                                      RTCPPacketList &outPacketList
-                                     )
+                                     ) noexcept
     {
       ZS_EVENTING_2(
                     x, i, Debug, RtpListenerRegisterSender, ol, RtpListener, Info,
@@ -1139,7 +1132,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPListener::unregisterSender(UseSender &inSender)
+    void RTPListener::unregisterSender(UseSender &inSender) noexcept
     {
       ZS_EVENTING_2(
                     x, i, Debug, RtpListenerUnregisterSender, ol, RtpListener, Info,
@@ -1166,9 +1159,9 @@ namespace ortc
           SenderObjectMapPtr senders(make_shared<SenderObjectMap>(*mSenders));
 
           auto found = senders->find(senderID);
-          ASSERT(found != senders->end())
+          ZS_ASSERT(found != senders->end())
 
-          ZS_LOG_DEBUG(log("unregistering sender") + ZS_PARAM("sender id", senderID))
+          ZS_LOG_DEBUG(log("unregistering sender") + ZS_PARAM("sender id", senderID));
 
           senders->erase(found);
 
@@ -1182,9 +1175,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPListener => IWakeDelegate
-    #pragma mark
+    //
+    // RTPListener => IWakeDelegate
+    //
 
     //-------------------------------------------------------------------------
     void RTPListener::onWake()
@@ -1201,9 +1194,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPListener => ITimerDelegate
-    #pragma mark
+    //
+    // RTPListener => ITimerDelegate
+    //
 
     //-------------------------------------------------------------------------
     void RTPListener::onTimer(ITimerPtr timer)
@@ -1306,9 +1299,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPListener => IRTPListenerAsyncDelegate
-    #pragma mark
+    //
+    // RTPListener => IRTPListenerAsyncDelegate
+    //
 
     //-------------------------------------------------------------------------
     void RTPListener::onDeliverPacket(
@@ -1335,19 +1328,19 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPListener => (internal)
-    #pragma mark
+    //
+    // RTPListener => (internal)
+    //
 
     //-------------------------------------------------------------------------
-    Log::Params RTPListener::slog(const char *message)
+    Log::Params RTPListener::slog(const char *message) noexcept
     {
       ElementPtr objectEl = Element::create("ortc::RTPListener");
       return Log::Params(message, objectEl);
     }
 
     //-------------------------------------------------------------------------
-    Log::Params RTPListener::log(const char *message) const
+    Log::Params RTPListener::log(const char *message) const noexcept
     {
       ElementPtr objectEl = Element::create("ortc::RTPListener");
       IHelper::debugAppend(objectEl, "id", mID);
@@ -1355,13 +1348,13 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    Log::Params RTPListener::debug(const char *message) const
+    Log::Params RTPListener::debug(const char *message) const noexcept
     {
       return Log::Params(message, toDebug());
     }
 
     //-------------------------------------------------------------------------
-    ElementPtr RTPListener::toDebug() const
+    ElementPtr RTPListener::toDebug() const noexcept
     {
       AutoRecursiveLock lock(*this);
 
@@ -1386,25 +1379,25 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool RTPListener::isShuttingDown() const
+    bool RTPListener::isShuttingDown() const noexcept
     {
       return State_ShuttingDown == mCurrentState;
     }
 
     //-------------------------------------------------------------------------
-    bool RTPListener::isShutdown() const
+    bool RTPListener::isShutdown() const noexcept
     {
       return State_Shutdown == mCurrentState;
     }
 
     //-------------------------------------------------------------------------
-    void RTPListener::step()
+    void RTPListener::step() noexcept
     {
       ZS_LOG_DEBUG(debug("step"))
 
       if ((isShuttingDown()) ||
           (isShutdown())) {
-        ZS_LOG_DEBUG(debug("step forwarding to cancel"))
+        ZS_LOG_DEBUG(debug("step forwarding to cancel"));
         cancel();
         return;
       }
@@ -1419,19 +1412,19 @@ namespace ortc
 
     not_ready:
       {
-        ZS_LOG_TRACE(debug("listener is not ready"))
+        ZS_LOG_TRACE(debug("listener is not ready"));
         return;
       }
 
     ready:
       {
         setState(State_Ready);
-        ZS_LOG_TRACE(log("ready"))
+        ZS_LOG_TRACE(log("ready"));
       }
     }
 
     //-------------------------------------------------------------------------
-    bool RTPListener::stepAttemptDelivery()
+    bool RTPListener::stepAttemptDelivery() noexcept
     {
       ZS_EVENTING_1(x, i, Debug, RtpListenerStep, ol, RtpListener, Step, puid, id, mID);
 
@@ -1481,7 +1474,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPListener::cancel()
+    void RTPListener::cancel() noexcept
     {
       ZS_EVENTING_1(x, i, Debug, RtpListenerCancel, ol, RtpListener, Cancel, puid, id, mID);
 
@@ -1535,11 +1528,11 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPListener::setState(States state)
+    void RTPListener::setState(States state) noexcept
     {
       if (state == mCurrentState) return;
 
-      ZS_LOG_DETAIL(debug("state changed") + ZS_PARAM("new state", toString(state)) + ZS_PARAM("old state", toString(mCurrentState)))
+      ZS_LOG_DETAIL(debug("state changed") + ZS_PARAM("new state", toString(state)) + ZS_PARAM("old state", toString(mCurrentState)));
 
       mCurrentState = state;
       ZS_EVENTING_2(
@@ -1555,7 +1548,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPListener::setError(WORD errorCode, const char *inReason)
+    void RTPListener::setError(WORD errorCode, const char *inReason) noexcept
     {
       String reason(inReason);
       if (reason.isEmpty()) {
@@ -1580,7 +1573,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPListener::expireRTPPackets()
+    void RTPListener::expireRTPPackets() noexcept
     {
       auto tick = zsLib::now();
 
@@ -1613,7 +1606,7 @@ namespace ortc
     }
     
     //-------------------------------------------------------------------------
-    void RTPListener::expireRTCPPackets()
+    void RTPListener::expireRTCPPackets() noexcept
     {
       auto tick = zsLib::now();
 
@@ -1651,10 +1644,10 @@ namespace ortc
                                                        HeaderExtensionURIs extensionURI,
                                                        LocalID localID,
                                                        bool encrytped
-                                                       )
+                                                       ) noexcept(false)
     {
       if (shouldFilter(extensionURI)) {
-        ZS_LOG_DEBUG(log("extension header is not relevant  to listener (thus filtering)") + ZS_PARAM("object id", objectID) + ZS_PARAM("extension uri", IRTPTypes::toString(extensionURI)) + ZS_PARAM("local ID", localID) + ZS_PARAM("encrypted", encrytped))
+        ZS_LOG_DEBUG(log("extension header is not relevant  to listener (thus filtering)") + ZS_PARAM("object id", objectID) + ZS_PARAM("extension uri", IRTPTypes::toString(extensionURI)) + ZS_PARAM("local ID", localID) + ZS_PARAM("encrypted", encrytped));
         return;
       }
 
@@ -1677,7 +1670,7 @@ namespace ortc
                       size_t, totalReferences, extension.mReferences.size()
                       );
 
-        ZS_LOG_DEBUG(log("registered header extension") + ZS_PARAM("object id", objectID) + extension.toDebug())
+        ZS_LOG_DEBUG(log("registered header extension") + ZS_PARAM("object id", objectID) + extension.toDebug());
         return;
       }
 
@@ -1701,11 +1694,11 @@ namespace ortc
                     size_t, totalReferences, extension.mReferences.size()
                     );
 
-      ZS_LOG_DEBUG(log("referencing existing header extension") + ZS_PARAM("object id", objectID) + extension.toDebug())
+      ZS_LOG_DEBUG(log("referencing existing header extension") + ZS_PARAM("object id", objectID) + extension.toDebug());
     }
 
     //-------------------------------------------------------------------------
-    void RTPListener::unregisterAllHeaderExtensionReferences(PUID objectID)
+    void RTPListener::unregisterAllHeaderExtensionReferences(PUID objectID) noexcept
     {
       for (auto iter_doNotUse = mRegisteredExtensions.begin(); iter_doNotUse != mRegisteredExtensions.end(); )
       {
@@ -1742,7 +1735,7 @@ namespace ortc
                                   const RTPPacket &rtpPacket,
                                   ReceiverInfoPtr &outReceiverInfo,
                                   String &outMuxID
-                                  )
+                                  ) noexcept
     {
       outMuxID = extractMuxID(rtpPacket, outReceiverInfo);
 
@@ -1768,7 +1761,7 @@ namespace ortc
 
     fill_mux_id:
       {
-        ASSERT((bool)outReceiverInfo)
+        ZS_ASSERT((bool)outReceiverInfo);
         if (!fillMuxIDParameters(outMuxID, outReceiverInfo)) {
           outReceiverInfo = ReceiverInfoPtr();
           return false;
@@ -1783,7 +1776,7 @@ namespace ortc
                                             const String &muxID,
                                             const RTPPacket &rtpPacket,
                                             ReceiverInfoPtr &outReceiverInfo
-                                            )
+                                            ) noexcept
     {
       if (!muxID.hasData()) return false;
 
@@ -1792,7 +1785,7 @@ namespace ortc
 
       outReceiverInfo = (*found).second;
 
-      ZS_LOG_DEBUG(log("creating new SSRC table entry (based on mux id mapping to existing receiver)") + ZS_PARAM("mux id", muxID) + outReceiverInfo->toDebug())
+      ZS_LOG_DEBUG(log("creating new SSRC table entry (based on mux id mapping to existing receiver)") + ZS_PARAM("mux id", muxID) + outReceiverInfo->toDebug());
 
       String inMuxID = muxID;
       setSSRCUsage(rtpPacket.ssrc(), inMuxID, outReceiverInfo);
@@ -1812,7 +1805,7 @@ namespace ortc
                                                            const String &muxID,
                                                            const RTPPacket &rtpPacket,
                                                            ReceiverInfoPtr &outReceiverInfo
-                                                           )
+                                                           ) noexcept
     {
       ReceiverObjectMapPtr receivers = mReceivers;
 
@@ -1885,7 +1878,7 @@ namespace ortc
                                                   const String &muxID,
                                                   const RTPPacket &rtpPacket,
                                                   ReceiverInfoPtr &outReceiverInfo
-                                                  )
+                                                  ) noexcept
     {
       EncodingParameters *foundEncoding = NULL;
       RTPTypesHelper::DecodedCodecInfo foundDecodedCodec;
@@ -1918,11 +1911,11 @@ namespace ortc
         }
 
         if (NULL == matchEncoding) continue; // did not find an appropriate encoding
-        ASSERT(NULL != baseEncoding)  // has to always have a base
+        ZS_ASSERT(NULL != baseEncoding);  // has to always have a base
 
         {
           switch (decodedCodec.mDepth[0].mCodecKind) {
-            case CodecKind_Unknown:  ASSERT(false) break;
+            case CodecKind_Unknown:  ZS_ASSERT_FAIL("unknown codec"); break;
             case CodecKind_Audio:
             case CodecKind_AudioSupplemental:
             case CodecKind_Video:
@@ -1936,7 +1929,7 @@ namespace ortc
 
               auto foundSSRC = mSSRCTable.find(ssrc);
               if (foundSSRC == mSSRCTable.end()) {
-                ZS_LOG_WARNING(Trace, log("catch not match encoding as master SSRC was not active recently") + receiverInfo->toDebug())
+                ZS_LOG_WARNING(Trace, log("catch not match encoding as master SSRC was not active recently") + receiverInfo->toDebug());
                 continue;
               }
 
@@ -1952,23 +1945,23 @@ namespace ortc
 
                 if ((diffLast < mAmbiguousPayloadMappingMinDifference) &&
                     (diffCurrent < mAmbiguousPayloadMappingMinDifference)) {
-                  ZS_LOG_WARNING(Debug, log("ambiguity exists to which receiver the packet should match because both channels have been recendly active (thus cannot pick any encoding)") + ZS_PARAM("tick", tick) + ZS_PARAM("match time", lastMatchUsageTime) + ZS_PARAM("ambiguity window", mAmbiguousPayloadMappingMinDifference) + ZS_PARAM("diff last", diffLast) + ZS_PARAM("diff current", diffCurrent) + ssrcInfo->toDebug() + ZS_PARAM("previous find", outReceiverInfo->toDebug()) + ZS_PARAM("found", receiverInfo->toDebug()))
+                  ZS_LOG_WARNING(Debug, log("ambiguity exists to which receiver the packet should match because both channels have been recendly active (thus cannot pick any encoding)") + ZS_PARAM("tick", tick) + ZS_PARAM("match time", lastMatchUsageTime) + ZS_PARAM("ambiguity window", mAmbiguousPayloadMappingMinDifference) + ZS_PARAM("diff last", diffLast) + ZS_PARAM("diff current", diffCurrent) + ssrcInfo->toDebug() + ZS_PARAM("previous find", outReceiverInfo->toDebug()) + ZS_PARAM("found", receiverInfo->toDebug()));
                   return false;
                 }
 
                 if (ssrcInfo->mLastUsage < lastMatchUsageTime) {
-                  ZS_LOG_WARNING(Trace, log("possible ambiguity in match (but going with previous more recent usage)") + ZS_PARAM("match time", lastMatchUsageTime) + ssrcInfo->toDebug())
+                  ZS_LOG_WARNING(Trace, log("possible ambiguity in match (but going with previous more recent usage)") + ZS_PARAM("match time", lastMatchUsageTime) + ssrcInfo->toDebug());
                   continue;
                 }
 
-                ZS_LOG_WARNING(Trace, log("possible ambiguity in match (going with this as more recent in usage)") + ZS_PARAM("match time", lastMatchUsageTime) + ssrcInfo->toDebug() + ZS_PARAM("using", receiverInfo->toDebug()) + ZS_PARAM("previous found", outReceiverInfo->toDebug()))
+                ZS_LOG_WARNING(Trace, log("possible ambiguity in match (going with this as more recent in usage)") + ZS_PARAM("match time", lastMatchUsageTime) + ssrcInfo->toDebug() + ZS_PARAM("using", receiverInfo->toDebug()) + ZS_PARAM("previous found", outReceiverInfo->toDebug()));
 
                 lastMatchUsageTime = ssrcInfo->mLastUsage;
                 outReceiverInfo = receiverInfo;
                 foundEncoding = matchEncoding;
                 foundDecodedCodec = decodedCodec;
               } else {
-                ZS_LOG_TRACE(log("found likely match") + receiverInfo->toDebug() + ssrcInfo->toDebug())
+                ZS_LOG_TRACE(log("found likely match") + receiverInfo->toDebug() + ssrcInfo->toDebug());
 
                 lastMatchUsageTime = ssrcInfo->mLastUsage;
                 outReceiverInfo = receiverInfo;
@@ -2005,7 +1998,7 @@ namespace ortc
 
         for (; encodingIter != outReceiverInfo->mFilledParameters.mEncodings.end(); ++encodingIter, ++replacementIter) {
 
-          ASSERT(replacementIter != replacementInfo->mFilledParameters.mEncodings.end())
+          ZS_ASSERT(replacementIter != replacementInfo->mFilledParameters.mEncodings.end());
 
           auto &encoding = (*encodingIter);
           auto &replaceEncoding = (*encodingIter);
@@ -2013,7 +2006,7 @@ namespace ortc
           if ((&encoding) != foundEncoding) continue; // this is not the encoding you are searching for...
 
           switch (foundDecodedCodec.mDepth[0].mCodecKind) {
-            case CodecKind_Unknown:  ASSERT(false) break;
+            case CodecKind_Unknown:  ZS_ASSERT_FAIL("unknown codec"); break;
             case CodecKind_Audio:
             case CodecKind_Video:
             case CodecKind_AV:
@@ -2048,13 +2041,13 @@ namespace ortc
           }
         }
 
-        ASSERT(false)
+        ZS_ASSERT_FAIL("should not reach this code");
         return false;
       }
 
     replace_receiver:
       {
-        ZS_LOG_DEBUG(log("filled in SSSRC value in receiver (thus replacing existing receiver)") + outReceiverInfo->toDebug())
+        ZS_LOG_DEBUG(log("filled in SSSRC value in receiver (thus replacing existing receiver)") + outReceiverInfo->toDebug());
 
         setReceiverInfo(replacementInfo);
         outReceiverInfo = replacementInfo;
@@ -2062,7 +2055,7 @@ namespace ortc
 
     insert_ssrc_into_table:
       {
-        ZS_LOG_DEBUG(log("creating a new SSRC entry in SSRC table (based on payload type matching)") + outReceiverInfo->toDebug())
+        ZS_LOG_DEBUG(log("creating a new SSRC entry in SSRC table (based on payload type matching)") + outReceiverInfo->toDebug());
 
         setReceiverInfo(replacementInfo);
         outReceiverInfo = replacementInfo;
@@ -2084,7 +2077,7 @@ namespace ortc
     String RTPListener::extractMuxID(
                                      const RTPPacket &rtpPacket,
                                      ReceiverInfoPtr &ioReceiverInfo
-                                     )
+                                     ) noexcept
     {
       for (auto ext = rtpPacket.firstHeaderExtension(); NULL != ext; ext = ext->mNext) {
         LocalID localID = static_cast<LocalID>(ext->mID);
@@ -2111,7 +2104,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    String RTPListener::extractRID(const RTPPacket &rtpPacket)
+    String RTPListener::extractRID(const RTPPacket &rtpPacket) noexcept
     {
       for (auto ext = rtpPacket.firstHeaderExtension(); NULL != ext; ext = ext->mNext) {
         LocalID localID = static_cast<LocalID>(ext->mID);
@@ -2137,9 +2130,9 @@ namespace ortc
     bool RTPListener::fillMuxIDParameters(
                                           const String &muxID,
                                           ReceiverInfoPtr &ioReceiverInfo
-                                          )
+                                          ) noexcept
     {
-      ASSERT((bool)ioReceiverInfo)
+      ZS_ASSERT((bool)ioReceiverInfo);
 
       if (!muxID.hasData()) return true;
 
@@ -2162,7 +2155,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPListener::setReceiverInfo(ReceiverInfoPtr receiverInfo)
+    void RTPListener::setReceiverInfo(ReceiverInfoPtr receiverInfo) noexcept
     {
       ReceiverObjectMapPtr receivers(make_shared<ReceiverObjectMap>(*mReceivers));
 
@@ -2237,7 +2230,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPListener::processByes(const RTCPPacket &rtcpPacket)
+    void RTPListener::processByes(const RTCPPacket &rtcpPacket) noexcept
     {
       for (auto bye = rtcpPacket.firstBye(); NULL != bye; bye = bye->nextBye()) {
         for (size_t index = 0; index < bye->sc(); ++index) {
@@ -2281,7 +2274,7 @@ namespace ortc
 
                 for (; iterParm != info->mFilledParameters.mEncodings.end(); ++iterParm, ++iterOriginalParams)
                 {
-                  ASSERT(iterOriginalParams != info->mOriginalParameters.mEncodings.end())
+                  ZS_ASSERT(iterOriginalParams != info->mOriginalParameters.mEncodings.end())
                   EncodingParameters &encParams = (*iterParm);
                   EncodingParameters &originalEncParams = (*iterOriginalParams);
 
@@ -2320,7 +2313,7 @@ namespace ortc
 
                 for (; iterParm != info->mFilledParameters.mEncodings.end(); ++iterParm, ++iterOriginalParams)
                 {
-                  ASSERT(iterOriginalParams != info->mOriginalParameters.mEncodings.end())
+                  ZS_ASSERT(iterOriginalParams != info->mOriginalParameters.mEncodings.end());
                   EncodingParameters &encParams = (*iterParm);
                   EncodingParameters &originalEncParams = (*iterOriginalParams);
 
@@ -2359,7 +2352,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPListener::processSDESMid(const RTCPPacket &rtcpPacket)
+    void RTPListener::processSDESMid(const RTCPPacket &rtcpPacket) noexcept
     {
       for (auto sdes = rtcpPacket.firstSDES(); NULL != sdes; sdes = sdes->nextSDES()) {
 
@@ -2374,7 +2367,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPListener::processSenderReports(const RTCPPacket &rtcpPacket)
+    void RTPListener::processSenderReports(const RTCPPacket &rtcpPacket) noexcept
     {
       for (auto sr = rtcpPacket.firstSenderReport(); NULL != sr; sr = sr->nextSenderReport()) {
         String ignoredStr;
@@ -2388,7 +2381,7 @@ namespace ortc
                                          ReceiverInfoPtr replacementInfo,
                                          const EncodingParameters &existing,
                                          EncodingParameters &ioReplacement
-                                         )
+                                         ) noexcept
     {
       // scope: check for codec changes
       {
@@ -2445,8 +2438,9 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPListener::unregisterEncoding(const EncodingParameters &existing)
+    void RTPListener::unregisterEncoding(ZS_MAYBE_USED() const EncodingParameters &existing) noexcept
     {
+      ZS_MAYBE_USED(existing);
     }
 
     //-------------------------------------------------------------------------
@@ -2454,7 +2448,7 @@ namespace ortc
                                                        SSRCType ssrc,
                                                        String &ioMuxID,
                                                        ReceiverInfoPtr &ioReceiverInfo
-                                                       )
+                                                       ) noexcept
     {
       SSRCInfoPtr ssrcInfo;
 
@@ -2528,13 +2522,13 @@ namespace ortc
     }
     
     //-------------------------------------------------------------------------
-    void RTPListener::registerSSRCUsage(SSRCInfoPtr ssrcInfo)
+    void RTPListener::registerSSRCUsage(SSRCInfoPtr ssrcInfo) noexcept
     {
       mRegisteredSSRCs[ssrcInfo->mSSRC] = ssrcInfo;
     }
 
     //-------------------------------------------------------------------------
-    void RTPListener::reattemptDelivery()
+    void RTPListener::reattemptDelivery() noexcept
     {
       if (mReattemptRTPDelivery) return;
       mReattemptRTPDelivery = true;
@@ -2548,7 +2542,7 @@ namespace ortc
                                        IRTPTypes::SSRCType ssrc,
                                        IRTPTypes::PayloadType payloadType,
                                        const Time &tick
-                                       )
+                                       ) noexcept
     {
       UnhandledEventInfo unhandled;
       unhandled.mSSRC = ssrc;
@@ -2584,12 +2578,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPListenerFactory
-    #pragma mark
+    //
+    // IRTPListenerFactory
+    //
 
     //-------------------------------------------------------------------------
-    IRTPListenerFactory &IRTPListenerFactory::singleton()
+    IRTPListenerFactory &IRTPListenerFactory::singleton() noexcept
     {
       return RTPListenerFactory::singleton();
     }
@@ -2599,14 +2593,14 @@ namespace ortc
                                                 IRTPListenerDelegatePtr delegate,
                                                 IRTPTransportPtr transport,
                                                 Optional<HeaderExtensionParametersList> headerExtensions
-                                                )
+                                                ) noexcept(false)
     {
       if (this) {}
       return internal::RTPListener::create(delegate, transport, headerExtensions);
     }
 
     //-------------------------------------------------------------------------
-    RTPListenerPtr IRTPListenerFactory::create(IRTPTransportPtr transport)
+    RTPListenerPtr IRTPListenerFactory::create(IRTPTransportPtr transport) noexcept
     {
       if (this) {}
       return internal::RTPListener::create(transport);
@@ -2619,12 +2613,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IRTPListener
-  #pragma mark
+  //
+  // IRTPListener
+  //
 
   //---------------------------------------------------------------------------
-  ElementPtr IRTPListener::toDebug(IRTPListenerPtr transport)
+  ElementPtr IRTPListener::toDebug(IRTPListenerPtr transport) noexcept
   {
     return internal::RTPListener::toDebug(internal::RTPListener::convert(transport));
   }
@@ -2634,7 +2628,7 @@ namespace ortc
                                        IRTPListenerDelegatePtr delegate,
                                        IRTPTransportPtr transport,
                                        Optional<HeaderExtensionParametersList> headerExtensions
-                                       )
+                                       ) noexcept(false)
   {
     return internal::IRTPListenerFactory::singleton().create(delegate, transport, headerExtensions);
   }

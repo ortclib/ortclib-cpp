@@ -52,9 +52,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaDevicesAsyncDelegate
-    #pragma mark
+    //
+    // IMediaDevicesAsyncDelegate
+    //
 
     interaction IMediaDevicesAsyncDelegate
     {
@@ -73,9 +73,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaDevices
-    #pragma mark
+    //
+    // MediaDevices
+    //
     
     class MediaDevices : public Noop,
                          public MessageQueueAssociator,
@@ -100,7 +100,7 @@ namespace ortc
         State_ShuttingDown,
         State_Shutdown,
       };
-      static const char *toString(States state);
+      static const char *toString(States state) noexcept;
 
       ZS_DECLARE_TYPEDEF_PTR(IMediaDevicesTypes::Constraints, Constraints);
       ZS_DECLARE_TYPEDEF_PTR(IMediaDevicesTypes::PromiseWithDeviceList, PromiseWithDeviceList);
@@ -111,60 +111,60 @@ namespace ortc
       MediaDevices(
                    const make_private &,
                    IMessageQueuePtr queue
-                   );
+                   ) noexcept;
 
     protected:
-      MediaDevices(Noop) :
+      MediaDevices(Noop) noexcept :
         Noop(true),
         MessageQueueAssociator(IMessageQueuePtr()),
         SharedRecursiveLock(SharedRecursiveLock::create())
       {}
 
-      void init();
+      void init() noexcept;
 
-      static MediaDevicesPtr create();
-      static MediaDevicesPtr singleton();
+      static MediaDevicesPtr create() noexcept;
+      static MediaDevicesPtr singleton() noexcept;
 
     public:
-      virtual ~MediaDevices();
+      virtual ~MediaDevices() noexcept;
 
-      static MediaDevicesPtr convert(IMediaDevicesPtr object);
+      static MediaDevicesPtr convert(IMediaDevicesPtr object) noexcept;
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaDevices => IMediaDevices
-      #pragma mark
+      //
+      // MediaDevices => IMediaDevices
+      //
 
-      static ElementPtr singletonToDebug();
+      static ElementPtr singletonToDebug() noexcept;
 
-      static SupportedConstraintsPtr getSupportedConstraints();
+      static SupportedConstraintsPtr getSupportedConstraints() noexcept;
 
-      static PromiseWithDeviceListPtr enumerateDevices();
-      static PromiseWithSettingsListPtr enumerateDefaultModes(const char *deviceID);
+      static PromiseWithDeviceListPtr enumerateDevices() noexcept;
+      static PromiseWithSettingsListPtr enumerateDefaultModes(const char *deviceID) noexcept;
 
-      static PromiseWithMediaStreamTrackListPtr getUserMedia(const Constraints &constraints = Constraints());
+      static PromiseWithMediaStreamTrackListPtr getUserMedia(const Constraints &constraints = Constraints()) noexcept;
 
-      static IMediaDevicesSubscriptionPtr subscribe(IMediaDevicesDelegatePtr delegate);
+      static IMediaDevicesSubscriptionPtr subscribe(IMediaDevicesDelegatePtr delegate) noexcept;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaDevices => IWakeDelegate
-      #pragma mark
+      //
+      // MediaDevices => IWakeDelegate
+      //
 
       void onWake() override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaDevices => ITimerDelegate
-      #pragma mark
+      //
+      // MediaDevices => ITimerDelegate
+      //
 
       void onTimer(ITimerPtr timer) override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaDevices => IMediaDevicesAsyncDelegate
-      #pragma mark
+      //
+      // MediaDevices => IMediaDevicesAsyncDelegate
+      //
 
       void onEnumerateDevices(PromiseWithDeviceListPtr promise) override;
       void onEnumerateDefaultModes(
@@ -175,39 +175,39 @@ namespace ortc
       void onGetUserMedia(PromiseWithMediaStreamTrackListPtr promise, ConstraintsPtr constraints) override;
 
       //---------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MessageQueueManager => ISingletonManagerDelegate
-      #pragma mark
+      //
+      // MessageQueueManager => ISingletonManagerDelegate
+      //
 
-      void notifySingletonCleanup() override;
-
-    protected:
-      //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaDevices => (internal)
-      #pragma mark
-
-      Log::Params log(const char *message) const;
-      static Log::Params slog(const char *message);
-      Log::Params debug(const char *message) const;
-      virtual ElementPtr toDebug() const;
-
-      bool isShuttingDown() const;
-      bool isShutdown() const;
-
-      void step();
-      bool stepBogusDoSomething();
-
-      void cancel();
-
-      void setState(States state);
-      void setError(WORD error, const char *reason = NULL);
+      void notifySingletonCleanup() noexcept override;
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaDevices => (data)
-      #pragma mark
+      //
+      // MediaDevices => (internal)
+      //
+
+      Log::Params log(const char *message) const noexcept;
+      static Log::Params slog(const char *message) noexcept;
+      Log::Params debug(const char *message) const noexcept;
+      virtual ElementPtr toDebug() const noexcept;
+
+      bool isShuttingDown() const noexcept;
+      bool isShutdown() const noexcept;
+
+      void step() noexcept;
+      bool stepBogusDoSomething() noexcept;
+
+      void cancel() noexcept;
+
+      void setState(States state) noexcept;
+      void setError(WORD error, const char *reason = NULL) noexcept;
+
+    protected:
+      //-----------------------------------------------------------------------
+      //
+      // MediaDevices => (data)
+      //
 
       AutoPUID mID;
       MediaDevicesWeakPtr mThisWeak;
@@ -225,9 +225,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaDevicesFactory
-    #pragma mark
+    //
+    // IMediaDevicesFactory
+    //
 
     interaction IMediaDevicesFactory
     {
@@ -237,20 +237,20 @@ namespace ortc
       ZS_DECLARE_TYPEDEF_PTR(IMediaDevicesTypes::PromiseWithMediaStreamTrackList, PromiseWithMediaStreamTrackList);
       ZS_DECLARE_TYPEDEF_PTR(IMediaDevicesTypes::PromiseWithSettingsList, PromiseWithSettingsList);
 
-      static IMediaDevicesFactory &singleton();
+      static IMediaDevicesFactory &singleton() noexcept;
 
-      virtual MediaDevicesPtr create();
+      virtual MediaDevicesPtr create() noexcept;
 
-      virtual ElementPtr singletonToDebug();
+      virtual ElementPtr singletonToDebug() noexcept;
 
-      virtual SupportedConstraintsPtr getSupportedConstraints();
+      virtual SupportedConstraintsPtr getSupportedConstraints() noexcept;
 
-      virtual PromiseWithDeviceListPtr enumerateDevices();
-      virtual PromiseWithSettingsListPtr enumerateDefaultModes(const char *deviceID);
+      virtual PromiseWithDeviceListPtr enumerateDevices() noexcept;
+      virtual PromiseWithSettingsListPtr enumerateDefaultModes(const char *deviceID) noexcept;
 
-      virtual PromiseWithMediaStreamTrackListPtr getUserMedia(const Constraints &constraints = Constraints());
+      virtual PromiseWithMediaStreamTrackListPtr getUserMedia(const Constraints &constraints = Constraints()) noexcept;
 
-      virtual IMediaDevicesSubscriptionPtr subscribe(IMediaDevicesDelegatePtr delegate);
+      virtual IMediaDevicesSubscriptionPtr subscribe(IMediaDevicesDelegatePtr delegate) noexcept;
     };
 
     class MediaDevicesFactory : public IFactory<IMediaDevicesFactory> {};
@@ -261,8 +261,8 @@ ZS_DECLARE_PROXY_BEGIN(ortc::internal::IMediaDevicesAsyncDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IMediaDevicesTypes::ConstraintsPtr, ConstraintsPtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::IMediaDevicesAsyncDelegate::PromiseWithDeviceListPtr, PromiseWithDeviceListPtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::IMediaDevicesAsyncDelegate::PromiseWithMediaStreamTrackListPtr, PromiseWithMediaStreamTrackListPtr)
-ZS_DECLARE_PROXY_METHOD_1(onEnumerateDevices, PromiseWithDeviceListPtr)
-ZS_DECLARE_PROXY_METHOD_2(onEnumerateDefaultModes, PromiseWithSettingsListPtr, const char *)
-ZS_DECLARE_PROXY_METHOD_2(onGetUserMedia, PromiseWithMediaStreamTrackListPtr, ConstraintsPtr)
+ZS_DECLARE_PROXY_METHOD(onEnumerateDevices, PromiseWithDeviceListPtr)
+ZS_DECLARE_PROXY_METHOD(onEnumerateDefaultModes, PromiseWithSettingsListPtr, const char *)
+ZS_DECLARE_PROXY_METHOD(onGetUserMedia, PromiseWithMediaStreamTrackListPtr, ConstraintsPtr)
 ZS_DECLARE_PROXY_END()
 

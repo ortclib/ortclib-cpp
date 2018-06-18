@@ -55,7 +55,7 @@ namespace ortc
 
 
   //-----------------------------------------------------------------------
-  static Log::Params slog(const char *message)
+  static Log::Params slog(const char *message) noexcept
   {
     return Log::Params(message, "ortc::IICETypes");
   }
@@ -64,12 +64,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IICETypes::Roles
-  #pragma mark
+  //
+  // IICETypes::Roles
+  //
 
   //---------------------------------------------------------------------------
-  const char *IICETypes::toString(Roles roles)
+  const char *IICETypes::toString(Roles roles) noexcept
   {
     switch (roles) {
       case Role_Controlling:  return "controlling";
@@ -79,7 +79,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IICETypes::Roles IICETypes::toRole(const char *role) throw (InvalidParameters)
+  IICETypes::Roles IICETypes::toRole(const char *role) noexcept(false)
   {
     String str(role);
     for (IICETypes::Roles index = IICETypes::Role_First; index <= IICETypes::Role_Last; index = static_cast<IICETypes::Roles>(static_cast<std::underlying_type<IICETypes::Roles>::type>(index) + 1)) {
@@ -94,12 +94,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IICETypes::Components
-  #pragma mark
+  //
+  // IICETypes::Components
+  //
 
   //---------------------------------------------------------------------------
-  const char *IICETypes::toString(Components component)
+  const char *IICETypes::toString(Components component) noexcept
   {
     switch (component) {
       case Component_RTP:   return "rtp";
@@ -109,7 +109,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IICETypes::Components IICETypes::toComponent(const char *component) throw (InvalidParameters)
+  IICETypes::Components IICETypes::toComponent(const char *component) noexcept(false)
   {
     String str(component);
     for (IICETypes::Components index = IICETypes::Component_First; index <= IICETypes::Component_Last; index = static_cast<IICETypes::Components>(static_cast<std::underlying_type<IICETypes::Components>::type>(index) + 1)) {
@@ -124,12 +124,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IICETypes::Protocols
-  #pragma mark
+  //
+  // IICETypes::Protocols
+  //
 
   //---------------------------------------------------------------------------
-  const char *IICETypes::toString(Protocols protocol)
+  const char *IICETypes::toString(Protocols protocol) noexcept
   {
     switch (protocol) {
       case Protocol_UDP:  return "udp";
@@ -139,7 +139,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IICETypes::Protocols IICETypes::toProtocol(const char *protocol) throw (InvalidParameters)
+  IICETypes::Protocols IICETypes::toProtocol(const char *protocol) noexcept(false)
   {
     String str(protocol);
     for (IICETypes::Protocols index = IICETypes::Protocol_First; index <= IICETypes::Protocol_Last; index = static_cast<IICETypes::Protocols>(static_cast<std::underlying_type<IICETypes::Protocols>::type>(index) + 1)) {
@@ -154,12 +154,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IICETypes::CandidateTypes
-  #pragma mark
+  //
+  // IICETypes::CandidateTypes
+  //
 
   //---------------------------------------------------------------------------
-  const char *IICETypes::toString(CandidateTypes candidateType)
+  const char *IICETypes::toString(CandidateTypes candidateType) noexcept
   {
     switch (candidateType) {
       case CandidateType_Host:    return "host";
@@ -171,7 +171,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IICETypes::CandidateTypes IICETypes::toCandidateType(const char *candidateType) throw (InvalidParameters)
+  IICETypes::CandidateTypes IICETypes::toCandidateType(const char *candidateType) noexcept(false)
   {
     String str(candidateType);
     for (IICETypes::CandidateTypes index = IICETypes::CandidateType_First; index <= IICETypes::CandidateType_Last; index = static_cast<IICETypes::CandidateTypes>(static_cast<std::underlying_type<IICETypes::CandidateTypes>::type>(index) + 1)) {
@@ -186,12 +186,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IICETypes::TCPCandidateTypes
-  #pragma mark
+  //
+  // IICETypes::TCPCandidateTypes
+  //
 
   //---------------------------------------------------------------------------
-  const char *IICETypes::toString(TCPCandidateTypes protocol)
+  const char *IICETypes::toString(TCPCandidateTypes protocol) noexcept
   {
     switch (protocol) {
       case TCPCandidateType_Active:   return "active";
@@ -202,7 +202,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IICETypes::TCPCandidateTypes IICETypes::toTCPCandidateType(const char *tcpCandidateType) throw (InvalidParameters)
+  IICETypes::TCPCandidateTypes IICETypes::toTCPCandidateType(const char *tcpCandidateType) noexcept(false)
   {
     String str(tcpCandidateType);
     for (IICETypes::TCPCandidateTypes index = IICETypes::TCPCandidateType_First; index <= IICETypes::TCPCandidateType_Last; index = static_cast<IICETypes::TCPCandidateTypes>(static_cast<std::underlying_type<IICETypes::TCPCandidateTypes>::type>(index) + 1)) {
@@ -217,12 +217,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IICETypes::GatherCandidate
-  #pragma mark
+  //
+  // IICETypes::GatherCandidate
+  //
 
   //---------------------------------------------------------------------------
-  IICETypes::GatherCandidatePtr IICETypes::GatherCandidate::create(ElementPtr elem)
+  IICETypes::GatherCandidatePtr IICETypes::GatherCandidate::create(ElementPtr elem) noexcept
   {
     if (!elem) return GatherCandidatePtr();
 
@@ -242,34 +242,34 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IICETypes::Candidate
-  #pragma mark
+  //
+  // IICETypes::Candidate
+  //
 
   //---------------------------------------------------------------------------
-  IICETypes::Candidate::Candidate()
+  IICETypes::Candidate::Candidate() noexcept
   {
   }
 
   //---------------------------------------------------------------------------
-  IICETypes::Candidate::Candidate(const Candidate &op2)
+  IICETypes::Candidate::Candidate(const Candidate &op2) noexcept
   {
     (*this) = op2;
   }
 
   //---------------------------------------------------------------------------
-  IICETypes::Candidate::~Candidate()
+  IICETypes::Candidate::~Candidate() noexcept
   {
   }
 
   //---------------------------------------------------------------------------
-  IICETypes::CandidatePtr IICETypes::Candidate::convert(GatherCandidatePtr candidate)
+  IICETypes::CandidatePtr IICETypes::Candidate::convert(GatherCandidatePtr candidate) noexcept
   {
     return ZS_DYNAMIC_PTR_CAST(Candidate, candidate);
   }
 
   //---------------------------------------------------------------------------
-  IICETypes::Candidate::Candidate(ElementPtr elem)
+  IICETypes::Candidate::Candidate(ElementPtr elem) noexcept
   {
     if (!elem) return;
 
@@ -339,7 +339,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IICETypes::Candidate::createElement(const char *objectName) const
+  ElementPtr IICETypes::Candidate::createElement(const char *objectName) const noexcept
   {
     if (NULL == objectName) objectName = "candidate";
     ElementPtr elem = Element::create(objectName);
@@ -363,13 +363,13 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IICETypes::Candidate::toDebug() const
+  ElementPtr IICETypes::Candidate::toDebug() const noexcept
   {
     return createElement("ortc::IICETypes::Candidate");
   }
 
   //---------------------------------------------------------------------------
-  String IICETypes::Candidate::hash(bool includePriorities) const
+  String IICETypes::Candidate::hash(bool includePriorities) const noexcept
   {
     auto hasher = IHasher::sha1();
 
@@ -406,7 +406,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IPAddress IICETypes::Candidate::ip() const
+  IPAddress IICETypes::Candidate::ip() const noexcept
   {
     if (mIP.isEmpty()) return IPAddress();
     IPAddress ip(mIP, mPort);
@@ -414,7 +414,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IPAddress IICETypes::Candidate::relatedIP() const
+  IPAddress IICETypes::Candidate::relatedIP() const noexcept
   {
     if (mRelatedAddress.isEmpty()) return IPAddress();
     IPAddress ip(mRelatedAddress, mRelatedPort);
@@ -425,7 +425,7 @@ namespace ortc
   String IICETypes::Candidate::foundation(
                                           const char *relatedServerURL,
                                           const char *baseIP
-                                          ) const
+                                          ) const noexcept
   {
     if (mFoundation.hasData()) return mFoundation;
 
@@ -465,18 +465,18 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IICETypes::Candidate
-  #pragma mark
+  //
+  // IICETypes::Candidate
+  //
 
   //---------------------------------------------------------------------------
-  IICETypes::CandidateCompletePtr IICETypes::CandidateComplete::convert(GatherCandidatePtr candidate)
+  IICETypes::CandidateCompletePtr IICETypes::CandidateComplete::convert(GatherCandidatePtr candidate) noexcept
   {
     return ZS_DYNAMIC_PTR_CAST(CandidateComplete, candidate);
   }
 
   //---------------------------------------------------------------------------
-  IICETypes::CandidateComplete::CandidateComplete(ElementPtr elem)
+  IICETypes::CandidateComplete::CandidateComplete(ElementPtr elem) noexcept
   {
     if (!elem) return;
 
@@ -502,7 +502,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IICETypes::CandidateComplete::createElement(const char *objectName) const
+  ElementPtr IICETypes::CandidateComplete::createElement(const char *objectName) const noexcept
   {
     if (NULL == objectName) objectName = "candidateComplete";
 
@@ -517,13 +517,13 @@ namespace ortc
   }
   
   //---------------------------------------------------------------------------
-  ElementPtr IICETypes::CandidateComplete::toDebug() const
+  ElementPtr IICETypes::CandidateComplete::toDebug() const noexcept
   {
     return createElement("ortc::IICETypes::CandidateComplete");
   }
 
   //---------------------------------------------------------------------------
-  String IICETypes::CandidateComplete::hash() const
+  String IICETypes::CandidateComplete::hash() const noexcept
   {
     auto hasher = IHasher::sha1();
 
@@ -539,12 +539,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IICETypes::Parameters
-  #pragma mark
+  //
+  // IICETypes::Parameters
+  //
 
   //---------------------------------------------------------------------------
-  IICETypes::Parameters::Parameters(ElementPtr elem)
+  IICETypes::Parameters::Parameters(ElementPtr elem) noexcept
   {
     if (!elem) return;
 
@@ -555,7 +555,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IICETypes::Parameters::createElement(const char *objectName) const
+  ElementPtr IICETypes::Parameters::createElement(const char *objectName) const noexcept
   {
     ElementPtr elem = Element::create(objectName);
 
@@ -570,13 +570,13 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IICETypes::Parameters::toDebug() const
+  ElementPtr IICETypes::Parameters::toDebug() const noexcept
   {
     return createElement("ortc::IICETypes::Parameters");
   }
 
   //---------------------------------------------------------------------------
-  String IICETypes::Parameters::hash() const
+  String IICETypes::Parameters::hash() const noexcept
   {
     auto hasher = IHasher::sha1();
 

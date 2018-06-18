@@ -41,9 +41,9 @@ namespace ortc
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark RTCPPacket
-  #pragma mark
+  //
+  // RTCPPacket
+  //
 
   class RTCPPacket
   {
@@ -55,24 +55,24 @@ namespace ortc
 
   public:
     //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTCPPacket::Report
-    #pragma mark
+    //
+    // RTCPPacket::Report
+    //
 
     struct Report
     {
-      Report *next() const            {return mNext;}
+      Report *next() const noexcept           {return mNext;}
 
-      const BYTE *ptr() const         {return mPtr;}
-      size_t size() const             {return mSize;}
+      const BYTE *ptr() const noexcept        {return mPtr;}
+      size_t size() const noexcept            {return mSize;}
 
-      BYTE version() const            {return mVersion;}
-      size_t padding() const          {return static_cast<size_t>(mPadding);}
-      BYTE reportSpecific() const     {return mReportSpecific;}
+      BYTE version() const noexcept           {return mVersion;}
+      size_t padding() const noexcept         {return static_cast<size_t>(mPadding);}
+      BYTE reportSpecific() const noexcept    {return mReportSpecific;}
 
-      BYTE pt() const                 {return mPT;}
-      static const char *ptToString(BYTE pt);
-      const char *ptToString() const  {return ptToString(mPT);}
+      BYTE pt() const noexcept                {return mPT;}
+      static const char *ptToString(BYTE pt) noexcept;
+      const char *ptToString() const noexcept {return ptToString(mPT);}
 
     public:
       Report *mNext {};
@@ -88,28 +88,28 @@ namespace ortc
     };
 
     //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTCPPacket::SenderReceiverCommonReport
-    #pragma mark
+    //
+    // RTCPPacket::SenderReceiverCommonReport
+    //
 
     struct SenderReceiverCommonReport : public Report
     {
       //---------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTCPPacket::SenderReceiverCommonReport::ReportBlock
-      #pragma mark
+      //
+      // RTCPPacket::SenderReceiverCommonReport::ReportBlock
+      //
 
       struct ReportBlock
       {
-        ReportBlock *next() const                           {return mNext;}
+        ReportBlock *next() const noexcept                            {return mNext;}
 
-        DWORD ssrc() const                                  {return mSSRC;}
-        BYTE fractionLost() const                           {return mFractionLost;}
-        DWORD cumulativeNumberOfPacketsLost() const         {return mCumulativeNumberOfPacketsLost;}
-        DWORD extendedHighestSequenceNumberReceived() const {return mExtendedHighestSequenceNumberReceived;}
-        DWORD interarrivalJitter() const                    {return mInterarrivalJitter;}
-        DWORD lsr() const                                   {return mLSR;}
-        DWORD dlsr() const                                  {return mDLSR;}
+        DWORD ssrc() const noexcept                                   {return mSSRC;}
+        BYTE fractionLost() const noexcept                            {return mFractionLost;}
+        DWORD cumulativeNumberOfPacketsLost() const noexcept          {return mCumulativeNumberOfPacketsLost;}
+        DWORD extendedHighestSequenceNumberReceived() const noexcept  {return mExtendedHighestSequenceNumberReceived;}
+        DWORD interarrivalJitter() const noexcept                     {return mInterarrivalJitter;}
+        DWORD lsr() const noexcept                                    {return mLSR;}
+        DWORD dlsr() const noexcept                                   {return mDLSR;}
 
       public:
         ReportBlock *mNext {};
@@ -124,17 +124,17 @@ namespace ortc
       };
 
       //---------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTCPPacket::SenderReceiverCommonReport (public)
-      #pragma mark
+      //
+      // RTCPPacket::SenderReceiverCommonReport (public)
+      //
 
-      size_t rc() const                       {return static_cast<size_t>(mReportSpecific);}
-      DWORD ssrcOfSender() const              {return mSSRCOfSender;}
+      size_t rc() const noexcept                      {return static_cast<size_t>(mReportSpecific);}
+      DWORD ssrcOfSender() const noexcept             {return mSSRCOfSender;}
 
-      ReportBlock *firstReportBlock() const   {return mFirstReportBlock;}
+      ReportBlock *firstReportBlock() const noexcept  {return mFirstReportBlock;}
 
-      const BYTE *extension() const           {return mExtension;}
-      size_t extensionSize() const            {return mExtensionSize;}
+      const BYTE *extension() const noexcept          {return mExtension;}
+      size_t extensionSize() const noexcept           {return mExtensionSize;}
 
     public:
       DWORD mSSRCOfSender {};
@@ -146,9 +146,9 @@ namespace ortc
     };
 
     //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTCPPacket::SenderReport
-    #pragma mark
+    //
+    // RTCPPacket::SenderReport
+    //
 
     struct SenderReport : public SenderReceiverCommonReport
     {
@@ -156,14 +156,14 @@ namespace ortc
 
       static const BYTE kPayloadType {200};
 
-      SenderReport *nextSenderReport() const  {return mNextSenderReport;}
+      SenderReport *nextSenderReport() const noexcept {return mNextSenderReport;}
 
-      DWORD ntpTimestampMS() const            {return mNTPTimestampMS;}
-      DWORD ntpTimestampLS() const            {return mNTPTimestampLS;}
-      Time ntpTimestamp() const;
-      DWORD rtpTimestamp() const              {return mRTPTimestamp;}
-      DWORD senderPacketCount() const         {return mSenderPacketCount;}
-      DWORD senderOctetCount() const          {return mSenderOctetCount;}
+      DWORD ntpTimestampMS() const noexcept           {return mNTPTimestampMS;}
+      DWORD ntpTimestampLS() const noexcept           {return mNTPTimestampLS;}
+      Time ntpTimestamp() const noexcept;
+      DWORD rtpTimestamp() const noexcept             {return mRTPTimestamp;}
+      DWORD senderPacketCount() const noexcept        {return mSenderPacketCount;}
+      DWORD senderOctetCount() const noexcept         {return mSenderOctetCount;}
 
     public:
       SenderReport *mNextSenderReport {};
@@ -176,9 +176,9 @@ namespace ortc
     };
 
     //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTCPPacket::ReceiverReport
-    #pragma mark
+    //
+    // RTCPPacket::ReceiverReport
+    //
 
     struct ReceiverReport : public SenderReceiverCommonReport
     {
@@ -186,27 +186,27 @@ namespace ortc
 
       static const BYTE kPayloadType {201};
 
-      ReceiverReport *nextReceiverReport() const  {return mNextReceiverReport;}
+      ReceiverReport *nextReceiverReport() const noexcept {return mNextReceiverReport;}
 
-      DWORD ssrcOfPacketSender() const            {return mSSRCOfSender;}
+      DWORD ssrcOfPacketSender() const noexcept           {return mSSRCOfSender;}
 
     public:
       ReceiverReport *mNextReceiverReport {};
     };
 
     //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTCPPacket::SDES
-    #pragma mark
+    //
+    // RTCPPacket::SDES
+    //
 
     struct SDES : public Report
     {
       // https://tools.ietf.org/html/rfc3550#section-6.5
 
       //---------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTCPPacket::SDES::Chunk
-      #pragma mark
+      //
+      // RTCPPacket::SDES::Chunk
+      //
 
       struct Chunk
       {
@@ -214,12 +214,12 @@ namespace ortc
 
         struct StringItem
         {
-          BYTE type() const                 {return mType;}
-          size_t length() const             {return mLength;}
-          const char *value() const         {return mValue;}
+          BYTE type() const noexcept                {return mType;}
+          size_t length() const noexcept            {return mLength;}
+          const char *value() const noexcept        {return mValue;}
 
-          static const char *typeToString(BYTE type);
-          const char *typeToString() const  {return typeToString(mType);}
+          static const char *typeToString(BYTE type) noexcept;
+          const char *typeToString() const noexcept {return typeToString(mType);}
 
         public:
           StringItem *mNext {};
@@ -230,9 +230,9 @@ namespace ortc
         };
 
         //-------------------------------------------------------------------
-        #pragma mark
-        #pragma mark RTCPPacket::SDES::Chunk::CName
-        #pragma mark
+        //
+        // RTCPPacket::SDES::Chunk::CName
+        //
 
         struct CName : public StringItem
         {
@@ -240,15 +240,15 @@ namespace ortc
 
           static const BYTE kItemType = 1;
 
-          CName *next() const                               {return static_cast<CName *>(mNext);}
+          CName *next() const noexcept                              {return static_cast<CName *>(mNext);}
 
-          const char *userAndDomainName() const             {return value();}
+          const char *userAndDomainName() const noexcept            {return value();}
         };
 
         //-------------------------------------------------------------------
-        #pragma mark
-        #pragma mark RTCPPacket::SDES::Chunk::Name
-        #pragma mark
+        //
+        // RTCPPacket::SDES::Chunk::Name
+        //
 
         struct Name : public StringItem
         {
@@ -256,15 +256,15 @@ namespace ortc
 
           static const BYTE kItemType = 2;
 
-          Name *next() const                                {return static_cast<Name *>(mNext);}
+          Name *next() const noexcept                               {return static_cast<Name *>(mNext);}
 
-          const char *commonName() const                    {return value();}
+          const char *commonName() const noexcept                   {return value();}
         };
 
         //-------------------------------------------------------------------
-        #pragma mark
-        #pragma mark RTCPPacket::SDES::Chunk::Email
-        #pragma mark
+        //
+        // RTCPPacket::SDES::Chunk::Email
+        //
 
         struct Email : public StringItem
         {
@@ -272,15 +272,15 @@ namespace ortc
 
           static const BYTE kItemType = 3;
 
-          Email *next() const                               {return static_cast<Email *>(mNext);}
+          Email *next() const noexcept                              {return static_cast<Email *>(mNext);}
 
-          const char *emailAddress() const                  {return value();}
+          const char *emailAddress() const noexcept                 {return value();}
         };
 
         //-------------------------------------------------------------------
-        #pragma mark
-        #pragma mark RTCPPacket::SDES::Chunk::Phone
-        #pragma mark
+        //
+        // RTCPPacket::SDES::Chunk::Phone
+        //
 
         struct Phone : public StringItem
         {
@@ -288,15 +288,15 @@ namespace ortc
 
           static const BYTE kItemType = 4;
 
-          Phone *next() const                               {return static_cast<Phone *>(mNext);}
+          Phone *next() const noexcept                              {return static_cast<Phone *>(mNext);}
 
-          const char *phoneNumber() const                   {return value();}
+          const char *phoneNumber() const noexcept                  {return value();}
         };
 
         //-------------------------------------------------------------------
-        #pragma mark
-        #pragma mark RTCPPacket::SDES::Chunk::Loc
-        #pragma mark
+        //
+        // RTCPPacket::SDES::Chunk::Loc
+        //
 
         struct Loc : public StringItem
         {
@@ -304,15 +304,15 @@ namespace ortc
 
           static const BYTE kItemType = 5;
 
-          Loc *next() const                                 {return static_cast<Loc *>(mNext);}
+          Loc *next() const noexcept                                {return static_cast<Loc *>(mNext);}
 
-          const char *geographicLocation() const            {return value();}
+          const char *geographicLocation() const noexcept           {return value();}
         };
 
         //-------------------------------------------------------------------
-        #pragma mark
-        #pragma mark RTCPPacket::SDES::Chunk::Tool
-        #pragma mark
+        //
+        // RTCPPacket::SDES::Chunk::Tool
+        //
 
         struct Tool : public StringItem
         {
@@ -320,15 +320,15 @@ namespace ortc
 
           static const BYTE kItemType = 6;
 
-          Tool *next() const                                {return static_cast<Tool *>(mNext);}
+          Tool *next() const noexcept                               {return static_cast<Tool *>(mNext);}
 
-          const char *nameVersion() const                   {return value();}
+          const char *nameVersion() const noexcept                  {return value();}
         };
 
         //-------------------------------------------------------------------
-        #pragma mark
-        #pragma mark RTCPPacket::SDES::Chunk::Note
-        #pragma mark
+        //
+        // RTCPPacket::SDES::Chunk::Note
+        //
 
         struct Note : public StringItem
         {
@@ -336,15 +336,15 @@ namespace ortc
 
           static const BYTE kItemType = 7;
 
-          Note *next() const                                {return static_cast<Note *>(mNext);}
+          Note *next() const noexcept                               {return static_cast<Note *>(mNext);}
 
-          const char *note() const                          {return value();}
+          const char *note() const noexcept                         {return value();}
         };
 
         //-------------------------------------------------------------------
-        #pragma mark
-        #pragma mark RTCPPacket::SDES::Chunk::Priv
-        #pragma mark
+        //
+        // RTCPPacket::SDES::Chunk::Priv
+        //
 
         struct Priv : public StringItem
         {
@@ -352,10 +352,10 @@ namespace ortc
 
           static const BYTE kItemType = 8;
 
-          Priv *next() const                                {return static_cast<Priv *>(mNext);}
+          Priv *next() const noexcept                               {return static_cast<Priv *>(mNext);}
 
-          size_t prefixLength() const                       {return mPrefixLength;}
-          const char *prefix() const                        {return mPrefix;}
+          size_t prefixLength() const noexcept                      {return mPrefixLength;}
+          const char *prefix() const noexcept                       {return mPrefix;}
 
         public:
           size_t mPrefixLength {};
@@ -363,94 +363,94 @@ namespace ortc
         };
 
         //-------------------------------------------------------------------
-        #pragma mark
-        #pragma mark RTCPPacket::SDES::Chunk::Unknown
-        #pragma mark
+        //
+        // RTCPPacket::SDES::Chunk::Unknown
+        //
 
         struct Unknown : public StringItem
         {
-          Unknown *next() const                             {return static_cast<Unknown *>(mNext);}
+          Unknown *next() const noexcept                            {return static_cast<Unknown *>(mNext);}
 
-          const BYTE *ptr() const                           {return reinterpret_cast<const BYTE *>(value());}
-          size_t size() const                               {return length();}
+          const BYTE *ptr() const noexcept                          {return reinterpret_cast<const BYTE *>(value());}
+          size_t size() const noexcept                              {return length();}
         };
 
         //-------------------------------------------------------------------
-        #pragma mark
-        #pragma mark RTCPPacket::SDES::Chunk::Mid
-        #pragma mark
+        //
+        // RTCPPacket::SDES::Chunk::Mid
+        //
 
         struct Mid : public StringItem
         {
           // https://tools.ietf.org/html/draft-ietf-mmusic-sdp-bundle-negotiation-23#section-14.2
           static const BYTE kItemType = 12;  // TBD
 
-          Mid *next() const                                {return static_cast<Mid *>(mNext);}
+          Mid *next() const noexcept                               {return static_cast<Mid *>(mNext);}
 
-          const char *mid() const                          {return value();}
+          const char *mid() const noexcept                         {return value();}
         };
 
         //-------------------------------------------------------------------
-        #pragma mark
-        #pragma mark RTCPPacket::SDES::Chunk::Rid
-        #pragma mark
+        //
+        // RTCPPacket::SDES::Chunk::Rid
+        //
 
         struct Rid : public StringItem
         {
           // https://tools.ietf.org/html/draft-roach-avtext-rid-02#section-4.1
           static const BYTE kItemType = 13;  // TBD
 
-          Rid *next() const                                {return static_cast<Rid *>(mNext);}
+          Rid *next() const noexcept                               {return static_cast<Rid *>(mNext);}
 
-          const char *rid() const                          {return value();}
+          const char *rid() const noexcept                         {return value();}
         };
 
         //-------------------------------------------------------------------
-        #pragma mark
-        #pragma mark RTCPPacket::SDES::Chunk
-        #pragma mark
+        //
+        // RTCPPacket::SDES::Chunk
+        //
 
-        Chunk *next() const                                 {return mNext;}
+        Chunk *next() const noexcept                                {return mNext;}
 
-        DWORD ssrc() const                                  {return mSSRC;}
+        DWORD ssrc() const noexcept                                 {return mSSRC;}
 
-        size_t count() const                                {return mCount;}
+        size_t count() const noexcept                               {return mCount;}
 
-        CName *firstCName() const                           {return mFirstCName;}
-        Name *firstName() const                             {return mFirstName;}
-        Email *firstEmail() const                           {return mFirstEmail;}
-        Phone *firstPhone() const                           {return mFirstPhone;}
-        Loc *firstLoc() const                               {return mFirstLoc;}
-        Tool *firstTool() const                             {return mFirstTool;}
-        Note *firstNote() const                             {return mFirstNote;}
-        Priv *firstPriv() const                             {return mFirstPriv;}
-        Mid *firstMid() const                               {return mFirstMid;}
-        Rid *firstRid() const                               {return mFirstRid;}
-        Unknown *firstUnknown() const                       {return mFirstUnknown;}
+        CName *firstCName() const noexcept                          {return mFirstCName;}
+        Name *firstName() const noexcept                            {return mFirstName;}
+        Email *firstEmail() const noexcept                          {return mFirstEmail;}
+        Phone *firstPhone() const noexcept                          {return mFirstPhone;}
+        Loc *firstLoc() const noexcept                              {return mFirstLoc;}
+        Tool *firstTool() const noexcept                            {return mFirstTool;}
+        Note *firstNote() const noexcept                            {return mFirstNote;}
+        Priv *firstPriv() const noexcept                            {return mFirstPriv;}
+        Mid *firstMid() const noexcept                              {return mFirstMid;}
+        Rid *firstRid() const noexcept                              {return mFirstRid;}
+        Unknown *firstUnknown() const noexcept                      {return mFirstUnknown;}
 
-        size_t cNameCount() const                           {return mCNameCount;}
-        size_t nameCount() const                            {return mNameCount;}
-        size_t emailCount() const                           {return mEmailCount;}
-        size_t phoneCount() const                           {return mPhoneCount;}
-        size_t locCount() const                             {return mLocCount;}
-        size_t toolCount() const                            {return mToolCount;}
-        size_t noteCount() const                            {return mNoteCount;}
-        size_t privCount() const                            {return mPrivCount;}
-        size_t midCount() const                             {return mMidCount;}
-        size_t ridCount() const                             {return mRidCount;}
-        size_t unknownCount() const                         {return mUnknownCount;}
+        size_t cNameCount() const noexcept                          {return mCNameCount;}
+        size_t nameCount() const noexcept                           {return mNameCount;}
+        size_t emailCount() const noexcept                          {return mEmailCount;}
+        size_t phoneCount() const noexcept                          {return mPhoneCount;}
+        size_t locCount() const noexcept                            {return mLocCount;}
+        size_t toolCount() const noexcept                           {return mToolCount;}
+        size_t noteCount() const noexcept                           {return mNoteCount;}
+        size_t privCount() const noexcept                           {return mPrivCount;}
+        size_t midCount() const noexcept                            {return mMidCount;}
+        size_t ridCount() const noexcept                            {return mRidCount;}
+        size_t unknownCount() const noexcept                        {return mUnknownCount;}
 
-        CName *cNameAtIndex(size_t index) const;
-        Name *nameAtIndex(size_t index) const;
-        Email *emailAtIndex(size_t index) const;
-        Phone *phoneAtIndex(size_t index) const;
-        Loc *locAtIndex(size_t index) const;
-        Tool *toolAtIndex(size_t index) const;
-        Note *noteAtIndex(size_t index) const;
-        Priv *privAtIndex(size_t index) const;
-        Mid *midAtIndex(size_t index) const;
-        Rid *ridAtIndex(size_t index) const;
-        Unknown *unknownAtIndex(size_t index) const;
+        CName *cNameAtIndex(size_t index) const noexcept;
+        Name *nameAtIndex(size_t index) const noexcept;
+        Email *emailAtIndex(size_t index) const noexcept;
+        Phone *phoneAtIndex(size_t index) const noexcept;
+        Loc *locAtIndex(size_t index) const noexcept;
+        Tool *toolAtIndex(size_t index) const noexcept;
+        Note *noteAtIndex(size_t index) const noexcept;
+        Priv *privAtIndex(size_t index) const noexcept;
+        Mid *midAtIndex(size_t index) const noexcept;
+        Rid *ridAtIndex(size_t index) const noexcept;
+        Unknown *unknownAtIndex(size_t index) const noexcept;
 
       public:
         Chunk *mNext {};
@@ -486,11 +486,11 @@ namespace ortc
 
       static const BYTE kPayloadType {202};
 
-      SDES *nextSDES() const                  {return mNextSDES;}
+      SDES *nextSDES() const noexcept                 {return mNextSDES;}
 
-      size_t sc() const                       {return static_cast<size_t>(mReportSpecific);}
+      size_t sc() const noexcept                      {return static_cast<size_t>(mReportSpecific);}
 
-      Chunk *firstChunk() const               {return mFirstChunk;}
+      Chunk *firstChunk() const noexcept              {return mFirstChunk;}
 
     public:
       SDES *mNextSDES {};
@@ -499,9 +499,9 @@ namespace ortc
     };
 
     //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTCPPacket::Bye
-    #pragma mark
+    //
+    // RTCPPacket::Bye
+    //
 
     struct Bye : public Report
     {
@@ -509,13 +509,13 @@ namespace ortc
 
       static const BYTE kPayloadType {203};
 
-      Bye *nextBye() const                    {return mNextBye;}
+      Bye *nextBye() const noexcept                   {return mNextBye;}
 
-      size_t sc() const                       {return static_cast<size_t>(mReportSpecific);}
+      size_t sc() const noexcept                      {return static_cast<size_t>(mReportSpecific);}
 
-      DWORD ssrc(size_t index) const;
+      DWORD ssrc(size_t index) const noexcept;
 
-      const char *reasonForLeaving() const    {return mReasonForLeaving;}
+      const char *reasonForLeaving() const noexcept   {return mReasonForLeaving;}
 
     public:
       Bye *mNextBye {};
@@ -526,9 +526,9 @@ namespace ortc
     };
 
     //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTCPPacket::App
-    #pragma mark
+    //
+    // RTCPPacket::App
+    //
 
     struct App : public Report
     {
@@ -536,15 +536,15 @@ namespace ortc
 
       static const BYTE kPayloadType {204};
 
-      App *nextApp() const                    {return mNextApp;}
+      App *nextApp() const noexcept                   {return mNextApp;}
 
-      BYTE subtype() const                    {return mReportSpecific;}
+      BYTE subtype() const noexcept                   {return mReportSpecific;}
 
-      DWORD ssrc() const                      {return mSSRC;}
-      const char *name() const                {return &(mName[0]);}
+      DWORD ssrc() const noexcept                     {return mSSRC;}
+      const char *name() const noexcept               {return &(mName[0]);}
 
-      const BYTE *data() const                {return mData;}
-      size_t dataSize() const                 {return mDataSize;}
+      const BYTE *data() const noexcept               {return mData;}
+      size_t dataSize() const noexcept                {return mDataSize;}
 
     public:
       App *mNextApp {};
@@ -557,24 +557,24 @@ namespace ortc
     };
 
     //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTCPPacket::FeedbackMessage
-    #pragma mark
+    //
+    // RTCPPacket::FeedbackMessage
+    //
 
     struct FeedbackMessage : public Report
     {
       // https://tools.ietf.org/html/rfc4585#section-6.1
 
-      BYTE fmt() const                                        {return mReportSpecific;}
+      BYTE fmt() const noexcept                                       {return mReportSpecific;}
 
-      DWORD ssrcOfPacketSender() const                        {return mSSRCOfPacketSender;}
-      DWORD ssrcOfMediaSource() const                         {return mSSRCOfMediaSource;}
+      DWORD ssrcOfPacketSender() const noexcept                       {return mSSRCOfPacketSender;}
+      DWORD ssrcOfMediaSource() const noexcept                        {return mSSRCOfMediaSource;}
 
-      const BYTE *fci() const                                 {return mFCI;}
-      size_t fciSize() const                                  {return mFCISize;}
+      const BYTE *fci() const noexcept                                {return mFCI;}
+      size_t fciSize() const noexcept                                 {return mFCISize;}
 
-      static const char *fmtToString(BYTE pt, BYTE fmt, DWORD subFmt = 0);
-      const char *fmtToString() const;
+      static const char *fmtToString(BYTE pt, BYTE fmt, DWORD subFmt = 0) noexcept;
+      const char *fmtToString() const noexcept;
 
     public:
       DWORD mSSRCOfPacketSender {};
@@ -585,18 +585,18 @@ namespace ortc
     };
 
     //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTCPPacket::TransportLayerFeedbackMessage
-    #pragma mark
+    //
+    // RTCPPacket::TransportLayerFeedbackMessage
+    //
 
     struct TransportLayerFeedbackMessage : public FeedbackMessage
     {
       // https://tools.ietf.org/html/rfc4585#section-6.2
 
       //---------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTCPPacket::TransportLayerFeedbackMessage::GenericNACK
-      #pragma mark
+      //
+      // RTCPPacket::TransportLayerFeedbackMessage::GenericNACK
+      //
 
       struct GenericNACK
       {
@@ -604,8 +604,8 @@ namespace ortc
 
         static const BYTE kFmt {1};
 
-        WORD pid() const                                      {return mPID;}
-        WORD blp() const                                      {return mBLP;}
+        WORD pid() const noexcept                                     {return mPID;}
+        WORD blp() const noexcept                                     {return mBLP;}
 
       public:
         WORD mPID {};
@@ -613,17 +613,17 @@ namespace ortc
       };
 
       //---------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTCPPacket::TransportLayerFeedbackMessage::TMMBRCommon
-      #pragma mark
+      //
+      // RTCPPacket::TransportLayerFeedbackMessage::TMMBRCommon
+      //
 
       struct TMMBRCommon
       {
-        DWORD ssrc() const                                    {return mSSRC;}
+        DWORD ssrc() const noexcept                                   {return mSSRC;}
 
-        BYTE mxTBRExp() const                                 {return mMxTBRExp;}
-        DWORD mxTBRMantissa() const                           {return mMxTBRMantissa;}
-        WORD measuredOverhead() const                         {return mMeasuredOverhead;}
+        BYTE mxTBRExp() const noexcept                                {return mMxTBRExp;}
+        DWORD mxTBRMantissa() const noexcept                          {return mMxTBRMantissa;}
+        WORD measuredOverhead() const noexcept                        {return mMeasuredOverhead;}
 
       public:
         DWORD mSSRC {};
@@ -634,9 +634,9 @@ namespace ortc
       };
 
       //---------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTCPPacket::TransportLayerFeedbackMessage::TMMBR
-      #pragma mark
+      //
+      // RTCPPacket::TransportLayerFeedbackMessage::TMMBR
+      //
 
       struct TMMBR : public TMMBRCommon
       {
@@ -648,9 +648,9 @@ namespace ortc
       };
 
       //---------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTCPPacket::TransportLayerFeedbackMessage::TMMBN
-      #pragma mark
+      //
+      // RTCPPacket::TransportLayerFeedbackMessage::TMMBN
+      //
 
       struct TMMBN : public TMMBRCommon
       {
@@ -662,24 +662,24 @@ namespace ortc
       };
 
       //---------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTCPPacket::TransportLayerFeedbackMessage (public)
-      #pragma mark
+      //
+      // RTCPPacket::TransportLayerFeedbackMessage (public)
+      //
 
       static const BYTE kPayloadType {205};
 
       TransportLayerFeedbackMessage *nextTransportLayerFeedbackMessage() const  {return mNextTransportLayerFeedbackMessage;}
 
-      size_t genericNACKCount() const                         {return mGenericNACKCount;}
-      GenericNACK *genericNACKAtIndex(size_t index) const;
+      size_t genericNACKCount() const noexcept                        {return mGenericNACKCount;}
+      GenericNACK *genericNACKAtIndex(size_t index) const noexcept;
 
-      size_t tmmbrCount() const                               {return mTMMBRCount;}
-      TMMBR *tmmbrAtIndex(size_t index) const;
+      size_t tmmbrCount() const noexcept                              {return mTMMBRCount;}
+      TMMBR *tmmbrAtIndex(size_t index) const noexcept;
 
-      size_t tmmbnCount() const                               {return mTMMBNCount;}
-      TMMBN *tmmbnAtIndex(size_t index) const;
+      size_t tmmbnCount() const noexcept                              {return mTMMBNCount;}
+      TMMBN *tmmbnAtIndex(size_t index) const noexcept;
 
-      TransportLayerFeedbackMessage *unknown() const          {return mUnknown;}
+      TransportLayerFeedbackMessage *unknown() const noexcept         {return mUnknown;}
 
     public:
       TransportLayerFeedbackMessage *mNextTransportLayerFeedbackMessage {};
@@ -697,18 +697,18 @@ namespace ortc
     };
 
     //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTCPPacket::PayloadSpecificFeedbackMessage
-    #pragma mark
+    //
+    // RTCPPacket::PayloadSpecificFeedbackMessage
+    //
 
     struct PayloadSpecificFeedbackMessage : public FeedbackMessage
     {
       // https://tools.ietf.org/html/rfc4585#section-6.3
 
       //---------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTCPPacket::PayloadSpecificFeedbackMessage::PLI
-      #pragma mark
+      //
+      // RTCPPacket::PayloadSpecificFeedbackMessage::PLI
+      //
 
       struct PLI
       {
@@ -719,9 +719,9 @@ namespace ortc
       };
 
       //---------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTCPPacket::PayloadSpecificFeedbackMessage::SLI
-      #pragma mark
+      //
+      // RTCPPacket::PayloadSpecificFeedbackMessage::SLI
+      //
 
       struct SLI
       {
@@ -729,9 +729,9 @@ namespace ortc
 
         static const BYTE kFmt {2};
 
-        WORD first() const                        {return mFirst;}
-        WORD number() const                       {return mNumber;}
-        BYTE pictureID() const                    {return mPictureID;}
+        WORD first() const noexcept                       {return mFirst;}
+        WORD number() const noexcept                      {return mNumber;}
+        BYTE pictureID() const noexcept                   {return mPictureID;}
 
       public:
         WORD mFirst {};
@@ -740,9 +740,9 @@ namespace ortc
       };
 
       //---------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTCPPacket::PayloadSpecificFeedbackMessage::RPSI
-      #pragma mark
+      //
+      // RTCPPacket::PayloadSpecificFeedbackMessage::RPSI
+      //
 
       struct RPSI
       {
@@ -750,11 +750,11 @@ namespace ortc
 
         static const BYTE kFmt {3};
 
-        BYTE zeroBit() const                          {return mZeroBit;}
-        BYTE payloadType() const                      {return mPayloadType;}
+        BYTE zeroBit() const noexcept                         {return mZeroBit;}
+        BYTE payloadType() const noexcept                     {return mPayloadType;}
 
-        const BYTE *nativeRPSIBitString() const       {return mNativeRPSIBitString;}
-        size_t nativeRPSIBitStringSizeInBits() const  {return mNativeRPSIBitStringSizeInBits;}
+        const BYTE *nativeRPSIBitString() const noexcept      {return mNativeRPSIBitString;}
+        size_t nativeRPSIBitStringSizeInBits() const noexcept {return mNativeRPSIBitStringSizeInBits;}
 
       public:
         BYTE mZeroBit {};
@@ -765,15 +765,15 @@ namespace ortc
       };
 
       //---------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTCPPacket::PayloadSpecificFeedbackMessage::FIR
-      #pragma mark
+      //
+      // RTCPPacket::PayloadSpecificFeedbackMessage::FIR
+      //
 
       struct CodecControlCommon
       {
-        DWORD ssrc() const                        {return mSSRC;}
-        BYTE seqNr() const                        {return mSeqNr;}
-        DWORD reserved() const                    {return mReserved;}
+        DWORD ssrc() const noexcept                       {return mSSRC;}
+        BYTE seqNr() const noexcept                       {return mSeqNr;}
+        DWORD reserved() const noexcept                   {return mReserved;}
 
       public:
         DWORD mSSRC {};
@@ -783,9 +783,9 @@ namespace ortc
       };
 
       //---------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTCPPacket::PayloadSpecificFeedbackMessage::FIR
-      #pragma mark
+      //
+      // RTCPPacket::PayloadSpecificFeedbackMessage::FIR
+      //
 
       struct FIR : public CodecControlCommon
       {
@@ -797,9 +797,9 @@ namespace ortc
       };
 
       //---------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTCPPacket::PayloadSpecificFeedbackMessage::TSTR
-      #pragma mark
+      //
+      // RTCPPacket::PayloadSpecificFeedbackMessage::TSTR
+      //
 
       struct TSTR : public CodecControlCommon
       {
@@ -807,15 +807,15 @@ namespace ortc
 
         static const BYTE kFmt {5};
 
-        BYTE index() const                        {return static_cast<BYTE>(mControlSpecific);}
+        BYTE index() const noexcept                       {return static_cast<BYTE>(mControlSpecific);}
 
       public:
       };
 
       //---------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTCPPacket::PayloadSpecificFeedbackMessage::TSTN
-      #pragma mark
+      //
+      // RTCPPacket::PayloadSpecificFeedbackMessage::TSTN
+      //
 
       struct TSTN : public CodecControlCommon
       {
@@ -823,15 +823,15 @@ namespace ortc
 
         static const BYTE kFmt {6};
 
-        BYTE index() const                        {return static_cast<BYTE>(mControlSpecific);}
+        BYTE index() const noexcept                       {return static_cast<BYTE>(mControlSpecific);}
 
       public:
       };
 
       //---------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTCPPacket::PayloadSpecificFeedbackMessage::VBCM
-      #pragma mark
+      //
+      // RTCPPacket::PayloadSpecificFeedbackMessage::VBCM
+      //
 
       struct VBCM : public CodecControlCommon
       {
@@ -839,20 +839,20 @@ namespace ortc
 
         static const BYTE kFmt {7};
 
-        BYTE zeroBit() const;
-        BYTE payloadType() const;
+        BYTE zeroBit() const noexcept;
+        BYTE payloadType() const noexcept;
 
-        const BYTE *vbcmOctetString() const     {return mVBCMOctetString;}
-        size_t vbcmOctetStringSize() const;
+        const BYTE *vbcmOctetString() const noexcept    {return mVBCMOctetString;}
+        size_t vbcmOctetStringSize() const noexcept;
 
       public:
         const BYTE *mVBCMOctetString {};
       };
 
       //---------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTCPPacket::PayloadSpecificFeedbackMessage::AFB
-      #pragma mark
+      //
+      // RTCPPacket::PayloadSpecificFeedbackMessage::AFB
+      //
 
       struct AFB
       {
@@ -860,8 +860,8 @@ namespace ortc
 
         static const BYTE kFmt {15};
 
-        const BYTE *data() const                  {return mData;}
-        size_t dataSize() const                   {return mDataSize;}
+        const BYTE *data() const noexcept                 {return mData;}
+        size_t dataSize() const noexcept                  {return mDataSize;}
 
       public:
         const BYTE *mData {};
@@ -869,9 +869,9 @@ namespace ortc
       };
 
       //---------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTCPPacket::PayloadSpecificFeedbackMessage::REMB
-      #pragma mark
+      //
+      // RTCPPacket::PayloadSpecificFeedbackMessage::REMB
+      //
 
       struct REMB
       {
@@ -879,11 +879,11 @@ namespace ortc
 
         static const BYTE kFmt {15};
 
-        size_t numSSRC() const                    {return static_cast<size_t>(mNumSSRC);}
-        BYTE brExp() const                        {return mBRExp;}
-        DWORD brMantissa() const                  {return mBRMantissa;}
+        size_t numSSRC() const noexcept                   {return static_cast<size_t>(mNumSSRC);}
+        BYTE brExp() const noexcept                       {return mBRExp;}
+        DWORD brMantissa() const noexcept                 {return mBRMantissa;}
 
-        DWORD ssrcAtIndex(size_t index) const;
+        DWORD ssrcAtIndex(size_t index) const noexcept;
 
       public:
         BYTE mNumSSRC {};
@@ -893,30 +893,30 @@ namespace ortc
       };
 
       //---------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTCPPacket::PayloadSpecificFeedbackMessage (public)
-      #pragma mark
+      //
+      // RTCPPacket::PayloadSpecificFeedbackMessage (public)
+      //
 
       static const BYTE kPayloadType {206};
 
       PayloadSpecificFeedbackMessage *nextPayloadSpecificFeedbackMessage() const  {return mNextPayloadSpecificFeedbackMessage;}
 
-      size_t sliCount() const                         {return mSLICount;}
-      size_t firCount() const                         {return mFIRCount;}
-      size_t tstrCount() const                        {return mTSTRCount;}
-      size_t tstnCount() const                        {return mTSTNCount;}
-      size_t vbcmCount() const                        {return mVBCMCount;}
+      size_t sliCount() const noexcept                        {return mSLICount;}
+      size_t firCount() const noexcept                        {return mFIRCount;}
+      size_t tstrCount() const noexcept                       {return mTSTRCount;}
+      size_t tstnCount() const noexcept                       {return mTSTNCount;}
+      size_t vbcmCount() const noexcept                       {return mVBCMCount;}
 
-      PLI *pli() const;
-      SLI *sliAtIndex(size_t index) const;
-      RPSI *rpsi() const;
-      FIR *firAtIndex(size_t index) const;
-      TSTR *tstrAtIndex(size_t index) const;
-      TSTN *tstnAtIndex(size_t index) const;
-      VBCM *vbcmAtIndex(size_t index) const;
-      AFB *afb() const;
-      REMB *remb() const;
-      PayloadSpecificFeedbackMessage *unknown() const {return mUnknown;}
+      PLI *pli() const noexcept;
+      SLI *sliAtIndex(size_t index) const noexcept;
+      RPSI *rpsi() const noexcept;
+      FIR *firAtIndex(size_t index) const noexcept;
+      TSTR *tstrAtIndex(size_t index) const noexcept;
+      TSTN *tstnAtIndex(size_t index) const noexcept;
+      VBCM *vbcmAtIndex(size_t index) const noexcept;
+      AFB *afb() const noexcept;
+      REMB *remb() const noexcept;
+      PayloadSpecificFeedbackMessage *unknown() const noexcept {return mUnknown;}
 
     public:
       PayloadSpecificFeedbackMessage *mNextPayloadSpecificFeedbackMessage {};
@@ -941,9 +941,9 @@ namespace ortc
     };
 
     //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTCPPacket::XR
-    #pragma mark
+    //
+    // RTCPPacket::XR
+    //
 
     struct XR : public Report
     {
@@ -953,22 +953,22 @@ namespace ortc
       typedef WORD RLEChunk;
 
       //---------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTCPPacket::XR::ReportBlock
-      #pragma mark
+      //
+      // RTCPPacket::XR::ReportBlock
+      //
 
       struct ReportBlock
       {
-        ReportBlock *next() const                           {return mNext;}
+        ReportBlock *next() const noexcept                          {return mNext;}
 
-        BYTE blockType() const                              {return mBlockType;}
-        BYTE typeSpecific() const                           {return mTypeSpecific;}
+        BYTE blockType() const noexcept                             {return mBlockType;}
+        BYTE typeSpecific() const noexcept                          {return mTypeSpecific;}
 
-        const BYTE *typeSpecificContents() const            {return mTypeSpecificContents;}
-        size_t typeSpecificContentSize() const              {return mTypeSpecificContentSize;}
+        const BYTE *typeSpecificContents() const noexcept           {return mTypeSpecificContents;}
+        size_t typeSpecificContentSize() const noexcept             {return mTypeSpecificContentSize;}
 
-        static const char *blockTypeToString(BYTE blockType);
-        const char *blockTypeToString() const               {return blockTypeToString(mBlockType);}
+        static const char *blockTypeToString(BYTE blockType) noexcept;
+        const char *blockTypeToString() const noexcept              {return blockTypeToString(mBlockType);}
 
       public:
         ReportBlock *mNext {};
@@ -981,18 +981,18 @@ namespace ortc
       };
 
       //---------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTCPPacket::XR::ReportBlockRange
-      #pragma mark
+      //
+      // RTCPPacket::XR::ReportBlockRange
+      //
 
       struct ReportBlockRange : public ReportBlock
       {
-        BYTE reserved() const;
-        BYTE thinning() const;
+        BYTE reserved() const noexcept;
+        BYTE thinning() const noexcept;
 
-        DWORD ssrcOfSource() const                          {return mSSRCOfSource;}
-        WORD beginSeq() const                               {return mBeginSeq;}
-        WORD endSeq() const                                 {return mEndSeq;}
+        DWORD ssrcOfSource() const noexcept                         {return mSSRCOfSource;}
+        WORD beginSeq() const noexcept                              {return mBeginSeq;}
+        WORD endSeq() const noexcept                                {return mEndSeq;}
 
       public:
         DWORD mSSRCOfSource {};
@@ -1001,14 +1001,14 @@ namespace ortc
       };
 
       //---------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTCPPacket::XR::RLEReportBlock
-      #pragma mark
+      //
+      // RTCPPacket::XR::RLEReportBlock
+      //
 
       struct RLEReportBlock : public ReportBlockRange
       {
-        size_t chunkCount() const                           {return mChunkCount;}
-        RLEChunk chunkAtIndex(size_t index) const;
+        size_t chunkCount() const noexcept                          {return mChunkCount;}
+        RLEChunk chunkAtIndex(size_t index) const noexcept;
 
       public:
         size_t mChunkCount {};
@@ -1016,9 +1016,9 @@ namespace ortc
       };
 
       //---------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTCPPacket::XR::LossRLEReportBlock
-      #pragma mark
+      //
+      // RTCPPacket::XR::LossRLEReportBlock
+      //
 
       struct LossRLEReportBlock : public RLEReportBlock
       {
@@ -1026,16 +1026,16 @@ namespace ortc
 
         static const BYTE kBlockType {1};
 
-        LossRLEReportBlock *nextLossRLE() const             {return mNextLossRLE;}
+        LossRLEReportBlock *nextLossRLE() const noexcept            {return mNextLossRLE;}
 
       public:
         LossRLEReportBlock *mNextLossRLE {};
       };
 
       //---------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTCPPacket::XR::DuplicateRLEReportBlock
-      #pragma mark
+      //
+      // RTCPPacket::XR::DuplicateRLEReportBlock
+      //
 
       struct DuplicateRLEReportBlock : public RLEReportBlock
       {
@@ -1043,16 +1043,16 @@ namespace ortc
 
         static const BYTE kBlockType {2};
 
-        DuplicateRLEReportBlock *nextDuplicateRLE() const {return mNextDuplicateRLE;}
+        DuplicateRLEReportBlock *nextDuplicateRLE() const noexcept {return mNextDuplicateRLE;}
 
       public:
         DuplicateRLEReportBlock *mNextDuplicateRLE {};
       };
 
       //---------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTCPPacket::XR::PacketReceiptTimesReportBlock
-      #pragma mark
+      //
+      // RTCPPacket::XR::PacketReceiptTimesReportBlock
+      //
 
       struct PacketReceiptTimesReportBlock : public ReportBlockRange
       {
@@ -1060,10 +1060,10 @@ namespace ortc
 
         static const BYTE kBlockType {3};
 
-        PacketReceiptTimesReportBlock *nextPacketReceiptTimesReportBlock() const  {return mNextPacketReceiptTimesReportBlock;}
+        PacketReceiptTimesReportBlock *nextPacketReceiptTimesReportBlock() const noexcept {return mNextPacketReceiptTimesReportBlock;}
 
-        size_t receiptTimeCount() const                                           {return mReceiptTimeCount;}
-        DWORD receiptTimeAtIndex(size_t index) const;
+        size_t receiptTimeCount() const noexcept                                          {return mReceiptTimeCount;}
+        DWORD receiptTimeAtIndex(size_t index) const noexcept;
 
       public:
         PacketReceiptTimesReportBlock *mNextPacketReceiptTimesReportBlock {};
@@ -1073,9 +1073,9 @@ namespace ortc
       };
 
       //---------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTCPPacket::XR::ReceiverReferenceTimeReportBlock
-      #pragma mark
+      //
+      // RTCPPacket::XR::ReceiverReferenceTimeReportBlock
+      //
 
       struct ReceiverReferenceTimeReportBlock : public ReportBlock
       {
@@ -1083,11 +1083,11 @@ namespace ortc
 
         static const BYTE kBlockType {4};
 
-        ReceiverReferenceTimeReportBlock *nextReceiverReferenceTimeReportBlock() const  {return mNextReceiverReferenceTimeReportBlock;}
+        ReceiverReferenceTimeReportBlock *nextReceiverReferenceTimeReportBlock() const noexcept {return mNextReceiverReferenceTimeReportBlock;}
 
-        DWORD ntpTimestampMS() const          {return mNTPTimestampMS;}
-        DWORD ntpTimestampLS() const          {return mNTPTimestampLS;}
-        Time ntpTimestamp() const;
+        DWORD ntpTimestampMS() const noexcept         {return mNTPTimestampMS;}
+        DWORD ntpTimestampLS() const noexcept         {return mNTPTimestampLS;}
+        Time ntpTimestamp() const noexcept;
 
       public:
         ReceiverReferenceTimeReportBlock *mNextReceiverReferenceTimeReportBlock {};
@@ -1097,9 +1097,9 @@ namespace ortc
       };
 
       //---------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTCPPacket::XR::DLRRReportBlock
-      #pragma mark
+      //
+      // RTCPPacket::XR::DLRRReportBlock
+      //
 
       struct DLRRReportBlock : public ReportBlock
       {
@@ -1109,19 +1109,19 @@ namespace ortc
 
         struct SubBlock
         {
-          DWORD ssrc() const  {return mSSRC;}
-          DWORD lrr() const   {return mLRR;}
-          DWORD dlrr() const  {return mDLRR;}
+          DWORD ssrc() const noexcept {return mSSRC;}
+          DWORD lrr() const noexcept  {return mLRR;}
+          DWORD dlrr() const noexcept {return mDLRR;}
 
           DWORD mSSRC {};
           DWORD mLRR {};
           DWORD mDLRR {};
         };
 
-        DLRRReportBlock *nextDLRRReportBlock() const {return mNextDLRRReportBlock;}
+        DLRRReportBlock *nextDLRRReportBlock() const noexcept {return mNextDLRRReportBlock;}
 
-        size_t subBlockCount() const {return mSubBlockCount;}
-        SubBlock *subBlockAtIndex(size_t index) const;
+        size_t subBlockCount() const noexcept {return mSubBlockCount;}
+        SubBlock *subBlockAtIndex(size_t index) const noexcept;
 
       public:
         DLRRReportBlock *mNextDLRRReportBlock {};
@@ -1131,9 +1131,9 @@ namespace ortc
       };
 
       //---------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTCPPacket::XR::StatisticsSummaryReportBlock
-      #pragma mark
+      //
+      // RTCPPacket::XR::StatisticsSummaryReportBlock
+      //
 
       struct StatisticsSummaryReportBlock : public ReportBlockRange
       {
@@ -1141,31 +1141,31 @@ namespace ortc
 
         static const BYTE kBlockType {6};
 
-        StatisticsSummaryReportBlock *nextStatisticsSummaryReportBlock() const {return mNextStatisticsSummaryReportBlock;}
+        StatisticsSummaryReportBlock *nextStatisticsSummaryReportBlock() const noexcept {return mNextStatisticsSummaryReportBlock;}
 
-        bool lossReportFlag() const;
-        bool duplicateReportFlag() const;
-        bool jitterFlag() const;
-        bool ttlFlag() const;
-        bool hopLimitFlag() const;
+        bool lossReportFlag() const noexcept;
+        bool duplicateReportFlag() const noexcept;
+        bool jitterFlag() const noexcept;
+        bool ttlFlag() const noexcept;
+        bool hopLimitFlag() const noexcept;
 
-        DWORD lostPackets() const             {return mLostPackets;}
-        DWORD dupPackets() const              {return mDupPackets;}
+        DWORD lostPackets() const noexcept            {return mLostPackets;}
+        DWORD dupPackets() const noexcept             {return mDupPackets;}
 
-        DWORD minJitter() const               {return mMinJitter;}
-        DWORD maxJitter() const               {return mMaxJitter;}
-        DWORD meanJitter() const              {return mMeanJitter;}
-        DWORD devJitter() const               {return mDevJitter;}
+        DWORD minJitter() const noexcept              {return mMinJitter;}
+        DWORD maxJitter() const noexcept              {return mMaxJitter;}
+        DWORD meanJitter() const noexcept             {return mMeanJitter;}
+        DWORD devJitter() const noexcept              {return mDevJitter;}
 
-        BYTE minTTL() const                   {return mMinTTLOrHL;}
-        BYTE maxTTL() const                   {return mMaxTTLOrHL;}
-        BYTE meanTTL() const                  {return mMeanTTLOrHL;}
-        BYTE devTTL() const                   {return mDevTTLOrHL;}
+        BYTE minTTL() const noexcept                  {return mMinTTLOrHL;}
+        BYTE maxTTL() const noexcept                  {return mMaxTTLOrHL;}
+        BYTE meanTTL() const noexcept                 {return mMeanTTLOrHL;}
+        BYTE devTTL() const noexcept                  {return mDevTTLOrHL;}
 
-        BYTE minHopLimit() const              {return mMinTTLOrHL;}
-        BYTE maxHopLimit() const              {return mMaxTTLOrHL;}
-        BYTE meanHopLimit() const             {return mMeanTTLOrHL;}
-        BYTE devHopLimit() const              {return mDevTTLOrHL;}
+        BYTE minHopLimit() const noexcept             {return mMinTTLOrHL;}
+        BYTE maxHopLimit() const noexcept             {return mMaxTTLOrHL;}
+        BYTE meanHopLimit() const noexcept            {return mMeanTTLOrHL;}
+        BYTE devHopLimit() const noexcept             {return mDevTTLOrHL;}
 
       public:
         StatisticsSummaryReportBlock *mNextStatisticsSummaryReportBlock {};
@@ -1184,9 +1184,9 @@ namespace ortc
       };
 
       //---------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTCPPacket::XR::VoIPMetricsReportBlock
-      #pragma mark
+      //
+      // RTCPPacket::XR::VoIPMetricsReportBlock
+      //
 
       struct VoIPMetricsReportBlock : public ReportBlock
       {
@@ -1194,39 +1194,39 @@ namespace ortc
 
         static const BYTE kBlockType {7};
 
-        VoIPMetricsReportBlock *nextVoIPMetricsReportBlock() const {return mNextVoIPMetricsReportBlock;}
+        VoIPMetricsReportBlock *nextVoIPMetricsReportBlock() const noexcept {return mNextVoIPMetricsReportBlock;}
 
-        DWORD ssrcOfSource() const              {return mSSRCOfSource;}
+        DWORD ssrcOfSource() const noexcept             {return mSSRCOfSource;}
 
-        BYTE lossRate() const                   {return mLossRate;}
-        BYTE discardRate() const                {return mDiscardRate;}
-        BYTE burstDensity() const               {return mBurstDensity;}
-        BYTE gapDensity() const                 {return mGapDensity;}
+        BYTE lossRate() const noexcept                  {return mLossRate;}
+        BYTE discardRate() const noexcept               {return mDiscardRate;}
+        BYTE burstDensity() const noexcept              {return mBurstDensity;}
+        BYTE gapDensity() const noexcept                {return mGapDensity;}
 
-        WORD burstDuration() const              {return mBurstDuration;}
-        WORD gapDuration() const                {return mGapDuration;}
+        WORD burstDuration() const noexcept             {return mBurstDuration;}
+        WORD gapDuration() const noexcept               {return mGapDuration;}
 
-        WORD roundTripDelay() const             {return mRoundTripDelay;}
-        WORD endSystemDelay() const             {return mEndSystemDelay;}
+        WORD roundTripDelay() const noexcept            {return mRoundTripDelay;}
+        WORD endSystemDelay() const noexcept            {return mEndSystemDelay;}
 
-        BYTE signalLevel() const                {return mSignalLevel;}
-        BYTE noiseLevel() const                 {return mNoiseLevel;}
-        BYTE rerl() const                       {return mRERL;}
-        BYTE Gmin() const                       {return mGmin;}
+        BYTE signalLevel() const noexcept               {return mSignalLevel;}
+        BYTE noiseLevel() const noexcept                {return mNoiseLevel;}
+        BYTE rerl() const noexcept                      {return mRERL;}
+        BYTE Gmin() const noexcept                      {return mGmin;}
 
-        BYTE rFactor() const                    {return mRFactor;}
-        BYTE extRFactor() const                 {return mExtRFactor;}
-        BYTE mosLQ() const                      {return mMOSLQ;}
-        BYTE mosCQ() const                      {return mMOSCQ;}
+        BYTE rFactor() const noexcept                   {return mRFactor;}
+        BYTE extRFactor() const noexcept                {return mExtRFactor;}
+        BYTE mosLQ() const noexcept                     {return mMOSLQ;}
+        BYTE mosCQ() const noexcept                     {return mMOSCQ;}
 
-        BYTE rxConfig() const                   {return mRXConfig;}
-        BYTE plc() const;
-        BYTE jba() const;
-        BYTE jbRate() const;
+        BYTE rxConfig() const noexcept                  {return mRXConfig;}
+        BYTE plc() const noexcept;
+        BYTE jba() const noexcept;
+        BYTE jbRate() const noexcept;
 
-        WORD jbNominal() const                  {return mJBNominal;}
-        WORD jbMaximum() const                  {return mJBMaximum;}
-        WORD jbAbsMax() const                   {return mJBAbsMax;}
+        WORD jbNominal() const noexcept                 {return mJBNominal;}
+        WORD jbMaximum() const noexcept                 {return mJBMaximum;}
+        WORD jbAbsMax() const noexcept                  {return mJBAbsMax;}
 
       public:
         VoIPMetricsReportBlock *mNextVoIPMetricsReportBlock {};
@@ -1263,31 +1263,31 @@ namespace ortc
       };
 
       //---------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTCPPacket::XR::UnknownReportBlock
-      #pragma mark
+      //
+      // RTCPPacket::XR::UnknownReportBlock
+      //
 
       struct UnknownReportBlock : public ReportBlock
       {
-        UnknownReportBlock *nextUnknownReportBlock() const {return mNextUnknownReportBlock;}
+        UnknownReportBlock *nextUnknownReportBlock() const noexcept {return mNextUnknownReportBlock;}
 
       public:
         UnknownReportBlock *mNextUnknownReportBlock {};
       };
 
       //-------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTCPPacket::XR::RunLength
-      #pragma mark
+      //
+      // RTCPPacket::XR::RunLength
+      //
 
       struct RunLength
       {
         // https://tools.ietf.org/html/rfc3611#section-4.1.1
 
-        RunLength(RLEChunk chunk);
+        RunLength(RLEChunk chunk) noexcept;
 
-        BYTE runType() const {return mRunType;}
-        size_t runLength() const {return static_cast<size_t>(mRunLength);}
+        BYTE runType() const noexcept {return mRunType;}
+        size_t runLength() const noexcept {return static_cast<size_t>(mRunLength);}
 
       public:
         BYTE mRunType {};   // Zero indicates a run of 0s.  One indicates a run of 1s.
@@ -1295,72 +1295,72 @@ namespace ortc
       };
 
       //-------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTCPPacket::XR::BitVector
-      #pragma mark
+      //
+      // RTCPPacket::XR::BitVector
+      //
 
       struct BitVector
       {
         // https://tools.ietf.org/html/rfc3611#section-4.1.2
 
-        BitVector(RLEChunk chunk);
+        BitVector(RLEChunk chunk) noexcept;
 
-        BYTE bitAtIndex(size_t index) const;  // Zero indicates loss.
-        WORD bitVector() const { return mBitVector; }
+        BYTE bitAtIndex(size_t index) const noexcept;  // Zero indicates loss.
+        WORD bitVector() const noexcept { return mBitVector; }
 
       public:
         WORD mBitVector {};
       };
 
       //-------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTCPPacket::XR
-      #pragma mark
+      //
+      // RTCPPacket::XR
+      //
 
       static const BYTE kPayloadType {207};
 
-      XR *nextXR() const                                                              {return mNextXR;}
+      XR *nextXR() const noexcept                                                             {return mNextXR;}
 
-      BYTE reserved() const                                                           {return mReportSpecific;}
+      BYTE reserved() const noexcept                                                          {return mReportSpecific;}
 
-      DWORD ssrc() const                                                              {return mSSRC;}
+      DWORD ssrc() const noexcept                                                             {return mSSRC;}
 
-      ReportBlock *firstReportBlock() const                                           {return mFirstReportBlock;}
+      ReportBlock *firstReportBlock() const noexcept                                          {return mFirstReportBlock;}
 
-      LossRLEReportBlock *firstLossRLEReportBlock() const                             {return mFirstLossRLEReportBlock;}
-      DuplicateRLEReportBlock *firstDuplicateRLEReportBlock() const                   {return mFirstDuplicateRLEReportBlock;}
-      PacketReceiptTimesReportBlock *firstPacketReceiptTimesReportBlock() const       {return mFirstPacketReceiptTimesReportBlock;}
-      ReceiverReferenceTimeReportBlock *firstReceiverReferenceTimeReportBlock() const {return mFirstReceiverReferenceTimeReportBlock;}
-      DLRRReportBlock *firstDLRRReportBlock() const                                   {return mFirstDLRRReportBlock;}
-      StatisticsSummaryReportBlock *firstStatisticsSummaryReportBlock() const         {return mFirstStatisticsSummaryReportBlock;}
-      VoIPMetricsReportBlock *firstVoIPMetricsReportBlock() const                     {return mFirstVoIPMetricsReportBlock;}
-      UnknownReportBlock *firstUnknownReportBlock() const                             {return mFirstUnknownReportBlock;}
+      LossRLEReportBlock *firstLossRLEReportBlock() const noexcept                            {return mFirstLossRLEReportBlock;}
+      DuplicateRLEReportBlock *firstDuplicateRLEReportBlock() const noexcept                  {return mFirstDuplicateRLEReportBlock;}
+      PacketReceiptTimesReportBlock *firstPacketReceiptTimesReportBlock() const noexcept      {return mFirstPacketReceiptTimesReportBlock;}
+      ReceiverReferenceTimeReportBlock *firstReceiverReferenceTimeReportBlock() const noexcept {return mFirstReceiverReferenceTimeReportBlock;}
+      DLRRReportBlock *firstDLRRReportBlock() const noexcept                                  {return mFirstDLRRReportBlock;}
+      StatisticsSummaryReportBlock *firstStatisticsSummaryReportBlock() const noexcept        {return mFirstStatisticsSummaryReportBlock;}
+      VoIPMetricsReportBlock *firstVoIPMetricsReportBlock() const noexcept                    {return mFirstVoIPMetricsReportBlock;}
+      UnknownReportBlock *firstUnknownReportBlock() const noexcept                            {return mFirstUnknownReportBlock;}
 
-      size_t reportBlockCount() const                                                 {return mReportBlockCount;}
+      size_t reportBlockCount() const noexcept                                                {return mReportBlockCount;}
 
-      size_t lossRLEReportBlockCount() const                                          {return mLossRLEReportBlockCount;}
-      size_t duplicateRLEReportBlockCount() const                                     {return mDuplicateRLEReportBlockCount;}
-      size_t packetReceiptTimesReportBlockCount() const                               {return mPacketReceiptTimesReportBlockCount;}
-      size_t receiverReferenceTimeReportBlockCount() const                            {return mReceiverReferenceTimeReportBlockCount;}
-      size_t dlrrReportBlockCount() const                                             {return mDLRRReportBlockCount;}
-      size_t statisticsSummaryReportBlockCount() const                                {return mStatisticsSummaryReportBlockCount;}
-      size_t voIPMetricsReportBlockCount() const                                      {return mVoIPMetricsReportBlockCount;}
-      size_t unknownReportBlockCount() const                                          {return mUnknownReportBlockCount;}
+      size_t lossRLEReportBlockCount() const noexcept                                         {return mLossRLEReportBlockCount;}
+      size_t duplicateRLEReportBlockCount() const noexcept                                    {return mDuplicateRLEReportBlockCount;}
+      size_t packetReceiptTimesReportBlockCount() const noexcept                              {return mPacketReceiptTimesReportBlockCount;}
+      size_t receiverReferenceTimeReportBlockCount() const noexcept                           {return mReceiverReferenceTimeReportBlockCount;}
+      size_t dlrrReportBlockCount() const noexcept                                            {return mDLRRReportBlockCount;}
+      size_t statisticsSummaryReportBlockCount() const noexcept                               {return mStatisticsSummaryReportBlockCount;}
+      size_t voIPMetricsReportBlockCount() const noexcept                                     {return mVoIPMetricsReportBlockCount;}
+      size_t unknownReportBlockCount() const noexcept                                         {return mUnknownReportBlockCount;}
 
-      LossRLEReportBlock *lossRLEReportBlockAtIndex(size_t index) const;
-      DuplicateRLEReportBlock *duplicateRLEReportBlockAtIndex(size_t index) const;
-      PacketReceiptTimesReportBlock *packetReceiptTimesReportBlockAtIndex(size_t index) const;
-      ReceiverReferenceTimeReportBlock *receiverReferenceTimeReportBlockAtIndex(size_t index) const;
-      DLRRReportBlock *dlrrReportBlockAtIndex(size_t index) const;
-      StatisticsSummaryReportBlock *statisticsSummaryReportBlockAtIndex(size_t index) const;
-      VoIPMetricsReportBlock *voIPMetricsReportBlockAtIndex(size_t index) const;
-      UnknownReportBlock *unknownReportBlockAtIndex(size_t index) const;
+      LossRLEReportBlock *lossRLEReportBlockAtIndex(size_t index) const noexcept;
+      DuplicateRLEReportBlock *duplicateRLEReportBlockAtIndex(size_t index) const noexcept;
+      PacketReceiptTimesReportBlock *packetReceiptTimesReportBlockAtIndex(size_t index) const noexcept;
+      ReceiverReferenceTimeReportBlock *receiverReferenceTimeReportBlockAtIndex(size_t index) const noexcept;
+      DLRRReportBlock *dlrrReportBlockAtIndex(size_t index) const noexcept;
+      StatisticsSummaryReportBlock *statisticsSummaryReportBlockAtIndex(size_t index) const noexcept;
+      VoIPMetricsReportBlock *voIPMetricsReportBlockAtIndex(size_t index) const noexcept;
+      UnknownReportBlock *unknownReportBlockAtIndex(size_t index) const noexcept;
 
-      static bool isRunLengthChunk(RLEChunk chunk);
-      static bool isBitVectorChunk(RLEChunk chunk);
+      static bool isRunLengthChunk(RLEChunk chunk) noexcept;
+      static bool isBitVectorChunk(RLEChunk chunk) noexcept;
 
-      static RunLength runLength(RLEChunk chunk)                                      {return RunLength(chunk);}
-      static BitVector bitVector(RLEChunk chunk)                                      {return BitVector(chunk);}
+      static RunLength runLength(RLEChunk chunk) noexcept                                     {return RunLength(chunk);}
+      static BitVector bitVector(RLEChunk chunk) noexcept                                     {return BitVector(chunk);}
 
     public:
       XR *mNextXR {};
@@ -1391,13 +1391,13 @@ namespace ortc
     };
 
     //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTCPPacket::UnknownReport
-    #pragma mark
+    //
+    // RTCPPacket::UnknownReport
+    //
 
     struct UnknownReport : public Report
     {
-      UnknownReport *nextUnknown() const          {return mNextUnknown;}
+      UnknownReport *nextUnknown() const noexcept         {return mNextUnknown;}
 
     public:
       UnknownReport *mNextUnknown {};
@@ -1405,174 +1405,174 @@ namespace ortc
 
   public:
     //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark (public)
-    #pragma mark
+    //
+    // (public)
+    //
 
     RTCPPacket(
                const make_private &,
                MediaChannelID mediaChannelID
-               );
-    ~RTCPPacket();
+               ) noexcept;
+    ~RTCPPacket() noexcept;
 
     static RTCPPacketPtr create(
                                 const BYTE *buffer,
                                 size_t bufferLengthInBytes,
                                 MediaChannelID mediaChannelID = 0
-                                );
+                                ) noexcept(false); // throws InvalidParameters
     static RTCPPacketPtr create(
                                 const SecureByteBlock &buffer,
                                 MediaChannelID mediaChannelID = 0
-                                );
+                                ) noexcept(false); // throws InvalidParameters
     static RTCPPacketPtr create(
                                 SecureByteBlockPtr buffer,
                                 MediaChannelID mediaChannelID = 0
-                                );  // NOTE: ownership of buffer is taken / assumed
+                                ) noexcept(false);  // NOTE: ownership of buffer is taken / assumed // throws InvalidParameters
     static RTCPPacketPtr create(
                                 const Report *first,
                                 MediaChannelID mediaChannelID = 0
-                                );
-    static SecureByteBlockPtr generateFrom(const Report *first);
+                                ) noexcept(false); // throws InvalidParameters
+    static SecureByteBlockPtr generateFrom(const Report *first) noexcept(false); // throws InvalidParameters
 
-    const BYTE *ptr() const;
-    size_t size() const;
-    SecureByteBlockPtr buffer() const;
+    const BYTE *ptr() const noexcept;
+    size_t size() const noexcept;
+    SecureByteBlockPtr buffer() const noexcept;
 
-    Report *first() const                                                       {return mFirst;}
+    Report *first() const noexcept                                                      {return mFirst;}
 
-    SenderReport *firstSenderReport() const                                     {return mFirstSenderReport;}
-    ReceiverReport *firstReceiverReport() const                                 {return mFirstReceiverReport;}
-    SDES *firstSDES() const                                                     {return mFirstSDES;}
-    Bye *firstBye() const                                                       {return mFirstBye;}
-    App *firstApp() const                                                       {return mFirstApp;}
-    TransportLayerFeedbackMessage *firstTransportLayerFeedbackMessage() const   {return mFirstTransportLayerFeedbackMessage;}
-    PayloadSpecificFeedbackMessage *firstPayloadSpecificFeedbackMessage() const {return mFirstPayloadSpecificFeedbackMessage;}
-    XR *firstXR() const                                                         {return mFirstXR;}
-    UnknownReport *firstUnknownReport() const                                   {return mFirstUnknownReport;}
+    SenderReport *firstSenderReport() const noexcept                                    {return mFirstSenderReport;}
+    ReceiverReport *firstReceiverReport() const noexcept                                {return mFirstReceiverReport;}
+    SDES *firstSDES() const noexcept                                                    {return mFirstSDES;}
+    Bye *firstBye() const noexcept                                                      {return mFirstBye;}
+    App *firstApp() const noexcept                                                      {return mFirstApp;}
+    TransportLayerFeedbackMessage *firstTransportLayerFeedbackMessage() const noexcept  {return mFirstTransportLayerFeedbackMessage;}
+    PayloadSpecificFeedbackMessage *firstPayloadSpecificFeedbackMessage() const noexcept {return mFirstPayloadSpecificFeedbackMessage;}
+    XR *firstXR() const noexcept                                                        {return mFirstXR;}
+    UnknownReport *firstUnknownReport() const noexcept                                  {return mFirstUnknownReport;}
 
-    size_t count() const                                                        {return mCount;}
+    size_t count() const noexcept                                                       {return mCount;}
 
-    size_t senderReportCount() const                                            {return mSenderReportCount;}
-    size_t receiverReportCount() const                                          {return mReceiverReportCount;}
-    size_t sdesCount() const                                                    {return mSDESCount;}
-    size_t byeCount() const                                                     {return mByeCount;}
-    size_t appCount() const                                                     {return mAppCount;}
-    size_t transportLayerFeedbackMessageCount() const                           {return mTransportLayerFeedbackMessageCount;}
-    size_t payloadSpecificFeedbackMessage() const                               {return mPayloadSpecificFeedbackMessageCount;}
-    size_t xrCount() const                                                      {return mXRCount;}
-    size_t unknownReportCount() const                                           {return mUnknownReportCount;}
+    size_t senderReportCount() const noexcept                                           {return mSenderReportCount;}
+    size_t receiverReportCount() const noexcept                                         {return mReceiverReportCount;}
+    size_t sdesCount() const noexcept                                                   {return mSDESCount;}
+    size_t byeCount() const noexcept                                                    {return mByeCount;}
+    size_t appCount() const noexcept                                                    {return mAppCount;}
+    size_t transportLayerFeedbackMessageCount() const noexcept                          {return mTransportLayerFeedbackMessageCount;}
+    size_t payloadSpecificFeedbackMessage() const noexcept                              {return mPayloadSpecificFeedbackMessageCount;}
+    size_t xrCount() const noexcept                                                     {return mXRCount;}
+    size_t unknownReportCount() const noexcept                                          {return mUnknownReportCount;}
       
-    SenderReport *senderReportAtIndex(size_t index) const;
-    ReceiverReport *receiverReportAtIndex(size_t index) const;
-    SDES *sdesAtIndex(size_t index) const;
-    Bye *byeAtIndex(size_t index) const;
-    App *appAtIndex(size_t index) const;
-    TransportLayerFeedbackMessage *transportLayerFeedbackReportAtIndex(size_t index) const;
-    PayloadSpecificFeedbackMessage *payloadSpecificFeedbackReportAtIndex(size_t index) const;
-    XR *xrAtIndex(size_t index) const;
-    UnknownReport *unknownAtIndex(size_t index) const;
+    SenderReport *senderReportAtIndex(size_t index) const noexcept;
+    ReceiverReport *receiverReportAtIndex(size_t index) const noexcept;
+    SDES *sdesAtIndex(size_t index) const noexcept;
+    Bye *byeAtIndex(size_t index) const noexcept;
+    App *appAtIndex(size_t index) const noexcept;
+    TransportLayerFeedbackMessage *transportLayerFeedbackReportAtIndex(size_t index) const noexcept;
+    PayloadSpecificFeedbackMessage *payloadSpecificFeedbackReportAtIndex(size_t index) const noexcept;
+    XR *xrAtIndex(size_t index) const noexcept;
+    UnknownReport *unknownAtIndex(size_t index) const noexcept;
 
     void trace(
                const char *func = NULL,
                const char *message = NULL
-               ) const;
+               ) const noexcept;
 
   protected:
     //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark (internal)
-    #pragma mark
+    //
+    // (internal)
+    //
 
-    bool parse();
+    bool parse() noexcept;
 
-    bool getAllocationSize(BYTE version, BYTE padding, BYTE reportSpecific, BYTE pt, const BYTE *contents, size_t contentSize);
-    bool getSenderReportAllocationSize(BYTE version, BYTE padding, BYTE reportSpecific, const BYTE *contents, size_t contentSize);
-    bool getReceiverReportAllocationSize(BYTE version, BYTE padding, BYTE reportSpecific, const BYTE *contents, size_t contentSize);
-    bool getSDESAllocationSize(BYTE version, BYTE padding, BYTE reportSpecific, const BYTE *contents, size_t contentSize);
-    bool getByeAllocationSize(BYTE version, BYTE padding, BYTE reportSpecific, const BYTE *contents, size_t contentSize);
-    bool getAppAllocationSize(BYTE version, BYTE padding, BYTE reportSpecific, const BYTE *contents, size_t contentSize);
-    bool getTransportLayerFeedbackMessageAllocationSize(BYTE version, BYTE padding, BYTE reportSpecific, const BYTE *contents, size_t contentSize);
-    bool getPayloadSpecificFeedbackMessageAllocationSize(BYTE version, BYTE padding, BYTE reportSpecific, const BYTE *contents, size_t contentSize);
-    bool getXRAllocationSize(BYTE version, BYTE padding, BYTE reportSpecific, const BYTE *contents, size_t contentSize);
-    bool getUnknownReportAllocationSize(BYTE version, BYTE padding, BYTE reportSpecific, const BYTE *contents, size_t contentSize);
+    bool getAllocationSize(BYTE version, BYTE padding, BYTE reportSpecific, BYTE pt, const BYTE *contents, size_t contentSize) noexcept;
+    bool getSenderReportAllocationSize(BYTE version, BYTE padding, BYTE reportSpecific, const BYTE *contents, size_t contentSize) noexcept;
+    bool getReceiverReportAllocationSize(BYTE version, BYTE padding, BYTE reportSpecific, const BYTE *contents, size_t contentSize) noexcept;
+    bool getSDESAllocationSize(BYTE version, BYTE padding, BYTE reportSpecific, const BYTE *contents, size_t contentSize) noexcept;
+    bool getByeAllocationSize(BYTE version, BYTE padding, BYTE reportSpecific, const BYTE *contents, size_t contentSize) noexcept;
+    bool getAppAllocationSize(BYTE version, BYTE padding, BYTE reportSpecific, const BYTE *contents, size_t contentSize) noexcept;
+    bool getTransportLayerFeedbackMessageAllocationSize(BYTE version, BYTE padding, BYTE reportSpecific, const BYTE *contents, size_t contentSize) noexcept;
+    bool getPayloadSpecificFeedbackMessageAllocationSize(BYTE version, BYTE padding, BYTE reportSpecific, const BYTE *contents, size_t contentSize) noexcept;
+    bool getXRAllocationSize(BYTE version, BYTE padding, BYTE reportSpecific, const BYTE *contents, size_t contentSize) noexcept;
+    bool getUnknownReportAllocationSize(BYTE version, BYTE padding, BYTE reportSpecific, const BYTE *contents, size_t contentSize) noexcept;
 
-    bool getTransportLayerFeedbackMessageGenericNACKAllocationSize(BYTE fmt, const BYTE *contents, size_t contentSize);
-    bool getTransportLayerFeedbackMessageTMMBRAllocationSize(BYTE fmt, const BYTE *contents, size_t contentSize);
-    bool getTransportLayerFeedbackMessageTMMBNAllocationSize(BYTE fmt, const BYTE *contents, size_t contentSize);
+    bool getTransportLayerFeedbackMessageGenericNACKAllocationSize(BYTE fmt, const BYTE *contents, size_t contentSize) noexcept;
+    bool getTransportLayerFeedbackMessageTMMBRAllocationSize(BYTE fmt, const BYTE *contents, size_t contentSize) noexcept;
+    bool getTransportLayerFeedbackMessageTMMBNAllocationSize(BYTE fmt, const BYTE *contents, size_t contentSize) noexcept;
 
-    bool getPayloadSpecificFeedbackMessagePLIAllocationSize(BYTE fmt, const BYTE *contents, size_t contentSize);
-    bool getPayloadSpecificFeedbackMessageSLIAllocationSize(BYTE fmt, const BYTE *contents, size_t contentSize);
-    bool getPayloadSpecificFeedbackMessageRPSIAllocationSize(BYTE fmt, const BYTE *contents, size_t contentSize);
-    bool getPayloadSpecificFeedbackMessageFIRAllocationSize(BYTE fmt, const BYTE *contents, size_t contentSize);
-    bool getPayloadSpecificFeedbackMessageTSTRAllocationSize(BYTE fmt, const BYTE *contents, size_t contentSize);
-    bool getPayloadSpecificFeedbackMessageTSTNAllocationSize(BYTE fmt, const BYTE *contents, size_t contentSize);
-    bool getPayloadSpecificFeedbackMessageVBCMAllocationSize(BYTE fmt, const BYTE *contents, size_t contentSize);
-    bool getPayloadSpecificFeedbackMessageAFBAllocationSize(BYTE fmt, const BYTE *contents, size_t contentSize);
-    bool getPayloadSpecificFeedbackMessageREMBAllocationSize(BYTE fmt, const BYTE *contents, size_t contentSize);
+    bool getPayloadSpecificFeedbackMessagePLIAllocationSize(BYTE fmt, const BYTE *contents, size_t contentSize) noexcept;
+    bool getPayloadSpecificFeedbackMessageSLIAllocationSize(BYTE fmt, const BYTE *contents, size_t contentSize) noexcept;
+    bool getPayloadSpecificFeedbackMessageRPSIAllocationSize(BYTE fmt, const BYTE *contents, size_t contentSize) noexcept;
+    bool getPayloadSpecificFeedbackMessageFIRAllocationSize(BYTE fmt, const BYTE *contents, size_t contentSize) noexcept;
+    bool getPayloadSpecificFeedbackMessageTSTRAllocationSize(BYTE fmt, const BYTE *contents, size_t contentSize) noexcept;
+    bool getPayloadSpecificFeedbackMessageTSTNAllocationSize(BYTE fmt, const BYTE *contents, size_t contentSize) noexcept;
+    bool getPayloadSpecificFeedbackMessageVBCMAllocationSize(BYTE fmt, const BYTE *contents, size_t contentSize) noexcept;
+    bool getPayloadSpecificFeedbackMessageAFBAllocationSize(BYTE fmt, const BYTE *contents, size_t contentSize) noexcept;
+    bool getPayloadSpecificFeedbackMessageREMBAllocationSize(BYTE fmt, const BYTE *contents, size_t contentSize) noexcept;
 
-    bool getXRLossRLEReportBlockAllocationSize(BYTE typeSpecific, const BYTE *contents, size_t contentSize);
-    bool getXRDuplicateRLEReportBlockAllocationSize(BYTE typeSpecific, const BYTE *contents, size_t contentSize);
-    bool getXRPacketReceiptTimesReportBlockAllocationSize(BYTE typeSpecific, const BYTE *contents, size_t contentSize);
-    bool getXRReceiverReferenceTimeReportBlockAllocationSize(BYTE typeSpecific, const BYTE *contents, size_t contentSize);
-    bool getXRDLRRReportBlockAllocationSize(BYTE typeSpecific, const BYTE *contents, size_t contentSize);
-    bool getXRStatisticsSummaryReportBlockAllocationSize(BYTE typeSpecific, const BYTE *contents, size_t contentSize);
-    bool getXRVoIPMetricsReportBlockAllocationSize(BYTE typeSpecific, const BYTE *contents, size_t contentSize);
-    bool getXRUnknownReportBlockAllocationSize(BYTE typeSpecific, const BYTE *contents, size_t contentSize);
+    bool getXRLossRLEReportBlockAllocationSize(BYTE typeSpecific, const BYTE *contents, size_t contentSize) noexcept;
+    bool getXRDuplicateRLEReportBlockAllocationSize(BYTE typeSpecific, const BYTE *contents, size_t contentSize) noexcept;
+    bool getXRPacketReceiptTimesReportBlockAllocationSize(BYTE typeSpecific, const BYTE *contents, size_t contentSize) noexcept;
+    bool getXRReceiverReferenceTimeReportBlockAllocationSize(BYTE typeSpecific, const BYTE *contents, size_t contentSize) noexcept;
+    bool getXRDLRRReportBlockAllocationSize(BYTE typeSpecific, const BYTE *contents, size_t contentSize) noexcept;
+    bool getXRStatisticsSummaryReportBlockAllocationSize(BYTE typeSpecific, const BYTE *contents, size_t contentSize) noexcept;
+    bool getXRVoIPMetricsReportBlockAllocationSize(BYTE typeSpecific, const BYTE *contents, size_t contentSize) noexcept;
+    bool getXRUnknownReportBlockAllocationSize(BYTE typeSpecific, const BYTE *contents, size_t contentSize) noexcept;
 
-    bool parse(Report * &ioLastReport, BYTE version, BYTE padding, BYTE reportSpecific, BYTE pt, const BYTE *contents, size_t contentSize);
-    void fill(Report *report, BYTE version, BYTE padding, BYTE reportSpecific, BYTE pt, const BYTE *contents, size_t contentSize);
+    bool parse(Report * &ioLastReport, BYTE version, BYTE padding, BYTE reportSpecific, BYTE pt, const BYTE *contents, size_t contentSize) noexcept;
+    void fill(Report *report, BYTE version, BYTE padding, BYTE reportSpecific, BYTE pt, const BYTE *contents, size_t contentSize) noexcept;
 
     bool parseCommon(
                       SenderReceiverCommonReport *report,
                       size_t detailedHeaderSize
-                      );
-    bool parse(SenderReport *report);
-    bool parse(ReceiverReport *report);
-    bool parse(SDES *report);
-    bool parse(Bye *report);
-    bool parse(App *report);
-    bool parse(TransportLayerFeedbackMessage *report);
-    bool parse(PayloadSpecificFeedbackMessage *report);
-    bool parse(XR *report);
-    bool parse(UnknownReport *report);
+                      ) noexcept;
+    bool parse(SenderReport *report) noexcept;
+    bool parse(ReceiverReport *report) noexcept;
+    bool parse(SDES *report) noexcept;
+    bool parse(Bye *report) noexcept;
+    bool parse(App *report) noexcept;
+    bool parse(TransportLayerFeedbackMessage *report) noexcept;
+    bool parse(PayloadSpecificFeedbackMessage *report) noexcept;
+    bool parse(XR *report) noexcept;
+    bool parse(UnknownReport *report) noexcept;
 
-    void fill(FeedbackMessage *report, const BYTE *contents, size_t contentSize);
-    void fill(XR *report, XR::ReportBlock *reportBlock, XR::ReportBlock * &ioPreviousReportBlock, BYTE blockType, BYTE typeSpecific, const BYTE *contents, size_t contentSize);
+    void fill(FeedbackMessage *report, const BYTE *contents, size_t contentSize) noexcept;
+    void fill(XR *report, XR::ReportBlock *reportBlock, XR::ReportBlock * &ioPreviousReportBlock, BYTE blockType, BYTE typeSpecific, const BYTE *contents, size_t contentSize) noexcept;
 
-    bool parseGenericNACK(TransportLayerFeedbackMessage *report);
-    void fillTMMBRCommon(TransportLayerFeedbackMessage *report, TransportLayerFeedbackMessage::TMMBRCommon *common, const BYTE *pos);
-    bool parseTMMBR(TransportLayerFeedbackMessage *report);
-    bool parseTMMBN(TransportLayerFeedbackMessage *report);
-    bool parseUnknown(TransportLayerFeedbackMessage *report);
+    bool parseGenericNACK(TransportLayerFeedbackMessage *report) noexcept;
+    void fillTMMBRCommon(TransportLayerFeedbackMessage *report, TransportLayerFeedbackMessage::TMMBRCommon *common, const BYTE *pos) noexcept;
+    bool parseTMMBR(TransportLayerFeedbackMessage *report) noexcept;
+    bool parseTMMBN(TransportLayerFeedbackMessage *report) noexcept;
+    bool parseUnknown(TransportLayerFeedbackMessage *report) noexcept;
 
     //CodecControlCommon
-    bool parsePLI(PayloadSpecificFeedbackMessage *report);
-    bool parseSLI(PayloadSpecificFeedbackMessage *report);
-    bool parseRPSI(PayloadSpecificFeedbackMessage *report);
-    void fillCodecControlCommon(PayloadSpecificFeedbackMessage *report, PayloadSpecificFeedbackMessage::CodecControlCommon *common, const BYTE *pos);
-    bool parseFIR(PayloadSpecificFeedbackMessage *report);
-    bool parseTSTR(PayloadSpecificFeedbackMessage *report);
-    bool parseTSTN(PayloadSpecificFeedbackMessage *report);
-    bool parseVBCM(PayloadSpecificFeedbackMessage *report);
-    bool parseAFB(PayloadSpecificFeedbackMessage *report);
-    bool parseREMB(PayloadSpecificFeedbackMessage *report);
-    bool parseUnknown(PayloadSpecificFeedbackMessage *report);
+    bool parsePLI(PayloadSpecificFeedbackMessage *report) noexcept;
+    bool parseSLI(PayloadSpecificFeedbackMessage *report) noexcept;
+    bool parseRPSI(PayloadSpecificFeedbackMessage *report) noexcept;
+    void fillCodecControlCommon(PayloadSpecificFeedbackMessage *report, PayloadSpecificFeedbackMessage::CodecControlCommon *common, const BYTE *pos) noexcept;
+    bool parseFIR(PayloadSpecificFeedbackMessage *report) noexcept;
+    bool parseTSTR(PayloadSpecificFeedbackMessage *report) noexcept;
+    bool parseTSTN(PayloadSpecificFeedbackMessage *report) noexcept;
+    bool parseVBCM(PayloadSpecificFeedbackMessage *report) noexcept;
+    bool parseAFB(PayloadSpecificFeedbackMessage *report) noexcept;
+    bool parseREMB(PayloadSpecificFeedbackMessage *report) noexcept;
+    bool parseUnknown(PayloadSpecificFeedbackMessage *report) noexcept;
 
-    bool parseCommonRange(XR *xr, XR::ReportBlockRange *reportBlock);
-    bool parseCommonRLE(XR *xr, XR::RLEReportBlock *reportBlock);
-    bool parse(XR *xr, XR::LossRLEReportBlock *reportBlock);
-    bool parse(XR *xr, XR::DuplicateRLEReportBlock *reportBlock);
-    bool parse(XR *xr, XR::PacketReceiptTimesReportBlock *reportBlock);
-    bool parse(XR *xr, XR::ReceiverReferenceTimeReportBlock *reportBlock);
-    bool parse(XR *xr, XR::DLRRReportBlock *reportBlock);
-    bool parse(XR *xr, XR::StatisticsSummaryReportBlock *reportBlock);
-    bool parse(XR *xr, XR::VoIPMetricsReportBlock *reportBlock);
-    bool parse(XR *xr, XR::UnknownReportBlock *reportBlock);
+    bool parseCommonRange(XR *xr, XR::ReportBlockRange *reportBlock) noexcept;
+    bool parseCommonRLE(XR *xr, XR::RLEReportBlock *reportBlock) noexcept;
+    bool parse(XR *xr, XR::LossRLEReportBlock *reportBlock) noexcept;
+    bool parse(XR *xr, XR::DuplicateRLEReportBlock *reportBlock) noexcept;
+    bool parse(XR *xr, XR::PacketReceiptTimesReportBlock *reportBlock) noexcept;
+    bool parse(XR *xr, XR::ReceiverReferenceTimeReportBlock *reportBlock) noexcept;
+    bool parse(XR *xr, XR::DLRRReportBlock *reportBlock) noexcept;
+    bool parse(XR *xr, XR::StatisticsSummaryReportBlock *reportBlock) noexcept;
+    bool parse(XR *xr, XR::VoIPMetricsReportBlock *reportBlock) noexcept;
+    bool parse(XR *xr, XR::UnknownReportBlock *reportBlock) noexcept;
 
-    void *allocateBuffer(size_t size);
+    void *allocateBuffer(size_t size) noexcept;
 
-    static size_t getPacketSize(const Report *first);
-    static void writePacket(const Report *first, BYTE * &ioPos, size_t &ioRemaining);
+    static size_t getPacketSize(const Report *first) noexcept(false); // throws InvalidParameters
+    static void writePacket(const Report *first, BYTE * &ioPos, size_t &ioRemaining) noexcept;
 
   public:
     SecureByteBlockPtr mBuffer;

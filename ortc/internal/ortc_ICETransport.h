@@ -66,146 +66,146 @@ namespace ortc
 {
   namespace internal
   {
-    ZS_DECLARE_INTERACTION_PTR(IICETransportForSettings)
-    ZS_DECLARE_INTERACTION_PTR(IICETransportForICEGatherer)
-    ZS_DECLARE_INTERACTION_PTR(IICETransportForICETransportContoller)
-    ZS_DECLARE_INTERACTION_PTR(IICETransportForSecureTransport)
-    ZS_DECLARE_INTERACTION_PTR(IICETransportForDataTransport)
+    ZS_DECLARE_INTERACTION_PTR(IICETransportForSettings);
+    ZS_DECLARE_INTERACTION_PTR(IICETransportForICEGatherer);
+    ZS_DECLARE_INTERACTION_PTR(IICETransportForICETransportContoller);
+    ZS_DECLARE_INTERACTION_PTR(IICETransportForSecureTransport);
+    ZS_DECLARE_INTERACTION_PTR(IICETransportForDataTransport);
 
 
-    ZS_DECLARE_INTERACTION_PROXY(IICETransportAsyncDelegate)
+    ZS_DECLARE_INTERACTION_PROXY(IICETransportAsyncDelegate);
 
-    ZS_DECLARE_INTERACTION_PTR(IICEGathererForICETransport)
-    ZS_DECLARE_INTERACTION_PTR(IICETransportControllerForICETransport)
+    ZS_DECLARE_INTERACTION_PTR(IICEGathererForICETransport);
+    ZS_DECLARE_INTERACTION_PTR(IICETransportControllerForICETransport);
 
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IICETransportForICEGatherer
-    #pragma mark
+    //
+    // IICETransportForICEGatherer
+    //
 
     interaction IICETransportForICEGatherer
     {
-      ZS_DECLARE_TYPEDEF_PTR(IICETransportForICEGatherer, ForICEGatherer)
+      ZS_DECLARE_TYPEDEF_PTR(IICETransportForICEGatherer, ForICEGatherer);
 
-      ZS_DECLARE_TYPEDEF_PTR(ICEGathererRouter::Route, RouterRoute)
+    ZS_DECLARE_TYPEDEF_PTR(ICEGathererRouter::Route, RouterRoute);
 
-      virtual PUID getID() const = 0;
+      virtual PUID getID() const noexcept = 0;
 
-      virtual ForICEGathererPtr getForGatherer() const = 0;
+      virtual ForICEGathererPtr getForGatherer() const noexcept = 0;
 
       virtual void notifyPacket(
                                 RouterRoutePtr routerRoute,
                                 STUNPacketPtr packet
-                                ) = 0;
+                                ) noexcept = 0;
       virtual void notifyPacket(
                                 RouterRoutePtr routerRoute,
                                 const BYTE *buffer,
                                 size_t bufferSizeInBytes
-                                ) = 0;
+                                ) noexcept = 0;
 
-      virtual bool needsMoreCandidates() const = 0;
+      virtual bool needsMoreCandidates() const noexcept = 0;
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IICETransportForICETransportContoller
-    #pragma mark
+    //
+    // IICETransportForICETransportContoller
+    //
 
     interaction IICETransportForICETransportContoller
     {
-      ZS_DECLARE_TYPEDEF_PTR(IICETransportForICETransportContoller, ForTransportContoller)
+      ZS_DECLARE_TYPEDEF_PTR(IICETransportForICETransportContoller, ForTransportContoller);
 
-      static ElementPtr toDebug(ForTransportContollerPtr transport);
+      static ElementPtr toDebug(ForTransportContollerPtr transport) noexcept;
 
-      virtual PUID getID() const = 0;
+      virtual PUID getID() const noexcept = 0;
 
-      virtual void notifyControllerAttached(ICETransportControllerPtr controller) = 0;
-      virtual void notifyControllerDetached(ICETransportController &controller) = 0;
+      virtual void notifyControllerAttached(ICETransportControllerPtr controller) noexcept = 0;
+      virtual void notifyControllerDetached(ICETransportController &controller) noexcept = 0;
 
       virtual bool hasCandidatePairFoundation(
                                               const String &localFoundation,
                                               const String &remoteFoundation,
                                               PromisePtr promise
-                                              ) = 0;
+                                              ) noexcept = 0;
 
-      virtual IICETypes::Components component() const = 0;
-      virtual IICETransport::States state() const = 0;
+      virtual IICETypes::Components component() const noexcept = 0;
+      virtual IICETransport::States state() const noexcept = 0;
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IICETransportForSecureTransport
-    #pragma mark
+    //
+    // IICETransportForSecureTransport
+    //
 
     interaction IICETransportForSecureTransport
     {
-      ZS_DECLARE_TYPEDEF_PTR(IICETransportForSecureTransport, ForSecureTransport)
+      ZS_DECLARE_TYPEDEF_PTR(IICETransportForSecureTransport, ForSecureTransport);
 
-      ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForICETransport, UseSecureTransport)
+      ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForICETransport, UseSecureTransport);
 
-      virtual PUID getID() const = 0;
+      virtual PUID getID() const noexcept = 0;
 
       virtual void notifyAttached(
                                   PUID secureTransportID,
                                   UseSecureTransportPtr transport
-                                  ) = 0;
-      virtual void notifyDetached(PUID secureTransportID) = 0;
+                                  ) noexcept = 0;
+      virtual void notifyDetached(PUID secureTransportID) noexcept = 0;
 
-      virtual IICETypes::Components component() const = 0;
+      virtual IICETypes::Components component() const noexcept = 0;
 
-      virtual IICETransportSubscriptionPtr subscribe(IICETransportDelegatePtr delegate) = 0;
+      virtual IICETransportSubscriptionPtr subscribe(IICETransportDelegatePtr delegate) noexcept = 0;
 
-      virtual IICETransport::States state() const = 0;
+      virtual IICETransport::States state() const noexcept = 0;
 
-      virtual IICETypes::Roles getRole() const = 0;
+      virtual IICETypes::Roles getRole() const noexcept = 0;
 
-      virtual ICETransportPtr getRTPTransport() const = 0;
-      virtual ICETransportPtr getRTCPTransport() const = 0;
+      virtual ICETransportPtr getRTPTransport() const noexcept = 0;
+      virtual ICETransportPtr getRTCPTransport() const noexcept = 0;
 
-      virtual UseSecureTransportPtr getSecureTransport() const = 0;
+      virtual UseSecureTransportPtr getSecureTransport() const noexcept = 0;
 
       virtual bool sendPacket(
                               const BYTE *buffer,
                               size_t bufferSizeInBytes
-                              ) = 0;
+                              ) noexcept = 0;
     };
     
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IICETransportForDataTransport
-    #pragma mark
+    //
+    // IICETransportForDataTransport
+    //
 
     interaction IICETransportForDataTransport
     {
-      ZS_DECLARE_TYPEDEF_PTR(IICETransportForDataTransport, ForDataTransport)
+      ZS_DECLARE_TYPEDEF_PTR(IICETransportForDataTransport, ForDataTransport);
 
-      virtual PUID getID() const = 0;
+      virtual PUID getID() const noexcept = 0;
 
-      virtual IICETransportSubscriptionPtr subscribe(IICETransportDelegatePtr delegate) = 0;
+      virtual IICETransportSubscriptionPtr subscribe(IICETransportDelegatePtr delegate) noexcept = 0;
 
-      virtual IICETransport::States state() const = 0;
+      virtual IICETransport::States state() const noexcept = 0;
     };
     
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IICETransportAsyncDelegate
-    #pragma mark
+    //
+    // IICETransportAsyncDelegate
+    //
 
     interaction IICETransportAsyncDelegate
     {
@@ -227,9 +227,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ICETransport
-    #pragma mark
+    //
+    // ICETransport
+    //
 
     class ICETransport : public Noop,
                          public MessageQueueAssociator,
@@ -257,18 +257,18 @@ namespace ortc
       friend interaction IICETransportForSecureTransport;
       friend interaction IICETransportForDataTransport;
 
-      ZS_DECLARE_STRUCT_PTR(RouteStateTracker)
-      ZS_DECLARE_STRUCT_PTR(Route)
-      ZS_DECLARE_STRUCT_PTR(ReasonNoMoreRelationship)
+      ZS_DECLARE_STRUCT_PTR(RouteStateTracker);
+      ZS_DECLARE_STRUCT_PTR(Route);
+      ZS_DECLARE_STRUCT_PTR(ReasonNoMoreRelationship);
 
-      ZS_DECLARE_TYPEDEF_PTR(ortc::services::ISTUNRequester, ISTUNRequester)
-      ZS_DECLARE_TYPEDEF_PTR(IICEGathererForICETransport, UseICEGatherer)
-      ZS_DECLARE_TYPEDEF_PTR(IICETransportControllerForICETransport, UseICETransportController)
-      ZS_DECLARE_TYPEDEF_PTR(IICETypes::Candidate, Candidate)
-      ZS_DECLARE_TYPEDEF_PTR(IICETypes::CandidateComplete, CandidateComplete)
-      ZS_DECLARE_TYPEDEF_PTR(IICETypes::CandidateList, CandidateList)
-      ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForICETransport, UseSecureTransport)
-      ZS_DECLARE_TYPEDEF_PTR(ICEGathererRouter::Route, RouterRoute)
+      ZS_DECLARE_TYPEDEF_PTR(ortc::services::ISTUNRequester, ISTUNRequester);
+      ZS_DECLARE_TYPEDEF_PTR(IICEGathererForICETransport, UseICEGatherer);
+      ZS_DECLARE_TYPEDEF_PTR(IICETransportControllerForICETransport, UseICETransportController);
+      ZS_DECLARE_TYPEDEF_PTR(IICETypes::Candidate, Candidate);
+      ZS_DECLARE_TYPEDEF_PTR(IICETypes::CandidateComplete, CandidateComplete);
+      ZS_DECLARE_TYPEDEF_PTR(IICETypes::CandidateList, CandidateList);
+      ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForICETransport, UseSecureTransport);
+      ZS_DECLARE_TYPEDEF_PTR(ICEGathererRouter::Route, RouterRoute);
 
       typedef String Hash;
       typedef std::map<Hash, CandidatePtr> CandidateMap;
@@ -306,257 +306,257 @@ namespace ortc
                    IMessageQueuePtr queue,
                    IICETransportDelegatePtr delegate,
                    UseICEGathererPtr gatherer
-                   );
+                   ) noexcept;
 
     protected:
       ICETransport(
                    Noop,
                    IMessageQueuePtr queue = IMessageQueuePtr(),
                    const SharedRecursiveLock &lock = SharedRecursiveLock::create()
-                   ) :
+                   ) noexcept :
         Noop(true),
         MessageQueueAssociator(queue),
         SharedRecursiveLock(lock) {}
 
-      void init();
+      void init() noexcept;
 
     public:
-      virtual ~ICETransport();
+      virtual ~ICETransport() noexcept;
 
-      static ICETransportPtr convert(IICETransportPtr object);
-      static ICETransportPtr convert(IRTCPTransportPtr object);
-      static ICETransportPtr convert(ForICEGathererPtr object);
-      static ICETransportPtr convert(ForTransportContollerPtr object);
-      static ICETransportPtr convert(ForSecureTransportPtr object);
-      static ICETransportPtr convert(ForDataTransportPtr object);
+      static ICETransportPtr convert(IICETransportPtr object) noexcept;
+      static ICETransportPtr convert(IRTCPTransportPtr object) noexcept;
+      static ICETransportPtr convert(ForICEGathererPtr object) noexcept;
+      static ICETransportPtr convert(ForTransportContollerPtr object) noexcept;
+      static ICETransportPtr convert(ForSecureTransportPtr object) noexcept;
+      static ICETransportPtr convert(ForDataTransportPtr object) noexcept;
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark ICETransport => IStatsProvider
-      #pragma mark
+      //
+      // ICETransport => IStatsProvider
+      //
 
-      PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const override;
+      PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const noexcept override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark ICETransport => IICETransport
-      #pragma mark
+      //
+      // ICETransport => IICETransport
+      //
 
-      static ElementPtr toDebug(ICETransportPtr transport);
+      static ElementPtr toDebug(ICETransportPtr transport) noexcept;
 
       static ICETransportPtr create(
                                     IICETransportDelegatePtr delegate,
                                     IICEGathererPtr gatherer
-                                    );
+                                    ) noexcept(false); // throws InvalidParmaters
 
-      PUID getID() const override {return mID;}
+      PUID getID() const noexcept override {return mID;}
 
-      IICETransportSubscriptionPtr subscribe(IICETransportDelegatePtr delegate) override;
+      IICETransportSubscriptionPtr subscribe(IICETransportDelegatePtr delegate) noexcept override;
 
-      IICEGathererPtr iceGatherer() const override;
+      IICEGathererPtr iceGatherer() const noexcept override;
 
-      Roles role() const override;
-      Components component() const override;
-      States state() const override;
+      Roles role() const noexcept override;
+      Components component() const noexcept override;
+      States state() const noexcept override;
 
-      CandidateListPtr getRemoteCandidates() const override;
+      CandidateListPtr getRemoteCandidates() const noexcept override;
 
-      CandidatePairPtr getSelectedCandidatePair() const override;
+      CandidatePairPtr getSelectedCandidatePair() const noexcept override;
 
       void start(
                  IICEGathererPtr gatherer,
                  const Parameters &remoteParameters,
                  Optional<Options> options = Optional<Options>()
-                 ) throw (InvalidParameters) override;
+                 ) noexcept(false) override; // throws InvalidParameters
 
-      void stop() override;
+      void stop() noexcept override;
 
-      ParametersPtr getRemoteParameters() const override;
+      ParametersPtr getRemoteParameters() const noexcept override;
 
-      IICETransportPtr createAssociatedTransport(IICETransportDelegatePtr delegate) throw (InvalidStateError) override;
+      IICETransportPtr createAssociatedTransport(IICETransportDelegatePtr delegate) noexcept(false) override; // throws InvalidStateError
 
-      void addRemoteCandidate(const GatherCandidate &remoteCandidate) throw (InvalidStateError, InvalidParameters) override;
-      void setRemoteCandidates(const CandidateList &remoteCandidates) throw (InvalidStateError, InvalidParameters) override;
-      void removeRemoteCandidate(const GatherCandidate &remoteCandidate) throw (InvalidStateError, InvalidParameters) override;
+      void addRemoteCandidate(const GatherCandidate &remoteCandidate) noexcept(false) override; // throws InvalidStateError, InvalidParameters
+      void setRemoteCandidates(const CandidateList &remoteCandidates) noexcept(false) override; // throws InvalidStateError, InvalidParameters
+      void removeRemoteCandidate(const GatherCandidate &remoteCandidate) noexcept(false) override; // throws InvalidStateError, InvalidParameters
 
       virtual void keepWarm(
                             const CandidatePair &candidatePair,
                             bool keepWarm = true
-                            ) throw (InvalidStateError) override;
+                            ) noexcept(false) override; // throws InvalidStateError
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark ICETransport => IICETransportForICEGatherer
-      #pragma mark
+      //
+      // ICETransport => IICETransportForICEGatherer
+      //
 
-      virtual ForICEGathererPtr getForGatherer() const override;
+      virtual ForICEGathererPtr getForGatherer() const noexcept override;
 
       virtual void notifyPacket(
                                 RouterRoutePtr routerRoute,
                                 STUNPacketPtr packet
-                                ) override;
+                                ) noexcept override;
       virtual void notifyPacket(
                                 RouterRoutePtr routerRoute,
                                 const BYTE *buffer,
                                 size_t bufferSizeInBytes
-                                ) override;
+                                ) noexcept override;
 
-      virtual bool needsMoreCandidates() const override;
+      virtual bool needsMoreCandidates() const noexcept override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark ICETransport => IICETransportForICETransportContoller
-      #pragma mark
+      //
+      // ICETransport => IICETransportForICETransportContoller
+      //
 
-      // (duplicate) virtual PUID getID() const = 0;
+      // (duplicate) virtual PUID getID() const noexcept = 0;
 
-      virtual void notifyControllerAttached(ICETransportControllerPtr controller) override;
-      virtual void notifyControllerDetached(ICETransportController &controller) override;
+      virtual void notifyControllerAttached(ICETransportControllerPtr controller) noexcept override;
+      virtual void notifyControllerDetached(ICETransportController &controller) noexcept override;
 
       virtual bool hasCandidatePairFoundation(
                                               const String &localFoundation,
                                               const String &remoteFoundation,
                                               PromisePtr promise
-                                              ) override;
+                                              ) noexcept override;
 
-      // (duplicate) virtual IICETypes::Components component() const = 0;
-      // (duplicate) virtual IICETransport::States state() const = 0;
+      // (duplicate) virtual IICETypes::Components component() const noexcept = 0;
+      // (duplicate) virtual IICETransport::States state() const noexcept = 0;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark ICETransport => IICETransportForSecureTransport
-      #pragma mark
+      //
+      // ICETransport => IICETransportForSecureTransport
+      //
 
-      // (duplicate) virtual PUID getID() const override;
+      // (duplicate) virtual PUID getID() const noexcept = 0;
 
-      virtual void notifyAttached(
-                                  PUID secureTransportID,
-                                  UseSecureTransportPtr transport
-                                  ) override;
-      virtual void notifyDetached(PUID secureTransportID) override;
+      void notifyAttached(
+                          PUID secureTransportID,
+                          UseSecureTransportPtr transport
+                          ) noexcept override;
+      void notifyDetached(PUID secureTransportID) noexcept override;
 
-      // (duplicate) virtual IICETransportSubscriptionPtr subscribe(IICETransportDelegatePtr delegate);
+      // (duplicate) virtual IICETransportSubscriptionPtr subscribe(IICETransportDelegatePtr delegate) noexcept = 0;
 
-      // (duplicate) virtual IICETransport::States state() const override;
+      // (duplicate) virtual IICETransport::States state() const noexcept = 0;
 
-      virtual IICETypes::Roles getRole() const override;
+      IICETypes::Roles getRole() const noexcept override;
 
-      virtual ICETransportPtr getRTPTransport() const override;
-      virtual ICETransportPtr getRTCPTransport() const override;
+      ICETransportPtr getRTPTransport() const noexcept override;
+      ICETransportPtr getRTCPTransport() const noexcept override;
 
-      virtual UseSecureTransportPtr getSecureTransport() const override;
+      UseSecureTransportPtr getSecureTransport() const noexcept override;
 
-      virtual bool sendPacket(
-                              const BYTE *buffer,
-                              size_t bufferSizeInBytes
+      bool sendPacket(
+                      const BYTE *buffer,
+                      size_t bufferSizeInBytes
+                      ) noexcept override;
+
+      //-----------------------------------------------------------------------
+      //
+      // ICETransport => IICETransportForDataTransport
+      //
+
+      // (duplicate) virtual PUID getID() const noexcept = 0;
+
+      // (duplicate) virtual IICETransportSubscriptionPtr subscribe(IICETransportDelegatePtr delegate) noexcept = 0;
+
+      // (duplciate) virtual IICETransport::States state() const noexcept = 0;
+
+      //-----------------------------------------------------------------------
+      //
+      // ICETransport => IICETransportAsyncDelegate
+      //
+
+      void onResolveStatsPromise(IStatsProvider::PromiseWithStatsReportPtr promise) override;
+      void onNotifyPacketRetried(
+                                 IICETypes::CandidatePtr localCandidate,
+                                 IPAddress remoteIP,
+                                 STUNPacketPtr stunPacket
+                                 ) override;
+      void onWarmRoutesChanged() override;
+
+      void onNotifyAttached(PUID secureTransportID) override;
+      void onNotifyDetached(PUID secureTransportID) override;
+
+      void onDeliverPendingPackets() override;
+
+      //-----------------------------------------------------------------------
+      //
+      // ICETransport => IWakeDelegate
+      //
+
+      void onWake() override;
+
+      //-----------------------------------------------------------------------
+      //
+      // ICETransport => ITimerDelegate
+      //
+
+      void onTimer(ITimerPtr timer) override;
+
+      //-----------------------------------------------------------------------
+      //
+      // ICETransport => IPromiseSettledDelegate
+      //
+
+      void onPromiseSettled(PromisePtr promise) override;
+
+      //-----------------------------------------------------------------------
+      //
+      // ICETransport => IICEGathererDelegate
+      //
+
+      void onICEGathererStateChange(
+                                    IICEGathererPtr gatherer,
+                                    IICEGatherer::States state
+                                    ) override;
+
+      void onICEGathererLocalCandidate(
+                                       IICEGathererPtr gatherer,
+                                       CandidatePtr candidate
+                                       ) override;
+
+      void onICEGathererLocalCandidateComplete(
+                                               IICEGathererPtr gatherer,
+                                               CandidateCompletePtr candidate
+                                               ) override;
+
+      void onICEGathererLocalCandidateGone(
+                                           IICEGathererPtr gatherer,
+                                           CandidatePtr candidate
+                                           ) override;
+
+      void onICEGathererError(
+                              IICEGathererPtr gatherer,
+                              ErrorEventPtr errorEvent
                               ) override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark ICETransport => IICETransportForDataTransport
-      #pragma mark
+      //
+      // ICETransport => ISTUNRequesterDelegate
+      //
 
-      // (duplicate) virtual PUID getID() const override;
+      void onSTUNRequesterSendPacket(
+                                     ISTUNRequesterPtr requester,
+                                     IPAddress destination,
+                                     SecureByteBlockPtr packet
+                                     ) override;
 
-      // (duplicate) virtual IICETransportSubscriptionPtr subscribe(IICETransportDelegatePtr delegate);
+      bool handleSTUNRequesterResponse(
+                                       ISTUNRequesterPtr requester,
+                                       IPAddress fromIPAddress,
+                                       STUNPacketPtr response
+                                       ) noexcept override;
 
-      // (duplciate) virtual IICETransport::States state() const = 0;
-
-      //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark ICETransport => IICETransportAsyncDelegate
-      #pragma mark
-
-      virtual void onResolveStatsPromise(IStatsProvider::PromiseWithStatsReportPtr promise) override;
-      virtual void onNotifyPacketRetried(
-                                         IICETypes::CandidatePtr localCandidate,
-                                         IPAddress remoteIP,
-                                         STUNPacketPtr stunPacket
-                                         ) override;
-      virtual void onWarmRoutesChanged() override;
-
-      virtual void onNotifyAttached(PUID secureTransportID) override;
-      virtual void onNotifyDetached(PUID secureTransportID) override;
-
-      virtual void onDeliverPendingPackets() override;
-
-      //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark ICETransport => IWakeDelegate
-      #pragma mark
-
-      virtual void onWake() override;
-
-      //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark ICETransport => ITimerDelegate
-      #pragma mark
-
-      virtual void onTimer(ITimerPtr timer) override;
-
-      //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark ICETransport => IPromiseSettledDelegate
-      #pragma mark
-
-      virtual void onPromiseSettled(PromisePtr promise) override;
-
-      //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark ICETransport => IICEGathererDelegate
-      #pragma mark
-
-      virtual void onICEGathererStateChange(
-                                            IICEGathererPtr gatherer,
-                                            IICEGatherer::States state
-                                            ) override;
-
-      virtual void onICEGathererLocalCandidate(
-                                               IICEGathererPtr gatherer,
-                                               CandidatePtr candidate
-                                               ) override;
-
-      virtual void onICEGathererLocalCandidateComplete(
-                                                       IICEGathererPtr gatherer,
-                                                       CandidateCompletePtr candidate
-                                                       ) override;
-
-      virtual void onICEGathererLocalCandidateGone(
-                                                   IICEGathererPtr gatherer,
-                                                   CandidatePtr candidate
-                                                   ) override;
-
-      virtual void onICEGathererError(
-                                      IICEGathererPtr gatherer,
-                                      ErrorEventPtr errorEvent
-                                      ) override;
-
-      //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark ICETransport => ISTUNRequesterDelegate
-      #pragma mark
-
-      virtual void onSTUNRequesterSendPacket(
-                                             ISTUNRequesterPtr requester,
-                                             IPAddress destination,
-                                             SecureByteBlockPtr packet
-                                             ) override;
-
-      virtual bool handleSTUNRequesterResponse(
-                                               ISTUNRequesterPtr requester,
-                                               IPAddress fromIPAddress,
-                                               STUNPacketPtr response
-                                               ) override;
-
-      virtual void onSTUNRequesterTimedOut(ISTUNRequesterPtr requester) override;
+      void onSTUNRequesterTimedOut(ISTUNRequesterPtr requester) override;
 
     public:
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark ICETransport::Route
-      #pragma mark
+      //
+      // ICETransport::Route
+      //
 
       struct Route
       {
@@ -575,7 +575,7 @@ namespace ortc
 
           State_Last = State_Blacklisted,
         };
-        static const char *toString(States state);
+        static const char *toString(States state) noexcept;
 
         AutoPUID mID;
 
@@ -605,36 +605,36 @@ namespace ortc
         Time mLastRoundTripCheck;
         Microseconds mLastRoundTripMeasurement {};
 
-        Route(RouteStateTrackerPtr tracker);
-        ~Route();
+        Route(RouteStateTrackerPtr tracker) noexcept;
+        ~Route() noexcept;
 
-        ElementPtr toDebug() const;
+        ElementPtr toDebug() const noexcept;
 
-        QWORD getPreference(bool localIsControlling) const;
+        QWORD getPreference(bool localIsControlling) const noexcept;
         QWORD getActivationPriority(
                                     bool localIsControlling,
                                     bool useUnfreezePreference
-                                    ) const;
+                                    ) const noexcept;
 
-        States state() const;
-        void state(States state);
+        States state() const noexcept;
+        void state(States state) noexcept;
 
-        bool isNew() const {return State_New == mState;}
-        bool isPending() const {return State_Pending == mState;}
-        bool isFrozen() const {return State_Frozen == mState;}
-        bool isInProgress() const {return State_InProgress == mState;}
-        bool isSucceeded() const {return State_Succeeded == mState;}
-        bool isIgnored() const {return State_Ignored == mState;}
-        bool isFailed() const {return State_Failed == mState;}
-        bool isBlacklisted() const {return State_Blacklisted == mState;}
+        bool isNew() const noexcept {return State_New == mState;}
+        bool isPending() const noexcept {return State_Pending == mState;}
+        bool isFrozen() const noexcept {return State_Frozen == mState;}
+        bool isInProgress() const noexcept {return State_InProgress == mState;}
+        bool isSucceeded() const noexcept {return State_Succeeded == mState;}
+        bool isIgnored() const noexcept {return State_Ignored == mState;}
+        bool isFailed() const noexcept {return State_Failed == mState;}
+        bool isBlacklisted() const noexcept {return State_Blacklisted == mState;}
 
         void trace(
                    const char *function = NULL,
                    const char *message = NULL
-                   ) const;
+                   ) const noexcept;
 
       protected:
-        Log::Params log(const char *message) const;
+        Log::Params log(const char *message) const noexcept;
 
         States mState {State_New};
       };
@@ -647,14 +647,14 @@ namespace ortc
 
         size_t mStates[Route::State_Last+1];
 
-        RouteStateTracker(PUID outerObjectID);
+        RouteStateTracker(PUID outerObjectID) noexcept;
 
-        ElementPtr toDebug() const;
+        ElementPtr toDebug() const noexcept;
 
-        void inState(States state);
-        void outState(States state);
+        void inState(States state) noexcept;
+        void outState(States state) noexcept;
 
-        size_t count(States state);
+        size_t count(States state) noexcept;
       };
 
       struct ReasonNoMoreRelationship : public Any
@@ -663,141 +663,141 @@ namespace ortc
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark ICETransport => (internal)
-      #pragma mark
+      //
+      // ICETransport => (internal)
+      //
 
-      Log::Params log(const char *message) const;
-      Log::Params debug(const char *message) const;
-      virtual ElementPtr toDebug() const;
+      Log::Params log(const char *message) const noexcept;
+      Log::Params debug(const char *message) const noexcept;
+      virtual ElementPtr toDebug() const noexcept;
 
-      bool isConnected() const;
-      bool isComplete() const;
-      bool isDisconnected() const;
-      bool isFailed() const;
-      bool isShuttingDown() const;
-      bool isShutdown() const;
-      bool isContinousGathering() const;
+      bool isConnected() const noexcept;
+      bool isComplete() const noexcept;
+      bool isDisconnected() const noexcept;
+      bool isFailed() const noexcept;
+      bool isShuttingDown() const noexcept;
+      bool isShutdown() const noexcept;
+      bool isContinousGathering() const noexcept;
 
-      void step();
-      bool stepCalculateLegalPairs();
-      bool stepProcessLegalPairs(CandidatePairMap &pairings);
-      bool stepPendingActivation();
-      bool stepActivationTimer();
-      bool stepPickRoute();
-      bool stepUseCandidate();
-      bool stepDewarmRoutes();
-      bool stepKeepWarmRoutes();
-      bool stepExpireRouteTimer();
-      bool stepLastReceivedPacketTimer();
-      bool stepSetCurrentState();
-      bool stepSetNeedsMoreCandidates();
+      void step() noexcept;
+      bool stepCalculateLegalPairs() noexcept;
+      bool stepProcessLegalPairs(CandidatePairMap &pairings) noexcept;
+      bool stepPendingActivation() noexcept;
+      bool stepActivationTimer() noexcept;
+      bool stepPickRoute() noexcept;
+      bool stepUseCandidate() noexcept;
+      bool stepDewarmRoutes() noexcept;
+      bool stepKeepWarmRoutes() noexcept;
+      bool stepExpireRouteTimer() noexcept;
+      bool stepLastReceivedPacketTimer() noexcept;
+      bool stepSetCurrentState() noexcept;
+      bool stepSetNeedsMoreCandidates() noexcept;
 
-      void wakeUp();
-      void warmRoutesChanged();
-      bool hasWarmRoutesChanged();
-      void cancel();
+      void wakeUp() noexcept;
+      void warmRoutesChanged() noexcept;
+      bool hasWarmRoutesChanged() noexcept;
+      void cancel() noexcept;
 
-      void setState(IICETransportTypes::States state);
-      void setError(WORD error, const char *reason = NULL);
+      void setState(IICETransportTypes::States state) noexcept;
+      void setError(WORD error, const char *reason = NULL) noexcept;
 
-      void handleExpireRouteTimer();
-      void handleLastReceivedPacket();
-      void handleActivationTimer();
-      void handleNextKeepWarmTimer(RoutePtr route);
+      void handleExpireRouteTimer() noexcept;
+      void handleLastReceivedPacket() noexcept;
+      void handleActivationTimer() noexcept;
+      void handleNextKeepWarmTimer(RoutePtr route) noexcept;
 
-      void forceActive(RoutePtr route);
-      void shutdown(RoutePtr route);
+      void forceActive(RoutePtr route) noexcept;
+      void shutdown(RoutePtr route) noexcept;
 
-      void pruneAllCandidatePairs(bool keepActiveAlive);
-      CandidatePairPtr cloneCandidatePair(RoutePtr route) const;
+      void pruneAllCandidatePairs(bool keepActiveAlive) noexcept;
+      CandidatePairPtr cloneCandidatePair(RoutePtr route) const noexcept;
 
-      void setPending(RoutePtr route);
+      void setPending(RoutePtr route) noexcept;
       void setFrozen(
                      RoutePtr route,
                      PromisePtr promise
-                     );
-      void setInProgress(RoutePtr route);
-      void setSucceeded(RoutePtr route);
-      void setIgnored(RoutePtr route);
-      void setFailed(RoutePtr route);
-      void setBlacklisted(RoutePtr route);
+                     ) noexcept;
+      void setInProgress(RoutePtr route) noexcept;
+      void setSucceeded(RoutePtr route) noexcept;
+      void setIgnored(RoutePtr route) noexcept;
+      void setFailed(RoutePtr route) noexcept;
+      void setBlacklisted(RoutePtr route) noexcept;
 
-      void updateAfterPacket(RoutePtr route);
+      void updateAfterPacket(RoutePtr route) noexcept;
 
-      bool installGathererRoute(RoutePtr route);
+      bool installGathererRoute(RoutePtr route) noexcept;
 
-      void installFoundation(RoutePtr route);
+      void installFoundation(RoutePtr route) noexcept;
 
-      void removeLegal(RoutePtr route);
-      void removeFoundation(RoutePtr route);
-      void removeFrozen(RoutePtr route);
+      void removeLegal(RoutePtr route) noexcept;
+      void removeFoundation(RoutePtr route) noexcept;
+      void removeFrozen(RoutePtr route) noexcept;
       void removeFrozenDependencies(
                                     RoutePtr route,
                                     bool succeeded,
                                     AnyPtr reason = AnyPtr()
-                                    );
-      void removeActive(RoutePtr route);
-      void removePendingActivation(RoutePtr route);
-      void removeOutgoingCheck(RoutePtr route);
-      void removeGathererRoute(RoutePtr route);
-      void removeKeepWarmTimer(RoutePtr route);
-      void removeWarm(RoutePtr route);
+                                    ) noexcept;
+      void removeActive(RoutePtr route) noexcept;
+      void removePendingActivation(RoutePtr route) noexcept;
+      void removeOutgoingCheck(RoutePtr route) noexcept;
+      void removeGathererRoute(RoutePtr route) noexcept;
+      void removeKeepWarmTimer(RoutePtr route) noexcept;
+      void removeWarm(RoutePtr route) noexcept;
 
       RoutePtr findRoute(
                          IICETypes::CandidatePtr localCandidate,
                          const IPAddress &remoteIP
-                         );
+                         ) noexcept;
       RoutePtr findClosestRoute(
                                 IICETypes::CandidatePtr localCandidate,
                                 const IPAddress &remoteIP,
                                 DWORD remotePriority
-                                );
-      Time getLastRemoteActivity(RoutePtr route) const;
+                                ) noexcept;
+      Time getLastRemoteActivity(RoutePtr route) const noexcept;
 
       ISTUNRequesterPtr createBindRequest(
                                           RoutePtr route,
                                           bool useCandidate = false,
                                           IBackOffTimerPatternPtr pattern = IBackOffTimerPatternPtr()
-                                          ) const;
+                                          ) const noexcept;
       STUNPacketPtr createBindResponse(
                                        STUNPacketPtr request,
                                        RoutePtr route
-                                       ) const;
+                                       ) const noexcept;
       STUNPacketPtr createErrorResponse(
                                         STUNPacketPtr request,
                                         STUNPacket::ErrorCodes error
-                                        );
-      void setRole(STUNPacketPtr packet) const;
-      void fix(STUNPacketPtr stun) const;
+                                        ) noexcept;
+      void setRole(STUNPacketPtr packet) const noexcept;
+      void fix(STUNPacketPtr stun) const noexcept;
 
       void sendPacket(
                       RouterRoutePtr routerRoute,
                       STUNPacketPtr packet
-                      );
+                      ) noexcept;
 
       bool handleSwitchRolesAndConflict(
                                         RouterRoutePtr routerRoute,
                                         STUNPacketPtr packet
-                                        );
+                                        ) noexcept;
 
       RoutePtr findOrCreateMissingRoute(
                                         RouterRoutePtr routerRoute,
                                         STUNPacketPtr packet
-                                        );
+                                        ) noexcept;
 
       void handlePassThroughSTUNPacket(                       // do not call within a lock
                                        RouterRoutePtr routerRoute,
                                        STUNPacketPtr packet
-                                       );
+                                       ) noexcept;
 
-      bool getNeedsMoreCandidates() const;
+      bool getNeedsMoreCandidates() const noexcept;
 
     private:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark ICEGatherer => (data)
-      #pragma mark
+      //
+      // ICEGatherer => (data)
+      //
       
       AutoPUID mID;
 
@@ -898,18 +898,18 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IICETransportFactory
-    #pragma mark
+    //
+    // IICETransportFactory
+    //
 
     interaction IICETransportFactory
     {
-      static IICETransportFactory &singleton();
+      static IICETransportFactory &singleton() noexcept;
 
       virtual ICETransportPtr create(
                                      IICETransportDelegatePtr delegate,
                                      IICEGathererPtr gatherer
-                                     );
+                                     ) noexcept(false); // throws InvalidParameters
     };
 
     class ICETransportFactory : public IFactory<IICETransportFactory> {};
@@ -921,11 +921,11 @@ ZS_DECLARE_PROXY_TYPEDEF(ortc::IStatsProvider::PromiseWithStatsReportPtr, Promis
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IICETypes::CandidatePtr, CandidatePtr)
 ZS_DECLARE_PROXY_TYPEDEF(zsLib::IPAddress, IPAddress)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::services::STUNPacketPtr, STUNPacketPtr)
-ZS_DECLARE_PROXY_METHOD_1(onResolveStatsPromise, PromiseWithStatsReportPtr)
-ZS_DECLARE_PROXY_METHOD_3(onNotifyPacketRetried, CandidatePtr, IPAddress, STUNPacketPtr)
-ZS_DECLARE_PROXY_METHOD_0(onWarmRoutesChanged)
-ZS_DECLARE_PROXY_METHOD_1(onNotifyAttached, PUID)
-ZS_DECLARE_PROXY_METHOD_1(onNotifyDetached, PUID)
-ZS_DECLARE_PROXY_METHOD_0(onDeliverPendingPackets)
+ZS_DECLARE_PROXY_METHOD(onResolveStatsPromise, PromiseWithStatsReportPtr)
+ZS_DECLARE_PROXY_METHOD(onNotifyPacketRetried, CandidatePtr, IPAddress, STUNPacketPtr)
+ZS_DECLARE_PROXY_METHOD(onWarmRoutesChanged)
+ZS_DECLARE_PROXY_METHOD(onNotifyAttached, PUID)
+ZS_DECLARE_PROXY_METHOD(onNotifyDetached, PUID)
+ZS_DECLARE_PROXY_METHOD(onDeliverPendingPackets)
 ZS_DECLARE_PROXY_END()
 

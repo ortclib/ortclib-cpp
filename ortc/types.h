@@ -75,10 +75,10 @@ namespace ortc
   using zsLib::Optional;
   using zsLib::PromiseWith;
 
-  ZS_DECLARE_USING_PTR(zsLib, Any)
-  ZS_DECLARE_USING_PTR(zsLib, Promise)
+  ZS_DECLARE_USING_PTR(zsLib, Any);
+  ZS_DECLARE_USING_PTR(zsLib, Promise);
 
-  ZS_DECLARE_STRUCT_PTR(ErrorAny)
+  ZS_DECLARE_STRUCT_PTR(ErrorAny);
 
   struct ErrorAny : public Any
   {
@@ -88,20 +88,20 @@ namespace ortc
     String mName;
     String mReason;
 
-    ErrorAny() {}
+    ErrorAny() noexcept {}
 
-    ErrorAny(WORD errorCode, const char *reason, const char *name = NULL) :
+    ErrorAny(WORD errorCode, const char *reason, const char *name = NULL) noexcept :
       mErrorCode(errorCode),
       mName(name),
       mReason(reason) {}
 
-    static ErrorAnyPtr create(WORD errorCode, const char *reason, const char *name = NULL) { return make_shared<ErrorAny>(errorCode, reason, name); }
+    static ErrorAnyPtr create(WORD errorCode, const char *reason, const char *name = NULL) noexcept { return make_shared<ErrorAny>(errorCode, reason, name); }
   };
 
   using ortc::services::SharedRecursiveLock;
   using ortc::services::LockedValue;
 
-  ZS_DECLARE_USING_PTR(ortc::services, SecureByteBlock)
+  ZS_DECLARE_USING_PTR(ortc::services, SecureByteBlock);
 
   namespace JSON = zsLib::JSON;
   using JSON::Element;
@@ -126,21 +126,21 @@ namespace ortc
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark (forwards)
-  #pragma mark
+  //
+  // (forwards)
+  //
 
   ZS_DECLARE_CLASS_PTR(RTPPacket);
   ZS_DECLARE_CLASS_PTR(RTCPPacket);
 
   interaction IRTPTransport
   {
-    virtual PUID getID() const = 0;
+    virtual PUID getID() const noexcept = 0;
   };
 
   interaction IRTCPTransport
   {
-    virtual PUID getID() const = 0;
+    virtual PUID getID() const noexcept = 0;
   };
 
   ZS_DECLARE_INTERACTION_PTR(ICertificate);
@@ -210,7 +210,7 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark (mixed case versions of interfaces are available externally)
-  #pragma mark
+  //
+  // (mixed case versions of interfaces are available externally)
+  //
 }

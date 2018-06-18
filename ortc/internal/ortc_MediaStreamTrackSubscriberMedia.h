@@ -49,9 +49,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaStreamTrackSubscriberMedia
-    #pragma mark
+    //
+    // MediaStreamTrackSubscriberMedia
+    //
 
     class MediaStreamTrackSubscriberMedia : public Noop,
                                             public MessageQueueAssociator,
@@ -86,132 +86,132 @@ namespace ortc
     public:
       MediaStreamTrackSubscriberMedia(
                                       IMessageQueuePtr queue
-                                      );
+                                      ) noexcept;
 
-      MediaStreamTrackSubscriberMedia(Noop, IMessageQueuePtr queue) :
+      MediaStreamTrackSubscriberMedia(Noop, IMessageQueuePtr queue) noexcept :
         Noop(true),
         MessageQueueAssociator(queue),
         SharedRecursiveLock(SharedRecursiveLock::create())
       {}
 
     protected:
-      void init();
+      void init() noexcept;
 
     public:
-      ~MediaStreamTrackSubscriberMedia();
+      ~MediaStreamTrackSubscriberMedia() noexcept;
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaStreamTrackSubscriberMedia => IMediaStreamTrackSubscriberForMediaStreamTrack
-      #pragma mark
+      //
+      // MediaStreamTrackSubscriberMedia => IMediaStreamTrackSubscriberForMediaStreamTrack
+      //
 
-      PUID getID() const override { return id_; }
+      PUID getID() const noexcept override { return id_; }
 
-      void shutdown() override;
+      void shutdown() noexcept override;
 
       void notifyChannel(
                          UseMediaChannelBasePtr mediaChannel,
                          ImmutableMediaChannelTracePtr trace
-                         ) override;
+                         ) noexcept override;
 
-      void notifyTrackMute(bool isMuted) override;
-      void notifyTrackEnded() override;
-      void notifyOverConstrained(OverconstrainedErrorPtr error) override;
+      void notifyTrackMute(bool isMuted) noexcept override;
+      void notifyTrackEnded() noexcept override;
+      void notifyOverConstrained(OverconstrainedErrorPtr error) noexcept override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaStreamTrackSubscriberMedia => IMediaStreamTrackSubscriberMediaForMediaStreamTrack
-      #pragma mark
+      //
+      // MediaStreamTrackSubscriberMedia => IMediaStreamTrackSubscriberMediaForMediaStreamTrack
+      //
 
       static ForMediaStreamTrackPtr create(
                                            IMediaStreamTrackMediaSubscriptionPtr &outSubscription,
                                            IMediaStreamTrackSyncMediaDelegatePtr syncDelegate,
                                            IMediaStreamTrackAsyncMediaDelegatePtr asyncDelegate
-                                           );
+                                           ) noexcept;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaStreamTrackSubscriberMedia => IMediaStreamTrackSubscriberForMediaStreamTrackChannel
-      #pragma mark
+      //
+      // MediaStreamTrackSubscriberMedia => IMediaStreamTrackSubscriberForMediaStreamTrackChannel
+      //
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaStreamTrackSubscriberMedia => IMediaStreamTrackSubscriberMediaForMediaStreamTrackChannel
-      #pragma mark
+      //
+      // MediaStreamTrackSubscriberMedia => IMediaStreamTrackSubscriberMediaForMediaStreamTrackChannel
+      //
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaStreamTrackSubscriberRTP => IMediaStreamTrackChannelDelegate
-      #pragma mark
+      //
+      // MediaStreamTrackSubscriberRTP => IMediaStreamTrackChannelDelegate
+      //
 
-      void notifyMediaChannelCancelled(ImmutableMediaChannelTracePtr trace) override;
+      void notifyMediaChannelCancelled(ImmutableMediaChannelTracePtr trace) noexcept override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaStreamTrackSubscriberRTP => IMediaStreamTrackChannelMediaDelegate
-      #pragma mark
+      //
+      // MediaStreamTrackSubscriberRTP => IMediaStreamTrackChannelMediaDelegate
+      //
 
 
       void notifyMediaChannelAudioFrame(
                                         ImmutableMediaChannelTracePtr trace,
                                         AudioFramePtr frame
-                                        ) override;
+                                        ) noexcept override;
       void notifyMediaChannelVideoFrame(
                                         ImmutableMediaChannelTracePtr trace,
                                         AudioFramePtr frame
-                                        ) override;
+                                        ) noexcept override;
       
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaStreamTrackSubscriberMedia (for Subscriber)
-      #pragma mark
+      //
+      // MediaStreamTrackSubscriberMedia (for Subscriber)
+      //
 
-      void notifySubscriberCancel();
+      void notifySubscriberCancel() noexcept;
 
     public:
 
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaStreamTrackSubscriberMedia::Subscriber
-      #pragma mark
+      //
+      // MediaStreamTrackSubscriberMedia::Subscriber
+      //
 
       class Subscriber : public IMediaStreamTrackMediaSubscription,
                          public SharedRecursiveLock
       {
       public:
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark MediaStreamTrackSubscriberMedia::Subscriber => (for MediaSubscriber)
-        #pragma mark
+        //
+        // MediaStreamTrackSubscriberMedia::Subscriber => (for MediaSubscriber)
+        //
 
-        static SubscriberPtr create(const SharedRecursiveLock &lock);
+        static SubscriberPtr create(const SharedRecursiveLock &lock) noexcept;
 
-        void shutdown();
-
-      protected:
-        //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark MediaStreamTrackSubscriberMedia::Subscriber => IMediaStreamTrackMediaSubscription
-        #pragma mark
-
-        virtual PUID getID() const { return id_; }
-
-        virtual void cancel();
-
-        virtual void background();
-
-        //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark MediaStreamTrackSubscriberMedia::Subscriber => (internal)
-        #pragma mark
+        void shutdown() noexcept;
 
       protected:
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark MediaStreamTrackSubscriberMedia::Subscriber => (data)
-        #pragma mark
+        //
+        // MediaStreamTrackSubscriberMedia::Subscriber => IMediaStreamTrackMediaSubscription
+        //
+
+        virtual PUID getID() const noexcept { return id_; }
+
+        virtual void cancel() noexcept;
+
+        virtual void background() noexcept;
+
+        //---------------------------------------------------------------------
+        //
+        // MediaStreamTrackSubscriberMedia::Subscriber => (internal)
+        //
+
+      protected:
+        //---------------------------------------------------------------------
+        //
+        // MediaStreamTrackSubscriberMedia::Subscriber => (data)
+        //
 
         AutoPUID id_;
         SubscriberWeakPtr thisWeak_;
@@ -225,9 +225,9 @@ namespace ortc
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaStreamTrackSubscriberMedia => (data)
-      #pragma mark
+      //
+      // MediaStreamTrackSubscriberMedia => (data)
+      //
 
       AutoPUID id_;
       MediaStreamTrackSubscriberMediaWeakPtr thisWeak_;
@@ -245,13 +245,13 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrackSubscriberMediaFactory
-    #pragma mark
+    //
+    // IMediaStreamTrackSubscriberMediaFactory
+    //
 
     interaction IMediaStreamTrackSubscriberMediaFactory
     {
-      static IMediaStreamTrackSubscriberMediaFactory &singleton();
+      static IMediaStreamTrackSubscriberMediaFactory &singleton() noexcept;
 
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackSubscriberMediaForMediaStreamTrack, ForMediaStreamTrack);
 
@@ -259,7 +259,7 @@ namespace ortc
                                            IMediaStreamTrackMediaSubscriptionPtr &outSubscription,
                                            IMediaStreamTrackSyncMediaDelegatePtr syncDelegate,
                                            IMediaStreamTrackAsyncMediaDelegatePtr asyncDelegate
-                                           );    
+                                           ) noexcept;
     };
 
     class MediaStreamTrackSubscriberMediaFactory : public IFactory<IMediaStreamTrackSubscriberMediaFactory> {};

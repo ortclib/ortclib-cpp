@@ -59,9 +59,9 @@ namespace ortc
       //-------------------------------------------------------------------------
       //-------------------------------------------------------------------------
       //-------------------------------------------------------------------------
-      #pragma mark
-      #pragma mark IPeerConnectionAsyncDelegate
-      #pragma mark
+      //
+      // IPeerConnectionAsyncDelegate
+      //
 
       interaction IPeerConnectionAsyncDelegate
       {
@@ -75,9 +75,9 @@ namespace ortc
       //-------------------------------------------------------------------------
       //-------------------------------------------------------------------------
       //-------------------------------------------------------------------------
-      #pragma mark
-      #pragma mark PeerConnection
-      #pragma mark
+      //
+      // PeerConnection
+      //
 
       class PeerConnection : public Noop,
                              public MessageQueueAssociator,
@@ -117,7 +117,7 @@ namespace ortc
           InternalState_Last = InternalState_Shutdown
         };
 
-        static const char *toString(InternalStates state);
+        static const char *toString(InternalStates state) noexcept;
 
         enum NegotiationStates
         {
@@ -132,7 +132,7 @@ namespace ortc
           NegotiationState_Last = NegotiationState_Rejected,
         };
 
-        static const char *toString(NegotiationStates state);
+        static const char *toString(NegotiationStates state) noexcept;
 
         enum PendingMethods
         {
@@ -147,7 +147,7 @@ namespace ortc
           PendingMethod_Last = PendingMethod_SetRemoteDescription,
         };
 
-        static const char *toString(PendingMethods method);
+        static const char *toString(PendingMethods method) noexcept;
 
         typedef String TransportID;
         typedef String MediaLineID;
@@ -194,7 +194,7 @@ namespace ortc
             ISRTPSDESTransportPtr mSRTPSDESTransport;
             ISRTPSDESTransportTypes::ParametersPtr mSRTPSDESParameters;
 
-            ElementPtr toDebug() const;
+            ElementPtr toDebug() const noexcept;
           };
 
           TransportID mID;
@@ -206,7 +206,7 @@ namespace ortc
           Details mRTCP;
           CertificateList mCertificates;
 
-          ElementPtr toDebug() const;
+          ElementPtr toDebug() const noexcept;
         };
 
         struct MediaLineInfo
@@ -219,7 +219,7 @@ namespace ortc
 
           NegotiationStates mNegotiationState {NegotiationState_First};
 
-          ElementPtr toDebug() const;
+          ElementPtr toDebug() const noexcept;
         };
 
         struct RTPMediaLineInfo : public MediaLineInfo
@@ -234,7 +234,7 @@ namespace ortc
           IRTPTypes::CapabilitiesPtr mRemoteSenderCapabilities;
           IRTPTypes::CapabilitiesPtr mRemoteReceiverCapabilities;
 
-          ElementPtr toDebug() const;
+          ElementPtr toDebug() const noexcept;
         };
 
         struct SCTPMediaLineInfo : public MediaLineInfo
@@ -246,7 +246,7 @@ namespace ortc
           ISCTPTransportPtr mSCTPTransport;
           DataChannelMap mDataChannels;
 
-          ElementPtr toDebug() const;
+          ElementPtr toDebug() const noexcept;
         };
 
         struct SenderInfo
@@ -264,7 +264,7 @@ namespace ortc
           IRTPSenderPtr mSender;
           IRTPTypes::ParametersPtr mParameters;
 
-          ElementPtr toDebug() const;
+          ElementPtr toDebug() const noexcept;
         };
 
         struct ReceiverInfo
@@ -278,7 +278,7 @@ namespace ortc
           IRTPReceiverPtr mReceiver;
           UseMediaStreamMap mMediaStreams;
 
-          ElementPtr toDebug() const;
+          ElementPtr toDebug() const noexcept;
         };
 
         struct DataChannelInfo
@@ -301,11 +301,11 @@ namespace ortc
           PendingMethod(
                         PendingMethods method,
                         PromisePtr promise
-                        ) :
+                        ) noexcept :
             mMethod(method),
             mPromise(promise) {}
 
-          ElementPtr toDebug() const;
+          ElementPtr toDebug() const noexcept;
         };
 
         struct PendingAddTrack
@@ -315,7 +315,7 @@ namespace ortc
           UseMediaStreamMap mMediaStreams;
           MediaStreamTrackConfigurationPtr mConfiguration;
 
-          ElementPtr toDebug() const;
+          ElementPtr toDebug() const noexcept;
         };
 
         struct PendingAddDataChannel
@@ -323,7 +323,7 @@ namespace ortc
           PromiseWithDataChannelPtr mPromise;
           IDataChannelTypes::ParametersPtr mParameters;
 
-          ElementPtr toDebug() const;
+          ElementPtr toDebug() const noexcept;
         };
 
         typedef std::map<TransportID, TransportInfoPtr> TransportInfoMap;
@@ -353,376 +353,376 @@ namespace ortc
                        IMessageQueuePtr queue,
                        IPeerConnectionDelegatePtr delegate,
                        const Optional<Configuration> &configuration
-                       );
+                       ) noexcept;
 
-        ~PeerConnection();
+        ~PeerConnection() noexcept;
 
       public:
         PeerConnection(
                        const Noop &,
                        IMessageQueuePtr queue
-                       ) :
+                       ) noexcept :
           MessageQueueAssociator(queue),
           SharedRecursiveLock(SharedRecursiveLock::create()) {}
 
-        void init();
+        void init() noexcept;
 
-        static PeerConnectionPtr convert(IPeerConnectionPtr object);
+        static PeerConnectionPtr convert(IPeerConnectionPtr object) noexcept;
 
       protected:
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark PeerConnection => IPeerConnection
-        #pragma mark
+        //
+        // PeerConnection => IPeerConnection
+        //
 
         static PeerConnectionPtr create(
                                         IPeerConnectionDelegatePtr delegate,
                                         const Optional<Configuration> &configuration = Optional<Configuration>()
-                                        );
+                                        ) noexcept;
 
-        virtual PUID getID() const override { return mID; }
+        virtual PUID getID() const noexcept override { return mID; }
 
-        virtual IPeerConnectionSubscriptionPtr subscribe(IPeerConnectionDelegatePtr delegate) override;
+        IPeerConnectionSubscriptionPtr subscribe(IPeerConnectionDelegatePtr delegate) noexcept override;
 
-        virtual PromiseWithDescriptionPtr createOffer(const Optional<OfferOptions> &configuration = Optional<OfferOptions>()) override;
-        virtual PromiseWithDescriptionPtr createAnswer(const Optional<AnswerOptions> &configuration = Optional<AnswerOptions>()) override;
+        PromiseWithDescriptionPtr createOffer(const Optional<OfferOptions> &configuration = Optional<OfferOptions>()) noexcept override;
+        PromiseWithDescriptionPtr createAnswer(const Optional<AnswerOptions> &configuration = Optional<AnswerOptions>()) noexcept override;
 
-        virtual PromiseWithDescriptionPtr createCapabilities(const Optional<CapabilityOptions> &configuration = Optional<CapabilityOptions>()) override;
+        PromiseWithDescriptionPtr createCapabilities(const Optional<CapabilityOptions> &configuration = Optional<CapabilityOptions>()) noexcept override;
 
-        virtual PromisePtr setLocalDescription(ISessionDescriptionPtr description) override;
+        PromisePtr setLocalDescription(ISessionDescriptionPtr description) noexcept override;
 
-        virtual ISessionDescriptionPtr localDescription() const override;
-        virtual ISessionDescriptionPtr currentDescription() const override;
-        virtual ISessionDescriptionPtr pendingDescription() const override;
+        ISessionDescriptionPtr localDescription() const noexcept override;
+        ISessionDescriptionPtr currentDescription() const noexcept override;
+        ISessionDescriptionPtr pendingDescription() const noexcept override;
 
-        virtual PromisePtr setRemoteDescription(ISessionDescriptionPtr description) override;
-        virtual ISessionDescriptionPtr remoteDescription() const override;
-        virtual ISessionDescriptionPtr currentRemoteDescription() const override;
-        virtual ISessionDescriptionPtr pendingRemoteDescription() const override;
-        virtual void addICECandidate(const ICECandidate &candidate) override;
+        PromisePtr setRemoteDescription(ISessionDescriptionPtr description) noexcept override;
+        ISessionDescriptionPtr remoteDescription() const noexcept override;
+        ISessionDescriptionPtr currentRemoteDescription() const noexcept override;
+        ISessionDescriptionPtr pendingRemoteDescription() const noexcept override;
+        void addICECandidate(const ICECandidate &candidate) noexcept override;
 
-        virtual SignalingStates signalingState() const override;
-        virtual ICEGatheringStates iceGatheringState() const override;
-        virtual ICEConnectionStates iceConnectionState() const override;
-        virtual PeerConnectionStates connectionState() const override;
-        virtual bool canTrickleCandidates() const override;
+        SignalingStates signalingState() const noexcept override;
+        ICEGatheringStates iceGatheringState() const noexcept override;
+        ICEConnectionStates iceConnectionState() const noexcept override;
+        PeerConnectionStates connectionState() const noexcept override;
+        bool canTrickleCandidates() const noexcept override;
 
-        static ServerListPtr getDefaultIceServers();
+        static ServerListPtr getDefaultIceServers() noexcept;
 
-        virtual ConfigurationPtr getConfiguration() const override;
-        virtual void setConfiguration(const Configuration &configuration) override;
+        ConfigurationPtr getConfiguration() const noexcept override;
+        void setConfiguration(const Configuration &configuration) noexcept override;
 
-        virtual void close() override;
+        void close() noexcept override;
 
-        virtual SenderListPtr getSenders() const override;
-        virtual ReceiverListPtr getReceivers() const override;
-        virtual PromiseWithSenderPtr addTrack(
-                                              IMediaStreamTrackPtr track,
-                                              const MediaStreamTrackConfiguration &configuration = MediaStreamTrackConfiguration()
-                                              ) override;
-        virtual PromiseWithSenderPtr addTrack(
-                                              IMediaStreamTrackPtr track,
-                                              const MediaStreamList &mediaStreams,
-                                              const MediaStreamTrackConfiguration &configuration = MediaStreamTrackConfiguration()
-                                              ) override;
+        SenderListPtr getSenders() const noexcept override;
+        ReceiverListPtr getReceivers() const noexcept override;
+        PromiseWithSenderPtr addTrack(
+                                      IMediaStreamTrackPtr track,
+                                      const MediaStreamTrackConfiguration &configuration = MediaStreamTrackConfiguration()
+                                      ) noexcept override;
+        PromiseWithSenderPtr addTrack(
+                                      IMediaStreamTrackPtr track,
+                                      const MediaStreamList &mediaStreams,
+                                      const MediaStreamTrackConfiguration &configuration = MediaStreamTrackConfiguration()
+                                      ) noexcept override;
 
-        virtual void removeTrack(IRTPSenderPtr sender) override;
+        void removeTrack(IRTPSenderPtr sender) noexcept override;
 
-        virtual PromiseWithDataChannelPtr createDataChannel(const IDataChannelTypes::Parameters &parameters) override;
-
-        //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark PeerConnection => IStatsProvider
-        #pragma mark
-
-        virtual PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const override;
+        PromiseWithDataChannelPtr createDataChannel(const IDataChannelTypes::Parameters &parameters) noexcept override;
 
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark PeerConnection => IPeerConnectionAsyncDelegate
-        #pragma mark
+        //
+        // PeerConnection => IStatsProvider
+        //
 
-        virtual void onProvideStats(PromiseWithStatsReportPtr promise, StatsTypeSet stats) override;
+        PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const noexcept override;
 
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark PeerConnection => IICEGathererDelegate
-        #pragma mark
+        //
+        // PeerConnection => IPeerConnectionAsyncDelegate
+        //
 
-        virtual void onICEGathererStateChange(
-                                              IICEGathererPtr gatherer,
-                                              IICEGatherer::States state
-                                              ) override;
+        void onProvideStats(PromiseWithStatsReportPtr promise, StatsTypeSet stats) override;
 
-        virtual void onICEGathererLocalCandidate(
-                                                 IICEGathererPtr gatherer,
-                                                 CandidatePtr candidate
-                                                 ) override;
+        //---------------------------------------------------------------------
+        //
+        // PeerConnection => IICEGathererDelegate
+        //
 
-        virtual void onICEGathererLocalCandidateComplete(
-                                                         IICEGathererPtr gatherer,
-                                                         CandidateCompletePtr candidate
-                                                         ) override;
+        void onICEGathererStateChange(
+                                      IICEGathererPtr gatherer,
+                                      IICEGatherer::States state
+                                      ) override;
 
-        virtual void onICEGathererLocalCandidateGone(
-                                                     IICEGathererPtr gatherer,
-                                                     CandidatePtr candidate
-                                                     ) override;
-
-        virtual void onICEGathererError(
+        void onICEGathererLocalCandidate(
                                          IICEGathererPtr gatherer,
-                                         ErrorEventPtr errorEvent
+                                         CandidatePtr candidate
                                          ) override;
 
-        //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark PeerConnection => IICETransportDelegate
-        #pragma mark
+        void onICEGathererLocalCandidateComplete(
+                                                 IICEGathererPtr gatherer,
+                                                 CandidateCompletePtr candidate
+                                                 ) override;
 
-        virtual void onICETransportStateChange(
-                                               IICETransportPtr transport,
-                                               IICETransport::States state
-                                               ) override;
-
-        virtual void onICETransportCandidatePairAvailable(
-                                                          IICETransportPtr transport,
-                                                          CandidatePairPtr candidatePair
-                                                          ) override;
-        virtual void onICETransportCandidatePairGone(
-                                                     IICETransportPtr transport,
-                                                     CandidatePairPtr candidatePair
-                                                     ) override;
-
-        virtual void onICETransportCandidatePairChanged(
-                                                        IICETransportPtr transport,
-                                                        CandidatePairPtr candidatePair
-                                                        ) override;
-
-        //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark PeerConnection => IDTLSTransportDelegate
-        #pragma mark
-
-        virtual void onDTLSTransportStateChange(
-                                                IDTLSTransportPtr transport,
-                                                IDTLSTransport::States state
-                                                ) override;
-
-        virtual void onDTLSTransportError(
-                                          IDTLSTransportPtr transport,
-                                          ErrorAnyPtr error
-                                          ) override;
-
-
-        //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark PeerConnection => ISRTPSDESTransportDelegate
-        #pragma mark
-
-        virtual void onSRTPSDESTransportLifetimeRemaining(
-                                                          ISRTPSDESTransportPtr transport,
-                                                          ULONG leastLifetimeRemainingPercentageForAllKeys,
-                                                          ULONG overallLifetimeRemainingPercentage
-                                                          ) override;
-
-        virtual void onSRTPSDESTransportError(
-                                              ISRTPSDESTransportPtr transport,
-                                              ErrorAnyPtr errorCode
-                                              ) override;
-
-        //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark PeerConnection => IRTPListenerDelegate
-        #pragma mark
-
-        virtual void onRTPListenerUnhandledRTP(
-                                               IRTPListenerPtr listener,
-                                               SSRCType ssrc,
-                                               PayloadType payloadType,
-                                               const char *mid,
-                                               const char *rid
-                                               ) override;
-
-        //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark PeerConnection => IRTPSenderDelegate
-        #pragma mark
-
-        virtual void onRTPSenderSSRCConflict(
-                                             IRTPSenderPtr sender,
-                                             SSRCType ssrc
+        void onICEGathererLocalCandidateGone(
+                                             IICEGathererPtr gatherer,
+                                             CandidatePtr candidate
                                              ) override;
 
-        //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark PeerConnection => IRTPReceiverDelegate
-        #pragma mark
+        void onICEGathererError(
+                                IICEGathererPtr gatherer,
+                                ErrorEventPtr errorEvent
+                                ) override;
 
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark PeerConnection => ISCTPTransportDelegate
-        #pragma mark
+        //
+        // PeerConnection => IICETransportDelegate
+        //
 
-        virtual void onSCTPTransportStateChange(
-                                                ISCTPTransportPtr transport,
-                                                ISCTPTransportTypes::States state
+        void onICETransportStateChange(
+                                       IICETransportPtr transport,
+                                       IICETransport::States state
+                                       ) override;
+
+        void onICETransportCandidatePairAvailable(
+                                                  IICETransportPtr transport,
+                                                  CandidatePairPtr candidatePair
+                                                  ) override;
+        void onICETransportCandidatePairGone(
+                                             IICETransportPtr transport,
+                                             CandidatePairPtr candidatePair
+                                             ) override;
+
+        void onICETransportCandidatePairChanged(
+                                                IICETransportPtr transport,
+                                                CandidatePairPtr candidatePair
                                                 ) override;
-        virtual void onSCTPTransportDataChannel(
-                                                ISCTPTransportPtr transport,
-                                                IDataChannelPtr channel
-                                                ) override;
 
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark PeerConnection => ISCTPTransportListenerDelegate
-        #pragma mark
+        //
+        // PeerConnection => IDTLSTransportDelegate
+        //
 
-        virtual void onSCTPTransport(ISCTPTransportPtr transport) override;
-
-        //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark PeerConnection => ISCTPTransportListenerDelegate
-        #pragma mark
-
-        virtual void onDataChannelStateChange(
-                                              IDataChannelPtr channel,
-                                              IDataChannelTypes::States state
-                                              ) override;
-
-        virtual void onDataChannelError(
-                                        IDataChannelPtr channel,
-                                        ErrorAnyPtr error
+        void onDTLSTransportStateChange(
+                                        IDTLSTransportPtr transport,
+                                        IDTLSTransport::States state
                                         ) override;
 
-        virtual void onDataChannelBufferedAmountLow(IDataChannelPtr channel) override;
+        void onDTLSTransportError(
+                                  IDTLSTransportPtr transport,
+                                  ErrorAnyPtr error
+                                  ) override;
 
-        virtual void onDataChannelMessage(
-                                          IDataChannelPtr channel,
-                                          MessageEventDataPtr data
-                                          ) override;
-
-        //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark PeerConnection => IWakeDelegate
-        #pragma mark
-
-        virtual void onWake() override;
 
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark PeerConnection => IPromiseSettledDelegate
-        #pragma mark
+        //
+        // PeerConnection => ISRTPSDESTransportDelegate
+        //
 
-        virtual void onPromiseSettled(PromisePtr promise) override;
+        void onSRTPSDESTransportLifetimeRemaining(
+                                                  ISRTPSDESTransportPtr transport,
+                                                  ULONG leastLifetimeRemainingPercentageForAllKeys,
+                                                  ULONG overallLifetimeRemainingPercentage
+                                                  ) override;
+
+        void onSRTPSDESTransportError(
+                                      ISRTPSDESTransportPtr transport,
+                                      ErrorAnyPtr errorCode
+                                      ) override;
+
+        //---------------------------------------------------------------------
+        //
+        // PeerConnection => IRTPListenerDelegate
+        //
+
+        void onRTPListenerUnhandledRTP(
+                                       IRTPListenerPtr listener,
+                                       SSRCType ssrc,
+                                       PayloadType payloadType,
+                                       const char *mid,
+                                       const char *rid
+                                       ) override;
+
+        //---------------------------------------------------------------------
+        //
+        // PeerConnection => IRTPSenderDelegate
+        //
+
+        void onRTPSenderSSRCConflict(
+                                     IRTPSenderPtr sender,
+                                     SSRCType ssrc
+                                     ) override;
+
+        //---------------------------------------------------------------------
+        //
+        // PeerConnection => IRTPReceiverDelegate
+        //
+
+        //---------------------------------------------------------------------
+        //
+        // PeerConnection => ISCTPTransportDelegate
+        //
+
+        void onSCTPTransportStateChange(
+                                        ISCTPTransportPtr transport,
+                                        ISCTPTransportTypes::States state
+                                        ) override;
+        void onSCTPTransportDataChannel(
+                                        ISCTPTransportPtr transport,
+                                        IDataChannelPtr channel
+                                        ) override;
+
+        //---------------------------------------------------------------------
+        //
+        // PeerConnection => ISCTPTransportListenerDelegate
+        //
+
+        void onSCTPTransport(ISCTPTransportPtr transport) override;
+
+        //---------------------------------------------------------------------
+        //
+        // PeerConnection => ISCTPTransportListenerDelegate
+        //
+
+        void onDataChannelStateChange(
+                                      IDataChannelPtr channel,
+                                      IDataChannelTypes::States state
+                                      ) override;
+
+        void onDataChannelError(
+                                IDataChannelPtr channel,
+                                ErrorAnyPtr error
+                                ) override;
+
+        void onDataChannelBufferedAmountLow(IDataChannelPtr channel) override;
+
+        void onDataChannelMessage(
+                                  IDataChannelPtr channel,
+                                  MessageEventDataPtr data
+                                  ) override;
+
+        //---------------------------------------------------------------------
+        //
+        // PeerConnection => IWakeDelegate
+        //
+
+        void onWake() override;
+
+        //---------------------------------------------------------------------
+        //
+        // PeerConnection => IPromiseSettledDelegate
+        //
+
+        void onPromiseSettled(PromisePtr promise) override;
 
       protected:
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark PeerConnection => (internal)
-        #pragma mark
+        //
+        // PeerConnection => (internal)
+        //
 
-        Log::Params log(const char *message) const;
-        Log::Params debug(const char *message) const;
-        virtual ElementPtr toDebug() const;
+        Log::Params log(const char *message) const noexcept;
+        Log::Params debug(const char *message) const noexcept;
+        virtual ElementPtr toDebug() const noexcept;
 
-        bool isShuttingDown() const { return InternalState_ShuttingDown == mState; }
-        bool isShutdown() const { return InternalState_Shutdown == mState; }
-        bool isStopped() const { return isShuttingDown() || isShutdown(); }
+        bool isShuttingDown() const noexcept { return InternalState_ShuttingDown == mState; }
+        bool isShutdown() const noexcept { return InternalState_Shutdown == mState; }
+        bool isStopped() const noexcept { return isShuttingDown() || isShutdown(); }
 
-        void wake();
-        void notifyNegotiationNeeded();
+        void wake() noexcept;
+        void notifyNegotiationNeeded() noexcept;
 
-        void cancel();
-        void setError(WORD errorCode, const char *errorReason = NULL);
+        void cancel() noexcept;
+        void setError(WORD errorCode, const char *errorReason = NULL) noexcept;
 
-        void step();
-        bool stepCertificates();
-        bool stepProcessRemote();
-        bool stepProcessRemoteTransport(ISessionDescriptionTypes::DescriptionPtr description);
-        bool stepProcessRemoteRTPMediaLines(ISessionDescriptionTypes::DescriptionPtr description);
-        bool stepProcessRemoteRTPSenders(ISessionDescriptionTypes::DescriptionPtr description);
-        bool stepProcessRemoteSCTPTransport(ISessionDescriptionTypes::DescriptionPtr description);
-        bool stepProcessLocal();
-        bool stepProcessLocalTransport(ISessionDescriptionTypes::DescriptionPtr description);
-        bool stepProcessLocalRTPMediaLines(ISessionDescriptionTypes::DescriptionPtr description);
-        bool stepProcessLocalRTPSenders(ISessionDescriptionTypes::DescriptionPtr description);
-        bool stepProcessLocalSCTPTransport(ISessionDescriptionTypes::DescriptionPtr description);
-        bool stepCreateOfferOrAnswer();
-        bool stepProcessPendingRemoteCandidates();
-        bool stepAddTracks();
-        bool stepAddSCTPTransport();
-        bool stepFinalizeSenders();
-        bool stepFinalizeDataChannels();
-        bool stepFixGathererState();
-        bool stepFixTransportState();
+        void step() noexcept;
+        bool stepCertificates() noexcept;
+        bool stepProcessRemote() noexcept;
+        bool stepProcessRemoteTransport(ISessionDescriptionTypes::DescriptionPtr description) noexcept;
+        bool stepProcessRemoteRTPMediaLines(ISessionDescriptionTypes::DescriptionPtr description) noexcept;
+        bool stepProcessRemoteRTPSenders(ISessionDescriptionTypes::DescriptionPtr description) noexcept;
+        bool stepProcessRemoteSCTPTransport(ISessionDescriptionTypes::DescriptionPtr description) noexcept;
+        bool stepProcessLocal() noexcept;
+        bool stepProcessLocalTransport(ISessionDescriptionTypes::DescriptionPtr description) noexcept;
+        bool stepProcessLocalRTPMediaLines(ISessionDescriptionTypes::DescriptionPtr description) noexcept;
+        bool stepProcessLocalRTPSenders(ISessionDescriptionTypes::DescriptionPtr description) noexcept;
+        bool stepProcessLocalSCTPTransport(ISessionDescriptionTypes::DescriptionPtr description) noexcept;
+        bool stepCreateOfferOrAnswer() noexcept;
+        bool stepProcessPendingRemoteCandidates() noexcept;
+        bool stepAddTracks() noexcept;
+        bool stepAddSCTPTransport() noexcept;
+        bool stepFinalizeSenders() noexcept;
+        bool stepFinalizeDataChannels() noexcept;
+        bool stepFixGathererState() noexcept;
+        bool stepFixTransportState() noexcept;
 
-        void setState(InternalStates state);
-        void setState(SignalingStates state);
-        void setState(ICEGatheringStates state);
-        void setState(ICEConnectionStates state);
-        void setState(PeerConnectionStates state);
+        void setState(InternalStates state) noexcept;
+        void setState(SignalingStates state) noexcept;
+        void setState(ICEGatheringStates state) noexcept;
+        void setState(ICEConnectionStates state) noexcept;
+        void setState(PeerConnectionStates state) noexcept;
 
         void addCandidateToTransport(
                                      TransportInfo &transport,
                                      ICECandidatePtr candidate
-                                     );
+                                     ) noexcept;
 
-        TransportInfoPtr getTransportFromPool(const char *useID = NULL);
-        void addToTransportPool();
+        TransportInfoPtr getTransportFromPool(const char *useID = NULL) noexcept;
+        void addToTransportPool() noexcept;
 
-        String registerNewID(size_t length = 3);
-        String registerIDUsage(const char *idStr);
-        void unregisterID(const char *idStr);
-        WORD registerNewLocalPort();
+        String registerNewID(size_t length = 3) noexcept;
+        String registerIDUsage(const char *idStr) noexcept;
+        void unregisterID(const char *idStr) noexcept;
+        WORD registerNewLocalPort() noexcept;
 
-        void flushLocalPending(ISessionDescriptionPtr description);
-        void flushRemotePending(ISessionDescriptionPtr description);
-        void close(TransportInfo &transportInfo);
-        void close(TransportInfo::Details &details);
-        void close(RTPMediaLineInfo &mediaLineInfo);
-        void close(SCTPMediaLineInfo &mediaLineInfo);
-        void close(SenderInfo &senderInfo);
-        void close(ReceiverInfo &receiverInfo);
+        void flushLocalPending(ISessionDescriptionPtr description) noexcept;
+        void flushRemotePending(ISessionDescriptionPtr description) noexcept;
+        void close(TransportInfo &transportInfo) noexcept;
+        void close(TransportInfo::Details &details) noexcept;
+        void close(RTPMediaLineInfo &mediaLineInfo) noexcept;
+        void close(SCTPMediaLineInfo &mediaLineInfo) noexcept;
+        void close(SenderInfo &senderInfo) noexcept;
+        void close(ReceiverInfo &receiverInfo) noexcept;
 
-        void insertSSRCs(SenderInfo &senderInfo);
-        void clearSSRCs(SenderInfo &senderInfo);
-        void clearSSRC(SSRCType ssrc);
-        void fillRTCPSSRC(IRTPTypes::Parameters &ioReceiverParameters);
+        void insertSSRCs(SenderInfo &senderInfo) noexcept;
+        void clearSSRCs(SenderInfo &senderInfo) noexcept;
+        void clearSSRC(SSRCType ssrc) noexcept;
+        void fillRTCPSSRC(IRTPTypes::Parameters &ioReceiverParameters) noexcept;
 
-        void close(PendingMethod &pending);
-        void close(PendingAddTrack &pending);
-        void close(PendingAddDataChannel &pending);
+        void close(PendingMethod &pending) noexcept;
+        void close(PendingAddTrack &pending) noexcept;
+        void close(PendingAddDataChannel &pending) noexcept;
 
-        void purgeNonReferencedAndEmptyStreams();
-        Optional<size_t> getNextHighestMLineIndex() const;
+        void purgeNonReferencedAndEmptyStreams() noexcept;
+        Optional<size_t> getNextHighestMLineIndex() const noexcept;
 
-        void moveAddedTracksToPending();
+        void moveAddedTracksToPending() noexcept;
         void processStats(
                           PromiseWithStatsReportPtr collectionPromise,
                           PromiseWithStatsReportPtr resolvePromise
-                          );
+                          ) noexcept;
 
-        static MediaStreamListPtr convertToList(const UseMediaStreamMap &useStreams);
-        static UseMediaStreamMapPtr convertToMap(const MediaStreamList &mediaStreams);
-        static MediaStreamSetPtr convertToSet(const UseMediaStreamMap &useStreams);
-        static ISessionDescriptionTypes::ICECandidateListPtr convertCandidateList(IICETypes::CandidateList &source);
+        static MediaStreamListPtr convertToList(const UseMediaStreamMap &useStreams) noexcept;
+        static UseMediaStreamMapPtr convertToMap(const MediaStreamList &mediaStreams) noexcept;
+        static MediaStreamSetPtr convertToSet(const UseMediaStreamMap &useStreams) noexcept;
+        static ISessionDescriptionTypes::ICECandidateListPtr convertCandidateList(IICETypes::CandidateList &source) noexcept;
         static void calculateDelta(
                                    const MediaStreamSet &existingSet,
                                    const MediaStreamSet &newSet,
                                    MediaStreamSet &outAdded,
                                    MediaStreamSet &outRemoved
-                                   );
+                                   ) noexcept;
 
         static IDTLSTransportTypes::ParametersPtr getDTLSParameters(
                                                                     const TransportInfo &transportInfo,
                                                                     IICETypes::Components component
-                                                                    );
+                                                                    ) noexcept;
 
       protected:
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark PeerConnection => (data)
-        #pragma mark
+        //
+        // PeerConnection => (data)
+        //
 
         AutoPUID mID;
         PeerConnectionWeakPtr mThisWeak;
@@ -788,23 +788,23 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark IPeerConnectionFactory
-      #pragma mark
+      //
+      // IPeerConnectionFactory
+      //
 
       interaction IPeerConnectionFactory
       {
         typedef IPeerConnectionTypes::Configuration Configuration;
         typedef IPeerConnectionTypes::ServerListPtr ServerListPtr;
 
-        static IPeerConnectionFactory &singleton();
+        static IPeerConnectionFactory &singleton() noexcept;
 
         virtual PeerConnectionPtr create(
                                          IPeerConnectionDelegatePtr delegate,
                                          const Optional<Configuration> &configuration = Optional<Configuration>()
-                                         );
+                                         ) noexcept;
 
-        virtual ServerListPtr getDefaultIceServers();
+        virtual ServerListPtr getDefaultIceServers() noexcept;
       };
 
       class PeerConnectionFactory : public IFactory<IPeerConnectionFactory> {};
@@ -817,6 +817,6 @@ namespace ortc
 ZS_DECLARE_PROXY_BEGIN(ortc::adapter::internal::IPeerConnectionAsyncDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IStatsProviderTypes::PromiseWithStatsReportPtr, PromiseWithStatsReportPtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IStatsProviderTypes::StatsTypeSet, StatsTypeSet)
-ZS_DECLARE_PROXY_METHOD_2(onProvideStats, PromiseWithStatsReportPtr, StatsTypeSet)
+ZS_DECLARE_PROXY_METHOD(onProvideStats, PromiseWithStatsReportPtr, StatsTypeSet)
 ZS_DECLARE_PROXY_END()
 

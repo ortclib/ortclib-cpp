@@ -38,13 +38,6 @@
 
 #include <set>
 
-#ifdef _DEBUG
-#define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))
-#else
-#define ASSERT(x)
-#endif //_DEBUG
-
-
 namespace ortc { ZS_DECLARE_SUBSYSTEM(org_ortc_media_stream_track) }
 
 namespace ortc
@@ -59,37 +52,37 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark (helpers)
-    #pragma mark
+    //
+    // (helpers)
+    //
 
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaChannelTraceHelperDefaults
-    #pragma mark
+    //
+    // MediaChannelTraceHelperDefaults
+    //
 
     class MediaChannelTraceHelperDefaults : public ISettingsApplyDefaultsDelegate
     {
     public:
       //-----------------------------------------------------------------------
-      ~MediaChannelTraceHelperDefaults()
+      ~MediaChannelTraceHelperDefaults() noexcept
       {
         ISettings::removeDefaults(*this);
       }
 
       //-----------------------------------------------------------------------
-      static MediaChannelTraceHelperDefaultsPtr singleton()
+      static MediaChannelTraceHelperDefaultsPtr singleton() noexcept
       {
         static SingletonLazySharedPtr<MediaChannelTraceHelperDefaults> singleton(create());
         return singleton.singleton();
       }
 
       //-----------------------------------------------------------------------
-      static MediaChannelTraceHelperDefaultsPtr create()
+      static MediaChannelTraceHelperDefaultsPtr create()noexcept
       {
         auto pThis(make_shared<MediaChannelTraceHelperDefaults>());
         ISettings::installDefaults(pThis);
@@ -97,7 +90,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      virtual void notifySettingsApplyDefaults() override
+      virtual void notifySettingsApplyDefaults() noexcept override
       {
         ISettings::setUInt(ORTC_SETTING_MEDIA_CHANNEL_TRACE_HELPER_USAGE_INACTIVITY_AGE_PURGE_TIME_IN_SECONDS, 30);
         ISettings::setInt(ORTC_SETTING_MEDIA_CHANNEL_TRACE_HELPER_USAGE_INACTIVITY_AGE_CHECK_MODULAS_VALUE, 512);
@@ -105,7 +98,7 @@ namespace ortc
     };
 
     //-------------------------------------------------------------------------
-    void installMediaChannelTraceHelperDefaults()
+    void installMediaChannelTraceHelperDefaults() noexcept
     {
       MediaChannelTraceHelperDefaults::singleton();
     }
@@ -114,26 +107,26 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaChannelTraceHelper
-    #pragma mark
+    //
+    // MediaChannelTraceHelper
+    //
 
     //-------------------------------------------------------------------------
-    MediaChannelTraceHelper::MediaChannelTraceHelper(MediaChannelID mediaChannelID) :
+    MediaChannelTraceHelper::MediaChannelTraceHelper(MediaChannelID mediaChannelID) noexcept :
       SharedRecursiveLock(SharedRecursiveLock::create()),
       selfChannelID_(mediaChannelID),
       lastAgeCountTimeAt_(zsLib::now()),
       agePurge_(SafeInt<decltype(agePurge_)::rep>(ISettings::getUInt(ORTC_SETTING_MEDIA_CHANNEL_TRACE_HELPER_USAGE_INACTIVITY_AGE_PURGE_TIME_IN_SECONDS))),
       ageCheck_(SafeInt<decltype(ageCheck_)>(ISettings::getInt(ORTC_SETTING_MEDIA_CHANNEL_TRACE_HELPER_USAGE_INACTIVITY_AGE_CHECK_MODULAS_VALUE)))
     {
-      ASSERT(ageCheck_ > 1);  // assert value is set properly
+      ZS_ASSERT(ageCheck_ > 1);  // assert value is set properly
       if (ageCheck_ < 1) ageCheck_ = 1;
     }
 
     //-------------------------------------------------------------------------
-    MediaChannelTraceHelper::ImmutableMediaChannelTracePtr MediaChannelTraceHelper::trace(ImmutableMediaChannelTracePtr sourceTrace)
+    MediaChannelTraceHelper::ImmutableMediaChannelTracePtr MediaChannelTraceHelper::trace(ImmutableMediaChannelTracePtr sourceTrace) noexcept
     {
-      ASSERT((bool)sourceTrace);
+      ZS_ASSERT((bool)sourceTrace);
       uintptr_t handle = reinterpret_cast<uintptr_t>(sourceTrace.get());
 
       int checkCount = (++lastUsageCount_);
@@ -168,7 +161,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void MediaChannelTraceHelper::doPurge()
+    void MediaChannelTraceHelper::doPurge() noexcept
     {
       auto tick = zsLib::now();
 

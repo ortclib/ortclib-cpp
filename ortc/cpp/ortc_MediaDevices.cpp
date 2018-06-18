@@ -51,14 +51,10 @@
 
 #include <cryptopp/sha.h>
 
+#include <ortc/internal/webrtc_pre_include.h>
 #include <webrtc/modules/video_capture/video_capture_factory.h>
 #include <webrtc/modules/audio_device/audio_device_impl.h>
-
-#ifdef _DEBUG
-#define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))
-#else
-#define ASSERT(x)
-#endif //_DEBUG
+#include <ortc/internal/webrtc_post_include.h>
 
 
 namespace ortc { ZS_DECLARE_SUBSYSTEM(org_ortc_media_devices) }
@@ -82,37 +78,37 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark (helpers)
-    #pragma mark
+    //
+    // (helpers)
+    //
 
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaDevicesSettingsDefaults
-    #pragma mark
+    //
+    // MediaDevicesSettingsDefaults
+    //
 
     class MediaDevicesSettingsDefaults : public ISettingsApplyDefaultsDelegate
     {
     public:
       //-----------------------------------------------------------------------
-      ~MediaDevicesSettingsDefaults()
+      ~MediaDevicesSettingsDefaults() noexcept
       {
         ISettings::removeDefaults(*this);
       }
 
       //-----------------------------------------------------------------------
-      static MediaDevicesSettingsDefaultsPtr singleton()
+      static MediaDevicesSettingsDefaultsPtr singleton() noexcept
       {
         static SingletonLazySharedPtr<MediaDevicesSettingsDefaults> singleton(create());
         return singleton.singleton();
       }
 
       //-----------------------------------------------------------------------
-      static MediaDevicesSettingsDefaultsPtr create()
+      static MediaDevicesSettingsDefaultsPtr create() noexcept
       {
         auto pThis(make_shared<MediaDevicesSettingsDefaults>());
         ISettings::installDefaults(pThis);
@@ -120,7 +116,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      virtual void notifySettingsApplyDefaults() override
+      virtual void notifySettingsApplyDefaults() noexcept override
       {
         //      ISettings::setUInt(ORTC_SETTING_MEDIA_DEVICES, 0);
       }
@@ -128,7 +124,7 @@ namespace ortc
     };
 
     //-------------------------------------------------------------------------
-    void installMediaDevicesSettingsDefaults()
+    void installMediaDevicesSettingsDefaults() noexcept
     {
       MediaDevicesSettingsDefaults::singleton();
     }
@@ -137,20 +133,20 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IICETransportForSettings
-    #pragma mark
+    //
+    // IICETransportForSettings
+    //
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaDevices
-    #pragma mark
+    //
+    // MediaDevices
+    //
     
     //---------------------------------------------------------------------------
-    const char *MediaDevices::toString(States state)
+    const char *MediaDevices::toString(States state) noexcept
     {
       switch (state) {
         case State_Pending:       return "pending";
@@ -165,7 +161,7 @@ namespace ortc
     MediaDevices::MediaDevices(
                                const make_private &,
                                IMessageQueuePtr queue
-                               ) :
+                               ) noexcept :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
       mSubscriptions(decltype(mSubscriptions)::create())
@@ -174,14 +170,14 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void MediaDevices::init()
+    void MediaDevices::init() noexcept
     {
       AutoRecursiveLock lock(*this);
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
 
     //-------------------------------------------------------------------------
-    MediaDevices::~MediaDevices()
+    MediaDevices::~MediaDevices() noexcept
     {
       if (isNoop()) return;
 
@@ -192,7 +188,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    MediaDevicesPtr MediaDevices::create()
+    MediaDevicesPtr MediaDevices::create() noexcept
     {
       MediaDevicesPtr pThis(make_shared<MediaDevices>(make_private {}, IORTCForInternal::queueORTC()));
       pThis->mThisWeak = pThis;
@@ -201,7 +197,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    MediaDevicesPtr MediaDevices::singleton()
+    MediaDevicesPtr MediaDevices::singleton() noexcept
     {
       AutoRecursiveLock lock(*IHelper::getGlobalLock());
       static SingletonLazySharedPtr<MediaDevices> singleton(create());
@@ -217,7 +213,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    MediaDevicesPtr MediaDevices::convert(IMediaDevicesPtr object)
+    MediaDevicesPtr MediaDevices::convert(IMediaDevicesPtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(MediaDevices, object);
     }
@@ -227,12 +223,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaDevices => IMediaDevices
-    #pragma mark
+    //
+    // MediaDevices => IMediaDevices
+    //
     
     //-------------------------------------------------------------------------
-    ElementPtr MediaDevices::singletonToDebug()
+    ElementPtr MediaDevices::singletonToDebug() noexcept
     {
 
       MediaDevicesPtr pThis(MediaDevices::singleton());
@@ -243,25 +239,24 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    IMediaDevices::SupportedConstraintsPtr MediaDevices::getSupportedConstraints()
+    IMediaDevices::SupportedConstraintsPtr MediaDevices::getSupportedConstraints() noexcept
     {
       SupportedConstraintsPtr result(make_shared<SupportedConstraints>());
 
-#define TODO_IMPLEMENT 1
-#define TODO_IMPLEMENT 2
+#pragma ZS_BUILD_NOTE("TODO","Implement media devices getSupportedConstraints")
 
       return result;
     }
 
     //-------------------------------------------------------------------------
-    IMediaDevicesTypes::PromiseWithDeviceListPtr MediaDevices::enumerateDevices()
+    IMediaDevicesTypes::PromiseWithDeviceListPtr MediaDevices::enumerateDevices() noexcept
     {
       PromiseWithDeviceListPtr promise = PromiseWithDeviceList::create(IORTCForInternal::queueDelegate());
 
       MediaDevicesPtr pThis(MediaDevices::singleton());
 
       if (!pThis) {
-        ZS_LOG_WARNING(Basic, slog("media devices singleton is gone"))
+        ZS_LOG_WARNING(Basic, slog("media devices singleton is gone"));
         promise->reject();
         return promise;
       }
@@ -272,7 +267,7 @@ namespace ortc
 
 
     //-------------------------------------------------------------------------
-    IMediaDevicesTypes::PromiseWithSettingsListPtr MediaDevices::enumerateDefaultModes(const char *deviceID)
+    IMediaDevicesTypes::PromiseWithSettingsListPtr MediaDevices::enumerateDefaultModes(const char *deviceID) noexcept
     {
       PromiseWithSettingsListPtr promise = PromiseWithSettingsList::create(IORTCForInternal::queueDelegate());
 
@@ -289,7 +284,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    IMediaDevicesTypes::PromiseWithMediaStreamTrackListPtr MediaDevices::getUserMedia(const Constraints &constraints)
+    IMediaDevicesTypes::PromiseWithMediaStreamTrackListPtr MediaDevices::getUserMedia(const Constraints &constraints) noexcept
     {
       PromiseWithMediaStreamTrackListPtr promise = PromiseWithMediaStreamTrackList::create(IORTCForInternal::queueDelegate());
 
@@ -309,16 +304,16 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    IMediaDevicesSubscriptionPtr MediaDevices::subscribe(IMediaDevicesDelegatePtr originalDelegate)
+    IMediaDevicesSubscriptionPtr MediaDevices::subscribe(IMediaDevicesDelegatePtr originalDelegate) noexcept
     {
       ZS_LOG_DETAIL(slog("subscribing to media devices"))
 
       auto pThis = singleton();
       if (!pThis) {
         struct BogusSubscription : public IMediaDevicesSubscription {
-          virtual PUID getID() const override {return mID;}
-          virtual void cancel() override {}
-          virtual void background() override {}
+          virtual PUID getID() const noexcept override {return mID;}
+          virtual void cancel() noexcept override {}
+          virtual void background() noexcept override {}
 
           AutoPUID mID;
         };
@@ -334,8 +329,7 @@ namespace ortc
       IMediaDevicesDelegatePtr delegate = pThis->mSubscriptions.delegate(subscription, true);
 
       if (delegate) {
-#define TODO_DO_WE_NEED_TO_TELL_ABOUT_ANY_MISSED_EVENTS 1
-#define TODO_DO_WE_NEED_TO_TELL_ABOUT_ANY_MISSED_EVENTS 2
+#pragma ZS_BUILD_NOTE("NEEDED?","Do we need to tell about any missing events?")
       }
 
       if (pThis->isShutdown()) {
@@ -349,9 +343,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaDevices => IWakeDelegate
-    #pragma mark
+    //
+    // MediaDevices => IWakeDelegate
+    //
 
     //-------------------------------------------------------------------------
     void MediaDevices::onWake()
@@ -366,9 +360,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaDevices => ITimerDelegate
-    #pragma mark
+    //
+    // MediaDevices => ITimerDelegate
+    //
 
     //-------------------------------------------------------------------------
     void MediaDevices::onTimer(ITimerPtr timer)
@@ -376,17 +370,16 @@ namespace ortc
       ZS_LOG_DEBUG(log("timer") + ZS_PARAM("timer id", timer->getID()))
 
       AutoRecursiveLock lock(*this);
-#define TODO 1
-#define TODO 2
+#pragma ZS_BUILD_NOTE("TODO","Media devices timer (if needed)")
     }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaDevices => IMediaDevicesAsyncDelegate
-    #pragma mark
+    //
+    // MediaDevices => IMediaDevicesAsyncDelegate
+    //
 
     //-------------------------------------------------------------------------
     void MediaDevices::onEnumerateDevices(PromiseWithDeviceListPtr promise)
@@ -417,7 +410,7 @@ namespace ortc
       delete info;
 
       webrtc::AudioDeviceModule::AudioLayer audioLayer;
-#ifdef WINRT
+#ifdef WINUWP
       audioLayer = webrtc::AudioDeviceModule::kWindowsWasapiAudio;
 #else
       audioLayer = webrtc::AudioDeviceModule::kPlatformDefaultAudio;
@@ -436,7 +429,7 @@ namespace ortc
       for (int index = 0; index < numMics; ++index) {
         char deviceName[webrtc::kAdmMaxDeviceNameSize];
         char deviceGuid[webrtc::kAdmMaxGuidSize];
-        if (audioDevice->RecordingDeviceName(index, deviceName, deviceGuid) != -1) {
+        if (audioDevice->RecordingDeviceName(static_cast<uint16_t>(index), deviceName, deviceGuid) != -1) {
           Device device;
           device.mKind = DeviceKind_AudioInput;
           device.mDeviceID = deviceGuid;
@@ -449,7 +442,7 @@ namespace ortc
       for (int index = 0; index < numSpeaks; ++index) {
         char deviceName[webrtc::kAdmMaxDeviceNameSize];
         char deviceGuid[webrtc::kAdmMaxGuidSize];
-        if (audioDevice->PlayoutDeviceName(index, deviceName, deviceGuid) != -1) {
+        if (audioDevice->PlayoutDeviceName(static_cast<uint16_t>(index), deviceName, deviceGuid) != -1) {
           Device device;
           device.mKind = DeviceKind_AudioOutput;
           device.mDeviceID = deviceGuid;
@@ -466,12 +459,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     void MediaDevices::onEnumerateDefaultModes(
                                                PromiseWithSettingsListPtr promise,
-                                               const char *deviceID
+                                               ZS_MAYBE_USED() const char *deviceID
                                                )
     {
+      ZS_MAYBE_USED(deviceID);
       AutoRecursiveLock lock(*this);
-#define TODO_ENUMERATE_MODES 1
-#define TODO_ENUMERATE_MODES 2
+#pragma ZS_BUILD_NOTE("TODO","Enumerate devices")
       promise->reject(ErrorAny::create(UseHTTP::HTTPStatusCode_NotImplemented, "method not implemented"));
     }
 
@@ -507,12 +500,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaDevices => ISingletonManagerDelegate
-    #pragma mark
+    //
+    // MediaDevices => ISingletonManagerDelegate
+    //
 
     //-------------------------------------------------------------------------
-    void MediaDevices::notifySingletonCleanup()
+    void MediaDevices::notifySingletonCleanup() noexcept
     {
       ZS_LOG_DEBUG(log("notify singleton cleanup"))
 
@@ -524,12 +517,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaDevices => (internal)
-    #pragma mark
+    //
+    // MediaDevices => (internal)
+    //
 
     //-------------------------------------------------------------------------
-    Log::Params MediaDevices::log(const char *message) const
+    Log::Params MediaDevices::log(const char *message) const noexcept
     {
       ElementPtr objectEl = Element::create("ortc::MediaDevices");
       IHelper::debugAppend(objectEl, "id", mID);
@@ -537,20 +530,20 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    Log::Params MediaDevices::slog(const char *message)
+    Log::Params MediaDevices::slog(const char *message) noexcept
     {
       ElementPtr objectEl = Element::create("ortc::MediaDevices");
       return Log::Params(message, objectEl);
     }
 
     //-------------------------------------------------------------------------
-    Log::Params MediaDevices::debug(const char *message) const
+    Log::Params MediaDevices::debug(const char *message) const noexcept
     {
       return Log::Params(message, toDebug());
     }
 
     //-------------------------------------------------------------------------
-    ElementPtr MediaDevices::toDebug() const
+    ElementPtr MediaDevices::toDebug() const noexcept
     {
       AutoRecursiveLock lock(*this);
 
@@ -571,19 +564,19 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool MediaDevices::isShuttingDown() const
+    bool MediaDevices::isShuttingDown() const noexcept
     {
       return State_ShuttingDown == mCurrentState;
     }
 
     //-------------------------------------------------------------------------
-    bool MediaDevices::isShutdown() const
+    bool MediaDevices::isShutdown() const noexcept
     {
       return State_Shutdown == mCurrentState;
     }
 
     //-------------------------------------------------------------------------
-    void MediaDevices::step()
+    void MediaDevices::step() noexcept
     {
       ZS_LOG_DEBUG(debug("step"))
 
@@ -613,7 +606,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool MediaDevices::stepBogusDoSomething()
+    bool MediaDevices::stepBogusDoSomething() noexcept
     {
       if ( /* step already done */ false ) {
         ZS_LOG_TRACE(log("already completed do something"))
@@ -628,14 +621,13 @@ namespace ortc
       ZS_LOG_DEBUG(log("doing step XYZ"))
 
       // ....
-#define TODO 1
-#define TODO 2
+#pragma ZS_BUILD_NOTE("TODO","Implement media devices step")
 
       return true;
     }
 
     //-------------------------------------------------------------------------
-    void MediaDevices::cancel()
+    void MediaDevices::cancel() noexcept
     {
       //.......................................................................
       // try to gracefully shutdown
@@ -645,8 +637,7 @@ namespace ortc
       if (!mGracefulShutdownReference) mGracefulShutdownReference = mThisWeak.lock();
 
       if (mGracefulShutdownReference) {
-#define TODO_OBJECT_IS_BEING_KEPT_ALIVE_UNTIL_SESSION_IS_SHUTDOWN 1
-#define TODO_OBJECT_IS_BEING_KEPT_ALIVE_UNTIL_SESSION_IS_SHUTDOWN 2
+#pragma ZS_BUILD_NOTE("TODO","Implement media devices graceful shutdown")
 
         // grace shutdown process done here
 
@@ -665,7 +656,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void MediaDevices::setState(States state)
+    void MediaDevices::setState(States state) noexcept
     {
       if (state == mCurrentState) return;
 
@@ -680,7 +671,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void MediaDevices::setError(WORD errorCode, const char *inReason)
+    void MediaDevices::setError(WORD errorCode, const char *inReason) noexcept
     {
       String reason(inReason);
       if (reason.isEmpty()) {
@@ -703,60 +694,60 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaDevicesFactory
-    #pragma mark
+    //
+    // IMediaDevicesFactory
+    //
 
     //-------------------------------------------------------------------------
-    IMediaDevicesFactory &IMediaDevicesFactory::singleton()
+    IMediaDevicesFactory &IMediaDevicesFactory::singleton() noexcept
     {
       return MediaDevicesFactory::singleton();
     }
 
     //-------------------------------------------------------------------------
-    ElementPtr IMediaDevicesFactory::singletonToDebug()
+    ElementPtr IMediaDevicesFactory::singletonToDebug() noexcept
     {
       if (this) {}
       return internal::MediaDevices::singletonToDebug();
     }
 
     //-------------------------------------------------------------------------
-    MediaDevicesPtr IMediaDevicesFactory::create()
+    MediaDevicesPtr IMediaDevicesFactory::create() noexcept
     {
       if (this) {}
       return internal::MediaDevices::create();
     }
 
     //-------------------------------------------------------------------------
-    IMediaDevicesTypes::SupportedConstraintsPtr IMediaDevicesFactory::getSupportedConstraints()
+    IMediaDevicesTypes::SupportedConstraintsPtr IMediaDevicesFactory::getSupportedConstraints() noexcept
     {
       if (this) {}
       return internal::MediaDevices::getSupportedConstraints();
     }
 
     //-------------------------------------------------------------------------
-    IMediaDevicesTypes::PromiseWithDeviceListPtr IMediaDevicesFactory::enumerateDevices()
+    IMediaDevicesTypes::PromiseWithDeviceListPtr IMediaDevicesFactory::enumerateDevices() noexcept
     {
       if (this) {}
       return internal::MediaDevices::enumerateDevices();
     }
 
     //-------------------------------------------------------------------------
-    IMediaDevicesTypes::PromiseWithSettingsListPtr IMediaDevicesFactory::enumerateDefaultModes(const char *deviceID)
+    IMediaDevicesTypes::PromiseWithSettingsListPtr IMediaDevicesFactory::enumerateDefaultModes(const char *deviceID) noexcept
     {
       if (this) {}
       return internal::MediaDevices::enumerateDefaultModes(deviceID);
     }
 
     //-------------------------------------------------------------------------
-    IMediaDevicesTypes::PromiseWithMediaStreamTrackListPtr IMediaDevicesFactory::getUserMedia(const Constraints &constraints)
+    IMediaDevicesTypes::PromiseWithMediaStreamTrackListPtr IMediaDevicesFactory::getUserMedia(const Constraints &constraints) noexcept
     {
       if (this) {}
       return internal::MediaDevices::getUserMedia(constraints);
     }
 
     //-------------------------------------------------------------------------
-    IMediaDevicesSubscriptionPtr IMediaDevicesFactory::subscribe(IMediaDevicesDelegatePtr delegate)
+    IMediaDevicesSubscriptionPtr IMediaDevicesFactory::subscribe(IMediaDevicesDelegatePtr delegate) noexcept
     {
       if (this) {}
       return internal::MediaDevices::subscribe(delegate);
@@ -768,12 +759,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark (helpers)
-  #pragma mark
+  //
+  // (helpers)
+  //
 
   //-----------------------------------------------------------------------
-  static Log::Params slog(const char *message)
+  static Log::Params slog(const char *message) noexcept
   {
     return Log::Params(message, "ortc::IMediaDevicesTypes");
   }
@@ -782,12 +773,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IMediaDevicesTypes
-  #pragma mark
+  //
+  // IMediaDevicesTypes
+  //
 
   //---------------------------------------------------------------------------
-  const char *IMediaDevicesTypes::toString(DeviceKinds kind)
+  const char *IMediaDevicesTypes::toString(DeviceKinds kind) noexcept
   {
     switch (kind) {
       case DeviceKind_AudioInput:   return "audioinput";
@@ -798,18 +789,18 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IMediaDevicesTypes::DeviceKinds IMediaDevicesTypes::toDeviceKind(const char *deviceKindStr)
+  IMediaDevicesTypes::DeviceKinds IMediaDevicesTypes::toDeviceKind(const char *deviceKindStr) noexcept(false)
   {
     String str(deviceKindStr);
     for (IMediaDevicesTypes::DeviceKinds index = IMediaDevicesTypes::DeviceKind_First; index <= IMediaDevicesTypes::DeviceKind_Last; index = static_cast<IMediaDevicesTypes::DeviceKinds>(static_cast<std::underlying_type<IMediaDevicesTypes::DeviceKinds>::type>(index) + 1)) {
       if (0 == str.compareNoCase(IMediaDevicesTypes::toString(index))) return index;
     }
-    ORTC_THROW_INVALID_PARAMETERS("Invalid parameter value: " + str)
+    ORTC_THROW_INVALID_PARAMETERS("Invalid parameter value: " + str);
     return IMediaDevicesTypes::DeviceKind_First;
   }
 
   //---------------------------------------------------------------------------
-  IMediaStreamTrackTypes::Kinds IMediaDevicesTypes::toKind(DeviceKinds kind)
+  IMediaStreamTrackTypes::Kinds IMediaDevicesTypes::toKind(DeviceKinds kind) noexcept
   {
     switch (kind) {
       case DeviceKind_AudioInput:   return Kind_Audio;
@@ -817,12 +808,12 @@ namespace ortc
       case DeviceKind_VideoInput:   return Kind_Video;
     }
 
-    ASSERT(false)
+    ZS_ASSERT_FAIL("unknown device kind");
     return Kind_Audio;
   }
 
   //---------------------------------------------------------------------------
-  bool IMediaDevicesTypes::isAudio(DeviceKinds kind)
+  bool IMediaDevicesTypes::isAudio(DeviceKinds kind) noexcept
   {
     switch (kind) {
       case DeviceKind_AudioInput:   return true;
@@ -830,12 +821,12 @@ namespace ortc
       case DeviceKind_VideoInput:   return false;
     }
 
-    ASSERT(false)
+    ZS_ASSERT_FAIL("unknown device kind");
     return false;
   }
 
   //---------------------------------------------------------------------------
-  bool IMediaDevicesTypes::isVideo(DeviceKinds kind)
+  bool IMediaDevicesTypes::isVideo(DeviceKinds kind) noexcept
   {
     switch (kind) {
       case DeviceKind_AudioInput:   return false;
@@ -843,7 +834,7 @@ namespace ortc
       case DeviceKind_VideoInput:   return true;
     }
 
-    ASSERT(false)
+    ZS_ASSERT_FAIL("unknown device kind");
     return false;
   }
 
@@ -851,13 +842,13 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IMediaDevicesTypes::SupportedConstraints
-  #pragma mark
+  //
+  // IMediaDevicesTypes::SupportedConstraints
+  //
 
 
   //---------------------------------------------------------------------------
-  IMediaDevicesTypes::SupportedConstraints::SupportedConstraints(ElementPtr elem)
+  IMediaDevicesTypes::SupportedConstraints::SupportedConstraints(ElementPtr elem) noexcept
   {
     if (!elem) return;
 
@@ -876,7 +867,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IMediaDevicesTypes::SupportedConstraints::createElement(const char *objectName) const
+  ElementPtr IMediaDevicesTypes::SupportedConstraints::createElement(const char *objectName) const noexcept
   {
     ElementPtr elem = Element::create(objectName);
 
@@ -900,7 +891,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IMediaDevicesTypes::SupportedConstraints::toDebug() const
+  ElementPtr IMediaDevicesTypes::SupportedConstraints::toDebug() const noexcept
   {
     ElementPtr resultEl = Element::create("ortc::IMediaDevicesTypes::SupportedConstraints");
 
@@ -921,7 +912,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  String IMediaDevicesTypes::SupportedConstraints::hash() const
+  String IMediaDevicesTypes::SupportedConstraints::hash() const noexcept
   {
     auto hasher = IHasher::sha1();;
 
@@ -957,13 +948,13 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IMediaDevicesTypes::Device
-  #pragma mark
+  //
+  // IMediaDevicesTypes::Device
+  //
 
 
   //---------------------------------------------------------------------------
-  IMediaDevicesTypes::Device::Device(ElementPtr elem)
+  IMediaDevicesTypes::Device::Device(ElementPtr elem) noexcept
   {
     if (!elem) return;
 
@@ -989,7 +980,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IMediaDevicesTypes::Device::createElement(const char *objectName) const
+  ElementPtr IMediaDevicesTypes::Device::createElement(const char *objectName) const noexcept
   {
     ElementPtr elem = Element::create(objectName);
 
@@ -1007,7 +998,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IMediaDevicesTypes::Device::toDebug() const
+  ElementPtr IMediaDevicesTypes::Device::toDebug() const noexcept
   {
     ElementPtr resultEl = Element::create("ortc::IMediaDevicesTypes::Device");
 
@@ -1021,7 +1012,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  String IMediaDevicesTypes::Device::hash() const
+  String IMediaDevicesTypes::Device::hash() const noexcept
   {
     auto hasher = IHasher::sha1();
 
@@ -1044,18 +1035,18 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IMediaDevices::MediaStreamTrackList
-  #pragma mark
+  //
+  // IMediaDevices::MediaStreamTrackList
+  //
 
   //---------------------------------------------------------------------------
-  IMediaDevices::MediaStreamTrackListPtr IMediaDevices::MediaStreamTrackList::convert(AnyPtr any)
+  IMediaDevices::MediaStreamTrackListPtr IMediaDevices::MediaStreamTrackList::convert(AnyPtr any) noexcept
   {
     return ZS_DYNAMIC_PTR_CAST(MediaStreamTrackList, any);
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IMediaDevicesTypes::MediaStreamTrackList::toDebug() const
+  ElementPtr IMediaDevicesTypes::MediaStreamTrackList::toDebug() const noexcept
   {
     ElementPtr resultEl = Element::create("ortc::IMediaDevicesTypes::MediaStreamTrackList");
 
@@ -1069,7 +1060,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  String IMediaDevicesTypes::MediaStreamTrackList::hash() const
+  String IMediaDevicesTypes::MediaStreamTrackList::hash() const noexcept
   {
     auto hasher = IHasher::sha1();
 
@@ -1089,13 +1080,13 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IMediaDevices::DeviceList
-  #pragma mark
+  //
+  // IMediaDevices::DeviceList
+  //
 
 
   //---------------------------------------------------------------------------
-  IMediaDevices::DeviceList::DeviceList(ElementPtr elem)
+  IMediaDevices::DeviceList::DeviceList(ElementPtr elem) noexcept
   {
     if (!elem) return;
 
@@ -1108,7 +1099,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IMediaDevices::DeviceList::createElement(const char *objectName) const
+  ElementPtr IMediaDevices::DeviceList::createElement(const char *objectName) const noexcept
   {
     ElementPtr elem = Element::create(objectName);
 
@@ -1125,13 +1116,13 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IMediaDevices::DeviceListPtr IMediaDevices::DeviceList::convert(AnyPtr any)
+  IMediaDevices::DeviceListPtr IMediaDevices::DeviceList::convert(AnyPtr any) noexcept
   {
     return ZS_DYNAMIC_PTR_CAST(DeviceList, any);
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IMediaDevicesTypes::DeviceList::toDebug() const
+  ElementPtr IMediaDevicesTypes::DeviceList::toDebug() const noexcept
   {
     ElementPtr resultEl = Element::create("ortc::IMediaDevicesTypes::DeviceList");
 
@@ -1145,7 +1136,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  String IMediaDevicesTypes::DeviceList::hash() const
+  String IMediaDevicesTypes::DeviceList::hash() const noexcept
   {
     auto hasher = IHasher::sha1();
 
@@ -1165,42 +1156,42 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IMediaDevices
-  #pragma mark
+  //
+  // IMediaDevices
+  //
 
   //---------------------------------------------------------------------------
-  ElementPtr IMediaDevices::toDebug()
+  ElementPtr IMediaDevices::toDebug() noexcept
   {
     return internal::IMediaDevicesFactory::singleton().singletonToDebug();
   }
 
   //---------------------------------------------------------------------------
-  IMediaDevicesTypes::SupportedConstraintsPtr IMediaDevices::getSupportedConstraints()
+  IMediaDevicesTypes::SupportedConstraintsPtr IMediaDevices::getSupportedConstraints() noexcept
   {
     return internal::IMediaDevicesFactory::singleton().getSupportedConstraints();
   }
 
   //---------------------------------------------------------------------------
-  IMediaDevicesTypes::PromiseWithDeviceListPtr IMediaDevices::enumerateDevices()
+  IMediaDevicesTypes::PromiseWithDeviceListPtr IMediaDevices::enumerateDevices() noexcept
   {
     return internal::IMediaDevicesFactory::singleton().enumerateDevices();
   }
 
   //---------------------------------------------------------------------------
-  IMediaDevices::PromiseWithSettingsListPtr IMediaDevices::enumerateDefaultModes(const char *deviceID)
+  IMediaDevices::PromiseWithSettingsListPtr IMediaDevices::enumerateDefaultModes(const char *deviceID) noexcept
   {
     return internal::IMediaDevicesFactory::singleton().enumerateDefaultModes(deviceID);
   }
 
   //---------------------------------------------------------------------------
-  IMediaDevicesTypes::PromiseWithMediaStreamTrackListPtr IMediaDevices::getUserMedia(const Constraints &constraints)
+  IMediaDevicesTypes::PromiseWithMediaStreamTrackListPtr IMediaDevices::getUserMedia(const Constraints &constraints) noexcept
   {
     return internal::IMediaDevicesFactory::singleton().getUserMedia(constraints);
   }
 
   //---------------------------------------------------------------------------
-  IMediaDevicesSubscriptionPtr IMediaDevices::subscribe(IMediaDevicesDelegatePtr delegate)
+  IMediaDevicesSubscriptionPtr IMediaDevices::subscribe(IMediaDevicesDelegatePtr delegate) noexcept
   {
     return internal::IMediaDevicesFactory::singleton().subscribe(delegate);
   }

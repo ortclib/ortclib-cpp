@@ -39,22 +39,22 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IICETypes
-  #pragma mark
+  //
+  // IICETypes
+  //
   
   interaction IICETypes
   {
-    ZS_DECLARE_STRUCT_PTR(GatherCandidate)
-    ZS_DECLARE_STRUCT_PTR(Candidate)
-    ZS_DECLARE_STRUCT_PTR(CandidateComplete)
-    ZS_DECLARE_TYPEDEF_PTR(std::list<Candidate>, CandidateList)
-    ZS_DECLARE_STRUCT_PTR(Parameters)
+    ZS_DECLARE_STRUCT_PTR(GatherCandidate);
+    ZS_DECLARE_STRUCT_PTR(Candidate);
+    ZS_DECLARE_STRUCT_PTR(CandidateComplete);
+    ZS_DECLARE_TYPEDEF_PTR(std::list<Candidate>, CandidateList);
+    ZS_DECLARE_STRUCT_PTR(Parameters);
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IICETypes::Roles
-    #pragma mark
+    //
+    // IICETypes::Roles
+    //
 
     enum Roles
     {
@@ -66,13 +66,13 @@ namespace ortc
       Role_Last           = Role_Controlled,
     };
 
-    static const char *toString(Roles role);
-    static Roles toRole(const char *role) throw (InvalidParameters);
+    static const char *toString(Roles role) noexcept;
+    static Roles toRole(const char *role) noexcept(false); // throws InvalidParameters
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IICETypes::Components
-    #pragma mark
+    //
+    // IICETypes::Components
+    //
 
     enum Components
     {
@@ -84,13 +84,13 @@ namespace ortc
       Component_Last = Component_RTCP
     };
 
-    static const char *toString(Components component);
-    static Components toComponent(const char *component) throw (InvalidParameters);
+    static const char *toString(Components component) noexcept;
+    static Components toComponent(const char *component) noexcept(false); // throws InvalidParameters
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IICETypes::Protocols
-    #pragma mark
+    //
+    // IICETypes::Protocols
+    //
 
     enum Protocols
     {
@@ -102,13 +102,13 @@ namespace ortc
       Protocol_Last = Protocol_TCP
     };
 
-    static const char *toString(Protocols protocol);
-    static Protocols toProtocol(const char *protocol) throw (InvalidParameters);
+    static const char *toString(Protocols protocol) noexcept;
+    static Protocols toProtocol(const char *protocol) noexcept(false); // throws InvalidParameters
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IICETypes::CandidateTypes
-    #pragma mark
+    //
+    // IICETypes::CandidateTypes
+    //
 
     enum CandidateTypes
     {
@@ -122,13 +122,13 @@ namespace ortc
       CandidateType_Last = CandidateType_Relay
     };
 
-    static const char *toString(CandidateTypes type);
-    static CandidateTypes toCandidateType(const char *type) throw (InvalidParameters);
+    static const char *toString(CandidateTypes type) noexcept;
+    static CandidateTypes toCandidateType(const char *type) noexcept(false); // throws InvalidParameters
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IICETypes::TCPCandidateTypes
-    #pragma mark
+    //
+    // IICETypes::TCPCandidateTypes
+    //
 
     enum TCPCandidateTypes
     {
@@ -141,31 +141,31 @@ namespace ortc
       TCPCandidateType_Last = TCPCandidateType_SO
     };
 
-    static const char *toString(TCPCandidateTypes type);
-    static TCPCandidateTypes toTCPCandidateType(const char *type) throw (InvalidParameters);
+    static const char *toString(TCPCandidateTypes type) noexcept;
+    static TCPCandidateTypes toTCPCandidateType(const char *type) noexcept(false); // throws InvalidParameters
 
     //-------------------------------------------------------------------------
     struct GatherCandidate
     {
       Components  mComponent {Component_RTP};
 
-      static GatherCandidatePtr create(ElementPtr elem);
+      static GatherCandidatePtr create(ElementPtr elem) noexcept;
 
-      virtual ElementPtr createElement(const char *objectName = NULL) const = 0;
+      virtual ElementPtr createElement(const char *objectName = NULL) const noexcept = 0;
 
-      virtual ~GatherCandidate() {} // make polymorphic
+      virtual ~GatherCandidate() noexcept {} // make polymorphic
 
     protected:
-      GatherCandidate() {}
-      GatherCandidate(const GatherCandidate &op2) :
+      GatherCandidate() noexcept {}
+      GatherCandidate(const GatherCandidate &op2) noexcept :
         mComponent(op2.mComponent)
       {}
     };
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IICETypes::Components
-    #pragma mark
+    //
+    // IICETypes::Components
+    //
 
     struct Candidate : public GatherCandidate {
       String            mInterfaceType;
@@ -180,50 +180,50 @@ namespace ortc
       String            mRelatedAddress;
       WORD              mRelatedPort {};
 
-      static CandidatePtr convert(GatherCandidatePtr candidate);
+      static CandidatePtr convert(GatherCandidatePtr candidate) noexcept;
 
-      Candidate();
-      Candidate(const Candidate &op2);
-      Candidate(ElementPtr elem);
-      ~Candidate();
+      Candidate() noexcept;
+      Candidate(const Candidate &op2) noexcept;
+      Candidate(ElementPtr elem) noexcept;
+      ~Candidate() noexcept;
 
-      ElementPtr createElement(const char *objectName = "candidate") const override;
+      ElementPtr createElement(const char *objectName = "candidate") const noexcept override;
 
-      ElementPtr toDebug() const;
-      String hash(bool includePriorities = true) const;
+      ElementPtr toDebug() const noexcept;
+      String hash(bool includePriorities = true) const noexcept;
 
-      IPAddress ip() const;
-      IPAddress relatedIP() const;
+      IPAddress ip() const noexcept;
+      IPAddress relatedIP() const noexcept;
       String foundation(
                         const char *relatedServerURL = NULL,
                         const char *baseIP = NULL
-                        ) const;
+                        ) const noexcept;
     };
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IICETypes::Components
-    #pragma mark
+    //
+    // IICETypes::Components
+    //
 
     struct CandidateComplete : public GatherCandidate {
       bool        mComplete {true};
 
-      static CandidateCompletePtr convert(GatherCandidatePtr candidate);
+      static CandidateCompletePtr convert(GatherCandidatePtr candidate) noexcept;
 
-      CandidateComplete() {}
-      CandidateComplete(const CandidateComplete &op2) {(*this) = op2;}
-      CandidateComplete(ElementPtr elem);
+      CandidateComplete() noexcept {}
+      CandidateComplete(const CandidateComplete &op2) noexcept {(*this) = op2;}
+      CandidateComplete(ElementPtr elem) noexcept;
 
-      ElementPtr createElement(const char *objectName = "candidateComplete") const override;
+      ElementPtr createElement(const char *objectName = "candidateComplete") const noexcept override;
 
-      ElementPtr toDebug() const;
-      String hash() const;
+      ElementPtr toDebug() const noexcept;
+      String hash() const noexcept;
     };
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IICETypes::Parameters
-    #pragma mark
+    //
+    // IICETypes::Parameters
+    //
 
     struct Parameters {
       bool mUseUnfreezePriority {false};
@@ -231,15 +231,15 @@ namespace ortc
       String mPassword;
       bool mICELite {false};
 
-      Parameters() {}
-      Parameters(const Parameters &op2) {(*this) = op2;}
-      Parameters(ElementPtr rootEl);
+      Parameters() noexcept {}
+      Parameters(const Parameters &op2) noexcept {(*this) = op2;}
+      Parameters(ElementPtr rootEl) noexcept;
 
-      static ParametersPtr create(ElementPtr rootEl) { if (!rootEl) return ParametersPtr(); return make_shared<Parameters>(rootEl); }
-      ElementPtr createElement(const char *objectName) const;
+      static ParametersPtr create(ElementPtr rootEl) noexcept { if (!rootEl) return ParametersPtr(); return make_shared<Parameters>(rootEl); }
+      ElementPtr createElement(const char *objectName) const noexcept;
 
-      ElementPtr toDebug() const;
-      String hash() const;
+      ElementPtr toDebug() const noexcept;
+      String hash() const noexcept;
     };
   };
 }

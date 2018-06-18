@@ -59,44 +59,44 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IDataChannelForSCTPTransport
-    #pragma mark
+    //
+    // IDataChannelForSCTPTransport
+    //
 
     interaction IDataChannelForSCTPTransport
     {
-      ZS_DECLARE_TYPEDEF_PTR(IDataChannelForSCTPTransport, ForDataTransport)
+      ZS_DECLARE_TYPEDEF_PTR(IDataChannelForSCTPTransport, ForDataTransport);
 
-      ZS_DECLARE_TYPEDEF_PTR(IDataChannelTypes::Parameters, Parameters)
+      ZS_DECLARE_TYPEDEF_PTR(IDataChannelTypes::Parameters, Parameters);
 
-      ZS_DECLARE_TYPEDEF_PTR(ISCTPTransportForDataChannel, UseDataTransport)
+      ZS_DECLARE_TYPEDEF_PTR(ISCTPTransportForDataChannel, UseDataTransport);
 
-      static ElementPtr toDebug(ForDataTransportPtr dataChannel);
+      static ElementPtr toDebug(ForDataTransportPtr dataChannel) noexcept;
 
       static ForDataTransportPtr create(
                                         UseDataTransportPtr transport,
                                         WORD sessionID
-                                        );
+                                        ) noexcept;
 
-      virtual PUID getID() const = 0;
+      virtual PUID getID() const noexcept = 0;
 
-      virtual bool isIncoming() const = 0;
+      virtual bool isIncoming() const noexcept = 0;
 
-      virtual bool handleSCTPPacket(SCTPPacketIncomingPtr packet) = 0;
+      virtual bool handleSCTPPacket(SCTPPacketIncomingPtr packet) noexcept = 0;
 
-      virtual void requestShutdown() = 0;
-      virtual void notifyClosed() = 0;
+      virtual void requestShutdown() noexcept = 0;
+      virtual void notifyClosed() noexcept = 0;
 
-      virtual void notifyRemapFailure() = 0;
+      virtual void notifyRemapFailure() noexcept = 0;
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IDataChannelAsyncDelegate
-    #pragma mark
+    //
+    // IDataChannelAsyncDelegate
+    //
 
     interaction IDataChannelAsyncDelegate
     {
@@ -108,9 +108,9 @@ namespace ortc
 }
 
 ZS_DECLARE_PROXY_BEGIN(ortc::internal::IDataChannelAsyncDelegate)
-ZS_DECLARE_PROXY_METHOD_0(onRequestShutdown)
-ZS_DECLARE_PROXY_METHOD_0(onNotifiedClosed)
-ZS_DECLARE_PROXY_METHOD_0(onNotifiedRemapFailure)
+ZS_DECLARE_PROXY_METHOD(onRequestShutdown)
+ZS_DECLARE_PROXY_METHOD(onNotifiedClosed)
+ZS_DECLARE_PROXY_METHOD(onNotifiedRemapFailure)
 ZS_DECLARE_PROXY_END()
 
 namespace ortc
@@ -121,9 +121,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark DataChannel
-    #pragma mark
+    //
+    // DataChannel
+    //
 
     class DataChannel : public Noop,
                         public MessageQueueAssociator,
@@ -161,183 +161,183 @@ namespace ortc
                   UseDataTransportPtr transport,
                   ParametersPtr params,
                   WORD sessionID = ORTC_SCTP_INVALID_DATA_CHANNEL_SESSION_ID
-                  );
+                  ) noexcept;
 
     protected:
-      DataChannel(Noop) :
+      DataChannel(Noop) noexcept :
         Noop(true),
         MessageQueueAssociator(IMessageQueuePtr()),
         SharedRecursiveLock(SharedRecursiveLock::create())
       {}
 
-      void init();
+      void init() noexcept;
 
     public:
-      virtual ~DataChannel();
+      virtual ~DataChannel() noexcept;
 
-      static DataChannelPtr convert(IDataChannelPtr object);
-      static DataChannelPtr convert(ForDataTransportPtr object);
+      static DataChannelPtr convert(IDataChannelPtr object) noexcept;
+      static DataChannelPtr convert(ForDataTransportPtr object) noexcept;
 
     protected:
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark DataChannel => IDataChannel
-      #pragma mark
+      //
+      // DataChannel => IDataChannel
+      //
 
-      static ElementPtr toDebug(DataChannelPtr transport);
+      static ElementPtr toDebug(DataChannelPtr transport) noexcept;
 
       static DataChannelPtr create(
                                    IDataChannelDelegatePtr delegate,
                                    IDataTransportPtr transport,
                                    const Parameters &params
-                                   );
+                                   ) noexcept(false);  // throws InvalidParameters
 
-      PUID getID() const override {return mID;}
+      PUID getID() const noexcept override {return mID;}
 
-      IDataChannelSubscriptionPtr subscribe(IDataChannelDelegatePtr delegate) override;
+      IDataChannelSubscriptionPtr subscribe(IDataChannelDelegatePtr delegate) noexcept override;
 
-      IDataTransportPtr transport() const override;
+      IDataTransportPtr transport() const noexcept override;
 
-      ParametersPtr parameters() const override;
+      ParametersPtr parameters() const noexcept override;
 
-      States readyState() const override;
+      States readyState() const noexcept override;
 
-      size_t bufferedAmount() const override;
-      size_t bufferedAmountLowThreshold() const override;
-      void bufferedAmountLowThreshold(size_t value) override;
+      size_t bufferedAmount() const noexcept override;
+      size_t bufferedAmountLowThreshold() const noexcept override;
+      void bufferedAmountLowThreshold(size_t value) noexcept override;
 
-      String binaryType() const override;
-      void binaryType(const char *str) override;
+      String binaryType() const noexcept override;
+      void binaryType(const char *str) noexcept override;
 
-      void close() override;
+      void close() noexcept override;
 
-      void send(const String &data) override;
-      void send(const SecureByteBlock &data) override;
+      void send(const String &data) noexcept override;
+      void send(const SecureByteBlock &data) noexcept override;
       void send(
                 const BYTE *buffer,
                 size_t bufferSizeInBytes
-                ) override;
+                ) noexcept(false) override; // throws InvalidParameters
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark DataChannel => IStatsProvider
-      #pragma mark
+      //
+      // DataChannel => IStatsProvider
+      //
 
-      PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const override;
+      PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const noexcept override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark DataChannel => IDataChannelForSCTPTransport
-      #pragma mark
+      //
+      // DataChannel => IDataChannelForSCTPTransport
+      //
 
       // (duplicate) static ElementPtr toDebug(DataChannelPtr transport);
 
       static ForDataTransportPtr create(
                                         UseDataTransportPtr transport,
                                         WORD sessionID
-                                        );
+                                        ) noexcept;
 
       // (duplicate) virtual PUID getID() const = 0;
 
-      bool isIncoming() const override {return mIncoming;}
+      bool isIncoming() const noexcept override {return mIncoming;}
 
-      bool handleSCTPPacket(SCTPPacketIncomingPtr packet) override;
+      bool handleSCTPPacket(SCTPPacketIncomingPtr packet) noexcept override;
 
-      void requestShutdown() override;
-      void notifyClosed() override;
+      void requestShutdown() noexcept override;
+      void notifyClosed() noexcept override;
 
-      void notifyRemapFailure() override;
+      void notifyRemapFailure() noexcept override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark DataChannel => ISCTPTransportForDataChannelDelegate
-      #pragma mark
+      //
+      // DataChannel => ISCTPTransportForDataChannelDelegate
+      //
       
       void onSCTPTransportStateChanged() override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark DataChannel => IDataChannelAsyncDelegate
-      #pragma mark
+      //
+      // DataChannel => IDataChannelAsyncDelegate
+      //
 
       void onRequestShutdown() override;
       void onNotifiedClosed() override;
       void onNotifiedRemapFailure() override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark DataChannel => IWakeDelegate
-      #pragma mark
+      //
+      // DataChannel => IWakeDelegate
+      //
 
       void onWake() override;
       
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark DataChannel => IPromiseSettledDelegate
-      #pragma mark
+      //
+      // DataChannel => IPromiseSettledDelegate
+      //
 
       void onPromiseSettled(PromisePtr promise) override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark DataChannel => IDataChannelAsyncDelegate
-      #pragma mark
+      //
+      // DataChannel => IDataChannelAsyncDelegate
+      //
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark DataChannel => (internal)
-      #pragma mark
+      //
+      // DataChannel => (internal)
+      //
 
-      Log::Params log(const char *message) const;
-      static Log::Params slog(const char *message);
-      Log::Params debug(const char *message) const;
-      virtual ElementPtr toDebug() const;
+      Log::Params log(const char *message) const noexcept;
+      static Log::Params slog(const char *message) noexcept;
+      Log::Params debug(const char *message) const noexcept;
+      virtual ElementPtr toDebug() const noexcept;
 
-      bool isOpen() const;
-      bool isShuttingDown() const;
-      bool isShutdown() const;
+      bool isOpen() const noexcept;
+      bool isShuttingDown() const noexcept;
+      bool isShutdown() const noexcept;
 
-      void step();
-      bool stepSCTPTransport();
-      bool stepIssueConnect();
-      bool stepWaitConnectAck();
-      bool stepOpen();
-      bool stepSendData(bool onlyControlPackets = false);
-      bool stepDeliveryIncomingPacket();
+      void step() noexcept;
+      bool stepSCTPTransport() noexcept;
+      bool stepIssueConnect() noexcept;
+      bool stepWaitConnectAck() noexcept;
+      bool stepOpen() noexcept;
+      bool stepSendData(bool onlyControlPackets = false) noexcept;
+      bool stepDeliveryIncomingPacket() noexcept;
 
-      void cancel();
+      void cancel() noexcept;
 
-      void setState(States state);
-      void setError(WORD error, const char *reason = NULL);
+      void setState(States state) noexcept;
+      void setError(WORD error, const char *reason = NULL) noexcept;
 
       bool send(
                 SCTPPayloadProtocolIdentifier ppid,
                 const BYTE *buffer,
                 size_t bufferSizeInBytes
-                );
+                ) noexcept;
 
-      void sendControlOpen();
-      void sendControlAck();
+      void sendControlOpen() noexcept;
+      void sendControlAck() noexcept;
 
       bool deliverOutgoing(
                            SCTPPacketOutgoingPtr packet,
                            bool fixPacket = true
-                           );
+                           ) noexcept;
 
-      bool handleOpenPacket(SecureByteBlock &buffer);
-      bool handleAckPacket(SecureByteBlock &buffer);
-      void forwardDataPacketAsEvent(const SCTPPacketIncoming &packet);
+      bool handleOpenPacket(SecureByteBlock &buffer) noexcept;
+      bool handleAckPacket(SecureByteBlock &buffer) noexcept;
+      void forwardDataPacketAsEvent(const SCTPPacketIncoming &packet) noexcept;
 
-      void outgoingPacketAdded(SCTPPacketOutgoingPtr packet);
-      void outgoingPacketRemoved(SCTPPacketOutgoingPtr packet);
+      void outgoingPacketAdded(SCTPPacketOutgoingPtr packet) noexcept;
+      void outgoingPacketRemoved(SCTPPacketOutgoingPtr packet) noexcept;
 
     public:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark DataChannel::TearAwayData
-      #pragma mark
+      //
+      // DataChannel::TearAwayData
+      //
 
       struct TearAwayData
       {
@@ -346,9 +346,9 @@ namespace ortc
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark DataChannel => (data)
-      #pragma mark
+      //
+      // DataChannel => (data)
+      //
 
       AutoPUID mID;
       DataChannelWeakPtr mThisWeak;
@@ -388,30 +388,30 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IDataChannelFactory
-    #pragma mark
+    //
+    // IDataChannelFactory
+    //
 
     interaction IDataChannelFactory
     {
-      ZS_DECLARE_TYPEDEF_PTR(IDataChannelTypes::Parameters, Parameters)
+      ZS_DECLARE_TYPEDEF_PTR(IDataChannelTypes::Parameters, Parameters);
 
-      ZS_DECLARE_TYPEDEF_PTR(IDataChannelForSCTPTransport, ForDataTransport)
+      ZS_DECLARE_TYPEDEF_PTR(IDataChannelForSCTPTransport, ForDataTransport);
 
-      ZS_DECLARE_TYPEDEF_PTR(ISCTPTransportForDataChannel, UseDataTransport)
+      ZS_DECLARE_TYPEDEF_PTR(ISCTPTransportForDataChannel, UseDataTransport);
 
-      static IDataChannelFactory &singleton();
+      static IDataChannelFactory &singleton() noexcept;
 
       virtual DataChannelPtr create(
                                     IDataChannelDelegatePtr delegate,
                                     IDataTransportPtr transport,
                                     const Parameters &params
-                                    );
+                                    ) noexcept(false); // throws InvalidParameters, InvalidStateError
 
       virtual ForDataTransportPtr create(
                                          UseDataTransportPtr transport,
                                          WORD sessionID
-                                         );
+                                         ) noexcept;
     };
 
     class DataChannelFactory : public IFactory<IDataChannelFactory> {};
@@ -431,19 +431,19 @@ ZS_DECLARE_TEAR_AWAY_TYPEDEF(ortc::IDataChannelTypes::States, States)
 ZS_DECLARE_TEAR_AWAY_TYPEDEF(ortc::SecureByteBlock, SecureByteBlock)
 ZS_DECLARE_TEAR_AWAY_TYPEDEF(zsLib::String, String)
 ZS_DECLARE_TEAR_AWAY_TYPEDEF(zsLib::BYTE, BYTE)
-ZS_DECLARE_TEAR_AWAY_METHOD_CONST_RETURN_1(getStats, PromiseWithStatsReportPtr, const StatsTypeSet &)
-ZS_DECLARE_TEAR_AWAY_METHOD_CONST_RETURN_0(getID, PUID)
-ZS_DECLARE_TEAR_AWAY_METHOD_RETURN_1(subscribe, IDataChannelSubscriptionPtr, IDataChannelDelegatePtr)
-ZS_DECLARE_TEAR_AWAY_METHOD_CONST_RETURN_0(transport, IDataTransportPtr)
-ZS_DECLARE_TEAR_AWAY_METHOD_CONST_RETURN_0(parameters, ParametersPtr)
-ZS_DECLARE_TEAR_AWAY_METHOD_CONST_RETURN_0(readyState, States)
-ZS_DECLARE_TEAR_AWAY_METHOD_CONST_RETURN_0(binaryType, String)
-ZS_DECLARE_TEAR_AWAY_METHOD_1(binaryType, const char *)
-ZS_DECLARE_TEAR_AWAY_METHOD_CONST_RETURN_0(bufferedAmount, size_t)
-ZS_DECLARE_TEAR_AWAY_METHOD_CONST_RETURN_0(bufferedAmountLowThreshold, size_t)
-ZS_DECLARE_TEAR_AWAY_METHOD_1(bufferedAmountLowThreshold, size_t)
-ZS_DECLARE_TEAR_AWAY_METHOD_0(close)
-ZS_DECLARE_TEAR_AWAY_METHOD_1(send, const String &)
-ZS_DECLARE_TEAR_AWAY_METHOD_1(send, const SecureByteBlock &)
-ZS_DECLARE_TEAR_AWAY_METHOD_2(send, const BYTE *, size_t)
+ZS_DECLARE_TEAR_AWAY_METHOD_RETURN_CONST(getStats, PromiseWithStatsReportPtr, const StatsTypeSet &)
+ZS_DECLARE_TEAR_AWAY_METHOD_RETURN_CONST(getID, PUID)
+ZS_DECLARE_TEAR_AWAY_METHOD_RETURN(subscribe, IDataChannelSubscriptionPtr, IDataChannelDelegatePtr)
+ZS_DECLARE_TEAR_AWAY_METHOD_RETURN_CONST(transport, IDataTransportPtr)
+ZS_DECLARE_TEAR_AWAY_METHOD_RETURN_CONST(parameters, ParametersPtr)
+ZS_DECLARE_TEAR_AWAY_METHOD_RETURN_CONST(readyState, States)
+ZS_DECLARE_TEAR_AWAY_METHOD_RETURN_CONST(binaryType, String)
+ZS_DECLARE_TEAR_AWAY_METHOD_SYNC(binaryType, const char *)
+ZS_DECLARE_TEAR_AWAY_METHOD_RETURN_CONST(bufferedAmount, size_t)
+ZS_DECLARE_TEAR_AWAY_METHOD_RETURN_CONST(bufferedAmountLowThreshold, size_t)
+ZS_DECLARE_TEAR_AWAY_METHOD_SYNC(bufferedAmountLowThreshold, size_t)
+ZS_DECLARE_TEAR_AWAY_METHOD_SYNC(close)
+ZS_DECLARE_TEAR_AWAY_METHOD_SYNC(send, const String &)
+ZS_DECLARE_TEAR_AWAY_METHOD_SYNC(send, const SecureByteBlock &)
+ZS_DECLARE_TEAR_AWAY_METHOD_SYNC_THROWS(send, const BYTE *, size_t)
 ZS_DECLARE_TEAR_AWAY_END()

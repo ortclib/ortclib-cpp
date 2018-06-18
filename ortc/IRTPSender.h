@@ -42,9 +42,9 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IRTPSenderTypes
-  #pragma mark
+  //
+  // IRTPSenderTypes
+  //
   
   interaction IRTPSenderTypes : public IRTPTypes
   {
@@ -54,7 +54,7 @@ namespace ortc
 
     struct IncompatibleMediaStreamTrackError : public Any
     {
-      static IncompatibleMediaStreamTrackErrorPtr convert(AnyPtr any);
+      static IncompatibleMediaStreamTrackErrorPtr convert(AnyPtr any) noexcept;
     };
   };
 
@@ -62,55 +62,55 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IRTPSender
-  #pragma mark
+  //
+  // IRTPSender
+  //
 
   interaction IRTPSender : public Any,
                            public IRTPSenderTypes,
                            public IStatsProvider
   {
-    static ElementPtr toDebug(IRTPSenderPtr sender);
+    static ElementPtr toDebug(IRTPSenderPtr sender) noexcept;
 
     static IRTPSenderPtr create(
                                 IRTPSenderDelegatePtr delegate,
                                 IMediaStreamTrackPtr track,
                                 IRTPTransportPtr transport,
                                 IRTCPTransportPtr rtcpTransport = IRTCPTransportPtr()
-                                );
+                                ) noexcept;
 
-    virtual PUID getID() const = 0;
+    virtual PUID getID() const noexcept = 0;
 
-    virtual IRTPSenderSubscriptionPtr subscribe(IRTPSenderDelegatePtr delegate) = 0;
+    virtual IRTPSenderSubscriptionPtr subscribe(IRTPSenderDelegatePtr delegate) noexcept = 0;
 
-    virtual IMediaStreamTrackPtr track() const = 0;
-    virtual IRTPTransportPtr transport() const = 0;
-    virtual IRTCPTransportPtr rtcpTransport() const = 0;
+    virtual IMediaStreamTrackPtr track() const noexcept = 0;
+    virtual IRTPTransportPtr transport() const noexcept = 0;
+    virtual IRTCPTransportPtr rtcpTransport() const noexcept = 0;
 
     virtual void setTransport(
                               IRTPTransportPtr transport,
                               IRTCPTransportPtr rtcpTransport = IRTCPTransportPtr()
-                              ) = 0;
+                              ) noexcept(false) = 0; // throws InvalidParameters
 
-    virtual PromisePtr setTrack(IMediaStreamTrackPtr track) = 0;
+    virtual PromisePtr setTrack(IMediaStreamTrackPtr track) noexcept = 0;
 
-    static CapabilitiesPtr getCapabilities(Optional<Kinds> kind = Optional<Kinds>());
+    static CapabilitiesPtr getCapabilities(Optional<Kinds> kind = Optional<Kinds>()) noexcept;
 
-    virtual PromisePtr send(const Parameters &parameters) = 0;
-    virtual void stop() = 0;
+    virtual PromisePtr send(const Parameters &parameters) noexcept(false) = 0; // throws InvalidParameters
+    virtual void stop() noexcept = 0;
   };
 
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IRTPSenderDelegate
-  #pragma mark
+  //
+  // IRTPSenderDelegate
+  //
 
   interaction IRTPSenderDelegate
   {
-    ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::SSRCType, SSRCType)
+    ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::SSRCType, SSRCType);
 
     virtual void onRTPSenderSSRCConflict(
                                          IRTPSenderPtr sender,
@@ -122,17 +122,17 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IRTPSenderSubscription
-  #pragma mark
+  //
+  // IRTPSenderSubscription
+  //
 
   interaction IRTPSenderSubscription
   {
-    virtual PUID getID() const = 0;
+    virtual PUID getID() const noexcept = 0;
 
-    virtual void cancel() = 0;
+    virtual void cancel() noexcept = 0;
 
-    virtual void background() = 0;
+    virtual void background() noexcept = 0;
   };
 }
 
@@ -140,11 +140,11 @@ namespace ortc
 ZS_DECLARE_PROXY_BEGIN(ortc::IRTPSenderDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IRTPSenderPtr, IRTPSenderPtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IRTPSenderDelegate::SSRCType, SSRCType)
-ZS_DECLARE_PROXY_METHOD_2(onRTPSenderSSRCConflict, IRTPSenderPtr, SSRCType)
+ZS_DECLARE_PROXY_METHOD(onRTPSenderSSRCConflict, IRTPSenderPtr, SSRCType)
 ZS_DECLARE_PROXY_END()
 
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_BEGIN(ortc::IRTPSenderDelegate, ortc::IRTPSenderSubscription)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IRTPSenderPtr, IRTPSenderPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IRTPSenderDelegate::SSRCType, SSRCType)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onRTPSenderSSRCConflict, IRTPSenderPtr, SSRCType)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD(onRTPSenderSSRCConflict, IRTPSenderPtr, SSRCType)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()

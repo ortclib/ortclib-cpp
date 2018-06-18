@@ -44,16 +44,11 @@
 
 
 #ifdef __GNUC__
+#error MOVE THIS TO PROJECT SETTING RATHER THAN PUTTING ON INDIVIDUAL FILES
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-local-typedef"
 #endif //__GNUC__
 
-
-#ifdef _DEBUG
-#define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))
-#else
-#define ASSERT(x)
-#endif //_DEBUG
 
 namespace ortc { ZS_DECLARE_SUBSYSTEM(org_ortc_media_engine) }
 
@@ -71,28 +66,28 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPDecoderAudioSettingsDefaults
-    #pragma mark
+    //
+    // RTPDecoderAudioSettingsDefaults
+    //
 
     class RTPDecoderAudioSettingsDefaults : public ISettingsApplyDefaultsDelegate
     {
     public:
       //-----------------------------------------------------------------------
-      ~RTPDecoderAudioSettingsDefaults()
+      ~RTPDecoderAudioSettingsDefaults() noexcept
       {
         ISettings::removeDefaults(*this);
       }
 
       //-----------------------------------------------------------------------
-      static RTPDecoderAudioSettingsDefaultsPtr singleton()
+      static RTPDecoderAudioSettingsDefaultsPtr singleton() noexcept
       {
         static SingletonLazySharedPtr<RTPDecoderAudioSettingsDefaults> singleton(create());
         return singleton.singleton();
       }
 
       //-----------------------------------------------------------------------
-      static RTPDecoderAudioSettingsDefaultsPtr create()
+      static RTPDecoderAudioSettingsDefaultsPtr create() noexcept
       {
         auto pThis(make_shared<RTPDecoderAudioSettingsDefaults>());
         ISettings::installDefaults(pThis);
@@ -100,14 +95,14 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      virtual void notifySettingsApplyDefaults() override
+      virtual void notifySettingsApplyDefaults() noexcept override
       {
       }
       
     };
 
     //-------------------------------------------------------------------------
-    void installRTPDecoderAudioSettingsDefaults()
+    void installRTPDecoderAudioSettingsDefaults() noexcept
     {
       RTPDecoderAudioSettingsDefaults::singleton();
     }
@@ -116,15 +111,15 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPDecoderAudioForMediaEngine
-    #pragma mark
+    //
+    // IRTPDecoderAudioForMediaEngine
+    //
 
     //-------------------------------------------------------------------------
     IRTPDecoderAudio::PromiseWithRTPDecoderAudioPtr IRTPDecoderAudio::create(
                                                                              const Parameters &parameters,
                                                                              IRTPDecoderDelegatePtr delegate
-                                                                             )
+                                                                             ) noexcept
     {
       ZS_DECLARE_TYPEDEF_PTR(IMediaEngineForRTPDecoderAudio, UseEngine);
       return UseEngine::createRTPDecoderAudio(parameters, delegate);
@@ -134,9 +129,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaEngineForRTPDecoderAudio
-    #pragma mark
+    //
+    // IMediaEngineForRTPDecoderAudio
+    //
 
     //-------------------------------------------------------------------------
     IRTPDecoderAudioForMediaEngine::ForMediaEnginePtr IRTPDecoderAudioForMediaEngine::create(
@@ -144,7 +139,7 @@ namespace ortc
                                                                                              UseMediaEnginePtr mediaEngine,
                                                                                              ParametersPtr parameters,
                                                                                              IRTPDecoderDelegatePtr delegate
-                                                                                             )
+                                                                                             ) noexcept
     {
       return internal::IRTPDecoderAudioFactory::singleton().create(promise, mediaEngine, parameters, delegate);
     }
@@ -153,9 +148,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaEngine
-    #pragma mark
+    //
+    // MediaEngine
+    //
     
     //-------------------------------------------------------------------------
     RTPDecoderAudio::RTPDecoderAudio(
@@ -165,7 +160,7 @@ namespace ortc
                                      UseMediaEnginePtr mediaEngine,
                                      ParametersPtr parameters,
                                      IRTPDecoderDelegatePtr delegate
-                                     ) :
+                                     ) noexcept :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
       mediaEngine_(mediaEngine),
@@ -179,7 +174,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPDecoderAudio::init()
+    void RTPDecoderAudio::init() noexcept
     {
       asyncThisDelegate_ = IRTPDecoderAysncDelegateProxy::createWeak(thisWeak_.lock());
       AutoRecursiveLock lock(*this);
@@ -187,7 +182,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    RTPDecoderAudio::~RTPDecoderAudio()
+    RTPDecoderAudio::~RTPDecoderAudio() noexcept
     {
       if (isNoop()) return;
 
@@ -203,7 +198,7 @@ namespace ortc
                                                UseMediaEnginePtr mediaEngine,
                                                ParametersPtr parameters,
                                                IRTPDecoderDelegatePtr delegate
-                                               )
+                                               ) noexcept
     {
       auto pThis(make_shared<RTPDecoderAudio>(make_private{}, IORTCForInternal::queueRTP(), promise, mediaEngine, parameters, delegate));
       pThis->thisWeak_ = pThis;
@@ -212,7 +207,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    RTPDecoderAudioPtr RTPDecoderAudio::convert(ForMediaEnginePtr object)
+    RTPDecoderAudioPtr RTPDecoderAudio::convert(ForMediaEnginePtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(RTPDecoderAudio, object);
     }
@@ -221,12 +216,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPDecoderAudio => IRTP
-    #pragma mark
+    //
+    // RTPDecoderAudio => IRTP
+    //
 
     //-------------------------------------------------------------------------
-    void RTPDecoderAudio::cancel()
+    void RTPDecoderAudio::cancel() noexcept
     {
       ZS_EVENTING_1(x, i, Debug, RTPDecoderAudioCancel, ol, MediaEngine, Cancel, puid, id, id_);
 
@@ -235,7 +230,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    RTPDecoderAudio::States RTPDecoderAudio::getState() const
+    RTPDecoderAudio::States RTPDecoderAudio::getState() const noexcept
     {
       AutoRecursiveLock lock(*this);
       return currentState_;
@@ -245,15 +240,15 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPDecoderAudio => IRTPDecoder
-    #pragma mark
+    //
+    // RTPDecoderAudio => IRTPDecoder
+    //
 
     //-------------------------------------------------------------------------
     void RTPDecoderAudio::notifyRTPPacket(
                                           ImmutableMediaChannelTracePtr trace,
                                           RTPPacketPtr packet
-                                          )
+                                          ) noexcept
     {
       try {
         asyncThisDelegate_->onRTPDecoderRTPPacket(trace, packet);
@@ -266,7 +261,7 @@ namespace ortc
     void RTPDecoderAudio::notifyRTCPPacket(
                                            ImmutableMediaChannelTracePtr trace,
                                            RTCPPacketPtr packet
-                                           )
+                                           ) noexcept
     {
       try {
         asyncThisDelegate_->onRTPDecoderRTCPPacket(trace, packet);
@@ -279,20 +274,20 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPDecoderAudio => IRTPDecoderAudio
-    #pragma mark
+    //
+    // RTPDecoderAudio => IRTPDecoderAudio
+    //
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPDecoderAudio => IRTPForMediaEngine
-    #pragma mark
+    //
+    // RTPDecoderAudio => IRTPForMediaEngine
+    //
 
     //-------------------------------------------------------------------------
-    void RTPDecoderAudio::shutdown()
+    void RTPDecoderAudio::shutdown() noexcept
     {
       ZS_EVENTING_1(x, i, Detail, RTPDecoderAudioShutdown, ol, MediaEngine, Close, puid, id, id_);
 
@@ -305,25 +300,25 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPDecoderAudio => IRTPDecoderForMediaEngine
-    #pragma mark
+    //
+    // RTPDecoderAudio => IRTPDecoderForMediaEngine
+    //
     
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPDecoderAudio => IRTPDecoderAudioForMediaEngine
-    #pragma mark
+    //
+    // RTPDecoderAudio => IRTPDecoderAudioForMediaEngine
+    //
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPDecoderAudio => IWakeDelegate
-    #pragma mark
+    //
+    // RTPDecoderAudio => IWakeDelegate
+    //
 
     //-------------------------------------------------------------------------
     void RTPDecoderAudio::onWake()
@@ -338,9 +333,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPDecoderAudio => IPromiseSettledDelegate
-    #pragma mark
+    //
+    // RTPDecoderAudio => IPromiseSettledDelegate
+    //
 
     //-------------------------------------------------------------------------
     void RTPDecoderAudio::onPromiseSettled(PromisePtr promise)
@@ -355,9 +350,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPDecoderAudio => IRTPDecoderAysncDelegate
-    #pragma mark
+    //
+    // RTPDecoderAudio => IRTPDecoderAysncDelegate
+    //
     
     //-------------------------------------------------------------------------
     void RTPDecoderAudio::onRTPDecoderRTPPacket(
@@ -365,8 +360,7 @@ namespace ortc
                                                 RTPPacketPtr packet
                                                 )
     {
-#define TODO 1
-#define TODO 2
+#pragma ZS_BUILD_NOTE("TODO","Implement onRTPDecoderRTPPacket")
     }
 
     //-------------------------------------------------------------------------
@@ -375,20 +369,19 @@ namespace ortc
                                                  RTCPPacketPtr packet
                                                  )
     {
-#define TODO 1
-#define TODO 2
+#pragma ZS_BUILD_NOTE("TODO","Implement onRTPDecoderRTCPPacket")
     }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPDecoderAudio => (internal)
-    #pragma mark
+    //
+    // RTPDecoderAudio => (internal)
+    //
 
     //-------------------------------------------------------------------------
-    void RTPDecoderAudio::innerCancel()
+    void RTPDecoderAudio::innerCancel() noexcept
     {
       //.......................................................................
       // try to gracefully shutdown
@@ -429,7 +422,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool RTPDecoderAudio::stepShutdownPendingPromise()
+    bool RTPDecoderAudio::stepShutdownPendingPromise() noexcept
     {
       if (!promise_) {
         ZS_EVENTING_2(x, i, Debug, RTPDecoderAudioShutdownStepMessage, ol, MediaEngine, Step, puid, id, id_, string, message, "no pending promise");
@@ -444,18 +437,17 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool RTPDecoderAudio::stepShutdownCoder()
+    bool RTPDecoderAudio::stepShutdownCoder() noexcept
     {
       ZS_EVENTING_2(x, i, Debug, RTPDecoderAudioShutdownStepMessage, ol, MediaEngine, Step, puid, id, id_, string, message, "coder");
 
-#define TODO 1
-#define TODO 2
+#pragma ZS_BUILD_NOTE("TODO","stepShutdownCoder")
 
       return true;
     }
 
     //-------------------------------------------------------------------------
-    void RTPDecoderAudio::step()
+    void RTPDecoderAudio::step() noexcept
     {
       ZS_EVENTING_1(x, i, Trace, RTPDecoderAudioStep, ol, MediaEngine, Step, puid, id, id_);
 
@@ -486,13 +478,13 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool RTPDecoderAudio::stepSetup()
+    bool RTPDecoderAudio::stepSetup() noexcept
     {
       return true;
     }
 
     //-------------------------------------------------------------------------
-    bool RTPDecoderAudio::stepResolve()
+    bool RTPDecoderAudio::stepResolve() noexcept
     {
       if (!promise_) {
         ZS_EVENTING_2(x, i, Trace, RTPDecoderAudioStepMessage, ol, MediaEngine, Step, puid, id, id_, string, message, "promise already resolved");
@@ -507,7 +499,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPDecoderAudio::setState(States state)
+    void RTPDecoderAudio::setState(States state) noexcept
     {
       if (state == currentState_) return;
 
@@ -532,7 +524,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPDecoderAudio::setError(PromisePtr promise)
+    void RTPDecoderAudio::setError(PromisePtr promise) noexcept
     {
       if (!promise) return;
 
@@ -543,7 +535,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPDecoderAudio::setError(WORD errorCode, const char *inReason)
+    void RTPDecoderAudio::setError(WORD errorCode, const char *inReason) noexcept
     {
       String reason(inReason);
       if (reason.isEmpty()) {
@@ -565,7 +557,7 @@ namespace ortc
     void RTPDecoderAudio::innerNotifyAudioFrame(
                                                 ImmutableMediaChannelTracePtr trace,
                                                 AudioFramePtr frame
-                                                )
+                                                ) noexcept
     {
       IRTPDecoderDelegatePtr delegate;
 
@@ -583,12 +575,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPDecoderAudioFactory
-    #pragma mark
+    //
+    // IRTPDecoderAudioFactory
+    //
 
     //-------------------------------------------------------------------------
-    IRTPDecoderAudioFactory &IRTPDecoderAudioFactory::singleton()
+    IRTPDecoderAudioFactory &IRTPDecoderAudioFactory::singleton() noexcept
     {
       return RTPDecoderAudioFactory::singleton();
     }
@@ -599,7 +591,7 @@ namespace ortc
                                                        UseMediaEnginePtr mediaEngine,
                                                        ParametersPtr parameters,
                                                        IRTPDecoderDelegatePtr delegate
-                                                       )
+                                                       ) noexcept
     {
       if (this) {}
       return internal::RTPDecoderAudio::create(promise, mediaEngine, parameters, delegate);

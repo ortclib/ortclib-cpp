@@ -39,61 +39,58 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IDTMFSenderTypes
-  #pragma mark
+  //
+  // IDTMFSenderTypes
+  //
   
   interaction IDTMFSenderTypes
   {
-    ZS_DECLARE_CUSTOM_EXCEPTION(InvalidCharacterError)
+    ZS_DECLARE_CUSTOM_EXCEPTION(InvalidCharacterError);
   };
 
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IDTMFSender
-  #pragma mark
+  //
+  // IDTMFSender
+  //
   
   interaction IDTMFSender : public IDTMFSenderTypes
   {
-    static ElementPtr toDebug(IDTMFSenderPtr sender);
+    static ElementPtr toDebug(IDTMFSenderPtr sender) noexcept;
 
     static IDTMFSenderPtr create(
                                  IDTMFSenderDelegatePtr delegate,
                                  IRTPSenderPtr sender
-                                 );
+                                 ) noexcept;
 
-    virtual PUID getID() const = 0;
+    virtual PUID getID() const noexcept = 0;
 
-    virtual IDTMFSenderSubscriptionPtr subscribe(IDTMFSenderDelegatePtr delegate) = 0;
+    virtual IDTMFSenderSubscriptionPtr subscribe(IDTMFSenderDelegatePtr delegate) noexcept = 0;
 
-    virtual bool canInsertDTMF() const = 0;
+    virtual bool canInsertDTMF() const noexcept = 0;
 
     virtual void insertDTMF(
                             const char *tones,
                             Milliseconds duration = Milliseconds(70),
                             Milliseconds interToneGap = Milliseconds(70)
-                            ) throw (
-                                     InvalidStateError,
-                                     InvalidCharacterError
-                                     ) = 0;
+                            ) noexcept(false) = 0; //throws InvalidStateError, InvalidCharacterError
 
-    virtual IRTPSenderPtr sender() const = 0;
+    virtual IRTPSenderPtr sender() const noexcept = 0;
 
-    virtual String toneBuffer() const = 0;
-    virtual Milliseconds duration() const = 0;
-    virtual Milliseconds interToneGap() const = 0;
+    virtual String toneBuffer() const noexcept = 0;
+    virtual Milliseconds duration() const noexcept = 0;
+    virtual Milliseconds interToneGap() const noexcept = 0;
   };
 
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IDTMFSenderDelegate
-  #pragma mark
+  //
+  // IDTMFSenderDelegate
+  //
 
   interaction IDTMFSenderDelegate
   {
@@ -107,27 +104,27 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IDTMFSenderSubscription
-  #pragma mark
+  //
+  // IDTMFSenderSubscription
+  //
 
   interaction IDTMFSenderSubscription
   {
-    virtual PUID getID() const = 0;
+    virtual PUID getID() const noexcept = 0;
 
-    virtual void cancel() = 0;
+    virtual void cancel() noexcept = 0;
 
-    virtual void background() = 0;
+    virtual void background() noexcept = 0;
   };
 }
 
 
 ZS_DECLARE_PROXY_BEGIN(ortc::IDTMFSenderDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IDTMFSenderPtr, IDTMFSenderPtr)
-ZS_DECLARE_PROXY_METHOD_2(onDTMFSenderToneChanged, IDTMFSenderPtr, String)
+ZS_DECLARE_PROXY_METHOD(onDTMFSenderToneChanged, IDTMFSenderPtr, String)
 ZS_DECLARE_PROXY_END()
 
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_BEGIN(ortc::IDTMFSenderDelegate, ortc::IDTMFSenderSubscription)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IDTMFSenderPtr, IDTMFSenderPtr)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onDTMFSenderToneChanged, IDTMFSenderPtr, String)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD(onDTMFSenderToneChanged, IDTMFSenderPtr, String)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()

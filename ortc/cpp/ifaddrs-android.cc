@@ -51,7 +51,7 @@ namespace {
   const int kMaxReadSize = 4096;
 };
 
-int set_ifname(struct ifaddrs* ifaddr, int interface) {
+int set_ifname(struct ifaddrs* ifaddr, int interface) noexcept {
   char buf[IFNAMSIZ] = {0};
   char* name = if_indextoname(interface, buf);
   if (name == NULL) {
@@ -62,7 +62,7 @@ int set_ifname(struct ifaddrs* ifaddr, int interface) {
   return 0;
 }
 
-int set_flags(struct ifaddrs* ifaddr) {
+int set_flags(struct ifaddrs* ifaddr) noexcept {
   int fd = socket(AF_INET, SOCK_DGRAM, 0);
   if (fd == -1) {
     return -1;
@@ -80,7 +80,7 @@ int set_flags(struct ifaddrs* ifaddr) {
 }
 
 int set_addresses(struct ifaddrs* ifaddr, ifaddrmsg* msg, void* data,
-                  size_t len) {
+                  size_t len) noexcept {
   if (msg->ifa_family == AF_INET) {
     sockaddr_in* sa = new sockaddr_in;
     sa->sin_family = AF_INET;
@@ -98,7 +98,7 @@ int set_addresses(struct ifaddrs* ifaddr, ifaddrmsg* msg, void* data,
   return 0;
 }
 
-int make_prefixes(struct ifaddrs* ifaddr, int family, int prefixlen) {
+int make_prefixes(struct ifaddrs* ifaddr, int family, int prefixlen) noexcept {
   char* prefix = NULL;
   if (family == AF_INET) {
     sockaddr_in* mask = new sockaddr_in;
@@ -131,7 +131,7 @@ int make_prefixes(struct ifaddrs* ifaddr, int family, int prefixlen) {
 }
 
 int populate_ifaddrs(struct ifaddrs* ifaddr, ifaddrmsg* msg, void* bytes,
-                     size_t len) {
+                     size_t len) noexcept {
   if (set_ifname(ifaddr, msg->ifa_index) != 0) {
     return -1;
   }
@@ -147,7 +147,7 @@ int populate_ifaddrs(struct ifaddrs* ifaddr, ifaddrmsg* msg, void* bytes,
   return 0;
 }
 
-int getifaddrs(struct ifaddrs** result) {
+int getifaddrs(struct ifaddrs** result) noexcept {
   int fd = socket(PF_NETLINK, SOCK_RAW, NETLINK_ROUTE);
   if (fd < 0) {
     return -1;
@@ -221,7 +221,7 @@ int getifaddrs(struct ifaddrs** result) {
   return -1;
 }
 
-void freeifaddrs(struct ifaddrs* addrs) {
+void freeifaddrs(struct ifaddrs* addrs) noexcept {
   struct ifaddrs* last = NULL;
   struct ifaddrs* cursor = addrs;
   while (cursor) {

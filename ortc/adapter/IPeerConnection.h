@@ -48,9 +48,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IPeerConnectionTypes
-    #pragma mark
+    //
+    // IPeerConnectionTypes
+    //
 
     interaction IPeerConnectionTypes
     {
@@ -90,7 +90,7 @@ namespace ortc
         BundlePolicy_Last = BundlePolicy_MaxBundle,
       };
 
-      static const char *toString(BundlePolicies policy);
+      static const char *toString(BundlePolicies policy) noexcept;
 
       enum RTCPMuxPolicies
       {
@@ -102,7 +102,7 @@ namespace ortc
         RTCPMuxPolicy_Last = RTCPMuxPolicy_Require,
       };
 
-      static const char *toString(RTCPMuxPolicies policy);
+      static const char *toString(RTCPMuxPolicies policy) noexcept;
 
       enum SignalingModes
       {
@@ -114,12 +114,12 @@ namespace ortc
         SignalingMode_Last = SignalingMode_SDP,
       };
 
-      static const char *toString(SignalingModes mode);
-      static SignalingModes toSignalingMode(const char *mode);
+      static const char *toString(SignalingModes mode) noexcept;
+      static SignalingModes toSignalingMode(const char *mode) noexcept(false);
       static bool isCompatible(
                                SignalingModes mode,
                                ISessionDescriptionTypes::SignalingTypes signalingType
-                               );
+                               ) noexcept;
 
       enum SignalingStates
       {
@@ -135,7 +135,7 @@ namespace ortc
         SignalingState_Last = SignalingState_Closed,
       };
 
-      static const char *toString(SignalingStates state);
+      static const char *toString(SignalingStates state) noexcept;
 
       enum PeerConnectionStates
       {
@@ -151,7 +151,7 @@ namespace ortc
         PeerConnectionState_Last = PeerConnectionState_Closed,
       };
 
-      static const char *toString(PeerConnectionStates state);
+      static const char *toString(PeerConnectionStates state) noexcept;
 
       struct Configuration
       {
@@ -167,33 +167,33 @@ namespace ortc
 
         ISCTPTransportTypes::SocketOptions mSCTPSocketOptions;
 
-        Configuration() {}
-        Configuration(const Configuration &op2);
-        ElementPtr toDebug() const;
+        Configuration() noexcept {}
+        Configuration(const Configuration &op2) noexcept;
+        ElementPtr toDebug() const noexcept;
       };
 
       struct OfferAnswerOptions
       {
         bool mVoiceActivityDetection {true};
 
-        ElementPtr toDebug() const;
+        ElementPtr toDebug() const noexcept;
       };
 
       struct OfferOptions : public OfferAnswerOptions
       {
         bool mICERestart {false};
 
-        ElementPtr toDebug() const;
+        ElementPtr toDebug() const noexcept;
       };
 
       struct AnswerOptions : public OfferAnswerOptions
       {
-        ElementPtr toDebug() const;
+        ElementPtr toDebug() const noexcept;
       };
 
       struct CapabilityOptions : public OfferAnswerOptions
       {
-        ElementPtr toDebug() const;
+        ElementPtr toDebug() const noexcept;
       };
 
       struct MediaStreamTrackConfiguration
@@ -201,12 +201,12 @@ namespace ortc
         IRTPTypes::CapabilitiesPtr mCapabilities;
         IRTPTypes::ParametersPtr mParameters;
 
-        MediaStreamTrackConfiguration() {}
-        MediaStreamTrackConfiguration(const MediaStreamTrackConfiguration &op2);
+        MediaStreamTrackConfiguration() noexcept {}
+        MediaStreamTrackConfiguration(const MediaStreamTrackConfiguration &op2) noexcept;
 
-        MediaStreamTrackConfiguration &operator=(const MediaStreamTrackConfiguration &op2);
+        MediaStreamTrackConfiguration &operator=(const MediaStreamTrackConfiguration &op2) noexcept;
 
-        ElementPtr toDebug() const;
+        ElementPtr toDebug() const noexcept;
       };
 
       struct ICECandidateErrorEvent
@@ -223,7 +223,7 @@ namespace ortc
         Optional<ErrorCode>   mErrorCode;
         String                mErrorText;
 
-        ElementPtr toDebug() const;
+        ElementPtr toDebug() const noexcept;
       };
 
       struct MediaStreamTrackEvent
@@ -234,7 +234,7 @@ namespace ortc
         IMediaStreamTrackPtr mTrack;
         MediaStreamList mMediaStreams;
 
-        ElementPtr toDebug() const;
+        ElementPtr toDebug() const noexcept;
       };
 
     };
@@ -243,9 +243,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IPeerConnection
-    #pragma mark
+    //
+    // IPeerConnection
+    //
 
     interface IPeerConnection : public IPeerConnectionTypes,
                                 public IStatsProvider
@@ -253,66 +253,66 @@ namespace ortc
       static IPeerConnectionPtr create(
                                        IPeerConnectionDelegatePtr delegate,
                                        const Optional<Configuration> &configuration = Optional<Configuration>()
-                                       );
+                                       ) noexcept;
 
-      virtual PUID getID() const = 0;
+      virtual PUID getID() const noexcept = 0;
 
-      virtual IPeerConnectionSubscriptionPtr subscribe(IPeerConnectionDelegatePtr delegate) = 0;
+      virtual IPeerConnectionSubscriptionPtr subscribe(IPeerConnectionDelegatePtr delegate) noexcept = 0;
 
-      virtual PromiseWithDescriptionPtr createOffer(const Optional<OfferOptions> &configuration = Optional<OfferOptions>()) = 0;
-      virtual PromiseWithDescriptionPtr createAnswer(const Optional<AnswerOptions> &configuration = Optional<AnswerOptions>()) = 0;
+      virtual PromiseWithDescriptionPtr createOffer(const Optional<OfferOptions> &configuration = Optional<OfferOptions>()) noexcept = 0;
+      virtual PromiseWithDescriptionPtr createAnswer(const Optional<AnswerOptions> &configuration = Optional<AnswerOptions>()) noexcept = 0;
 
-      virtual PromiseWithDescriptionPtr createCapabilities(const Optional<CapabilityOptions> &configuration = Optional<CapabilityOptions>()) = 0;
+      virtual PromiseWithDescriptionPtr createCapabilities(const Optional<CapabilityOptions> &configuration = Optional<CapabilityOptions>()) noexcept = 0;
 
-      virtual PromisePtr setLocalDescription(ISessionDescriptionPtr description) = 0;
+      virtual PromisePtr setLocalDescription(ISessionDescriptionPtr description) noexcept = 0;
 
-      virtual ISessionDescriptionPtr localDescription() const = 0;
-      virtual ISessionDescriptionPtr currentDescription() const = 0;
-      virtual ISessionDescriptionPtr pendingDescription() const = 0;
+      virtual ISessionDescriptionPtr localDescription() const noexcept = 0;
+      virtual ISessionDescriptionPtr currentDescription() const noexcept = 0;
+      virtual ISessionDescriptionPtr pendingDescription() const noexcept = 0;
 
-      virtual PromisePtr setRemoteDescription(ISessionDescriptionPtr description) = 0;
-      virtual ISessionDescriptionPtr remoteDescription() const = 0;
-      virtual ISessionDescriptionPtr currentRemoteDescription() const = 0;
-      virtual ISessionDescriptionPtr pendingRemoteDescription() const = 0;
-      virtual void addICECandidate(const ICECandidate &candidate) = 0;
+      virtual PromisePtr setRemoteDescription(ISessionDescriptionPtr description) noexcept = 0;
+      virtual ISessionDescriptionPtr remoteDescription() const noexcept = 0;
+      virtual ISessionDescriptionPtr currentRemoteDescription() const noexcept = 0;
+      virtual ISessionDescriptionPtr pendingRemoteDescription() const noexcept = 0;
+      virtual void addICECandidate(const ICECandidate &candidate) noexcept = 0;
 
-      virtual SignalingStates signalingState() const = 0;
-      virtual ICEGatheringStates iceGatheringState() const = 0;
-      virtual ICEConnectionStates iceConnectionState() const = 0;
-      virtual PeerConnectionStates connectionState() const = 0;
-      virtual bool canTrickleCandidates() const = 0;
+      virtual SignalingStates signalingState() const noexcept = 0;
+      virtual ICEGatheringStates iceGatheringState() const noexcept = 0;
+      virtual ICEConnectionStates iceConnectionState() const noexcept = 0;
+      virtual PeerConnectionStates connectionState() const noexcept = 0;
+      virtual bool canTrickleCandidates() const noexcept = 0;
 
-      static ServerListPtr getDefaultIceServers();
+      static ServerListPtr getDefaultIceServers() noexcept;
 
-      virtual ConfigurationPtr getConfiguration() const = 0;
-      virtual void setConfiguration(const Configuration &configuration) = 0;
+      virtual ConfigurationPtr getConfiguration() const noexcept = 0;
+      virtual void setConfiguration(const Configuration &configuration) noexcept = 0;
 
-      virtual void close() = 0;
+      virtual void close() noexcept = 0;
 
-      virtual SenderListPtr getSenders() const = 0;
-      virtual ReceiverListPtr getReceivers() const = 0;
+      virtual SenderListPtr getSenders() const noexcept = 0;
+      virtual ReceiverListPtr getReceivers() const noexcept = 0;
       virtual PromiseWithSenderPtr addTrack(
                                             IMediaStreamTrackPtr track,
                                             const MediaStreamTrackConfiguration &configuration = MediaStreamTrackConfiguration()
-                                            ) = 0;
+                                            ) noexcept = 0;
       virtual PromiseWithSenderPtr addTrack(
                                             IMediaStreamTrackPtr track,
                                             const MediaStreamList &mediaStreams,
                                             const MediaStreamTrackConfiguration &configuration = MediaStreamTrackConfiguration()
-                                            ) = 0;
+                                            ) noexcept = 0;
 
-      virtual void removeTrack(IRTPSenderPtr sender) = 0;
+      virtual void removeTrack(IRTPSenderPtr sender) noexcept = 0;
 
-      virtual PromiseWithDataChannelPtr createDataChannel(const IDataChannelTypes::Parameters &parameters) = 0;
+      virtual PromiseWithDataChannelPtr createDataChannel(const IDataChannelTypes::Parameters &parameters) noexcept = 0;
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IPeerConnectionDelegate
-    #pragma mark
+    //
+    // IPeerConnectionDelegate
+    //
 
     interface IPeerConnectionDelegate
     {
@@ -371,17 +371,17 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IPeerConnectionSubscription
-    #pragma mark
+    //
+    // IPeerConnectionSubscription
+    //
 
     interaction IPeerConnectionSubscription
     {
-      virtual PUID getID() const = 0;
+      virtual PUID getID() const noexcept = 0;
 
-      virtual void cancel() = 0;
+      virtual void cancel() noexcept = 0;
 
-      virtual void background() = 0;
+      virtual void background() noexcept = 0;
     };
   }
 }
@@ -396,16 +396,16 @@ ZS_DECLARE_PROXY_TYPEDEF(ortc::adapter::IPeerConnectionTypes::SignalingStates, S
 ZS_DECLARE_PROXY_TYPEDEF(ortc::adapter::IPeerConnectionTypes::PeerConnectionStates, PeerConnectionStates)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::adapter::IPeerConnectionTypes::MediaStreamTrackEventPtr, MediaStreamTrackEventPtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IDataChannelPtr, IDataChannelPtr)
-ZS_DECLARE_PROXY_METHOD_1(onPeerConnectionNegotiationNeeded, IPeerConnectionPtr)
-ZS_DECLARE_PROXY_METHOD_3(onPeerConnectionIceCandidate, IPeerConnectionPtr, ICECandidatePtr, const char *)
-ZS_DECLARE_PROXY_METHOD_2(onPeerConnectionIceCandidateError, IPeerConnectionPtr, ICECandidateErrorEventPtr)
-ZS_DECLARE_PROXY_METHOD_2(onPeerConnectionSignalingStateChange, IPeerConnectionPtr, SignalingStates)
-ZS_DECLARE_PROXY_METHOD_2(onPeerConnectionICEGatheringStateChange, IPeerConnectionPtr, ICEGatheringStates)
-ZS_DECLARE_PROXY_METHOD_2(onPeerConnectionICEConnectionStateChange, IPeerConnectionPtr, ICEConnectionStates)
-ZS_DECLARE_PROXY_METHOD_2(onPeerConnectionConnectionStateChange, IPeerConnectionPtr, PeerConnectionStates)
-ZS_DECLARE_PROXY_METHOD_2(onPeerConnectionTrack, IPeerConnectionPtr, MediaStreamTrackEventPtr)
-ZS_DECLARE_PROXY_METHOD_2(onPeerConnectionTrackGone, IPeerConnectionPtr, MediaStreamTrackEventPtr)
-ZS_DECLARE_PROXY_METHOD_2(onPeerConnectionDataChannel, IPeerConnectionPtr, IDataChannelPtr)
+ZS_DECLARE_PROXY_METHOD(onPeerConnectionNegotiationNeeded, IPeerConnectionPtr)
+ZS_DECLARE_PROXY_METHOD(onPeerConnectionIceCandidate, IPeerConnectionPtr, ICECandidatePtr, const char *)
+ZS_DECLARE_PROXY_METHOD(onPeerConnectionIceCandidateError, IPeerConnectionPtr, ICECandidateErrorEventPtr)
+ZS_DECLARE_PROXY_METHOD(onPeerConnectionSignalingStateChange, IPeerConnectionPtr, SignalingStates)
+ZS_DECLARE_PROXY_METHOD(onPeerConnectionICEGatheringStateChange, IPeerConnectionPtr, ICEGatheringStates)
+ZS_DECLARE_PROXY_METHOD(onPeerConnectionICEConnectionStateChange, IPeerConnectionPtr, ICEConnectionStates)
+ZS_DECLARE_PROXY_METHOD(onPeerConnectionConnectionStateChange, IPeerConnectionPtr, PeerConnectionStates)
+ZS_DECLARE_PROXY_METHOD(onPeerConnectionTrack, IPeerConnectionPtr, MediaStreamTrackEventPtr)
+ZS_DECLARE_PROXY_METHOD(onPeerConnectionTrackGone, IPeerConnectionPtr, MediaStreamTrackEventPtr)
+ZS_DECLARE_PROXY_METHOD(onPeerConnectionDataChannel, IPeerConnectionPtr, IDataChannelPtr)
 ZS_DECLARE_PROXY_END()
 
 
@@ -418,14 +418,14 @@ ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::adapter::IPeerConnectionTypes::ICEC
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::adapter::IPeerConnectionTypes::PeerConnectionStates, PeerConnectionStates)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::adapter::IPeerConnectionTypes::MediaStreamTrackEventPtr, MediaStreamTrackEventPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IDataChannelPtr, IDataChannelPtr)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_1(onPeerConnectionNegotiationNeeded, IPeerConnectionPtr)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_3(onPeerConnectionIceCandidate, IPeerConnectionPtr, ICECandidatePtr, const char *)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onPeerConnectionIceCandidateError, IPeerConnectionPtr, ICECandidateErrorEventPtr)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onPeerConnectionSignalingStateChange, IPeerConnectionPtr, SignalingStates)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onPeerConnectionICEGatheringStateChange, IPeerConnectionPtr, ICEGatheringStates)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onPeerConnectionICEConnectionStateChange, IPeerConnectionPtr, ICEConnectionStates)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onPeerConnectionConnectionStateChange, IPeerConnectionPtr, PeerConnectionStates)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onPeerConnectionTrack, IPeerConnectionPtr, MediaStreamTrackEventPtr)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onPeerConnectionTrackGone, IPeerConnectionPtr, MediaStreamTrackEventPtr)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onPeerConnectionDataChannel, IPeerConnectionPtr, IDataChannelPtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD(onPeerConnectionNegotiationNeeded, IPeerConnectionPtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD(onPeerConnectionIceCandidate, IPeerConnectionPtr, ICECandidatePtr, const char *)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD(onPeerConnectionIceCandidateError, IPeerConnectionPtr, ICECandidateErrorEventPtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD(onPeerConnectionSignalingStateChange, IPeerConnectionPtr, SignalingStates)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD(onPeerConnectionICEGatheringStateChange, IPeerConnectionPtr, ICEGatheringStates)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD(onPeerConnectionICEConnectionStateChange, IPeerConnectionPtr, ICEConnectionStates)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD(onPeerConnectionConnectionStateChange, IPeerConnectionPtr, PeerConnectionStates)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD(onPeerConnectionTrack, IPeerConnectionPtr, MediaStreamTrackEventPtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD(onPeerConnectionTrackGone, IPeerConnectionPtr, MediaStreamTrackEventPtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD(onPeerConnectionDataChannel, IPeerConnectionPtr, IDataChannelPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()

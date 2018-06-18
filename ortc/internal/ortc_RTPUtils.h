@@ -43,45 +43,45 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPHelpers
-    #pragma mark
+    //
+    // RTPHelpers
+    //
 
     class RTPUtils
     {
     public:
       //RTP Utils
-      static WORD getBE16(const void* memory);
-      static DWORD getBE32(const void* memory);
+      static WORD getBE16(const void* memory) noexcept;
+      static DWORD getBE32(const void* memory) noexcept;
 
-      static void setBE16(void* memory, WORD v);
-      static void setBE32(void* memory, DWORD v);
+      static void setBE16(void* memory, WORD v) noexcept;
+      static void setBE32(void* memory, DWORD v) noexcept;
 
-      static int getRtpPayloadType(const void* data, size_t len);
-      static int getRtpSeqNum(const void* data, size_t len);
-      static DWORD getRtpTimestamp(const void* data, size_t len);
-      static DWORD getRtpSsrc(const void* data, size_t len);
-      static size_t getRtpHeaderLen(const void* data, size_t len);
-      static int getRtcpType(const void* data, size_t len);
-      static DWORD getRtcpSsrc(const void* data, size_t len);
-      //bool getRtpHeader(const void* data, size_t len, RtpHeader* header);
+      static int getRtpPayloadType(const void* data, size_t len) noexcept;
+      static int getRtpSeqNum(const void* data, size_t len) noexcept;
+      static DWORD getRtpTimestamp(const void* data, size_t len) noexcept;
+      static DWORD getRtpSsrc(const void* data, size_t len) noexcept;
+      static size_t getRtpHeaderLen(const void* data, size_t len) noexcept;
+      static int getRtcpType(const void* data, size_t len) noexcept;
+      static DWORD getRtcpSsrc(const void* data, size_t len) noexcept;
+      //bool getRtpHeader(const void* data, size_t len, RtpHeader* header) noexcept;
 
-      static bool setRtpSsrc(void* data, size_t len, DWORD value);
+      static bool setRtpSsrc(void* data, size_t len, DWORD value) noexcept;
       // Assumes version 2, no padding, no extensions, no csrcs.
-      //bool setRtpHeader(void* data, size_t len, const RtpHeader& header);
+      //bool setRtpHeader(void* data, size_t len, const RtpHeader& header) noexcept;
 
-      static bool isRtpPacket(const void* data, size_t len);
-      static bool isRTCPPacketType(const BYTE *data, size_t len);
+      static bool isRtpPacket(const void* data, size_t len) noexcept;
+      static bool isRTCPPacketType(const BYTE *data, size_t len) noexcept;
 
       // True if |payload type| is 0-127.
-      static bool isValidRtpPayloadType(int payload_type);
+      static bool isValidRtpPayloadType(int payload_type) noexcept;
 
       static Time ntpToTime(
                             DWORD ntpMS,
                             DWORD ntpLS
-                            );
+                            ) noexcept;
 
-      static Log::Params slog(const char *message);
+      static Log::Params slog(const char *message) noexcept;
     };
 
   }

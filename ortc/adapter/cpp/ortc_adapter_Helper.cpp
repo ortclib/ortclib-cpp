@@ -59,14 +59,14 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark Helper
-      #pragma mark
+      //
+      // Helper
+      //
 
     }  // namespace internal
 
     //-------------------------------------------------------------------------
-    const char *IHelper::toString(IDPreferences pref)
+    const char *IHelper::toString(IDPreferences pref) noexcept
     {
       switch (pref)
       {
@@ -77,7 +77,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    IRTPTypes::SSRCType IHelper::getRandomSSRC()
+    IRTPTypes::SSRCType IHelper::getRandomSSRC() noexcept
     {
       auto random = IHelper::random(sizeof(IRTPTypes::SSRCType));
       IRTPTypes::SSRCType tempSSRC{};
@@ -90,7 +90,7 @@ namespace ortc
                                             IMediaStreamTrackTypes::Kinds kind,
                                             SSRCQueue &audioSSRCQueue,
                                             SSRCQueue &videoSSRCQueue
-                                            )
+                                            ) noexcept
     {
       SSRCQueue *ssrcQueue = NULL;
 
@@ -100,7 +100,7 @@ namespace ortc
         case ortc::IMediaStreamTrackTypes::Kind_Video:  ssrcQueue = &videoSSRCQueue; break;
       }
 
-      ZS_THROW_INVALID_ASSUMPTION_IF(!ssrcQueue);
+      ZS_ASSERT(ssrcQueue);
 
       if (ssrcQueue->size() > 0) return ssrcQueue->front();
 
@@ -114,7 +114,7 @@ namespace ortc
                                            IMediaStreamTrackTypes::Kinds kind,
                                            SSRCQueue &audioSSRCQueue,
                                            SSRCQueue &videoSSRCQueue
-                                           )
+                                           ) noexcept
     {
       auto result = peekNextSSRC(kind, audioSSRCQueue, videoSSRCQueue);
       switch (kind)
@@ -130,12 +130,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark Negotiation (conversion)
-    #pragma mark
+    //
+    // Negotiation (conversion)
+    //
 
     //-------------------------------------------------------------------------
-    IHelper::RTPParametersPtr IHelper::capabilitiesToParameters(const RTPCapabilities &capabilities)
+    IHelper::RTPParametersPtr IHelper::capabilitiesToParameters(const RTPCapabilities &capabilities) noexcept
     {
       auto result = make_shared<RTPParameters>();
 
@@ -147,7 +147,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    IHelper::RTPCapabilitiesPtr IHelper::parametersToCapabilities(const RTPParameters &parameters)
+    IHelper::RTPCapabilitiesPtr IHelper::parametersToCapabilities(const RTPParameters &parameters) noexcept
     {
       auto result = make_shared<RTPCapabilities>();
 
@@ -233,7 +233,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    IHelper::RTPCodecParametersListPtr IHelper::capabilitiesToParameters(const RTPCodecCapabilitiesList &capabiliites)
+    IHelper::RTPCodecParametersListPtr IHelper::capabilitiesToParameters(const RTPCodecCapabilitiesList &capabiliites) noexcept
     {
       auto result = make_shared<RTPCodecParametersList>();
 
@@ -247,7 +247,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    IHelper::RTPCodecCapabilitiesListPtr IHelper::parametersToCapabilities(const RTPCodecParametersList &parameters)
+    IHelper::RTPCodecCapabilitiesListPtr IHelper::parametersToCapabilities(const RTPCodecParametersList &parameters) noexcept
     {
       auto result = make_shared<RTPCodecCapabilitiesList>();
 
@@ -261,7 +261,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    IHelper::RTPCodecParametersPtr IHelper::capabilitiesToParameters(const RTPCodecCapability &capabilities)
+    IHelper::RTPCodecParametersPtr IHelper::capabilitiesToParameters(const RTPCodecCapability &capabilities) noexcept
     {
       auto result = make_shared<RTPCodecParameters>();
 
@@ -341,7 +341,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    IHelper::RTPCodecCapabilityPtr IHelper::parametersToCapabilities(const RTPCodecParameters &parameters)
+    IHelper::RTPCodecCapabilityPtr IHelper::parametersToCapabilities(const RTPCodecParameters &parameters) noexcept
     {
       auto result = make_shared<RTPCodecCapability>();
 
@@ -437,7 +437,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    IHelper::RTPOpusCodecParametersPtr IHelper::opusCodecCapabilityParametersToParameters(const RTPOpusCodecCapabilityParameters &capabilityParameters)
+    IHelper::RTPOpusCodecParametersPtr IHelper::opusCodecCapabilityParametersToParameters(const RTPOpusCodecCapabilityParameters &capabilityParameters) noexcept
     {
       auto result = make_shared<RTPOpusCodecParameters>();
 
@@ -454,7 +454,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    IHelper::RTPOpusCodecCapabilityParametersPtr IHelper::opusCodecParametersToCapabilityParameters(const RTPOpusCodecParameters &parameters)
+    IHelper::RTPOpusCodecCapabilityParametersPtr IHelper::opusCodecParametersToCapabilityParameters(const RTPOpusCodecParameters &parameters) noexcept
     {
       auto result = make_shared<RTPOpusCodecCapabilityParameters>();
 
@@ -471,55 +471,55 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    IHelper::RTPVP8CodecParametersPtr IHelper::vp8CodecCapabilityParametersToParameters(const RTPVP8CodecCapabilityParameters &capabilityParameters)
+    IHelper::RTPVP8CodecParametersPtr IHelper::vp8CodecCapabilityParametersToParameters(const RTPVP8CodecCapabilityParameters &capabilityParameters) noexcept
     {
       return make_shared<RTPVP8CodecParameters>(capabilityParameters);
     }
 
     //-------------------------------------------------------------------------
-    IHelper::RTPVP8CodecCapabilityParametersPtr IHelper::vp8CodecParametersToCapabilityParameters(const RTPVP8CodecParameters &parameters)
+    IHelper::RTPVP8CodecCapabilityParametersPtr IHelper::vp8CodecParametersToCapabilityParameters(const RTPVP8CodecParameters &parameters) noexcept
     {
       return make_shared<RTPVP8CodecCapabilityParameters>(parameters);
     }
 
     //-------------------------------------------------------------------------
-    IHelper::RTPH264CodecParametersPtr IHelper::h264CodecCapabilityParametersToParameters(const RTPH264CodecCapabilityParameters &capabilityParameters)
+    IHelper::RTPH264CodecParametersPtr IHelper::h264CodecCapabilityParametersToParameters(const RTPH264CodecCapabilityParameters &capabilityParameters) noexcept
     {
       return make_shared<RTPH264CodecParameters>(capabilityParameters);
     }
 
     //-------------------------------------------------------------------------
-    IHelper::RTPH264CodecCapabilityParametersPtr IHelper::h264CodecParametersToCapabilityParameters(const RTPH264CodecParameters &parameters)
+    IHelper::RTPH264CodecCapabilityParametersPtr IHelper::h264CodecParametersToCapabilityParameters(const RTPH264CodecParameters &parameters) noexcept
     {
       return make_shared<RTPH264CodecCapabilityParameters>(parameters);
     }
 
     //-------------------------------------------------------------------------
-    IHelper::RTPRTXCodecParametersPtr IHelper::rtxCodecCapabilityParametersToParameters(const RTPRTXCodecCapabilityParameters &capabilityParameters)
+    IHelper::RTPRTXCodecParametersPtr IHelper::rtxCodecCapabilityParametersToParameters(const RTPRTXCodecCapabilityParameters &capabilityParameters) noexcept
     {
       return make_shared<RTPRTXCodecParameters>(capabilityParameters);
     }
 
     //-------------------------------------------------------------------------
-    IHelper::RTPRTXCodecCapabilityParametersPtr IHelper::rtxCodecParametersToCapabilityParameters(const RTPRTXCodecParameters &parameters)
+    IHelper::RTPRTXCodecCapabilityParametersPtr IHelper::rtxCodecParametersToCapabilityParameters(const RTPRTXCodecParameters &parameters) noexcept
     {
       return make_shared<RTPRTXCodecCapabilityParameters>(parameters);
     }
 
     //-------------------------------------------------------------------------
-    IHelper::RTPFlexFECCodecParametersPtr IHelper::flexFECCodecCapabilityParametersToParameters(const RTPFlexFECCodecCapabilityParameters &capabilityParameters)
+    IHelper::RTPFlexFECCodecParametersPtr IHelper::flexFECCodecCapabilityParametersToParameters(const RTPFlexFECCodecCapabilityParameters &capabilityParameters) noexcept
     {
       return make_shared<RTPFlexFECCodecParameters>(capabilityParameters);
     }
 
     //-------------------------------------------------------------------------
-    IHelper::RTPFlexFECCodecCapabilityParametersPtr IHelper::flexFECCodecParametersToCapabilityParameters(const RTPFlexFECCodecParameters &parameters)
+    IHelper::RTPFlexFECCodecCapabilityParametersPtr IHelper::flexFECCodecParametersToCapabilityParameters(const RTPFlexFECCodecParameters &parameters) noexcept
     {
       return make_shared<RTPFlexFECCodecCapabilityParameters>(parameters);
     }
 
     //-------------------------------------------------------------------------
-    IHelper::RTPHeaderExtensionParametersListPtr IHelper::capabilitiesToParameters(const RTPHeaderExtensionsList &capabilities)
+    IHelper::RTPHeaderExtensionParametersListPtr IHelper::capabilitiesToParameters(const RTPHeaderExtensionsList &capabilities) noexcept
     {
       auto result = make_shared<RTPHeaderExtensionParametersList>();
 
@@ -532,7 +532,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    IHelper::RTPHeaderExtensionsListPtr IHelper::parametersToCapabilities(const RTPHeaderExtensionParametersList &parameters)
+    IHelper::RTPHeaderExtensionsListPtr IHelper::parametersToCapabilities(const RTPHeaderExtensionParametersList &parameters) noexcept
     {
       auto result = make_shared<RTPHeaderExtensionsList>();
 
@@ -545,7 +545,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    IHelper::RTPHeaderExtensionParametersPtr IHelper::capabilitiesToParameters(const RTPHeaderExtension &capabilities)
+    IHelper::RTPHeaderExtensionParametersPtr IHelper::capabilitiesToParameters(const RTPHeaderExtension &capabilities) noexcept
     {
       auto result = make_shared<RTPHeaderExtensionParameters>();
 
@@ -557,7 +557,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    IHelper::RTPHeaderExtensionPtr IHelper::parametersToCapabilities(const RTPHeaderExtensionParameters &parameters)
+    IHelper::RTPHeaderExtensionPtr IHelper::parametersToCapabilities(const RTPHeaderExtensionParameters &parameters) noexcept
     {
       auto result = make_shared<RTPHeaderExtension>();
 
@@ -572,16 +572,16 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark Negotiation (unions)
-    #pragma mark
+    //
+    // Negotiation (unions)
+    //
 
     //-------------------------------------------------------------------------
     IHelper::RTPCapabilitiesPtr IHelper::createUnion(
                                                      const RTPCapabilities &localCapabilities,
                                                      const RTPCapabilities &remoteCapabilities,
                                                      IDPreferences preference
-                                                     )
+                                                     ) noexcept
     {
       auto result = make_shared<RTPCapabilities>();
       result->mCodecs = *createUnion(localCapabilities.mCodecs, remoteCapabilities.mCodecs, preference);
@@ -594,7 +594,7 @@ namespace ortc
     static const IRTPTypes::CodecCapability *findCodecByPayloadType(
                                                                     const IRTPTypes::CodecCapabilitiesList &codecs,
                                                                     IRTPTypes::PayloadType payloadType
-                                                                    )
+                                                                    ) noexcept
     {
       for (auto iter = codecs.begin(); iter != codecs.end(); ++iter) {
         auto &codec = (*iter);
@@ -609,7 +609,7 @@ namespace ortc
     static const IRTPTypes::CodecParameters *findCodecByPayloadType(
                                                                     const IRTPTypes::CodecParametersList &codecs,
                                                                     IRTPTypes::PayloadType payloadType
-                                                                    )
+                                                                    ) noexcept
     {
       for (auto iter = codecs.begin(); iter != codecs.end(); ++iter) {
         auto &codec = (*iter);
@@ -625,7 +625,7 @@ namespace ortc
                         const IRTPTypes::CodecCapability &primaryCodec,
                         const IRTPTypes::CodecCapability &secondaryCodec,
                         bool &outExact
-                        )
+                        ) noexcept
     {
       outExact = true;
 
@@ -658,7 +658,7 @@ namespace ortc
                         const IRTPTypes::CodecParameters &primaryCodec,
                         const IRTPTypes::CodecCapability &secondaryCodec,
                         bool &outExact
-                        )
+                        ) noexcept
     {
       outExact = true;
 
@@ -705,7 +705,7 @@ namespace ortc
                         const IRTPTypes::CodecCapabilitiesList &secondaryList,
                         bool &outExact,
                         bool &outIsRTX
-                        )
+                        ) noexcept
     {
       outIsRTX = false;
       outExact = false;
@@ -783,7 +783,7 @@ namespace ortc
                         const IRTPTypes::CodecCapabilitiesList &secondaryList,
                         bool &outExact,
                         bool &outIsRTX
-                        )
+                        ) noexcept
     {
       outIsRTX = false;
       outExact = false;
@@ -858,7 +858,7 @@ namespace ortc
                                                               const RTPCodecCapabilitiesList &local,
                                                               const RTPCodecCapabilitiesList &remote,
                                                               IDPreferences preference
-                                                              )
+                                                              ) noexcept
     {
       auto result = make_shared<RTPCodecCapabilitiesList>();
 
@@ -931,7 +931,7 @@ namespace ortc
                                                              const RTPHeaderExtensionsList &local,
                                                              const RTPHeaderExtensionsList &remote,
                                                              IDPreferences preference
-                                                             )
+                                                             ) noexcept
     {
       auto result = make_shared<RTPHeaderExtensionsList>();
       for (auto iterLocal = local.begin(); iterLocal != local.end(); ++iterLocal) {
@@ -955,7 +955,7 @@ namespace ortc
                                                          const RTPFECMechanismList &local,
                                                          const RTPFECMechanismList &remote,
                                                          IDPreferences preference
-                                                         )
+                                                         ) noexcept
     {
       auto result = make_shared<RTPFECMechanismList>();
       for (auto iterLocal = local.begin(); iterLocal != local.end(); ++iterLocal) {
@@ -979,7 +979,7 @@ namespace ortc
                                                          const RTPRTCPFeedbackList &local,
                                                          const RTPRTCPFeedbackList &remote,
                                                          IDPreferences preference
-                                                         )
+                                                         ) noexcept
     {
       auto result = make_shared<RTPRTCPFeedbackList>();
       for (auto iterLocal = local.begin(); iterLocal != local.end(); ++iterLocal) {
@@ -1004,15 +1004,15 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark Negotiation (filter)
-    #pragma mark
+    //
+    // Negotiation (filter)
+    //
 
     //-------------------------------------------------------------------------
     IHelper::RTPParametersPtr IHelper::filterParameters(
                                                         const RTPParameters &parameters,
                                                         const RTPCapabilities &capabilities
-                                                        )
+                                                        ) noexcept
     {
       auto result = make_shared<RTPParameters>(parameters);
 
@@ -1028,9 +1028,7 @@ namespace ortc
 
         // disallow codec payload type being used that is no longer present
         encoding.mCodecPayloadType = Optional<IRTPTypes::PayloadType>();
-
-#define TODO_FILTER_RTX_FEC 1
-#define TODO_FILTER_RTX_FEC 2
+#pragma ZS_BUILD_NOTE("TODO","filter rtx fec")
       }
 
       return result;
@@ -1040,7 +1038,7 @@ namespace ortc
     IHelper::RTPCodecParametersListPtr IHelper::filterParameters(
                                                                  const RTPCodecParametersList &codecParameters,
                                                                  const RTPCodecCapabilitiesList &codecCapabilities
-                                                                 )
+                                                                 ) noexcept
     {
       auto result = make_shared<RTPCodecParametersList>();
 
@@ -1097,7 +1095,7 @@ namespace ortc
     IHelper::RTPHeaderExtensionParametersListPtr IHelper::filterParameters(
                                                                            const RTPHeaderExtensionParametersList &headerParameters,
                                                                            const RTPHeaderExtensionsList &headerCapabilities
-                                                                           )
+                                                                           ) noexcept
     {
       auto result = make_shared<RTPHeaderExtensionParametersList>();
 
@@ -1126,15 +1124,15 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark Negotiation (validation)
-    #pragma mark
+    //
+    // Negotiation (validation)
+    //
 
     //-------------------------------------------------------------------------
     bool IHelper::isCompatible(
                                const RTPCapabilities &capabilities,
                                const RTPParameters &parameters
-                               )
+                               ) noexcept
     {
       for (auto iterOuter = parameters.mCodecs.begin(); iterOuter != parameters.mCodecs.end(); ++iterOuter) {
         auto &codecOuter = *(iterOuter);
@@ -1187,7 +1185,7 @@ namespace ortc
     bool IHelper::isCompatible(
                                const RTPCapabilities &existingCapabilities,
                                const RTPCapabilities &proposedCapabilities
-                               )
+                               ) noexcept
     {
       for (auto iterOuter = proposedCapabilities.mCodecs.begin(); iterOuter != proposedCapabilities.mCodecs.end(); ++iterOuter) {
         auto &codecOuter = *(iterOuter);
@@ -1230,7 +1228,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    static bool isMediaCodec(const String &codecName)
+    static bool isMediaCodec(const String &codecName) noexcept
     {
       auto supportedCodec = IRTPTypes::toSupportedCodec(codecName);
       auto codecKind = IRTPTypes::getCodecKind(supportedCodec);
@@ -1251,7 +1249,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool IHelper::hasSupportedMediaCodec(const RTPCapabilities &capabilities)
+    bool IHelper::hasSupportedMediaCodec(const RTPCapabilities &capabilities) noexcept
     {
       for (auto iterOuter = capabilities.mCodecs.begin(); iterOuter != capabilities.mCodecs.end(); ++iterOuter) {
         auto &codec = *(iterOuter);
@@ -1261,7 +1259,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool IHelper::hasSupportedMediaCodec(const RTPParameters &parameters)
+    bool IHelper::hasSupportedMediaCodec(const RTPParameters &parameters) noexcept
     {
       for (auto iterOuter = parameters.mCodecs.begin(); iterOuter != parameters.mCodecs.end(); ++iterOuter) {
         auto &codec = *(iterOuter);
@@ -1274,16 +1272,16 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark Negotiation (fill)
-    #pragma mark
+    //
+    // Negotiation (fill)
+    //
 
     //-------------------------------------------------------------------------
     void IHelper::fillParameters(
                                  RTPParameters &parameters,
                                  const RTPCapabilities &capabilities,
                                  FillParametersOptions *options
-                                 )
+                                 ) noexcept
     {
       if (!parameters.mRTCP.mCName.hasData()) {
         parameters.mRTCP.mCName = string(zsLib::createUUID());

@@ -66,114 +66,114 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPSenderForSettings
-    #pragma mark
+    //
+    // IRTPSenderForSettings
+    //
 
     interaction IRTPSenderForSettings
     {
       ZS_DECLARE_TYPEDEF_PTR(IRTPSenderForSettings, ForSettings)
 
-      static void applyDefaults();
+      static void applyDefaults() noexcept;
 
-      virtual ~IRTPSenderForSettings() {}
+      virtual ~IRTPSenderForSettings() noexcept {}
     };
     
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPSenderForRTPListener
-    #pragma mark
+    //
+    // IRTPSenderForRTPListener
+    //
 
     interaction IRTPSenderForRTPListener
     {
-      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderForRTPListener, ForRTPListener)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderForRTPListener, ForRTPListener);
 
-      static ElementPtr toDebug(ForRTPListenerPtr transport);
+      static ElementPtr toDebug(ForRTPListenerPtr transport) noexcept;
 
-      virtual PUID getID() const = 0;
+      virtual PUID getID() const noexcept = 0;
 
       virtual bool handlePacket(
                                 IICETypes::Components viaTransport,
                                 RTCPPacketPtr packet
-                                ) = 0;
+                                ) noexcept = 0;
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPSenderForRTPSenderChannel
-    #pragma mark
+    //
+    // IRTPSenderForRTPSenderChannel
+    //
 
     interaction IRTPSenderForRTPSenderChannel
     {
-      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderForRTPSenderChannel, ForRTPSenderChannel)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderForRTPSenderChannel, ForRTPSenderChannel);
 
-      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelForRTPSender, UseChannel)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelForRTPSender, UseChannel);
 
-      static ElementPtr toDebug(ForRTPSenderChannelPtr transport);
+      static ElementPtr toDebug(ForRTPSenderChannelPtr transport) noexcept;
 
-      virtual PUID getID() const = 0;
+      virtual PUID getID() const noexcept = 0;
 
-      virtual bool sendPacket(RTPPacketPtr packet) = 0;
-      virtual bool sendPacket(RTCPPacketPtr packet) = 0;
+      virtual bool sendPacket(RTPPacketPtr packet) noexcept = 0;
+      virtual bool sendPacket(RTCPPacketPtr packet) noexcept = 0;
 
       virtual void notifyConflict(
                                   UseChannelPtr channel,
                                   IRTPTypes::SSRCType ssrc,
                                   bool selfDestruct
-                                  ) = 0;
+                                  ) noexcept = 0;
 
-      virtual void notifyDTMFSenderToneChanged(const char *tone) = 0;
+      virtual void notifyDTMFSenderToneChanged(const char *tone) noexcept = 0;
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPSenderForDTMFSender
-    #pragma mark
+    //
+    // IRTPSenderForDTMFSender
+    //
 
     interaction IRTPSenderForDTMFSender : public IDTMFSender
     {
-      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderForDTMFSender, ForDTMFSender)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderForDTMFSender, ForDTMFSender);
 
-      static ElementPtr toDebug(ForDTMFSenderPtr transport);
+      static ElementPtr toDebug(ForDTMFSenderPtr transport) noexcept;
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPSenderForMediaStreamTrack
-    #pragma mark
+    //
+    // IRTPSenderForMediaStreamTrack
+    //
 
     interaction IRTPSenderForMediaStreamTrack
     {
-      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderForMediaStreamTrack, ForMediaStreamTrack)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderForMediaStreamTrack, ForMediaStreamTrack);
 
-      static ElementPtr toDebug(ForMediaStreamTrackPtr transport);
+      static ElementPtr toDebug(ForMediaStreamTrackPtr transport) noexcept;
 
-      virtual PUID getID() const = 0;
+      virtual PUID getID() const noexcept = 0;
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPSenderAsyncDelegate
-    #pragma mark
+    //
+    // IRTPSenderAsyncDelegate
+    //
 
     interaction IRTPSenderAsyncDelegate
     {
-      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelForRTPSender, UseChannel)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderChannelForRTPSender, UseChannel);
 
       virtual void onDestroyChannel(UseChannelPtr channel) = 0;
     };
@@ -182,9 +182,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPSender
-    #pragma mark
+    //
+    // RTPSender
+    //
     
     class RTPSender : public Noop,
                       public MessageQueueAssociator,
@@ -232,9 +232,9 @@ namespace ortc
       typedef std::list<IRTPTypes::SSRCType> SSRCList;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTPSender::ChannelHolder
-      #pragma mark
+      //
+      // RTPSender::ChannelHolder
+      //
 
       struct ChannelHolder
       {
@@ -242,37 +242,37 @@ namespace ortc
         UseChannelPtr mChannel;
         std::atomic<ISecureTransport::States> mLastReportedState {ISecureTransport::State_Pending};
 
-        ChannelHolder();
-        ~ChannelHolder();
+        ChannelHolder() noexcept;
+        ~ChannelHolder() noexcept;
 
-        PUID getID() const;
-        void notify(ISecureTransport::States state);
+        PUID getID() const noexcept;
+        void notify(ISecureTransport::States state) noexcept;
 
-        void notify(RTCPPacketListPtr packets);
+        void notify(RTCPPacketListPtr packets) noexcept;
 
-        void update(const Parameters &params);
+        void update(const Parameters &params) noexcept;
 
-        bool handle(RTCPPacketPtr packet);
+        bool handle(RTCPPacketPtr packet) noexcept;
 
-        void requestStats(PromiseWithStatsReportPtr promise, const StatsTypeSet &stats);
+        void requestStats(PromiseWithStatsReportPtr promise, const StatsTypeSet &stats) noexcept;
 
         void insertDTMF(
                         const char *tones,
                         Milliseconds duration,
                         Milliseconds interToneGap
-                        );
+                        ) noexcept;
 
-        String toneBuffer() const;
-        Milliseconds duration() const;
-        Milliseconds interToneGap() const;
+        String toneBuffer() const noexcept;
+        Milliseconds duration() const noexcept;
+        Milliseconds interToneGap() const noexcept;
 
-        ElementPtr toDebug() const;
+        ElementPtr toDebug() const noexcept;
       };
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTPSender::States
-      #pragma mark
+      //
+      // RTPSender::States
+      //
 
       enum States
       {
@@ -281,7 +281,7 @@ namespace ortc
         State_ShuttingDown,
         State_Shutdown,
       };
-      static const char *toString(States state);
+      static const char *toString(States state) noexcept;
 
     public:
       RTPSender(
@@ -291,148 +291,145 @@ namespace ortc
                 ortc::IMediaStreamTrackPtr track,
                 IRTPTransportPtr transport,
                 IRTCPTransportPtr rtcpTransport = IRTCPTransportPtr()
-                );
+                ) noexcept(false); // throws InvalidParameters, InvalidStateError
 
     protected:
-      RTPSender(Noop, IMessageQueuePtr queue = IMessageQueuePtr()) :
+      RTPSender(Noop, IMessageQueuePtr queue = IMessageQueuePtr()) noexcept :
         Noop(true),
         MessageQueueAssociator(queue),
         SharedRecursiveLock(SharedRecursiveLock::create())
       {}
 
-      void init();
+      void init() noexcept;
 
     public:
-      virtual ~RTPSender();
+      virtual ~RTPSender() noexcept;
 
-      static RTPSenderPtr convert(IRTPSenderPtr object);
-      static RTPSenderPtr convert(ForSettingsPtr object);
-      static RTPSenderPtr convert(ForRTPListenerPtr object);
-      static RTPSenderPtr convert(ForRTPSenderChannelPtr object);
-      static RTPSenderPtr convert(ForDTMFSenderPtr object);
-      static RTPSenderPtr convert(ForMediaStreamTrackPtr object);
+      static RTPSenderPtr convert(IRTPSenderPtr object) noexcept;
+      static RTPSenderPtr convert(ForSettingsPtr object) noexcept;
+      static RTPSenderPtr convert(ForRTPListenerPtr object) noexcept;
+      static RTPSenderPtr convert(ForRTPSenderChannelPtr object) noexcept;
+      static RTPSenderPtr convert(ForDTMFSenderPtr object) noexcept;
+      static RTPSenderPtr convert(ForMediaStreamTrackPtr object) noexcept;
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTPSender => IStatsProvider
-      #pragma mark
+      //
+      // RTPSender => IStatsProvider
+      //
 
-      PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const override;
+      PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const noexcept override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTPSender => IRTPSender
-      #pragma mark
+      //
+      // RTPSender => IRTPSender
+      //
 
-      static ElementPtr toDebug(RTPSenderPtr receiver);
+      static ElementPtr toDebug(RTPSenderPtr receiver) noexcept;
 
       static RTPSenderPtr create(
                                  IRTPSenderDelegatePtr delegate,
                                  ortc::IMediaStreamTrackPtr track,
                                  IRTPTransportPtr transport,
                                  IRTCPTransportPtr rtcpTransport = IRTCPTransportPtr()
-                                 );
+                                 ) noexcept;
 
-      PUID getID() const override {return mID;}
+      PUID getID() const noexcept override {return mID;}
 
-      IRTPSenderSubscriptionPtr subscribe(IRTPSenderDelegatePtr delegate) override;
+      IRTPSenderSubscriptionPtr subscribe(IRTPSenderDelegatePtr delegate) noexcept override;
 
-      ortc::IMediaStreamTrackPtr track() const override;
-      IRTPTransportPtr transport() const override;
-      IRTCPTransportPtr rtcpTransport() const override;
+      ortc::IMediaStreamTrackPtr track() const noexcept override;
+      IRTPTransportPtr transport() const noexcept override;
+      IRTCPTransportPtr rtcpTransport() const noexcept override;
 
       virtual void setTransport(
                                 IRTPTransportPtr transport,
                                 IRTCPTransportPtr rtcpTransport = IRTCPTransportPtr()
-                                ) override;
-      PromisePtr setTrack(ortc::IMediaStreamTrackPtr track) override;
+                                ) noexcept(false) override; // throws InvalidParameters
+      PromisePtr setTrack(ortc::IMediaStreamTrackPtr track) noexcept override;
 
-      static CapabilitiesPtr getCapabilities(Optional<Kinds> kind);
+      static CapabilitiesPtr getCapabilities(Optional<Kinds> kind) noexcept;
 
-      PromisePtr send(const Parameters &parameters) override;
-      void stop() override;
+      PromisePtr send(const Parameters &parameters) noexcept(false) override;   // throws InvalidParameters
+      void stop() noexcept override;
 
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTPSender => IRTPSenderForRTPListener
-      #pragma mark
+      //
+      // RTPSender => IRTPSenderForRTPListener
+      //
 
-      // (duplciate) static ElementPtr toDebug(ForRTPListenerPtr transport);
+      // (duplciate) static ElementPtr toDebug(ForRTPListenerPtr transport) noexcept;
 
-      // (duplicate) virtual PUID getID() const = 0;
+      // (duplicate) virtual PUID getID() const noexcept = 0;
 
       virtual bool handlePacket(
                                 IICETypes::Components viaTransport,
                                 RTCPPacketPtr packet
-                                ) override;
+                                ) noexcept override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTPSender => IRTPSenderForRTPSenderChannel
-      #pragma mark
+      //
+      // RTPSender => IRTPSenderForRTPSenderChannel
+      //
 
       // (duplciate) static ElementPtr toDebug(ForRTPSenderChannelPtr transport);
 
       // (duplicate) virtual PUID getID() const = 0;
 
-      bool sendPacket(RTPPacketPtr packet) override;
-      bool sendPacket(RTCPPacketPtr packet) override;
+      bool sendPacket(RTPPacketPtr packet) noexcept override;
+      bool sendPacket(RTCPPacketPtr packet) noexcept override;
 
       virtual void notifyConflict(
                                   UseChannelPtr channel,
                                   IRTPTypes::SSRCType ssrc,
                                   bool selfDestruct
-                                  ) override;
+                                  ) noexcept override;
 
-      void notifyDTMFSenderToneChanged(const char *tone) override;
-
-      //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTPSender => IRTPSenderForMediaStreamTrack
-      #pragma mark
-
-      // (duplciate) static ElementPtr toDebug(ForMediaStreamTrackPtr transport);
-
-      // (duplicate) virtual PUID getID() const = 0;
+      void notifyDTMFSenderToneChanged(const char *tone) noexcept override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTPSender => IRTPSenderForDTMFSender
-      #pragma mark
+      //
+      // RTPSender => IRTPSenderForMediaStreamTrack
+      //
 
-      // (duplciate) static ElementPtr toDebug(ForRTPSenderPtr transport);
+      // (duplciate) static ElementPtr toDebug(ForMediaStreamTrackPtr transport) noexcept;
 
-      // (duplicate) virtual PUID getID() const = 0;
+      // (duplicate) virtual PUID getID() const noexcept = 0;
 
-      //IDTMFSenderSubscriptionPtr subscribe(IDTMFSenderDelegatePtr delegate) override { return subscribeDTMF(delegate); }
+      //-----------------------------------------------------------------------
+      //
+      // RTPSender => IRTPSenderForDTMFSender
+      //
 
-      //virtual IDTMFSenderSubscriptionPtr subscribeDTMF(IDTMFSenderDelegatePtr delegate) = 0;
+      // (duplciate) static ElementPtr toDebug(ForRTPSenderPtr transport) noexcept;
 
-      IDTMFSenderSubscriptionPtr subscribe(IDTMFSenderDelegatePtr delegate) override;
+      // (duplicate) virtual PUID getID() const noexcept = 0;
 
-      bool canInsertDTMF() const override;
+      //IDTMFSenderSubscriptionPtr subscribe(IDTMFSenderDelegatePtr delegate) noexcept override { return subscribeDTMF(delegate); }
+
+      //virtual IDTMFSenderSubscriptionPtr subscribeDTMF(IDTMFSenderDelegatePtr delegate) noexcept = 0;
+
+      IDTMFSenderSubscriptionPtr subscribe(IDTMFSenderDelegatePtr delegate) noexcept override;
+
+      bool canInsertDTMF() const noexcept override;
 
       virtual void insertDTMF(
                               const char *tones,
                               Milliseconds duration = Milliseconds(70),
                               Milliseconds interToneGap = Milliseconds(70)
-                              ) throw (
-                                        InvalidStateError,
-                                        InvalidCharacterError
-                                        ) override;
+                              ) noexcept(false) override; // throws InvalidStateError, InvalidCharacterError
 
-      IRTPSenderPtr sender() const override;
+      IRTPSenderPtr sender() const noexcept override;
 
-      String toneBuffer() const override;
-      Milliseconds duration() const override;
-      Milliseconds interToneGap() const override;
+      String toneBuffer() const noexcept override;
+      Milliseconds duration() const noexcept override;
+      Milliseconds interToneGap() const noexcept override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTPReceiver => ISecureTransportDelegate
-      #pragma mark
+      //
+      // RTPReceiver => ISecureTransportDelegate
+      //
 
       void onSecureTransportStateChanged(
                                          ISecureTransportPtr transport,
@@ -440,16 +437,16 @@ namespace ortc
                                          ) override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTPSender => IWakeDelegate
-      #pragma mark
+      //
+      // RTPSender => IWakeDelegate
+      //
 
       void onWake() override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTPSender => IDTMFSenderDelegate
-      #pragma mark
+      //
+      // RTPSender => IDTMFSenderDelegate
+      //
 
       void onDTMFSenderToneChanged(
                                    IDTMFSenderPtr sender,
@@ -457,55 +454,55 @@ namespace ortc
                                    ) override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTPSender => IRTPSenderAsyncDelegate
-      #pragma mark
+      //
+      // RTPSender => IRTPSenderAsyncDelegate
+      //
 
       void onDestroyChannel(UseChannelPtr channel) override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTPReceiver => (friend ChannelHolder)
-      #pragma mark
+      //
+      // RTPReceiver => (friend ChannelHolder)
+      //
 
-      void notifyChannelGone();
+      void notifyChannelGone() noexcept;
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTPSender => (internal)
-      #pragma mark
+      //
+      // RTPSender => (internal)
+      //
 
-      Log::Params log(const char *message) const;
-      Log::Params debug(const char *message) const;
-      virtual ElementPtr toDebug() const;
+      Log::Params log(const char *message) const noexcept;
+      Log::Params debug(const char *message) const noexcept;
+      virtual ElementPtr toDebug() const noexcept;
 
-      bool isShuttingDown() const;
-      bool isShutdown() const;
+      bool isShuttingDown() const noexcept;
+      bool isShutdown() const noexcept;
 
-      void step();
+      void step() noexcept;
 
-      void cancel();
+      void cancel() noexcept;
 
-      void setState(States state);
-      void setError(WORD error, const char *reason = NULL);
+      void setState(States state) noexcept;
+      void setError(WORD error, const char *reason = NULL) noexcept;
 
-      ChannelHolderPtr addChannel(ParametersPtr newParams);
+      ChannelHolderPtr addChannel(ParametersPtr newParams) noexcept;
       void updateChannel(
                          ChannelHolderPtr channel,
                          ParametersPtr newParams
-                         );
-      void removeChannel(ChannelHolderPtr channel);
+                         ) noexcept;
+      void removeChannel(ChannelHolderPtr channel) noexcept;
 
-      void notifyChannelsOfTransportState();
+      void notifyChannelsOfTransportState() noexcept;
 
-      ChannelHolderPtr getDTMFChannelHolder() const;
+      ChannelHolderPtr getDTMFChannelHolder() const noexcept;
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTPSender => (data)
-      #pragma mark
+      //
+      // RTPSender => (data)
+      //
 
       AutoPUID mID;
       RTPSenderWeakPtr mThisWeak;
@@ -549,25 +546,25 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPSenderFactory
-    #pragma mark
+    //
+    // IRTPSenderFactory
+    //
 
     interaction IRTPSenderFactory
     {
       typedef IRTPSenderTypes::Kinds Kinds;
       typedef IRTPSenderTypes::CapabilitiesPtr CapabilitiesPtr;
 
-      static IRTPSenderFactory &singleton();
+      static IRTPSenderFactory &singleton() noexcept;
 
       virtual RTPSenderPtr create(
                                   IRTPSenderDelegatePtr delegate,
                                   ortc::IMediaStreamTrackPtr track,
                                   IRTPTransportPtr transport,
                                   IRTCPTransportPtr rtcpTransport = IRTCPTransportPtr()
-                                  );
+                                  ) noexcept;
 
-      virtual CapabilitiesPtr getCapabilities(Optional<Kinds> kind);
+      virtual CapabilitiesPtr getCapabilities(Optional<Kinds> kind) noexcept;
     };
 
     class RTPSenderFactory : public IFactory<IRTPSenderFactory> {};
@@ -576,5 +573,5 @@ namespace ortc
 
 ZS_DECLARE_PROXY_BEGIN(ortc::internal::IRTPSenderAsyncDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::IRTPSenderAsyncDelegate::UseChannelPtr, UseChannelPtr)
-ZS_DECLARE_PROXY_METHOD_1(onDestroyChannel, UseChannelPtr)
+ZS_DECLARE_PROXY_METHOD(onDestroyChannel, UseChannelPtr)
 ZS_DECLARE_PROXY_END()

@@ -58,33 +58,33 @@ namespace ortc
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IORTCForInternal
-    #pragma mark
+    //
+    // IORTCForInternal
+    //
 
     interaction IORTCForInternal
     {
       ZS_DECLARE_TYPEDEF_PTR(IORTCForInternal, ForInternal)
 
-      static void overrideQueueDelegate(IMessageQueuePtr queue);
-      static IMessageQueuePtr queueDelegate();
-      static IMessageQueuePtr queueORTC();
-      static IMessageQueuePtr queueORTCPipeline();
-      static IMessageQueuePtr queueBlockingMediaStartStopThread();
-      static IMessageQueuePtr queueMediaDevices();
-      static IMessageQueuePtr queueRTP();
-      static IMessageQueuePtr queueCertificateGeneration();
+      static void overrideQueueDelegate(IMessageQueuePtr queue) noexcept;
+      static IMessageQueuePtr queueDelegate() noexcept;
+      static IMessageQueuePtr queueORTC() noexcept;
+      static IMessageQueuePtr queueORTCPipeline() noexcept;
+      static IMessageQueuePtr queueBlockingMediaStartStopThread() noexcept;
+      static IMessageQueuePtr queueMediaDevices() noexcept;
+      static IMessageQueuePtr queueRTP() noexcept;
+      static IMessageQueuePtr queueCertificateGeneration() noexcept;
 
-      static Optional<Log::Level> webrtcLogLevel();
+      static Optional<Log::Level> webrtcLogLevel() noexcept;
     };
 
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark Stack
-    #pragma mark
+    //
+    // Stack
+    //
 
     class ORTC : public IORTC,
                  public IORTCForInternal,
@@ -98,76 +98,76 @@ namespace ortc
       friend interaction IORTCForInternal;
 
     public:
-      ORTC(const make_private &);
+      ORTC(const make_private &) noexcept;
 
     protected:
-      void init();
+      void init() noexcept;
 
     public:
-      virtual ~ORTC();
+      virtual ~ORTC() noexcept;
 
-      static ORTCPtr create();
-      static ORTCPtr convert(IORTCPtr object);
+      static ORTCPtr create() noexcept;
+      static ORTCPtr convert(IORTCPtr object) noexcept;
 
     protected:
       //---------------------------------------------------------------------
-      #pragma mark
-      #pragma mark ORTC => IORTC
-      #pragma mark
+      //
+      // ORTC => IORTC
+      //
 
-      static ORTCPtr singleton();
+      static ORTCPtr singleton() noexcept;
 
-      virtual PUID getID() const {return mID;}
+      virtual PUID getID() const noexcept {return mID;}
 
-      virtual void setup(IMessageQueuePtr defaultDelegateMessageQueue);
+      virtual void setup(IMessageQueuePtr defaultDelegateMessageQueue) noexcept;
 #ifdef WINUWP
-      virtual void setup(Windows::UI::Core::CoreDispatcher ^dispatcher);
+      virtual void setup(Windows::UI::Core::CoreDispatcher ^dispatcher) noexcept;
 #endif //WINUWP
 
-      virtual Milliseconds ntpServerTime() const;
-      virtual void ntpServerTime(const Milliseconds &value);
+      virtual Milliseconds ntpServerTime() const noexcept;
+      virtual void ntpServerTime(const Milliseconds &value) noexcept;
 
-      virtual void defaultWebrtcLogLevel(Log::Level level);
-      virtual void webrtcLogLevel(Log::Level level);
+      virtual void defaultWebrtcLogLevel(Log::Level level) noexcept;
+      virtual void webrtcLogLevel(Log::Level level) noexcept;
 
-      virtual void startMediaTracing();
-      virtual void stopMediaTracing();
-      virtual bool isMediaTracing();
-      virtual bool saveMediaTrace(String filename);
-      virtual bool saveMediaTrace(String host, int port);
-      virtual bool isMRPInstalled();
-
-      //---------------------------------------------------------------------
-      #pragma mark
-      #pragma mark ORTC => IORTCForInternal
-      #pragma mark
-
-      virtual void overrideQueueDelegate(IMessageQueuePtr queue);
-      virtual IMessageQueuePtr queueDelegate() const;
-      virtual IMessageQueuePtr queueORTC() const;
-      virtual IMessageQueuePtr queueMediaDevices() const;
-      virtual IMessageQueuePtr queueRTP() const;
-      virtual IMessageQueuePtr queueORTCPipeline() const;
-      virtual IMessageQueuePtr queueBlockingMediaStartStopThread() const;
-      virtual IMessageQueuePtr queueCertificateGeneration() const;
-
-      virtual Optional<Log::Level> webrtcLogLevel() const;
+      virtual void startMediaTracing() noexcept;
+      virtual void stopMediaTracing() noexcept;
+      virtual bool isMediaTracing() noexcept;
+      virtual bool saveMediaTrace(String filename) noexcept;
+      virtual bool saveMediaTrace(String host, int port) noexcept;
+      virtual bool isMRPInstalled() noexcept;
 
       //---------------------------------------------------------------------
-      #pragma mark
-      #pragma mark ORTC => (internal)
-      #pragma mark
+      //
+      // ORTC => IORTCForInternal
+      //
 
-      Log::Params log(const char *message) const;
-      static Log::Params slog(const char *message);
+      virtual void overrideQueueDelegate(IMessageQueuePtr queue) noexcept;
+      virtual IMessageQueuePtr queueDelegate() const noexcept;
+      virtual IMessageQueuePtr queueORTC() const noexcept;
+      virtual IMessageQueuePtr queueMediaDevices() const noexcept;
+      virtual IMessageQueuePtr queueRTP() const noexcept;
+      virtual IMessageQueuePtr queueORTCPipeline() const noexcept;
+      virtual IMessageQueuePtr queueBlockingMediaStartStopThread() const noexcept;
+      virtual IMessageQueuePtr queueCertificateGeneration() const noexcept;
 
-      void internalSetup();
+      virtual Optional<Log::Level> webrtcLogLevel() const noexcept;
+
+      //---------------------------------------------------------------------
+      //
+      // ORTC => (internal)
+      //
+
+      Log::Params log(const char *message) const noexcept;
+      static Log::Params slog(const char *message) noexcept;
+
+      void internalSetup() noexcept;
 
     protected:
       //---------------------------------------------------------------------
-      #pragma mark
-      #pragma mark ORTC => (data)
-      #pragma mark
+      //
+      // ORTC => (data)
+      //
 
       AutoPUID mID;
       ORTCWeakPtr mThisWeak;

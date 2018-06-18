@@ -49,9 +49,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark (helpers)
-    #pragma mark
+    //
+    // (helpers)
+    //
 
     // foreward declaration
     
@@ -59,12 +59,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaStreamTrackMonitorSettingsDefaults
-    #pragma mark
+    //
+    // MediaStreamTrackMonitorSettingsDefaults
+    //
 
     //-------------------------------------------------------------------------
-    void installMediaStreamTrackMonitorSettingsDefaults()
+    void installMediaStreamTrackMonitorSettingsDefaults() noexcept
     {
     }
     
@@ -72,11 +72,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrackMonitor
-    #pragma mark
+    //
+    // IMediaStreamTrackMonitor
+    //
 
-    IMediaStreamTrackMonitorPtr IMediaStreamTrackMonitor::create(ortc::IMediaStreamTrackPtr track)
+    IMediaStreamTrackMonitorPtr IMediaStreamTrackMonitor::create(ortc::IMediaStreamTrackPtr track) noexcept
     {
       return IMediaStreamTrackMonitorPtr();
     }

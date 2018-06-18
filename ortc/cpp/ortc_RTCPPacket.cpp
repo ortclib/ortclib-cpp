@@ -44,12 +44,6 @@
 
 #include <cstddef>
 
-#ifdef _DEBUG
-#define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))
-#else
-#define ASSERT(x)
-#endif //_DEBUG
-
 #define RTCP_IS_FLAG_SET(xByte, xBitPos) (0 != ((xByte) & (1 << xBitPos)))
 #define RTCP_GET_BITS(xByte, xBitPattern, xLowestBit) (((xByte) >> (xLowestBit)) & (xBitPattern))
 #define RTCP_PACK_BITS(xByte, xBitPattern, xLowestBit) (((xByte) & (xBitPattern)) << (xLowestBit))
@@ -75,22 +69,22 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark (helpers)
-    #pragma mark
+    //
+    // (helpers)
+    //
 
     static const size_t kMinRtcpPacketLen = 4;
     static const BYTE kRtpVersion = 2;
 
     //-------------------------------------------------------------------------
-    static Log::Params packet_slog(const char *message)
+    static Log::Params packet_slog(const char *message) noexcept
     {
       ElementPtr objectEl = Element::create("ortc::RTCPPacket");
       return Log::Params(message, objectEl);
     }
 
     //-------------------------------------------------------------------------
-    static size_t alignedSize(size_t size)
+    static size_t alignedSize(size_t size) noexcept
     {
       size_t modulas = size % alignof(std::max_align_t);
 
@@ -98,32 +92,32 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    static void advancePos(BYTE * &ioPos, size_t &ioRemaining, size_t length = 1)
+    static void advancePos(BYTE * &ioPos, size_t &ioRemaining, size_t length = 1) noexcept
     {
-      ASSERT(ioRemaining >= length)
+      ZS_ASSERT(ioRemaining >= length);
 
       ioPos += length;
       ioRemaining -= length;
     }
 
     //-------------------------------------------------------------------------
-    static void advancePos(const BYTE * &ioPos, size_t &ioRemaining, size_t length = 1)
+    static void advancePos(const BYTE * &ioPos, size_t &ioRemaining, size_t length = 1) noexcept
     {
-      ASSERT(ioRemaining >= length)
+      ZS_ASSERT(ioRemaining >= length);
 
       ioPos += length;
       ioRemaining -= length;
     }
     
     //-------------------------------------------------------------------------
-    static void *allocateBuffer(BYTE * &ioAllocationBuffer, size_t &ioRemaining, size_t size)
+    static void *allocateBuffer(BYTE * &ioAllocationBuffer, size_t &ioRemaining, size_t size) noexcept
     {
       size = alignedSize(size);
 
       void *result = ioAllocationBuffer;
 
       ioAllocationBuffer += size;
-      ASSERT(ioRemaining >= size)
+      ZS_ASSERT(ioRemaining >= size);
       ioRemaining -= size;
 
       return result;
@@ -133,7 +127,7 @@ namespace ortc
     static size_t boundarySize(
                                size_t size,
                                size_t alignment = sizeof(DWORD)
-                               )
+                               ) noexcept
     {
       size_t modulus = size % alignment;
       if (0 == modulus) return size;
@@ -144,10 +138,10 @@ namespace ortc
     static bool throwIfGreaterThanBitsAllow(
                                             size_t value,
                                             size_t maxBits
-                                            )
+                                            ) noexcept(false)
     {
-      ASSERT(value <= static_cast<size_t>(((1 << maxBits)-1)))
-      ORTC_THROW_INVALID_PARAMETERS_IF(value > static_cast<size_t>(((1 << maxBits)-1)))
+      ZS_ASSERT(value <= static_cast<size_t>(((1 << maxBits) - 1)));
+      ORTC_THROW_INVALID_PARAMETERS_IF(value > static_cast<size_t>(((1 << maxBits) - 1)));
       return true;
     }
 
@@ -155,10 +149,10 @@ namespace ortc
     static bool throwIfLessThan(
                                 size_t size,
                                 size_t min
-                                )
+                                ) noexcept(false)
     {
-      ASSERT(size >= min)
-      ORTC_THROW_INVALID_PARAMETERS_IF(size < min)
+      ZS_ASSERT(size >= min);
+      ORTC_THROW_INVALID_PARAMETERS_IF(size < min);
       return true;
     }
 
@@ -166,12 +160,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTCPPacket (writing sizing routines)
-    #pragma mark
+    //
+    // RTCPPacket (writing sizing routines)
+    //
 
     //-------------------------------------------------------------------------
-    static size_t getPacketSizeSenderReport(const RTCPPacket::SenderReport *report)
+    static size_t getPacketSizeSenderReport(const RTCPPacket::SenderReport *report) noexcept(false)
     {
       auto rc = report->rc();
       throwIfGreaterThanBitsAllow(rc, 5);
@@ -179,7 +173,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    static size_t getPacketSizeReceiverReport(const RTCPPacket::ReceiverReport *report)
+    static size_t getPacketSizeReceiverReport(const RTCPPacket::ReceiverReport *report) noexcept(false)
     {
       auto rc = report->rc();
       throwIfGreaterThanBitsAllow(rc, 5);
@@ -187,7 +181,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    static size_t getPacketSizeSDES(const RTCPPacket::SDES *report)
+    static size_t getPacketSizeSDES(const RTCPPacket::SDES *report) noexcept(false)
     {
       typedef RTCPPacket::SDES::Chunk Chunk;
 
@@ -317,7 +311,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    static size_t getPacketSizeBye(const RTCPPacket::Bye *report)
+    static size_t getPacketSizeBye(const RTCPPacket::Bye *report) noexcept(false)
     {
       auto sc = report->sc();
       throwIfGreaterThanBitsAllow(sc, 5);
@@ -336,7 +330,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    static size_t getPacketSizeApp(const RTCPPacket::App *report)
+    static size_t getPacketSizeApp(const RTCPPacket::App *report) noexcept(false)
     {
       size_t result = (sizeof(DWORD)*3);
 
@@ -350,7 +344,7 @@ namespace ortc
     }
     
     //-------------------------------------------------------------------------
-    static size_t getPacketSizeTransportLayerFeedbackMessage(const RTCPPacket::TransportLayerFeedbackMessage *fm)
+    static size_t getPacketSizeTransportLayerFeedbackMessage(const RTCPPacket::TransportLayerFeedbackMessage *fm) noexcept(false)
     {
       //typedef RTCPPacket::TransportLayerFeedbackMessage TransportLayerFeedbackMessage;
       typedef RTCPPacket::TransportLayerFeedbackMessage::GenericNACK GenericNACK;
@@ -384,7 +378,7 @@ namespace ortc
         {
           auto fciSize = fm->fciSize();
           if (0 != fciSize) {
-            ORTC_THROW_INVALID_PARAMETERS_IF(NULL == fm->fci())
+            ORTC_THROW_INVALID_PARAMETERS_IF(NULL == fm->fci());
             result += fciSize;
           }
           break;
@@ -397,7 +391,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    static size_t getPacketSizePayloadSpecificFeedbackMessage(const RTCPPacket::PayloadSpecificFeedbackMessage *fm)
+    static size_t getPacketSizePayloadSpecificFeedbackMessage(const RTCPPacket::PayloadSpecificFeedbackMessage *fm) noexcept(false)
     {
       //typedef RTCPPacket::PayloadSpecificFeedbackMessage PayloadSpecificFeedbackMessage;
       typedef RTCPPacket::PayloadSpecificFeedbackMessage::PLI PLI;
@@ -427,7 +421,7 @@ namespace ortc
         case RPSI::kFmt:
         {
           auto rpsi = fm->rpsi();
-          ORTC_THROW_INVALID_PARAMETERS_IF(NULL == rpsi)
+          ORTC_THROW_INVALID_PARAMETERS_IF(NULL == rpsi);
           result += sizeof(WORD) + (rpsi->nativeRPSIBitStringSizeInBits()/8);
           if (0 != (rpsi->nativeRPSIBitStringSizeInBits()%8)) ++result;
           break;
@@ -460,7 +454,7 @@ namespace ortc
           for (size_t index = 0; index < count; ++index)
           {
             auto vbcm = fm->vbcmAtIndex(index);
-            ORTC_THROW_INVALID_PARAMETERS_IF(NULL == vbcm)
+            ORTC_THROW_INVALID_PARAMETERS_IF(NULL == vbcm);
 
             size_t size = (sizeof(DWORD)*2) + (vbcm->vbcmOctetStringSize()*sizeof(BYTE));
             result += boundarySize(size);
@@ -472,7 +466,7 @@ namespace ortc
           auto remb = fm->remb();
           if (NULL == remb) {
             auto afb = fm->afb();
-            ORTC_THROW_INVALID_PARAMETERS_IF(NULL == afb)
+            ORTC_THROW_INVALID_PARAMETERS_IF(NULL == afb);
 
             result += afb->dataSize();
           } else {
@@ -488,7 +482,7 @@ namespace ortc
         {
           auto fciSize = fm->fciSize();
           if (0 != fciSize) {
-            ORTC_THROW_INVALID_PARAMETERS_IF(NULL == fm->fci())
+            ORTC_THROW_INVALID_PARAMETERS_IF(NULL == fm->fci());
             result += fciSize;
           }
           break;
@@ -501,7 +495,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    static size_t getPacketSizeXR(const RTCPPacket::XR *report)
+    static size_t getPacketSizeXR(const RTCPPacket::XR *report) noexcept
     {
       //typedef RTCPPacket::XR XR;
       typedef RTCPPacket::XR::ReportBlock ReportBlock;
@@ -577,7 +571,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    static void writePacketUnknown(const RTCPPacket::UnknownReport *report, BYTE * &pos, size_t &remaining)
+    static void writePacketUnknown(const RTCPPacket::UnknownReport *report, BYTE * &pos, size_t &remaining) noexcept
     {
       //typedef RTCPPacket::UnknownReport UnknownReport;
       pos[1] = report->pt();
@@ -587,7 +581,7 @@ namespace ortc
       auto size = report->size();
       if (0 == size) return;
 
-      ASSERT(NULL != report->ptr());
+      ZS_ASSERT(NULL != report->ptr());
 
       memcpy(pos, report->ptr(), size);
 
@@ -598,23 +592,23 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTCPPacket (packet writing routines)
-    #pragma mark
+    //
+    // RTCPPacket (packet writing routines)
+    //
 
     //-------------------------------------------------------------------------
-    static void writePacketHeader(const RTCPPacket::Report *report, BYTE * &pos, size_t &remaining)
+    static void writePacketHeader(const RTCPPacket::Report *report, BYTE * &pos, size_t &remaining) noexcept
     {
-      ASSERT(remaining >= sizeof(DWORD))
-      ASSERT(2 == report->version())
+      ZS_ASSERT(remaining >= sizeof(DWORD))
+      ZS_ASSERT(2 == report->version())
 
       auto padding = report->padding();
       if (0 != padding) {
-        ASSERT(NULL == report->next())
-        ASSERT(throwIfGreaterThanBitsAllow(padding, 8))
+        ZS_ASSERT(NULL == report->next())
+        ZS_ASSERT(throwIfGreaterThanBitsAllow(padding, 8))
       }
 
-      ASSERT(throwIfGreaterThanBitsAllow(report->reportSpecific(), 5))
+      ZS_ASSERT(throwIfGreaterThanBitsAllow(report->reportSpecific(), 5))
 
       pos[0] = RTCP_PACK_BITS(report->version(), 0x3, 6) |
                 ((0 != padding) ? RTCP_PACK_BITS(1, 0x1, 5) : 0) |
@@ -623,7 +617,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    static void writePacketSenderReceiverCommonReport(const RTCPPacket::SenderReceiverCommonReport *report, BYTE * &pos, size_t &remaining)
+    static void writePacketSenderReceiverCommonReport(const RTCPPacket::SenderReceiverCommonReport *report, BYTE * &pos, size_t &remaining) noexcept
     {
       //typedef RTCPPacket::SenderReceiverCommonReport SenderReceiverCommonReport;
       typedef RTCPPacket::SenderReceiverCommonReport::ReportBlock ReportBlock;
@@ -631,10 +625,10 @@ namespace ortc
       size_t count = 0;
       for (const ReportBlock *block = report->firstReportBlock(); NULL != block; block = block->next(), ++count)
       {
-        ASSERT(count < report->rc());
+        ZS_ASSERT(count < report->rc());
 
         UseRTPUtils::setBE32(&(pos[0]), block->ssrc());
-        ASSERT(throwIfGreaterThanBitsAllow(block->cumulativeNumberOfPacketsLost(), 24));
+        ZS_ASSERT(throwIfGreaterThanBitsAllow(block->cumulativeNumberOfPacketsLost(), 24));
         UseRTPUtils::setBE32(&(pos[4]), block->cumulativeNumberOfPacketsLost());
         pos[4] = block->fractionLost();
         UseRTPUtils::setBE32(&(pos[8]), block->extendedHighestSequenceNumberReceived());
@@ -645,17 +639,17 @@ namespace ortc
         advancePos(pos, remaining, sizeof(DWORD)*6);
       }
 
-      ASSERT(count == report->rc())
+      ZS_ASSERT(count == report->rc())
 
       if (report->extensionSize() > 0) {
-        ASSERT(NULL != report->extension())
+        ZS_ASSERT(NULL != report->extension());
         memcpy(pos, report->extension(), report->extensionSize());
         advancePos(pos, remaining, boundarySize(report->extensionSize()));
       }
     }
     
     //-------------------------------------------------------------------------
-    static void writePacketSenderReport(const RTCPPacket::SenderReport *report, BYTE * &pos, size_t &remaining)
+    static void writePacketSenderReport(const RTCPPacket::SenderReport *report, BYTE * &pos, size_t &remaining) noexcept
     {
       typedef RTCPPacket::SenderReport SenderReport;
       pos[1] = SenderReport::kPayloadType;
@@ -673,7 +667,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    static void writePacketReceiverReport(const RTCPPacket::ReceiverReport *report, BYTE * &pos, size_t &remaining)
+    static void writePacketReceiverReport(const RTCPPacket::ReceiverReport *report, BYTE * &pos, size_t &remaining) noexcept
     {
       typedef RTCPPacket::ReceiverReport ReceiverReport;
       pos[1] = ReceiverReport::kPayloadType;
@@ -686,7 +680,7 @@ namespace ortc
     }
     
     //-------------------------------------------------------------------------
-    static void writePacketSDES(const RTCPPacket::SDES *report, BYTE * &pos, size_t &remaining)
+    static void writePacketSDES(const RTCPPacket::SDES *report, BYTE * &pos, size_t &remaining) noexcept
     {
       typedef RTCPPacket::SDES SDES;
       typedef RTCPPacket::SDES::Chunk Chunk;
@@ -709,7 +703,7 @@ namespace ortc
           pos[0] = Chunk::CName::kItemType;
           size_t len = (NULL != item->mValue ? strlen(item->mValue) : 0);
           pos[1] = static_cast<BYTE>(len);
-          ASSERT(throwIfGreaterThanBitsAllow(len, 8))
+          ZS_ASSERT(throwIfGreaterThanBitsAllow(len, 8));
 
           advancePos(pos, remaining, sizeof(WORD));
 
@@ -725,7 +719,7 @@ namespace ortc
           pos[0] = Chunk::Name::kItemType;
           size_t len = (NULL != item->mValue ? strlen(item->mValue) : 0);
           pos[1] = static_cast<BYTE>(len);
-          ASSERT(throwIfGreaterThanBitsAllow(len, 8))
+          ZS_ASSERT(throwIfGreaterThanBitsAllow(len, 8));
 
           advancePos(pos, remaining, sizeof(WORD));
 
@@ -741,7 +735,7 @@ namespace ortc
           pos[0] = Chunk::Email::kItemType;
           size_t len = (NULL != item->mValue ? strlen(item->mValue) : 0);
           pos[1] = static_cast<BYTE>(len);
-          ASSERT(throwIfGreaterThanBitsAllow(len, 8));
+          ZS_ASSERT(throwIfGreaterThanBitsAllow(len, 8));
 
           advancePos(pos, remaining, sizeof(WORD));
 
@@ -757,7 +751,7 @@ namespace ortc
           pos[0] = Chunk::Phone::kItemType;
           size_t len = (NULL != item->mValue ? strlen(item->mValue) : 0);
           pos[1] = static_cast<BYTE>(len);
-          ASSERT(throwIfGreaterThanBitsAllow(len, 8));
+          ZS_ASSERT(throwIfGreaterThanBitsAllow(len, 8));
 
           advancePos(pos, remaining, sizeof(WORD));
 
@@ -773,7 +767,7 @@ namespace ortc
           pos[0] = Chunk::Loc::kItemType;
           size_t len = (NULL != item->mValue ? strlen(item->mValue) : 0);
           pos[1] = static_cast<BYTE>(len);
-          ASSERT(throwIfGreaterThanBitsAllow(len, 8));
+          ZS_ASSERT(throwIfGreaterThanBitsAllow(len, 8));
 
           advancePos(pos, remaining, sizeof(WORD));
 
@@ -789,7 +783,7 @@ namespace ortc
           pos[0] = Chunk::Tool::kItemType;
           size_t len = (NULL != item->mValue ? strlen(item->mValue) : 0);
           pos[1] = static_cast<BYTE>(len);
-          ASSERT(throwIfGreaterThanBitsAllow(len, 8));
+          ZS_ASSERT(throwIfGreaterThanBitsAllow(len, 8));
 
           advancePos(pos, remaining, sizeof(WORD));
 
@@ -805,7 +799,7 @@ namespace ortc
           pos[0] = Chunk::Note::kItemType;
           size_t len = (NULL != item->mValue ? strlen(item->mValue) : 0);
           pos[1] = static_cast<BYTE>(len);
-          ASSERT(throwIfGreaterThanBitsAllow(len, 8));
+          ZS_ASSERT(throwIfGreaterThanBitsAllow(len, 8));
 
           advancePos(pos, remaining, sizeof(WORD));
 
@@ -824,7 +818,7 @@ namespace ortc
           size_t len = len1 + len2;
           if (len > 0) ++len;
           pos[1] = static_cast<BYTE>(len);
-          ASSERT(throwIfGreaterThanBitsAllow(len, 8));
+          ZS_ASSERT(throwIfGreaterThanBitsAllow(len, 8));
 
           advancePos(pos, remaining, sizeof(WORD));
 
@@ -848,7 +842,7 @@ namespace ortc
           pos[0] = Chunk::Mid::kItemType;
           size_t len = (NULL != item->mValue ? strlen(item->mValue) : 0);
           pos[1] = static_cast<BYTE>(len);
-          ASSERT(throwIfGreaterThanBitsAllow(len, 8));
+          ZS_ASSERT(throwIfGreaterThanBitsAllow(len, 8));
 
           advancePos(pos, remaining, sizeof(WORD));
 
@@ -864,7 +858,7 @@ namespace ortc
           pos[0] = Chunk::Rid::kItemType;
           size_t len = (NULL != item->mValue ? strlen(item->mValue) : 0);
           pos[1] = static_cast<BYTE>(len);
-          ASSERT(throwIfGreaterThanBitsAllow(len, 8));
+          ZS_ASSERT(throwIfGreaterThanBitsAllow(len, 8));
 
           advancePos(pos, remaining, sizeof(WORD));
 
@@ -880,7 +874,7 @@ namespace ortc
           pos[0] = item->type();
           size_t len = (NULL != item->mValue ? strlen(item->mValue) : 0);
           pos[1] = static_cast<BYTE>(len);
-          ASSERT(throwIfGreaterThanBitsAllow(len, 8));
+          ZS_ASSERT(throwIfGreaterThanBitsAllow(len, 8));
 
           advancePos(pos, remaining, sizeof(WORD));
 
@@ -907,11 +901,11 @@ namespace ortc
         }
       }
 
-      throwIfGreaterThanBitsAllow(chunkCount, 5);
+      ZS_ASSERT(throwIfGreaterThanBitsAllow(chunkCount, 5));
     }
     
     //-------------------------------------------------------------------------
-    static void writePacketBye(const RTCPPacket::Bye *report, BYTE * &pos, size_t &remaining)
+    static void writePacketBye(const RTCPPacket::Bye *report, BYTE * &pos, size_t &remaining) noexcept
     {
       typedef RTCPPacket::Bye Bye;
       pos[1] = Bye::kPayloadType;
@@ -935,7 +929,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    static void writePacketApp(const RTCPPacket::App *report, BYTE * &pos, size_t &remaining)
+    static void writePacketApp(const RTCPPacket::App *report, BYTE * &pos, size_t &remaining) noexcept
     {
       typedef RTCPPacket::App App;
       pos[1] = App::kPayloadType;
@@ -953,7 +947,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    static void writePacketTransportLayerFeedbackMessage(const RTCPPacket::TransportLayerFeedbackMessage *report, BYTE * &pos, size_t &remaining)
+    static void writePacketTransportLayerFeedbackMessage(const RTCPPacket::TransportLayerFeedbackMessage *report, BYTE * &pos, size_t &remaining) noexcept
     {
       typedef RTCPPacket::TransportLayerFeedbackMessage TransportLayerFeedbackMessage;
       typedef RTCPPacket::TransportLayerFeedbackMessage::GenericNACK GenericNACK;
@@ -1034,7 +1028,7 @@ namespace ortc
     }
     
     //-------------------------------------------------------------------------
-    static void writePacketPayloadSpecificFeedbackMessage(const RTCPPacket::PayloadSpecificFeedbackMessage *report, BYTE * &pos, size_t &remaining)
+    static void writePacketPayloadSpecificFeedbackMessage(const RTCPPacket::PayloadSpecificFeedbackMessage *report, BYTE * &pos, size_t &remaining) noexcept
     {
       typedef RTCPPacket::PayloadSpecificFeedbackMessage PayloadSpecificFeedbackMessage;
       typedef RTCPPacket::PayloadSpecificFeedbackMessage::PLI PLI;
@@ -1227,7 +1221,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    static void writePacketXR(const RTCPPacket::XR *report, BYTE * &pos, size_t &remaining)
+    static void writePacketXR(const RTCPPacket::XR *report, BYTE * &pos, size_t &remaining) noexcept
     {
       typedef RTCPPacket::XR XR;
       typedef RTCPPacket::XR::ReportBlock ReportBlock;
@@ -1416,7 +1410,7 @@ namespace ortc
     static void traceReport(
                             IMediaStreamTrackTypes::MediaChannelID mediaChannelID,
                             RTCPPacket::Report *common
-                            )
+                            ) noexcept
     {
       ZS_EVENTING_8(x, i, Basic, RTCPPacketTraceReport, ol, RtcpPacket, Info,
         puid, mediaChannelID, mediaChannelID,
@@ -1434,7 +1428,7 @@ namespace ortc
     static void traceReportBlocks(
                                   IMediaStreamTrackTypes::MediaChannelID mediaChannelID,
                                   RTCPPacket::SenderReceiverCommonReport *common
-                                  )
+                                  ) noexcept
     {
       RTCPPacket::SenderReceiverCommonReport::ReportBlock *block = common->firstReportBlock();
       if (NULL == block) return;
@@ -1457,7 +1451,7 @@ namespace ortc
     static void traceSenderReceiverCommonReport(
                                                 IMediaStreamTrackTypes::MediaChannelID mediaChannelID,
                                                 RTCPPacket::SenderReceiverCommonReport *common
-                                                )
+                                                ) noexcept
     {
       traceReport(mediaChannelID, common);
       ZS_EVENTING_5(x, i, Basic, RTCPPacketTraceSenderReceiverCommonReport, ol, RtcpPacket, Info,
@@ -1474,7 +1468,7 @@ namespace ortc
     static void traceStringItem(
                                 IMediaStreamTrackTypes::MediaChannelID mediaChannelID,
                                 RTCPPacket::SDES::Chunk::StringItem *common
-                                )
+                                ) noexcept
   {
       auto type = common->type();
 
@@ -1502,7 +1496,7 @@ namespace ortc
     static void traceStringItemList(
                                     IMediaStreamTrackTypes::MediaChannelID mediaChannelID,
                                     RTCPPacket::SDES::Chunk::StringItem *first
-                                    )
+                                    ) noexcept
     {
       if (NULL == first) return;
 
@@ -1518,7 +1512,7 @@ namespace ortc
                             const char *type,
                             DWORD *values,
                             size_t count
-                            )
+                            ) noexcept
     {
       if (NULL == values) return;
 
@@ -1536,7 +1530,7 @@ namespace ortc
     static void traceFeedbackMessage(
                                      IMediaStreamTrackTypes::MediaChannelID mediaChannelID,
                                      RTCPPacket::FeedbackMessage *common
-                                     )
+                                     ) noexcept
     {
       traceReport(mediaChannelID, common);
       ZS_EVENTING_6(x, i, Basic, RTCPPacketTraceFeedbackMessage, ol, RtcpPacket, Info,
@@ -1554,7 +1548,7 @@ namespace ortc
                                  IMediaStreamTrackTypes::MediaChannelID mediaChannelID,
                                  BYTE fmt,
                                  RTCPPacket::TransportLayerFeedbackMessage::TMMBRCommon *common
-                                 )
+                                 ) noexcept
     {
       ZS_EVENTING_6(x, i, Basic, RTCPPacketTraceFeedbackMessageTMMBRCommon, ol, RtcpPacket, Info,
         puid, mediaChannelID, mediaChannelID,
@@ -1571,7 +1565,7 @@ namespace ortc
                                         IMediaStreamTrackTypes::MediaChannelID mediaChannelID,
                                         BYTE fmt,
                                         RTCPPacket::PayloadSpecificFeedbackMessage::CodecControlCommon *common
-                                        )
+                                        ) noexcept
     {
       ZS_EVENTING_5(x, i, Basic, RTCPPacketTraceFeedbackMessageCodecControlCommon, ol, RtcpPacket, Info,
         puid, mediaChannelID, mediaChannelID,
@@ -1586,7 +1580,7 @@ namespace ortc
     static void traceXRReportBlock(
                                    IMediaStreamTrackTypes::MediaChannelID mediaChannelID,
                                    RTCPPacket::XR::ReportBlock *common
-                                   )
+                                   ) noexcept
     {
       ZS_EVENTING_6(x, i, Basic, RTCPPacketTraceXRReportBlock, ol, RtcpPacket, Info,
         puid, mediaChannelID, mediaChannelID,
@@ -1602,7 +1596,7 @@ namespace ortc
     static void traceReportBlockRange(
                                       IMediaStreamTrackTypes::MediaChannelID mediaChannelID,
                                       RTCPPacket::XR::ReportBlockRange *common
-                                      )
+                                      ) noexcept
     {
       traceXRReportBlock(mediaChannelID, common);
       ZS_EVENTING_6(x, i, Basic, RTCPPacketTraceXRReportBlockRange, ol, RtcpPacket, Info,
@@ -1619,7 +1613,7 @@ namespace ortc
     static void traceRLEReportBlock(
                                     IMediaStreamTrackTypes::MediaChannelID mediaChannelID,
                                     RTCPPacket::XR::RLEReportBlock *common
-                                    )
+                                    ) noexcept
     {
       traceReportBlockRange(mediaChannelID, common);
       auto count = common->chunkCount();
@@ -1659,7 +1653,7 @@ namespace ortc
     static void traceSenderReport(
                                   IMediaStreamTrackTypes::MediaChannelID mediaChannelID,
                                   RTCPPacket::SenderReport *sr
-                                  )
+                                  ) noexcept
     {
       traceSenderReceiverCommonReport(mediaChannelID, sr);
       ZS_EVENTING_7(x, i, Basic, RTCPPacketTraceSenderReport, ol, RtcpPacket, Info,
@@ -1677,7 +1671,7 @@ namespace ortc
     static void traceReceiverReport(
                                     IMediaStreamTrackTypes::MediaChannelID mediaChannelID,
                                     RTCPPacket::ReceiverReport *rr
-                                    )
+                                    ) noexcept
     {
       ElementPtr subEl = Element::create("ReceiverReport");
       traceSenderReceiverCommonReport(mediaChannelID, rr);
@@ -1691,7 +1685,7 @@ namespace ortc
     static void traceSDES(
                           IMediaStreamTrackTypes::MediaChannelID mediaChannelID,
                           RTCPPacket::SDES *sdes
-                          )
+                          ) noexcept
     {
       traceReport(mediaChannelID, sdes);
 
@@ -1740,7 +1734,7 @@ namespace ortc
     static void traceBye(
                          IMediaStreamTrackTypes::MediaChannelID mediaChannelID,
                          RTCPPacket::Bye *bye
-                         )
+                         ) noexcept
     {
       traceReport(mediaChannelID, bye);
       ZS_EVENTING_3(x, i, Basic, RTCPPacketTraceBye, ol, RtcpPacket, Info,
@@ -1755,7 +1749,7 @@ namespace ortc
     static void traceApp(
                          IMediaStreamTrackTypes::MediaChannelID mediaChannelID,
                          RTCPPacket::App *app
-                         )
+                         ) noexcept
     {
       traceReport(mediaChannelID, app);
       ZS_EVENTING_7(x, i, Basic, RTCPPacketTraceApp, ol, RtcpPacket, Info,
@@ -1773,7 +1767,7 @@ namespace ortc
     static void traceTransportLayerFeedbackMessage(
                                                    IMediaStreamTrackTypes::MediaChannelID mediaChannelID,
                                                    RTCPPacket::TransportLayerFeedbackMessage *fm
-                                                   )
+                                                   ) noexcept
     {
       traceFeedbackMessage(mediaChannelID, fm);
 
@@ -1827,7 +1821,7 @@ namespace ortc
     static void tracePayloadSpecificFeedbackMessage(
                                                     IMediaStreamTrackTypes::MediaChannelID mediaChannelID,
                                                     RTCPPacket::PayloadSpecificFeedbackMessage *fm
-                                                    )
+                                                    ) noexcept
     {
       traceFeedbackMessage(mediaChannelID, fm);
 
@@ -1963,7 +1957,7 @@ namespace ortc
     static void traceXR(
                         IMediaStreamTrackTypes::MediaChannelID mediaChannelID,
                         RTCPPacket::XR *xr
-                        )
+                        ) noexcept
     {
       traceReport(mediaChannelID, xr);
 
@@ -2173,12 +2167,12 @@ namespace ortc
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark RTCPPacket::SenderReport
-  #pragma mark
+  //
+  // RTCPPacket::SenderReport
+  //
 
   //-------------------------------------------------------------------------
-  const char *RTCPPacket::Report::ptToString(BYTE pt)
+  const char *RTCPPacket::Report::ptToString(BYTE pt) noexcept
   {
     switch (pt) {
       case SenderReport::kPayloadType:                    return "SenderReport";
@@ -2199,12 +2193,12 @@ namespace ortc
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark RTCPPacket::SenderReport
-  #pragma mark
+  //
+  // RTCPPacket::SenderReport
+  //
 
   //-------------------------------------------------------------------------
-  Time RTCPPacket::SenderReport::ntpTimestamp() const
+  Time RTCPPacket::SenderReport::ntpTimestamp() const noexcept
   {
     return UseRTPUtils::ntpToTime(mNTPTimestampMS, mNTPTimestampLS);
   }
@@ -2213,12 +2207,12 @@ namespace ortc
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark RTCPPacket::SDES::Chunk::StringItem
-  #pragma mark
+  //
+  // RTCPPacket::SDES::Chunk::StringItem
+  //
 
   //-------------------------------------------------------------------------
-  const char *RTCPPacket::SDES::Chunk::StringItem::typeToString(BYTE type)
+  const char *RTCPPacket::SDES::Chunk::StringItem::typeToString(BYTE type) noexcept
   {
     switch (type) {
       case CName::kItemType:  return "CName";
@@ -2242,84 +2236,84 @@ namespace ortc
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark RTCPPacket::SDES::Chunk
-  #pragma mark
+  //
+  // RTCPPacket::SDES::Chunk
+  //
 
   //-------------------------------------------------------------------------
-  RTCPPacket::SDES::Chunk::CName *RTCPPacket::SDES::Chunk::cNameAtIndex(size_t index) const
+  RTCPPacket::SDES::Chunk::CName *RTCPPacket::SDES::Chunk::cNameAtIndex(size_t index) const noexcept
   {
-    ASSERT(index < mCNameCount)
+    ZS_ASSERT(index < mCNameCount);
     return &(mFirstCName[index]);
   }
 
   //-------------------------------------------------------------------------
-  RTCPPacket::SDES::Chunk::Name *RTCPPacket::SDES::Chunk::nameAtIndex(size_t index) const
+  RTCPPacket::SDES::Chunk::Name *RTCPPacket::SDES::Chunk::nameAtIndex(size_t index) const noexcept
   {
-    ASSERT(index < mNameCount)
+    ZS_ASSERT(index < mNameCount);
     return &(mFirstName[index]);
   }
 
   //-------------------------------------------------------------------------
-  RTCPPacket::SDES::Chunk::Email *RTCPPacket::SDES::Chunk::emailAtIndex(size_t index) const
+  RTCPPacket::SDES::Chunk::Email *RTCPPacket::SDES::Chunk::emailAtIndex(size_t index) const noexcept
   {
-    ASSERT(index < mEmailCount)
+    ZS_ASSERT(index < mEmailCount);
     return &(mFirstEmail[index]);
   }
 
   //-------------------------------------------------------------------------
-  RTCPPacket::SDES::Chunk::Phone *RTCPPacket::SDES::Chunk::phoneAtIndex(size_t index) const
+  RTCPPacket::SDES::Chunk::Phone *RTCPPacket::SDES::Chunk::phoneAtIndex(size_t index) const noexcept
   {
-    ASSERT(index < mPhoneCount)
+    ZS_ASSERT(index < mPhoneCount);
     return &(mFirstPhone[index]);
   }
 
   //-------------------------------------------------------------------------
-  RTCPPacket::SDES::Chunk::Loc *RTCPPacket::SDES::Chunk::locAtIndex(size_t index) const
+  RTCPPacket::SDES::Chunk::Loc *RTCPPacket::SDES::Chunk::locAtIndex(size_t index) const noexcept
   {
-    ASSERT(index < mLocCount)
+    ZS_ASSERT(index < mLocCount);
     return &(mFirstLoc[index]);
   }
 
   //-------------------------------------------------------------------------
-  RTCPPacket::SDES::Chunk::Tool *RTCPPacket::SDES::Chunk::toolAtIndex(size_t index) const
+  RTCPPacket::SDES::Chunk::Tool *RTCPPacket::SDES::Chunk::toolAtIndex(size_t index) const noexcept
   {
-    ASSERT(index < mToolCount)
+    ZS_ASSERT(index < mToolCount);
     return &(mFirstTool[index]);
   }
 
   //-------------------------------------------------------------------------
-  RTCPPacket::SDES::Chunk::Note *RTCPPacket::SDES::Chunk::noteAtIndex(size_t index) const
+  RTCPPacket::SDES::Chunk::Note *RTCPPacket::SDES::Chunk::noteAtIndex(size_t index) const noexcept
   {
-    ASSERT(index < mNoteCount)
+    ZS_ASSERT(index < mNoteCount);
     return &(mFirstNote[index]);
   }
 
   //-------------------------------------------------------------------------
-  RTCPPacket::SDES::Chunk::Priv *RTCPPacket::SDES::Chunk::privAtIndex(size_t index) const
+  RTCPPacket::SDES::Chunk::Priv *RTCPPacket::SDES::Chunk::privAtIndex(size_t index) const noexcept
   {
-    ASSERT(index < mPrivCount)
+    ZS_ASSERT(index < mPrivCount);
     return &(mFirstPriv[index]);
   }
 
   //-------------------------------------------------------------------------
-  RTCPPacket::SDES::Chunk::Mid *RTCPPacket::SDES::Chunk::midAtIndex(size_t index) const
+  RTCPPacket::SDES::Chunk::Mid *RTCPPacket::SDES::Chunk::midAtIndex(size_t index) const noexcept
   {
-    ASSERT(index < mMidCount)
+    ZS_ASSERT(index < mMidCount);
     return &(mFirstMid[index]);
   }
 
   //-------------------------------------------------------------------------
-  RTCPPacket::SDES::Chunk::Rid *RTCPPacket::SDES::Chunk::ridAtIndex(size_t index) const
+  RTCPPacket::SDES::Chunk::Rid *RTCPPacket::SDES::Chunk::ridAtIndex(size_t index) const noexcept
   {
-    ASSERT(index < mRidCount)
+    ZS_ASSERT(index < mRidCount);
     return &(mFirstRid[index]);
   }
 
   //-------------------------------------------------------------------------
-  RTCPPacket::SDES::Chunk::Unknown *RTCPPacket::SDES::Chunk::unknownAtIndex(size_t index) const
+  RTCPPacket::SDES::Chunk::Unknown *RTCPPacket::SDES::Chunk::unknownAtIndex(size_t index) const noexcept
   {
-    ASSERT(index < mUnknownCount)
+    ZS_ASSERT(index < mUnknownCount);
     return &(mFirstUnknown[index]);
   }
 
@@ -2327,14 +2321,14 @@ namespace ortc
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark RTCPPacket::Bye
-  #pragma mark
+  //
+  // RTCPPacket::Bye
+  //
 
   //-------------------------------------------------------------------------
-  DWORD RTCPPacket::Bye::ssrc(size_t index) const
+  DWORD RTCPPacket::Bye::ssrc(size_t index) const noexcept
   {
-    ASSERT(index < sc())
+    ZS_ASSERT(index < sc());
     return mSSRCs[index];
   }
 
@@ -2342,12 +2336,12 @@ namespace ortc
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark RTCPPacket::FeedbackMessage
-  #pragma mark
+  //
+  // RTCPPacket::FeedbackMessage
+  //
 
   //-------------------------------------------------------------------------
-  const char *RTCPPacket::FeedbackMessage::fmtToString(BYTE pt, BYTE fmt, DWORD subFmt)
+  const char *RTCPPacket::FeedbackMessage::fmtToString(BYTE pt, BYTE fmt, DWORD subFmt) noexcept
   {
     switch (pt) {
       case TransportLayerFeedbackMessage::kPayloadType:     {
@@ -2385,7 +2379,7 @@ namespace ortc
   }
 
   //-------------------------------------------------------------------------
-  const char *RTCPPacket::FeedbackMessage::fmtToString() const
+  const char *RTCPPacket::FeedbackMessage::fmtToString() const noexcept
   {
     if (PayloadSpecificFeedbackMessage::kPayloadType == mPT) {
       if (PayloadSpecificFeedbackMessage::AFB::kFmt == mReportSpecific) {
@@ -2404,28 +2398,28 @@ namespace ortc
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark RTCPPacket::TransportLayerFeedbackMessage
-  #pragma mark
+  //
+  // RTCPPacket::TransportLayerFeedbackMessage
+  //
 
   //-------------------------------------------------------------------------
-  RTCPPacket::TransportLayerFeedbackMessage::GenericNACK *RTCPPacket::TransportLayerFeedbackMessage::genericNACKAtIndex(size_t index) const
+  RTCPPacket::TransportLayerFeedbackMessage::GenericNACK *RTCPPacket::TransportLayerFeedbackMessage::genericNACKAtIndex(size_t index) const noexcept
   {
-    ASSERT(index < mGenericNACKCount)
+    ZS_ASSERT(index < mGenericNACKCount);
     return &(mFirstGenericNACK[index]);
   }
 
   //-------------------------------------------------------------------------
-  RTCPPacket::TransportLayerFeedbackMessage::TMMBR *RTCPPacket::TransportLayerFeedbackMessage::tmmbrAtIndex(size_t index) const
+  RTCPPacket::TransportLayerFeedbackMessage::TMMBR *RTCPPacket::TransportLayerFeedbackMessage::tmmbrAtIndex(size_t index) const noexcept
   {
-    ASSERT(index < mTMMBRCount)
+    ZS_ASSERT(index < mTMMBRCount);
     return &(mFirstTMMBR[index]);
   }
 
   //-------------------------------------------------------------------------
-  RTCPPacket::TransportLayerFeedbackMessage::TMMBN *RTCPPacket::TransportLayerFeedbackMessage::tmmbnAtIndex(size_t index) const
+  RTCPPacket::TransportLayerFeedbackMessage::TMMBN *RTCPPacket::TransportLayerFeedbackMessage::tmmbnAtIndex(size_t index) const noexcept
   {
-    ASSERT(index < mTMMBNCount)
+    ZS_ASSERT(index < mTMMBNCount);
     return &(mFirstTMMBN[index]);
   }
 
@@ -2433,24 +2427,24 @@ namespace ortc
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark RTCPPacket::PayloadSpecificFeedbackMessage::VBCM
-  #pragma mark
+  //
+  // RTCPPacket::PayloadSpecificFeedbackMessage::VBCM
+  //
 
   //-------------------------------------------------------------------------
-  BYTE RTCPPacket::PayloadSpecificFeedbackMessage::VBCM::zeroBit() const
+  BYTE RTCPPacket::PayloadSpecificFeedbackMessage::VBCM::zeroBit() const noexcept
   {
     return RTCP_GET_BITS(mControlSpecific, 0x1, 23);
   }
 
   //-------------------------------------------------------------------------
-  BYTE RTCPPacket::PayloadSpecificFeedbackMessage::VBCM::payloadType() const
+  BYTE RTCPPacket::PayloadSpecificFeedbackMessage::VBCM::payloadType() const noexcept
   {
     return RTCP_GET_BITS(mControlSpecific, 0x7F, 16);
   }
 
   //-------------------------------------------------------------------------
-  size_t RTCPPacket::PayloadSpecificFeedbackMessage::VBCM::vbcmOctetStringSize() const
+  size_t RTCPPacket::PayloadSpecificFeedbackMessage::VBCM::vbcmOctetStringSize() const noexcept
   {
     return RTCP_GET_BITS(mControlSpecific, 0xFFFF, 0);
   }
@@ -2459,14 +2453,14 @@ namespace ortc
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark RTCPPacket::PayloadSpecificFeedbackMessage::REMB
-  #pragma mark
+  //
+  // RTCPPacket::PayloadSpecificFeedbackMessage::REMB
+  //
 
   //-------------------------------------------------------------------------
-  DWORD RTCPPacket::PayloadSpecificFeedbackMessage::REMB::ssrcAtIndex(size_t index) const
+  DWORD RTCPPacket::PayloadSpecificFeedbackMessage::REMB::ssrcAtIndex(size_t index) const noexcept
   {
-    ASSERT(index < numSSRC())
+    ZS_ASSERT(index < numSSRC());
     return mSSRCs[index];
   }
 
@@ -2474,61 +2468,61 @@ namespace ortc
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark RTCPPacket::PayloadSpecificFeedbackMessage
-  #pragma mark
+  //
+  // RTCPPacket::PayloadSpecificFeedbackMessage
+  //
 
   //-------------------------------------------------------------------------
-  RTCPPacket::PayloadSpecificFeedbackMessage::PLI *RTCPPacket::PayloadSpecificFeedbackMessage::pli() const
+  RTCPPacket::PayloadSpecificFeedbackMessage::PLI *RTCPPacket::PayloadSpecificFeedbackMessage::pli() const noexcept
   {
     if (PLI::kFmt != fmt()) return NULL;
     return const_cast<PLI *>(&mPLI);
   }
 
   //-------------------------------------------------------------------------
-  RTCPPacket::PayloadSpecificFeedbackMessage::SLI *RTCPPacket::PayloadSpecificFeedbackMessage::sliAtIndex(size_t index) const
+  RTCPPacket::PayloadSpecificFeedbackMessage::SLI *RTCPPacket::PayloadSpecificFeedbackMessage::sliAtIndex(size_t index) const noexcept
   {
-    ASSERT(index < mSLICount)
+    ZS_ASSERT(index < mSLICount);
     return &(mFirstSLI[index]);
   }
 
   //-------------------------------------------------------------------------
-  RTCPPacket::PayloadSpecificFeedbackMessage::FIR *RTCPPacket::PayloadSpecificFeedbackMessage::firAtIndex(size_t index) const
+  RTCPPacket::PayloadSpecificFeedbackMessage::FIR *RTCPPacket::PayloadSpecificFeedbackMessage::firAtIndex(size_t index) const noexcept
   {
-    ASSERT(index < mFIRCount)
+    ZS_ASSERT(index < mFIRCount);
     return &(mFirstFIR[index]);
   }
 
   //-------------------------------------------------------------------------
-  RTCPPacket::PayloadSpecificFeedbackMessage::TSTR *RTCPPacket::PayloadSpecificFeedbackMessage::tstrAtIndex(size_t index) const
+  RTCPPacket::PayloadSpecificFeedbackMessage::TSTR *RTCPPacket::PayloadSpecificFeedbackMessage::tstrAtIndex(size_t index) const noexcept
   {
-    ASSERT(index < mTSTRCount)
+    ZS_ASSERT(index < mTSTRCount);
     return &(mFirstTSTR[index]);
   }
 
   //-------------------------------------------------------------------------
-  RTCPPacket::PayloadSpecificFeedbackMessage::TSTN *RTCPPacket::PayloadSpecificFeedbackMessage::tstnAtIndex(size_t index) const
+  RTCPPacket::PayloadSpecificFeedbackMessage::TSTN *RTCPPacket::PayloadSpecificFeedbackMessage::tstnAtIndex(size_t index) const noexcept
   {
-    ASSERT(index < mTSTNCount)
+    ZS_ASSERT(index < mTSTNCount)
     return &(mFirstTSTN[index]);
   }
 
   //-------------------------------------------------------------------------
-  RTCPPacket::PayloadSpecificFeedbackMessage::VBCM *RTCPPacket::PayloadSpecificFeedbackMessage::vbcmAtIndex(size_t index) const
+  RTCPPacket::PayloadSpecificFeedbackMessage::VBCM *RTCPPacket::PayloadSpecificFeedbackMessage::vbcmAtIndex(size_t index) const noexcept
   {
-    ASSERT(index < mVBCMCount)
+    ZS_ASSERT(index < mVBCMCount);
     return &(mFirstVBCM[index]);
   }
 
   //-------------------------------------------------------------------------
-  RTCPPacket::PayloadSpecificFeedbackMessage::RPSI *RTCPPacket::PayloadSpecificFeedbackMessage::rpsi() const
+  RTCPPacket::PayloadSpecificFeedbackMessage::RPSI *RTCPPacket::PayloadSpecificFeedbackMessage::rpsi() const noexcept
   {
     if (RPSI::kFmt != fmt()) return NULL;
     return const_cast<RPSI *>(&mRPSI);
   }
 
   //-------------------------------------------------------------------------
-  RTCPPacket::PayloadSpecificFeedbackMessage::AFB *RTCPPacket::PayloadSpecificFeedbackMessage::afb() const
+  RTCPPacket::PayloadSpecificFeedbackMessage::AFB *RTCPPacket::PayloadSpecificFeedbackMessage::afb() const noexcept
   {
     if (AFB::kFmt != fmt()) return NULL;
     if (mHasREMB) return NULL;
@@ -2536,7 +2530,7 @@ namespace ortc
   }
 
   //-------------------------------------------------------------------------
-  RTCPPacket::PayloadSpecificFeedbackMessage::REMB *RTCPPacket::PayloadSpecificFeedbackMessage::remb() const
+  RTCPPacket::PayloadSpecificFeedbackMessage::REMB *RTCPPacket::PayloadSpecificFeedbackMessage::remb() const noexcept
   {
     if (REMB::kFmt != fmt()) return NULL;
     if (!mHasREMB) return NULL;
@@ -2547,12 +2541,12 @@ namespace ortc
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark RTCPPacket::XR::ReportBlock
-  #pragma mark
+  //
+  // RTCPPacket::XR::ReportBlock
+  //
 
   //-------------------------------------------------------------------------
-  const char *RTCPPacket::XR::ReportBlock::blockTypeToString(BYTE blockType)
+  const char *RTCPPacket::XR::ReportBlock::blockTypeToString(BYTE blockType) noexcept
   {
     switch (blockType) {
       case LossRLEReportBlock::kBlockType:                return "LossRLEReportBlock";
@@ -2574,18 +2568,18 @@ namespace ortc
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark RTCPPacket::XR::ReportBlockRange
-  #pragma mark
+  //
+  // RTCPPacket::XR::ReportBlockRange
+  //
 
   //-------------------------------------------------------------------------
-  BYTE RTCPPacket::XR::ReportBlockRange::reserved() const
+  BYTE RTCPPacket::XR::ReportBlockRange::reserved() const noexcept
   {
     return RTCP_GET_BITS(mTypeSpecific, 0xF, 4);
   }
 
   //-------------------------------------------------------------------------
-  BYTE RTCPPacket::XR::ReportBlockRange::thinning() const
+  BYTE RTCPPacket::XR::ReportBlockRange::thinning() const noexcept
   {
     return RTCP_GET_BITS(mTypeSpecific, 0xF, 0);
   }
@@ -2594,14 +2588,14 @@ namespace ortc
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark RTCPPacket::XR::RLEReportBlock
-  #pragma mark
+  //
+  // RTCPPacket::XR::RLEReportBlock
+  //
 
   //-------------------------------------------------------------------------
-  RTCPPacket::XR::RLEChunk RTCPPacket::XR::RLEReportBlock::chunkAtIndex(size_t index) const
+  RTCPPacket::XR::RLEChunk RTCPPacket::XR::RLEReportBlock::chunkAtIndex(size_t index) const noexcept
   {
-    ASSERT(index < chunkCount())
+    ZS_ASSERT(index < chunkCount());
     return mChunks[index];
   }
 
@@ -2609,14 +2603,14 @@ namespace ortc
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark RTCPPacket::XR::PacketReceiptTimesReportBlock
-  #pragma mark
+  //
+  // RTCPPacket::XR::PacketReceiptTimesReportBlock
+  //
 
   //-------------------------------------------------------------------------
-  DWORD RTCPPacket::XR::PacketReceiptTimesReportBlock::receiptTimeAtIndex(size_t index) const
+  DWORD RTCPPacket::XR::PacketReceiptTimesReportBlock::receiptTimeAtIndex(size_t index) const noexcept
   {
-    ASSERT(index < receiptTimeCount())
+    ZS_ASSERT(index < receiptTimeCount());
     return mReceiptTimes[index];
   }
 
@@ -2624,12 +2618,12 @@ namespace ortc
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark RTCPPacket::XR::ReceiverReferenceTimeReportBlock
-  #pragma mark
+  //
+  // RTCPPacket::XR::ReceiverReferenceTimeReportBlock
+  //
 
   //-------------------------------------------------------------------------
-  Time RTCPPacket::XR::ReceiverReferenceTimeReportBlock::ntpTimestamp() const
+  Time RTCPPacket::XR::ReceiverReferenceTimeReportBlock::ntpTimestamp() const noexcept
   {
     return UseRTPUtils::ntpToTime(mNTPTimestampMS, mNTPTimestampLS);
   }
@@ -2638,14 +2632,14 @@ namespace ortc
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark RTCPPacket::XR::DLRRReportBlock
-  #pragma mark
+  //
+  // RTCPPacket::XR::DLRRReportBlock
+  //
 
   //-------------------------------------------------------------------------
-  RTCPPacket::XR::DLRRReportBlock::SubBlock *RTCPPacket::XR::DLRRReportBlock::subBlockAtIndex(size_t index) const
+  RTCPPacket::XR::DLRRReportBlock::SubBlock *RTCPPacket::XR::DLRRReportBlock::subBlockAtIndex(size_t index) const noexcept
   {
-    ASSERT(index < subBlockCount())
+    ZS_ASSERT(index < subBlockCount());
     return &(mSubBlocks[index]);
   }
 
@@ -2653,36 +2647,36 @@ namespace ortc
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark RTCPPacket::XR::StatisticsSummaryReportBlock
-  #pragma mark
+  //
+  // RTCPPacket::XR::StatisticsSummaryReportBlock
+  //
 
   //-------------------------------------------------------------------------
-  bool RTCPPacket::XR::StatisticsSummaryReportBlock::lossReportFlag() const
+  bool RTCPPacket::XR::StatisticsSummaryReportBlock::lossReportFlag() const noexcept
   {
     return RTCP_IS_FLAG_SET(mTypeSpecific, 7);
   }
 
   //-------------------------------------------------------------------------
-  bool RTCPPacket::XR::StatisticsSummaryReportBlock::duplicateReportFlag() const
+  bool RTCPPacket::XR::StatisticsSummaryReportBlock::duplicateReportFlag() const noexcept
   {
     return RTCP_IS_FLAG_SET(mTypeSpecific, 6);
   }
 
   //-------------------------------------------------------------------------
-  bool RTCPPacket::XR::StatisticsSummaryReportBlock::jitterFlag() const
+  bool RTCPPacket::XR::StatisticsSummaryReportBlock::jitterFlag() const noexcept
   {
     return RTCP_IS_FLAG_SET(mTypeSpecific, 5);
   }
 
   //-------------------------------------------------------------------------
-  bool RTCPPacket::XR::StatisticsSummaryReportBlock::ttlFlag() const
+  bool RTCPPacket::XR::StatisticsSummaryReportBlock::ttlFlag() const noexcept
   {
     return (1 == RTCP_GET_BITS(mTypeSpecific, 0x3, 3));
   }
 
   //-------------------------------------------------------------------------
-  bool RTCPPacket::XR::StatisticsSummaryReportBlock::hopLimitFlag() const
+  bool RTCPPacket::XR::StatisticsSummaryReportBlock::hopLimitFlag() const noexcept
   {
     return (2 == RTCP_GET_BITS(mTypeSpecific, 0x3, 3));
   }
@@ -2691,24 +2685,24 @@ namespace ortc
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark RTCPPacket::XR::VoIPMetricsReportBlock
-  #pragma mark
+  //
+  // RTCPPacket::XR::VoIPMetricsReportBlock
+  //
 
   //-------------------------------------------------------------------------
-  BYTE RTCPPacket::XR::VoIPMetricsReportBlock::plc() const
+  BYTE RTCPPacket::XR::VoIPMetricsReportBlock::plc() const noexcept
   {
     return RTCP_GET_BITS(mRXConfig, 0x3, 6);
   }
 
   //-------------------------------------------------------------------------
-  BYTE RTCPPacket::XR::VoIPMetricsReportBlock::jba() const
+  BYTE RTCPPacket::XR::VoIPMetricsReportBlock::jba() const noexcept
   {
     return RTCP_GET_BITS(mRXConfig, 0x3, 4);
   }
 
   //-------------------------------------------------------------------------
-  BYTE RTCPPacket::XR::VoIPMetricsReportBlock::jbRate() const
+  BYTE RTCPPacket::XR::VoIPMetricsReportBlock::jbRate() const noexcept
   {
     return RTCP_GET_BITS(mRXConfig, 0xF, 0);
   }
@@ -2717,12 +2711,12 @@ namespace ortc
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark RTCPPacket::XR::RunLength
-  #pragma mark
+  //
+  // RTCPPacket::XR::RunLength
+  //
 
   //-------------------------------------------------------------------------
-  RTCPPacket::XR::RunLength::RunLength(RLEChunk chunk) :
+  RTCPPacket::XR::RunLength::RunLength(RLEChunk chunk) noexcept :
     mRunType(RTCP_GET_BITS(chunk, 0x1, 14)),
     mRunLength(RTCP_GET_BITS(chunk, 0x3FFF, 0))
   {
@@ -2732,20 +2726,20 @@ namespace ortc
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark RTCPPacket::XR::BitVector
-  #pragma mark
+  //
+  // RTCPPacket::XR::BitVector
+  //
 
   //-------------------------------------------------------------------------
-  RTCPPacket::XR::BitVector::BitVector(RLEChunk chunk) :
+  RTCPPacket::XR::BitVector::BitVector(RLEChunk chunk) noexcept :
     mBitVector(RTCP_GET_BITS(chunk, 0x7FFF, 0))
   {
   }
 
   //-------------------------------------------------------------------------
-  BYTE RTCPPacket::XR::BitVector::bitAtIndex(size_t index) const
+  BYTE RTCPPacket::XR::BitVector::bitAtIndex(size_t index) const noexcept
   {
-    ASSERT(index < (sizeof(WORD)*8))
+    ZS_ASSERT(index < (sizeof(WORD) * 8));
     return (mBitVector >> ((sizeof(WORD)*8)-index-1)) & 0x1;
   }
 
@@ -2753,74 +2747,74 @@ namespace ortc
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark RTCPPacket::XR
-  #pragma mark
+  //
+  // RTCPPacket::XR
+  //
 
   //-------------------------------------------------------------------------
-  RTCPPacket::XR::LossRLEReportBlock *RTCPPacket::XR::lossRLEReportBlockAtIndex(size_t index) const
+  RTCPPacket::XR::LossRLEReportBlock *RTCPPacket::XR::lossRLEReportBlockAtIndex(size_t index) const noexcept
   {
-    ASSERT(index < mLossRLEReportBlockCount)
+    ZS_ASSERT(index < mLossRLEReportBlockCount);
     return &(mFirstLossRLEReportBlock[index]);
   }
 
   //-------------------------------------------------------------------------
-  RTCPPacket::XR::DuplicateRLEReportBlock *RTCPPacket::XR::duplicateRLEReportBlockAtIndex(size_t index) const
+  RTCPPacket::XR::DuplicateRLEReportBlock *RTCPPacket::XR::duplicateRLEReportBlockAtIndex(size_t index) const noexcept
   {
-    ASSERT(index < mDuplicateRLEReportBlockCount)
+    ZS_ASSERT(index < mDuplicateRLEReportBlockCount);
     return &(mFirstDuplicateRLEReportBlock[index]);
   }
 
   //-------------------------------------------------------------------------
-  RTCPPacket::XR::PacketReceiptTimesReportBlock *RTCPPacket::XR::packetReceiptTimesReportBlockAtIndex(size_t index) const
+  RTCPPacket::XR::PacketReceiptTimesReportBlock *RTCPPacket::XR::packetReceiptTimesReportBlockAtIndex(size_t index) const noexcept
   {
-    ASSERT(index < mPacketReceiptTimesReportBlockCount)
+    ZS_ASSERT(index < mPacketReceiptTimesReportBlockCount);
     return &(mFirstPacketReceiptTimesReportBlock[index]);
   }
 
   //-------------------------------------------------------------------------
-  RTCPPacket::XR::ReceiverReferenceTimeReportBlock *RTCPPacket::XR::receiverReferenceTimeReportBlockAtIndex(size_t index) const
+  RTCPPacket::XR::ReceiverReferenceTimeReportBlock *RTCPPacket::XR::receiverReferenceTimeReportBlockAtIndex(size_t index) const noexcept
   {
-    ASSERT(index < mReceiverReferenceTimeReportBlockCount)
+    ZS_ASSERT(index < mReceiverReferenceTimeReportBlockCount);
     return &(mFirstReceiverReferenceTimeReportBlock[index]);
   }
 
   //-------------------------------------------------------------------------
-  RTCPPacket::XR::DLRRReportBlock *RTCPPacket::XR::dlrrReportBlockAtIndex(size_t index) const
+  RTCPPacket::XR::DLRRReportBlock *RTCPPacket::XR::dlrrReportBlockAtIndex(size_t index) const noexcept
   {
-    ASSERT(index < mDLRRReportBlockCount)
+    ZS_ASSERT(index < mDLRRReportBlockCount);
     return &(mFirstDLRRReportBlock[index]);
   }
 
   //-------------------------------------------------------------------------
-  RTCPPacket::XR::StatisticsSummaryReportBlock *RTCPPacket::XR::statisticsSummaryReportBlockAtIndex(size_t index) const
+  RTCPPacket::XR::StatisticsSummaryReportBlock *RTCPPacket::XR::statisticsSummaryReportBlockAtIndex(size_t index) const noexcept
   {
-    ASSERT(index < mStatisticsSummaryReportBlockCount)
+    ZS_ASSERT(index < mStatisticsSummaryReportBlockCount);
     return &(mFirstStatisticsSummaryReportBlock[index]);
   }
 
   //-------------------------------------------------------------------------
-  RTCPPacket::XR::VoIPMetricsReportBlock *RTCPPacket::XR::voIPMetricsReportBlockAtIndex(size_t index) const
+  RTCPPacket::XR::VoIPMetricsReportBlock *RTCPPacket::XR::voIPMetricsReportBlockAtIndex(size_t index) const noexcept
   {
-    ASSERT(index < mVoIPMetricsReportBlockCount)
+    ZS_ASSERT(index < mVoIPMetricsReportBlockCount);
     return &(mFirstVoIPMetricsReportBlock[index]);
   }
 
   //-------------------------------------------------------------------------
-  RTCPPacket::XR::UnknownReportBlock *RTCPPacket::XR::unknownReportBlockAtIndex(size_t index) const
+  RTCPPacket::XR::UnknownReportBlock *RTCPPacket::XR::unknownReportBlockAtIndex(size_t index) const noexcept
   {
-    ASSERT(index < mUnknownReportBlockCount)
+    ZS_ASSERT(index < mUnknownReportBlockCount);
     return &(mFirstUnknownReportBlock[index]);
   }
 
-  //-------------------------------------------------------------------------
-  bool RTCPPacket::XR::isRunLengthChunk(RLEChunk chunk)
+  //-------------------------------------------------------- noexcept-----------------
+  bool RTCPPacket::XR::isRunLengthChunk(RLEChunk chunk) noexcept
   {
     return !RTCP_IS_FLAG_SET(chunk, 15);
   }
 
   //-------------------------------------------------------------------------
-  bool RTCPPacket::XR::isBitVectorChunk(RLEChunk chunk)
+  bool RTCPPacket::XR::isBitVectorChunk(RLEChunk chunk) noexcept
   {
     return RTCP_IS_FLAG_SET(chunk, 15);
   }
@@ -2829,21 +2823,21 @@ namespace ortc
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark RTCPPacket (public)
-  #pragma mark
+  //
+  // RTCPPacket (public)
+  //
 
   //-------------------------------------------------------------------------
   RTCPPacket::RTCPPacket(
                          const make_private &,
                          MediaChannelID mediaChannelID
-                         ) :
+                         ) noexcept :
     mMediaChannelID(mediaChannelID)
   {
   }
 
   //-------------------------------------------------------------------------
-  RTCPPacket::~RTCPPacket()
+  RTCPPacket::~RTCPPacket() noexcept
   {
   }
 
@@ -2852,10 +2846,10 @@ namespace ortc
                                    const BYTE *buffer,
                                    size_t bufferLengthInBytes,
                                    MediaChannelID mediaChannelID
-                                   )
+                                   ) noexcept(false)
   {
-    ORTC_THROW_INVALID_PARAMETERS_IF(!buffer)
-    ORTC_THROW_INVALID_PARAMETERS_IF(0 == bufferLengthInBytes)
+    ORTC_THROW_INVALID_PARAMETERS_IF(!buffer);
+    ORTC_THROW_INVALID_PARAMETERS_IF(0 == bufferLengthInBytes);
     return RTCPPacket::create(UseServicesHelper::convertToBuffer(buffer, bufferLengthInBytes), mediaChannelID);
   }
 
@@ -2863,7 +2857,7 @@ namespace ortc
   RTCPPacketPtr RTCPPacket::create(
                                    const SecureByteBlock &buffer,
                                    MediaChannelID mediaChannelID
-                                   )
+                                   ) noexcept(false)
   {
     return RTCPPacket::create(buffer.BytePtr(), buffer.SizeInBytes(), mediaChannelID);
   }
@@ -2872,7 +2866,7 @@ namespace ortc
   RTCPPacketPtr RTCPPacket::create(
                                    SecureByteBlockPtr buffer,
                                    MediaChannelID mediaChannelID
-                                   )
+                                   ) noexcept(false)
   {
     RTCPPacketPtr pThis(make_shared<RTCPPacket>(make_private{}, mediaChannelID));
     pThis->mBuffer = buffer;
@@ -2892,7 +2886,7 @@ namespace ortc
   RTCPPacketPtr RTCPPacket::create(
                                    const Report *first,
                                    MediaChannelID mediaChannelID
-                                   )
+                                   ) noexcept(false)
   {
     size_t allocationSize = getPacketSize(first);
     SecureByteBlockPtr temp(make_shared<SecureByteBlock>(allocationSize));
@@ -2905,7 +2899,7 @@ namespace ortc
   }
 
   //-------------------------------------------------------------------------
-  SecureByteBlockPtr RTCPPacket::generateFrom(const Report *first)
+  SecureByteBlockPtr RTCPPacket::generateFrom(const Report *first) noexcept(false)
   {
     size_t allocationSize = getPacketSize(first);
     SecureByteBlockPtr temp(make_shared<SecureByteBlock>(allocationSize));
@@ -2918,83 +2912,83 @@ namespace ortc
   }
 
   //-------------------------------------------------------------------------
-  const BYTE *RTCPPacket::ptr() const
+  const BYTE *RTCPPacket::ptr() const noexcept
   {
     return mBuffer->BytePtr();
   }
 
   //-------------------------------------------------------------------------
-  size_t RTCPPacket::size() const
+  size_t RTCPPacket::size() const noexcept
   {
     return mBuffer->SizeInBytes();
   }
 
   //-------------------------------------------------------------------------
-  SecureByteBlockPtr RTCPPacket::buffer() const
+  SecureByteBlockPtr RTCPPacket::buffer() const noexcept
   {
     return mBuffer;
   }
 
   //-------------------------------------------------------------------------
-  RTCPPacket::SenderReport *RTCPPacket::senderReportAtIndex(size_t index) const
+  RTCPPacket::SenderReport *RTCPPacket::senderReportAtIndex(size_t index) const noexcept
   {
-    ASSERT(index < mSenderReportCount)
+    ZS_ASSERT(index < mSenderReportCount);
     return &(mFirstSenderReport[index]);
   }
 
   //-------------------------------------------------------------------------
-  RTCPPacket::ReceiverReport *RTCPPacket::receiverReportAtIndex(size_t index) const
+  RTCPPacket::ReceiverReport *RTCPPacket::receiverReportAtIndex(size_t index) const noexcept
   {
-    ASSERT(index < mReceiverReportCount)
+    ZS_ASSERT(index < mReceiverReportCount);
     return &(mFirstReceiverReport[index]);
   }
 
   //-------------------------------------------------------------------------
-  RTCPPacket::SDES *RTCPPacket::sdesAtIndex(size_t index) const
+  RTCPPacket::SDES *RTCPPacket::sdesAtIndex(size_t index) const noexcept
   {
-    ASSERT(index < mSDESCount)
+    ZS_ASSERT(index < mSDESCount);
     return &(mFirstSDES[index]);
   }
 
   //-------------------------------------------------------------------------
-  RTCPPacket::Bye *RTCPPacket::byeAtIndex(size_t index) const
+  RTCPPacket::Bye *RTCPPacket::byeAtIndex(size_t index) const noexcept
   {
-    ASSERT(index < mByeCount)
+    ZS_ASSERT(index < mByeCount);
     return &(mFirstBye[index]);
   }
 
   //-------------------------------------------------------------------------
-  RTCPPacket::App *RTCPPacket::appAtIndex(size_t index) const
+  RTCPPacket::App *RTCPPacket::appAtIndex(size_t index) const noexcept
   {
-    ASSERT(index < mAppCount)
+    ZS_ASSERT(index < mAppCount);
     return &(mFirstApp[index]);
   }
 
   //-------------------------------------------------------------------------
-  RTCPPacket::TransportLayerFeedbackMessage *RTCPPacket::transportLayerFeedbackReportAtIndex(size_t index) const
+  RTCPPacket::TransportLayerFeedbackMessage *RTCPPacket::transportLayerFeedbackReportAtIndex(size_t index) const noexcept
   {
-    ASSERT(index < mTransportLayerFeedbackMessageCount)
+    ZS_ASSERT(index < mTransportLayerFeedbackMessageCount);
     return &(mFirstTransportLayerFeedbackMessage[index]);
   }
 
   //-------------------------------------------------------------------------
-  RTCPPacket::PayloadSpecificFeedbackMessage *RTCPPacket::payloadSpecificFeedbackReportAtIndex(size_t index) const
+  RTCPPacket::PayloadSpecificFeedbackMessage *RTCPPacket::payloadSpecificFeedbackReportAtIndex(size_t index) const noexcept
   {
-    ASSERT(index < mPayloadSpecificFeedbackMessageCount)
+    ZS_ASSERT(index < mPayloadSpecificFeedbackMessageCount);
     return &(mFirstPayloadSpecificFeedbackMessage[index]);
   }
 
   //-------------------------------------------------------------------------
-  RTCPPacket::XR *RTCPPacket::xrAtIndex(size_t index) const
+  RTCPPacket::XR *RTCPPacket::xrAtIndex(size_t index) const noexcept
   {
-    ASSERT(index < mXRCount)
+    ZS_ASSERT(index < mXRCount);
     return &(mFirstXR[index]);
   }
 
   //-------------------------------------------------------------------------
-  RTCPPacket::UnknownReport *RTCPPacket::unknownAtIndex(size_t index) const
+  RTCPPacket::UnknownReport *RTCPPacket::unknownAtIndex(size_t index) const noexcept
   {
-    ASSERT(index < mUnknownReportCount)
+    ZS_ASSERT(index < mUnknownReportCount);
     return &(mFirstUnknownReport[index]);
   }
 
@@ -3002,7 +2996,7 @@ namespace ortc
   void RTCPPacket::trace(
     const char *func,
     const char *message
-    ) const
+    ) const noexcept
   {
     ZS_EVENTING_8(x, i, Basic, RTCPPacketTrace, ol, RtcpPacket, Info,
       puid, mediaChannelID, mMediaChannelID,
@@ -3084,12 +3078,12 @@ namespace ortc
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark RTCPPacket (internal)
-  #pragma mark
+  //
+  // RTCPPacket (internal)
+  //
 
   //-------------------------------------------------------------------------
-  bool RTCPPacket::parse()
+  bool RTCPPacket::parse() noexcept
   {
     const BYTE *buffer = mBuffer->BytePtr();
     size_t size = mBuffer->SizeInBytes();
@@ -3293,7 +3287,7 @@ namespace ortc
         );
 
         ++count;
-        ASSERT(count <= mCount);
+        ZS_ASSERT(count <= mCount);
       }
     }
 
@@ -3305,9 +3299,9 @@ namespace ortc
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark RTCPPacket (parse allocation sizing routines)
-  #pragma mark
+  //
+  // RTCPPacket (parse allocation sizing routines)
+  //
 
   //-------------------------------------------------------------------------
   bool RTCPPacket::getAllocationSize(
@@ -3317,7 +3311,7 @@ namespace ortc
                                       BYTE pt,
                                       const BYTE *contents,
                                       size_t contentSize
-                                      )
+                                      ) noexcept
   {
     bool result = false;
 
@@ -3341,13 +3335,17 @@ namespace ortc
 
   //-------------------------------------------------------------------------
   bool RTCPPacket::getSenderReportAllocationSize(
-                                                  BYTE version,
-                                                  BYTE padding,
-                                                  BYTE reportSpecific,
-                                                  const BYTE *contents,
-                                                  size_t contentSize
-                                                  )
+                                                 ZS_MAYBE_USED() BYTE version,
+                                                 ZS_MAYBE_USED() BYTE padding,
+                                                 BYTE reportSpecific,
+                                                 ZS_MAYBE_USED() const BYTE *contents,
+                                                 ZS_MAYBE_USED() size_t contentSize
+                                                 ) noexcept
   {
+    ZS_MAYBE_USED(version);
+    ZS_MAYBE_USED(padding);
+    ZS_MAYBE_USED(contents);
+    ZS_MAYBE_USED(contentSize);
     ++mSenderReportCount;
 
     mAllocationSize += internal::alignedSize(sizeof(SenderReport)) + (internal::alignedSize(sizeof(SenderReport::ReportBlock)) * static_cast<size_t>(reportSpecific));
@@ -3360,9 +3358,13 @@ namespace ortc
                                                     BYTE padding,
                                                     BYTE reportSpecific,
                                                     const BYTE *contents,
-                                                    size_t contentSize
-                                                    )
+                                                    ZS_MAYBE_USED() size_t contentSize
+                                                    ) noexcept
   {
+    ZS_MAYBE_USED(version);
+    ZS_MAYBE_USED(padding);
+    ZS_MAYBE_USED(contents);
+    ZS_MAYBE_USED(contentSize);
     ++mReceiverReportCount;
 
     mAllocationSize += internal::alignedSize(sizeof(ReceiverReport)) + (internal::alignedSize(sizeof(ReceiverReport::ReportBlock)) * static_cast<size_t>(reportSpecific));
@@ -3371,13 +3373,15 @@ namespace ortc
 
   //-------------------------------------------------------------------------
   bool RTCPPacket::getSDESAllocationSize(
-                                          BYTE version,
-                                          BYTE padding,
+                                          ZS_MAYBE_USED() BYTE version,
+                                          ZS_MAYBE_USED() BYTE padding,
                                           BYTE reportSpecific,
                                           const BYTE *contents,
                                           size_t contentSize
-                                          )
+                                          ) noexcept
   {
+    ZS_MAYBE_USED(version);
+    ZS_MAYBE_USED(padding);
     ++mSDESCount;
 
     size_t chunksCount = static_cast<size_t>(reportSpecific);
@@ -3531,13 +3535,15 @@ namespace ortc
 
   //-------------------------------------------------------------------------
   bool RTCPPacket::getByeAllocationSize(
-                                        BYTE version,
-                                        BYTE padding,
+                                        ZS_MAYBE_USED() BYTE version,
+                                        ZS_MAYBE_USED() BYTE padding,
                                         BYTE reportSpecific,
                                         const BYTE *contents,
                                         size_t contentSize
-                                        )
+                                        ) noexcept
   {
+    ZS_MAYBE_USED(version);
+    ZS_MAYBE_USED(padding);
     ++mByeCount;
 
     size_t ssrcCount = static_cast<size_t>(reportSpecific);
@@ -3581,13 +3587,16 @@ namespace ortc
 
   //-------------------------------------------------------------------------
   bool RTCPPacket::getAppAllocationSize(
-                                          BYTE version,
-                                          BYTE padding,
-                                          BYTE reportSpecific,
+                                          ZS_MAYBE_USED() BYTE version,
+                                          ZS_MAYBE_USED() BYTE padding,
+                                          ZS_MAYBE_USED() BYTE reportSpecific,
                                           const BYTE *contents,
                                           size_t contentSize
-                                          )
+                                          ) noexcept
   {
+    ZS_MAYBE_USED(version);
+    ZS_MAYBE_USED(padding);
+    ZS_MAYBE_USED(reportSpecific);
     ++mAppCount;
 
     mAllocationSize += internal::alignedSize(sizeof(App));
@@ -3609,13 +3618,15 @@ namespace ortc
 
   //-------------------------------------------------------------------------
   bool RTCPPacket::getTransportLayerFeedbackMessageAllocationSize(
-                                                                  BYTE version,
-                                                                  BYTE padding,
+                                                                  ZS_MAYBE_USED() BYTE version,
+                                                                  ZS_MAYBE_USED() BYTE padding,
                                                                   BYTE reportSpecific,
                                                                   const BYTE *contents,
                                                                   size_t contentSize
-                                                                  )
+                                                                  ) noexcept
   {
+    ZS_MAYBE_USED(version);
+    ZS_MAYBE_USED(padding);
     ++mTransportLayerFeedbackMessageCount;
 
     mAllocationSize += internal::alignedSize(sizeof(TransportLayerFeedbackMessage));
@@ -3656,13 +3667,15 @@ namespace ortc
 
   //-------------------------------------------------------------------------
   bool RTCPPacket::getPayloadSpecificFeedbackMessageAllocationSize(
-                                                                    BYTE version,
-                                                                    BYTE padding,
-                                                                    BYTE reportSpecific,
-                                                                    const BYTE *contents,
-                                                                    size_t contentSize
-                                                                    )
+                                                                   ZS_MAYBE_USED() BYTE version,
+                                                                   ZS_MAYBE_USED() BYTE padding,
+                                                                   BYTE reportSpecific,
+                                                                   const BYTE *contents,
+                                                                   size_t contentSize
+                                                                   ) noexcept
   {
+    ZS_MAYBE_USED(version);
+    ZS_MAYBE_USED(padding);
     ++mPayloadSpecificFeedbackMessageCount;
 
     mAllocationSize += internal::alignedSize(sizeof(PayloadSpecificFeedbackMessage));
@@ -3726,13 +3739,16 @@ namespace ortc
 
   //-------------------------------------------------------------------------
   bool RTCPPacket::getXRAllocationSize(
-                                        BYTE version,
-                                        BYTE padding,
-                                        BYTE reportSpecific,
-                                        const BYTE *contents,
-                                        size_t contentSize
-                                        )
+                                       ZS_MAYBE_USED() BYTE version,
+                                       ZS_MAYBE_USED() BYTE padding,
+                                       ZS_MAYBE_USED() BYTE reportSpecific,
+                                       const BYTE *contents,
+                                       size_t contentSize
+                                       ) noexcept
   {
+    ZS_MAYBE_USED(version);
+    ZS_MAYBE_USED(padding);
+    ZS_MAYBE_USED(reportSpecific);
     ++mXRCount;
 
     mAllocationSize += internal::alignedSize(sizeof(XR));
@@ -3807,13 +3823,18 @@ namespace ortc
 
   //-------------------------------------------------------------------------
   bool RTCPPacket::getUnknownReportAllocationSize(
-                                                  BYTE version,
-                                                  BYTE padding,
-                                                  BYTE reportSpecific,
-                                                  const BYTE *contents,
-                                                  size_t contentSize
-                                                  )
+                                                  ZS_MAYBE_USED() BYTE version,
+                                                  ZS_MAYBE_USED() BYTE padding,
+                                                  ZS_MAYBE_USED() BYTE reportSpecific,
+                                                  ZS_MAYBE_USED() const BYTE *contents,
+                                                  ZS_MAYBE_USED() size_t contentSize
+                                                  ) noexcept
   {
+    ZS_MAYBE_USED(version);
+    ZS_MAYBE_USED(padding);
+    ZS_MAYBE_USED(reportSpecific);
+    ZS_MAYBE_USED(contents);
+    ZS_MAYBE_USED(contentSize);
     ++mUnknownReportCount;
 
     mAllocationSize += internal::alignedSize(sizeof(UnknownReport));
@@ -3822,11 +3843,13 @@ namespace ortc
 
   //-------------------------------------------------------------------------
   bool RTCPPacket::getTransportLayerFeedbackMessageGenericNACKAllocationSize(
-                                                                              BYTE fmt,
-                                                                              const BYTE *contents,
-                                                                              size_t contentSize
-                                                                              )
+                                                                             ZS_MAYBE_USED() BYTE fmt,
+                                                                             ZS_MAYBE_USED() const BYTE *contents,
+                                                                             size_t contentSize
+                                                                             ) noexcept
   {
+    ZS_MAYBE_USED(fmt);
+    ZS_MAYBE_USED(contents);
     size_t remaining = contentSize;
 
     if (remaining < sizeof(DWORD)) {
@@ -3847,11 +3870,13 @@ namespace ortc
 
   //-------------------------------------------------------------------------
   bool RTCPPacket::getTransportLayerFeedbackMessageTMMBRAllocationSize(
-                                                                        BYTE fmt,
-                                                                        const BYTE *contents,
-                                                                        size_t contentSize
-                                                                        )
+                                                                       ZS_MAYBE_USED() BYTE fmt,
+                                                                       ZS_MAYBE_USED() const BYTE *contents,
+                                                                       size_t contentSize
+                                                                       ) noexcept
   {
+    ZS_MAYBE_USED(fmt);
+    ZS_MAYBE_USED(contents);
     size_t remaining = contentSize;
 
     if (remaining < (sizeof(DWORD)*2)) {
@@ -3872,11 +3897,13 @@ namespace ortc
     
   //-------------------------------------------------------------------------
   bool RTCPPacket::getTransportLayerFeedbackMessageTMMBNAllocationSize(
-                                                                        BYTE fmt,
-                                                                        const BYTE *contents,
-                                                                        size_t contentSize
-                                                                        )
+                                                                       ZS_MAYBE_USED() BYTE fmt,
+                                                                       ZS_MAYBE_USED() const BYTE *contents,
+                                                                       size_t contentSize
+                                                                       ) noexcept
   {
+    ZS_MAYBE_USED(fmt);
+    ZS_MAYBE_USED(contents);
     size_t remaining = contentSize;
 
     if (remaining < (sizeof(DWORD)*2)) {
@@ -3897,21 +3924,26 @@ namespace ortc
     
   //-------------------------------------------------------------------------
   bool RTCPPacket::getPayloadSpecificFeedbackMessagePLIAllocationSize(
-                                                                      BYTE fmt,
-                                                                      const BYTE *contents,
-                                                                      size_t contentSize
-                                                                      )
+                                                                      ZS_MAYBE_USED() BYTE fmt,
+                                                                      ZS_MAYBE_USED() const BYTE *contents,
+                                                                      ZS_MAYBE_USED() size_t contentSize
+                                                                      ) noexcept
   {
+    ZS_MAYBE_USED(fmt);
+    ZS_MAYBE_USED(contents);
+    ZS_MAYBE_USED(contentSize);
     return true;
   }
     
   //-------------------------------------------------------------------------
   bool RTCPPacket::getPayloadSpecificFeedbackMessageSLIAllocationSize(
-                                                                      BYTE fmt,
-                                                                      const BYTE *contents,
+                                                                      ZS_MAYBE_USED() BYTE fmt,
+                                                                      ZS_MAYBE_USED() const BYTE *contents,
                                                                       size_t contentSize
-                                                                      )
+                                                                      ) noexcept
   {
+    ZS_MAYBE_USED(fmt);
+    ZS_MAYBE_USED(contents);
     size_t remaining = contentSize;
 
     if (remaining < sizeof(DWORD)) {
@@ -3932,21 +3964,26 @@ namespace ortc
     
   //-------------------------------------------------------------------------
   bool RTCPPacket::getPayloadSpecificFeedbackMessageRPSIAllocationSize(
-                                                                        BYTE fmt,
-                                                                        const BYTE *contents,
-                                                                        size_t contentSize
-                                                                        )
+                                                                       ZS_MAYBE_USED() BYTE fmt,
+                                                                       ZS_MAYBE_USED() const BYTE *contents,
+                                                                       ZS_MAYBE_USED() size_t contentSize
+                                                                       ) noexcept
   {
+    ZS_MAYBE_USED(fmt);
+    ZS_MAYBE_USED(contents);
+    ZS_MAYBE_USED(contentSize);
     return true;
   }
     
   //-------------------------------------------------------------------------
   bool RTCPPacket::getPayloadSpecificFeedbackMessageFIRAllocationSize(
-                                                                        BYTE fmt,
-                                                                        const BYTE *contents,
-                                                                        size_t contentSize
-                                                                        )
+                                                                      ZS_MAYBE_USED() BYTE fmt,
+                                                                      ZS_MAYBE_USED() const BYTE *contents,
+                                                                      size_t contentSize
+                                                                      ) noexcept
   {
+    ZS_MAYBE_USED(fmt);
+    ZS_MAYBE_USED(contents);
     size_t remaining = contentSize;
 
     if (remaining < (sizeof(DWORD)*2)) {
@@ -3967,11 +4004,13 @@ namespace ortc
     
   //-------------------------------------------------------------------------
   bool RTCPPacket::getPayloadSpecificFeedbackMessageTSTRAllocationSize(
-                                                                        BYTE fmt,
-                                                                        const BYTE *contents,
-                                                                        size_t contentSize
-                                                                        )
+                                                                       ZS_MAYBE_USED() BYTE fmt,
+                                                                       ZS_MAYBE_USED() const BYTE *contents,
+                                                                       size_t contentSize
+                                                                       ) noexcept
   {
+    ZS_MAYBE_USED(fmt);
+    ZS_MAYBE_USED(contents);
     size_t remaining = contentSize;
 
     if (remaining < (sizeof(DWORD)*2)) {
@@ -3992,11 +4031,13 @@ namespace ortc
     
   //-------------------------------------------------------------------------
   bool RTCPPacket::getPayloadSpecificFeedbackMessageTSTNAllocationSize(
-                                                                        BYTE fmt,
-                                                                        const BYTE *contents,
-                                                                        size_t contentSize
-                                                                        )
+                                                                       ZS_MAYBE_USED() BYTE fmt,
+                                                                       ZS_MAYBE_USED() const BYTE *contents,
+                                                                       size_t contentSize
+                                                                       ) noexcept
   {
+    ZS_MAYBE_USED(fmt);
+    ZS_MAYBE_USED(contents);
     size_t remaining = contentSize;
 
     if (remaining < (sizeof(DWORD)*2)) {
@@ -4017,11 +4058,12 @@ namespace ortc
     
   //-------------------------------------------------------------------------
   bool RTCPPacket::getPayloadSpecificFeedbackMessageVBCMAllocationSize(
-                                                                        BYTE fmt,
-                                                                        const BYTE *contents,
-                                                                        size_t contentSize
-                                                                        )
+                                                                       ZS_MAYBE_USED() BYTE fmt,
+                                                                       const BYTE *contents,
+                                                                       size_t contentSize
+                                                                       ) noexcept
   {
+    ZS_MAYBE_USED(fmt);
     const BYTE *pos = contents;
     size_t remaining = contentSize;
 
@@ -4067,21 +4109,26 @@ namespace ortc
     
   //-------------------------------------------------------------------------
   bool RTCPPacket::getPayloadSpecificFeedbackMessageAFBAllocationSize(
-                                                                        BYTE fmt,
-                                                                        const BYTE *contents,
-                                                                        size_t contentSize
-                                                                        )
+                                                                      ZS_MAYBE_USED() BYTE fmt,
+                                                                      ZS_MAYBE_USED() const BYTE *contents,
+                                                                      ZS_MAYBE_USED() size_t contentSize
+                                                                      ) noexcept
   {
+    ZS_MAYBE_USED(fmt);
+    ZS_MAYBE_USED(contents);
+    ZS_MAYBE_USED(contentSize);
     return true;
   }
 
   //-------------------------------------------------------------------------
   bool RTCPPacket::getPayloadSpecificFeedbackMessageREMBAllocationSize(
-                                                                      BYTE fmt,
-                                                                      const BYTE *contents,
-                                                                      size_t contentSize
-                                                                      )
+                                                                       ZS_MAYBE_USED() BYTE fmt,
+                                                                       ZS_MAYBE_USED() const BYTE *contents,
+                                                                       size_t contentSize
+                                                                       ) noexcept
   {
+    ZS_MAYBE_USED(fmt);
+    ZS_MAYBE_USED(contents);
     size_t remaining = contentSize;
 
     if (remaining < (sizeof(DWORD)*3)) {
@@ -4102,11 +4149,12 @@ namespace ortc
     
   //-------------------------------------------------------------------------
   bool RTCPPacket::getXRLossRLEReportBlockAllocationSize(
-                                                          BYTE typeSpecific,
-                                                          const BYTE *contents,
-                                                          size_t contentSize
-                                                          )
+                                                         ZS_MAYBE_USED() BYTE typeSpecific,
+                                                         const BYTE *contents,
+                                                         size_t contentSize
+                                                         ) noexcept
   {
+    ZS_MAYBE_USED(typeSpecific);
     mAllocationSize += internal::alignedSize(sizeof(XR::LossRLEReportBlock));
 
     const BYTE *pos = contents;
@@ -4135,11 +4183,12 @@ namespace ortc
     
   //-------------------------------------------------------------------------
   bool RTCPPacket::getXRDuplicateRLEReportBlockAllocationSize(
-                                                              BYTE typeSpecific,
+                                                              ZS_MAYBE_USED() BYTE typeSpecific,
                                                               const BYTE *contents,
                                                               size_t contentSize
-                                                              )
+                                                              ) noexcept
   {
+    ZS_MAYBE_USED(typeSpecific);
     mAllocationSize += internal::alignedSize(sizeof(XR::DuplicateRLEReportBlock));
 
     const BYTE *pos = contents;
@@ -4168,11 +4217,12 @@ namespace ortc
     
   //-------------------------------------------------------------------------
   bool RTCPPacket::getXRPacketReceiptTimesReportBlockAllocationSize(
-                                                                    BYTE typeSpecific,
+                                                                    ZS_MAYBE_USED() BYTE typeSpecific,
                                                                     const BYTE *contents,
                                                                     size_t contentSize
-                                                                    )
+                                                                    ) noexcept
   {
+    ZS_MAYBE_USED(typeSpecific);
     mAllocationSize += internal::alignedSize(sizeof(XR::PacketReceiptTimesReportBlock));
 
     const BYTE *pos = contents;
@@ -4201,22 +4251,27 @@ namespace ortc
     
   //-------------------------------------------------------------------------
   bool RTCPPacket::getXRReceiverReferenceTimeReportBlockAllocationSize(
-                                                                        BYTE typeSpecific,
-                                                                        const BYTE *contents,
-                                                                        size_t contentSize
-                                                                        )
+                                                                       ZS_MAYBE_USED() BYTE typeSpecific,
+                                                                       ZS_MAYBE_USED() const BYTE *contents,
+                                                                       ZS_MAYBE_USED() size_t contentSize
+                                                                       ) noexcept
   {
+    ZS_MAYBE_USED(typeSpecific);
+    ZS_MAYBE_USED(contents);
+    ZS_MAYBE_USED(contentSize);
     mAllocationSize += internal::alignedSize(sizeof(XR::ReceiverReferenceTimeReportBlock));
     return true;
   }
     
   //-------------------------------------------------------------------------
   bool RTCPPacket::getXRDLRRReportBlockAllocationSize(
-                                                      BYTE typeSpecific,
-                                                      const BYTE *contents,
+                                                      ZS_MAYBE_USED() BYTE typeSpecific,
+                                                      ZS_MAYBE_USED() const BYTE *contents,
                                                       size_t contentSize
-                                                      )
+                                                      ) noexcept
   {
+    ZS_MAYBE_USED(typeSpecific);
+    ZS_MAYBE_USED(contents);
     mAllocationSize += internal::alignedSize(sizeof(XR::DLRRReportBlock));
 
     size_t possibleSubBlocks = contentSize / (sizeof(DWORD) + sizeof(DWORD) + sizeof(DWORD));
@@ -4228,33 +4283,42 @@ namespace ortc
 
   //-------------------------------------------------------------------------
   bool RTCPPacket::getXRStatisticsSummaryReportBlockAllocationSize(
-                                                                    BYTE typeSpecific,
-                                                                    const BYTE *contents,
-                                                                    size_t contentSize
-                                                                    )
+                                                                   ZS_MAYBE_USED() BYTE typeSpecific,
+                                                                   ZS_MAYBE_USED() const BYTE *contents,
+                                                                   ZS_MAYBE_USED() size_t contentSize
+                                                                   ) noexcept
   {
+    ZS_MAYBE_USED(typeSpecific);
+    ZS_MAYBE_USED(contents);
+    ZS_MAYBE_USED(contentSize);
     mAllocationSize += internal::alignedSize(sizeof(XR::StatisticsSummaryReportBlock));
     return true;
   }
 
   //-------------------------------------------------------------------------
   bool RTCPPacket::getXRVoIPMetricsReportBlockAllocationSize(
-                                                              BYTE typeSpecific,
-                                                              const BYTE *contents,
-                                                              size_t contentSize
-                                                              )
+                                                             ZS_MAYBE_USED() BYTE typeSpecific,
+                                                             ZS_MAYBE_USED() const BYTE *contents,
+                                                             ZS_MAYBE_USED() size_t contentSize
+                                                             ) noexcept
   {
+    ZS_MAYBE_USED(typeSpecific);
+    ZS_MAYBE_USED(contents);
+    ZS_MAYBE_USED(contentSize);
     mAllocationSize += internal::alignedSize(sizeof(XR::VoIPMetricsReportBlock));
     return true;
   }
 
   //-------------------------------------------------------------------------
   bool RTCPPacket::getXRUnknownReportBlockAllocationSize(
-                                                          BYTE typeSpecific,
-                                                          const BYTE *contents,
-                                                          size_t contentSize
-                                                          )
+                                                         ZS_MAYBE_USED() BYTE typeSpecific,
+                                                         ZS_MAYBE_USED() const BYTE *contents,
+                                                         ZS_MAYBE_USED() size_t contentSize
+                                                         ) noexcept
   {
+    ZS_MAYBE_USED(typeSpecific);
+    ZS_MAYBE_USED(contents);
+    ZS_MAYBE_USED(contentSize);
     mAllocationSize += internal::alignedSize(sizeof(XR::UnknownReportBlock));
     return true;
   }
@@ -4263,9 +4327,9 @@ namespace ortc
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark RTCPPacket (parsing routines)
-  #pragma mark
+  //
+  // RTCPPacket (parsing routines)
+  //
 
   //-------------------------------------------------------------------------
   bool RTCPPacket::parse(
@@ -4276,7 +4340,7 @@ namespace ortc
                           BYTE pt,
                           const BYTE *contents,
                           size_t contentSize
-                          )
+                          ) noexcept
   {
     Report *usingReport = NULL;
 
@@ -4364,7 +4428,7 @@ namespace ortc
                         BYTE pt,
                         const BYTE *contents,
                         size_t contentSize
-                        )
+                        ) noexcept
   {
     if (contentSize > 0) {
       report->mPtr = contents;
@@ -4378,9 +4442,9 @@ namespace ortc
 
   //-------------------------------------------------------------------------
   bool RTCPPacket::parseCommon(
-                                SenderReceiverCommonReport *report,
-                                size_t detailedHeaderSize
-                                )
+                               SenderReceiverCommonReport *report,
+                               size_t detailedHeaderSize
+                               ) noexcept
   {
     const BYTE *pos = report->ptr();
     size_t remaining = report->size();
@@ -4448,7 +4512,7 @@ namespace ortc
   }
 
   //-------------------------------------------------------------------------
-  bool RTCPPacket::parse(SenderReport *report)
+  bool RTCPPacket::parse(SenderReport *report) noexcept
   {
     if (0 != mSenderReportCount) {
       (&(mFirstSenderReport[mSenderReportCount-1]))->mNextSenderReport = report;
@@ -4469,7 +4533,7 @@ namespace ortc
   }
 
   //-------------------------------------------------------------------------
-  bool RTCPPacket::parse(ReceiverReport *report)
+  bool RTCPPacket::parse(ReceiverReport *report) noexcept
   {
     if (0 != mReceiverReportCount) {
       (&(mFirstReceiverReport[mReceiverReportCount-1]))->mNextReceiverReport = report;
@@ -4482,7 +4546,7 @@ namespace ortc
   }
     
   //-------------------------------------------------------------------------
-  bool RTCPPacket::parse(SDES *report)
+  bool RTCPPacket::parse(SDES *report) noexcept
   {
     if (0 != mSDESCount) {
       (&(mFirstSDES[mSDESCount-1]))->mNextSDES = report;
@@ -4529,12 +4593,12 @@ namespace ortc
           break;
         }
 
-        ASSERT(remaining >= sizeof(BYTE))
+        ZS_ASSERT(remaining >= sizeof(BYTE));
 
         size_t length = static_cast<size_t>(*pos);
         internal::advancePos(pos, remaining);
 
-        ASSERT(remaining >= length)
+        ZS_ASSERT(remaining >= length);
 
         switch (type) {
           case SDES::Chunk::CName::kItemType: ++(chunk->mCNameCount); break;
@@ -4627,19 +4691,19 @@ namespace ortc
                   (remaining > 0))
           {
             // only NUL chunks are allowed
-            ASSERT(SDES::Chunk::kEndOfItemsType == (*pos));
+            ZS_ASSERT(SDES::Chunk::kEndOfItemsType == (*pos));
             internal::advancePos(pos, remaining);
             ++diff;
           }
           break;
         }
 
-        ASSERT(remaining >= sizeof(BYTE))
+        ZS_ASSERT(remaining >= sizeof(BYTE));
 
         size_t length = static_cast<size_t>(*pos);
         internal::advancePos(pos, remaining);
 
-        ASSERT(remaining >= length)
+        ZS_ASSERT(remaining >= length);
 
         SDES::Chunk::StringItem *item {};
 
@@ -4719,7 +4783,7 @@ namespace ortc
                 memcpy(const_cast<char *>(priv->mPrefix), pos, prefixLen);
 
                 internal::advancePos(pos, remaining, prefixLen);
-                ASSERT(length >= prefixLen)
+                ZS_ASSERT(length >= prefixLen);
 
                 length -= prefixLen;
               }
@@ -4809,7 +4873,7 @@ namespace ortc
   }
     
   //-------------------------------------------------------------------------
-  bool RTCPPacket::parse(Bye *report)
+  bool RTCPPacket::parse(Bye *report) noexcept
   {
     if (0 != mByeCount) {
       (&(mFirstBye[mByeCount-1]))->mNextBye = report;
@@ -4875,7 +4939,7 @@ namespace ortc
   }
 
   //-------------------------------------------------------------------------
-  bool RTCPPacket::parse(App *report)
+  bool RTCPPacket::parse(App *report) noexcept
   {
     if (0 != mAppCount) {
       (&(mFirstApp[mAppCount-1]))->mNextApp = report;
@@ -4919,7 +4983,7 @@ namespace ortc
   }
     
   //-------------------------------------------------------------------------
-  bool RTCPPacket::parse(TransportLayerFeedbackMessage *report)
+  bool RTCPPacket::parse(TransportLayerFeedbackMessage *report) noexcept
   {
     if (0 != mTransportLayerFeedbackMessageCount) {
       (&(mFirstTransportLayerFeedbackMessage[mTransportLayerFeedbackMessageCount-1]))->mNextTransportLayerFeedbackMessage = report;
@@ -4967,7 +5031,7 @@ namespace ortc
   }
     
   //-------------------------------------------------------------------------
-  bool RTCPPacket::parse(PayloadSpecificFeedbackMessage *report)
+  bool RTCPPacket::parse(PayloadSpecificFeedbackMessage *report) noexcept
   {
     if (0 != mPayloadSpecificFeedbackMessageCount) {
       (&(mFirstPayloadSpecificFeedbackMessage[mPayloadSpecificFeedbackMessageCount-1]))->mNextPayloadSpecificFeedbackMessage = report;
@@ -5034,7 +5098,7 @@ namespace ortc
   }
     
   //-------------------------------------------------------------------------
-  bool RTCPPacket::parse(XR *report)
+  bool RTCPPacket::parse(XR *report) noexcept
   {
     if (0 != mXRCount) {
       (&(mFirstXR[mXRCount-1]))->mNextXR = report;
@@ -5271,7 +5335,7 @@ namespace ortc
   }
 
   //-------------------------------------------------------------------------
-  bool RTCPPacket::parse(UnknownReport *report)
+  bool RTCPPacket::parse(UnknownReport *report) noexcept
   {
     if (0 != mUnknownReportCount) {
       (&(mFirstUnknownReport[mUnknownReportCount-1]))->mNextUnknown = report;
@@ -5282,7 +5346,7 @@ namespace ortc
   }
     
   //-------------------------------------------------------------------------
-  void RTCPPacket::fill(FeedbackMessage *report, const BYTE *contents, size_t contentSize)
+  void RTCPPacket::fill(FeedbackMessage *report, const BYTE *contents, size_t contentSize) noexcept
   {
     const BYTE *pos = contents;
     size_t remaining = contentSize;
@@ -5307,7 +5371,7 @@ namespace ortc
                         BYTE typeSpecific,
                         const BYTE *contents,
                         size_t contentSize
-                        )
+                        ) noexcept
   {
     reportBlock->mBlockType = blockType;
     reportBlock->mTypeSpecific = typeSpecific;
@@ -5326,7 +5390,7 @@ namespace ortc
   }
 
   //-------------------------------------------------------------------------
-  bool RTCPPacket::parseGenericNACK(TransportLayerFeedbackMessage *report)
+  bool RTCPPacket::parseGenericNACK(TransportLayerFeedbackMessage *report) noexcept
   {
     typedef TransportLayerFeedbackMessage::GenericNACK GenericNACK;
     const BYTE *pos = report->fci();
@@ -5334,7 +5398,7 @@ namespace ortc
 
     size_t possibleNACKs = remaining / sizeof(DWORD);
 
-    ASSERT(0 != possibleNACKs)
+    ZS_ASSERT(0 != possibleNACKs);
 
     report->mFirstGenericNACK = new (allocateBuffer(internal::alignedSize(sizeof(GenericNACK))*possibleNACKs)) GenericNACK[possibleNACKs];
 
@@ -5349,18 +5413,19 @@ namespace ortc
       ++(report->mGenericNACKCount);
     }
 
-    ASSERT(possibleNACKs == report->mGenericNACKCount)
+    ZS_ASSERT(possibleNACKs == report->mGenericNACKCount);
 
     return true;
   }
     
   //-------------------------------------------------------------------------
   void RTCPPacket::fillTMMBRCommon(
-                                    TransportLayerFeedbackMessage *report,
-                                    TransportLayerFeedbackMessage::TMMBRCommon *common,
-                                    const BYTE *pos
-                                    )
+                                   ZS_MAYBE_USED() TransportLayerFeedbackMessage *report,
+                                   TransportLayerFeedbackMessage::TMMBRCommon *common,
+                                   const BYTE *pos
+                                   ) noexcept
   {
+    ZS_MAYBE_USED(report);
     //typedef TransportLayerFeedbackMessage::TMMBRCommon TMMBRCommon;
 
     common->mSSRC = UseRTPUtils::getBE32(&(pos[0]));
@@ -5370,7 +5435,7 @@ namespace ortc
   }
     
   //-------------------------------------------------------------------------
-  bool RTCPPacket::parseTMMBR(TransportLayerFeedbackMessage *report)
+  bool RTCPPacket::parseTMMBR(TransportLayerFeedbackMessage *report) noexcept
   {
     typedef TransportLayerFeedbackMessage::TMMBR TMMBR;
 
@@ -5379,7 +5444,7 @@ namespace ortc
 
     size_t possibleTMMBRs = remaining / (sizeof(DWORD)*2);
 
-    ASSERT(0 != possibleTMMBRs)
+    ZS_ASSERT(0 != possibleTMMBRs);
 
     report->mFirstTMMBR = new (allocateBuffer(internal::alignedSize(sizeof(TMMBR))*possibleTMMBRs)) TMMBR[possibleTMMBRs];
 
@@ -5393,13 +5458,13 @@ namespace ortc
       ++(report->mTMMBRCount);
     }
 
-    ASSERT(possibleTMMBRs == report->mTMMBRCount)
+    ZS_ASSERT(possibleTMMBRs == report->mTMMBRCount);
 
     return true;
   }
     
   //-------------------------------------------------------------------------
-  bool RTCPPacket::parseTMMBN(TransportLayerFeedbackMessage *report)
+  bool RTCPPacket::parseTMMBN(TransportLayerFeedbackMessage *report) noexcept
   {
     typedef TransportLayerFeedbackMessage::TMMBN TMMBN;
 
@@ -5426,26 +5491,27 @@ namespace ortc
       ++(report->mTMMBNCount);
     }
 
-    ASSERT(possibleTMMBNs == report->mTMMBNCount)
+    ZS_ASSERT(possibleTMMBNs == report->mTMMBNCount);
 
     return true;
   }
 
   //-------------------------------------------------------------------------
-  bool RTCPPacket::parseUnknown(TransportLayerFeedbackMessage *report)
+  bool RTCPPacket::parseUnknown(TransportLayerFeedbackMessage *report) noexcept
   {
     report->mUnknown = report;
     return true;
   }
 
   //-------------------------------------------------------------------------
-  bool RTCPPacket::parsePLI(PayloadSpecificFeedbackMessage *report)
+  bool RTCPPacket::parsePLI(ZS_MAYBE_USED() PayloadSpecificFeedbackMessage *report) noexcept
   {
+    ZS_MAYBE_USED(report);
     return true;
   }
 
   //-------------------------------------------------------------------------
-  bool RTCPPacket::parseSLI(PayloadSpecificFeedbackMessage *report)
+  bool RTCPPacket::parseSLI(PayloadSpecificFeedbackMessage *report) noexcept
   {
     typedef PayloadSpecificFeedbackMessage::SLI SLI;
 
@@ -5454,7 +5520,7 @@ namespace ortc
 
     size_t possibleSLIs = remaining / (sizeof(DWORD));
 
-    ASSERT(0 != possibleSLIs)
+    ZS_ASSERT(0 != possibleSLIs);
 
     report->mFirstSLI = new (allocateBuffer(internal::alignedSize(sizeof(SLI))*possibleSLIs)) SLI[possibleSLIs];
 
@@ -5470,13 +5536,13 @@ namespace ortc
       ++(report->mSLICount);
     }
 
-    ASSERT(possibleSLIs == report->mSLICount)
+    ZS_ASSERT(possibleSLIs == report->mSLICount);
 
     return true;
   }
     
   //-------------------------------------------------------------------------
-  bool RTCPPacket::parseRPSI(PayloadSpecificFeedbackMessage *report)
+  bool RTCPPacket::parseRPSI(PayloadSpecificFeedbackMessage *report) noexcept
   {
     const BYTE *pos = report->fci();
     size_t remaining = report->fciSize();
@@ -5518,18 +5584,19 @@ namespace ortc
     
   //-------------------------------------------------------------------------
   void RTCPPacket::fillCodecControlCommon(
-                                          PayloadSpecificFeedbackMessage *report,
+                                          ZS_MAYBE_USED() PayloadSpecificFeedbackMessage *report,
                                           PayloadSpecificFeedbackMessage::CodecControlCommon *common,
                                           const BYTE *pos
-                                          )
+                                          ) noexcept
   {
+    ZS_MAYBE_USED(report);
     common->mSSRC = UseRTPUtils::getBE32(&(pos[0]));
     common->mSeqNr = pos[4];
     common->mReserved = RTCP_GET_BITS(UseRTPUtils::getBE32(&(pos[4])), 0xFFFFFF, 0);
   }
 
   //-------------------------------------------------------------------------
-  bool RTCPPacket::parseFIR(PayloadSpecificFeedbackMessage *report)
+  bool RTCPPacket::parseFIR(PayloadSpecificFeedbackMessage *report) noexcept
   {
     typedef PayloadSpecificFeedbackMessage::FIR FIR;
 
@@ -5538,7 +5605,7 @@ namespace ortc
 
     size_t possibleFIRs = remaining / (sizeof(DWORD)*2);
 
-    ASSERT(0 != possibleFIRs)
+    ZS_ASSERT(0 != possibleFIRs);
 
     report->mFirstFIR = new (allocateBuffer(internal::alignedSize(sizeof(FIR))*possibleFIRs)) FIR[possibleFIRs];
 
@@ -5551,13 +5618,13 @@ namespace ortc
       ++(report->mFIRCount);
     }
 
-    ASSERT(possibleFIRs == report->mFIRCount)
+    ZS_ASSERT(possibleFIRs == report->mFIRCount)
 
     return true;
   }
     
   //-------------------------------------------------------------------------
-  bool RTCPPacket::parseTSTR(PayloadSpecificFeedbackMessage *report)
+  bool RTCPPacket::parseTSTR(PayloadSpecificFeedbackMessage *report) noexcept
   {
     typedef PayloadSpecificFeedbackMessage::TSTR TSTR;
 
@@ -5566,7 +5633,7 @@ namespace ortc
 
     size_t possibleTSTRs = remaining / (sizeof(DWORD)*2);
 
-    ASSERT(0 != possibleTSTRs)
+    ZS_ASSERT(0 != possibleTSTRs);
 
     report->mFirstTSTR = new (allocateBuffer(internal::alignedSize(sizeof(TSTR))*possibleTSTRs)) TSTR[possibleTSTRs];
 
@@ -5582,13 +5649,13 @@ namespace ortc
       ++(report->mTSTRCount);
     }
 
-    ASSERT(possibleTSTRs == report->mTSTRCount)
+    ZS_ASSERT(possibleTSTRs == report->mTSTRCount);
       
     return true;
   }
     
   //-------------------------------------------------------------------------
-  bool RTCPPacket::parseTSTN(PayloadSpecificFeedbackMessage *report)
+  bool RTCPPacket::parseTSTN(PayloadSpecificFeedbackMessage *report) noexcept
   {
     typedef PayloadSpecificFeedbackMessage::TSTN TSTN;
 
@@ -5597,7 +5664,7 @@ namespace ortc
 
     size_t possibleTSTNs = remaining / (sizeof(DWORD)*2);
 
-    ASSERT(0 != possibleTSTNs)
+    ZS_ASSERT(0 != possibleTSTNs);
 
     report->mFirstTSTN = new (allocateBuffer(internal::alignedSize(sizeof(TSTN))*possibleTSTNs)) TSTN[possibleTSTNs];
 
@@ -5613,13 +5680,13 @@ namespace ortc
       ++(report->mTSTNCount);
     }
 
-    ASSERT(possibleTSTNs == report->mTSTNCount)
+    ZS_ASSERT(possibleTSTNs == report->mTSTNCount);
       
     return true;
   }
     
   //-------------------------------------------------------------------------
-  bool RTCPPacket::parseVBCM(PayloadSpecificFeedbackMessage *report)
+  bool RTCPPacket::parseVBCM(PayloadSpecificFeedbackMessage *report) noexcept
   {
     typedef PayloadSpecificFeedbackMessage::VBCM VBCM;
 
@@ -5639,20 +5706,20 @@ namespace ortc
 
         internal::advancePos(pos, remaining, sizeof(DWORD)*2);
 
-        ASSERT(remaining >= length)
+        ZS_ASSERT(remaining >= length);
 
         size_t skipLength = (((length + padding) > remaining) ? remaining : (length + padding));
 
         internal::advancePos(pos, remaining, skipLength);
       }
-      ASSERT(0 != possibleVBCMs);
+      ZS_ASSERT(0 != possibleVBCMs);
     }
 
     pos = report->fci();
     remaining = report->fciSize();
 
     {
-      ASSERT(0 != possibleVBCMs);
+      ZS_ASSERT(0 != possibleVBCMs);
 
       report->mFirstVBCM = new (allocateBuffer(internal::alignedSize(sizeof(VBCM))*possibleVBCMs)) VBCM[possibleVBCMs];
 
@@ -5670,7 +5737,7 @@ namespace ortc
 
         internal::advancePos(pos, remaining, sizeof(DWORD)*2);
 
-        ASSERT(remaining >= length)
+        ZS_ASSERT(remaining >= length)
 
         if (length > 0) {
           vcbm->mVBCMOctetString = pos;
@@ -5683,13 +5750,13 @@ namespace ortc
         ++(report->mVBCMCount);
       }
 
-      ASSERT(possibleVBCMs == report->mVBCMCount);
+      ZS_ASSERT(possibleVBCMs == report->mVBCMCount);
     }
     return true;
   }
 
   //-------------------------------------------------------------------------
-  bool RTCPPacket::parseAFB(PayloadSpecificFeedbackMessage *report)
+  bool RTCPPacket::parseAFB(PayloadSpecificFeedbackMessage *report) noexcept
   {
     //typedef PayloadSpecificFeedbackMessage::AFB AFB;
 
@@ -5704,7 +5771,7 @@ namespace ortc
   }
     
   //-------------------------------------------------------------------------
-  bool RTCPPacket::parseREMB(PayloadSpecificFeedbackMessage *report)
+  bool RTCPPacket::parseREMB(PayloadSpecificFeedbackMessage *report) noexcept
   {
     //typedef PayloadSpecificFeedbackMessage::REMB REMB;
 
@@ -5716,7 +5783,7 @@ namespace ortc
     report->mHasREMB = true;
 
     {
-      ASSERT(remaining >= sizeof(DWORD) * 3);
+      ZS_ASSERT(remaining >= sizeof(DWORD) * 3);
 
       report->mREMB.mNumSSRC = pos[4];
       report->mREMB.mBRExp = RTCP_GET_BITS(pos[5], 0x3F, 2);
@@ -5756,7 +5823,7 @@ namespace ortc
   }
 
   //-------------------------------------------------------------------------
-  bool RTCPPacket::parseUnknown(PayloadSpecificFeedbackMessage *report)
+  bool RTCPPacket::parseUnknown(PayloadSpecificFeedbackMessage *report) noexcept
   {
     report->mUnknown = report;
     return true;
@@ -5764,10 +5831,11 @@ namespace ortc
     
   //-------------------------------------------------------------------------
   bool RTCPPacket::parseCommonRange(
-                                    XR *xr,
+                                    ZS_MAYBE_USED() XR *xr,
                                     XR::ReportBlockRange *reportBlock
-                                    )
+                                    ) noexcept
   {
+    ZS_MAYBE_USED(xr);
     const BYTE *pos = reportBlock->typeSpecificContents();
     size_t remaining = reportBlock->typeSpecificContentSize();
 
@@ -5797,7 +5865,7 @@ namespace ortc
   bool RTCPPacket::parseCommonRLE(
                                   XR *xr,
                                   XR::RLEReportBlock *reportBlock
-                                  )
+                                  ) noexcept
   {
     const BYTE *pos = reportBlock->typeSpecificContents();
     size_t remaining = reportBlock->typeSpecificContentSize();
@@ -5833,7 +5901,7 @@ namespace ortc
   bool RTCPPacket::parse(
                           XR *xr,
                           XR::LossRLEReportBlock *reportBlock
-                          )
+                          ) noexcept
   {
     return parseCommonRLE(xr, reportBlock);
   }
@@ -5842,7 +5910,7 @@ namespace ortc
   bool RTCPPacket::parse(
                           XR *xr,
                           XR::DuplicateRLEReportBlock *reportBlock
-                          )
+                          ) noexcept
   {
     return parseCommonRLE(xr, reportBlock);
   }
@@ -5851,7 +5919,7 @@ namespace ortc
   bool RTCPPacket::parse(
                           XR *xr,
                           XR::PacketReceiptTimesReportBlock *reportBlock
-                          )
+                          ) noexcept
   {
     if (!parseCommonRange(xr, reportBlock)) return false;
 
@@ -5877,10 +5945,11 @@ namespace ortc
 
   //-------------------------------------------------------------------------
   bool RTCPPacket::parse(
-                          XR *xr,
-                          XR::ReceiverReferenceTimeReportBlock *reportBlock
-                          )
+                         ZS_MAYBE_USED() XR *xr,
+                         XR::ReceiverReferenceTimeReportBlock *reportBlock
+                         ) noexcept
   {
+    ZS_MAYBE_USED(xr);
     const BYTE *pos = reportBlock->typeSpecificContents();
     size_t remaining = reportBlock->typeSpecificContentSize();
 
@@ -5902,10 +5971,11 @@ namespace ortc
     
   //-------------------------------------------------------------------------
   bool RTCPPacket::parse(
-                          XR *xr,
-                          XR::DLRRReportBlock *reportBlock
-                          )
+                         ZS_MAYBE_USED() XR *xr,
+                         XR::DLRRReportBlock *reportBlock
+                         ) noexcept
   {
+    ZS_MAYBE_USED(xr);
     const BYTE *pos = reportBlock->typeSpecificContents();
     size_t remaining = reportBlock->typeSpecificContentSize();
 
@@ -5938,16 +6008,16 @@ namespace ortc
       ++(reportBlock->mSubBlockCount);
     }
 
-    ASSERT(reportBlock->mSubBlockCount == possibleSubBlockCount)
+    ZS_ASSERT(reportBlock->mSubBlockCount == possibleSubBlockCount);
 
     return true;
   }
     
   //-------------------------------------------------------------------------
   bool RTCPPacket::parse(
-                          XR *xr,
-                          XR::StatisticsSummaryReportBlock *reportBlock
-                          )
+                         XR *xr,
+                         XR::StatisticsSummaryReportBlock *reportBlock
+                         ) noexcept
   {
     const BYTE *pos = reportBlock->typeSpecificContents();
     size_t remaining = reportBlock->typeSpecificContentSize();
@@ -5983,10 +6053,11 @@ namespace ortc
     
   //-------------------------------------------------------------------------
   bool RTCPPacket::parse(
-                          XR *xr,
-                          XR::VoIPMetricsReportBlock *reportBlock
-                          )
+                         ZS_MAYBE_USED() XR *xr,
+                         XR::VoIPMetricsReportBlock *reportBlock
+                         ) noexcept
   {
+    ZS_MAYBE_USED(xr);
     const BYTE *pos = reportBlock->typeSpecificContents();
     size_t remaining = reportBlock->typeSpecificContentSize();
 
@@ -6028,21 +6099,23 @@ namespace ortc
     
   //-------------------------------------------------------------------------
   bool RTCPPacket::parse(
-                          XR *xr,
-                          XR::UnknownReportBlock *reportBlock
-                          )
+                         ZS_MAYBE_USED() XR *xr,
+                         ZS_MAYBE_USED() XR::UnknownReportBlock *reportBlock
+                         ) noexcept
   {
+    ZS_MAYBE_USED(xr);
+    ZS_MAYBE_USED(reportBlock);
     return true;
   }
 
   //-------------------------------------------------------------------------
-  void *RTCPPacket::allocateBuffer(size_t size)
+  void *RTCPPacket::allocateBuffer(size_t size) noexcept
   {
     return internal::allocateBuffer(mAllocationPos, mAllocationSize, size);
   }
 
   //-------------------------------------------------------------------------
-  size_t RTCPPacket::getPacketSize(const Report *first)
+  size_t RTCPPacket::getPacketSize(const Report *first) noexcept(false)
   {
     size_t result = 0;
 
@@ -6130,10 +6203,10 @@ namespace ortc
   }
 
   //-------------------------------------------------------------------------
-  void RTCPPacket::writePacket(const Report *first, BYTE * &pos, size_t &remaining)
+  void RTCPPacket::writePacket(const Report *first, BYTE * &pos, size_t &remaining) noexcept
   {
-    ASSERT(sizeof(char) == sizeof(BYTE))
-    ASSERT(NULL != first)
+    ZS_ASSERT(sizeof(char) == sizeof(BYTE));
+    ZS_ASSERT(NULL != first);
 
     for (const Report *report = first; NULL != report; report = report->next())
     {
@@ -6227,12 +6300,12 @@ namespace ortc
       }
 
       size_t headerSize = ((diff+padding)/sizeof(DWORD))-1;
-      ASSERT(internal::throwIfGreaterThanBitsAllow(headerSize, 16));
+      ZS_ASSERT(internal::throwIfGreaterThanBitsAllow(headerSize, 16));
 
       UseRTPUtils::setBE16(&(startOfReport[2]), static_cast<WORD>(headerSize));
     }
 
-    ASSERT(0 == remaining);
+    ZS_ASSERT(0 == remaining);
   }
 
 }

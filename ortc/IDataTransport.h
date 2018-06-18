@@ -40,9 +40,9 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IDataTransportTypes
-  #pragma mark
+  //
+  // IDataTransportTypes
+  //
   
   interaction IDataTransportTypes
   {
@@ -52,13 +52,13 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IDTMFSender
-  #pragma mark
+  //
+  // IDTMFSender
+  //
   
   interaction IDataTransport : public IDataTransportTypes,
                                public IStatsProvider
   {
-    virtual ~IDataTransport() {}
+    virtual ~IDataTransport() noexcept {}
   };
 }

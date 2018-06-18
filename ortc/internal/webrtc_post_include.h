@@ -1,6 +1,6 @@
 /*
 
- Copyright (c) 2016, Hookflash Inc. / Hookflash Inc.
+ Copyright (c) 2018, Optical Tone Ltd.
  All rights reserved.
 
  Redistribution and use in source and binary forms, with or without
@@ -29,31 +29,7 @@
  
  */
 
-#pragma once
-
-
-#include <ortc/adapter/internal/types.h>
-#include <ortc/adapter/IHelper.h>
-
-namespace ortc
-{
-  namespace adapter
-  {
-    namespace internal
-    {
-      //-------------------------------------------------------------------------
-      //-------------------------------------------------------------------------
-      //-------------------------------------------------------------------------
-      //-------------------------------------------------------------------------
-      //
-      // Helper
-      //
-
-      class Helper : public IHelper
-      {
-      public:
-      };
-    }
-  }
-}
-
+#ifdef _MSC_VER
+#pragma warning(pop)
+#else
+#endif //_MSC_VER

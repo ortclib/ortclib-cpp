@@ -47,17 +47,17 @@ namespace ortc
     public:
       typedef IRTPTypes::PayloadType PayloadType;
 
-      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::CodecParameters, CodecParameters)
-      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::EncodingParameters, EncodingParameters)
-      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
-      ZS_DECLARE_TYPEDEF_PTR(std::list<ParametersPtr>, ParametersPtrList)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::CodecParameters, CodecParameters);
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::EncodingParameters, EncodingParameters);
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters);
+      ZS_DECLARE_TYPEDEF_PTR(std::list<ParametersPtr>, ParametersPtrList);
 
-      ZS_DECLARE_TYPEDEF_PTR(Parameters, OldParameters)
-      ZS_DECLARE_TYPEDEF_PTR(Parameters, NewParameters)
+      ZS_DECLARE_TYPEDEF_PTR(Parameters, OldParameters);
+      ZS_DECLARE_TYPEDEF_PTR(Parameters, NewParameters);
 
       typedef std::pair<OldParametersPtr, NewParametersPtr> OldNewParametersPair;
 
-      ZS_DECLARE_TYPEDEF_PTR(std::list<OldNewParametersPair>, ParametersPtrPairList)
+      ZS_DECLARE_TYPEDEF_PTR(std::list<OldNewParametersPair>, ParametersPtrPairList);
 
       struct FindCodecOptions
       {
@@ -77,7 +77,7 @@ namespace ortc
 
         Optional<bool> mDisallowMultipleMatches;
 
-        ElementPtr toDebug() const;
+        ElementPtr toDebug() const noexcept;
       };
 
       struct DecodedCodecInfo
@@ -88,29 +88,29 @@ namespace ortc
           IRTPTypes::SupportedCodecs mSupportedCodec {IRTPTypes::SupportedCodec_Unknown};
           IRTPTypes::CodecKinds mCodecKind {IRTPTypes::CodecKind_Unknown};
 
-          DepthInfo() {}
-          DepthInfo(const DepthInfo &info) {(*this) = info;}
-          ElementPtr toDebug() const;
+          DepthInfo() noexcept {}
+          DepthInfo(const DepthInfo &info) noexcept {(*this) = info;}
+          ElementPtr toDebug() const noexcept;
         };
 
         size_t mFilledDepth {};
         DepthInfo mDepth[ORTC_INTERNAL_RTPTYPESHELPER_MAX_CODEC_DEPTH];
 
-        DecodedCodecInfo() {}
-        DecodedCodecInfo(const DecodedCodecInfo &info) {(*this) = info;}
-        ElementPtr toDebug() const;
+        DecodedCodecInfo() noexcept {}
+        DecodedCodecInfo(const DecodedCodecInfo &info) noexcept {(*this) = info;}
+        ElementPtr toDebug() const noexcept;
       };
       
 
       static void validateCodecParameters(
                                           const Parameters &params,
                                           Optional<IMediaStreamTrackTypes::Kinds> &ioKind
-                                          ) throw (InvalidParameters);
+                                          ) noexcept(false); // throws InvalidParameters
 
       static void splitParamsIntoChannels(
                                           const Parameters &params,
                                           ParametersPtrList &outParamsGroupedIntoChannels
-                                          );
+                                          ) noexcept(false);
 
       static void calculateDeltaChangesInChannels(
                                                   Optional<IMediaStreamTrackTypes::Kinds> kind,
@@ -120,23 +120,23 @@ namespace ortc
                                                   ParametersPtrList &outNewChannels,
                                                   ParametersPtrPairList &outUpdatedChannels,
                                                   ParametersPtrList &outRemovedChannels
-                                                  );
+                                                  ) noexcept;
 
       static bool isGeneralizedSSRCCompatibleChange(
                                                     const Parameters &oldParams,
                                                     const Parameters &newParams
-                                                    );
+                                                    ) noexcept;
 
       static bool isCompatibleCodec(
                                     const CodecParameters &oldCodec,
                                     const CodecParameters &newCodec,
                                     float &ioRank
-                                    );
+                                    ) noexcept;
 
       static const CodecParameters *findCodec(
                                               const Parameters &params,
                                               const FindCodecOptions &options
-                                              );
+                                              ) noexcept;
 
       static const CodecParameters *pickCodec(
                                               Optional<IMediaStreamTrackTypes::Kinds> kind,
@@ -144,19 +144,19 @@ namespace ortc
                                               Optional<PayloadType> packetPayloadType = Optional<PayloadType>(),
                                               const EncodingParameters *encoding = NULL,
                                               const EncodingParameters *baseEncoding = NULL
-                                              );
+                                              ) noexcept;
 
       static bool isRankableMatch(
                                   Optional<IMediaStreamTrackTypes::Kinds> kind,
                                   const Parameters &oldChannelParams,
                                   const Parameters &newChannelParams,
                                   float &outRank
-                                  );
+                                  ) noexcept;
 
       static EncodingParameters *findEncodingBase(
                                                   Parameters &inParams,
                                                   EncodingParameters *inEncoding
-                                                  );
+                                                  ) noexcept;
 
       static EncodingParameters *pickEncodingToFill(
                                                     Optional<IMediaStreamTrackTypes::Kinds> kind,
@@ -164,9 +164,9 @@ namespace ortc
                                                     Parameters &filledParams,
                                                     const DecodedCodecInfo &decodedCodec,
                                                     EncodingParameters * &outBaseEncoding
-                                                    );
+                                                    ) noexcept;
 
-      static Optional<IMediaStreamTrackTypes::Kinds> getCodecsKind(const Parameters &params);
+      static Optional<IMediaStreamTrackTypes::Kinds> getCodecsKind(const Parameters &params) noexcept;
 
 
       static bool decodePacketCodecs(
@@ -174,28 +174,28 @@ namespace ortc
                                      const RTPPacket &packet,
                                      const Parameters &params,
                                      DecodedCodecInfo &decodedCodecInfo
-                                     );
+                                     ) noexcept;
 
       static void getRTXCodecPayload(
                                      const BYTE *packetPayload,
                                      size_t packetPayloadSizeInBytes,
                                      const BYTE * &outInnterPayload,
                                      size_t &outInnerPayloadSizeBytes
-                                     );
+                                     ) noexcept;
 
       static Optional<PayloadType> getRedCodecPayload(
                                                       const BYTE *packetPayload,
                                                       size_t packetPayloadSizeInBytes,
                                                       const BYTE * &outInnterPayload,
                                                       size_t &outInnerPayloadSizeBytes
-                                                      );
+                                                      ) noexcept;
 
       static Optional<PayloadType> getFecRecoveryPayloadType(
                                                              const BYTE *packetPayload,
                                                              size_t packetPayloadSizeInBytes
-                                                             );
+                                                             ) noexcept;
 
-      static Log::Params slog(const char *message);
+      static Log::Params slog(const char *message) noexcept;
     };
   }
 }

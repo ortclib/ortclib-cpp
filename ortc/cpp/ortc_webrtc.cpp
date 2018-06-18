@@ -39,7 +39,7 @@ namespace ortc
 {
   namespace internal
   {
-    void webrtcTrace(Log::Severity severity, Log::Level level, const char *message)
+    void webrtcTrace(Log::Severity severity, Log::Level level, const char *message) noexcept
     {
       ZS_LOG_WITH_SEVERITY(severity, level, message);
     }

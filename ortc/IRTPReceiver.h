@@ -44,22 +44,22 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IRTPReceiverTypes
-  #pragma mark
+  //
+  // IRTPReceiverTypes
+  //
 
   interaction IRTPReceiverTypes : public IRTPTypes
   {
     typedef IMediaStreamTrack::Kinds Kinds;
 
-    ZS_DECLARE_STRUCT_PTR(ContributingSource)
+    ZS_DECLARE_STRUCT_PTR(ContributingSource);
 
-    ZS_DECLARE_TYPEDEF_PTR(std::list<ContributingSource>, ContributingSourceList)
+    ZS_DECLARE_TYPEDEF_PTR(std::list<ContributingSource>, ContributingSourceList);
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPReceiverTypes::ContributingSource
-    #pragma mark
+    //
+    // IRTPReceiverTypes::ContributingSource
+    //
 
     struct ContributingSource {
       Time           mTimestamp {};
@@ -67,8 +67,8 @@ namespace ortc
       BYTE           mAudioLevel {};
       Optional<bool> mVoiceActivityFlag {};
 
-      ElementPtr toDebug() const;
-      String hash() const;
+      ElementPtr toDebug() const noexcept;
+      String hash() const noexcept;
     };
   };
 
@@ -76,73 +76,73 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IRTPReceiver
-  #pragma mark
+  //
+  // IRTPReceiver
+  //
 
   interaction IRTPReceiver : public IRTPReceiverTypes,
                              public IStatsProvider
   {
-    static ElementPtr toDebug(IRTPReceiverPtr receiver);
+    static ElementPtr toDebug(IRTPReceiverPtr receiver) noexcept;
 
     static IRTPReceiverPtr create(
                                   IRTPReceiverDelegatePtr delegate,
                                   Kinds kind,
                                   IRTPTransportPtr transport,
                                   IRTCPTransportPtr rtcpTransport = IRTCPTransportPtr()
-                                  );
+                                  ) noexcept;
 
-    virtual PUID getID() const = 0;
+    virtual PUID getID() const noexcept = 0;
 
-    virtual IRTPReceiverSubscriptionPtr subscribe(IRTPReceiverDelegatePtr delegate) = 0;
+    virtual IRTPReceiverSubscriptionPtr subscribe(IRTPReceiverDelegatePtr delegate) noexcept = 0;
 
-    virtual IMediaStreamTrackPtr track() const = 0;
-    virtual IRTPTransportPtr transport() const = 0;
-    virtual IRTCPTransportPtr rtcpTransport() const = 0;
+    virtual IMediaStreamTrackPtr track() const noexcept = 0;
+    virtual IRTPTransportPtr transport() const noexcept = 0;
+    virtual IRTCPTransportPtr rtcpTransport() const noexcept = 0;
 
     virtual void setTransport(
                               IRTPTransportPtr transport,
                               IRTCPTransportPtr rtcpTransport = IRTCPTransportPtr()
-                              ) = 0;
+                              ) noexcept(false) = 0; // throws InvalidParameters
 
-    static CapabilitiesPtr getCapabilities(Optional<Kinds> kind = Optional<Kinds>());
+    static CapabilitiesPtr getCapabilities(Optional<Kinds> kind = Optional<Kinds>()) noexcept;
 
-    virtual PromisePtr receive(const Parameters &parameters) = 0;
-    virtual void stop() = 0;
+    virtual PromisePtr receive(const Parameters &parameters) noexcept(false) = 0; // throws InvalidParameters
+    virtual void stop() noexcept = 0;
 
-    virtual ContributingSourceList getContributingSources() const = 0;
+    virtual ContributingSourceList getContributingSources() const noexcept = 0;
 
-    virtual void requestSendCSRC(SSRCType csrc) = 0;
+    virtual void requestSendCSRC(SSRCType csrc) noexcept(false) = 0; // throws NotImplemented
   };
 
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IRTPReceiverDelegate
-  #pragma mark
+  //
+  // IRTPReceiverDelegate
+  //
 
   interaction IRTPReceiverDelegate
   {
-    virtual ~IRTPReceiverDelegate() {}
+    virtual ~IRTPReceiverDelegate() noexcept {}
   };
 
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IRTPReceiverSubscription
-  #pragma mark
+  //
+  // IRTPReceiverSubscription
+  //
 
   interaction IRTPReceiverSubscription
   {
-    virtual PUID getID() const = 0;
+    virtual PUID getID() const noexcept = 0;
 
-    virtual void cancel() = 0;
+    virtual void cancel() noexcept = 0;
 
-    virtual void background() = 0;
+    virtual void background() noexcept = 0;
   };
 }
 

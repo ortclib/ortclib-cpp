@@ -65,12 +65,12 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark Helpers
-      #pragma mark
+      //
+      // Helpers
+      //
 
       //-----------------------------------------------------------------------
-      static Log::Params slog(const char *message)
+      static Log::Params slog(const char *message) noexcept
       {
         return Log::Params(message, "ortc::adapter::SDPParser");
       }
@@ -79,15 +79,15 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SDPParser
-      #pragma mark
+      //
+      // SDPParser
+      //
 
       //-----------------------------------------------------------------------
       void appendToBundle(
                           ISDPTypes::BundleMap &ioBundle,
                           const ISessionDescription::MediaLine &mediaLine
-                          )
+                          ) noexcept
       {
         if (mediaLine.mID.isEmpty()) return;
         if (mediaLine.mTransportID.isEmpty()) return;
@@ -106,11 +106,12 @@ namespace ortc
 
       //-----------------------------------------------------------------------
       void SDPParser::createSDPSessionLevel(
-                                            const GeneratorOptions &options,
+                                            ZS_MAYBE_USED() const GeneratorOptions &options,
                                             const Description &description,
                                             SDP &ioSDP
-                                            )
+                                            ) noexcept(false)
       {
+        ZS_MAYBE_USED(options);
         auto &result = ioSDP;
         result.mOLine = make_shared<OLine>(Noop{});
         result.mSLine = make_shared<SLine>(Noop{});
@@ -162,10 +163,11 @@ namespace ortc
       static void createSDPMediaLineBase(
                                          const ISessionDescriptionTypes::Description &description,
                                          const ISessionDescriptionTypes::MediaLine &mediaLine,
-                                         ISDPTypes::SDP &ioSDP,
+                                         ZS_MAYBE_USED() ISDPTypes::SDP &ioSDP,
                                          ISDPTypes::MLine &ioMLine
-                                         )
+                                         ) noexcept(false)
       {
+        ZS_MAYBE_USED(ioSDP);
         auto &mline = ioMLine;
 
         ORTC_THROW_INVALID_PARAMETERS_IF(!mediaLine.mDetails);
@@ -215,7 +217,7 @@ namespace ortc
                                         const ISessionDescriptionTypes::RTPMediaLine &mediaLine,
                                         ISDPTypes::SDP &ioSDP,
                                         ISDPTypes::MLine &ioMLine
-                                        )
+                                        ) noexcept(false)
       {
         auto &mline = ioMLine;
 
@@ -237,7 +239,7 @@ namespace ortc
                                          const ISessionDescriptionTypes::SCTPMediaLine &mediaLine,
                                          ISDPTypes::SDP &ioSDP,
                                          ISDPTypes::MLine &ioMLine
-                                         )
+                                         ) noexcept
       {
         auto &mline = ioMLine;
 
@@ -250,10 +252,11 @@ namespace ortc
       static void figureOutBundle(
                                   const ISessionDescriptionTypes::Description &description,
                                   const ISessionDescriptionTypes::MediaLine &mediaLine,
-                                  ISDPTypes::SDP &ioSDP,
+                                  ZS_MAYBE_USED() ISDPTypes::SDP &ioSDP,
                                   ISessionDescriptionTypes::TransportPtr &outAnnounceTransport
-                                  )
+                                  ) noexcept(false)
       {
+        ZS_MAYBE_USED(ioSDP);
         ORTC_THROW_INVALID_PARAMETERS_IF(!mediaLine.mDetails);
 
         String searchTransport = mediaLine.mDetails->mPrivateTransportID;
@@ -297,7 +300,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      static ISDPTypes::ACandidateLinePtr fillCandidate(const IICETypes::Candidate &candidate)
+      static ISDPTypes::ACandidateLinePtr fillCandidate(const IICETypes::Candidate &candidate) noexcept
       {
         auto aCandidate = make_shared<ISDPTypes::ACandidateLine>(Noop{});
         aCandidate->mFoundation = candidate.mFoundation;
@@ -325,12 +328,14 @@ namespace ortc
 
       //-----------------------------------------------------------------------
       static void fillCandidates(
-                                 const ISessionDescriptionTypes::MediaLine &mediaLine,
-                                 const ISessionDescriptionTypes::Transport &transport,
+                                 ZS_MAYBE_USED() const ISessionDescriptionTypes::MediaLine &mediaLine,
+                                 ZS_MAYBE_USED() const ISessionDescriptionTypes::Transport &transport,
                                  ISDPTypes::MLine &ioMLine,
                                  const ISessionDescriptionTypes::ICECandidateList &candidates
-                                 )
+                                 ) noexcept
       {
+        ZS_MAYBE_USED(mediaLine);
+        ZS_MAYBE_USED(transport);
         auto &mline = ioMLine;
 
         for (auto iter = candidates.begin(); iter != candidates.end(); ++iter) {
@@ -344,7 +349,7 @@ namespace ortc
                                  const ISessionDescriptionTypes::MediaLine &mediaLine,
                                  const ISessionDescriptionTypes::Transport &transport,
                                  ISDPTypes::MLine &ioMLine
-                                 )
+                                 ) noexcept
       {
         auto &mline = ioMLine;
 
@@ -374,7 +379,7 @@ namespace ortc
                          const ISessionDescriptionTypes::MediaLine &mediaLine,
                          ISDPTypes::SDP &ioSDP,
                          ISDPTypes::MLine &ioMLine
-                         )
+                         ) noexcept(false)
       {
         auto &result = ioSDP;
         auto &mline = ioMLine;
@@ -476,7 +481,7 @@ namespace ortc
       static void fillFormat(
                              const IRTPTypes::OpusCodecCapabilityParameters &source,
                              ISDPTypes::AFMTPLine &result
-                             )
+                             ) noexcept
       {
         if (source.mMaxPlaybackRate.hasValue()) {
           result.mFormatSpecific.push_back(String("maxplaybackrate=") + string(source.mMaxPlaybackRate.value()) + ";");
@@ -508,7 +513,7 @@ namespace ortc
       static void fillFormat(
                              const IRTPTypes::VP8CodecCapabilityParameters &source,
                              ISDPTypes::AFMTPLine &result
-                             )
+                             ) noexcept
       {
         if (source.mMaxFR.hasValue()) {
           result.mFormatSpecific.push_back(String("max-fr=") + string(source.mMaxFR.value()) + ";");
@@ -522,7 +527,7 @@ namespace ortc
       static void fillFormat(
                              const IRTPTypes::H264CodecCapabilityParameters &source,
                              ISDPTypes::AFMTPLine &result
-                             )
+                             ) noexcept
       {
         if (source.mProfileLevelID.hasValue()) {
           result.mFormatSpecific.push_back(String("profile-level-id=") + string(source.mProfileLevelID.value()) + ";");
@@ -555,7 +560,7 @@ namespace ortc
       static void fillFormat(
                              const IRTPTypes::RTXCodecCapabilityParameters &source,
                              ISDPTypes::AFMTPLine &result
-                             )
+                             ) noexcept
       {
         if (Milliseconds() != source.mRTXTime) {
           result.mFormatSpecific.push_back(String("apt=") + string(source.mApt) + ";rtx-time=" + string(source.mRTXTime.count()) + ";");
@@ -568,7 +573,7 @@ namespace ortc
       static void fillFormat(
                              const IRTPTypes::FlexFECCodecCapabilityParameters &source,
                              ISDPTypes::AFMTPLine &result
-                             )
+                             ) noexcept
       {
         if (source.mL.hasValue()) {
           result.mFormatSpecific.push_back(String("L:") + string(source.mL.value()) + ";");
@@ -588,7 +593,7 @@ namespace ortc
       static ISDPTypes::AFMTPLinePtr fillFormat(
                                                 const IRTPTypes::CodecCapability &codec,
                                                 ISDPTypes::PayloadType pt
-                                                )
+                                                ) noexcept
       {
         if (!codec.mParameters) return nullptr;
 
@@ -657,13 +662,16 @@ namespace ortc
 
       //-----------------------------------------------------------------------
       static void fillRTPMediaLine(
-                                   const SDPParser::GeneratorOptions &options,
-                                   const ISessionDescriptionTypes::Description &description,
+                                   ZS_MAYBE_USED() const SDPParser::GeneratorOptions &options,
+                                   ZS_MAYBE_USED() const ISessionDescriptionTypes::Description &description,
                                    const ISessionDescriptionTypes::RTPMediaLine &mediaLine,
-                                   ISDPTypes::SDP &ioSDP,
+                                   ZS_MAYBE_USED() ISDPTypes::SDP &ioSDP,
                                    ISDPTypes::MLine &ioMLine
-                                   )
+                                   ) noexcept
       {
+        ZS_MAYBE_USED(options);
+        ZS_MAYBE_USED(description);
+        ZS_MAYBE_USED(ioSDP);
         auto &mline = ioMLine;
 
         if (mediaLine.mReceiverCapabilities) {
@@ -719,7 +727,7 @@ namespace ortc
                            ISDPTypes::MLine &mline,
                            ISDPTypes::SSRCType ssrc,
                            const String &cname
-                           )
+                           ) noexcept
       {
         if (!cname.hasData()) return;
 
@@ -736,7 +744,7 @@ namespace ortc
                               ISDPTypes::SSRCType mainSSRC,
                               ISDPTypes::SSRCType relatedSSRC,
                               const String &cname
-                              )
+                              ) noexcept
       {
         auto ssrcFID = make_shared<ISDPTypes::ASSRCGroupLine>(Noop{});
         ssrcFID->mSemantics = String(groupSemantic);
@@ -751,7 +759,7 @@ namespace ortc
                                           const GeneratorOptions &options,
                                           const Description &description,
                                           SDP &ioSDP
-                                          )
+                                          ) noexcept(false)
       {
         auto &result = ioSDP;
 
@@ -849,8 +857,7 @@ namespace ortc
                       }
                     }
 
-#define NOTE_THIS_IS_FOR_LEGACY_REMOVE_WHEN_POSSIBLE 1
-#define NOTE_THIS_IS_FOR_LEGACY_REMOVE_WHEN_POSSIBLE 2
+#pragma ZS_BUILD_NOTE("TODO","This is legacy - remove when possible")
 
                     // NOTE: LEGACY SUPPORT ONLY
                     auto ssrcLabel = make_shared<ISDPTypes::ASSRCLine>(Noop{});
@@ -929,7 +936,7 @@ namespace ortc
       ISDPTypes::SDPPtr SDPParser::createSDP(
                                              const GeneratorOptions &options,
                                              const Description &description
-                                             )
+                                             ) noexcept(false)
       {
         SDPPtr result(make_shared<SDP>());
 
@@ -944,7 +951,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      String SDPParser::getCandidateSDP(const IICETypes::Candidate &candidate)
+      String SDPParser::getCandidateSDP(const IICETypes::Candidate &candidate) noexcept
       {
         auto result = internal::fillCandidate(candidate);
         if (!result) {

@@ -47,9 +47,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IHelper
-    #pragma mark
+    //
+    // IHelper
+    //
 
     interaction IHelper : public ortc::IHelper
     {
@@ -105,141 +105,141 @@ namespace ortc
         IDPreference_Last = IDPreference_Remote,
       };
 
-      static const char *toString(IDPreferences pref);
-      static bool useLocal(IDPreferences pref) { return pref == IDPreference_Local; }
-      static bool useRemote(IDPreferences pref) { return pref == IDPreference_Remote; }
-      static IRTPTypes::SSRCType getRandomSSRC();
+      static const char *toString(IDPreferences pref) noexcept;
+      static bool useLocal(IDPreferences pref) noexcept { return pref == IDPreference_Local; }
+      static bool useRemote(IDPreferences pref) noexcept { return pref == IDPreference_Remote; }
+      static IRTPTypes::SSRCType getRandomSSRC() noexcept;
 
       static SSRCType peekNextSSRC(
                                    IMediaStreamTrackTypes::Kinds kind,
                                    SSRCQueue &audioSSRCQueue,
                                    SSRCQueue &videoSSRCQueue
-                                   );
+                                   ) noexcept;
       static SSRCType getNextSSRC(
                                   IMediaStreamTrackTypes::Kinds kind,
                                   SSRCQueue &audioSSRCQueue,
                                   SSRCQueue &videoSSRCQueue
-                                  );
+                                  ) noexcept;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark Negotiation (conversion)
-      #pragma mark
+      //
+      // Negotiation (conversion)
+      //
 
-      static RTPParametersPtr capabilitiesToParameters(const RTPCapabilities &capabilities);
-      static RTPCapabilitiesPtr parametersToCapabilities(const RTPParameters &parameters);
+      static RTPParametersPtr capabilitiesToParameters(const RTPCapabilities &capabilities) noexcept;
+      static RTPCapabilitiesPtr parametersToCapabilities(const RTPParameters &parameters) noexcept;
 
-      static RTPCodecParametersListPtr capabilitiesToParameters(const RTPCodecCapabilitiesList &capabiliites);
-      static RTPCodecCapabilitiesListPtr parametersToCapabilities(const RTPCodecParametersList &parameters);
+      static RTPCodecParametersListPtr capabilitiesToParameters(const RTPCodecCapabilitiesList &capabiliites) noexcept;
+      static RTPCodecCapabilitiesListPtr parametersToCapabilities(const RTPCodecParametersList &parameters) noexcept;
 
-      static RTPCodecParametersPtr capabilitiesToParameters(const RTPCodecCapability &capabilities);
-      static RTPCodecCapabilityPtr parametersToCapabilities(const RTPCodecParameters &parameters);
+      static RTPCodecParametersPtr capabilitiesToParameters(const RTPCodecCapability &capabilities) noexcept;
+      static RTPCodecCapabilityPtr parametersToCapabilities(const RTPCodecParameters &parameters) noexcept;
 
-      static RTPOpusCodecParametersPtr opusCodecCapabilityParametersToParameters(const RTPOpusCodecCapabilityParameters &capabilityParameters);
-      static RTPOpusCodecCapabilityParametersPtr opusCodecParametersToCapabilityParameters(const RTPOpusCodecParameters &parameters);
+      static RTPOpusCodecParametersPtr opusCodecCapabilityParametersToParameters(const RTPOpusCodecCapabilityParameters &capabilityParameters) noexcept;
+      static RTPOpusCodecCapabilityParametersPtr opusCodecParametersToCapabilityParameters(const RTPOpusCodecParameters &parameters) noexcept;
 
-      static RTPVP8CodecParametersPtr vp8CodecCapabilityParametersToParameters(const RTPVP8CodecCapabilityParameters &capabilityParameters);
-      static RTPVP8CodecCapabilityParametersPtr vp8CodecParametersToCapabilityParameters(const RTPVP8CodecParameters &parameters);
+      static RTPVP8CodecParametersPtr vp8CodecCapabilityParametersToParameters(const RTPVP8CodecCapabilityParameters &capabilityParameters) noexcept;
+      static RTPVP8CodecCapabilityParametersPtr vp8CodecParametersToCapabilityParameters(const RTPVP8CodecParameters &parameters) noexcept;
 
-      static RTPH264CodecParametersPtr h264CodecCapabilityParametersToParameters(const RTPH264CodecCapabilityParameters &capabilityParameters);
-      static RTPH264CodecCapabilityParametersPtr h264CodecParametersToCapabilityParameters(const RTPH264CodecParameters &parameters);
+      static RTPH264CodecParametersPtr h264CodecCapabilityParametersToParameters(const RTPH264CodecCapabilityParameters &capabilityParameters) noexcept;
+      static RTPH264CodecCapabilityParametersPtr h264CodecParametersToCapabilityParameters(const RTPH264CodecParameters &parameters) noexcept;
 
-      static RTPRTXCodecParametersPtr rtxCodecCapabilityParametersToParameters(const RTPRTXCodecCapabilityParameters &capabilityParameters);
-      static RTPRTXCodecCapabilityParametersPtr rtxCodecParametersToCapabilityParameters(const RTPRTXCodecParameters &parameters);
+      static RTPRTXCodecParametersPtr rtxCodecCapabilityParametersToParameters(const RTPRTXCodecCapabilityParameters &capabilityParameters) noexcept;
+      static RTPRTXCodecCapabilityParametersPtr rtxCodecParametersToCapabilityParameters(const RTPRTXCodecParameters &parameters) noexcept;
 
-      static RTPFlexFECCodecParametersPtr flexFECCodecCapabilityParametersToParameters(const RTPFlexFECCodecCapabilityParameters &capabilityParameters);
-      static RTPFlexFECCodecCapabilityParametersPtr flexFECCodecParametersToCapabilityParameters(const RTPFlexFECCodecParameters &parameters);
+      static RTPFlexFECCodecParametersPtr flexFECCodecCapabilityParametersToParameters(const RTPFlexFECCodecCapabilityParameters &capabilityParameters) noexcept;
+      static RTPFlexFECCodecCapabilityParametersPtr flexFECCodecParametersToCapabilityParameters(const RTPFlexFECCodecParameters &parameters) noexcept;
 
-      static RTPHeaderExtensionParametersListPtr capabilitiesToParameters(const RTPHeaderExtensionsList &capabilities);
-      static RTPHeaderExtensionsListPtr parametersToCapabilities(const RTPHeaderExtensionParametersList &parameters);
+      static RTPHeaderExtensionParametersListPtr capabilitiesToParameters(const RTPHeaderExtensionsList &capabilities) noexcept;
+      static RTPHeaderExtensionsListPtr parametersToCapabilities(const RTPHeaderExtensionParametersList &parameters) noexcept;
 
-      static RTPHeaderExtensionParametersPtr capabilitiesToParameters(const RTPHeaderExtension &capabilities);
-      static RTPHeaderExtensionPtr parametersToCapabilities(const RTPHeaderExtensionParameters &parameters);
+      static RTPHeaderExtensionParametersPtr capabilitiesToParameters(const RTPHeaderExtension &capabilities) noexcept;
+      static RTPHeaderExtensionPtr parametersToCapabilities(const RTPHeaderExtensionParameters &parameters) noexcept;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark Negotiation (unions)
-      #pragma mark
+      //
+      // Negotiation (unions)
+      //
 
       static RTPCapabilitiesPtr createUnion(
                                             const RTPCapabilities &localCapabilities,
                                             const RTPCapabilities &remoteCapabilities,
                                             IDPreferences preference
-                                            );
+                                            ) noexcept;
 
       static RTPCodecCapabilitiesListPtr createUnion(
                                                      const RTPCodecCapabilitiesList &local,
                                                      const RTPCodecCapabilitiesList &remote,
                                                      IDPreferences preference
-                                                     );
+                                                     ) noexcept;
 
       static RTPHeaderExtensionsListPtr createUnion(
                                                     const RTPHeaderExtensionsList &local,
                                                     const RTPHeaderExtensionsList &remote,
                                                     IDPreferences preference
-                                                    );
+                                                    ) noexcept;
 
       static RTPFECMechanismListPtr createUnion(
                                                 const RTPFECMechanismList &local,
                                                 const RTPFECMechanismList &remote,
                                                 IDPreferences preference
-                                                );
+                                                ) noexcept;
 
       static RTPRTCPFeedbackListPtr createUnion(
                                                 const RTPRTCPFeedbackList &local,
                                                 const RTPRTCPFeedbackList &remote,
                                                 IDPreferences preference
-                                                );
+                                                ) noexcept;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark Negotiation (filter)
-      #pragma mark
+      //
+      // Negotiation (filter)
+      //
 
       static RTPParametersPtr filterParameters(
                                                const RTPParameters &parameters,
                                                const RTPCapabilities &capabilities
-                                               );
+                                               ) noexcept;
 
       static RTPCodecParametersListPtr filterParameters(
                                                         const RTPCodecParametersList &codecParameters,
                                                         const RTPCodecCapabilitiesList &codecCapabilities
-                                                        );
+                                                        ) noexcept;
 
       static RTPHeaderExtensionParametersListPtr filterParameters(
                                                                   const RTPHeaderExtensionParametersList &headerParameters,
                                                                   const RTPHeaderExtensionsList &headerCapabilities
-                                                                  );
+                                                                  ) noexcept;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark Negotiation (validation)
-      #pragma mark
+      //
+      // Negotiation (validation)
+      //
 
       static bool isCompatible(
                                const RTPCapabilities &capabilities,
                                const RTPParameters &parameters
-                               );
+                               ) noexcept;
 
       static bool isCompatible(
                                const RTPCapabilities &existingCapabilities,
                                const RTPCapabilities &proposedCapabilities
-                               );
+                               ) noexcept;
 
-      static bool hasSupportedMediaCodec(const RTPCapabilities &capabilities);
-      static bool hasSupportedMediaCodec(const RTPParameters &parameters);
+      static bool hasSupportedMediaCodec(const RTPCapabilities &capabilities) noexcept;
+      static bool hasSupportedMediaCodec(const RTPParameters &parameters) noexcept;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark Negotiation (fill)
-      #pragma mark
+      //
+      // Negotiation (fill)
+      //
 
       struct FillParametersOptions
       {
         FillParametersOptions(
                               SSRCQueue &audioQueue,
                               SSRCQueue &videoQueue
-                              ) : mAudioSSRCQueue(&audioQueue), mVideoSSRCQueue(&videoQueue) {}
+                              ) noexcept : mAudioSSRCQueue(&audioQueue), mVideoSSRCQueue(&videoQueue) {}
 
         SSRCQueue *mAudioSSRCQueue {};
         SSRCQueue *mVideoSSRCQueue {};
@@ -249,7 +249,7 @@ namespace ortc
                                  RTPParameters &ioParameters,
                                  const RTPCapabilities &capabilities,
                                  FillParametersOptions *options = NULL
-                                 );
+                                 ) noexcept;
     };
   }
 }

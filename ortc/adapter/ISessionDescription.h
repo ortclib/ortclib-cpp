@@ -50,9 +50,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISessionDescriptionTypes
-    #pragma mark
+    //
+    // ISessionDescriptionTypes
+    //
 
     interaction ISessionDescriptionTypes
     {
@@ -99,8 +99,8 @@ namespace ortc
         SignalingType_Last = SignalingType_SDPRollback,
       };
 
-      static const char *toString(SignalingTypes type);
-      static SignalingTypes toSignalingType(const char *type);
+      static const char *toString(SignalingTypes type) noexcept;
+      static SignalingTypes toSignalingType(const char *type) noexcept(false);
 
       enum MediaTypes
       {
@@ -116,9 +116,9 @@ namespace ortc
         MediaType_Last = MediaType_Application,
       };
 
-      static const char *toString(MediaTypes mediaType);
-      static MediaTypes toMediaType(const char *mediaType);
-      static Optional<IMediaStreamTrackTypes::Kinds> toMediaStreamTrackKind(MediaTypes mediaType);
+      static const char *toString(MediaTypes mediaType) noexcept;
+      static MediaTypes toMediaType(const char *mediaType) noexcept;
+      static Optional<IMediaStreamTrackTypes::Kinds> toMediaStreamTrackKind(MediaTypes mediaType) noexcept;
 
       enum MediaDirections
       {
@@ -132,8 +132,8 @@ namespace ortc
         MediaDirection_Last = MediaDirection_Inactive,
       };
 
-      static const char *toString(MediaDirections mediaDirection);
-      static MediaDirections toMediaDirection(const char *mediaDirection);
+      static const char *toString(MediaDirections mediaDirection) noexcept;
+      static MediaDirections toMediaDirection(const char *mediaDirection) noexcept(false);
 
       struct ConnectionData
       {
@@ -146,29 +146,29 @@ namespace ortc
           String mAddrType;
           String mConnectionAddress;
 
-          Details() {}
-          Details(const Details &op2) { (*this) = op2; }
-          Details(ElementPtr rootEl);
+          Details() noexcept {}
+          Details(const Details &op2) noexcept { (*this) = op2; }
+          Details(ElementPtr rootEl) noexcept;
 
-          static DetailsPtr create(ElementPtr rootEl) { if (!rootEl) return DetailsPtr(); return make_shared<Details>(rootEl); }
-          ElementPtr createElement(const char *objectName = "details") const;
+          static DetailsPtr create(ElementPtr rootEl) noexcept { if (!rootEl) return DetailsPtr(); return make_shared<Details>(rootEl); }
+          ElementPtr createElement(const char *objectName = "details") const noexcept;
 
-          ElementPtr toDebug() const;
-          String hash() const;
+          ElementPtr toDebug() const noexcept;
+          String hash() const noexcept;
         };
 
         DetailsPtr mRTP;
         DetailsPtr mRTCP;
 
-        ConnectionData() {}
-        ConnectionData(const ConnectionData &op2);
-        ConnectionData(ElementPtr);
+        ConnectionData() noexcept {}
+        ConnectionData(const ConnectionData &op2) noexcept;
+        ConnectionData(ElementPtr) noexcept;
 
-        static ConnectionDataPtr create(ElementPtr rootEl) { if (!rootEl) return ConnectionDataPtr(); return make_shared<ConnectionData>(rootEl); }
-        ElementPtr createElement(const char *objectName = "connectionData") const;
+        static ConnectionDataPtr create(ElementPtr rootEl) noexcept { if (!rootEl) return ConnectionDataPtr(); return make_shared<ConnectionData>(rootEl); }
+        ElementPtr createElement(const char *objectName = "connectionData") const noexcept;
 
-        ElementPtr toDebug() const;
-        String hash() const;
+        ElementPtr toDebug() const noexcept;
+        String hash() const noexcept;
       };
 
       struct Transport
@@ -183,17 +183,17 @@ namespace ortc
           ICECandidateList mICECandidates;
           bool mEndOfCandidates {false};
 
-          Parameters() {}
-          Parameters(const Parameters &op2);
-          Parameters(ElementPtr rootEl);
+          Parameters() noexcept {}
+          Parameters(const Parameters &op2) noexcept;
+          Parameters(ElementPtr rootEl) noexcept;
 
-          Parameters &operator=(const Parameters &op2) = delete;
+          Parameters &operator=(const Parameters &op2) noexcept = delete;
 
-          static ParametersPtr create(ElementPtr rootEl) { if (!rootEl) return ParametersPtr(); return make_shared<Parameters>(rootEl); }
-          ElementPtr createElement(const char *objectName) const;
+          static ParametersPtr create(ElementPtr rootEl) noexcept { if (!rootEl) return ParametersPtr(); return make_shared<Parameters>(rootEl); }
+          ElementPtr createElement(const char *objectName) const noexcept;
 
-          ElementPtr toDebug() const;
-          String hash() const;
+          ElementPtr toDebug() const noexcept;
+          String hash() const noexcept;
         };
 
         TransportID mID;
@@ -201,17 +201,17 @@ namespace ortc
         ParametersPtr mRTCP;
         bool mUseMux {true};
 
-        Transport() {}
-        Transport(const Transport &op2);
-        Transport(ElementPtr rootEl);
+        Transport() noexcept {}
+        Transport(const Transport &op2) noexcept;
+        Transport(ElementPtr rootEl) noexcept;
 
-        Transport &operator=(const Transport &op2) = delete;
+        Transport &operator=(const Transport &op2) noexcept = delete;
 
-        static TransportPtr create(ElementPtr rootEl) { if (!rootEl) return TransportPtr(); return make_shared<Transport>(rootEl); }
-        ElementPtr createElement(const char *objectName = "transport") const;
+        static TransportPtr create(ElementPtr rootEl) noexcept { if (!rootEl) return TransportPtr(); return make_shared<Transport>(rootEl); }
+        ElementPtr createElement(const char *objectName = "transport") const noexcept;
 
-        ElementPtr toDebug() const;
-        String hash() const;
+        ElementPtr toDebug() const noexcept;
+        String hash() const noexcept;
       };
 
       struct MediaLine : public Any
@@ -228,17 +228,17 @@ namespace ortc
           ConnectionDataPtr mConnectionData;
           MediaDirections mMediaDirection {MediaDirection_SendReceive};
 
-          Details() {}
-          Details(const Details &op2);
-          Details(ElementPtr rootEl);
+          Details() noexcept {}
+          Details(const Details &op2) noexcept;
+          Details(ElementPtr rootEl) noexcept;
 
-          Details &operator=(const Details &op2) = delete;
+          Details &operator=(const Details &op2) noexcept = delete;
 
-          static DetailsPtr create(ElementPtr rootEl) { if (!rootEl) return DetailsPtr(); return make_shared<Details>(rootEl); }
-          ElementPtr createElement(const char *objectName = "details") const;
+          static DetailsPtr create(ElementPtr rootEl) noexcept { if (!rootEl) return DetailsPtr(); return make_shared<Details>(rootEl); }
+          ElementPtr createElement(const char *objectName = "details") const noexcept;
 
-          ElementPtr toDebug() const;
-          String hash() const;
+          ElementPtr toDebug() const noexcept;
+          String hash() const noexcept;
         };
 
         MediaLineID mID;
@@ -248,15 +248,15 @@ namespace ortc
         DetailsPtr mDetails;
 
       protected:
-        MediaLine() {}
-        MediaLine(const MediaLine &op2);
-        MediaLine(ElementPtr rootEl);
+        MediaLine() noexcept {}
+        MediaLine(const MediaLine &op2) noexcept;
+        MediaLine(ElementPtr rootEl) noexcept;
 
-        MediaLine &operator=(const MediaLine &op2) = delete;
+        MediaLine &operator=(const MediaLine &op2) noexcept = delete;
 
-        ElementPtr createElement(const char *objectName) const;
-        ElementPtr toDebug() const;
-        String hash() const;
+        ElementPtr createElement(const char *objectName) const noexcept;
+        ElementPtr toDebug() const noexcept;
+        String hash() const noexcept;
       };
 
       struct RTPMediaLine : public MediaLine
@@ -264,17 +264,17 @@ namespace ortc
         RTPCapabilitiesPtr mSenderCapabilities;
         RTPCapabilitiesPtr mReceiverCapabilities;
 
-        RTPMediaLine() {}
-        RTPMediaLine(const RTPMediaLine &op2);
-        RTPMediaLine(ElementPtr rootEl);
+        RTPMediaLine() noexcept {}
+        RTPMediaLine(const RTPMediaLine &op2) noexcept;
+        RTPMediaLine(ElementPtr rootEl) noexcept;
 
-        RTPMediaLine &operator=(const RTPMediaLine &op2) = delete;
+        RTPMediaLine &operator=(const RTPMediaLine &op2) noexcept = delete;
 
-        static RTPMediaLinePtr create(ElementPtr rootEl) { if (!rootEl) return RTPMediaLinePtr(); return make_shared<RTPMediaLine>(rootEl); }
-        ElementPtr createElement(const char *objectName = "rtpMediaLine") const;
+        static RTPMediaLinePtr create(ElementPtr rootEl) noexcept { if (!rootEl) return RTPMediaLinePtr(); return make_shared<RTPMediaLine>(rootEl); }
+        ElementPtr createElement(const char *objectName = "rtpMediaLine") const noexcept;
 
-        ElementPtr toDebug() const;
-        String hash() const;
+        ElementPtr toDebug() const noexcept;
+        String hash() const noexcept;
       };
 
       struct SCTPMediaLine : public MediaLine
@@ -282,17 +282,17 @@ namespace ortc
         SCTPCapabilitiesPtr mCapabilities;
         Optional<WORD> mPort;
 
-        SCTPMediaLine() {}
-        SCTPMediaLine(const SCTPMediaLine &op2);
-        SCTPMediaLine(ElementPtr rootEl);
+        SCTPMediaLine() noexcept {}
+        SCTPMediaLine(const SCTPMediaLine &op2) noexcept;
+        SCTPMediaLine(ElementPtr rootEl) noexcept;
 
-        SCTPMediaLine &operator=(const SCTPMediaLine &op2) = delete;
+        SCTPMediaLine &operator=(const SCTPMediaLine &op2) noexcept = delete;
 
-        static SCTPMediaLinePtr create(ElementPtr rootEl) { if (!rootEl) return SCTPMediaLinePtr(); return make_shared<SCTPMediaLine>(rootEl); }
-        ElementPtr createElement(const char *objectName = "sctpMediaLine") const;
+        static SCTPMediaLinePtr create(ElementPtr rootEl) noexcept { if (!rootEl) return SCTPMediaLinePtr(); return make_shared<SCTPMediaLine>(rootEl); }
+        ElementPtr createElement(const char *objectName = "sctpMediaLine") const noexcept;
 
-        ElementPtr toDebug() const;
-        String hash() const;
+        ElementPtr toDebug() const noexcept;
+        String hash() const noexcept;
       };
 
       struct RTPSender
@@ -303,17 +303,17 @@ namespace ortc
         {
           Optional<size_t> mInternalRTPMediaLineIndex;
 
-          Details() {}
-          Details(const Details &op2);
-          Details(ElementPtr rootEl);
+          Details() noexcept {}
+          Details(const Details &op2) noexcept;
+          Details(ElementPtr rootEl) noexcept;
 
-          Details &operator=(const Details &op2) = delete;
+          Details &operator=(const Details &op2) noexcept = delete;
 
-          static DetailsPtr create(ElementPtr rootEl) { if (!rootEl) return DetailsPtr(); return make_shared<Details>(rootEl); }
-          ElementPtr createElement(const char *objectName = "details") const;
+          static DetailsPtr create(ElementPtr rootEl) noexcept { if (!rootEl) return DetailsPtr(); return make_shared<Details>(rootEl); }
+          ElementPtr createElement(const char *objectName = "details") const noexcept;
 
-          ElementPtr toDebug() const;
-          String hash() const;
+          ElementPtr toDebug() const noexcept;
+          String hash() const noexcept;
         };
 
         SenderID mID;
@@ -323,17 +323,17 @@ namespace ortc
         String mMediaStreamTrackID;
         MediaStreamSet mMediaStreamIDs;
 
-        RTPSender() {}
-        RTPSender(const RTPSender &op2);
-        RTPSender(ElementPtr rootEL);
+        RTPSender() noexcept {}
+        RTPSender(const RTPSender &op2) noexcept;
+        RTPSender(ElementPtr rootEL) noexcept;
 
-        RTPSender &operator=(const RTPSender &op2) = delete;
+        RTPSender &operator=(const RTPSender &op2) noexcept = delete;
 
-        static RTPSenderPtr create(ElementPtr rootEl) { if (!rootEl) return RTPSenderPtr(); return make_shared<RTPSender>(rootEl); }
-        ElementPtr createElement(const char *objectName = "rtpSender") const;
+        static RTPSenderPtr create(ElementPtr rootEl) noexcept { if (!rootEl) return RTPSenderPtr(); return make_shared<RTPSender>(rootEl); }
+        ElementPtr createElement(const char *objectName = "rtpSender") const noexcept;
 
-        ElementPtr toDebug() const;
-        String hash() const;
+        ElementPtr toDebug() const noexcept;
+        String hash() const noexcept;
       };
 
       struct ICECandidate
@@ -342,21 +342,21 @@ namespace ortc
         Optional<size_t> mMLineIndex;
         IICETypes::GatherCandidatePtr mCandidate;
 
-        ICECandidate() {}
-        ICECandidate(const ICECandidate &op2);
+        ICECandidate() noexcept {}
+        ICECandidate(const ICECandidate &op2) noexcept;
 
-        ICECandidate &operator=(const ICECandidate &op2) = delete;
+        ICECandidate &operator=(const ICECandidate &op2) noexcept = delete;
 
-        static ICECandidatePtr create(ElementPtr rootEl);
-        ElementPtr createElement(const char *objectName = "iceCandidate") const;
+        static ICECandidatePtr create(ElementPtr rootEl) noexcept;
+        ElementPtr createElement(const char *objectName = "iceCandidate") const noexcept;
 
-        ElementPtr toDebug() const;
-        String hash() const;
+        ElementPtr toDebug() const noexcept;
+        String hash() const noexcept;
 
-        static ICECandidatePtr createFromJSON(ElementPtr rootEl) { return create(rootEl); }
-        static ICECandidatePtr createFromSDP(const char *value);
-        String toSDP() const;
-        ElementPtr toJSON() const;
+        static ICECandidatePtr createFromJSON(ElementPtr rootEl) noexcept { return create(rootEl); }
+        static ICECandidatePtr createFromSDP(const char *value) noexcept;
+        String toSDP() const noexcept;
+        ElementPtr toJSON() const noexcept;
       };
 
       struct Description
@@ -374,17 +374,17 @@ namespace ortc
           QWORD mEndTime {};
           ConnectionDataPtr mConnectionData;  // optional; can be null;
 
-          Details() {}
-          Details(const Details &op2);
-          Details(ElementPtr rootEl);
+          Details() noexcept {}
+          Details(const Details &op2) noexcept;
+          Details(ElementPtr rootEl) noexcept;
 
-          Details &operator=(const Details &op2) = delete;
+          Details &operator=(const Details &op2) noexcept = delete;
 
-          static DetailsPtr create(ElementPtr rootEl) { if (!rootEl) return DetailsPtr(); return make_shared<Details>(rootEl); }
-          ElementPtr createElement(const char *objectName = "details") const;
+          static DetailsPtr create(ElementPtr rootEl) noexcept { if (!rootEl) return DetailsPtr(); return make_shared<Details>(rootEl); }
+          ElementPtr createElement(const char *objectName = "details") const noexcept;
 
-          ElementPtr toDebug() const;
-          String hash() const;
+          ElementPtr toDebug() const noexcept;
+          String hash() const noexcept;
         };
 
         DetailsPtr mDetails;                // optional; can be null;
@@ -394,17 +394,17 @@ namespace ortc
         SCTPMediaList mSCTPMediaLines;
         RTPSenderList mRTPSenders;
 
-        Description() {}
-        Description(const Description &op2);
-        Description(ElementPtr rootEl);
+        Description() noexcept {}
+        Description(const Description &op2) noexcept;
+        Description(ElementPtr rootEl) noexcept;
 
-        Description &operator=(const Description &op2) = delete;
+        Description &operator=(const Description &op2) noexcept = delete;
 
-        static DescriptionPtr create(ElementPtr rootEl) { if (!rootEl) return DescriptionPtr(); return make_shared<Description>(rootEl); }
-        ElementPtr createElement(const char *objectName = "session") const;
+        static DescriptionPtr create(ElementPtr rootEl) noexcept { if (!rootEl) return DescriptionPtr(); return make_shared<Description>(rootEl); }
+        ElementPtr createElement(const char *objectName = "session") const noexcept;
 
-        ElementPtr toDebug() const;
-        String hash() const;
+        ElementPtr toDebug() const noexcept;
+        String hash() const noexcept;
       };
     };
 
@@ -412,9 +412,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISessionDescription
-    #pragma mark
+    //
+    // ISessionDescription
+    //
 
     interface ISessionDescription : public ISessionDescriptionTypes,
                                     public Any
@@ -422,19 +422,19 @@ namespace ortc
       static ISessionDescriptionPtr create(
                                            SignalingTypes type,
                                            const char *description
-                                           );
+                                           ) noexcept;
       static ISessionDescriptionPtr create(
                                            SignalingTypes type,
                                            const Description &description
-                                           );
+                                           ) noexcept;
 
-      static ElementPtr toDebug(ISessionDescriptionPtr object);
+      static ElementPtr toDebug(ISessionDescriptionPtr object) noexcept;
 
-      virtual PUID getID() const = 0;
+      virtual PUID getID() const noexcept = 0;
 
-      virtual SignalingTypes type() const = 0;
-      virtual DescriptionPtr description() const = 0;
-      virtual SignalingDescription formattedDescription() const = 0;
+      virtual SignalingTypes type() const noexcept = 0;
+      virtual DescriptionPtr description() const noexcept = 0;
+      virtual SignalingDescription formattedDescription() const noexcept = 0;
     };
   }
 }

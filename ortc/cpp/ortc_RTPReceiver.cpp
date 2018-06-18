@@ -61,13 +61,6 @@
 #include <cryptopp/sha.h>
 
 
-#ifdef _DEBUG
-#define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))
-#else
-#define ASSERT(x)
-#endif //_DEBUG
-
-
 namespace ortc { ZS_DECLARE_SUBSYSTEM(org_ortc_rtp_receiver) }
 
 namespace ortc
@@ -87,12 +80,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark (helpers)
-    #pragma mark
+    //
+    // (helpers)
+    //
 
     //-------------------------------------------------------------------------
-    static bool shouldFilter(IRTPTypes::HeaderExtensionURIs extensionURI)
+    static bool shouldFilter(IRTPTypes::HeaderExtensionURIs extensionURI) noexcept
     {
       switch (extensionURI) {
         case IRTPTypes::HeaderExtensionURI_Unknown:                           return true;
@@ -117,28 +110,28 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPReceiverSettingsDefaults
-    #pragma mark
+    //
+    // RTPReceiverSettingsDefaults
+    //
 
     class RTPReceiverSettingsDefaults : public ISettingsApplyDefaultsDelegate
     {
     public:
       //-----------------------------------------------------------------------
-      ~RTPReceiverSettingsDefaults()
+      ~RTPReceiverSettingsDefaults() noexcept
       {
         ISettings::removeDefaults(*this);
       }
 
       //-----------------------------------------------------------------------
-      static RTPReceiverSettingsDefaultsPtr singleton()
+      static RTPReceiverSettingsDefaultsPtr singleton() noexcept
       {
         static SingletonLazySharedPtr<RTPReceiverSettingsDefaults> singleton(create());
         return singleton.singleton();
       }
 
       //-----------------------------------------------------------------------
-      static RTPReceiverSettingsDefaultsPtr create()
+      static RTPReceiverSettingsDefaultsPtr create() noexcept
       {
         auto pThis(make_shared<RTPReceiverSettingsDefaults>());
         ISettings::installDefaults(pThis);
@@ -146,7 +139,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      virtual void notifySettingsApplyDefaults() override
+      virtual void notifySettingsApplyDefaults() noexcept override
       {
         ISettings::setUInt(ORTC_SETTING_RTP_RECEIVER_SSRC_TIMEOUT_IN_SECONDS, 60);
 
@@ -163,7 +156,7 @@ namespace ortc
     };
 
     //-------------------------------------------------------------------------
-    void installRTPReceiverSettingsDefaults()
+    void installRTPReceiverSettingsDefaults() noexcept
     {
       RTPReceiverSettingsDefaults::singleton();
     }
@@ -172,12 +165,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPReceiverForRTPListener
-    #pragma mark
+    //
+    // IRTPReceiverForRTPListener
+    //
 
     //-------------------------------------------------------------------------
-    ElementPtr IRTPReceiverForRTPListener::toDebug(ForRTPListenerPtr object)
+    ElementPtr IRTPReceiverForRTPListener::toDebug(ForRTPListenerPtr object) noexcept
     {
       if (!object) return ElementPtr();
       return ZS_DYNAMIC_PTR_CAST(RTPReceiver, object)->toDebug();
@@ -187,12 +180,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPReceiverForRTPReceiverChannel
-    #pragma mark
+    //
+    // IRTPReceiverForRTPReceiverChannel
+    //
 
     //-------------------------------------------------------------------------
-    ElementPtr IRTPReceiverForRTPReceiverChannel::toDebug(ForRTPReceiverChannelPtr object)
+    ElementPtr IRTPReceiverForRTPReceiverChannel::toDebug(ForRTPReceiverChannelPtr object) noexcept
     {
       if (!object) return ElementPtr();
       return ZS_DYNAMIC_PTR_CAST(RTPReceiver, object)->toDebug();
@@ -202,12 +195,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPReceiverForMediaStreamTrack
-    #pragma mark
+    //
+    // IRTPReceiverForMediaStreamTrack
+    //
 
     //-------------------------------------------------------------------------
-    ElementPtr IRTPReceiverForMediaStreamTrack::toDebug(ForMediaStreamTrackPtr object)
+    ElementPtr IRTPReceiverForMediaStreamTrack::toDebug(ForMediaStreamTrackPtr object) noexcept
     {
       if (!object) return ElementPtr();
       return ZS_DYNAMIC_PTR_CAST(RTPReceiver, object)->toDebug();
@@ -217,20 +210,20 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPReceiver::RegisteredHeaderExtension
-    #pragma mark
+    //
+    // RTPReceiver::RegisteredHeaderExtension
+    //
     
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPReceiver::CodecTypes
-    #pragma mark
+    //
+    // RTPReceiver::CodecTypes
+    //
     
     //---------------------------------------------------------------------------
-    const char *RTPReceiver::toString(CodecTypes type)
+    const char *RTPReceiver::toString(CodecTypes type) noexcept
     {
       switch (type) {
         case CodecType_Normal:    return "normal";
@@ -243,7 +236,7 @@ namespace ortc
     }
 
     //---------------------------------------------------------------------------
-    RTPReceiver::CodecTypes RTPReceiver::toCodecType(const char *type)
+    RTPReceiver::CodecTypes RTPReceiver::toCodecType(const char *type) noexcept(false)
     {
       String str(type);
 
@@ -251,24 +244,24 @@ namespace ortc
         if (str == toString(index)) return index;
       }
 
-      ORTC_THROW_INVALID_PARAMETERS(type)
+      ORTC_THROW_INVALID_PARAMETERS(type);
     }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPReceiver::ChannelHolder
-    #pragma mark
+    //
+    // RTPReceiver::ChannelHolder
+    //
 
     //-------------------------------------------------------------------------
-    RTPReceiver::ChannelHolder::ChannelHolder()
+    RTPReceiver::ChannelHolder::ChannelHolder() noexcept
     {
     }
 
     //-------------------------------------------------------------------------
-    RTPReceiver::ChannelHolder::~ChannelHolder()
+    RTPReceiver::ChannelHolder::~ChannelHolder() noexcept
     {
       notify(ISecureTransport::State_Closed);
 
@@ -279,13 +272,13 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    PUID RTPReceiver::ChannelHolder::getID() const
+    PUID RTPReceiver::ChannelHolder::getID() const noexcept
     {
       return mChannel->getID();
     }
 
     //-------------------------------------------------------------------------
-    void RTPReceiver::ChannelHolder::notify(ISecureTransport::States state)
+    void RTPReceiver::ChannelHolder::notify(ISecureTransport::States state) noexcept
     {
       if (state == mLastReportedState) return;
 
@@ -294,48 +287,48 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPReceiver::ChannelHolder::notify(RTPPacketPtr packet)
+    void RTPReceiver::ChannelHolder::notify(RTPPacketPtr packet) noexcept
     {
       if (ISecureTransport::State_Closed == mLastReportedState) return;
       mChannel->notifyPacket(packet);
     }
 
     //-------------------------------------------------------------------------
-    void RTPReceiver::ChannelHolder::notify(RTCPPacketListPtr packets)
+    void RTPReceiver::ChannelHolder::notify(RTCPPacketListPtr packets) noexcept
     {
       if (ISecureTransport::State_Closed == mLastReportedState) return;
       mChannel->notifyPackets(packets);
     }
 
     //-------------------------------------------------------------------------
-    void RTPReceiver::ChannelHolder::update(const Parameters &params)
+    void RTPReceiver::ChannelHolder::update(const Parameters &params) noexcept
     {
       if (ISecureTransport::State_Closed == mLastReportedState) return;
       mChannel->notifyUpdate(params);
     }
 
     //-------------------------------------------------------------------------
-    bool RTPReceiver::ChannelHolder::handle(RTPPacketPtr packet)
+    bool RTPReceiver::ChannelHolder::handle(RTPPacketPtr packet) noexcept
     {
       if (ISecureTransport::State_Closed == mLastReportedState) return false;
       return mChannel->handlePacket(packet);
     }
 
     //-------------------------------------------------------------------------
-    bool RTPReceiver::ChannelHolder::handle(RTCPPacketPtr packet)
+    bool RTPReceiver::ChannelHolder::handle(RTCPPacketPtr packet) noexcept
     {
       if (ISecureTransport::State_Closed == mLastReportedState) return false;
       return mChannel->handlePacket(packet);
     }
 
     //-------------------------------------------------------------------------
-    void RTPReceiver::ChannelHolder::requestStats(PromiseWithStatsReportPtr promise, const StatsTypeSet &stats)
+    void RTPReceiver::ChannelHolder::requestStats(PromiseWithStatsReportPtr promise, const StatsTypeSet &stats) noexcept
     {
       return mChannel->requestStats(promise, stats);
     }
 
     //-------------------------------------------------------------------------
-    ElementPtr RTPReceiver::ChannelHolder::toDebug() const
+    ElementPtr RTPReceiver::ChannelHolder::toDebug() const noexcept
     {
       ElementPtr resultEl = Element::create("ortc::RTPReceiver::ChannelHolder");
 
@@ -351,26 +344,26 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPReceiver::ChannelInfo
-    #pragma mark
+    //
+    // RTPReceiver::ChannelInfo
+    //
 
     //-------------------------------------------------------------------------
-    bool RTPReceiver::ChannelInfo::shouldLatchAll() const
+    bool RTPReceiver::ChannelInfo::shouldLatchAll() const noexcept
     {
       if (mOriginalParameters->mEncodings.size() < 1) return true;
       return false;
     }
 
     //-------------------------------------------------------------------------
-    String RTPReceiver::ChannelInfo::rid() const
+    String RTPReceiver::ChannelInfo::rid() const noexcept
     {
       if (shouldLatchAll()) return String();
       return mFilledParameters->mEncodings.front().mEncodingID;
     }
 
     //-------------------------------------------------------------------------
-    RTPReceiver::SSRCInfoPtr RTPReceiver::ChannelInfo::registerSSRCUsage(SSRCInfoPtr ssrcInfo)
+    RTPReceiver::SSRCInfoPtr RTPReceiver::ChannelInfo::registerSSRCUsage(SSRCInfoPtr ssrcInfo) noexcept
     {
       mRegisteredSSRCs[SSRCRoutingPair(ssrcInfo->mSSRC, ssrcInfo->mRoutingPayload)] = ssrcInfo;
       return ssrcInfo;
@@ -380,7 +373,7 @@ namespace ortc
     void RTPReceiver::ChannelInfo::unregisterSSRCUsage(
                                                        SSRCType ssrc,
                                                        RoutingPayloadType routingPayload
-                                                       )
+                                                       ) noexcept
     {
       auto found = mRegisteredSSRCs.find(SSRCRoutingPair(ssrc, routingPayload));
       if (found == mRegisteredSSRCs.end()) return;
@@ -388,7 +381,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPReceiver::ChannelInfo::registerHolder(ChannelHolderPtr channelHolder)
+    void RTPReceiver::ChannelInfo::registerHolder(ChannelHolderPtr channelHolder) noexcept
     {
       if (!channelHolder) return;
       mChannelHolder = channelHolder;
@@ -400,7 +393,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ElementPtr RTPReceiver::ChannelInfo::toDebug() const
+    ElementPtr RTPReceiver::ChannelInfo::toDebug() const noexcept
     {
       ElementPtr resultEl = Element::create("ortc::RTPReceiver::ChannelInfo");
 
@@ -427,12 +420,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPReceiver::RIDInfo
-    #pragma mark
+    //
+    // RTPReceiver::RIDInfo
+    //
 
     //-------------------------------------------------------------------------
-    ElementPtr RTPReceiver::RIDInfo::toDebug() const
+    ElementPtr RTPReceiver::RIDInfo::toDebug() const noexcept
     {
       ElementPtr resultEl = Element::create("ortc::RTPReceiver::RIDInfo");
 
@@ -446,18 +439,18 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPReceiver::SSRCInfo
-    #pragma mark
+    //
+    // RTPReceiver::SSRCInfo
+    //
 
     //---------------------------------------------------------------------------
-    RTPReceiver::SSRCInfo::SSRCInfo() :
+    RTPReceiver::SSRCInfo::SSRCInfo() noexcept :
       mLastUsage(zsLib::now())
     {
     }
 
     //---------------------------------------------------------------------------
-    ElementPtr RTPReceiver::SSRCInfo::toDebug() const
+    ElementPtr RTPReceiver::SSRCInfo::toDebug() const noexcept
     {
       ElementPtr resultEl = Element::create("ortc::RTPReceiver::SSRCInfo");
 
@@ -474,12 +467,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPReceiver::CodecInfo
-    #pragma mark
+    //
+    // RTPReceiver::CodecInfo
+    //
 
     //---------------------------------------------------------------------------
-    ElementPtr RTPReceiver::CodecInfo::toDebug() const
+    ElementPtr RTPReceiver::CodecInfo::toDebug() const noexcept
     {
       ElementPtr resultEl = Element::create("ortc::RTPReceiver::CodecInfo");
 
@@ -498,12 +491,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPReceiver
-    #pragma mark
+    //
+    // RTPReceiver
+    //
     
     //---------------------------------------------------------------------------
-    const char *RTPReceiver::toString(States state)
+    const char *RTPReceiver::toString(States state) noexcept
     {
       switch (state) {
         case State_Pending:       return "pending";
@@ -522,7 +515,7 @@ namespace ortc
                              Kinds kind,
                              IRTPTransportPtr transport,
                              IRTCPTransportPtr rtcpTransport
-                             ) :
+                             ) noexcept(false) :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
       mSubscriptions(decltype(mSubscriptions)::create()),
@@ -535,15 +528,15 @@ namespace ortc
       mLockAfterSwitchTime(ISettings::getUInt(ORTC_SETTING_RTP_RECEIVER_LOCK_TO_RECEIVER_CHANNEL_AFTER_SWITCH_EXCLUSIVELY_FOR_IN_MILLISECONDS)),
       mAmbiguousPayloadMappingMinDifference(ISettings::getUInt(ORTC_SETTING_RTP_RECEIVER_ONLY_RESOLVE_AMBIGUOUS_PAYLOAD_MAPPING_IF_ACTIVITY_DIFFERS_IN_MILLISECONDS))
     {
-      ZS_LOG_DETAIL(debug("created"))
+      ZS_LOG_DETAIL(debug("created"));
 
       mListener = UseListener::getListener(transport);
-      ORTC_THROW_INVALID_PARAMETERS_IF(!mListener)
+      ORTC_THROW_INVALID_PARAMETERS_IF(!mListener);
 
       UseSecureTransport::getReceivingTransport(transport, rtcpTransport, mReceiveRTPOverTransport, mReceiveRTCPOverTransport, mRTPTransport, mRTCPTransport);
       mSendRTCPOverTransport = mReceiveRTCPOverTransport;
 
-      ZS_LOG_DEBUG(log("creating media stream track") + ZS_PARAM("kind", IMediaStreamTrack::toString(mKind)))
+      ZS_LOG_DEBUG(log("creating media stream track") + ZS_PARAM("kind", IMediaStreamTrack::toString(mKind)));
       
 #if 0
       mTrack = UseMediaStreamTrack::create(mKind);
@@ -570,7 +563,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPReceiver::init()
+    void RTPReceiver::init() noexcept
     {
       AutoRecursiveLock lock(*this);
 
@@ -591,7 +584,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    RTPReceiver::~RTPReceiver()
+    RTPReceiver::~RTPReceiver() noexcept
     {
       if (isNoop()) return;
 
@@ -603,25 +596,25 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    RTPReceiverPtr RTPReceiver::convert(IRTPReceiverPtr object)
+    RTPReceiverPtr RTPReceiver::convert(IRTPReceiverPtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(RTPReceiver, object);
     }
 
     //-------------------------------------------------------------------------
-    RTPReceiverPtr RTPReceiver::convert(ForRTPListenerPtr object)
+    RTPReceiverPtr RTPReceiver::convert(ForRTPListenerPtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(RTPReceiver, object);
     }
 
     //-------------------------------------------------------------------------
-    RTPReceiverPtr RTPReceiver::convert(ForRTPReceiverChannelPtr object)
+    RTPReceiverPtr RTPReceiver::convert(ForRTPReceiverChannelPtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(RTPReceiver, object);
     }
 
     //-------------------------------------------------------------------------
-    RTPReceiverPtr RTPReceiver::convert(ForMediaStreamTrackPtr object)
+    RTPReceiverPtr RTPReceiver::convert(ForMediaStreamTrackPtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(RTPReceiver, object);
     }
@@ -631,12 +624,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPReceiver => IStatsProvider
-    #pragma mark
+    //
+    // RTPReceiver => IStatsProvider
+    //
 
     //-------------------------------------------------------------------------
-    IStatsProvider::PromiseWithStatsReportPtr RTPReceiver::getStats(const StatsTypeSet &stats) const
+    IStatsProvider::PromiseWithStatsReportPtr RTPReceiver::getStats(const StatsTypeSet &stats) const noexcept
     {
       if (!stats.hasStatType(IStatsReportTypes::StatsType_InboundRTP)) {
         return PromiseWithStatsReport::createRejected(IORTCForInternal::queueDelegate());
@@ -668,12 +661,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPReceiver => IRTPReceiver
-    #pragma mark
+    //
+    // RTPReceiver => IRTPReceiver
+    //
     
     //-------------------------------------------------------------------------
-    ElementPtr RTPReceiver::toDebug(RTPReceiverPtr transport)
+    ElementPtr RTPReceiver::toDebug(RTPReceiverPtr transport) noexcept
     {
       if (!transport) return ElementPtr();
       return transport->toDebug();
@@ -685,7 +678,7 @@ namespace ortc
                                        Kinds kind,
                                        IRTPTransportPtr transport,
                                        IRTCPTransportPtr rtcpTransport
-                                       )
+                                       ) noexcept
     {
       RTPReceiverPtr pThis(make_shared<RTPReceiver>(make_private {}, IORTCForInternal::queueORTC(), delegate, kind, transport, rtcpTransport));
       pThis->mThisWeak = pThis;
@@ -694,7 +687,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    IRTPReceiverSubscriptionPtr RTPReceiver::subscribe(IRTPReceiverDelegatePtr originalDelegate)
+    IRTPReceiverSubscriptionPtr RTPReceiver::subscribe(IRTPReceiverDelegatePtr originalDelegate) noexcept
     {
       ZS_LOG_DETAIL(log("subscribing to receiver"))
 
@@ -718,13 +711,13 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ortc::IMediaStreamTrackPtr RTPReceiver::track() const
+    ortc::IMediaStreamTrackPtr RTPReceiver::track() const noexcept
     {
       return IMediaStreamTrackPtr(MediaStreamTrack::convert(mTrack));
     }
 
     //-------------------------------------------------------------------------
-    IRTPTransportPtr RTPReceiver::transport() const
+    IRTPTransportPtr RTPReceiver::transport() const noexcept
     {
       AutoRecursiveLock lock(*this);
       if (!mRTPTransport) return IRTPTransportPtr();
@@ -742,7 +735,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    IRTCPTransportPtr RTPReceiver::rtcpTransport() const
+    IRTCPTransportPtr RTPReceiver::rtcpTransport() const noexcept
     {
       AutoRecursiveLock lock(*this);
       if (!mRTCPTransport) return IRTCPTransportPtr();
@@ -766,14 +759,14 @@ namespace ortc
     void RTPReceiver::setTransport(
                                    IRTPTransportPtr transport,
                                    IRTCPTransportPtr rtcpTransport
-                                   )
+                                   ) noexcept(false)
     {
       typedef std::set<PUID> PUIDSet;
 
       AutoRecursiveLock lock(*this);
 
       UseListenerPtr listener = UseListener::getListener(transport);
-      ORTC_THROW_INVALID_PARAMETERS_IF(!listener)
+      ORTC_THROW_INVALID_PARAMETERS_IF(!listener);
 
       if (listener->getID() == mListener->getID()) {
         ZS_LOG_TRACE(log("transport has not changed (noop)"))
@@ -826,7 +819,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    IRTPReceiverTypes::CapabilitiesPtr RTPReceiver::getCapabilities(Optional<Kinds> kind)
+    IRTPReceiverTypes::CapabilitiesPtr RTPReceiver::getCapabilities(Optional<Kinds> kind) noexcept
     {
       //kRtcpReport - always on
       //kRtcpSr - always on
@@ -1316,7 +1309,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    PromisePtr RTPReceiver::receive(const Parameters &inParameters)
+    PromisePtr RTPReceiver::receive(const Parameters &inParameters) noexcept(false)
     {
       typedef RTPTypesHelper::ParametersPtrPairList ParametersPtrPairList;
 
@@ -1426,7 +1419,7 @@ namespace ortc
             info.mOriginalCodec = &aptCodec;
           }
 
-          ORTC_THROW_INVALID_PARAMETERS_IF(NULL == info.mOriginalCodec) // must point to an original codec
+          ORTC_THROW_INVALID_PARAMETERS_IF(NULL == info.mOriginalCodec); // must point to an original codec
         }
       }
 
@@ -1485,7 +1478,7 @@ namespace ortc
           for (auto iter = removeChannels.begin(); iter != removeChannels.end(); ++iter) {
             auto &params = (*iter);
             auto found = mChannelInfos.find(params);
-            ASSERT(found != mChannelInfos.end())
+            ZS_ASSERT(found != mChannelInfos.end());
 
             if (found == mChannelInfos.end()) continue;
 
@@ -1503,7 +1496,7 @@ namespace ortc
             auto &oldParams = pairInfo.first;
             auto &newParams = pairInfo.second;
             auto found = mChannelInfos.find(oldParams);
-            ASSERT(found != mChannelInfos.end())
+            ZS_ASSERT(found != mChannelInfos.end());
 
             if (found == mChannelInfos.end()) continue;
 
@@ -1521,7 +1514,7 @@ namespace ortc
             auto &oldParams = pairInfo.first;
             auto &newParams = pairInfo.second;
             auto found = mChannelInfos.find(oldParams);
-            ASSERT(found != mChannelInfos.end())
+            ZS_ASSERT(found != mChannelInfos.end());
 
             if (found == mChannelInfos.end()) continue;
 
@@ -1574,7 +1567,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPReceiver::stop()
+    void RTPReceiver::stop() noexcept
     {
       ZS_EVENTING_1(x, i, Detail, RtpReceiverStop, ol, RtpReceiver, Stop, puid, id, mID);
 
@@ -1585,7 +1578,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    IRTPReceiverTypes::ContributingSourceList RTPReceiver::getContributingSources() const
+    IRTPReceiverTypes::ContributingSourceList RTPReceiver::getContributingSources() const noexcept
     {
       ContributingSourceList result;
 
@@ -1601,24 +1594,25 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPReceiver::requestSendCSRC(SSRCType csrc)
+    void RTPReceiver::requestSendCSRC(ZS_MAYBE_USED() SSRCType csrc) noexcept(false)
     {
-      ZS_THROW_NOT_IMPLEMENTED("solely used by the H.264/UC codec; for a receiver to request an SSRC from a sender (not implemented by this client)")
+      ZS_MAYBE_USED(csrc);
+      ZS_THROW_NOT_IMPLEMENTED("solely used by the H.264/UC codec; for a receiver to request an SSRC from a sender (not implemented by this client)");
     }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPReceiver => IRTPReceiverForRTPListener
-    #pragma mark
+    //
+    // RTPReceiver => IRTPReceiverForRTPListener
+    //
 
     //-------------------------------------------------------------------------
     bool RTPReceiver::handlePacket(
                                    IICETypes::Components viaTransport,
                                    RTPPacketPtr packet
-                                   )
+                                   ) noexcept
     {
       ZS_EVENTING_5(
                     x, i, Trace, RtpReceivedIncomingPacket, ol, RtpReceiver, Receive, 
@@ -1690,7 +1684,7 @@ namespace ortc
     bool RTPReceiver::handlePacket(
                                    IICETypes::Components viaTransport,
                                    RTCPPacketPtr packet
-                                   )
+                                   ) noexcept
     {
       ZS_EVENTING_5(
                     x, i, Trace, RtpReceivedIncomingPacket, ol, RtpReceiver, Receive,
@@ -1750,12 +1744,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPReceiver => IRTPReceiverForRTPReceiverChannel
-    #pragma mark
+    //
+    // RTPReceiver => IRTPReceiverForRTPReceiverChannel
+    //
 
     //-------------------------------------------------------------------------
-    bool RTPReceiver::sendPacket(RTCPPacketPtr packet)
+    bool RTPReceiver::sendPacket(RTCPPacketPtr packet) noexcept
     {
       UseSecureTransportPtr rtcpTransport;
 
@@ -1793,17 +1787,17 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPReceiver => IRTPReceiverForRTPReceiverChannel
-    #pragma mark
+    //
+    // RTPReceiver => IRTPReceiverForRTPReceiverChannel
+    //
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPReceiver => ISecureTransportDelegate
-    #pragma mark
+    //
+    // RTPReceiver => ISecureTransportDelegate
+    //
 
     //-------------------------------------------------------------------------
     void RTPReceiver::onSecureTransportStateChanged(
@@ -1828,9 +1822,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPReceiver => IWakeDelegate
-    #pragma mark
+    //
+    // RTPReceiver => IWakeDelegate
+    //
 
     //-------------------------------------------------------------------------
     void RTPReceiver::onWake()
@@ -1847,9 +1841,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPReceiver => ITimerDelegate
-    #pragma mark
+    //
+    // RTPReceiver => ITimerDelegate
+    //
 
     //-------------------------------------------------------------------------
     void RTPReceiver::onTimer(ITimerPtr timer)
@@ -1932,20 +1926,20 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPReceiver => IRTPReceiverAsyncDelegate
-    #pragma mark
+    //
+    // RTPReceiver => IRTPReceiverAsyncDelegate
+    //
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPReceiver => (friend RTPReceiver::ChannelHolder)
-    #pragma mark
+    //
+    // RTPReceiver => (friend RTPReceiver::ChannelHolder)
+    //
 
     //-------------------------------------------------------------------------
-    void RTPReceiver::notifyChannelGone()
+    void RTPReceiver::notifyChannelGone() noexcept
     {
       ZS_EVENTING_1(x, i, Trace, RtpReceiverInternalChannelGoneEvent, ol, RtpReceiver, InternalEvent, puid, id, mID);
 
@@ -1957,12 +1951,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPReceiver => (internal)
-    #pragma mark
+    //
+    // RTPReceiver => (internal)
+    //
 
     //-------------------------------------------------------------------------
-    Log::Params RTPReceiver::log(const char *message) const
+    Log::Params RTPReceiver::log(const char *message) const noexcept
     {
       ElementPtr objectEl = Element::create("ortc::RTPReceiver");
       UseServicesHelper::debugAppend(objectEl, "id", mID);
@@ -1970,13 +1964,13 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    Log::Params RTPReceiver::debug(const char *message) const
+    Log::Params RTPReceiver::debug(const char *message) const noexcept
     {
       return Log::Params(message, toDebug());
     }
 
     //-------------------------------------------------------------------------
-    ElementPtr RTPReceiver::toDebug() const
+    ElementPtr RTPReceiver::toDebug() const noexcept
     {
       AutoRecursiveLock lock(*this);
 
@@ -2045,25 +2039,25 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool RTPReceiver::isShuttingDown() const
+    bool RTPReceiver::isShuttingDown() const noexcept
     {
       return State_ShuttingDown == mCurrentState;
     }
 
     //-------------------------------------------------------------------------
-    bool RTPReceiver::isShutdown() const
+    bool RTPReceiver::isShutdown() const noexcept
     {
       return State_Shutdown == mCurrentState;
     }
 
     //-------------------------------------------------------------------------
-    void RTPReceiver::step()
+    void RTPReceiver::step() noexcept
     {
-      ZS_LOG_DEBUG(debug("step"))
+      ZS_LOG_DEBUG(debug("step"));
 
       if ((isShuttingDown()) ||
           (isShutdown())) {
-        ZS_LOG_DEBUG(debug("step forwarding to cancel"))
+        ZS_LOG_DEBUG(debug("step forwarding to cancel"));
         cancel();
         return;
       }
@@ -2079,28 +2073,28 @@ namespace ortc
 
     not_ready:
       {
-        ZS_LOG_TRACE(debug("receiver is not ready"))
+        ZS_LOG_TRACE(debug("receiver is not ready"));
         return;
       }
 
     ready:
       {
-        ZS_LOG_TRACE(log("ready"))
+        ZS_LOG_TRACE(log("ready"));
         setState(State_Ready);
       }
     }
 
     //-------------------------------------------------------------------------
-    bool RTPReceiver::stepAttemptDelivery()
+    bool RTPReceiver::stepAttemptDelivery() noexcept
     {
       ZS_EVENTING_1(x, i, Debug, RtpReceiverStep, ol, RtpReceiver, Step, puid, id, mID);
 
       if (!mReattemptRTPDelivery) {
-        ZS_LOG_TRACE(log("no need to reattempt deliver at this time"))
+        ZS_LOG_TRACE(log("no need to reattempt deliver at this time"));
         return true;
       }
 
-      ZS_LOG_DEBUG(log("will attempt to deliver any buffered RTP packets"))
+      ZS_LOG_DEBUG(log("will attempt to deliver any buffered RTP packets"));
 
       mReattemptRTPDelivery = false;
 
@@ -2139,7 +2133,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool RTPReceiver::stepCleanChannels()
+    bool RTPReceiver::stepCleanChannels() noexcept
     {
       ZS_EVENTING_1(x, i, Debug, RtpReceiverStep, ol, RtpReceiver, Step, puid, id, mID);
 
@@ -2169,7 +2163,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPReceiver::cancel()
+    void RTPReceiver::cancel() noexcept
     {
       ZS_EVENTING_1(x, i, Debug, RtpReceiverCancel, ol, RtpReceiver, Cancel, puid, id, mID);
 
@@ -2249,7 +2243,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPReceiver::setState(States state)
+    void RTPReceiver::setState(States state) noexcept
     {
       if (state == mCurrentState) return;
 
@@ -2265,7 +2259,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPReceiver::setError(WORD errorCode, const char *inReason)
+    void RTPReceiver::setError(WORD errorCode, const char *inReason) noexcept
     {
       String reason(inReason);
       if (reason.isEmpty()) {
@@ -2290,14 +2284,14 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool RTPReceiver::shouldLatchAll()
+    bool RTPReceiver::shouldLatchAll() noexcept
     {
       if (1 != mChannelInfos.size()) return false;
       return (mChannelInfos.begin())->second->shouldLatchAll();
     }
 
     //-------------------------------------------------------------------------
-    void RTPReceiver::notifyChannelsOfTransportState()
+    void RTPReceiver::notifyChannelsOfTransportState() noexcept
     {
       ISecureTransport::States currentState = ISecureTransport::State_Pending;
 
@@ -2327,7 +2321,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPReceiver::flushAllAutoLatchedChannels()
+    void RTPReceiver::flushAllAutoLatchedChannels() noexcept
     {
       ZS_LOG_TRACE(log("flushing all auto-latched channels") + ZS_PARAM("channels", mChannels->size()))
 
@@ -2347,7 +2341,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPReceiver::addChannel(ParametersPtr params)
+    void RTPReceiver::addChannel(ParametersPtr params) noexcept
     {
       ChannelInfoPtr channelInfo(make_shared<ChannelInfo>());
       channelInfo->mOriginalParameters = params;
@@ -2380,7 +2374,7 @@ namespace ortc
     void RTPReceiver::updateChannel(
                                     ChannelInfoPtr channelInfo,
                                     ParametersPtr newParams
-                                    )
+                                    ) noexcept
     {
       ZS_EVENTING_2(x, i, Debug, RtpReceiverUpdateChannel, ol, RtpReceiver, Info, puid, id, mID, puid, channelObjectId, channelInfo->mID);
 
@@ -2485,7 +2479,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPReceiver::removeChannel(const ChannelInfo &channelInfo)
+    void RTPReceiver::removeChannel(const ChannelInfo &channelInfo) noexcept
     {
       ZS_EVENTING_2(x, i, Debug, RtpReceiverRemoveChannel, ol, RtpReceiver, Info, puid, id, mID, puid, channelObjectId, channelInfo.mID);
 
@@ -2599,8 +2593,9 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPReceiver::registerHeaderExtensions(const Parameters &params)
+    void RTPReceiver::registerHeaderExtensions(ZS_MAYBE_USED() const Parameters &params) noexcept
     {
+      ZS_MAYBE_USED(params);
       mRegisteredExtensions.clear();
 
       for (auto iter = mParameters->mHeaderExtensions.begin(); iter != mParameters->mHeaderExtensions.end(); ++iter) {
@@ -2636,7 +2631,7 @@ namespace ortc
                                                        RoutingPayloadType routingPayload,
                                                        String &ioRID,
                                                        ChannelHolderPtr &ioChannelHolder
-                                                       )
+                                                       ) noexcept
     {
       SSRCInfoPtr ssrcInfo;
 
@@ -2721,7 +2716,7 @@ namespace ortc
     void RTPReceiver::setRIDUsage(
                                   const String &rid,
                                   ChannelInfoPtr &ioChannelInfo
-                                  )
+                                  ) noexcept
     {
       if (rid.isEmpty()) return;
 
@@ -2749,7 +2744,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPReceiver::registerSSRCUsage(SSRCInfoPtr ssrcInfo)
+    void RTPReceiver::registerSSRCUsage(SSRCInfoPtr ssrcInfo) noexcept
     {
       mSSRCRoutingPayloadTable[SSRCRoutingPair(ssrcInfo->mSSRC, ssrcInfo->mRoutingPayload)] = ssrcInfo;
     }
@@ -2759,7 +2754,7 @@ namespace ortc
                                     const IRTPTypes::EncodingParameters &encodingParams,
                                     ChannelInfoPtr channelInfo,
                                     ChannelHolderPtr &ioChannelHolder
-                                    )
+                                    ) noexcept
     {
       if (!encodingParams.mCodecPayloadType.hasValue()) return;
 
@@ -2827,7 +2822,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPReceiver::reattemptDelivery()
+    void RTPReceiver::reattemptDelivery() noexcept
     {
       if (mReattemptRTPDelivery) return;
       mReattemptRTPDelivery = true;
@@ -2835,7 +2830,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPReceiver::expireRTPPackets()
+    void RTPReceiver::expireRTPPackets() noexcept
     {
       auto tick = zsLib::now();
 
@@ -2857,14 +2852,14 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool RTPReceiver::shouldCleanChannel(bool objectExists)
+    bool RTPReceiver::shouldCleanChannel(bool objectExists) noexcept
     {
       if (!objectExists) cleanChannels();
       return !objectExists;
     }
 
     //-------------------------------------------------------------------------
-    void RTPReceiver::cleanChannels()
+    void RTPReceiver::cleanChannels() noexcept
     {
       if (mCleanChannels) return;
       mCleanChannels = true;
@@ -2880,7 +2875,7 @@ namespace ortc
                                   const RTPPacket &rtpPacket,
                                   ChannelHolderPtr &outChannelHolder,
                                   String &outRID
-                                  )
+                                  ) noexcept
     {
       ChannelInfoPtr channelInfo;
 
@@ -2911,12 +2906,12 @@ namespace ortc
     fill_rid:
       {
         if (!outChannelHolder) {
-          ASSERT((bool)channelInfo)
+          ZS_ASSERT((bool)channelInfo);
 
           createChannel(rtpPacket.ssrc(), routingPayload, outRID, channelInfo, outChannelHolder);
 
           outChannelHolder = channelInfo->mChannelHolder.lock();
-          ASSERT(outChannelHolder)
+          ZS_ASSERT(outChannelHolder);
         }
 
         if (channelInfo) {
@@ -2935,7 +2930,7 @@ namespace ortc
                                    RoutingPayloadType routingPayload,
                                    const RTPPacket &rtpPacket,
                                    ChannelHolderPtr &outChannelHolder
-                                   )
+                                   ) noexcept
     {
       for (auto ext = rtpPacket.firstHeaderExtension(); NULL != ext; ext = ext->mNext) {
         LocalID localID = static_cast<LocalID>(ext->mID);
@@ -2962,7 +2957,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    String RTPReceiver::extractMuxID(const RTPPacket &rtpPacket)
+    String RTPReceiver::extractMuxID(const RTPPacket &rtpPacket) noexcept
     {
       for (auto ext = rtpPacket.firstHeaderExtension(); NULL != ext; ext = ext->mNext) {
         LocalID localID = static_cast<LocalID>(ext->mID);
@@ -2991,7 +2986,7 @@ namespace ortc
                                           const RTPPacket &rtpPacket,
                                           ChannelInfoPtr &outChannelInfo,
                                           ChannelHolderPtr &outChannelHolder
-                                          )
+                                          ) noexcept
     {
       if (!rid.hasData()) return false;
 
@@ -3003,7 +2998,7 @@ namespace ortc
       outChannelInfo = ridInfo.mChannelInfo;
       outChannelHolder = outChannelInfo->mChannelHolder.lock();
 
-      ZS_LOG_DEBUG(log("creating new SSRC table entry (based on rid mapping to existing receiver)") + ZS_PARAM("rid", rid) + ridInfo.toDebug())
+      ZS_LOG_DEBUG(log("creating new SSRC table entry (based on rid mapping to existing receiver)") + ZS_PARAM("rid", rid) + ridInfo.toDebug());
 
       String inRID = rid;
       setSSRCUsage(rtpPacket.ssrc(), routingPayload, inRID, outChannelHolder);
@@ -3025,7 +3020,7 @@ namespace ortc
                                                            const RTPPacket &rtpPacket,
                                                            ChannelInfoPtr &outChannelInfo,
                                                            ChannelHolderPtr &outChannelHolder
-                                                           )
+                                                           ) noexcept
     {
       for (auto iter = mChannelInfos.begin(); iter != mChannelInfos.end(); ++iter)
       {
@@ -3104,7 +3099,7 @@ namespace ortc
                                                   const RTPPacket &rtpPacket,
                                                   ChannelInfoPtr &outChannelInfo,
                                                   ChannelHolderPtr &outChannelHolder
-                                                  )
+                                                  ) noexcept
     {
       EncodingParameters *foundEncoding = NULL;
 
@@ -3113,7 +3108,7 @@ namespace ortc
       Optional<IMediaStreamTrack::Kinds> kind = mKind;
       RTPTypesHelper::DecodedCodecInfo decodedCodec;
       if (!RTPTypesHelper::decodePacketCodecs(kind, rtpPacket, *mParameters, decodedCodec)) {
-        ZS_LOG_WARNING(Debug, log("unable to find a codec for packet") + ZS_PARAM("packet ssrc", rtpPacket.ssrc()) + ZS_PARAM("payload type", rtpPacket.pt()) + mParameters->toDebug())
+        ZS_LOG_WARNING(Debug, log("unable to find a codec for packet") + ZS_PARAM("packet ssrc", rtpPacket.ssrc()) + ZS_PARAM("payload type", rtpPacket.pt()) + mParameters->toDebug());
         return false;
       }
 
@@ -3132,7 +3127,7 @@ namespace ortc
         }
 
         if (NULL == matchEncoding) continue; // did not find an appropriate encoding
-        ASSERT(NULL != baseEncoding)  // has to always have a base
+        ZS_ASSERT(NULL != baseEncoding);  // has to always have a base
 
         if (baseEncoding->mEncodingID.hasData()) {
           if (rid.hasData()) {
@@ -3145,7 +3140,7 @@ namespace ortc
 
         {
           switch (decodedCodec.mDepth[0].mCodecKind) {
-            case CodecKind_Unknown:  ASSERT(false) break;
+            case CodecKind_Unknown:  ZS_ASSERT_FAIL("unknown codec"); break;
             case CodecKind_Audio:
             case CodecKind_AudioSupplemental:
             case CodecKind_Video:
@@ -3184,7 +3179,7 @@ namespace ortc
                   continue;
                 }
 
-                ZS_LOG_WARNING(Trace, log("possible ambiguity in match (going with this as more recent in usage)") + ZS_PARAM("match time", lastMatchUsageTime) + ssrcInfo->toDebug() + ZS_PARAM("using", channelInfo->toDebug()) + ZS_PARAM("previous found", outChannelInfo->toDebug()))
+                ZS_LOG_WARNING(Trace, log("possible ambiguity in match (going with this as more recent in usage)") + ZS_PARAM("match time", lastMatchUsageTime) + ssrcInfo->toDebug() + ZS_PARAM("using", channelInfo->toDebug()) + ZS_PARAM("previous found", outChannelInfo->toDebug()));
 
                 lastMatchUsageTime = ssrcInfo->mLastUsage;
                 outChannelInfo = channelInfo;
@@ -3213,10 +3208,10 @@ namespace ortc
 
       // scope: fill in SSRC in encoding parameters
       {
-        ASSERT(foundEncoding)
+        ZS_ASSERT(foundEncoding);
 
         switch (decodedCodec.mDepth[0].mCodecKind) {
-          case CodecKind_Unknown:  ASSERT(false) break;
+          case CodecKind_Unknown:  ZS_ASSERT_FAIL("unknown codec"); break;
           case CodecKind_Audio:
           case CodecKind_Video:
           case CodecKind_AV:
@@ -3248,7 +3243,7 @@ namespace ortc
           }
         }
 
-        ASSERT(false)
+        ZS_ASSERT_FAIL("code should be unreachable");
         return false;
       }
 
@@ -3278,7 +3273,7 @@ namespace ortc
                                                           const RTPPacket &rtpPacket,
                                                           ChannelInfoPtr &outChannelInfo,
                                                           ChannelHolderPtr &outChannelHolder
-                                                          )
+                                                          ) noexcept
     {
       Time lastMatchUsageTime;
       ChannelInfoPtr foundChannelInfo;
@@ -3292,7 +3287,7 @@ namespace ortc
 
         auto &channelInfo = channelHolder->mChannelInfo;
 
-        ASSERT(channelInfo->mFilledParameters->mEncodings.size() > 0)
+        ZS_ASSERT(channelInfo->mFilledParameters->mEncodings.size() > 0);
 
         auto &filledEncoding = *(channelInfo->mFilledParameters->mEncodings.begin());
 
@@ -3316,7 +3311,7 @@ namespace ortc
         if (NULL == matchEncoding) continue;
 
         switch (decodedCodec.mDepth[0].mCodecKind) {
-          case CodecKind_Unknown:  ASSERT(false) break;
+          case CodecKind_Unknown:  ZS_ASSERT_FAIL("unknown codec"); break;
           case CodecKind_Audio:
           case CodecKind_Video:
           case CodecKind_AV:
@@ -3438,18 +3433,18 @@ namespace ortc
 
       if (foundChannelInfo) {
 
-        ASSERT(foundChannelInfo->mFilledParameters->mEncodings.size() > 0)
+        ZS_ASSERT(foundChannelInfo->mFilledParameters->mEncodings.size() > 0);
 
         auto &filledEncoding = *(foundChannelInfo->mFilledParameters->mEncodings.begin());
 
         switch (decodedCodec.mDepth[0].mCodecKind) {
-          case CodecKind_Unknown:  ASSERT(false) break;
+          case CodecKind_Unknown:  ZS_ASSERT_FAIL("unknown codec"); break;
           case CodecKind_Audio:
           case CodecKind_Video:
           case CodecKind_AV:
           case CodecKind_Data:
           {
-            ASSERT(false);
+            ZS_ASSERT_FAIL("codec node legal");
             break;
           }
           case CodecKind_AudioSupplemental:
@@ -3481,14 +3476,14 @@ namespace ortc
                   }
                   default:
                   {
-                    ASSERT(false);
+                    ZS_ASSERT_FAIL("unknown codec for FEC");
                     break;
                   }
                 }
               }
             }
 
-            ZS_LOG_DEBUG(log("filled RTX codec") + filledEncoding.toDebug())
+            ZS_LOG_DEBUG(log("filled RTX codec") + filledEncoding.toDebug());
             break;
           }
           case CodecKind_FEC:
@@ -3505,7 +3500,7 @@ namespace ortc
                 }
                 default:
                 {
-                  ASSERT(false);
+                  ZS_ASSERT_FAIL("unknown codec for FEC");
                   break;
                 }
               }
@@ -3515,7 +3510,7 @@ namespace ortc
               filledEncoding.mFEC.value().mSSRC = rtpPacket.ssrc();
             }
 
-            ZS_LOG_DEBUG(log("filled FEC codec") + filledEncoding.toDebug())
+            ZS_LOG_DEBUG(log("filled FEC codec") + filledEncoding.toDebug());
             break;
           }
         }
@@ -3531,7 +3526,7 @@ namespace ortc
       switch (decodedCodec.mDepth[0].mCodecKind) {
         case CodecKind_Unknown:
         {
-          ASSERT(false);
+          ZS_ASSERT_FAIL("unknown codec");
           break;
         }
         case CodecKind_Audio:
@@ -3625,7 +3620,7 @@ namespace ortc
             }
             default:
             {
-              ASSERT(false);
+              ZS_ASSERT_FAIL("unknown FEC codec");
               goto not_appropriate_latch;
             }
           }
@@ -3727,9 +3722,9 @@ namespace ortc
     bool RTPReceiver::fillRIDParameters(
                                         const String &rid,
                                         ChannelInfoPtr &ioChannelInfo
-                                        )
+                                        ) noexcept
     {
-      ASSERT((bool)ioChannelInfo)
+      ZS_ASSERT((bool)ioChannelInfo);
 
       if (!rid.hasData()) return true;
 
@@ -3761,9 +3756,9 @@ namespace ortc
                                     const String &rid,
                                     ChannelInfoPtr channelInfo,
                                     ChannelHolderPtr &ioChannelHolder
-                                    )
+                                    ) noexcept
     {
-      ASSERT(channelInfo)
+      ZS_ASSERT(channelInfo);
 
       if (ioChannelHolder) return;
 
@@ -3807,7 +3802,7 @@ namespace ortc
                                        const String &rid,
                                        IRTPTypes::SSRCType ssrc,
                                        IRTPTypes::PayloadType payloadType
-                                       )
+                                       ) noexcept
     {
       ZS_LOG_TRACE(log("notifying listener of unhandled SSRC") + ZS_PARAM("mux id", muxID) + ZS_PARAM("rid", rid) + ZS_PARAM("ssrc", ssrc) + ZS_PARAM("payload type", payloadType));
 
@@ -3824,7 +3819,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPReceiver::processByes(const RTCPPacket &rtcpPacket)
+    void RTPReceiver::processByes(const RTCPPacket &rtcpPacket) noexcept
     {
       for (auto bye = rtcpPacket.firstBye(); NULL != bye; bye = bye->nextBye()) {
         for (size_t index = 0; index < bye->sc(); ++index) {
@@ -3872,7 +3867,7 @@ namespace ortc
 
               for (; iterFilledParams != channelInfo->mFilledParameters->mEncodings.end(); ++iterFilledParams, ++iterOriginalParams)
               {
-                ASSERT(iterOriginalParams != channelInfo->mOriginalParameters->mEncodings.end())
+                ZS_ASSERT(iterOriginalParams != channelInfo->mOriginalParameters->mEncodings.end());
                 EncodingParameters &filledParams = (*iterFilledParams);
                 EncodingParameters &originalEncParams = (*iterOriginalParams);
 
@@ -3888,20 +3883,20 @@ namespace ortc
                     (!  ((originalEncParams.mRTX.hasValue()) &&
                          (originalEncParams.mRTX.value().mSSRC.hasValue()))
                      )) {
-                      if (byeSSRC == filledParams.mRTX.value().mSSRC.value()) {
-                        filledParams.mRTX.value().mSSRC = originalEncParams.mRTX.value().mSSRC;
-                      }
-                    }
+                  if (byeSSRC == filledParams.mRTX.value().mSSRC.value()) {
+                    filledParams.mRTX.value().mSSRC = originalEncParams.mRTX.value().mSSRC;
+                  }
+                }
 
                 if (((filledParams.mFEC.hasValue()) &&
                      (filledParams.mFEC.value().mSSRC.hasValue())) &&
                     (! ((originalEncParams.mFEC.hasValue()) &&
                         (originalEncParams.mFEC.value().mSSRC.hasValue()))
                      )) {
-                      if (byeSSRC == filledParams.mFEC.value().mSSRC.value()) {
-                        filledParams.mFEC.value().mSSRC = originalEncParams.mFEC.value().mSSRC;
-                      }
-                    }
+                  if (byeSSRC == filledParams.mFEC.value().mSSRC.value()) {
+                    filledParams.mFEC.value().mSSRC = originalEncParams.mFEC.value().mSSRC;
+                  }
+                }
               }
             }
           }
@@ -3910,7 +3905,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPReceiver::processSenderReports(const RTCPPacket &rtcpPacket)
+    void RTPReceiver::processSenderReports(const RTCPPacket &rtcpPacket) noexcept
     {
       for (auto sr = rtcpPacket.firstSenderReport(); NULL != sr; sr = sr->nextSenderReport()) {
         for (auto iter = mSSRCRoutingPayloadTable.begin(); iter != mSSRCRoutingPayloadTable.end(); ++iter)
@@ -3928,7 +3923,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPReceiver::extractCSRCs(const RTPPacket &rtpPacket)
+    void RTPReceiver::extractCSRCs(const RTPPacket &rtpPacket) noexcept
     {
       for (auto ext = rtpPacket.firstHeaderExtension(); NULL != ext; ext = ext->mNext) {
         LocalID localID = static_cast<LocalID>(ext->mID);
@@ -3966,7 +3961,7 @@ namespace ortc
                                             SSRCType csrc,
                                             BYTE level,
                                             const Optional<bool> &voiceActivityFlag
-                                            )
+                                            ) noexcept
     {
       auto found = mContributingSources.find(csrc);
       if (found == mContributingSources.end()) {
@@ -4004,10 +3999,10 @@ namespace ortc
     void RTPReceiver::postFindMappingProcessPacket(
                                                    const RTPPacket &rtpPacket,
                                                    ChannelHolderPtr &channelHolder
-                                                   )
+                                                   ) noexcept
     {
-      ASSERT(channelHolder)
-      ASSERT(channelHolder->mChannelInfo->mFilledParameters->mEncodings.size() > 0)
+      ZS_ASSERT(channelHolder);
+      ZS_ASSERT(channelHolder->mChannelInfo->mFilledParameters->mEncodings.size() > 0);
 
       auto &encoding = *(channelHolder->mChannelInfo->mFilledParameters->mEncodings.begin());
 
@@ -4046,7 +4041,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPReceiver::resetActiveReceiverChannel()
+    void RTPReceiver::resetActiveReceiverChannel() noexcept
     {
       if (!mCurrentChannel) return;
 
@@ -4068,7 +4063,7 @@ namespace ortc
     Optional<RTPReceiver::RoutingPayloadType> RTPReceiver::decodeREDRoutingPayloadType(
                                                                                        const BYTE *buffer,
                                                                                        size_t bufferSizeInBytes
-                                                                                       )
+                                                                                       ) noexcept
     {
       Optional<RTPReceiver::RoutingPayloadType> result;
 
@@ -4101,7 +4096,7 @@ namespace ortc
         case CodecType_RTX: break;
       }
 
-      ZS_LOG_WARNING(Trace, log("RED packet contains unsupported codec") + codecInfo.toDebug())
+      ZS_LOG_WARNING(Trace, log("RED packet contains unsupported codec") + codecInfo.toDebug());
       return result;
     }
 
@@ -4109,7 +4104,7 @@ namespace ortc
     Optional<RTPReceiver::RoutingPayloadType> RTPReceiver::decodeFECPayloadType(
                                                                                 const BYTE *buffer,
                                                                                 size_t bufferSizeInBytes
-                                                                                )
+                                                                                ) noexcept
     {
       Optional<RTPReceiver::RoutingPayloadType> result;
       Optional<PayloadType> recoveryPayloadType = RTPTypesHelper::getFecRecoveryPayloadType(buffer, bufferSizeInBytes);
@@ -4120,7 +4115,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    Optional<RTPReceiver::RoutingPayloadType> RTPReceiver::getRoutingPayloadType(const RTPPacket &rtpPacket)
+    Optional<RTPReceiver::RoutingPayloadType> RTPReceiver::getRoutingPayloadType(const RTPPacket &rtpPacket) noexcept
     {
       Optional<RoutingPayloadType> result;
 
@@ -4185,19 +4180,19 @@ namespace ortc
       }
 
       // should not be possible
-      ASSERT(false);
+      ZS_ASSERT_FAIL("code should be unreachable");
       return result;
     }
 
     //-------------------------------------------------------------------------
-    Optional<RTPReceiver::RoutingPayloadType> RTPReceiver::getRoutingPayload(const RTPTypesHelper::DecodedCodecInfo &decodedCodec)
+    Optional<RTPReceiver::RoutingPayloadType> RTPReceiver::getRoutingPayload(const RTPTypesHelper::DecodedCodecInfo &decodedCodec) noexcept
     {
       Optional<RoutingPayloadType> result;
 
       switch (decodedCodec.mDepth[0].mCodecKind) {
         case IRTPTypes::CodecKind_Unknown:
         {
-          ASSERT(false);
+          ZS_ASSERT_FAIL("unknown codec");
           return result;
         }
         case IRTPTypes::CodecKind_Audio:
@@ -4238,7 +4233,7 @@ namespace ortc
         case IRTPTypes::CodecKind_Unknown:
         case IRTPTypes::CodecKind_RTX:
         {
-          ASSERT(false);
+          ZS_ASSERT_FAIL("unknown / unsupported codec");
           break;
         }
         case IRTPTypes::CodecKind_Audio:
@@ -4256,7 +4251,7 @@ namespace ortc
           {
             case 0: break;
             case 1: break;
-            case 2: break;
+            case 2:
             {
               result = (static_cast<RoutingPayloadType>(decodedCodec.mDepth[0].mCodecParameters->mPayloadType) << 24) | (static_cast<RoutingPayloadType>(decodedCodec.mDepth[1].mCodecParameters->mPayloadType) << 8) | static_cast<RoutingPayloadType>(decodedCodec.mDepth[2].mCodecParameters->mPayloadType);
               return result;
@@ -4274,7 +4269,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    RTPReceiver::RoutingPayloadType RTPReceiver::getMediaCodecRoutingPayload(PayloadType originalPayload)
+    RTPReceiver::RoutingPayloadType RTPReceiver::getMediaCodecRoutingPayload(PayloadType originalPayload) noexcept
     {
       return static_cast<RoutingPayloadType>(originalPayload);
     }
@@ -4287,7 +4282,7 @@ namespace ortc
                                                      Optional<RoutingPayloadType> &resultFECv2,
                                                      PayloadType *outPayloadTypeFECv1,
                                                      PayloadType *outPayloadTypeFECv2
-                                                     )
+                                                     ) noexcept
     {
       auto found = mCodecInfos.find(originalPayload);
       if (found == mCodecInfos.end()) return;
@@ -4374,7 +4369,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    Optional<RTPReceiver::RoutingPayloadType> RTPReceiver::getRtxMediaCodecRoutingPayload(PayloadType originalPayload)
+    Optional<RTPReceiver::RoutingPayloadType> RTPReceiver::getRtxMediaCodecRoutingPayload(PayloadType originalPayload) noexcept
     {
       Optional<RoutingPayloadType> result;
 
@@ -4398,11 +4393,11 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     void RTPReceiver::getRtxFECMediaCodecRoutingPayload(
-                                                     PayloadType originalPayload,
-                                                     IRTPTypes::KnownFECMechanisms mechanism,
-                                                     Optional<RoutingPayloadType> &resultFECv1,
-                                                     Optional<RoutingPayloadType> &resultFECv2
-                                                     )
+                                                        PayloadType originalPayload,
+                                                        IRTPTypes::KnownFECMechanisms mechanism,
+                                                        Optional<RoutingPayloadType> &resultFECv1,
+                                                        Optional<RoutingPayloadType> &resultFECv2
+                                                        ) noexcept
     {
       auto found = mCodecInfos.find(originalPayload);
       if (found == mCodecInfos.end()) return;
@@ -4439,12 +4434,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPReceiverFactory
-    #pragma mark
+    //
+    // IRTPReceiverFactory
+    //
 
     //-------------------------------------------------------------------------
-    IRTPReceiverFactory &IRTPReceiverFactory::singleton()
+    IRTPReceiverFactory &IRTPReceiverFactory::singleton() noexcept
     {
       return RTPReceiverFactory::singleton();
     }
@@ -4455,14 +4450,14 @@ namespace ortc
                                                Kinds kind,
                                                IRTPTransportPtr transport,
                                                IRTCPTransportPtr rtcpTransport
-                                               )
+                                               ) noexcept
     {
       if (this) {}
       return internal::RTPReceiver::create(delegate, kind, transport, rtcpTransport);
     }
 
     //-------------------------------------------------------------------------
-    IRTPReceiverFactory::CapabilitiesPtr IRTPReceiverFactory::getCapabilities(Optional<Kinds> kind)
+    IRTPReceiverFactory::CapabilitiesPtr IRTPReceiverFactory::getCapabilities(Optional<Kinds> kind) noexcept
     {
       if (this) {}
       return RTPReceiver::getCapabilities(kind);
@@ -4475,12 +4470,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IRTPReceiverTypes::ContributingSource
-  #pragma mark
+  //
+  // IRTPReceiverTypes::ContributingSource
+  //
 
   //---------------------------------------------------------------------------
-  ElementPtr IRTPReceiverTypes::ContributingSource::toDebug() const
+  ElementPtr IRTPReceiverTypes::ContributingSource::toDebug() const noexcept
   {
     ElementPtr resultEl = Element::create("ortc::IRTPReceiverTypes::Capabilities");
 
@@ -4493,7 +4488,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  String IRTPReceiverTypes::ContributingSource::hash() const
+  String IRTPReceiverTypes::ContributingSource::hash() const noexcept
   {
     auto hasher = IHasher::sha1();
     hasher->update("IRTPReceiverTypes:ContributingSource:");
@@ -4511,12 +4506,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IRTPReceiver
-  #pragma mark
+  //
+  // IRTPReceiver
+  //
 
   //---------------------------------------------------------------------------
-  ElementPtr IRTPReceiver::toDebug(IRTPReceiverPtr transport)
+  ElementPtr IRTPReceiver::toDebug(IRTPReceiverPtr transport) noexcept
   {
     return internal::RTPReceiver::toDebug(internal::RTPReceiver::convert(transport));
   }
@@ -4527,13 +4522,13 @@ namespace ortc
                                        Kinds kind,
                                        IRTPTransportPtr transport,
                                        IRTCPTransportPtr rtcpTransport
-                                       )
+                                       ) noexcept
   {
     return internal::IRTPReceiverFactory::singleton().create(delegate, kind, transport, rtcpTransport);
   }
 
   //---------------------------------------------------------------------------
-  IRTPReceiverTypes::CapabilitiesPtr IRTPReceiver::getCapabilities(Optional<Kinds> kind)
+  IRTPReceiverTypes::CapabilitiesPtr IRTPReceiver::getCapabilities(Optional<Kinds> kind) noexcept
   {
     return internal::IRTPReceiverFactory::singleton().getCapabilities(kind);
   }

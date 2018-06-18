@@ -48,17 +48,17 @@ namespace ortc
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaDeviceRenderAudio (helpers)
-    #pragma mark
+    //
+    // MediaDeviceRenderAudio (helpers)
+    //
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaDeviceRenderAudio
-    #pragma mark
+    //
+    // MediaDeviceRenderAudio
+    //
     
     class MediaDeviceRenderAudio : public Any,
                                    public Noop,
@@ -112,130 +112,130 @@ namespace ortc
                               IMessageQueuePtr queue,
                               UseMediaEnginePtr mediaEngine,
                               const String &deviceID
-                              );
+                              ) noexcept;
 
     protected:
-      MediaDeviceRenderAudio(Noop, IMessageQueuePtr queue = IMessageQueuePtr()) :
+      MediaDeviceRenderAudio(Noop, IMessageQueuePtr queue = IMessageQueuePtr()) noexcept :
         Noop(true),
         MessageQueueAssociator(queue),
         SharedRecursiveLock(SharedRecursiveLock::create())
       {}
 
-      void init();
+      void init() noexcept;
 
     public:
-      virtual ~MediaDeviceRenderAudio();
+      virtual ~MediaDeviceRenderAudio() noexcept;
 
       static MediaDeviceRenderAudioPtr create(
                                                UseMediaEnginePtr mediaEngine,
                                                const String &deviceID
-                                               );
+                                               ) noexcept;
 
-      static MediaDeviceRenderAudioPtr convert(ForMediaEnginePtr object);
+      static MediaDeviceRenderAudioPtr convert(ForMediaEnginePtr object) noexcept;
 
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaDeviceRenderAudio => (for Media)
-      #pragma mark
+      //
+      // MediaDeviceRenderAudio => (for Media)
+      //
 
-      void notifyMediaStateChanged();
+      void notifyMediaStateChanged() noexcept;
       void notifyMediaFailure(
                               MediaPtr media,
                               WORD errorCode,
                               const char *reason
-                              );
+                              ) noexcept;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaDeviceRenderAudio => (for MediaSubscribers)
-      #pragma mark
+      //
+      // MediaDeviceRenderAudio => (for MediaSubscribers)
+      //
 
-      PUID getID() const { return id_; }
-      void notifySusbcriberGone();
+      PUID getID() const noexcept { return id_; }
+      void notifySusbcriberGone() noexcept;
       void notifyAudioFrame(
                             ImmutableMediaChannelTracePtr trace,
                             AudioFramePtr frame
-                            );
+                            ) noexcept;
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaDeviceRenderAudio => IMediaDeviceForMediaEngine
-      #pragma mark
+      //
+      // MediaDeviceRenderAudio => IMediaDeviceForMediaEngine
+      //
 
-      bool isDeviceIdle() override;
-      void shutdown() override;
+      bool isDeviceIdle() noexcept override;
+      void shutdown() noexcept override;
 
-      States getState() const override;
+      States getState() const noexcept override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaDeviceRenderAudio => IMediaDeviceRenderForMediaEngine
-      #pragma mark
+      //
+      // MediaDeviceRenderAudio => IMediaDeviceRenderForMediaEngine
+      //
 
       void mediaDeviceRenderSubscribe(
                                       MediaDeviceRenderPromisePtr promise,
                                       MediaDeviceObjectID repaceExistingDeviceObjectID,
                                       TrackConstraintsPtr constraints,
                                       IMediaDeviceRenderDelegatePtr delegate
-                                      ) override;
+                                      ) noexcept override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaDeviceRenderAudio => IMediaDeviceRenderAudioForMediaEngine
-      #pragma mark
+      //
+      // MediaDeviceRenderAudio => IMediaDeviceRenderAudioForMediaEngine
+      //
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaDeviceRenderAudio => IWakeDelegate
-      #pragma mark
+      //
+      // MediaDeviceRenderAudio => IWakeDelegate
+      //
 
       void onWake() override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaDeviceRenderAudio => IPromiseSettledDelegate
-      #pragma mark
+      //
+      // MediaDeviceRenderAudio => IPromiseSettledDelegate
+      //
 
       void onPromiseSettled(PromisePtr promise) override;
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaDeviceRenderAudio => (internal)
-      #pragma mark
+      //
+      // MediaDeviceRenderAudio => (internal)
+      //
 
-      bool isPending() const { return IMediaDevice::State_Pending == currentState_; }
-      bool isReady() const { return IMediaDevice::State_Active == currentState_; }
-      bool isReinitializing() const { return IMediaDevice::State_Reinitializing == currentState_; }
-      bool isShuttingDown() const { return IMediaDevice::State_ShuttingDown == currentState_; }
-      bool isShutdown() const { return IMediaDevice::State_Shutdown == currentState_; }
+      bool isPending() const noexcept { return IMediaDevice::State_Pending == currentState_; }
+      bool isReady() const noexcept { return IMediaDevice::State_Active == currentState_; }
+      bool isReinitializing() const noexcept { return IMediaDevice::State_Reinitializing == currentState_; }
+      bool isShuttingDown() const noexcept { return IMediaDevice::State_ShuttingDown == currentState_; }
+      bool isShutdown() const noexcept { return IMediaDevice::State_Shutdown == currentState_; }
 
-      void cancel();
+      void cancel() noexcept;
 
-      bool stepShutdownPendingRequests();
-      bool stepShutdownSubscribers();
-      bool stepShutdownMedia();
+      bool stepShutdownPendingRequests() noexcept;
+      bool stepShutdownSubscribers() noexcept;
+      bool stepShutdownMedia() noexcept;
 
-      void step();
-      bool stepMediaReinitializationShutdown();
-      bool stepDiscoverModes();
-      bool stepFigureOutMode();
-      bool stepWaitForMediaDevice();
+      void step() noexcept;
+      bool stepMediaReinitializationShutdown() noexcept;
+      bool stepDiscoverModes() noexcept;
+      bool stepFigureOutMode() noexcept;
+      bool stepWaitForMediaDevice() noexcept;
 
-      void setState(States state);
-      void setError(PromisePtr promise);
-      void setError(WORD error, const char *inReason);
+      void setState(States state) noexcept;
+      void setError(PromisePtr promise) noexcept;
+      void setError(WORD error, const char *inReason) noexcept;
 
     public:
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaDeviceRenderAudio::Media
-      #pragma mark
+      //
+      // MediaDeviceRenderAudio::Media
+      //
 
       class Media : public MessageQueueAssociator,
                     public SharedRecursiveLock,
@@ -252,7 +252,7 @@ namespace ortc
           MediaState_Shutdown,
         };
 
-        static const char *toString(MediaStates state);
+        static const char *toString(MediaStates state) noexcept;
 
       public:
         ZS_DECLARE_TYPEDEF_PTR(MediaDeviceRenderAudio, UseOuter);
@@ -264,66 +264,66 @@ namespace ortc
               UseOuterPtr outer,
               const String &deviceID,
               UseSettingsPtr settings
-              );
+              ) noexcept;
 
       protected:
-        void init();
+        void init() noexcept;
 
       public:
-        virtual ~Media();
+        virtual ~Media() noexcept;
 
         static MediaPtr create(
                                IMessageQueuePtr queue,
                                UseOuterPtr outer,
                                const String &deviceID,
                                UseSettingsPtr settings
-                               );
+                               ) noexcept;
 
       public:
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark MediaDeviceRenderAudio::Media => (for MediaDeviceRenderAudio)
-        #pragma mark
+        //
+        // MediaDeviceRenderAudio::Media => (for MediaDeviceRenderAudio)
+        //
 
-        MediaChannelID getID() const { return id_; }
+        MediaChannelID getID() const noexcept { return id_; }
 
-        void shutdown();
-        bool isReady() const;
-        bool isShuttingDown() const;
-        bool isShutdown() const;
+        void shutdown() noexcept;
+        bool isReady() const noexcept;
+        bool isShuttingDown() const noexcept;
+        bool isShutdown() const noexcept;
 
-        void notifySubscribersChanged(MediaSubscriberMapPtr subscribers);
+        void notifySubscribersChanged(MediaSubscriberMapPtr subscribers) noexcept;
 
         void notifyAudioFrame(
                               ImmutableMediaChannelTracePtr trace,
                               AudioFramePtr frame
-                              );
+                              ) noexcept;
 
         //-----------------------------------------------------------------------
-        #pragma mark
-        #pragma mark MediaDeviceRenderAudio::Media => IWakeDelegate
-        #pragma mark
+        //
+        // MediaDeviceRenderAudio::Media => IWakeDelegate
+        //
 
         virtual void onWake() override;
 
       protected:
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark MediaDeviceRenderAudio::Media => (internal)
-        #pragma mark
+        //
+        // MediaDeviceRenderAudio::Media => (internal)
+        //
 
-        void cancel();
-        void step();
+        void cancel() noexcept;
+        void step() noexcept;
 
-        void setState(MediaStates state);
-        void setError(PromisePtr promise);
-        void setError(WORD errorCode, const char *inReason);
+        void setState(MediaStates state) noexcept;
+        void setError(PromisePtr promise) noexcept;
+        void setError(WORD errorCode, const char *inReason) noexcept;
 
       public:
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark MediaDeviceRenderAudio::Media => (data)
-        #pragma mark
+        //
+        // MediaDeviceRenderAudio::Media => (data)
+        //
 
         AutoPUID id_;
         MediaWeakPtr thisWeak_;
@@ -344,9 +344,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaDeviceRenderAudio::MediaSubscriber
-      #pragma mark
+      //
+      // MediaDeviceRenderAudio::MediaSubscriber
+      //
 
       class MediaSubscriber : public MessageQueueAssociator,
                               public SharedRecursiveLock,
@@ -365,75 +365,75 @@ namespace ortc
                         UseOuterPtr outer,
                         TrackConstraintsPtr constraints,
                         IMediaDeviceRenderDelegatePtr delegate
-                        );
+                        ) noexcept;
 
       protected:
-        void init();
+        void init() noexcept;
 
       public:
-        virtual ~MediaSubscriber();
+        virtual ~MediaSubscriber() noexcept;
 
         static MediaSubscriberPtr create(
                                          IMessageQueuePtr queue,
                                          UseOuterPtr outer,
                                          TrackConstraintsPtr constraints,
                                          IMediaDeviceRenderDelegatePtr delegate
-                                         );
+                                         ) noexcept;
 
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark MediaDeviceRenderAudio::MediaSubscriber => (for MediaDeviceRenderAudio)
-        #pragma mark
+        //
+        // MediaDeviceRenderAudio::MediaSubscriber => (for MediaDeviceRenderAudio)
+        //
 
-        virtual MediaDeviceObjectID getID() const override { return id_; }
-        void shutdown();
-        bool isShutdown() const;
-        void notifyStateChanged(States state);
-        TrackConstraintsPtr getConstraints() const { return constraints_; }
+        MediaDeviceObjectID getID() const noexcept override { return id_; }
+        void shutdown() noexcept;
+        bool isShutdown() const noexcept;
+        void notifyStateChanged(States state) noexcept;
+        TrackConstraintsPtr getConstraints() const noexcept { return constraints_; }
 
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark MediaDeviceRenderAudio::MediaSubscriber => (for Media)
-        #pragma mark
+        //
+        // MediaDeviceRenderAudio::MediaSubscriber => (for Media)
+        //
 
       protected:
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark MediaDeviceRenderAudio::MediaSubscriber => IMediaDevice
-        #pragma mark
+        //
+        // MediaDeviceRenderAudio::MediaSubscriber => IMediaDevice
+        //
 
         // (duplicate) virtual MediaDeviceObjectID getID() const override { return id_; }
-        virtual void cancel() override;
+        virtual void cancel() noexcept override;
 
-        virtual States getState() const override;
-
-        //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark MediaDeviceRenderAudio::MediaSubscriber => IMediaDeviceRender
-        #pragma mark
+        virtual States getState() const noexcept override;
 
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark MediaDeviceRenderAudio::MediaSubscriber => IMediaDeviceRenderAudio
-        #pragma mark
+        //
+        // MediaDeviceRenderAudio::MediaSubscriber => IMediaDeviceRender
+        //
+
+        //---------------------------------------------------------------------
+        //
+        // MediaDeviceRenderAudio::MediaSubscriber => IMediaDeviceRenderAudio
+        //
 
         virtual void notifyAudioFrame(
                                       ImmutableMediaChannelTracePtr trace,
                                       AudioFramePtr frame
-                                      ) override;
+                                      ) noexcept override;
 
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark MediaDeviceRenderAudio::MediaSubscriber => (internal)
-        #pragma mark
+        //
+        // MediaDeviceRenderAudio::MediaSubscriber => (internal)
+        //
 
-        void setState(States state);
+        void setState(States state) noexcept;
 
       protected:
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark MediaDeviceRenderAudio::MediaSubscriber => (data)
-        #pragma mark
+        //
+        // MediaDeviceRenderAudio::MediaSubscriber => (data)
+        //
 
         AutoPUID id_;
         MediaSubscriberWeakPtr thisWeak_;
@@ -450,9 +450,9 @@ namespace ortc
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaDeviceRenderAudio => (data)
-      #pragma mark
+      //
+      // MediaDeviceRenderAudio => (data)
+      //
 
       AutoPUID id_;
       MediaDeviceRenderAudioWeakPtr thisWeak_;
@@ -481,20 +481,20 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaDeviceRenderAudioFactory
-    #pragma mark
+    //
+    // IMediaDeviceRenderAudioFactory
+    //
 
     interaction IMediaDeviceRenderAudioFactory
     {
-      static IMediaDeviceRenderAudioFactory &singleton();
+      static IMediaDeviceRenderAudioFactory &singleton() noexcept;
 
       ZS_DECLARE_TYPEDEF_PTR(IMediaEngineForMediaDeviceRenderAudio, UseMediaEngine);
 
       virtual MediaDeviceRenderAudioPtr create(
                                                 UseMediaEnginePtr mediaEngine,
                                                 const String &deviceID
-                                                );
+                                                ) noexcept;
     };
 
     class MediaDeviceRenderAudioFactory : public IFactory<IMediaDeviceRenderAudioFactory> {};

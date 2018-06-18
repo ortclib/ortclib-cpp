@@ -42,9 +42,9 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IMediaStreamTrackSelectorTypes
-  #pragma mark
+  //
+  // IMediaStreamTrackSelectorTypes
+  //
   
   interaction IMediaStreamTrackSelectorTypes
   {
@@ -57,82 +57,82 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IMediaStreamTrackSelector
-  #pragma mark
+  //
+  // IMediaStreamTrackSelector
+  //
   
   interaction IMediaStreamTrackSelector : public Any,
                                           public IMediaStreamTrackSelectorTypes,
                                           public IStatsProvider
   {
-    static IMediaStreamTrackSelectorPtr convert(AnyPtr any);
+    static IMediaStreamTrackSelectorPtr convert(AnyPtr any) noexcept;
 
     static IMediaStreamTrackSelectorPtr create(
                                                Kinds kind,
                                                size_t totalOutputMediaStreamTracks = 1,
                                                IMediaStreamTrackSelectorDelegatePtr delegate = IMediaStreamTrackSelectorDelegatePtr()
-                                               );
+                                               ) noexcept;
 
-    virtual PUID getID() const = 0;
+    virtual PUID getID() const noexcept = 0;
 
-    virtual IMediaStreamTrackSelectorSubscriptionPtr subscribe(IMediaStreamTrackSelectorDelegatePtr delegate) = 0;
+    virtual IMediaStreamTrackSelectorSubscriptionPtr subscribe(IMediaStreamTrackSelectorDelegatePtr delegate) noexcept = 0;
 
-    virtual Kinds kind() const = 0;
-    virtual IMediaStreamTrackPtr getOutputTrack(size_t index) const = 0;
-    virtual MediaStreamTrackList getInputTracks() const = 0;
+    virtual Kinds kind() const noexcept = 0;
+    virtual IMediaStreamTrackPtr getOutputTrack(size_t index) const noexcept = 0;
+    virtual MediaStreamTrackList getInputTracks() const noexcept = 0;
 
     virtual PromisePtr attachInputTrack(
                                         IMediaStreamTrackPtr inputTrack,
                                         IMediaStreamTrackPtr useThisTrackToDetermineMediaActivityState  // use this track to detect media activity
-                                        ) throw (InvalidParameters);
-    virtual void detachInputTrack(IMediaStreamTrackPtr track);
+                                        ) noexcept(false); // throws InvalidParameters
+    virtual void detachInputTrack(IMediaStreamTrackPtr track) noexcept;
 
-    virtual void stop() = 0;
+    virtual void stop() noexcept = 0;
   };
 
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IMediaStreamTrackSelectorDelegate
-  #pragma mark
+  //
+  // IMediaStreamTrackSelectorDelegate
+  //
 
   interaction IMediaStreamTrackSelectorDelegate
   {
-    virtual ~IMediaStreamTrackSelectorDelegate() {}
+    virtual ~IMediaStreamTrackSelectorDelegate() noexcept {}
   };
   
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IMediaStreamTrackSelectorSubscription
-  #pragma mark
+  //
+  // IMediaStreamTrackSelectorSubscription
+  //
   
   interaction IMediaStreamTrackSelectorSubscription
   {
-    virtual PUID getID() const = 0;
+    virtual PUID getID() const noexcept = 0;
     
-    virtual void cancel() = 0;
+    virtual void cancel() noexcept = 0;
 
-    virtual void background() = 0;
+    virtual void background() noexcept = 0;
   };
 }
 
 ZS_DECLARE_PROXY_BEGIN(ortc::IMediaStreamTrackSelectorDelegate)
 //ZS_DECLARE_PROXY_TYPEDEF(ortc::IMediaStreamTrackPtr, IMediaStreamTrackPtr)
 //ZS_DECLARE_PROXY_TYPEDEF(ortc::IMediaStreamTrackTypes::OverconstrainedErrorPtr, OverconstrainedErrorPtr)
-//ZS_DECLARE_PROXY_METHOD_2(onMediaStreamTrackMute, IMediaStreamTrackPtr, bool)
-//ZS_DECLARE_PROXY_METHOD_1(onMediaStreamTrackEnded, IMediaStreamTrackPtr)
-//ZS_DECLARE_PROXY_METHOD_2(onMediaStreamTrackOverConstrained, IMediaStreamTrackPtr, OverconstrainedErrorPtr)
+//ZS_DECLARE_PROXY_METHOD(onMediaStreamTrackMute, IMediaStreamTrackPtr, bool)
+//ZS_DECLARE_PROXY_METHOD(onMediaStreamTrackEnded, IMediaStreamTrackPtr)
+//ZS_DECLARE_PROXY_METHOD(onMediaStreamTrackOverConstrained, IMediaStreamTrackPtr, OverconstrainedErrorPtr)
 ZS_DECLARE_PROXY_END()
 
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_BEGIN(ortc::IMediaStreamTrackSelectorDelegate, ortc::IMediaStreamTrackSelectorSubscription)
 //ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IMediaStreamTrackPtr, IMediaStreamTrackPtr)
 //ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IMediaStreamTrackTypes::OverconstrainedErrorPtr, OverconstrainedErrorPtr)
-//ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onMediaStreamTrackMute, IMediaStreamTrackPtr, bool)
-//ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_1(onMediaStreamTrackEnded, IMediaStreamTrackPtr)
-//ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onMediaStreamTrackOverConstrained, IMediaStreamTrackPtr, OverconstrainedErrorPtr)
+//ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD(onMediaStreamTrackMute, IMediaStreamTrackPtr, bool)
+//ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD(onMediaStreamTrackEnded, IMediaStreamTrackPtr)
+//ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD(onMediaStreamTrackOverConstrained, IMediaStreamTrackPtr, OverconstrainedErrorPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()

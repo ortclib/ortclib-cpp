@@ -41,9 +41,9 @@ namespace ortc
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark RTPPacket
-  #pragma mark
+  //
+  // RTPPacket
+  //
 
   class RTPPacket
   {
@@ -58,9 +58,9 @@ namespace ortc
 
   public:
     //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPPacket::CreationParams
-    #pragma mark
+    //
+    // RTPPacket::CreationParams
+    //
 
     struct CreationParams
     {
@@ -88,9 +88,9 @@ namespace ortc
     };
 
     //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPPacket::Extension
-    #pragma mark
+    //
+    // RTPPacket::Extension
+    //
 
     struct HeaderExtension
     {
@@ -107,41 +107,41 @@ namespace ortc
       virtual void trace(
                          const char *func = NULL,
                          const char *message = NULL
-                         ) const;
+                         ) const noexcept;
     };
 
     //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPPacket::ClientToMixerExtension
-    #pragma mark
+    //
+    // RTPPacket::ClientToMixerExtension
+    //
 
     struct ClientToMixerExtension : public HeaderExtension
     {
       // see https://tools.ietf.org/html/rfc6464
 
-      ClientToMixerExtension(const HeaderExtension &header);
+      ClientToMixerExtension(const HeaderExtension &header) noexcept;
       ClientToMixerExtension(
                               BYTE id,
                               bool voiceActivity,
                               BYTE level
-                              );
+                              ) noexcept;
 
-      bool voiceActivity() const;
-      BYTE level() const;
+      bool voiceActivity() const noexcept;
+      BYTE level() const noexcept;
 
       virtual void trace(
                          const char *func = NULL,
                          const char *message = NULL
-                         ) const override;
+                         ) const noexcept override;
 
     public:
       BYTE mLevelBuffer {};
     };
 
     //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPPacket::MixerToClientExtension
-    #pragma mark
+    //
+    // RTPPacket::MixerToClientExtension
+    //
 
     struct MixerToClientExtension : public HeaderExtension
     {
@@ -149,91 +149,91 @@ namespace ortc
 
       static const size_t kMaxLevelCount {0xF};
 
-      MixerToClientExtension(const HeaderExtension &header);
+      MixerToClientExtension(const HeaderExtension &header) noexcept;
       MixerToClientExtension(
                               BYTE id,
                               BYTE *levels,
                               size_t count
-                              );
+                              ) noexcept;
 
-      size_t levelsCount() const;
+      size_t levelsCount() const noexcept;
 
-      BYTE unusedBit(size_t index) const;
-      BYTE level(size_t index) const;
+      BYTE unusedBit(size_t index) const noexcept;
+      BYTE level(size_t index) const noexcept;
 
       virtual void trace(
                          const char *func = NULL,
                          const char *message = NULL
-                         ) const override;
+                         ) const noexcept override;
 
     public:
       BYTE mLevelBuffer[kMaxLevelCount] {};
     };
 
     //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPPacket::StringHeaderExtension
-    #pragma mark
+    //
+    // RTPPacket::StringHeaderExtension
+    //
 
     struct StringHeaderExtension : public HeaderExtension
     {
       static const size_t kMaxStringLength {0xFF};
 
-      StringHeaderExtension(const HeaderExtension &header);
+      StringHeaderExtension(const HeaderExtension &header) noexcept;
       StringHeaderExtension(
                             BYTE id,
                             const char *str
-                            );
+                            ) noexcept;
 
-      const char *str() const;
+      const char *str() const noexcept;
 
-      virtual void trace(
-                         const char *func = NULL,
-                         const char *message = NULL
-                         ) const override;
+      void trace(
+                 const char *func = NULL,
+                 const char *message = NULL
+                 ) const noexcept override;
 
     public:
       BYTE mStringBuffer[kMaxStringLength+sizeof(char)] {};
     };
       
     //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPPacket::NumberHeaderExtension
-    #pragma mark
+    //
+    // RTPPacket::NumberHeaderExtension
+    //
 
     struct NumberHeaderExtension : public HeaderExtension
     {
       static const size_t kMaxNumberByteLength {0xFF};
 
-      NumberHeaderExtension(const HeaderExtension &header);
+      NumberHeaderExtension(const HeaderExtension &header) noexcept;
       NumberHeaderExtension(
                             BYTE id,
                             const BYTE *number,
                             size_t lengthInBytes
-                            );
+                            ) noexcept;
       NumberHeaderExtension(
                             BYTE id,
                             const char *valueInBase10
-                            );
+                            ) noexcept(false); // throws InvalidParameters
 
-      const BYTE *number() const;
-      size_t length() const;
+      const BYTE *number() const noexcept;
+      size_t length() const noexcept;
 
-      String str() const;
+      String str() const noexcept;
 
-      virtual void trace(
-                         const char *func = NULL,
-                         const char *message = NULL
-                         ) const override;
+      void trace(
+                 const char *func = NULL,
+                 const char *message = NULL
+                 ) const noexcept override;
 
     public:
       BYTE mNumberBuffer[kMaxNumberByteLength] {};
     };
       
     //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPPacket::MidHeaderExtension
-    #pragma mark
+    //
+    // RTPPacket::MidHeaderExtension
+    //
 
     struct MidHeaderExtension : public StringHeaderExtension
     {
@@ -241,26 +241,26 @@ namespace ortc
 
       static const size_t kMaxMidLength = kMaxStringLength;
 
-      MidHeaderExtension(const HeaderExtension &header) : StringHeaderExtension(header) {}
+      MidHeaderExtension(const HeaderExtension &header) noexcept : StringHeaderExtension(header) {}
       MidHeaderExtension(
                         BYTE id,
                         const char *mid
-                        ) :                              StringHeaderExtension(id, mid) {}
+                        ) noexcept :                              StringHeaderExtension(id, mid) {}
 
-      const char *mid() const {return str();}
+      const char *mid() const noexcept {return str();}
 
-      virtual void trace(
-                         const char *func = NULL,
-                         const char *message = NULL
-                         ) const override;
+      void trace(
+                 const char *func = NULL,
+                 const char *message = NULL
+                 ) const noexcept override;
 
     public:
     };
 
     //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPPacket::RidHeaderExtension
-    #pragma mark
+    //
+    // RTPPacket::RidHeaderExtension
+    //
 
     struct RidHeaderExtension : public StringHeaderExtension
     {
@@ -268,173 +268,173 @@ namespace ortc
 
       static const size_t kMaxMidLength = kMaxStringLength;
 
-      RidHeaderExtension(const HeaderExtension &header) : StringHeaderExtension(header) {}
+      RidHeaderExtension(const HeaderExtension &header) noexcept : StringHeaderExtension(header) {}
       RidHeaderExtension(
                           BYTE id,
                           const char *rid
-                          ) :                              StringHeaderExtension(id, rid) {}
+                          ) noexcept :                              StringHeaderExtension(id, rid) {}
 
-      const char *rid() const {return str();}
+      const char *rid() const noexcept {return str();}
 
-      virtual void trace(
-                         const char *func = NULL,
-                         const char *message = NULL
-                         ) const override;
+      void trace(
+                 const char *func = NULL,
+                 const char *message = NULL
+                 ) const noexcept override;
 
     public:
     };
 
     //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPPacket::VideoOrientationHeaderExtension
-    #pragma mark
+    //
+    // RTPPacket::VideoOrientationHeaderExtension
+    //
 
     struct VideoOrientationHeaderExtension : public HeaderExtension
     {
       struct Clockwise {};
       struct CounterClockwise {};
 
-      VideoOrientationHeaderExtension(const HeaderExtension &header);
-      VideoOrientationHeaderExtension(const VideoOrientation6HeaderExtension &);
+      VideoOrientationHeaderExtension(const HeaderExtension &header) noexcept;
+      VideoOrientationHeaderExtension(const VideoOrientation6HeaderExtension &) noexcept;
       VideoOrientationHeaderExtension(
                                       const Clockwise &,
                                       bool frontFacingCamera, // true = front facing, false = backfacing
                                       bool flip, // horizontal left-right flip (mirro)
                                       UINT orientation
-                                      );
+                                      ) noexcept;
       VideoOrientationHeaderExtension(
                                       const CounterClockwise &,
                                       bool frontFacingCamera, // true = front facing, false = backfacing
                                       bool flip, // horizontal left-right flip (mirro)
                                       UINT orientation
-                                      );
+                                      ) noexcept;
 
-      bool frontFacing() const;
-      bool backFacing() const;
-      bool flip() const;
-      virtual UINT degreesClockwise() const;
-      virtual UINT degreesCounterClockwise() const;
+      bool frontFacing() const noexcept;
+      bool backFacing() const noexcept;
+      bool flip() const noexcept;
+      virtual UINT degreesClockwise() const noexcept;
+      virtual UINT degreesCounterClockwise() const noexcept;
 
       virtual void trace(
                          const char *func = NULL,
                          const char *message = NULL
-                         ) const override;
+                         ) const noexcept override;
 
     public:
       BYTE mEncoded[1] {};
     };
 
     //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPPacket::VideoOrientationHeaderExtension
-    #pragma mark
+    //
+    // RTPPacket::VideoOrientationHeaderExtension
+    //
 
     struct VideoOrientation6HeaderExtension : public VideoOrientationHeaderExtension
     {
-      VideoOrientation6HeaderExtension(const HeaderExtension &header);
+      VideoOrientation6HeaderExtension(const HeaderExtension &header) noexcept;
       VideoOrientation6HeaderExtension(
                                         const Clockwise &,
                                         bool frontFacingCamera, // true = front facing, false = backfacing
                                         bool flip, // horizontal left-right flip (mirro)
                                         UINT orientation
-                                        );
+                                        ) noexcept;
       VideoOrientation6HeaderExtension(
                                         const CounterClockwise &,
                                         bool frontFacingCamera, // true = front facing, false = backfacing
                                         bool flip, // horizontal left-right flip (mirro)
                                         UINT orientation
-                                        );
+                                        ) noexcept;
 
-      virtual UINT degreesClockwise() const override;
-      virtual UINT degreesCounterClockwise() const override;
+      virtual UINT degreesClockwise() const noexcept override;
+      virtual UINT degreesCounterClockwise() const noexcept override;
 
     public:
     };
 
   public:
     //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark (public)
-    #pragma mark
+    //
+    // (public)
+    //
 
     RTPPacket(
               const make_private &,
               MediaChannelID mediaChannelID
-              );
-    ~RTPPacket();
+              ) noexcept;
+    ~RTPPacket() noexcept;
 
     static RTPPacketPtr create(
                                const RTPPacket &packet,
                                MediaChannelID mediaChannelID  = 0
-                               );
-    static RTPPacketPtr create(const CreationParams &params);
+                               ) noexcept;
+    static RTPPacketPtr create(const CreationParams &params) noexcept;
     static RTPPacketPtr create(
                                const BYTE *buffer,
                                size_t bufferLengthInBytes,
                                MediaChannelID mediaChannelID = 0
-                               );
+                               ) noexcept;
     static RTPPacketPtr create(
                                const SecureByteBlock &buffer,
                                MediaChannelID mediaChannelID = 0
-                               );
+                               ) noexcept;
     static RTPPacketPtr create(
                                SecureByteBlockPtr buffer,
                                MediaChannelID mediaChannelID = 0
-                               );  // NOTE: exclusive ownership of buffer is taken / assumed
+                               ) noexcept;  // NOTE: exclusive ownership of buffer is taken / assumed
 
-    MediaChannelID mediaChannelID() const {return mMediaChannelID;}
+    MediaChannelID mediaChannelID() const noexcept {return mMediaChannelID;}
 
-    const BYTE *ptr() const;
-    size_t size() const;
-    SecureByteBlockPtr buffer() const;
+    const BYTE *ptr() const noexcept;
+    size_t size() const noexcept;
+    SecureByteBlockPtr buffer() const noexcept;
 
-    BYTE version() const {return mVersion;}
-    size_t padding() const {return mPadding;}
-    size_t cc() const {return static_cast<size_t>(mCC);}
-    bool m() const {return mM;}
-    BYTE pt() const {return mPT;}
-    WORD sequenceNumber() const {return mSequenceNumber;}
-    DWORD timestamp() const {return mTimestamp;}
-    DWORD ssrc() const {return mSSRC;}
+    BYTE version() const noexcept {return mVersion;}
+    size_t padding() const noexcept {return mPadding;}
+    size_t cc() const noexcept {return static_cast<size_t>(mCC);}
+    bool m() const noexcept {return mM;}
+    BYTE pt() const noexcept {return mPT;}
+    WORD sequenceNumber() const noexcept {return mSequenceNumber;}
+    DWORD timestamp() const noexcept {return mTimestamp;}
+    DWORD ssrc() const noexcept {return mSSRC;}
 
-    size_t headerSize() {return mHeaderSize;}
-    size_t headerExtensionSize() {return mHeaderExtensionSize;}
-    size_t payloadSize() {return mPayloadSize;}
+    size_t headerSize() noexcept {return mHeaderSize;}
+    size_t headerExtensionSize() noexcept {return mHeaderExtensionSize;}
+    size_t payloadSize() noexcept {return mPayloadSize;}
 
-    DWORD getCSRC(size_t index) const;
-    const BYTE *payload() const;
-    size_t payloadSize() const {return mPayloadSize;}
+    DWORD getCSRC(size_t index) const noexcept;
+    const BYTE *payload() const noexcept;
+    size_t payloadSize() const noexcept {return mPayloadSize;}
 
-    size_t totalHeaderExtensions() const {return mTotalHeaderExtensions;}
-    HeaderExtension *firstHeaderExtension() const {return mHeaderExtensions;}
-    HeaderExtension *getHeaderExtensionAtIndex(size_t index) const;
-    BYTE headerExtensionAppBits() const {return mHeaderExtensionAppBits;}
+    size_t totalHeaderExtensions() const noexcept {return mTotalHeaderExtensions;}
+    HeaderExtension *firstHeaderExtension() const noexcept {return mHeaderExtensions;}
+    HeaderExtension *getHeaderExtensionAtIndex(size_t index) const noexcept;
+    BYTE headerExtensionAppBits() const noexcept {return mHeaderExtensionAppBits;}
 
-    size_t headerExtensionPrepaddedSize() const {return mHeaderExtensionPrepaddedSize;}
-    const BYTE *headerExtensionParseStopped() const {return mHeaderExtensionParseStoppedPos;}
-    size_t headerExtensionParseStoppedSize() const {return mHeaderExtensionParseStoppedSize;}
+    size_t headerExtensionPrepaddedSize() const noexcept {return mHeaderExtensionPrepaddedSize;}
+    const BYTE *headerExtensionParseStopped() const noexcept {return mHeaderExtensionParseStoppedPos;}
+    size_t headerExtensionParseStoppedSize() const noexcept {return mHeaderExtensionParseStoppedSize;}
 
-    void changeHeaderExtensions(HeaderExtension *firstExtension);
+    void changeHeaderExtensions(HeaderExtension *firstExtension) noexcept(false); // throws InvalidState
 
     void trace(
                const char *func = NULL,
                const char *message = NULL
-               ) const;
+               ) const noexcept;
 
   protected:
     //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark (internal)
-    #pragma mark
+    //
+    // (internal)
+    //
 
-    bool parse();
+    bool parse() noexcept;
 
     void writeHeaderExtensions(
                                 HeaderExtension *firstExtension,
                                 bool twoByteHeader
-                                );
-    void generate(const RTPPacket &params);
-    void generate(const CreationParams &params);
+                                ) noexcept;
+    void generate(const RTPPacket &params) noexcept;
+    void generate(const CreationParams &params) noexcept(false); // throws InvalidState
 
   public:
     SecureByteBlockPtr mBuffer;

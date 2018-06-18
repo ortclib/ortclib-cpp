@@ -49,13 +49,16 @@
 
 #include <cryptopp/sha.h>
 
+#include <ortc/internal/webrtc_pre_include.h>
 #include <webrtc/rtc_base/event_tracer.h>
+#include <ortc/internal/webrtc_post_include.h>
 
 #if 0
 #include <limits>
 #include <float.h>
 #include <math.h>
 
+#include <ortc/internal/webrtc_pre_include.h>
 #include <webrtc/rtc_base/timeutils.h>
 #include <webrtc/call/rtc_event_log.h>
 #include <webrtc/voice_engine/include/voe_codec.h>
@@ -66,16 +69,12 @@
 #include <webrtc/voice_engine/include/voe_audio_processing.h>
 #include <webrtc/modules/video_capture/video_capture_factory.h>
 #include <webrtc/modules/audio_coding/codecs/builtin_audio_decoder_factory.h>
-#ifdef WINRT
+#ifdef WINUWP
 #include <third_party/h264_winrt/h264_winrt_factory.h>
 #endif
+#include <ortc/internal/webrtc_post_include.h>
 #endif //0
 
-#ifdef _DEBUG
-#define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))
-#else
-#define ASSERT(x)
-#endif //_DEBUG
 
 namespace ortc { ZS_DECLARE_SUBSYSTEM(org_ortc_media_engine) }
 
@@ -93,40 +92,40 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark (helpers)
-    #pragma mark
+    //
+    // (helpers)
+    //
 
     // foreward declaration
-    void webrtcTrace(Log::Severity severity, Log::Level level, const char *message);
+    void webrtcTrace(Log::Severity severity, Log::Level level, const char *message) noexcept;
 
     
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaEngineSettingsDefaults
-    #pragma mark
+    //
+    // MediaEngineSettingsDefaults
+    //
 
     class MediaEngineSettingsDefaults : public ISettingsApplyDefaultsDelegate
     {
     public:
       //-----------------------------------------------------------------------
-      ~MediaEngineSettingsDefaults()
+      ~MediaEngineSettingsDefaults() noexcept
       {
         ISettings::removeDefaults(*this);
       }
 
       //-----------------------------------------------------------------------
-      static MediaEngineSettingsDefaultsPtr singleton()
+      static MediaEngineSettingsDefaultsPtr singleton() noexcept
       {
         static SingletonLazySharedPtr<MediaEngineSettingsDefaults> singleton(create());
         return singleton.singleton();
       }
 
       //-----------------------------------------------------------------------
-      static MediaEngineSettingsDefaultsPtr create()
+      static MediaEngineSettingsDefaultsPtr create() noexcept
       {
         auto pThis(make_shared<MediaEngineSettingsDefaults>());
         ISettings::installDefaults(pThis);
@@ -134,14 +133,14 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      virtual void notifySettingsApplyDefaults() override
+      virtual void notifySettingsApplyDefaults() noexcept override
       {
       }
       
     };
 
     //-------------------------------------------------------------------------
-    void installMediaEngineSettingsDefaults()
+    void installMediaEngineSettingsDefaults() noexcept
     {
       MediaEngineSettingsDefaults::singleton();
     }
@@ -150,48 +149,48 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaEngineForORTC
-    #pragma mark
+    //
+    // IMediaEngineForORTC
+    //
 
     //-------------------------------------------------------------------------
-    void IMediaEngineForORTC::setLogLevel(Log::Level level)
+    void IMediaEngineForORTC::setLogLevel(Log::Level level) noexcept
     {
       IMediaEngineFactory::singleton().setLogLevel(level);
     }
 
     //-------------------------------------------------------------------------
-    void IMediaEngineForORTC::ntpServerTime(const Milliseconds &value)
+    void IMediaEngineForORTC::ntpServerTime(const Milliseconds &value) noexcept
     {
       IMediaEngineFactory::singleton().ntpServerTime(value);
     }
 
     //-------------------------------------------------------------------------
-    void IMediaEngineForORTC::startMediaTracing()
+    void IMediaEngineForORTC::startMediaTracing() noexcept
     {
       IMediaEngineFactory::singleton().startMediaTracing();
     }
 
     //-------------------------------------------------------------------------
-    void IMediaEngineForORTC::stopMediaTracing()
+    void IMediaEngineForORTC::stopMediaTracing() noexcept
     {
       IMediaEngineFactory::singleton().stopMediaTracing();
     }
 
     //-------------------------------------------------------------------------
-    bool IMediaEngineForORTC::isMediaTracing()
+    bool IMediaEngineForORTC::isMediaTracing() noexcept
     {
       return IMediaEngineFactory::singleton().isMediaTracing();
     }
 
     //-------------------------------------------------------------------------
-    bool IMediaEngineForORTC::saveMediaTrace(String filename)
+    bool IMediaEngineForORTC::saveMediaTrace(String filename) noexcept
     {
       return IMediaEngineFactory::singleton().saveMediaTrace(filename);
     }
 
     //-------------------------------------------------------------------------
-    bool IMediaEngineForORTC::saveMediaTrace(String host, int port)
+    bool IMediaEngineForORTC::saveMediaTrace(String host, int port) noexcept
     {
       return IMediaEngineFactory::singleton().saveMediaTrace(host, port);
     }
@@ -200,9 +199,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaEngineForMediaDeviceCapture
-    #pragma mark
+    //
+    // IMediaEngineForMediaDeviceCapture
+    //
 
     //-------------------------------------------------------------------------
     IMediaDeviceCapture::MediaDeviceCapturePromisePtr IMediaEngineForMediaDeviceCapture::createMediaDeviceCapture(
@@ -210,7 +209,7 @@ namespace ortc
                                                                                                                   Kinds kind,
                                                                                                                   const TrackConstraints &constraints,
                                                                                                                   IMediaDeviceCaptureDelegatePtr delegate
-                                                                                                                  )
+                                                                                                                  ) noexcept
     {
       return internal::IMediaEngineFactory::singleton().createMediaDeviceCapture(repaceExistingDeviceObjectID, kind, constraints, delegate);
     }
@@ -219,16 +218,16 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaEngineForMediaDeviceRender
-    #pragma mark
+    //
+    // IMediaEngineForMediaDeviceRender
+    //
 
     //-------------------------------------------------------------------------
     IMediaEngineForMediaDeviceRender::MediaDeviceRenderPromisePtr IMediaEngineForMediaDeviceRender::createMediaDeviceRender(
                                                                                                                             MediaDeviceObjectID repaceExistingDeviceObjectID,
                                                                                                                             const TrackConstraints &constraints,
                                                                                                                             IMediaDeviceRenderDelegatePtr delegate
-                                                                                                                            )
+                                                                                                                            ) noexcept
     {
       return internal::IMediaEngineFactory::singleton().createMediaDeviceRender(repaceExistingDeviceObjectID, constraints, delegate);
     }
@@ -238,39 +237,39 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaEngineForMediaDeviceRenderAudio
-    #pragma mark
+    //
+    // IMediaEngineForMediaDeviceRenderAudio
+    //
     
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaEngineForRTP
-    #pragma mark
+    //
+    // IMediaEngineForRTP
+    //
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaEngineForRTPDecode
-    #pragma mark
+    //
+    // IMediaEngineForRTPDecode
+    //
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaEngineForRTPDecoderAudio
-    #pragma mark
+    //
+    // IMediaEngineForRTPDecoderAudio
+    //
 
     //-------------------------------------------------------------------------
     IMediaEngineForRTPDecoderAudio::PromiseWithRTPDecoderAudioPtr IMediaEngineForRTPDecoderAudio::createRTPDecoderAudio(
                                                                                                                         const Parameters &parameters,
                                                                                                                         IRTPDecoderDelegatePtr delegate
-                                                                                                                        )
+                                                                                                                        ) noexcept
     {
       return internal::IMediaEngineFactory::singleton().createRTPDecoderAudio(parameters, delegate);
     }
@@ -278,15 +277,15 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaEngineForRTPDecoderVideo
-    #pragma mark
+    //
+    // IMediaEngineForRTPDecoderVideo
+    //
 
     //-------------------------------------------------------------------------
     IMediaEngineForRTPDecoderVideo::PromiseWithRTPDecoderVideoPtr IMediaEngineForRTPDecoderVideo::createRTPDecoderVideo(
                                                                                                                         const Parameters &parameters,
                                                                                                                         IRTPDecoderDelegatePtr delegate
-                                                                                                                        )
+                                                                                                                        ) noexcept
     {
       return internal::IMediaEngineFactory::singleton().createRTPDecoderVideo(parameters, delegate);
     }
@@ -295,15 +294,15 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaEngineForRTPEncoderAudio
-    #pragma mark
+    //
+    // IMediaEngineForRTPEncoderAudio
+    //
 
     //-------------------------------------------------------------------------
     IMediaEngineForRTPEncoderAudio::PromiseWithRTPEncoderAudioPtr IMediaEngineForRTPEncoderAudio::createRTPEncoderAudio(
                                                                                                                         const Parameters &parameters,
                                                                                                                         IRTPEncoderDelegatePtr delegate
-                                                                                                                        )
+                                                                                                                        ) noexcept
     {
       return internal::IMediaEngineFactory::singleton().createRTPEncoderAudio(parameters, delegate);
     }
@@ -311,15 +310,15 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaEngineForRTPEncoderVideo
-    #pragma mark
+    //
+    // IMediaEngineForRTPEncoderVideo
+    //
 
     //-------------------------------------------------------------------------
     IMediaEngineForRTPEncoderVideo::PromiseWithRTPEncoderVideoPtr IMediaEngineForRTPEncoderVideo::createRTPEncoderVideo(
                                                                                                                         const Parameters &parameters,
                                                                                                                         IRTPEncoderDelegatePtr delegate
-                                                                                                                        )
+                                                                                                                        ) noexcept
     {
       return internal::IMediaEngineFactory::singleton().createRTPEncoderVideo(parameters, delegate);
     }
@@ -328,12 +327,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaEngine
-    #pragma mark
+    //
+    // MediaEngine
+    //
     
     //---------------------------------------------------------------------------
-    const char *MediaEngine::toString(States state)
+    const char *MediaEngine::toString(States state) noexcept
     {
       switch (state) {
         case State_Pending:       return "pending";
@@ -351,7 +350,7 @@ namespace ortc
     MediaEngine::MediaEngine(
                              const make_private &,
                              IMessageQueuePtr queue
-                             ) :
+                             ) noexcept :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
       traceCallback_(new WebRtcTraceCallback()),
@@ -361,7 +360,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void MediaEngine::init()
+    void MediaEngine::init() noexcept
     {
       webrtc::Trace::CreateTrace();
       webrtc::Trace::SetTraceCallback(traceCallback_.get());
@@ -371,7 +370,7 @@ namespace ortc
         internalSetLogLevel(level);
       }
 
-#if defined(WINRT)
+#if defined(WINUWP)
       webrtc::SetupEventTracer(&GetCategoryGroupEnabled, &AddTraceEvent);
 #endif
 
@@ -381,7 +380,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    MediaEngine::~MediaEngine()
+    MediaEngine::~MediaEngine() noexcept
     {
       if (isNoop()) return;
 
@@ -395,14 +394,14 @@ namespace ortc
     }
 
     //-----------------------------------------------------------------------
-    MediaEnginePtr MediaEngine::singleton()
+    MediaEnginePtr MediaEngine::singleton() noexcept
     {
       static SingletonLazySharedPtr<MediaEngine> singleton(create());
       return singleton.singleton();
     }
 
     //-----------------------------------------------------------------------
-    MediaEnginePtr MediaEngine::create()
+    MediaEnginePtr MediaEngine::create() noexcept
     {
       auto pThis(make_shared<MediaEngine>(make_private{}, IORTCForInternal::queueBlockingMediaStartStopThread()));
       pThis->thisWeak_ = pThis;
@@ -411,79 +410,79 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    MediaEnginePtr MediaEngine::convert(ForORTCPtr object)
+    MediaEnginePtr MediaEngine::convert(ForORTCPtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(MediaEngine, object);
     }
 
     //-------------------------------------------------------------------------
-    MediaEnginePtr MediaEngine::convert(ForMediaDeviceCapturePtr object)
+    MediaEnginePtr MediaEngine::convert(ForMediaDeviceCapturePtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(MediaEngine, object);
     }
 
     //-------------------------------------------------------------------------
-    MediaEnginePtr MediaEngine::convert(ForMediaDeviceCaptureAudioPtr object)
+    MediaEnginePtr MediaEngine::convert(ForMediaDeviceCaptureAudioPtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(MediaEngine, object);
     }
 
     //-------------------------------------------------------------------------
-    MediaEnginePtr MediaEngine::convert(ForMediaDeviceCaptureVideoPtr object)
+    MediaEnginePtr MediaEngine::convert(ForMediaDeviceCaptureVideoPtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(MediaEngine, object);
     }
 
     //-------------------------------------------------------------------------
-    MediaEnginePtr MediaEngine::convert(ForMediaDeviceRenderPtr object)
+    MediaEnginePtr MediaEngine::convert(ForMediaDeviceRenderPtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(MediaEngine, object);
     }
 
     //-------------------------------------------------------------------------
-    MediaEnginePtr MediaEngine::convert(ForMediaDeviceRenderAudioPtr object)
+    MediaEnginePtr MediaEngine::convert(ForMediaDeviceRenderAudioPtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(MediaEngine, object);
     }
 
     //-------------------------------------------------------------------------
-    MediaEnginePtr MediaEngine::convert(ForRTPPtr object)
+    MediaEnginePtr MediaEngine::convert(ForRTPPtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(MediaEngine, object);
     }
     
     //-------------------------------------------------------------------------
-    MediaEnginePtr MediaEngine::convert(ForRTPDecodePtr object)
+    MediaEnginePtr MediaEngine::convert(ForRTPDecodePtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(MediaEngine, object);
     }
 
     //-------------------------------------------------------------------------
-    MediaEnginePtr MediaEngine::convert(ForRTPDecodeAudioPtr object)
+    MediaEnginePtr MediaEngine::convert(ForRTPDecodeAudioPtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(MediaEngine, object);
     }
 
     //-------------------------------------------------------------------------
-    MediaEnginePtr MediaEngine::convert(ForRTPDecodeVideoPtr object)
+    MediaEnginePtr MediaEngine::convert(ForRTPDecodeVideoPtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(MediaEngine, object);
     }
 
     //-------------------------------------------------------------------------
-    MediaEnginePtr MediaEngine::convert(ForRTPEncodePtr object)
+    MediaEnginePtr MediaEngine::convert(ForRTPEncodePtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(MediaEngine, object);
     }
 
     //-------------------------------------------------------------------------
-    MediaEnginePtr MediaEngine::convert(ForRTPEncodeAudioPtr object)
+    MediaEnginePtr MediaEngine::convert(ForRTPEncodeAudioPtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(MediaEngine, object);
     }
 
     //-------------------------------------------------------------------------
-    MediaEnginePtr MediaEngine::convert(ForRTPEncodeVideoPtr object)
+    MediaEnginePtr MediaEngine::convert(ForRTPEncodeVideoPtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(MediaEngine, object);
     }
@@ -492,12 +491,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaEngine => IMediaEngineForORTC
-    #pragma mark
+    //
+    // MediaEngine => IMediaEngineForORTC
+    //
 
     //-------------------------------------------------------------------------
-    void MediaEngine::internalSetLogLevel(Log::Level level)
+    void MediaEngine::internalSetLogLevel(Log::Level level) noexcept
     {
       webrtc::TraceLevel traceLevel{ webrtc::kTraceAll };
       rtc::LoggingSeverity rtcLevel{ rtc::LS_INFO };
@@ -519,45 +518,49 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void MediaEngine::internalNTPServerTime(const Milliseconds &value)
+    void MediaEngine::internalNTPServerTime(ZS_MAYBE_USED() const Milliseconds &value) noexcept
     {
-#define TODO 1
-#define TODO 2
+      ZS_MAYBE_USED(value);
+#pragma ZS_BUILD_NOTE("TODO","Implement ntp server time")
 #if 0
       rtc::SyncWithNtp(value.count());
 #endif //0
     }
 
     //-------------------------------------------------------------------------
-    void MediaEngine::internalStartMediaTracing()
+    void MediaEngine::internalStartMediaTracing() noexcept
     {
       //traceLog_.EnableTraceInternalStorage();
       //traceLog_.StartTracing();
     }
 
     //-------------------------------------------------------------------------
-    void MediaEngine::internalStopMediaTracing()
+    void MediaEngine::internalStopMediaTracing() noexcept
     {
       //traceLog_.StopTracing();
     }
 
     //-------------------------------------------------------------------------
-    bool MediaEngine::internalIsMediaTracing()
+    bool MediaEngine::internalIsMediaTracing() noexcept
     {
       //return traceLog_.IsTracing();
       return false;
     }
 
     //-------------------------------------------------------------------------
-    bool MediaEngine::internalSaveMediaTrace(String filename)
+    bool MediaEngine::internalSaveMediaTrace(ZS_MAYBE_USED() String filename) noexcept
     {
+      ZS_MAYBE_USED(filename);
       //return traceLog_.Save(filename);
       return false;
     }
 
     //-------------------------------------------------------------------------
-    bool MediaEngine::internalSaveMediaTrace(String host, int port)
+    bool MediaEngine::internalSaveMediaTrace(ZS_MAYBE_USED() String host, ZS_MAYBE_USED() int port) noexcept
     {
+#pragma ZS_BUILD_NOTE("TODO","remove ZS_MAYBE_USED when implemented")
+      ZS_MAYBE_USED(host);
+      ZS_MAYBE_USED(port);
       //return traceLog_.Save(host, port);
       return false;
     }
@@ -567,12 +570,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaEngine => IMediaEngineForMediaDevice
-    #pragma mark
+    //
+    // MediaEngine => IMediaEngineForMediaDevice
+    //
 
     //-------------------------------------------------------------------------
-    void MediaEngine::notifyDeviceIsIdleOrShutdownStateChanged()
+    void MediaEngine::notifyDeviceIsIdleOrShutdownStateChanged() noexcept
     {
       checkForIdleDevices_ = true;
       IWakeDelegateProxy::create(thisWeak_.lock())->onWake();
@@ -582,9 +585,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaEngine => IMediaEngineForMediaDeviceCapture
-    #pragma mark
+    //
+    // MediaEngine => IMediaEngineForMediaDeviceCapture
+    //
 
     //-------------------------------------------------------------------------
     MediaEngine::MediaDeviceCapturePromisePtr MediaEngine::innerCreateMediaDeviceCapture(
@@ -592,7 +595,7 @@ namespace ortc
                                                                                          Kinds kind,
                                                                                          const TrackConstraints &constraints,
                                                                                          IMediaDeviceCaptureDelegatePtr delegate
-                                                                                         )
+                                                                                         ) noexcept
     {    
       auto pThis = thisWeak_.lock();
 
@@ -617,33 +620,33 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaEngine => IMediaEngineForMediaDeviceCaptureAudio
-    #pragma mark
+    //
+    // MediaEngine => IMediaEngineForMediaDeviceCaptureAudio
+    //
 
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaEngine => IMediaEngineForMediaDeviceCaptureVideo
-    #pragma mark
+    //
+    // MediaEngine => IMediaEngineForMediaDeviceCaptureVideo
+    //
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaEngine => IMediaEngineForMediaDeviceRender
-    #pragma mark
+    //
+    // MediaEngine => IMediaEngineForMediaDeviceRender
+    //
 
     //-------------------------------------------------------------------------
     MediaEngine::MediaDeviceRenderPromisePtr MediaEngine::innerCreateMediaDeviceRender(
                                                                                        MediaDeviceObjectID repaceExistingDeviceObjectID,
                                                                                        const TrackConstraints &constraints,
                                                                                        IMediaDeviceRenderDelegatePtr delegate
-                                                                                       )
+                                                                                       ) noexcept
     {    
       auto pThis = thisWeak_.lock();
 
@@ -666,20 +669,20 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaEngine => IMediaEngineForMediaDeviceRenderAudio
-    #pragma mark
+    //
+    // MediaEngine => IMediaEngineForMediaDeviceRenderAudio
+    //
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaEngine => IMediaEngineForRTP
-    #pragma mark
+    //
+    // MediaEngine => IMediaEngineForRTP
+    //
 
     //-------------------------------------------------------------------------
-    void MediaEngine::notifyRTPShutdownStateChanged()
+    void MediaEngine::notifyRTPShutdownStateChanged() noexcept
     {
       checkForShutdownRTP_ = true;
       IWakeDelegateProxy::create(thisWeak_.lock())->onWake();
@@ -689,23 +692,23 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaEngine => IMediaEngineForRTPDecoder
-    #pragma mark
+    //
+    // MediaEngine => IMediaEngineForRTPDecoder
+    //
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaEngine => IMediaEngineForRTPDecoderAudio
-    #pragma mark
+    //
+    // MediaEngine => IMediaEngineForRTPDecoderAudio
+    //
 
     //-------------------------------------------------------------------------
     MediaEngine::PromiseWithRTPDecoderAudioPtr MediaEngine::innerCreateRTPDecoderAudio(
                                                                                        const Parameters &parameters,
                                                                                        IRTPDecoderDelegatePtr delegate
-                                                                                       )
+                                                                                       ) noexcept
     {
       auto pThis = thisWeak_.lock();
 
@@ -727,15 +730,15 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaEngine => IMediaEngineForRTPDecoderVideo
-    #pragma mark
+    //
+    // MediaEngine => IMediaEngineForRTPDecoderVideo
+    //
 
     //-------------------------------------------------------------------------
     MediaEngine::PromiseWithRTPDecoderVideoPtr MediaEngine::innerCreateRTPDecoderVideo(
                                                                                        const Parameters &parameters,
                                                                                        IRTPDecoderDelegatePtr delegate
-                                                                                       )
+                                                                                       ) noexcept
     {
       auto pThis = thisWeak_.lock();
 
@@ -757,23 +760,23 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaEngine => IMediaEngineForRTPEncoder
-    #pragma mark
+    //
+    // MediaEngine => IMediaEngineForRTPEncoder
+    //
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaEngine => IMediaEngineForRTPEncoderAudio
-    #pragma mark
+    //
+    // MediaEngine => IMediaEngineForRTPEncoderAudio
+    //
 
     //-------------------------------------------------------------------------
     MediaEngine::PromiseWithRTPEncoderAudioPtr MediaEngine::innerCreateRTPEncoderAudio(
                                                                                        const Parameters &parameters,
                                                                                        IRTPEncoderDelegatePtr delegate
-                                                                                       )
+                                                                                       ) noexcept
     {
       auto pThis = thisWeak_.lock();
 
@@ -795,15 +798,15 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaEngine => IMediaEngineForRTPEncoderVideo
-    #pragma mark
+    //
+    // MediaEngine => IMediaEngineForRTPEncoderVideo
+    //
 
     //-------------------------------------------------------------------------
     MediaEngine::PromiseWithRTPEncoderVideoPtr MediaEngine::innerCreateRTPEncoderVideo(
                                                                                        const Parameters &parameters,
                                                                                        IRTPEncoderDelegatePtr delegate
-                                                                                       )
+                                                                                       ) noexcept
     {
       auto pThis = thisWeak_.lock();
 
@@ -825,9 +828,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaEngine => IMediaDevicesDelegate
-    #pragma mark
+    //
+    // MediaEngine => IMediaDevicesDelegate
+    //
 
     //-------------------------------------------------------------------------
     void MediaEngine::onMediaDevicesChanged()
@@ -843,9 +846,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaEngine => IWakeDelegate
-    #pragma mark
+    //
+    // MediaEngine => IWakeDelegate
+    //
 
     //-------------------------------------------------------------------------
     void MediaEngine::onWake()
@@ -860,9 +863,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaEngine => ITimerDelegate
-    #pragma mark
+    //
+    // MediaEngine => ITimerDelegate
+    //
 
     //-------------------------------------------------------------------------
     void MediaEngine::onTimer(ITimerPtr timer)
@@ -877,9 +880,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaEngine => IPromiseSettledDelegate
-    #pragma mark
+    //
+    // MediaEngine => IPromiseSettledDelegate
+    //
 
     //-------------------------------------------------------------------------
     void MediaEngine::onPromiseSettled(PromisePtr promise)
@@ -905,11 +908,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaEngine => webrtc::SetupEventTracer
-    #pragma mark
+    //
+    // MediaEngine => webrtc::SetupEventTracer
+    //
 
-#if defined(WINRT)
+#if defined(WINUWP)
     //-------------------------------------------------------------------------
     const unsigned char *MediaEngine::GetCategoryGroupEnabled(const char *categoryGroup)
     {
@@ -935,17 +938,17 @@ namespace ortc
           numArgs, argNames, argTypes, argValues, flags);
       }
     }
-#endif //defined(WINRT)
+#endif //defined(WINUWP)
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaEngine => (internal)
-    #pragma mark
+    //
+    // MediaEngine => (internal)
+    //
 
-#if defined(WINRT)
+#if defined(WINUWP)
     //-------------------------------------------------------------------------
     void MediaEngine::internalAddTraceEvent(
                                             char phase,
@@ -957,14 +960,14 @@ namespace ortc
                                             const unsigned char *argTypes,
                                             const uint64_t *argValues,
                                             unsigned char flags
-                                            )
+                                            ) noexcept
     {
       traceLog_.Add(phase, categoryGroupEnabled, name, id, numArgs, argNames, argTypes, argValues, flags);
     }
-#endif //defined(WINRT)
+#endif //defined(WINUWP)
 
     //-------------------------------------------------------------------------
-    void MediaEngine::cancel()
+    void MediaEngine::cancel() noexcept
     {
       //.......................................................................
       // try to gracefully shutdown
@@ -989,8 +992,7 @@ namespace ortc
         if (!stepShutdownPendingRequests()) return;
         if (!stepShutdownDevicesAndRTP()) return;
 
-#define TODO_IMPLEMENT_MEDIA_GRACEFUL_SHUTDOWN 1
-#define TODO_IMPLEMENT_MEDIA_GRACEFUL_SHUTDOWN 2
+#pragma ZS_BUILD_NOTE("TODO","implement media engine graceful shutdown")
         //        return;
       }
 
@@ -1000,15 +1002,14 @@ namespace ortc
       setState(State_Shutdown);
       stepShutdownDevicesAndRTP();
 
-#define TODO_IMPLEMENT_MEDIA_HARD_SHUTDOWN 1
-#define TODO_IMPLEMENT_MEDIA_HARD_SHUTDOWN 2
+#pragma ZS_BUILD_NOTE("TODO","implement media engine hard shutdown")
 
       // make sure to cleanup any final reference to self
       gracefulShutdownReference_.reset();
     }
 
     //-------------------------------------------------------------------------
-    bool MediaEngine::stepShutdownPendingRequests()
+    bool MediaEngine::stepShutdownPendingRequests() noexcept
     {
       for (auto iter_doNotUse = pendingForMediaDeviceCaptures_.begin(); iter_doNotUse != pendingForMediaDeviceCaptures_.end(); )
       {
@@ -1087,7 +1088,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool MediaEngine::stepShutdownDevicesAndRTP()
+    bool MediaEngine::stepShutdownDevicesAndRTP() noexcept
     {
       for (auto iter_doNotUse = captureDevices_.begin(); iter_doNotUse != captureDevices_.end(); )
       {
@@ -1151,7 +1152,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void MediaEngine::step()
+    void MediaEngine::step() noexcept
     {
       ZS_EVENTING_1(x, i, Trace, MediaEngineStep, ol, MediaEngine, Step, puid, id, id_);
 
@@ -1214,7 +1215,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool MediaEngine::stepPendingPromises()
+    bool MediaEngine::stepPendingPromises() noexcept
     {
       if (pendingPromises_.size() > 0) {
         ZS_EVENTING_2(x, i, Trace, MediaEngineStepMessage, ol, MediaEngine, Step, puid, id, id_, string, message, "promises are still pending");
@@ -1226,7 +1227,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool MediaEngine::stepRefreshDeviceList()
+    bool MediaEngine::stepRefreshDeviceList() noexcept
     {
       if (!devicesSubscription_) {
         devicesSubscription_ = UseMediaDevices::subscribe(thisWeak_.lock());
@@ -1274,7 +1275,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void MediaEngine::stepFixState()
+    void MediaEngine::stepFixState() noexcept
     {
       ZS_EVENTING_2(x, i, Trace, MediaEngineStepMessage, ol, MediaEngine, Step, puid, id, id_, string, message, "fix state");
 
@@ -1309,7 +1310,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool MediaEngine::stepWakeUp1()
+    bool MediaEngine::stepWakeUp1() noexcept
     {
       if (completedWakeUp1_) {
         ZS_EVENTING_2(x, i, Trace, MediaEngineStepMessage, ol, MediaEngine, Step, puid, id, id_, string, message, "wake up 1 already completed");
@@ -1332,7 +1333,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool MediaEngine::stepGoingToSleep1()
+    bool MediaEngine::stepGoingToSleep1() noexcept
     {
       if (completedGoingToSleep1_) {
         ZS_EVENTING_2(x, i, Trace, MediaEngineStepMessage, ol, MediaEngine, Step, puid, id, id_, string, message, "going to sleep 1 already completed");
@@ -1354,7 +1355,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool MediaEngine::stepShutdownDevices()
+    bool MediaEngine::stepShutdownDevices() noexcept
     {
       if (!((checkForIdleDevices_) || (shuttingDownIdleDevices_))) {
         ZS_EVENTING_2(x, i, Trace, MediaEngineStepMessage, ol, MediaEngine, Step, puid, id, id_, string, message, "no devices have reported being idle and no devices are in the middle of shutting down");
@@ -1408,7 +1409,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool MediaEngine::stepShutdownRTP()
+    bool MediaEngine::stepShutdownRTP() noexcept
     {
       if (!checkForShutdownRTP_) {
         ZS_EVENTING_2(x, i, Trace, MediaEngineStepMessage, ol, MediaEngine, Step, puid, id, id_, string, message, "no rtp notified being shutting down");
@@ -1447,7 +1448,7 @@ namespace ortc
     static void getExactDeviceIDs(
                                   const MediaEngine::TrackConstraints &constraints,
                                   MediaEngine::StringList &outValues
-                                  )
+                                  ) noexcept
     {
       constraints.mDeviceID.exact(outValues);
       for (auto iter = constraints.mAdvanced.begin(); iter != constraints.mAdvanced.end(); ++iter) {
@@ -1459,7 +1460,7 @@ namespace ortc
     static void getIdealDeviceIDs(
                                   const MediaEngine::TrackConstraints &constraints,
                                   MediaEngine::StringList &outValues
-                                  )
+                                  ) noexcept
     {
       constraints.mDeviceID.ideal(outValues);
       for (auto iter = constraints.mAdvanced.begin(); iter != constraints.mAdvanced.end(); ++iter) {
@@ -1471,7 +1472,7 @@ namespace ortc
     static void getExactGroupIDs(
                                   const MediaEngine::TrackConstraints &constraints,
                                   MediaEngine::StringList &outValues
-                                  )
+                                  ) noexcept
     {
       constraints.mGroupID.exact(outValues);
       for (auto iter = constraints.mAdvanced.begin(); iter != constraints.mAdvanced.end(); ++iter) {
@@ -1483,7 +1484,7 @@ namespace ortc
     static void getIdealGroupIDs(
                                   const MediaEngine::TrackConstraints &constraints,
                                   MediaEngine::StringList &outValues
-                                  )
+                                  ) noexcept
     {
       constraints.mGroupID.ideal(outValues);
       for (auto iter = constraints.mAdvanced.begin(); iter != constraints.mAdvanced.end(); ++iter) {
@@ -1492,7 +1493,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    static bool doesListContain(const MediaEngine::StringList &values, const String &value)
+    static bool doesListContain(const MediaEngine::StringList &values, const String &value) noexcept
     {
       for (auto iter = values.begin(); iter != values.end(); ++iter) {
         if (value == (*iter)) return true;
@@ -1508,7 +1509,7 @@ namespace ortc
                            const MediaEngine::TrackConstraints &constraints,
                            String &outUseDeviceID,
                            String &outUseGroupID
-                           )
+                           ) noexcept
     {
       MediaEngine::StringList exactDeviceIDs;
       MediaEngine::StringList idealDeviceIDs;
@@ -1574,7 +1575,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool MediaEngine::stepStartPendingDevices()
+    bool MediaEngine::stepStartPendingDevices() noexcept
     {
       if ((checkForIdleDevices_) || (shuttingDownIdleDevices_) || (devicesListPromise_)) {
         ZS_EVENTING_2(x, i, Trace, MediaEngineStepMessage, ol, MediaEngine, Step, puid, id, id_, string, message, "start pending devices step skipped (cannot start devices while device list is being obtained or when shutting down existing devices)");
@@ -1660,7 +1661,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool MediaEngine::stepReady1()
+    bool MediaEngine::stepReady1() noexcept
     {
       //...............................
 
@@ -1734,7 +1735,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool MediaEngine::stepStartPendingRTP()
+    bool MediaEngine::stepStartPendingRTP() noexcept
     {
       {
         for (auto iter = pendingForRTPDecodeAudios_.begin(); iter != pendingForRTPDecodeAudios_.end(); ++iter)
@@ -1780,14 +1781,14 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void MediaEngine::onReady1(PromisePtr promise)
+    void MediaEngine::onReady1(PromisePtr promise) noexcept
     {
       // NOT in a lock
       promise->resolve();
     }
 
     //-------------------------------------------------------------------------
-    void MediaEngine::performAsync(std::function<void(PromisePtr)> func)
+    void MediaEngine::performAsync(std::function<void(PromisePtr)> func) noexcept
     {
       auto pThis = thisWeak_.lock();
 
@@ -1799,7 +1800,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void MediaEngine::setState(States state)
+    void MediaEngine::setState(States state) noexcept
     {
       if (state == currentState_) return;
 
@@ -1820,7 +1821,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void MediaEngine::setError(PromisePtr promise)
+    void MediaEngine::setError(PromisePtr promise) noexcept
     {
       if (!promise) return;
 
@@ -1831,7 +1832,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void MediaEngine::setError(WORD errorCode, const char *inReason)
+    void MediaEngine::setError(WORD errorCode, const char *inReason) noexcept
     {
       String reason(inReason);
       if (reason.isEmpty()) {
@@ -1853,9 +1854,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaEngine::WebRtcTraceCallback
-    #pragma mark
+    //
+    // MediaEngine::WebRtcTraceCallback
+    //
 
     //-------------------------------------------------------------------------
     void MediaEngine::WebRtcTraceCallback::Print(webrtc::TraceLevel trace, const char* message, int length)
@@ -1897,9 +1898,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaEngine::WebRtcTraceCallback
-    #pragma mark
+    //
+    // MediaEngine::WebRtcTraceCallback
+    //
 
     //-------------------------------------------------------------------------
     void MediaEngine::WebRtcLogSink::OnLogMessage(const std::string& message)
@@ -1917,67 +1918,67 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaEngineFactory
-    #pragma mark
+    //
+    // IMediaEngineFactory
+    //
 
     //-------------------------------------------------------------------------
-    IMediaEngineFactory &IMediaEngineFactory::singleton()
+    IMediaEngineFactory &IMediaEngineFactory::singleton() noexcept
     {
       return MediaEngineFactory::singleton();
     }
 
     //-------------------------------------------------------------------------
-    MediaEnginePtr IMediaEngineFactory::create()
+    MediaEnginePtr IMediaEngineFactory::create() noexcept
     {
       if (this) {}
       return internal::MediaEngine::create();
     }
 
     //-------------------------------------------------------------------------
-    void IMediaEngineFactory::setLogLevel(Log::Level level)
+    void IMediaEngineFactory::setLogLevel(Log::Level level) noexcept
     {
       if (this) {}
       internal::MediaEngine::setLogLevel(level);
     }
 
     //-------------------------------------------------------------------------
-    void IMediaEngineFactory::ntpServerTime(const Milliseconds &value)
+    void IMediaEngineFactory::ntpServerTime(const Milliseconds &value) noexcept
     {
       if (this) {}
       internal::MediaEngine::ntpServerTime(value);
     }
 
     //-------------------------------------------------------------------------
-    void IMediaEngineFactory::startMediaTracing()
+    void IMediaEngineFactory::startMediaTracing() noexcept
     {
       if (this) {}
       return internal::MediaEngine::startMediaTracing();
     }
 
     //-------------------------------------------------------------------------
-    void IMediaEngineFactory::stopMediaTracing()
+    void IMediaEngineFactory::stopMediaTracing() noexcept
     {
       if (this) {}
       internal::MediaEngine::stopMediaTracing();
     }
 
     //-------------------------------------------------------------------------
-    bool IMediaEngineFactory::isMediaTracing()
+    bool IMediaEngineFactory::isMediaTracing() noexcept
     {
       if (this) {}
       return internal::MediaEngine::isMediaTracing();
     }
 
     //-------------------------------------------------------------------------
-    bool IMediaEngineFactory::saveMediaTrace(String filename)
+    bool IMediaEngineFactory::saveMediaTrace(String filename) noexcept
     {
       if (this) {}
       return internal::MediaEngine::saveMediaTrace(filename);
     }
 
     //-------------------------------------------------------------------------
-    bool IMediaEngineFactory::saveMediaTrace(String host, int port)
+    bool IMediaEngineFactory::saveMediaTrace(String host, int port) noexcept
     {
       if (this) {}
       return internal::MediaEngine::saveMediaTrace(host, port);
@@ -1989,7 +1990,7 @@ namespace ortc
                                                                                                     Kinds kind,
                                                                                                     const TrackConstraints &constraints,
                                                                                                     IMediaDeviceCaptureDelegatePtr delegate
-                                                                                                    )
+                                                                                                    ) noexcept
     {
       if (this) {}
       return internal::MediaEngine::createMediaDeviceCapture(repaceExistingDeviceObjectID, kind, constraints, delegate);
@@ -2000,7 +2001,7 @@ namespace ortc
                                                                                                   MediaDeviceObjectID repaceExistingDeviceObjectID,
                                                                                                   const TrackConstraints &constraints,
                                                                                                   IMediaDeviceRenderDelegatePtr delegate
-                                                                                                  )
+                                                                                                  ) noexcept
     {
       if (this) {}
       return internal::MediaEngine::createMediaDeviceRender(repaceExistingDeviceObjectID, constraints, delegate);
@@ -2010,7 +2011,7 @@ namespace ortc
     IMediaEngineFactory::PromiseWithRTPDecoderAudioPtr IMediaEngineFactory::createRTPDecoderAudio(
                                                                                                   const Parameters &parameters,
                                                                                                   IRTPDecoderDelegatePtr delegate
-                                                                                                  )
+                                                                                                  ) noexcept
     {
       if (this) {}
       return internal::MediaEngine::createRTPDecoderAudio(parameters, delegate);
@@ -2020,7 +2021,7 @@ namespace ortc
     IMediaEngineFactory::PromiseWithRTPDecoderVideoPtr IMediaEngineFactory::createRTPDecoderVideo(
                                                                                                   const Parameters &parameters,
                                                                                                   IRTPDecoderDelegatePtr delegate
-                                                                                                  )
+                                                                                                  ) noexcept
     {
       if (this) {}
       return internal::MediaEngine::createRTPDecoderVideo(parameters, delegate);
@@ -2030,7 +2031,7 @@ namespace ortc
     IMediaEngineFactory::PromiseWithRTPEncoderAudioPtr IMediaEngineFactory::createRTPEncoderAudio(
                                                                                                   const Parameters &parameters,
                                                                                                   IRTPEncoderDelegatePtr delegate
-                                                                                                  )
+                                                                                                  ) noexcept
     {
       if (this) {}
       return internal::MediaEngine::createRTPEncoderAudio(parameters, delegate);
@@ -2040,7 +2041,7 @@ namespace ortc
     IMediaEngineFactory::PromiseWithRTPEncoderVideoPtr IMediaEngineFactory::createRTPEncoderVideo(
                                                                                                   const Parameters &parameters,
                                                                                                   IRTPEncoderDelegatePtr delegate
-                                                                                                  )
+                                                                                                  ) noexcept
     {
       if (this) {}
       return internal::MediaEngine::createRTPEncoderVideo(parameters, delegate);

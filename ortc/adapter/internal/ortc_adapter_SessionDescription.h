@@ -49,9 +49,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SessionDescription
-      #pragma mark
+      //
+      // SessionDescription
+      //
 
       class SessionDescription : public SharedRecursiveLock,
                                  public ISessionDescription
@@ -59,7 +59,7 @@ namespace ortc
       protected:
         struct make_private {};
 
-        void init();
+        void init() noexcept;
 
       public:
         SessionDescription(
@@ -67,45 +67,45 @@ namespace ortc
                            SignalingTypes type,
                            const char *descriptionStr,
                            const Description *description
-                           );
+                           ) noexcept;
 
-        static SessionDescriptionPtr convert(ISessionDescriptionPtr object);
+        static SessionDescriptionPtr convert(ISessionDescriptionPtr object) noexcept;
 
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark SessionDescription => ISessionDescription
-        #pragma mark
+        //
+        // SessionDescription => ISessionDescription
+        //
 
-        static ElementPtr toDebug(ISessionDescriptionPtr object);
+        static ElementPtr toDebug(ISessionDescriptionPtr object) noexcept;
 
         static SessionDescriptionPtr create(
                                             SignalingTypes type,
                                             const char *description
-                                            );
+                                            ) noexcept;
         static SessionDescriptionPtr create(
                                             SignalingTypes type,
                                             const Description &description
-                                            );
+                                            ) noexcept;
 
-        virtual PUID getID() const override { return mID; }
+        PUID getID() const noexcept override { return mID; }
 
-        virtual SignalingTypes type() const override;
-        virtual DescriptionPtr description() const override;
-        virtual SignalingDescription formattedDescription() const override;
-
-      protected:
-        //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark SessionDescription => (internal)
-        #pragma mark
-
-        virtual ElementPtr toDebug() const;
+        SignalingTypes type() const noexcept override;
+        DescriptionPtr description() const noexcept override;
+        SignalingDescription formattedDescription() const noexcept override;
 
       protected:
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark SessionDescription => (data)
-        #pragma mark
+        //
+        // SessionDescription => (internal)
+        //
+
+        virtual ElementPtr toDebug() const noexcept;
+
+      protected:
+        //---------------------------------------------------------------------
+        //
+        // SessionDescription => (data)
+        //
 
         AutoPUID mID;
         SessionDescriptionWeakPtr mThisWeak;
@@ -121,25 +121,25 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark IMediaStreamFactory
-      #pragma mark
+      //
+      // IMediaStreamFactory
+      //
 
       interaction ISessionDescriptionFactory
       {
         typedef ISessionDescriptionTypes::SignalingTypes SignalingTypes;
         ZS_DECLARE_TYPEDEF_PTR(ISessionDescriptionTypes::Description, Description);
 
-        static ISessionDescriptionFactory &singleton();
+        static ISessionDescriptionFactory &singleton() noexcept;
 
         virtual SessionDescriptionPtr create(
                                              SignalingTypes type,
                                              const char *description
-                                             );
+                                             ) noexcept;
         virtual SessionDescriptionPtr create(
                                              SignalingTypes type,
                                              const Description &description
-                                             );
+                                             ) noexcept;
       };
 
       class SessionDescriptionFactory : public IFactory<ISessionDescriptionFactory> {};

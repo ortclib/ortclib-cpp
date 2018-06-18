@@ -51,17 +51,17 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IDTMFSenderForRTPSender
-    #pragma mark
+    //
+    // IDTMFSenderForRTPSender
+    //
 
     interaction IDTMFSenderForRTPSender
     {
-      ZS_DECLARE_TYPEDEF_PTR(IDTMFSenderForRTPSender, ForRTPSender)
+      ZS_DECLARE_TYPEDEF_PTR(IDTMFSenderForRTPSender, ForRTPSender);
 
-      static ElementPtr toDebug(ForRTPSenderPtr transport);
+      static ElementPtr toDebug(ForRTPSenderPtr transport) noexcept;
 
-      virtual PUID getID() const = 0;
+      virtual PUID getID() const noexcept = 0;
 
     };
 
@@ -69,9 +69,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark DTMFSender
-    #pragma mark
+    //
+    // DTMFSender
+    //
     
     class DTMFSender : public Noop,
                        public MessageQueueAssociator,
@@ -89,7 +89,7 @@ namespace ortc
       friend interaction IDTMFSenderFactory;
       friend interaction IDTMFSenderForRTPSender;
 
-      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderForDTMFSender, UseRTPSender)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderForDTMFSender, UseRTPSender);
 
     public:
       DTMFSender(
@@ -97,78 +97,75 @@ namespace ortc
                  IMessageQueuePtr queue,
                  IDTMFSenderDelegatePtr delegate,
                  IRTPSenderPtr sender
-                 );
+                 ) noexcept;
 
     protected:
-      DTMFSender(Noop) :
+      DTMFSender(Noop) noexcept :
         Noop(true),
         MessageQueueAssociator(IMessageQueuePtr()),
         SharedRecursiveLock(SharedRecursiveLock::create())
       {}
 
-      void init();
+      void init() noexcept;
 
     public:
-      virtual ~DTMFSender();
+      virtual ~DTMFSender() noexcept;
 
-      static DTMFSenderPtr convert(IDTMFSenderPtr object);
-      static DTMFSenderPtr convert(ForRTPSenderPtr object);
+      static DTMFSenderPtr convert(IDTMFSenderPtr object) noexcept;
+      static DTMFSenderPtr convert(ForRTPSenderPtr object) noexcept;
 
     protected:
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark DTMFSender => IDTMFSender
-      #pragma mark
+      //
+      // DTMFSender => IDTMFSender
+      //
 
-      static ElementPtr toDebug(DTMFSenderPtr transport);
+      static ElementPtr toDebug(DTMFSenderPtr transport) noexcept;
 
       static DTMFSenderPtr create(
                                   IDTMFSenderDelegatePtr delegate,
                                   IRTPSenderPtr sender
-                                  );
+                                  ) noexcept;
 
-      PUID getID() const override {return mID;}
+      PUID getID() const noexcept override {return mID;}
 
-      IDTMFSenderSubscriptionPtr subscribe(IDTMFSenderDelegatePtr delegate) override;
+      IDTMFSenderSubscriptionPtr subscribe(IDTMFSenderDelegatePtr delegate) noexcept override;
 
-      bool canInsertDTMF() const override;
+      bool canInsertDTMF() const noexcept override;
 
       void insertDTMF(
                       const char *tones,
                       Milliseconds duration = Milliseconds(70),
                       Milliseconds interToneGap = Milliseconds(70)
-                      ) throw (
-                               InvalidStateError,
-                               InvalidCharacterError
-                               ) override;
+                      ) noexcept(false) override; // throws InvalidStateError, InvalidCharacterError
 
-      IRTPSenderPtr sender() const override;
+      IRTPSenderPtr sender() const noexcept override;
 
-      String toneBuffer() const override;
-      Milliseconds duration() const override;
-      Milliseconds interToneGap() const override;
+      String toneBuffer() const noexcept override;
+      Milliseconds duration() const noexcept override;
+      Milliseconds interToneGap() const noexcept override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark DTMFSender => IDTMFSenderForRTPSender
-      #pragma mark
+      //
+      // DTMFSender => IDTMFSenderForRTPSender
+      //
 
       // (duplicate) static ElementPtr toDebug(DTMFSenderPtr transport);
 
       // (duplicate) virtual PUID getID() const = 0;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark DTMFSender => IWakeDelegate
-      #pragma mark
+      //
+      // DTMFSender => IWakeDelegate
+      //
 
       void onWake() override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark DTMFSender => IDTMFSenderDelegate
-      #pragma mark
+      //
+      // DTMFSender => IDTMFSenderDelegate
+      //
 
       void onDTMFSenderToneChanged(
                                    IDTMFSenderPtr sender,
@@ -176,37 +173,37 @@ namespace ortc
                                    ) override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark DTMFSender => IDTMFSenderAsyncDelegate
-      #pragma mark
+      //
+      // DTMFSender => IDTMFSenderAsyncDelegate
+      //
 
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark DTMFSender => (internal)
-      #pragma mark
+      //
+      // DTMFSender => (internal)
+      //
 
-      Log::Params log(const char *message) const;
-      static Log::Params slog(const char *message);
-      Log::Params debug(const char *message) const;
-      virtual ElementPtr toDebug() const;
+      Log::Params log(const char *message) const noexcept;
+      static Log::Params slog(const char *message) noexcept;
+      Log::Params debug(const char *message) const noexcept;
+      virtual ElementPtr toDebug() const noexcept;
 
-      bool isClosed() const { return isShuttingDown() || isShutdown(); }
-      bool isShuttingDown() const;
-      bool isShutdown() const;
+      bool isClosed() const noexcept { return isShuttingDown() || isShutdown(); }
+      bool isShuttingDown() const noexcept;
+      bool isShutdown() const noexcept;
 
-      void step();
+      void step() noexcept;
 
-      bool stepSubscribeSender();
+      bool stepSubscribeSender() noexcept;
 
-      void cancel();
+      void cancel() noexcept;
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark DTMFSender => (data)
-      #pragma mark
+      //
+      // DTMFSender => (data)
+      //
 
       AutoPUID mID;
       DTMFSenderWeakPtr mThisWeak;
@@ -225,18 +222,18 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IDTMFSenderFactory
-    #pragma mark
+    //
+    // IDTMFSenderFactory
+    //
 
     interaction IDTMFSenderFactory
     {
-      static IDTMFSenderFactory &singleton();
+      static IDTMFSenderFactory &singleton() noexcept;
 
       virtual DTMFSenderPtr create(
                                    IDTMFSenderDelegatePtr delegate,
                                    IRTPSenderPtr sender
-                                   );
+                                   ) noexcept;
     };
 
     class DTMFSenderFactory : public IFactory<IDTMFSenderFactory> {};

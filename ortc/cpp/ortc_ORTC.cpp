@@ -59,38 +59,38 @@ namespace ortc
     ZS_DECLARE_CLASS_PTR(ORTCSettingsDefaults);
     ZS_DECLARE_TYPEDEF_PTR(zsLib::IMessageQueueManager, UseMessageQueueManager);
 
-    void initSubsystems();
-    void installORTCSettingsDefaults();
-    void installCertificateSettingsDefaults();
-    void installDataChannelSettingsDefaults();
-    void installDTMFSenderSettingsDefaults();
-    void installDTLSTransportSettingsDefaults();
-    void installICEGathererSettingsDefaults();
-    void installICETransportSettingsDefaults();
-    void installIdentitySettingsDefaults();
-    void installMediaDevicesSettingsDefaults();
-    void installMediaStreamTrackSettingsDefaults();
-    void installRTPListenerSettingsDefaults();
-    void installMediaChannelTraceHelperDefaults();
-    void installMediaDeviceCaptureAudioSettingsDefaults();
-    void installMediaDeviceCaptureVideoSettingsDefaults();
-    void installRTPDecoderAudioSettingsDefaults();
-    void installRTPDecoderVideoSettingsDefaults();
-    void installRTPEncoderAudioSettingsDefaults();
-    void installRTPEncoderVideoSettingsDefaults();
-    void installMediaEngineSettingsDefaults();
-    void installRTPReceiverSettingsDefaults();
-    void installRTPReceiverChannelSettingsDefaults();
-    void installRTPSenderSettingsDefaults();
-    void installRTPSenderChannelSettingsDefaults();
-    void installStatsReportSettingsDefaults();
-    void installSCTPTransportSettingsDefaults();
-    void installSCTPTransportListenerSettingsDefaults();
-    void installSRTPTransportSettingsDefaults();
-    void installSRTPSDESTransportSettingsDefaults();
+    void initSubsystems() noexcept;
+    void installORTCSettingsDefaults() noexcept;
+    void installCertificateSettingsDefaults() noexcept;
+    void installDataChannelSettingsDefaults() noexcept;
+    void installDTMFSenderSettingsDefaults() noexcept;
+    void installDTLSTransportSettingsDefaults() noexcept;
+    void installICEGathererSettingsDefaults() noexcept;
+    void installICETransportSettingsDefaults() noexcept;
+    void installIdentitySettingsDefaults() noexcept;
+    void installMediaDevicesSettingsDefaults() noexcept;
+    void installMediaStreamTrackSettingsDefaults() noexcept;
+    void installRTPListenerSettingsDefaults() noexcept;
+    void installMediaChannelTraceHelperDefaults() noexcept;
+    void installMediaDeviceCaptureAudioSettingsDefaults() noexcept;
+    void installMediaDeviceCaptureVideoSettingsDefaults() noexcept;
+    void installRTPDecoderAudioSettingsDefaults() noexcept;
+    void installRTPDecoderVideoSettingsDefaults() noexcept;
+    void installRTPEncoderAudioSettingsDefaults() noexcept;
+    void installRTPEncoderVideoSettingsDefaults() noexcept;
+    void installMediaEngineSettingsDefaults() noexcept;
+    void installRTPReceiverSettingsDefaults() noexcept;
+    void installRTPReceiverChannelSettingsDefaults() noexcept;
+    void installRTPSenderSettingsDefaults() noexcept;
+    void installRTPSenderChannelSettingsDefaults() noexcept;
+    void installStatsReportSettingsDefaults() noexcept;
+    void installSCTPTransportSettingsDefaults() noexcept;
+    void installSCTPTransportListenerSettingsDefaults() noexcept;
+    void installSRTPTransportSettingsDefaults() noexcept;
+    void installSRTPSDESTransportSettingsDefaults() noexcept;
 
     //-------------------------------------------------------------------------
-    static void installAllDefaults()
+    static void installAllDefaults()noexcept
     {
       installORTCSettingsDefaults();
       installCertificateSettingsDefaults();
@@ -127,28 +127,28 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ORTCSettingsDefaults
-    #pragma mark
+    //
+    // ORTCSettingsDefaults
+    //
 
     class ORTCSettingsDefaults : public ISettingsApplyDefaultsDelegate
     {
     public:
       //-----------------------------------------------------------------------
-      ~ORTCSettingsDefaults()
+      ~ORTCSettingsDefaults() noexcept
       {
         ISettings::removeDefaults(*this);
       }
 
       //-----------------------------------------------------------------------
-      static ORTCSettingsDefaultsPtr singleton()
+      static ORTCSettingsDefaultsPtr singleton() noexcept
       {
         static SingletonLazySharedPtr<ORTCSettingsDefaults> singleton(create());
         return singleton.singleton();
       }
 
       //-----------------------------------------------------------------------
-      static ORTCSettingsDefaultsPtr create()
+      static ORTCSettingsDefaultsPtr create() noexcept
       {
         auto pThis(make_shared<ORTCSettingsDefaults>());
         ISettings::installDefaults(pThis);
@@ -156,7 +156,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      virtual void notifySettingsApplyDefaults() override
+      virtual void notifySettingsApplyDefaults() noexcept override
       {
         ISettings::setString(ORTC_SETTING_ORTC_QUEUE_MAIN_THREAD_NAME, zsLib::toString(zsLib::ThreadPriority_NormalPriority));
         ISettings::setString(ORTC_SETTING_ORTC_QUEUE_PIPELINE_THREAD_NAME, zsLib::toString(zsLib::ThreadPriority_HighPriority));
@@ -175,7 +175,7 @@ namespace ortc
     };
 
     //-------------------------------------------------------------------------
-    void installORTCSettingsDefaults()
+    void installORTCSettingsDefaults() noexcept
     {
       ORTCSettingsDefaults::singleton();
     }
@@ -184,60 +184,60 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IORTCForInternal
-    #pragma mark
+    //
+    // IORTCForInternal
+    //
 
     //-------------------------------------------------------------------------
-    void IORTCForInternal::overrideQueueDelegate(IMessageQueuePtr queue)
+    void IORTCForInternal::overrideQueueDelegate(IMessageQueuePtr queue) noexcept
     {
       return (ORTC::singleton())->overrideQueueDelegate(queue);
     }
 
     //-------------------------------------------------------------------------
-    IMessageQueuePtr IORTCForInternal::queueDelegate()
+    IMessageQueuePtr IORTCForInternal::queueDelegate() noexcept
     {
       return (ORTC::singleton())->queueDelegate();
     }
 
     //-------------------------------------------------------------------------
-    IMessageQueuePtr IORTCForInternal::queueORTC()
+    IMessageQueuePtr IORTCForInternal::queueORTC() noexcept
     {
       return (ORTC::singleton())->queueORTC();
     }
 
     //-------------------------------------------------------------------------
-    IMessageQueuePtr IORTCForInternal::queueORTCPipeline()
+    IMessageQueuePtr IORTCForInternal::queueORTCPipeline() noexcept
     {
       return (ORTC::singleton())->queueORTCPipeline();
     }
 
     //-------------------------------------------------------------------------
-    IMessageQueuePtr IORTCForInternal::queueBlockingMediaStartStopThread()
+    IMessageQueuePtr IORTCForInternal::queueBlockingMediaStartStopThread() noexcept
     {
       return (ORTC::singleton())->queueBlockingMediaStartStopThread();
     }
 
     //-------------------------------------------------------------------------
-    IMessageQueuePtr IORTCForInternal::queueMediaDevices()
+    IMessageQueuePtr IORTCForInternal::queueMediaDevices() noexcept
     {
       return (ORTC::singleton())->queueMediaDevices();
     }
 
     //-------------------------------------------------------------------------
-    IMessageQueuePtr IORTCForInternal::queueRTP()
+    IMessageQueuePtr IORTCForInternal::queueRTP() noexcept
     {
       return (ORTC::singleton())->queueRTP();
     }
 
     //-------------------------------------------------------------------------
-    IMessageQueuePtr IORTCForInternal::queueCertificateGeneration()
+    IMessageQueuePtr IORTCForInternal::queueCertificateGeneration() noexcept
     {
       return (ORTC::singleton())->queueCertificateGeneration();
     }
 
     //-------------------------------------------------------------------------
-    Optional<Log::Level> IORTCForInternal::webrtcLogLevel()
+    Optional<Log::Level> IORTCForInternal::webrtcLogLevel() noexcept
     {
       return (ORTC::singleton())->webrtcLogLevel();
     }
@@ -246,12 +246,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ORTC
-    #pragma mark
+    //
+    // ORTC
+    //
 
     //-------------------------------------------------------------------------
-    ORTC::ORTC(const make_private &) :
+    ORTC::ORTC(const make_private &) noexcept :
       SharedRecursiveLock(SharedRecursiveLock::create())
     {
       ZS_EVENTING_EXCLUSIVE(OrtcLib);
@@ -271,7 +271,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ORTC::~ORTC()
+    ORTC::~ORTC() noexcept
     {
       mThisWeak.reset();
       ZS_LOG_DETAIL(log("destroyed"));
@@ -295,18 +295,18 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void ORTC::init()
+    void ORTC::init() noexcept
     {
     }
 
     //-------------------------------------------------------------------------
-    ORTCPtr ORTC::convert(IORTCPtr object)
+    ORTCPtr ORTC::convert(IORTCPtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(ORTC, object);
     }
 
     //-------------------------------------------------------------------------
-    ORTCPtr ORTC::create()
+    ORTCPtr ORTC::create() noexcept
     {
       ORTCPtr pThis(make_shared<ORTC>(make_private{}));
       pThis->mThisWeak = pThis;
@@ -318,12 +318,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ORTC => IORTC
-    #pragma mark
+    //
+    // ORTC => IORTC
+    //
 
     //-------------------------------------------------------------------------
-    ORTCPtr ORTC::singleton()
+    ORTCPtr ORTC::singleton() noexcept
     {
       AutoRecursiveLock lock(*UseServicesHelper::getGlobalLock());
       static SingletonLazySharedPtr<ORTC> singleton(ORTC::create());
@@ -335,7 +335,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void ORTC::setup(IMessageQueuePtr defaultDelegateMessageQueue)
+    void ORTC::setup(IMessageQueuePtr defaultDelegateMessageQueue) noexcept
     {
       {
         AutoRecursiveLock lock(mLock);
@@ -359,14 +359,14 @@ namespace ortc
 #endif //WINUWP
 
     //-------------------------------------------------------------------------
-    Milliseconds ORTC::ntpServerTime() const
+    Milliseconds ORTC::ntpServerTime() const noexcept
     {
       AutoRecursiveLock(*this);
       return mNTPServerTime;
     }
 
     //-------------------------------------------------------------------------
-    void ORTC::ntpServerTime(const Milliseconds &value)
+    void ORTC::ntpServerTime(const Milliseconds &value) noexcept
     {
       {
         AutoRecursiveLock(*this);
@@ -376,54 +376,53 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void ORTC::defaultWebrtcLogLevel(Log::Level level)
+    void ORTC::defaultWebrtcLogLevel(Log::Level level) noexcept
     {
       AutoRecursiveLock(*this);
       mDefaultWebRTCLogLevel = level;
     }
 
     //-------------------------------------------------------------------------
-    void ORTC::webrtcLogLevel(Log::Level level)
+    void ORTC::webrtcLogLevel(Log::Level level) noexcept
     {
       AutoRecursiveLock(*this);
       mWebRTCLogLevel = level;
     }
 
     //-------------------------------------------------------------------------
-    void ORTC::startMediaTracing()
+    void ORTC::startMediaTracing() noexcept
     {
       IMediaEngineForORTC::startMediaTracing();
     }
 
     //-------------------------------------------------------------------------
-    void ORTC::stopMediaTracing()
+    void ORTC::stopMediaTracing() noexcept
     {
       IMediaEngineForORTC::stopMediaTracing();
     }
 
     //-------------------------------------------------------------------------
-    bool ORTC::isMediaTracing()
+    bool ORTC::isMediaTracing() noexcept
     {
       return IMediaEngineForORTC::isMediaTracing();
     }
 
     //-------------------------------------------------------------------------
-    bool ORTC::saveMediaTrace(String filename)
+    bool ORTC::saveMediaTrace(String filename) noexcept
     {
       return IMediaEngineForORTC::saveMediaTrace(filename);
     }
 
     //-------------------------------------------------------------------------
-    bool ORTC::saveMediaTrace(String host, int port)
+    bool ORTC::saveMediaTrace(String host, int port) noexcept
     {
       return IMediaEngineForORTC::saveMediaTrace(host, port);
     }
 
     //-------------------------------------------------------------------------
-    bool ORTC::isMRPInstalled()
+    bool ORTC::isMRPInstalled() noexcept
     {
-#define TODO_NEED_THIS_MRP_INSTALLED_API_IMPLEMENTED 1
-#define TODO_NEED_THIS_MRP_INSTALLED_API_IMPLEMENTED 2
+#pragma ZS_BUILD_NOTE("TODO","Implment MRP installed")
 //      return IRTPMediaEngineForORTC::isMRPInstalled();
       return true;
     }
@@ -432,19 +431,19 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark Stack => IORTCForInternal
-    #pragma mark
+    //
+    // Stack => IORTCForInternal
+    //
 
     //-------------------------------------------------------------------------
-    void ORTC::overrideQueueDelegate(IMessageQueuePtr queue)
+    void ORTC::overrideQueueDelegate(IMessageQueuePtr queue) noexcept
     {
       AutoRecursiveLock lock(*this);
       mDelegateQueue = queue;
     }
 
     //-------------------------------------------------------------------------
-    IMessageQueuePtr ORTC::queueDelegate() const
+    IMessageQueuePtr ORTC::queueDelegate() const noexcept
     {
       AutoRecursiveLock lock(*this);
       if (!mDelegateQueue) {
@@ -454,7 +453,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    IMessageQueuePtr ORTC::queueORTC() const
+    IMessageQueuePtr ORTC::queueORTC() const noexcept
     {
       AutoRecursiveLock lock(*this);
       class Once {
@@ -468,7 +467,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    IMessageQueuePtr ORTC::queueORTCPipeline() const
+    IMessageQueuePtr ORTC::queueORTCPipeline() const noexcept
     {
       AutoRecursiveLock lock(*this);
       class Once {
@@ -482,7 +481,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    IMessageQueuePtr ORTC::queueBlockingMediaStartStopThread() const
+    IMessageQueuePtr ORTC::queueBlockingMediaStartStopThread() const noexcept
     {
       AutoRecursiveLock lock(*this);
       if (!mBlockingMediaStartStopThread) {
@@ -492,7 +491,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    IMessageQueuePtr ORTC::queueMediaDevices() const
+    IMessageQueuePtr ORTC::queueMediaDevices() const noexcept
     {
       AutoRecursiveLock lock(*this);
 
@@ -507,7 +506,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    IMessageQueuePtr ORTC::queueRTP() const
+    IMessageQueuePtr ORTC::queueRTP() const noexcept
     {
       AutoRecursiveLock lock(*this);
 
@@ -522,7 +521,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    IMessageQueuePtr ORTC::queueCertificateGeneration() const
+    IMessageQueuePtr ORTC::queueCertificateGeneration() const noexcept
     {
       AutoRecursiveLock lock(*this);
       if (!mCertificateGeneration) {
@@ -532,7 +531,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    Optional<Log::Level> ORTC::webrtcLogLevel() const
+    Optional<Log::Level> ORTC::webrtcLogLevel() const noexcept
     {
       AutoRecursiveLock lock(*this);
       if (mWebRTCLogLevel.hasValue()) return mWebRTCLogLevel;
@@ -543,12 +542,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark Stack => (internal)
-    #pragma mark
+    //
+    // Stack => (internal)
+    //
 
     //-------------------------------------------------------------------------
-    Log::Params ORTC::log(const char *message) const
+    Log::Params ORTC::log(const char *message) const noexcept
     {
       ElementPtr objectEl = Element::create("ortc::ORTC");
       UseServicesHelper::debugAppend(objectEl, "id", mID);
@@ -556,14 +555,14 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    Log::Params ORTC::slog(const char *message)
+    Log::Params ORTC::slog(const char *message) noexcept
     {
       ElementPtr objectEl = Element::create("ortc::ORTC");
       return Log::Params(message, objectEl);
     }
 
     //-------------------------------------------------------------------------
-    void ORTC::internalSetup()
+    void ORTC::internalSetup() noexcept
     {
       installAllDefaults();
       ISettings::applyDefaults();
@@ -591,12 +590,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IORTC
-  #pragma mark
+  //
+  // IORTC
+  //
 
   //---------------------------------------------------------------------------
-  void IORTC::setup(IMessageQueuePtr defaultDelegateMessageQueue)
+  void IORTC::setup(IMessageQueuePtr defaultDelegateMessageQueue) noexcept
   {
     auto singleton = internal::ORTC::singleton();
     if (!singleton) return;
@@ -605,7 +604,7 @@ namespace ortc
 
   //---------------------------------------------------------------------------
 #ifdef WINUWP
-  void IORTC::setup(Windows::UI::Core::CoreDispatcher ^dispatcher)
+  void IORTC::setup(Windows::UI::Core::CoreDispatcher ^dispatcher) noexcept
   {
     auto singleton = internal::ORTC::singleton();
     if (!singleton) return;
@@ -614,7 +613,7 @@ namespace ortc
 #endif //WINUWP
 
   //-------------------------------------------------------------------------
-  Milliseconds IORTC::ntpServerTime()
+  Milliseconds IORTC::ntpServerTime() noexcept
   {
     auto singleton = internal::ORTC::singleton();
     if (!singleton) return Milliseconds();
@@ -622,7 +621,7 @@ namespace ortc
   }
 
   //-------------------------------------------------------------------------
-  void IORTC::ntpServerTime(const Milliseconds &value)
+  void IORTC::ntpServerTime(const Milliseconds &value) noexcept
   {
     auto singleton = internal::ORTC::singleton();
     if (!singleton) return;
@@ -630,7 +629,7 @@ namespace ortc
   }
 
   //-------------------------------------------------------------------------
-  void IORTC::setDefaultLogLevel(Log::Level level)
+  void IORTC::setDefaultLogLevel(Log::Level level) noexcept
   {
     auto singleton = internal::ORTC::singleton();
     if (singleton) {
@@ -641,7 +640,7 @@ namespace ortc
   }
 
   //-------------------------------------------------------------------------
-  void IORTC::setLogLevel(const char *componenet, Log::Level level)
+  void IORTC::setLogLevel(const char *componenet, Log::Level level) noexcept
   {
     String str(componenet);
 
@@ -656,19 +655,19 @@ namespace ortc
   }
 
   //-------------------------------------------------------------------------
-  void IORTC::setDefaultEventingLevel(Log::Level level)
+  void IORTC::setDefaultEventingLevel(Log::Level level) noexcept
   {
     UseServicesLogger::setEventingLevel(level);
   }
 
   //-------------------------------------------------------------------------
-  void IORTC::setEventingLevel(const char *componenet, Log::Level level)
+  void IORTC::setEventingLevel(const char *componenet, Log::Level level) noexcept
   {
     UseServicesLogger::setEventingLevel(componenet, level);
   }
 
   //-------------------------------------------------------------------------
-  void IORTC::startMediaTracing()
+  void IORTC::startMediaTracing() noexcept
   {
     auto singleton = internal::ORTC::singleton();
     if (!singleton) return;
@@ -676,7 +675,7 @@ namespace ortc
   }
 
   //-------------------------------------------------------------------------
-  void IORTC::stopMediaTracing()
+  void IORTC::stopMediaTracing() noexcept
   {
     auto singleton = internal::ORTC::singleton();
     if (!singleton) return;
@@ -684,7 +683,7 @@ namespace ortc
   }
 
   //-------------------------------------------------------------------------
-  bool IORTC::isMediaTracing()
+  bool IORTC::isMediaTracing() noexcept
   {
     auto singleton = internal::ORTC::singleton();
     if (!singleton) return false;
@@ -692,7 +691,7 @@ namespace ortc
   }
 
   //-------------------------------------------------------------------------
-  bool IORTC::saveMediaTrace(String filename)
+  bool IORTC::saveMediaTrace(String filename) noexcept
   {
     auto singleton = internal::ORTC::singleton();
     if (!singleton) return false;
@@ -700,7 +699,7 @@ namespace ortc
   }
 
   //-------------------------------------------------------------------------
-  bool IORTC::saveMediaTrace(String host, int port)
+  bool IORTC::saveMediaTrace(String host, int port) noexcept
   {
     auto singleton = internal::ORTC::singleton();
     if (!singleton) return false;
@@ -708,7 +707,7 @@ namespace ortc
   }
 
   //-------------------------------------------------------------------------
-  bool IORTC::isMRPInstalled()
+  bool IORTC::isMRPInstalled() noexcept
   {
     auto singleton = internal::ORTC::singleton();
     if (!singleton) return false;

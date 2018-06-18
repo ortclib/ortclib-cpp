@@ -42,39 +42,36 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IICETransportControllerTypes
-  #pragma mark
+  //
+  // IICETransportControllerTypes
+  //
   
   interaction IICETransportControllerTypes : public IICETypes
   {
-    ZS_DECLARE_TYPEDEF_PTR(std::list<IICETransportPtr>, ICETransportList)
+    ZS_DECLARE_TYPEDEF_PTR(std::list<IICETransportPtr>, ICETransportList);
   };
 
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IICETransportController
-  #pragma mark
+  //
+  // IICETransportController
+  //
 
   interaction IICETransportController : public IICETransportControllerTypes,
                                         public IStatsProvider
   {
-    static ElementPtr toDebug(IICETransportControllerPtr controller);
+    static ElementPtr toDebug(IICETransportControllerPtr controller) noexcept;
 
-    static IICETransportControllerPtr create();
+    static IICETransportControllerPtr create() noexcept;
 
-    virtual PUID getID() const = 0;
+    virtual PUID getID() const noexcept = 0;
 
-    virtual ICETransportList getTransports() const = 0;
+    virtual ICETransportList getTransports() const noexcept = 0;
     virtual void addTransport(
                               IICETransportPtr transport,
                               Optional<size_t> index = Optional<size_t>()
-                              ) throw(
-                                      InvalidParameters,
-                                      InvalidStateError
-                                      ) = 0;
+                              ) noexcept(false) = 0; // throws InvalidParameters, InvalidStateError
   };
 }

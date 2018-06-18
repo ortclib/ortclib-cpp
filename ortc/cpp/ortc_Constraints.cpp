@@ -63,13 +63,13 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IConstraints
-  #pragma mark
+  //
+  // IConstraints
+  //
 
 
   //-----------------------------------------------------------------------
-  static Log::Params slog(const char *message)
+  static Log::Params slog(const char *message) noexcept
   {
     return Log::Params(message, "ortc::IConstraints");
   }
@@ -78,13 +78,13 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IConstraints::ConstrainBooleanParameters
-  #pragma mark
+  //
+  // IConstraints::ConstrainBooleanParameters
+  //
 
 
   //---------------------------------------------------------------------------
-  IConstraints::ConstrainBooleanParameters::ConstrainBooleanParameters(ElementPtr elem)
+  IConstraints::ConstrainBooleanParameters::ConstrainBooleanParameters(ElementPtr elem) noexcept
   {
     if (!elem) return;
 
@@ -93,7 +93,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IConstraints::ConstrainBooleanParameters::createElement(const char *objectName) const
+  ElementPtr IConstraints::ConstrainBooleanParameters::createElement(const char *objectName) const noexcept
   {
     ElementPtr elem = Element::create(objectName);
 
@@ -105,7 +105,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IConstraints::ConstrainBooleanParameters::toDebug() const
+  ElementPtr IConstraints::ConstrainBooleanParameters::toDebug() const noexcept
   {
     ElementPtr resultEl = Element::create("ortc::IConstraints::ConstrainBooleanParameters");
 
@@ -116,7 +116,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  String IConstraints::ConstrainBooleanParameters::hash() const
+  String IConstraints::ConstrainBooleanParameters::hash() const noexcept
   {
     auto hasher = IHasher::sha1();
 
@@ -134,12 +134,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IConstraints::ConstrainBool
-  #pragma mark
+  //
+  // IConstraints::ConstrainBool
+  //
 
   //---------------------------------------------------------------------------
-  IConstraints::ConstrainBoolean::ConstrainBoolean(ElementPtr elem)
+  IConstraints::ConstrainBoolean::ConstrainBoolean(ElementPtr elem) noexcept
   {
     if (!elem) return;
 
@@ -162,7 +162,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IConstraints::ConstrainBoolean::createElement(const char *objectName) const
+  ElementPtr IConstraints::ConstrainBoolean::createElement(const char *objectName) const noexcept
   {
     if (mParameters.hasValue()) {
       return mParameters.value().createElement(objectName);
@@ -173,7 +173,7 @@ namespace ortc
   }
   
   //---------------------------------------------------------------------------
-  ElementPtr IConstraints::ConstrainBoolean::toDebug() const
+  ElementPtr IConstraints::ConstrainBoolean::toDebug() const noexcept
   {
     ElementPtr resultEl = Element::create("ortc::IConstraints::ConstrainBoolean");
 
@@ -184,7 +184,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  String IConstraints::ConstrainBoolean::hash() const
+  String IConstraints::ConstrainBoolean::hash() const noexcept
   {
     auto hasher = IHasher::sha1();
 
@@ -203,12 +203,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IConstraints::ConstrainLongRange
-  #pragma mark
+  //
+  // IConstraints::ConstrainLongRange
+  //
 
   //---------------------------------------------------------------------------
-  IConstraints::ConstrainLongRange::ConstrainLongRange(ElementPtr elem)
+  IConstraints::ConstrainLongRange::ConstrainLongRange(ElementPtr elem) noexcept
   {
     if (!elem) return;
 
@@ -219,7 +219,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IConstraints::ConstrainLongRange::createElement(const char *objectName) const
+  ElementPtr IConstraints::ConstrainLongRange::createElement(const char *objectName) const noexcept
   {
     ElementPtr elem = Element::create(objectName);
 
@@ -233,7 +233,7 @@ namespace ortc
   }
   
   //---------------------------------------------------------------------------
-  ElementPtr IConstraints::ConstrainLongRange::toDebug() const
+  ElementPtr IConstraints::ConstrainLongRange::toDebug() const noexcept
   {
     ElementPtr resultEl = Element::create("ortc::IConstraints::ConstrainLongRange");
 
@@ -246,7 +246,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  String IConstraints::ConstrainLongRange::hash() const
+  String IConstraints::ConstrainLongRange::hash() const noexcept
   {
     auto hasher = IHasher::sha1();
 
@@ -268,12 +268,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IConstraints::ConstrainLong
-  #pragma mark
+  //
+  // IConstraints::ConstrainLong
+  //
 
   //---------------------------------------------------------------------------
-  IConstraints::ConstrainLong::ConstrainLong(ElementPtr elem)
+  IConstraints::ConstrainLong::ConstrainLong(ElementPtr elem) noexcept
   {
     if (!elem) return;
 
@@ -296,7 +296,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IConstraints::ConstrainLong::createElement(const char *objectName) const
+  ElementPtr IConstraints::ConstrainLong::createElement(const char *objectName) const noexcept
   {
     if (mRange.hasValue()) {
       return mRange.value().createElement(objectName);
@@ -307,7 +307,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IConstraints::ConstrainLong::toDebug() const
+  ElementPtr IConstraints::ConstrainLong::toDebug() const noexcept
   {
     ElementPtr resultEl = Element::create("ortc::IConstraints::ConstrainLong");
 
@@ -318,7 +318,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  String IConstraints::ConstrainLong::hash() const
+  String IConstraints::ConstrainLong::hash() const noexcept
   {
     auto hasher = IHasher::sha1();
 
@@ -337,13 +337,13 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IConstraints::ConstrainDoubleRange
-  #pragma mark
+  //
+  // IConstraints::ConstrainDoubleRange
+  //
 
 
   //---------------------------------------------------------------------------
-  IConstraints::ConstrainDoubleRange::ConstrainDoubleRange(ElementPtr elem)
+  IConstraints::ConstrainDoubleRange::ConstrainDoubleRange(ElementPtr elem) noexcept
   {
     if (!elem) return;
 
@@ -354,7 +354,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IConstraints::ConstrainDoubleRange::createElement(const char *objectName) const
+  ElementPtr IConstraints::ConstrainDoubleRange::createElement(const char *objectName) const noexcept
   {
     ElementPtr elem = Element::create(objectName);
 
@@ -368,7 +368,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IConstraints::ConstrainDoubleRange::toDebug() const
+  ElementPtr IConstraints::ConstrainDoubleRange::toDebug() const noexcept
   {
     ElementPtr resultEl = Element::create("ortc::IConstraints::ConstrainDoubleRange");
 
@@ -381,7 +381,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  String IConstraints::ConstrainDoubleRange::hash() const
+  String IConstraints::ConstrainDoubleRange::hash() const noexcept
   {
     auto hasher = IHasher::sha1();
 
@@ -403,12 +403,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IConstraints::ConstrainDouble
-  #pragma mark
+  //
+  // IConstraints::ConstrainDouble
+  //
 
   //---------------------------------------------------------------------------
-  IConstraints::ConstrainDouble::ConstrainDouble(ElementPtr elem)
+  IConstraints::ConstrainDouble::ConstrainDouble(ElementPtr elem) noexcept
   {
     if (!elem) return;
 
@@ -431,7 +431,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IConstraints::ConstrainDouble::createElement(const char *objectName) const
+  ElementPtr IConstraints::ConstrainDouble::createElement(const char *objectName) const noexcept
   {
     if (mRange.hasValue()) {
       return mRange.value().createElement(objectName);
@@ -442,7 +442,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IConstraints::ConstrainDouble::toDebug() const
+  ElementPtr IConstraints::ConstrainDouble::toDebug() const noexcept
   {
     ElementPtr resultEl = Element::create("ortc::IConstraints::ConstrainDouble");
 
@@ -453,7 +453,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  String IConstraints::ConstrainDouble::hash() const
+  String IConstraints::ConstrainDouble::hash() const noexcept
   {
     auto hasher = IHasher::sha1();
 
@@ -471,15 +471,15 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IConstraints::StringOrStringList
-  #pragma mark
+  //
+  // IConstraints::StringOrStringList
+  //
 
   //---------------------------------------------------------------------------
   IConstraints::StringOrStringList::StringOrStringList(
                                                        ElementPtr elem,
                                                        const char *objectValueName
-                                                       )
+                                                       ) noexcept
   {
     if (!elem) return;
 
@@ -514,7 +514,7 @@ namespace ortc
   ElementPtr IConstraints::StringOrStringList::createElement(
                                                              const char *objectName,
                                                              const char *objectValueName
-                                                             ) const
+                                                             ) const noexcept
   {
     if (mValues.hasValue()) {
       ElementPtr outerEl = Element::create(objectName);
@@ -533,7 +533,7 @@ namespace ortc
   }
   
   //---------------------------------------------------------------------------
-  ElementPtr IConstraints::StringOrStringList::toDebug() const
+  ElementPtr IConstraints::StringOrStringList::toDebug() const noexcept
   {
     ElementPtr resultEl = Element::create("ortc::IConstraints::StringOrStringList");
 
@@ -552,7 +552,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  String IConstraints::StringOrStringList::hash() const
+  String IConstraints::StringOrStringList::hash() const noexcept
   {
     auto hasher = IHasher::sha1();
 
@@ -577,12 +577,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IConstraints::ConstrainStringParameters
-  #pragma mark
+  //
+  // IConstraints::ConstrainStringParameters
+  //
 
   //---------------------------------------------------------------------------
-  IConstraints::ConstrainStringParameters::ConstrainStringParameters(ElementPtr elem)
+  IConstraints::ConstrainStringParameters::ConstrainStringParameters(ElementPtr elem) noexcept
   {
     if (!elem) return;
 
@@ -598,7 +598,7 @@ namespace ortc
   }
   
   //---------------------------------------------------------------------------
-  ElementPtr IConstraints::ConstrainStringParameters::createElement(const char *objectName) const
+  ElementPtr IConstraints::ConstrainStringParameters::createElement(const char *objectName) const noexcept
   {
     ElementPtr elem = Element::create(objectName);
 
@@ -613,7 +613,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IConstraints::ConstrainStringParameters::toDebug() const
+  ElementPtr IConstraints::ConstrainStringParameters::toDebug() const noexcept
   {
     ElementPtr resultEl = Element::create("ortc::IConstraints::ConstrainStringParameters");
 
@@ -624,7 +624,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  String IConstraints::ConstrainStringParameters::hash() const
+  String IConstraints::ConstrainStringParameters::hash() const noexcept
   {
     auto hasher = IHasher::sha1();
 
@@ -642,15 +642,15 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IConstraints::ConstraintString
-  #pragma mark
+  //
+  // IConstraints::ConstraintString
+  //
 
   //---------------------------------------------------------------------------
   IConstraints::ConstrainString::ConstrainString(
                                                  ElementPtr elem,
                                                  const char *objectValueName
-                                                 )
+                                                 ) noexcept
   {
     if (!elem) return;
 
@@ -673,7 +673,7 @@ namespace ortc
   ElementPtr IConstraints::ConstrainString::createElement(
                                                           const char *objectName,
                                                           const char *objectValueName
-                                                          ) const
+                                                          ) const noexcept
   {
     ElementPtr elem = Element::create(objectName);
 
@@ -686,7 +686,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IConstraints::ConstrainString::toDebug() const
+  ElementPtr IConstraints::ConstrainString::toDebug() const noexcept
   {
     ElementPtr resultEl = Element::create("ortc::IConstraints::ConstraintString");
 
@@ -697,7 +697,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  String IConstraints::ConstrainString::hash() const
+  String IConstraints::ConstrainString::hash() const noexcept
   {
     auto hasher = IHasher::sha1();
 
@@ -711,7 +711,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  void IConstraints::ConstrainString::exact(StringList &values) const
+  void IConstraints::ConstrainString::exact(StringList &values) const noexcept
   {
     if (mValue.hasValue()) {
       if (mValue.value().mValue.hasValue()) {
@@ -737,7 +737,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  void IConstraints::ConstrainString::ideal(StringList &values) const
+  void IConstraints::ConstrainString::ideal(StringList &values) const noexcept
   {
     if (!mParameters.hasValue()) return;
     if (!mParameters.value().mIdeal.hasValue()) return;

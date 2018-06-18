@@ -63,9 +63,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPReceiverChannelForRTPReceiver
-    #pragma mark
+    //
+    // IRTPReceiverChannelForRTPReceiver
+    //
 
     interaction IRTPReceiverChannelForRTPReceiver
     {
@@ -77,39 +77,39 @@ namespace ortc
       ZS_DECLARE_TYPEDEF_PTR(IStatsProviderTypes::PromiseWithStatsReport, PromiseWithStatsReport);
       ZS_DECLARE_TYPEDEF_PTR(IStatsReportTypes::StatsTypeSet, StatsTypeSet)
 
-      static ElementPtr toDebug(ForRTPReceiverPtr object);
+      static ElementPtr toDebug(ForRTPReceiverPtr object) noexcept;
 
       static RTPReceiverChannelPtr create(
                                           RTPReceiverPtr receiver,
                                           MediaStreamTrackPtr track,
                                           const Parameters &params,
                                           const RTCPPacketList &packets
-                                          );
+                                          ) noexcept;
 
-      virtual PUID getID() const = 0;
+      virtual PUID getID() const noexcept = 0;
 
-      virtual void notifyTransportState(ISecureTransportTypes::States state) = 0;
+      virtual void notifyTransportState(ISecureTransportTypes::States state) noexcept = 0;
 
-      virtual void notifyPacket(RTPPacketPtr packet) = 0;
+      virtual void notifyPacket(RTPPacketPtr packet) noexcept = 0;
 
-      virtual void notifyPackets(RTCPPacketListPtr packets) = 0;
+      virtual void notifyPackets(RTCPPacketListPtr packets) noexcept = 0;
 
-      virtual void notifyUpdate(const Parameters &params) = 0;
+      virtual void notifyUpdate(const Parameters &params) noexcept = 0;
 
-      virtual bool handlePacket(RTPPacketPtr packet) = 0;
+      virtual bool handlePacket(RTPPacketPtr packet) noexcept = 0;
 
-      virtual bool handlePacket(RTCPPacketPtr packet) = 0;
+      virtual bool handlePacket(RTCPPacketPtr packet) noexcept = 0;
 
-      virtual void requestStats(PromiseWithStatsReportPtr promise, const StatsTypeSet &stats) = 0;
+      virtual void requestStats(PromiseWithStatsReportPtr promise, const StatsTypeSet &stats) noexcept = 0;
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPReceiverChannelForMediaStreamTrack
-    #pragma mark
+    //
+    // IRTPReceiverChannelForMediaStreamTrack
+    //
 
     interaction IRTPReceiverChannelForMediaStreamTrack
     {
@@ -117,25 +117,25 @@ namespace ortc
 
       ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
 
-      static ElementPtr toDebug(ForMediaStreamTrackPtr object);
+      static ElementPtr toDebug(ForMediaStreamTrackPtr object) noexcept;
 
-      virtual PUID getID() const = 0;
+      virtual PUID getID() const noexcept = 0;
 
       virtual int32_t getAudioSamples(
                                       const size_t numberOfSamples,
                                       const uint8_t numberOfChannels,
                                       void* audioSamples,
                                       size_t& numberOfSamplesOut
-                                      ) = 0;
+                                      ) noexcept = 0;
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPReceiverChannelAsyncDelegate
-    #pragma mark
+    //
+    // IRTPReceiverChannelAsyncDelegate
+    //
 
     interaction IRTPReceiverChannelAsyncDelegate
     {
@@ -156,26 +156,26 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPReceiverChannelForRTPReceiverChannelMediaBase
-    #pragma mark
+    //
+    // IRTPReceiverChannelForRTPReceiverChannelMediaBase
+    //
 
     interaction IRTPReceiverChannelForRTPReceiverChannelMediaBase
     {
       ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverChannelForRTPReceiverChannelMediaBase, ForRTPReceiverChannelMediaBase)
 
-      virtual PUID getID() const = 0;
+      virtual PUID getID() const noexcept = 0;
 
-      virtual bool sendPacket(RTCPPacketPtr packet) = 0;
+      virtual bool sendPacket(RTCPPacketPtr packet) noexcept = 0;
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPReceiverChannelForRTPReceiverChannelAudio
-    #pragma mark
+    //
+    // IRTPReceiverChannelForRTPReceiverChannelAudio
+    //
 
     interaction IRTPReceiverChannelForRTPReceiverChannelAudio : public IRTPReceiverChannelForRTPReceiverChannelMediaBase
     {
@@ -186,9 +186,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPReceiverChannelForRTPReceiverChannelVideo
-    #pragma mark
+    //
+    // IRTPReceiverChannelForRTPReceiverChannelVideo
+    //
 
     interaction IRTPReceiverChannelForRTPReceiverChannelVideo : public IRTPReceiverChannelForRTPReceiverChannelMediaBase
     {
@@ -200,9 +200,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPReceiverChannel
-    #pragma mark
+    //
+    // RTPReceiverChannel
+    //
     
     class RTPReceiverChannel : public Noop,
                                public MessageQueueAssociator,
@@ -241,7 +241,7 @@ namespace ortc
         State_ShuttingDown,
         State_Shutdown,
       };
-      static const char *toString(States state);
+      static const char *toString(States state) noexcept;
 
     public:
       RTPReceiverChannel(
@@ -250,61 +250,61 @@ namespace ortc
                          UseReceiverPtr receiver,
                          UseMediaStreamTrackPtr track,
                          const Parameters &params
-                         );
+                         ) noexcept;
 
     protected:
-      RTPReceiverChannel(Noop, IMessageQueuePtr queue = IMessageQueuePtr()) :
+      RTPReceiverChannel(Noop, IMessageQueuePtr queue = IMessageQueuePtr()) noexcept :
         Noop(true),
         MessageQueueAssociator(queue),
         SharedRecursiveLock(SharedRecursiveLock::create())
       {}
 
-      void init(const RTCPPacketList &packets);
+      void init(const RTCPPacketList &packets) noexcept;
 
     public:
-      virtual ~RTPReceiverChannel();
+      virtual ~RTPReceiverChannel() noexcept;
 
-      static RTPReceiverChannelPtr convert(ForRTPReceiverPtr object);
-      static RTPReceiverChannelPtr convert(ForRTPReceiverChannelMediaBasePtr object);
-      static RTPReceiverChannelPtr convert(ForRTPReceiverChannelAudioPtr object);
-      static RTPReceiverChannelPtr convert(ForRTPReceiverChannelVideoPtr object);
-      static RTPReceiverChannelPtr convert(ForMediaStreamTrackPtr object);
+      static RTPReceiverChannelPtr convert(ForRTPReceiverPtr object) noexcept;
+      static RTPReceiverChannelPtr convert(ForRTPReceiverChannelMediaBasePtr object) noexcept;
+      static RTPReceiverChannelPtr convert(ForRTPReceiverChannelAudioPtr object) noexcept;
+      static RTPReceiverChannelPtr convert(ForRTPReceiverChannelVideoPtr object) noexcept;
+      static RTPReceiverChannelPtr convert(ForMediaStreamTrackPtr object) noexcept;
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTPReceiverChannel => IRTPReceiverChannelForRTPReceiver
-      #pragma mark
+      //
+      // RTPReceiverChannel => IRTPReceiverChannelForRTPReceiver
+      //
 
-      static ElementPtr toDebug(RTPReceiverChannelPtr object);
+      static ElementPtr toDebug(RTPReceiverChannelPtr object) noexcept;
 
       static RTPReceiverChannelPtr create(
                                           RTPReceiverPtr receiver,
                                           MediaStreamTrackPtr track,
                                           const Parameters &params,
                                           const RTCPPacketList &packets
-                                          );
+                                          ) noexcept;
 
-      PUID getID() const override {return mID;}
+      PUID getID() const noexcept override {return mID;}
 
-      void notifyTransportState(ISecureTransportTypes::States state) override;
+      void notifyTransportState(ISecureTransportTypes::States state) noexcept override;
 
-      void notifyPacket(RTPPacketPtr packet) override;
+      void notifyPacket(RTPPacketPtr packet) noexcept override;
 
-      void notifyPackets(RTCPPacketListPtr packets) override;
+      void notifyPackets(RTCPPacketListPtr packets) noexcept override;
 
-      void notifyUpdate(const Parameters &params) override;
+      void notifyUpdate(const Parameters &params) noexcept override;
 
-      bool handlePacket(RTPPacketPtr packet) override;
+      bool handlePacket(RTPPacketPtr packet) noexcept override;
 
-      bool handlePacket(RTCPPacketPtr packet) override;
+      bool handlePacket(RTCPPacketPtr packet) noexcept override;
 
-      void requestStats(PromiseWithStatsReportPtr promise, const StatsTypeSet &stats) override;
+      void requestStats(PromiseWithStatsReportPtr promise, const StatsTypeSet &stats) noexcept override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTPReceiverChannel => IRTPReceiverChannelForMediaStreamTrack
-      #pragma mark
+      //
+      // RTPReceiverChannel => IRTPReceiverChannelForMediaStreamTrack
+      //
 
       // (duplicate) static ElementPtr toDebug(ForMediaStreamTrackPtr object);
 
@@ -315,45 +315,45 @@ namespace ortc
                               const uint8_t numberOfChannels,
                               void *audioSamples,
                               size_t& numberOfSamplesOut
-                              ) override;
+                              ) noexcept override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTPReceiverChannel => IRTPReceiverChannelForRTPReceiverChannelMediaBase
-      #pragma mark
+      //
+      // RTPReceiverChannel => IRTPReceiverChannelForRTPReceiverChannelMediaBase
+      //
 
       // (duplicate) virtual PUID getID() const = 0;
 
-      bool sendPacket(RTCPPacketPtr packet) override;
+      bool sendPacket(RTCPPacketPtr packet) noexcept override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTPReceiverChannel => IRTPReceiverChannelForRTPReceiverChannelAudio
-      #pragma mark
+      //
+      // RTPReceiverChannel => IRTPReceiverChannelForRTPReceiverChannelAudio
+      //
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTPReceiverChannel => IRTPReceiverChannelForRTPReceiverChannelVideo
-      #pragma mark
+      //
+      // RTPReceiverChannel => IRTPReceiverChannelForRTPReceiverChannelVideo
+      //
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTPReceiverChannel => IWakeDelegate
-      #pragma mark
+      //
+      // RTPReceiverChannel => IWakeDelegate
+      //
 
       void onWake() override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTPReceiverChannel => ITimerDelegate
-      #pragma mark
+      //
+      // RTPReceiverChannel => ITimerDelegate
+      //
 
       void onTimer(ITimerPtr timer) override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTPReceiverChannel => IRTPReceiverChannelAsyncDelegate
-      #pragma mark
+      //
+      // RTPReceiverChannel => IRTPReceiverChannelAsyncDelegate
+      //
 
       void onSecureTransportState(ISecureTransport::States state) override;
 
@@ -365,30 +365,30 @@ namespace ortc
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTPReceiverChannel => (internal)
-      #pragma mark
+      //
+      // RTPReceiverChannel => (internal)
+      //
 
-      Log::Params log(const char *message) const;
-      Log::Params debug(const char *message) const;
-      virtual ElementPtr toDebug() const;
+      Log::Params log(const char *message) const noexcept;
+      Log::Params debug(const char *message) const noexcept;
+      virtual ElementPtr toDebug() const noexcept;
 
-      bool isShuttingDown() const;
-      bool isShutdown() const;
+      bool isShuttingDown() const noexcept;
+      bool isShutdown() const noexcept;
 
-      void step();
+      void step() noexcept;
 
-      void cancel();
+      void cancel() noexcept;
 
-      void setState(States state);
-      void setError(WORD error, const char *reason = NULL);
+      void setState(States state) noexcept;
+      void setError(WORD error, const char *reason = NULL) noexcept;
 
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTPReceiverChannel => (data)
-      #pragma mark
+      //
+      // RTPReceiverChannel => (data)
+      //
 
       AutoPUID mID;
       RTPReceiverChannelWeakPtr mThisWeak;
@@ -421,23 +421,23 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPReceiverChannelFactory
-    #pragma mark
+    //
+    // IRTPReceiverChannelFactory
+    //
 
     interaction IRTPReceiverChannelFactory
     {
       ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
       typedef std::list<RTCPPacketPtr> RTCPPacketList;
 
-      static IRTPReceiverChannelFactory &singleton();
+      static IRTPReceiverChannelFactory &singleton() noexcept;
 
       virtual RTPReceiverChannelPtr create(
                                            RTPReceiverPtr receiver,
                                            MediaStreamTrackPtr track,
                                            const Parameters &params,
                                            const RTCPPacketList &packets
-                                           );
+                                           ) noexcept;
     };
 
     class RTPReceiverChannelFactory : public IFactory<IRTPReceiverChannelFactory> {};
@@ -449,9 +449,9 @@ ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::ISecureTransport::States, States)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::IRTPReceiverChannelAsyncDelegate::RTCPPacketListPtr, RTCPPacketListPtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::RTPPacketPtr, RTPPacketPtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::IRTPReceiverChannelAsyncDelegate::ParametersPtr, ParametersPtr)
-ZS_DECLARE_PROXY_METHOD_1(onSecureTransportState, States)
-ZS_DECLARE_PROXY_METHOD_1(onNotifyPacket, RTPPacketPtr)
-ZS_DECLARE_PROXY_METHOD_1(onNotifyPackets, RTCPPacketListPtr)
-ZS_DECLARE_PROXY_METHOD_1(onUpdate, ParametersPtr)
+ZS_DECLARE_PROXY_METHOD(onSecureTransportState, States)
+ZS_DECLARE_PROXY_METHOD(onNotifyPacket, RTPPacketPtr)
+ZS_DECLARE_PROXY_METHOD(onNotifyPackets, RTCPPacketListPtr)
+ZS_DECLARE_PROXY_METHOD(onUpdate, ParametersPtr)
 ZS_DECLARE_PROXY_END()
 

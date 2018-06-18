@@ -48,9 +48,11 @@
 #include <zsLib/IWakeDelegate.h>
 #include <zsLib/ITimer.h>
 
+#include <ortc/internal/webrtc_pre_include.h>
 #include <webrtc/rtc_base/logging.h>
 #include <webrtc/system_wrappers/include/trace.h>
-//#include <webrtc/rtc_base/tracelog.h>
+#include <ortc/internal/webrtc_post_include.h>
+ //#include <webrtc/rtc_base/tracelog.h>
 
 namespace ortc
 {
@@ -82,23 +84,23 @@ namespace ortc
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaEngineForORTC
-    #pragma mark
+    //
+    // IMediaEngineForORTC
+    //
 
     interaction IMediaEngineForORTC
     {
       ZS_DECLARE_TYPEDEF_PTR(IMediaEngineForORTC, ForORTC);
     
-      static void setLogLevel(Log::Level level);
-      static void ntpServerTime(const Milliseconds &value);
-      static void startMediaTracing();
-      static void stopMediaTracing();
-      static bool isMediaTracing();
-      static bool saveMediaTrace(String filename);
-      static bool saveMediaTrace(String host, int port);
+      static void setLogLevel(Log::Level level) noexcept;
+      static void ntpServerTime(const Milliseconds &value) noexcept;
+      static void startMediaTracing() noexcept;
+      static void stopMediaTracing() noexcept;
+      static bool isMediaTracing() noexcept;
+      static bool saveMediaTrace(String filename) noexcept;
+      static bool saveMediaTrace(String host, int port) noexcept;
 
-      virtual ~IMediaEngineForORTC() {}
+      virtual ~IMediaEngineForORTC() noexcept {}
     };
 
     
@@ -106,26 +108,26 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaEngineForMediaDevice
-    #pragma mark
+    //
+    // IMediaEngineForMediaDevice
+    //
 
     interaction IMediaEngineForMediaDevice
     {
       ZS_DECLARE_TYPEDEF_PTR(IMediaEngineForMediaDevice, ForDevice);
 
-      virtual void notifyDeviceIsIdleOrShutdownStateChanged() = 0;
+      virtual void notifyDeviceIsIdleOrShutdownStateChanged() noexcept = 0;
 
-      virtual ~IMediaEngineForMediaDevice() {}
+      virtual ~IMediaEngineForMediaDevice() noexcept {}
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaEngineForMediaDeviceCapture
-    #pragma mark
+    //
+    // IMediaEngineForMediaDeviceCapture
+    //
 
     interaction IMediaEngineForMediaDeviceCapture : public IMediaEngineForMediaDevice
     {
@@ -143,9 +145,9 @@ namespace ortc
                                                                    Kinds kind,
                                                                    const TrackConstraints &constraints,
                                                                    IMediaDeviceCaptureDelegatePtr delegate
-                                                                   );
+                                                                   ) noexcept;
 
-      virtual ~IMediaEngineForMediaDeviceCapture() {}
+      virtual ~IMediaEngineForMediaDeviceCapture() noexcept {}
     };
 
     
@@ -153,39 +155,39 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaEngineForMediaDeviceCaptureAudio
-    #pragma mark
+    //
+    // IMediaEngineForMediaDeviceCaptureAudio
+    //
 
     interaction IMediaEngineForMediaDeviceCaptureAudio : public IMediaEngineForMediaDeviceCapture
     {
       ZS_DECLARE_TYPEDEF_PTR(IMediaEngineForMediaDeviceCaptureAudio, ForMediaDeviceCaptureAudio);
 
-      virtual ~IMediaEngineForMediaDeviceCaptureAudio() {}
+      virtual ~IMediaEngineForMediaDeviceCaptureAudio() noexcept {}
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaEngineForMediaDeviceCaptureVideo
-    #pragma mark
+    //
+    // IMediaEngineForMediaDeviceCaptureVideo
+    //
 
     interaction IMediaEngineForMediaDeviceCaptureVideo : public IMediaEngineForMediaDeviceCapture
     {
       ZS_DECLARE_TYPEDEF_PTR(IMediaEngineForMediaDeviceCaptureVideo, ForMediaDeviceCaptureVideo);
 
-      virtual ~IMediaEngineForMediaDeviceCaptureVideo() {}
+      virtual ~IMediaEngineForMediaDeviceCaptureVideo() noexcept {}
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaEngineForMediaDeviceRender
-    #pragma mark
+    //
+    // IMediaEngineForMediaDeviceRender
+    //
 
     interaction IMediaEngineForMediaDeviceRender : public IMediaEngineForMediaDevice
     {
@@ -201,65 +203,65 @@ namespace ortc
                                                                  MediaDeviceObjectID repaceExistingDeviceObjectID,
                                                                  const TrackConstraints &constraints,
                                                                  IMediaDeviceRenderDelegatePtr delegate
-                                                                 );
+                                                                 ) noexcept;
 
-      virtual ~IMediaEngineForMediaDeviceRender() {}
+      virtual ~IMediaEngineForMediaDeviceRender() noexcept {}
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaEngineForMediaDeviceRenderAudio : public IMediaEngineForMediaDeviceRender
-    #pragma mark
+    //
+    // IMediaEngineForMediaDeviceRenderAudio : public IMediaEngineForMediaDeviceRender
+    //
 
     interaction IMediaEngineForMediaDeviceRenderAudio : public IMediaEngineForMediaDeviceRender
     {
       ZS_DECLARE_TYPEDEF_PTR(IMediaEngineForMediaDeviceRenderAudio, ForMediaDeviceRenderAudio);
 
-      virtual ~IMediaEngineForMediaDeviceRenderAudio() {}
+      virtual ~IMediaEngineForMediaDeviceRenderAudio() noexcept {}
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaEngineForRTP
-    #pragma mark
+    //
+    // IMediaEngineForRTP
+    //
 
     interaction IMediaEngineForRTP
     {
       ZS_DECLARE_TYPEDEF_PTR(IMediaEngineForRTP, ForRTP);
 
-    virtual void notifyRTPShutdownStateChanged() = 0;
+    virtual void notifyRTPShutdownStateChanged() noexcept = 0;
 
-      virtual ~IMediaEngineForRTP() {}
+      virtual ~IMediaEngineForRTP() noexcept {}
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaEngineForRTPDecoder
-    #pragma mark
+    //
+    // IMediaEngineForRTPDecoder
+    //
 
     interaction IMediaEngineForRTPDecoder : public IMediaEngineForRTP
     {
       ZS_DECLARE_TYPEDEF_PTR(IMediaEngineForRTPDecoder, ForRTPDecode);
 
-      virtual ~IMediaEngineForRTPDecoder() {}
+      virtual ~IMediaEngineForRTPDecoder() noexcept {}
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaEngineForRTPDecoderAudio
-    #pragma mark
+    //
+    // IMediaEngineForRTPDecoderAudio
+    //
 
     interaction IMediaEngineForRTPDecoderAudio : public IMediaEngineForRTPDecoder
     {
@@ -271,18 +273,18 @@ namespace ortc
       static PromiseWithRTPDecoderAudioPtr createRTPDecoderAudio(
                                                                  const Parameters &parameters,
                                                                  IRTPDecoderDelegatePtr delegate
-                                                                 );
+                                                                 ) noexcept;
 
-      virtual ~IMediaEngineForRTPDecoderAudio() {}
+      virtual ~IMediaEngineForRTPDecoderAudio() noexcept {}
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaEngineForRTPDecoderVideo
-    #pragma mark
+    //
+    // IMediaEngineForRTPDecoderVideo
+    //
 
     interaction IMediaEngineForRTPDecoderVideo : public IMediaEngineForRTPDecoder
     {
@@ -294,9 +296,9 @@ namespace ortc
       static PromiseWithRTPDecoderVideoPtr createRTPDecoderVideo(
                                                                  const Parameters &parameters,
                                                                  IRTPDecoderDelegatePtr delegate
-                                                                 );
+                                                                 ) noexcept;
 
-      virtual ~IMediaEngineForRTPDecoderVideo() {}
+      virtual ~IMediaEngineForRTPDecoderVideo() noexcept {}
     };
 
 
@@ -304,24 +306,24 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaEngineForRTPEncoder
-    #pragma mark
+    //
+    // IMediaEngineForRTPEncoder
+    //
 
     interaction IMediaEngineForRTPEncoder : public IMediaEngineForRTP
     {
       ZS_DECLARE_TYPEDEF_PTR(IMediaEngineForRTPEncoder, ForRTPEncode);
 
-      virtual ~IMediaEngineForRTPEncoder() {}
+      virtual ~IMediaEngineForRTPEncoder() noexcept {}
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaEngineForRTPEncoderAudio
-    #pragma mark
+    //
+    // IMediaEngineForRTPEncoderAudio
+    //
 
     interaction IMediaEngineForRTPEncoderAudio : public IMediaEngineForRTPEncoder
     {
@@ -333,18 +335,18 @@ namespace ortc
       static PromiseWithRTPEncoderAudioPtr createRTPEncoderAudio(
                                                                  const Parameters &parameters,
                                                                  IRTPEncoderDelegatePtr delegate
-                                                                 );
+                                                                 ) noexcept;
 
-      virtual ~IMediaEngineForRTPEncoderAudio() {}
+      virtual ~IMediaEngineForRTPEncoderAudio() noexcept {}
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaEngineForRTPEncoderVideo
-    #pragma mark
+    //
+    // IMediaEngineForRTPEncoderVideo
+    //
 
     interaction IMediaEngineForRTPEncoderVideo : public IMediaEngineForRTPEncoder
     {
@@ -356,18 +358,18 @@ namespace ortc
       static PromiseWithRTPEncoderVideoPtr createRTPEncoderVideo(
                                                                  const Parameters &parameters,
                                                                  IRTPEncoderDelegatePtr delegate
-                                                                 );
+                                                                 ) noexcept;
 
-      virtual ~IMediaEngineForRTPEncoderVideo() {}
+      virtual ~IMediaEngineForRTPEncoderVideo() noexcept {}
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaEngine
-    #pragma mark
+    //
+    // MediaEngine
+    //
 
     class MediaEngine : public Any,
                         public Noop,
@@ -423,7 +425,7 @@ namespace ortc
         State_Last = State_Shutdown,
       };
 
-      static const char *toString(States state);
+      static const char *toString(States state) noexcept;
 
       ZS_DECLARE_TYPEDEF_PTR(IMediaDevice::MediaDeviceObjectID, MediaDeviceObjectID);
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::Kinds, Kinds);
@@ -521,225 +523,225 @@ namespace ortc
       MediaEngine(
                   const make_private &,
                   IMessageQueuePtr queue
-                  );
+                  ) noexcept;
 
     protected:
-      MediaEngine(Noop, IMessageQueuePtr queue = IMessageQueuePtr()) :
+      MediaEngine(Noop, IMessageQueuePtr queue = IMessageQueuePtr()) noexcept :
         Noop(true),
         MessageQueueAssociator(queue),
         SharedRecursiveLock(SharedRecursiveLock::create())
       {}
 
-      void init();
+      void init() noexcept;
 
     public:
-      virtual ~MediaEngine();
+      virtual ~MediaEngine() noexcept;
 
-      static MediaEnginePtr singleton();
-      static MediaEnginePtr create();
+      static MediaEnginePtr singleton() noexcept;
+      static MediaEnginePtr create() noexcept;
 
-      static MediaEnginePtr convert(ForORTCPtr object);
-      static MediaEnginePtr convert(ForMediaDeviceCapturePtr object);
-      static MediaEnginePtr convert(ForMediaDeviceRenderPtr object);
-      static MediaEnginePtr convert(ForMediaDeviceRenderAudioPtr object);
-      static MediaEnginePtr convert(ForMediaDeviceCaptureAudioPtr object);
-      static MediaEnginePtr convert(ForMediaDeviceCaptureVideoPtr object);
-      static MediaEnginePtr convert(ForRTPPtr object);
-      static MediaEnginePtr convert(ForRTPDecodePtr object);
-      static MediaEnginePtr convert(ForRTPDecodeAudioPtr object);
-      static MediaEnginePtr convert(ForRTPDecodeVideoPtr object);
-      static MediaEnginePtr convert(ForRTPEncodePtr object);
-      static MediaEnginePtr convert(ForRTPEncodeAudioPtr object);
-      static MediaEnginePtr convert(ForRTPEncodeVideoPtr object);
+      static MediaEnginePtr convert(ForORTCPtr object) noexcept;
+      static MediaEnginePtr convert(ForMediaDeviceCapturePtr object) noexcept;
+      static MediaEnginePtr convert(ForMediaDeviceRenderPtr object) noexcept;
+      static MediaEnginePtr convert(ForMediaDeviceRenderAudioPtr object) noexcept;
+      static MediaEnginePtr convert(ForMediaDeviceCaptureAudioPtr object) noexcept;
+      static MediaEnginePtr convert(ForMediaDeviceCaptureVideoPtr object) noexcept;
+      static MediaEnginePtr convert(ForRTPPtr object) noexcept;
+      static MediaEnginePtr convert(ForRTPDecodePtr object) noexcept;
+      static MediaEnginePtr convert(ForRTPDecodeAudioPtr object) noexcept;
+      static MediaEnginePtr convert(ForRTPDecodeVideoPtr object) noexcept;
+      static MediaEnginePtr convert(ForRTPEncodePtr object) noexcept;
+      static MediaEnginePtr convert(ForRTPEncodeAudioPtr object) noexcept;
+      static MediaEnginePtr convert(ForRTPEncodeVideoPtr object) noexcept;
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaEngine => IMediaEngineForORTC
-      #pragma mark
+      //
+      // MediaEngine => IMediaEngineForORTC
+      //
 
-      static void setLogLevel(Log::Level level)                   { auto engine = singleton(); if (!engine) return; engine->internalSetLogLevel(level); }
-      static void ntpServerTime(const Milliseconds &value)        { auto engine = singleton(); if (!engine) return; engine->internalNTPServerTime(value); }
-      static void startMediaTracing()                             { auto engine = singleton(); if (!engine) return; engine->internalStartMediaTracing(); }
-      static void stopMediaTracing()                              { auto engine = singleton(); if (!engine) return; engine->internalStopMediaTracing(); }
-      static bool isMediaTracing()                                { auto engine = singleton(); if (!engine) return false; return engine->internalIsMediaTracing(); }
-      static bool saveMediaTrace(String filename)                 { auto engine = singleton(); if (!engine) return false; return engine->internalSaveMediaTrace(filename); }
-      static bool saveMediaTrace(String host, int port)           { auto engine = singleton(); if (!engine) return false; return engine->internalSaveMediaTrace(host, port); }
+      static void setLogLevel(Log::Level level) noexcept                  { auto engine = singleton(); if (!engine) return; engine->internalSetLogLevel(level); }
+      static void ntpServerTime(const Milliseconds &value)noexcept        { auto engine = singleton(); if (!engine) return; engine->internalNTPServerTime(value); }
+      static void startMediaTracing() noexcept                            { auto engine = singleton(); if (!engine) return; engine->internalStartMediaTracing(); }
+      static void stopMediaTracing() noexcept                             { auto engine = singleton(); if (!engine) return; engine->internalStopMediaTracing(); }
+      static bool isMediaTracing() noexcept                               { auto engine = singleton(); if (!engine) return false; return engine->internalIsMediaTracing(); }
+      static bool saveMediaTrace(String filename) noexcept                { auto engine = singleton(); if (!engine) return false; return engine->internalSaveMediaTrace(filename); }
+      static bool saveMediaTrace(String host, int port) noexcept          { auto engine = singleton(); if (!engine) return false; return engine->internalSaveMediaTrace(host, port); }
 
-      virtual void internalSetLogLevel(Log::Level level);
-      virtual void internalNTPServerTime(const Milliseconds &value);
-      virtual void internalStartMediaTracing();
-      virtual void internalStopMediaTracing();
-      virtual bool internalIsMediaTracing();
-      virtual bool internalSaveMediaTrace(String filename);
-      virtual bool internalSaveMediaTrace(String host, int port);
-
-      //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaEngine => IMediaEngineForMediaDevice
-      #pragma mark
-
-      void notifyDeviceIsIdleOrShutdownStateChanged() override;
+      virtual void internalSetLogLevel(Log::Level level) noexcept;
+      virtual void internalNTPServerTime(const Milliseconds &value) noexcept;
+      virtual void internalStartMediaTracing() noexcept;
+      virtual void internalStopMediaTracing() noexcept;
+      virtual bool internalIsMediaTracing() noexcept;
+      virtual bool internalSaveMediaTrace(String filename) noexcept;
+      virtual bool internalSaveMediaTrace(String host, int port) noexcept;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaEngine => IMediaEngineForMediaDeviceCapture
-      #pragma mark
+      //
+      // MediaEngine => IMediaEngineForMediaDevice
+      //
+
+      void notifyDeviceIsIdleOrShutdownStateChanged() noexcept override;
+
+      //-----------------------------------------------------------------------
+      //
+      // MediaEngine => IMediaEngineForMediaDeviceCapture
+      //
 
       static MediaDeviceCapturePromisePtr createMediaDeviceCapture(
                                                                    MediaDeviceObjectID repaceExistingDeviceObjectID,
                                                                    Kinds kind,
                                                                    const TrackConstraints &constraints,
                                                                    IMediaDeviceCaptureDelegatePtr delegate
-                                                                   )                                             { auto engine = singleton(); if (!engine) return MediaDeviceCapturePromise::createRejected(ErrorAny::create(UseHTTP::HTTPStatusCode_Gone, "singleton gone"), IORTCForInternal::queueDelegate()); return engine->innerCreateMediaDeviceCapture(repaceExistingDeviceObjectID, kind, constraints, delegate); }
+                                                                   ) noexcept                                            { auto engine = singleton(); if (!engine) return MediaDeviceCapturePromise::createRejected(ErrorAny::create(UseHTTP::HTTPStatusCode_Gone, "singleton gone"), IORTCForInternal::queueDelegate()); return engine->innerCreateMediaDeviceCapture(repaceExistingDeviceObjectID, kind, constraints, delegate); }
 
       virtual MediaDeviceCapturePromisePtr innerCreateMediaDeviceCapture(
                                                                          MediaDeviceObjectID repaceExistingDeviceObjectID,
                                                                          Kinds kind,
                                                                          const TrackConstraints &constraints,
                                                                          IMediaDeviceCaptureDelegatePtr delegate
-                                                                         );
+                                                                         ) noexcept;
 
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaEngine => IMediaEngineForMediaDeviceCaptureAudio
-      #pragma mark
+      //
+      // MediaEngine => IMediaEngineForMediaDeviceCaptureAudio
+      //
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaEngine => IMediaEngineForMediaDeviceCaptureVideo
-      #pragma mark
+      //
+      // MediaEngine => IMediaEngineForMediaDeviceCaptureVideo
+      //
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaEngine => IMediaEngineForMediaDeviceRender
-      #pragma mark
+      //
+      // MediaEngine => IMediaEngineForMediaDeviceRender
+      //
 
       
       static MediaDeviceRenderPromisePtr createMediaDeviceRender(
                                                                  MediaDeviceObjectID repaceExistingDeviceObjectID,
                                                                  const TrackConstraints &constraints,
                                                                  IMediaDeviceRenderDelegatePtr delegate
-                                                                 )                                             { auto engine = singleton(); if (!engine) return MediaDeviceRenderPromise::createRejected(ErrorAny::create(UseHTTP::HTTPStatusCode_Gone, "singleton gone"), IORTCForInternal::queueDelegate()); return engine->innerCreateMediaDeviceRender(repaceExistingDeviceObjectID, constraints, delegate); }
+                                                                 ) noexcept                                            { auto engine = singleton(); if (!engine) return MediaDeviceRenderPromise::createRejected(ErrorAny::create(UseHTTP::HTTPStatusCode_Gone, "singleton gone"), IORTCForInternal::queueDelegate()); return engine->innerCreateMediaDeviceRender(repaceExistingDeviceObjectID, constraints, delegate); }
 
       virtual MediaDeviceRenderPromisePtr innerCreateMediaDeviceRender(
                                                                        MediaDeviceObjectID repaceExistingDeviceObjectID,
                                                                        const TrackConstraints &constraints,
                                                                        IMediaDeviceRenderDelegatePtr delegate
-                                                                       );
+                                                                       ) noexcept;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaEngine => IMediaEngineForMediaDeviceRenderAudio
-      #pragma mark
+      //
+      // MediaEngine => IMediaEngineForMediaDeviceRenderAudio
+      //
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaEngine => IMediaEngineForRTP
-      #pragma mark
+      //
+      // MediaEngine => IMediaEngineForRTP
+      //
 
-      void notifyRTPShutdownStateChanged() override;
-
-      //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaEngine => IMediaEngineForRTPDecoder
-      #pragma mark
+      void notifyRTPShutdownStateChanged() noexcept override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaEngine => IMediaEngineForRTPDecoderAudio
-      #pragma mark
+      //
+      // MediaEngine => IMediaEngineForRTPDecoder
+      //
+
+      //-----------------------------------------------------------------------
+      //
+      // MediaEngine => IMediaEngineForRTPDecoderAudio
+      //
 
       static PromiseWithRTPDecoderAudioPtr createRTPDecoderAudio(
                                                                  const Parameters &parameters,
                                                                  IRTPDecoderDelegatePtr delegate
-                                                                 )                                                { auto engine = singleton(); if (!engine) return PromiseWithRTPDecoderAudio::createRejected(ErrorAny::create(UseHTTP::HTTPStatusCode_Gone, "singleton gone"), IORTCForInternal::queueDelegate()); return engine->innerCreateRTPDecoderAudio(parameters, delegate); }
+                                                                 ) noexcept                                               { auto engine = singleton(); if (!engine) return PromiseWithRTPDecoderAudio::createRejected(ErrorAny::create(UseHTTP::HTTPStatusCode_Gone, "singleton gone"), IORTCForInternal::queueDelegate()); return engine->innerCreateRTPDecoderAudio(parameters, delegate); }
 
       virtual PromiseWithRTPDecoderAudioPtr innerCreateRTPDecoderAudio(
                                                                        const Parameters &parameters,
                                                                        IRTPDecoderDelegatePtr delegate
-                                                                       );
+                                                                       ) noexcept;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaEngine => IMediaEngineForRTPDecoderVideo
-      #pragma mark
+      //
+      // MediaEngine => IMediaEngineForRTPDecoderVideo
+      //
 
       static PromiseWithRTPDecoderVideoPtr createRTPDecoderVideo(
                                                                  const Parameters &parameters,
                                                                  IRTPDecoderDelegatePtr delegate
-                                                                 )                                                { auto engine = singleton(); if (!engine) return PromiseWithRTPDecoderVideo::createRejected(ErrorAny::create(UseHTTP::HTTPStatusCode_Gone, "singleton gone"), IORTCForInternal::queueDelegate()); return engine->innerCreateRTPDecoderVideo(parameters, delegate); }
+                                                                 ) noexcept                                               { auto engine = singleton(); if (!engine) return PromiseWithRTPDecoderVideo::createRejected(ErrorAny::create(UseHTTP::HTTPStatusCode_Gone, "singleton gone"), IORTCForInternal::queueDelegate()); return engine->innerCreateRTPDecoderVideo(parameters, delegate); }
 
       virtual PromiseWithRTPDecoderVideoPtr innerCreateRTPDecoderVideo(
                                                                        const Parameters &parameters,
                                                                        IRTPDecoderDelegatePtr delegate
-                                                                       );
+                                                                       ) noexcept;
 
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaEngine => IMediaEngineForRTPEncoder
-      #pragma mark
+      //
+      // MediaEngine => IMediaEngineForRTPEncoder
+      //
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaEngine => IMediaEngineForRTPEncoderAudio
-      #pragma mark
+      //
+      // MediaEngine => IMediaEngineForRTPEncoderAudio
+      //
 
       static PromiseWithRTPEncoderAudioPtr createRTPEncoderAudio(
                                                                  const Parameters &parameters,
                                                                  IRTPEncoderDelegatePtr delegate
-                                                                 )                                                { auto engine = singleton(); if (!engine) return PromiseWithRTPEncoderAudio::createRejected(ErrorAny::create(UseHTTP::HTTPStatusCode_Gone, "singleton gone"), IORTCForInternal::queueDelegate()); return engine->createRTPEncoderAudio(parameters, delegate); }
+                                                                 ) noexcept                                               { auto engine = singleton(); if (!engine) return PromiseWithRTPEncoderAudio::createRejected(ErrorAny::create(UseHTTP::HTTPStatusCode_Gone, "singleton gone"), IORTCForInternal::queueDelegate()); return engine->createRTPEncoderAudio(parameters, delegate); }
 
       virtual PromiseWithRTPEncoderAudioPtr innerCreateRTPEncoderAudio(
                                                                        const Parameters &parameters,
                                                                        IRTPEncoderDelegatePtr delegate
-                                                                       );
+                                                                       ) noexcept;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaEngine => IMediaEngineForRTPEncoderVideo
-      #pragma mark
+      //
+      // MediaEngine => IMediaEngineForRTPEncoderVideo
+      //
 
       static PromiseWithRTPEncoderVideoPtr createRTPEncoderVideo(
                                                                  const Parameters &parameters,
                                                                  IRTPEncoderDelegatePtr delegate
-                                                                 )                                                { auto engine = singleton(); if (!engine) return PromiseWithRTPEncoderVideo::createRejected(ErrorAny::create(UseHTTP::HTTPStatusCode_Gone, "singleton gone"), IORTCForInternal::queueDelegate()); return engine->innerCreateRTPEncoderVideo(parameters, delegate); }
+                                                                 ) noexcept                                               { auto engine = singleton(); if (!engine) return PromiseWithRTPEncoderVideo::createRejected(ErrorAny::create(UseHTTP::HTTPStatusCode_Gone, "singleton gone"), IORTCForInternal::queueDelegate()); return engine->innerCreateRTPEncoderVideo(parameters, delegate); }
 
       virtual PromiseWithRTPEncoderVideoPtr innerCreateRTPEncoderVideo(
                                                                        const Parameters &parameters,
                                                                        IRTPEncoderDelegatePtr delegate
-                                                                       );
+                                                                       ) noexcept;
 
     protected:
       
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaEngine => IMediaDevicesDelegate
-      #pragma mark
+      //
+      // MediaEngine => IMediaDevicesDelegate
+      //
 
       //-----------------------------------------------------------------------
       void onMediaDevicesChanged() override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaEngine => IWakeDelegate
-      #pragma mark
+      //
+      // MediaEngine => IWakeDelegate
+      //
 
       void onWake() override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaEngine => ITimerDelegate
-      #pragma mark
+      //
+      // MediaEngine => ITimerDelegate
+      //
 
       void onTimer(ITimerPtr timer) override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaEngine => IPromiseSettledDelegate
-      #pragma mark
+      //
+      // MediaEngine => IPromiseSettledDelegate
+      //
 
       void onPromiseSettled(PromisePtr promise) override;
 
@@ -748,9 +750,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaEngine::WebRtcTraceCallback
-      #pragma mark
+      //
+      // MediaEngine::WebRtcTraceCallback
+      //
 
       class WebRtcTraceCallback : public webrtc::TraceCallback
       {
@@ -762,9 +764,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaEngine::WebRtcTraceCallback
-      #pragma mark
+      //
+      // MediaEngine::WebRtcTraceCallback
+      //
 
       class WebRtcLogSink : public rtc::LogSink
       {
@@ -773,11 +775,11 @@ namespace ortc
       };
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaEngine => webrtc::SetupEventTracer
-      #pragma mark
+      //
+      // MediaEngine => webrtc::SetupEventTracer
+      //
 
-#if defined(WINRT)
+#if defined(WINUWP)
       static const unsigned char *GetCategoryGroupEnabled(const char *categoryGroup);
 
       static void __cdecl AddTraceEvent(
@@ -791,14 +793,14 @@ namespace ortc
                                         const uint64 *argValues,
                                         unsigned char flags
                                         );
-#endif //defined(WINRT)
+#endif //defined(WINUWP)
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark (internal)
-      #pragma mark
+      //
+      // (internal)
+      //
 
-#if defined(WINRT)
+#if defined(WINUWP)
       virtual void internalAddTraceEvent(
                                          char phase,
                                          const unsigned char *categoryGroupEnabled,
@@ -809,59 +811,59 @@ namespace ortc
                                          const unsigned char *argTypes,
                                          const uint64_t *argValues,
                                          unsigned char flags
-                                         );
-#endif //defined(WINRT)
+                                         ) noexcept;
+#endif //defined(WINUWP)
 
-      bool isPending() const { return State_Pending == currentState_; }
-      bool isWakingUp() const { return State_WakingUp == currentState_; }
-      bool isReady() const { return State_Ready == currentState_; }
-      bool isGoingToSleep() const { return State_GoingToSleep == currentState_; }
-      bool isSleeping() const { return State_Sleeping == currentState_; }
-      bool isShuttingDown() const { return State_ShuttingDown == currentState_; }
-      bool isShutdown() const { return State_Shutdown == currentState_; }
+      bool isPending() const noexcept { return State_Pending == currentState_; }
+      bool isWakingUp() const noexcept { return State_WakingUp == currentState_; }
+      bool isReady() const noexcept { return State_Ready == currentState_; }
+      bool isGoingToSleep() const noexcept { return State_GoingToSleep == currentState_; }
+      bool isSleeping() const noexcept { return State_Sleeping == currentState_; }
+      bool isShuttingDown() const noexcept { return State_ShuttingDown == currentState_; }
+      bool isShutdown() const noexcept { return State_Shutdown == currentState_; }
 
-      void cancel();
-      bool stepShutdownPendingRequests();
-      bool stepShutdownDevicesAndRTP();
+      void cancel() noexcept;
+      bool stepShutdownPendingRequests() noexcept;
+      bool stepShutdownDevicesAndRTP() noexcept;
 
-      void step();
+      void step() noexcept;
 
-      bool stepPendingPromises();
+      bool stepPendingPromises() noexcept;
 
-      bool stepRefreshDeviceList();
+      bool stepRefreshDeviceList() noexcept;
 
-      void stepFixState();
+      void stepFixState() noexcept;
 
-      bool stepWakeUp1();
+      bool stepWakeUp1() noexcept;
       void onStepWakeUp1(PromisePtr promise);
 
-      bool stepGoingToSleep1();
+      bool stepGoingToSleep1() noexcept;
       void onStepGoingToSleep1(PromisePtr promise);
 
-      bool stepShutdownDevices();
-      bool stepShutdownRTP();
-      bool stepStartPendingDevices();
-      bool stepStartPendingRTP();
-      bool stepReady1();
-      void onReady1(PromisePtr promise);
+      bool stepShutdownDevices() noexcept;
+      bool stepShutdownRTP() noexcept;
+      bool stepStartPendingDevices() noexcept;
+      bool stepStartPendingRTP() noexcept;
+      bool stepReady1() noexcept;
+      void onReady1(PromisePtr promise) noexcept;
 
-      void performAsync(std::function<void(PromisePtr)> func);
-
-      template <class Closure>
-      PromisePtr performAsyncClosure(const Closure &closure)                 { auto promise = Promise::create(); pendingPromises_[promise->getID()] = promise; postClosure([promise, closure] { closure(); promise->resolve(); }); return promise; }
+      void performAsync(std::function<void(PromisePtr)> func) noexcept;
 
       template <class Closure>
-      void performAsyncClosure(PromisePtr promise, const Closure &closure)   { pendingPromises_[promise->getID()] = promise; postClosure([closure] { closure(); }); }
+      PromisePtr performAsyncClosure(const Closure &closure) noexcept                { auto promise = Promise::create(); pendingPromises_[promise->getID()] = promise; postClosure([promise, closure] { closure(); promise->resolve(); }); return promise; }
 
-      void setState(States state);
-      void setError(PromisePtr promise);
-      void setError(WORD errorCode, const char *inReason);
+      template <class Closure>
+      void performAsyncClosure(PromisePtr promise, const Closure &closure) noexcept  { pendingPromises_[promise->getID()] = promise; postClosure([closure] { closure(); }); }
+
+      void setState(States state) noexcept;
+      void setError(PromisePtr promise) noexcept;
+      void setError(WORD errorCode, const char *inReason) noexcept;
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark (data)
-      #pragma mark
+      //
+      // (data)
+      //
 
       AutoPUID id_;
       MediaEngineWeakPtr thisWeak_;
@@ -909,9 +911,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaEngineFactory
-    #pragma mark
+    //
+    // IMediaEngineFactory
+    //
 
     interaction IMediaEngineFactory
     {
@@ -927,48 +929,48 @@ namespace ortc
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::Kinds, Kinds);
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::TrackConstraints, TrackConstraints);
 
-      static IMediaEngineFactory &singleton();
+      static IMediaEngineFactory &singleton() noexcept;
 
-      virtual MediaEnginePtr create();
+      virtual MediaEnginePtr create() noexcept;
 
-      virtual void setLogLevel(Log::Level level);
-      virtual void ntpServerTime(const Milliseconds &value);
-      virtual void startMediaTracing();
-      virtual void stopMediaTracing();
-      virtual bool isMediaTracing();
-      virtual bool saveMediaTrace(String filename);
-      virtual bool saveMediaTrace(String host, int port);
+      virtual void setLogLevel(Log::Level level) noexcept;
+      virtual void ntpServerTime(const Milliseconds &value) noexcept;
+      virtual void startMediaTracing() noexcept;
+      virtual void stopMediaTracing() noexcept;
+      virtual bool isMediaTracing() noexcept;
+      virtual bool saveMediaTrace(String filename) noexcept;
+      virtual bool saveMediaTrace(String host, int port) noexcept;
 
       virtual MediaDeviceCapturePromisePtr createMediaDeviceCapture(
                                                                     MediaDeviceObjectID repaceExistingDeviceObjectID,
                                                                     Kinds kind,
                                                                     const TrackConstraints &constraints,
                                                                     IMediaDeviceCaptureDelegatePtr delegate
-                                                                    );
+                                                                    ) noexcept;
 
       virtual MediaDeviceRenderPromisePtr createMediaDeviceRender(
                                                                   MediaDeviceObjectID repaceExistingDeviceObjectID,
                                                                   const TrackConstraints &constraints,
                                                                   IMediaDeviceRenderDelegatePtr delegate
-                                                                  );
+                                                                  ) noexcept;
 
       virtual PromiseWithRTPDecoderAudioPtr createRTPDecoderAudio(
                                                                   const Parameters &parameters,
                                                                   IRTPDecoderDelegatePtr delegate
-                                                                  );
+                                                                  ) noexcept;
       virtual PromiseWithRTPDecoderVideoPtr createRTPDecoderVideo(
                                                                   const Parameters &parameters,
                                                                   IRTPDecoderDelegatePtr delegate
-                                                                  );
+                                                                  ) noexcept;
 
       virtual PromiseWithRTPEncoderAudioPtr createRTPEncoderAudio(
                                                                   const Parameters &parameters,
                                                                   IRTPEncoderDelegatePtr delegate
-                                                                  );
+                                                                  ) noexcept;
       virtual PromiseWithRTPEncoderVideoPtr createRTPEncoderVideo(
                                                                   const Parameters &parameters,
                                                                   IRTPEncoderDelegatePtr delegate
-                                                                  );
+                                                                  ) noexcept;
     };
 
     class MediaEngineFactory : public IFactory<IMediaEngineFactory> {};

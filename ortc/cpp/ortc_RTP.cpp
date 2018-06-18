@@ -33,11 +33,6 @@
 #include <ortc/internal/ortc.events.h>
 #include <ortc/internal/platform.h>
 
-#ifdef _DEBUG
-#define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))
-#else
-#define ASSERT(x)
-#endif //_DEBUG
 
 namespace ortc { ZS_DECLARE_SUBSYSTEM(org_ortc_media_engine) }
 
@@ -49,12 +44,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTP
-    #pragma mark
+    //
+    // IRTP
+    //
 
     //-------------------------------------------------------------------------
-    const char *IRTP::toString(States state)
+    const char *IRTP::toString(States state) noexcept
     {
       switch (state) {
         case State_Pending:       return "pending";
@@ -65,7 +60,7 @@ namespace ortc
       return "UNDEFINED";    
     }
     //-------------------------------------------------------------------------
-    IRTP::States IRTP::toState(const char *stateStr) throw (InvalidParameters)
+    IRTP::States IRTP::toState(const char *stateStr) noexcept(false)
     {
       String str(stateStr);
       for (IRTP::States index = IRTP::State_First; index <= IRTP::State_Last; index = static_cast<IRTP::States>(static_cast<std::underlying_type<IRTP::States>::type>(index) + 1)) {
@@ -80,9 +75,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPForMediaEngine
-    #pragma mark
+    //
+    // IRTPForMediaEngine
+    //
 
   } // namespace internal
 

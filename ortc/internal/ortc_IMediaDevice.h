@@ -46,22 +46,22 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark (helpers)
-    #pragma mark
+    //
+    // (helpers)
+    //
 
     IMediaStreamTrackTypes::SettingsPtr obtainBestMode(
                                                        const std::list<IMediaStreamTrackTypes::TrackConstraintsPtr> &allConstraints,
                                                        const std::list<IMediaStreamTrackTypes::SettingsPtr> &availableModes
-                                                       );
+                                                       ) noexcept;
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaDevice
-    #pragma mark
+    //
+    // IMediaDevice
+    //
 
     interaction IMediaDevice
     {
@@ -80,33 +80,33 @@ namespace ortc
         State_Last = State_Shutdown,
       };
 
-      static const char *toString(States state);
+      static const char *toString(States state) noexcept;
 
-      virtual MediaDeviceObjectID getID() const = 0;
-      virtual void cancel() = 0;
+      virtual MediaDeviceObjectID getID() const noexcept = 0;
+      virtual void cancel() noexcept = 0;
 
-      virtual States getState() const = 0;
+      virtual States getState() const noexcept = 0;
     };
 
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaDeviceForMediaEngine
-    #pragma mark
+    //
+    // IMediaDeviceForMediaEngine
+    //
 
     interaction IMediaDeviceForMediaEngine
     {
       ZS_DECLARE_TYPEDEF_PTR(IMediaDeviceForMediaEngine, ForMediaEngine);
       ZS_DECLARE_TYPEDEF_PTR(IMediaDevice::States, States);
 
-      virtual bool isDeviceIdle() = 0;
-      virtual void shutdown() = 0;
+      virtual bool isDeviceIdle() noexcept = 0;
+      virtual void shutdown() noexcept = 0;
 
-      virtual States getState() const = 0;
-      bool isShuttingDown() const { return IMediaDevice::State_ShuttingDown == getState(); }
-      bool isShutdown() const     { return IMediaDevice::State_Shutdown == getState(); }
+      virtual States getState() const noexcept = 0;
+      bool isShuttingDown() const noexcept  { return IMediaDevice::State_ShuttingDown == getState(); }
+      bool isShutdown() const noexcept      { return IMediaDevice::State_Shutdown == getState(); }
     };
 
   }

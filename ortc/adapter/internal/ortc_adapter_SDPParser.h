@@ -44,9 +44,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark ISDPTypes
-      #pragma mark
+      //
+      // ISDPTypes
+      //
 
       interaction ISDPTypes
       {
@@ -137,9 +137,9 @@ namespace ortc
           LineType_c_ConnectionDataLine = 'c',
         };
 
-        static const char *toString(LineTypes type);
-        static LineTypes toLineType(const char *type);
-        static LineTypes toLineType(const char type);
+        static const char *toString(LineTypes type) noexcept(false);
+        static LineTypes toLineType(const char *type) noexcept;
+        static LineTypes toLineType(const char type) noexcept;
 
         enum Attributes
         {
@@ -184,11 +184,11 @@ namespace ortc
           Attribute_Last = Attribute_MaxMessageSize,
         };
 
-        static const char *toString(Attributes attribute);
-        static Attributes toAttribute(const char *attribute);
+        static const char *toString(Attributes attribute) noexcept;
+        static Attributes toAttribute(const char *attribute) noexcept;
 
-        static bool requiresValue(Attributes attribute);
-        static bool requiresEmptyValue(Attributes attribute);
+        static bool requiresValue(Attributes attribute) noexcept;
+        static bool requiresEmptyValue(Attributes attribute) noexcept;
 
         enum AttributeLevels
         {
@@ -203,20 +203,20 @@ namespace ortc
           AttributeLevel_All              = AttributeLevel_Session | AttributeLevel_Media | AttributeLevel_Source,
         };
 
-        static const char *toString(AttributeLevels level);
-        static AttributeLevels toAttributeLevel(const char *level);
+        static const char *toString(AttributeLevels level) noexcept;
+        static AttributeLevels toAttributeLevel(const char *level) noexcept(false);
 
-        static AttributeLevels getAttributeLevel(LineTypes lineType);
-        static AttributeLevels getAttributeLevel(Attributes attribute);
+        static AttributeLevels getAttributeLevel(LineTypes lineType) noexcept;
+        static AttributeLevels getAttributeLevel(Attributes attribute) noexcept;
 
         static bool supportedAtLevel(
                                      AttributeLevels currentLevel,
                                      LineTypes lineType
-                                     );
+                                     ) noexcept;
         static bool supportedAtLevel(
                                      AttributeLevels currentLevel,
                                      Attributes attribute
-                                     );
+                                     ) noexcept;
 
         enum Locations
         {
@@ -228,8 +228,8 @@ namespace ortc
           Location_Last = Location_Remote,
         };
 
-        static const char *toString(Locations location);
-        static Locations toLocation(const char *location);
+        static const char *toString(Locations location) noexcept;
+        static Locations toLocation(const char *location) noexcept(false);
 
         enum Directions
         {
@@ -240,16 +240,16 @@ namespace ortc
           Direction_SendReceive = Direction_Send | Direction_Receive,
         };
 
-        static const char *toStringForA(Directions direction);
-        static const char *toStringForRID(Directions direction);
-        static Directions toDirection(const char *direction);
+        static const char *toStringForA(Directions direction) noexcept;
+        static const char *toStringForRID(Directions direction) noexcept;
+        static Directions toDirection(const char *direction) noexcept(false);
         static bool isValid(
                             Directions direction,
                             bool allowNone,
                             bool allowSend,
                             bool allowReceive,
                             bool allowSendReceive
-                            );
+                            ) noexcept;
 
         enum ActorRoles
         {
@@ -258,14 +258,14 @@ namespace ortc
           ActorRole_Transceiver = ActorRole_Sender | ActorRole_Receiver,
         };
 
-        static const char *toString(ActorRoles actor);
-        static ActorRoles toActorRole(const char *actor);
+        static const char *toString(ActorRoles actor) noexcept;
+        static ActorRoles toActorRole(const char *actor) noexcept(false);
 
         static bool isApplicable(
                                  ActorRoles actor,
                                  Locations location,
                                  Directions direction
-                                 );
+                                 ) noexcept;
 
         enum ProtocolTypes
         {
@@ -279,8 +279,8 @@ namespace ortc
           ProtocolType_Last = ProtocolType_SCTP,
         };
 
-        static const char *toString(ProtocolTypes proto);
-        static ProtocolTypes toProtocolType(const char *proto);
+        static const char *toString(ProtocolTypes proto) noexcept;
+        static ProtocolTypes toProtocolType(const char *proto) noexcept(false);
 
         //---------------------------------------------------------------------
         //---------------------------------------------------------------------
@@ -295,7 +295,7 @@ namespace ortc
         {
           MLinePtr mMLine;
 
-          MediaLine(MLinePtr mline) : mMLine(mline) {}
+          MediaLine(MLinePtr mline) noexcept : mMLine(mline) {}
         };
 
         // https://tools.ietf.org/html/rfc4566#section-5.1
@@ -303,7 +303,7 @@ namespace ortc
         {
           ULONGLONG mVersion {};
 
-          VLine(const char *value);
+          VLine(const char *value) noexcept(false);
         };
 
         // https://tools.ietf.org/html/rfc4566#section-5.2
@@ -316,10 +316,10 @@ namespace ortc
           String mAddrType;
           String mUnicastAddress;
 
-          OLine(const Noop &) {}
-          OLine(const char *value);
-          String toString() const;
-          static String toString(const OLinePtr &line) { if (!line) return String(); return line->toString(); }
+          OLine(const Noop &) noexcept {}
+          OLine(const char *value) noexcept(false);
+          String toString() const noexcept;
+          static String toString(const OLinePtr &line) noexcept { if (!line) return String(); return line->toString(); }
         };
 
         // https://tools.ietf.org/html/rfc4566#section-5.3
@@ -327,10 +327,10 @@ namespace ortc
         {
           String mSessionName;
 
-          SLine(const Noop &) {}
-          SLine(const char *value);
-          String toString() const { return mSessionName.hasData() ? mSessionName : String("-"); }
-          static String toString(const SLinePtr &line) { if (!line) return String("-"); return line->toString(); }
+          SLine(const Noop &) noexcept {}
+          SLine(const char *value) noexcept;
+          String toString() const noexcept { return mSessionName.hasData() ? mSessionName : String("-"); }
+          static String toString(const SLinePtr &line) noexcept { if (!line) return String("-"); return line->toString(); }
         };
 
         // https://tools.ietf.org/html/rfc4566#section-5.8
@@ -339,7 +339,7 @@ namespace ortc
           String mBWType;
           ULONGLONG mBandwidth {};
 
-          BLine(MLinePtr mline, const char *value);
+          BLine(MLinePtr mline, const char *value) noexcept(false);
         };
 
         // https://tools.ietf.org/html/rfc4566#section-5.9
@@ -348,10 +348,10 @@ namespace ortc
           QWORD mStartTime {};
           QWORD mEndTime {};
 
-          TLine(const Noop &) {}
-          TLine(const char *value);
-          String toString() const { return string(mStartTime) + " " + string(mEndTime); }
-          static String toString(const TLinePtr &line) { if (!line) return String(); return line->toString(); }
+          TLine(const Noop &) noexcept {}
+          TLine(const char *value) noexcept(false);
+          String toString() const noexcept { return string(mStartTime) + " " + string(mEndTime); }
+          static String toString(const TLinePtr &line) noexcept { if (!line) return String(); return line->toString(); }
         };
 
         // https://tools.ietf.org/html/rfc4566#section-5.14
@@ -398,10 +398,10 @@ namespace ortc
           ASSRCGroupLineList mASSRCGroupLines;
           ARIDLineList mARIDLines;
 
-          MLine(const Noop &) {}
-          MLine(const char *value);
-          String toString() const;
-          static String toString(const MLinePtr &line) { if (!line) return String(); return line->toString(); }
+          MLine(const Noop &) noexcept {}
+          MLine(const char *value) noexcept(false);
+          String toString() const noexcept;
+          static String toString(const MLinePtr &line) noexcept { if (!line) return String(); return line->toString(); }
         };
 
         // https://tools.ietf.org/html/rfc4566#section-5.7
@@ -411,10 +411,10 @@ namespace ortc
           String mAddrType;
           String mConnectionAddress;
 
-          CLine(const Noop &) : MediaLine(nullptr) {}
-          CLine(MLinePtr mline, const char *value);
-          String toString() const;
-          static String toString(const CLinePtr &line) { if (!line) return String(); return line->toString(); }
+          CLine(const Noop &) noexcept : MediaLine(nullptr) {}
+          CLine(MLinePtr mline, const char *value) noexcept(false);
+          String toString() const noexcept;
+          static String toString(const CLinePtr &line) noexcept { if (!line) return String(); return line->toString(); }
         };
 
         //---------------------------------------------------------------------
@@ -431,12 +431,12 @@ namespace ortc
         {
           MLinePtr mMLine;
 
-          AMediaLine(MLinePtr mline) : mMLine(mline) {}
+          AMediaLine(MLinePtr mline) noexcept : mMLine(mline) {}
         };
 
         struct AMediaFlagLine : public AMediaLine
         {
-          AMediaFlagLine(MLinePtr mline) : AMediaLine(mline) {}
+          AMediaFlagLine(MLinePtr mline) noexcept : AMediaLine(mline) {}
         };
 
         // https://tools.ietf.org/html/rfc5888#section-5
@@ -445,10 +445,10 @@ namespace ortc
           String mSemantic;
           StringList mIdentificationTags;
 
-          AGroupLine(const Noop &) {}
-          AGroupLine(const char *value);
-          String toString() const;
-          static String toString(const AGroupLinePtr &line) { if (!line) return String(); return line->toString(); }
+          AGroupLine(const Noop &) noexcept {}
+          AGroupLine(const char *value) noexcept(false);
+          String toString() const noexcept;
+          static String toString(const AGroupLinePtr &line) noexcept { if (!line) return String(); return line->toString(); }
         };
 
         // https://tools.ietf.org/html/draft-ietf-mmusic-msid-13#section-2
@@ -457,17 +457,17 @@ namespace ortc
           String mID;
           String mAppData;
 
-          AMSIDLine(const Noop &) : AMediaLine(nullptr) {}
-          AMSIDLine(MLinePtr mline, const char *value);
-          String toString() const;
-          static String toString(const AMSIDLinePtr &line) { if (!line) return String(); return line->toString(); }
+          AMSIDLine(const Noop &) noexcept : AMediaLine(nullptr) {}
+          AMSIDLine(MLinePtr mline, const char *value) noexcept(false);
+          String toString() const noexcept;
+          static String toString(const AMSIDLinePtr &line) noexcept { if (!line) return String(); return line->toString(); }
         };
 
         // https://tools.ietf.org/html/draft-ietf-mmusic-msid-13#appendix-B.5
         // a=msid-semantic: WMS CESG4hDt2y4kkEizBkB4vbj7GQpC6hF7XTLR
         struct AMSIDSemanticLine : public AGroupLine
         {
-          AMSIDSemanticLine(const char *value) : AGroupLine(value) {}
+          AMSIDSemanticLine(const char *value) noexcept : AGroupLine(value) {}
         };
 
         // https://tools.ietf.org/html/rfc5245#section-15.4
@@ -475,10 +475,10 @@ namespace ortc
         {
           String mICEUFrag;
 
-          AICEUFragLine(const Noop &) : AMediaLine(nullptr) {}
-          AICEUFragLine(MLinePtr mline, const char *value);
-          String toString() const { return "ice-ufrag:" + mICEUFrag; }
-          static String toString(const AICEUFragLinePtr &line) { if (!line) return String(); return line->toString(); }
+          AICEUFragLine(const Noop &) noexcept : AMediaLine(nullptr) {}
+          AICEUFragLine(MLinePtr mline, const char *value) noexcept;
+          String toString() const noexcept { return "ice-ufrag:" + mICEUFrag; }
+          static String toString(const AICEUFragLinePtr &line) noexcept { if (!line) return String(); return line->toString(); }
         };
 
         // https://tools.ietf.org/html/rfc5245#section-15.4
@@ -486,10 +486,10 @@ namespace ortc
         {
           String mICEPwd;
 
-          AICEPwdLine(const Noop &) : AMediaLine(nullptr) {}
-          AICEPwdLine(MLinePtr mline, const char *value);
-          String toString() const { return "ice-pwd:" + mICEPwd; }
-          static String toString(const AICEPwdLinePtr &line) { if (!line) return String(); return line->toString(); }
+          AICEPwdLine(const Noop &) noexcept : AMediaLine(nullptr) {}
+          AICEPwdLine(MLinePtr mline, const char *value) noexcept;
+          String toString() const noexcept { return "ice-pwd:" + mICEPwd; }
+          static String toString(const AICEPwdLinePtr &line) noexcept { if (!line) return String(); return line->toString(); }
         };
 
         // https://tools.ietf.org/html/rfc5245#section-15.5
@@ -497,10 +497,10 @@ namespace ortc
         {
           StringList mTags;
 
-          AICEOptionsLine(const Noop &) : AMediaLine(nullptr) {}
-          AICEOptionsLine(MLinePtr mline, const char *value);
-          String toString() const;
-          static String toString(const AICEOptionsLinePtr &line) { if (!line) return String(); return line->toString(); }
+          AICEOptionsLine(const Noop &) noexcept : AMediaLine(nullptr) {}
+          AICEOptionsLine(MLinePtr mline, const char *value) noexcept(false);
+          String toString() const noexcept;
+          static String toString(const AICEOptionsLinePtr &line) noexcept { if (!line) return String(); return line->toString(); }
         };
 
         // https://tools.ietf.org/html/rfc5245#section-15.1
@@ -524,10 +524,10 @@ namespace ortc
 
           ExtensionPairList mExtensionPairs;
 
-          ACandidateLine(const Noop &) : AMediaLine(nullptr) {}
-          ACandidateLine(MLinePtr mline, const char *value);
-          String toString() const;
-          static String toString(const ACandidateLinePtr &line) { if (!line) return String(); return line->toString(); }
+          ACandidateLine(const Noop &) noexcept : AMediaLine(nullptr) {}
+          ACandidateLine(MLinePtr mline, const char *value) noexcept(false);
+          String toString() const noexcept;
+          static String toString(const ACandidateLinePtr &line) noexcept { if (!line) return String(); return line->toString(); }
         };
 
         // https://tools.ietf.org/html/rfc4572#section-5
@@ -536,10 +536,10 @@ namespace ortc
           String mHashFunc;
           String mFingerprint;
 
-          AFingerprintLine(const Noop &) : AMediaLine(nullptr) {}
-          AFingerprintLine(MLinePtr mline, const char *value);
-          String toString() const;
-          static String toString(const AFingerprintLinePtr &line) { if (!line) return String(); return line->toString(); }
+          AFingerprintLine(const Noop &) noexcept : AMediaLine(nullptr) {}
+          AFingerprintLine(MLinePtr mline, const char *value) noexcept(false);
+          String toString() const noexcept;
+          static String toString(const AFingerprintLinePtr &line) noexcept { if (!line) return String(); return line->toString(); }
         };
 
         // https://tools.ietf.org/html/rfc4568#section-9.1
@@ -555,10 +555,10 @@ namespace ortc
           KeyParamList mKeyParams;
           StringList mSessionParams;
 
-          ACryptoLine(const Noop &) : AMediaLine(nullptr) {}
-          ACryptoLine(MLinePtr mline, const char *value);
-          String toString() const;
-          static String toString(const ACryptoLinePtr &line) { if (!line) return String(); return line->toString(); }
+          ACryptoLine(const Noop &) noexcept : AMediaLine(nullptr) {}
+          ACryptoLine(MLinePtr mline, const char *value) noexcept(false);
+          String toString() const noexcept;
+          static String toString(const ACryptoLinePtr &line) noexcept { if (!line) return String(); return line->toString(); }
         };
 
         // https://tools.ietf.org/html/rfc4145#section-4
@@ -567,10 +567,10 @@ namespace ortc
         {
           String mSetup;
 
-          ASetupLine(const Noop &) : AMediaLine(nullptr) {}
-          ASetupLine(MLinePtr mline, const char *value);
-          String toString() const { return "setup:" + mSetup; }
-          static String toString(const ASetupLinePtr &line) { if (!line) return String(); return line->toString(); }
+          ASetupLine(const Noop &) noexcept : AMediaLine(nullptr) {}
+          ASetupLine(MLinePtr mline, const char *value) noexcept;
+          String toString() const noexcept { return "setup:" + mSetup; }
+          static String toString(const ASetupLinePtr &line) noexcept { if (!line) return String(); return line->toString(); }
         };
 
         // https://tools.ietf.org/html/rfc5888#section-9.1
@@ -578,10 +578,10 @@ namespace ortc
         {
           String mMID;
 
-          AMIDLine(const Noop &) : AMediaLine(nullptr) {}
-          AMIDLine(MLinePtr mline, const char *value);
-          String toString() const { return "mid:" + mMID; }
-          static String toString(const AMIDLinePtr &line) { if (!line) return String(); return line->toString(); }
+          AMIDLine(const Noop &) noexcept : AMediaLine(nullptr) {}
+          AMIDLine(MLinePtr mline, const char *value) noexcept;
+          String toString() const noexcept { return "mid:" + mMID; }
+          static String toString(const AMIDLinePtr &line) noexcept { if (!line) return String(); return line->toString(); }
         };
 
         // https://tools.ietf.org/html/rfc5285#section-7
@@ -592,10 +592,10 @@ namespace ortc
           String mURI;
           String mExtensionAttributes;
 
-          AExtmapLine(const Noop &) : AMediaLine(nullptr) {}
-          AExtmapLine(MLinePtr mline, const char *value);
-          String toString() const;
-          static String toString(const AExtmapLinePtr &line) { if (!line) return String(); return line->toString(); }
+          AExtmapLine(const Noop &) noexcept : AMediaLine(nullptr) {}
+          AExtmapLine(MLinePtr mline, const char *value) noexcept(false);
+          String toString() const noexcept;
+          static String toString(const AExtmapLinePtr &line) noexcept { if (!line) return String(); return line->toString(); }
         };
 
         // https://tools.ietf.org/html/rfc4566#section-6
@@ -603,7 +603,7 @@ namespace ortc
         {
           Directions mDirection {Direction_None};
 
-          AMediaDirectionLine(MLinePtr mline, const char *value);
+          AMediaDirectionLine(MLinePtr mline, const char *value) noexcept(false);
         };
 
         // https://tools.ietf.org/html/rfc4566#section-6
@@ -614,10 +614,10 @@ namespace ortc
           ULONG mClockRate {};
           Optional<ULONG> mEncodingParameters;
 
-          ARTPMapLine(const Noop &) : AMediaLine(nullptr) {}
-          ARTPMapLine(MLinePtr mline, const char *value);
-          String toString() const;
-          static String toString(const ARTPMapLinePtr &line) { if (!line) return String(); return line->toString(); }
+          ARTPMapLine(const Noop &) noexcept : AMediaLine(nullptr) {}
+          ARTPMapLine(MLinePtr mline, const char *value) noexcept(false);
+          String toString() const noexcept;
+          static String toString(const ARTPMapLinePtr &line) noexcept { if (!line) return String(); return line->toString(); }
         };
 
         // https://tools.ietf.org/html/rfc4566#section-6
@@ -630,10 +630,10 @@ namespace ortc
           String mFormatStr;
           StringList mFormatSpecific;
 
-          AFMTPLine(const Noop &) : AMediaLine(nullptr) {}
-          AFMTPLine(MLinePtr mline, ASSRCLinePtr sourceLine, const char *value);
-          String toString() const;
-          static String toString(const AFMTPLinePtr &line) { if (!line) return String(); return line->toString(); }
+          AFMTPLine(const Noop &) noexcept : AMediaLine(nullptr) {}
+          AFMTPLine(MLinePtr mline, ASSRCLinePtr sourceLine, const char *value) noexcept(false);
+          String toString() const noexcept;
+          static String toString(const AFMTPLinePtr &line) noexcept { if (!line) return String(); return line->toString(); }
         };
 
         // https://tools.ietf.org/html/rfc3605#section-2.1
@@ -644,10 +644,10 @@ namespace ortc
           String mAddrType;
           String mConnectionAddress;
 
-          ARTCPLine(const Noop &) : AMediaLine(nullptr) {}
-          ARTCPLine(MLinePtr mline, const char *value);
-          String toString() const;
-          static String toString(const ARTCPLinePtr &line) { if (!line) return String(); return line->toString(); }
+          ARTCPLine(const Noop &) noexcept : AMediaLine(nullptr) {}
+          ARTCPLine(MLinePtr mline, const char *value) noexcept(false);
+          String toString() const noexcept;
+          static String toString(const ARTCPLinePtr &line) noexcept { if (!line) return String(); return line->toString(); }
         };
 
         // https://tools.ietf.org/html/rfc4585#section-4.2
@@ -658,10 +658,10 @@ namespace ortc
           String mParam1;
           String mParam2;
 
-          ARTCPFBLine(const Noop &) : AMediaLine(nullptr) {}
-          ARTCPFBLine(MLinePtr mline, const char *value);
-          String toString() const;
-          static String toString(const ARTCPFBLinePtr &line) { if (!line) return String(); return line->toString(); }
+          ARTCPFBLine(const Noop &) noexcept : AMediaLine(nullptr) {}
+          ARTCPFBLine(MLinePtr mline, const char *value) noexcept(false);
+          String toString() const noexcept;
+          static String toString(const ARTCPFBLinePtr &line) noexcept { if (!line) return String(); return line->toString(); }
         };
 
         // https://tools.ietf.org/html/rfc4566#section-6
@@ -669,10 +669,10 @@ namespace ortc
         {
           Milliseconds mPTime {};
 
-          APTimeLine(const Noop &) : AMediaLine(nullptr) {}
-          APTimeLine(MLinePtr mline, const char *value);
-          String toString() const { return "ptime:" + string(mPTime.count()); }
-          static String toString(const APTimeLinePtr &line) { if (!line) return String(); return line->toString(); }
+          APTimeLine(const Noop &) noexcept : AMediaLine(nullptr) {}
+          APTimeLine(MLinePtr mline, const char *value) noexcept(false);
+          String toString() const noexcept { return "ptime:" + string(mPTime.count()); }
+          static String toString(const APTimeLinePtr &line) noexcept { if (!line) return String(); return line->toString(); }
         };
 
         // https://tools.ietf.org/html/rfc4566#section-6
@@ -680,10 +680,10 @@ namespace ortc
         {
           Milliseconds mMaxPTime {};
 
-          AMaxPTimeLine(const Noop &) : AMediaLine(nullptr) {}
-          AMaxPTimeLine(MLinePtr mline, const char *value);
-          String toString() const { return "maxptime:" + string(mMaxPTime.count()); }
-          static String toString(const AMaxPTimeLinePtr &line) { if (!line) return String(); return line->toString(); }
+          AMaxPTimeLine(const Noop &) noexcept : AMediaLine(nullptr) {}
+          AMaxPTimeLine(MLinePtr mline, const char *value) noexcept(false);
+          String toString() const noexcept { return "maxptime:" + string(mMaxPTime.count()); }
+          static String toString(const AMaxPTimeLinePtr &line) noexcept { if (!line) return String(); return line->toString(); }
         };
 
         // https://tools.ietf.org/html/rfc5576#section-4.1
@@ -695,10 +695,10 @@ namespace ortc
 
           AFMTPLineList mAFMTPLines;
 
-          ASSRCLine(const Noop &) : AMediaLine(nullptr) {}
-          ASSRCLine(MLinePtr mline, const char *value);
-          String toString() const;
-          static String toString(const ASSRCLinePtr &line) { if (!line) return String(); return line->toString(); }
+          ASSRCLine(const Noop &) noexcept : AMediaLine(nullptr) {}
+          ASSRCLine(MLinePtr mline, const char *value) noexcept(false);
+          String toString() const noexcept;
+          static String toString(const ASSRCLinePtr &line) noexcept { if (!line) return String(); return line->toString(); }
         };
 
         // https://tools.ietf.org/html/rfc5576#section-4.2
@@ -707,10 +707,10 @@ namespace ortc
           String mSemantics;
           SSRCList mSSRCs;
 
-          ASSRCGroupLine(const Noop &) : AMediaLine(nullptr) {}
-          ASSRCGroupLine(MLinePtr mline, const char *value);
-          String toString() const;
-          static String toString(const ASSRCGroupLinePtr &line) { if (!line) return String(); return line->toString(); }
+          ASSRCGroupLine(const Noop &) noexcept : AMediaLine(nullptr) {}
+          ASSRCGroupLine(MLinePtr mline, const char *value) noexcept(false);
+          String toString() const noexcept;
+          static String toString(const ASSRCGroupLinePtr &line) noexcept { if (!line) return String(); return line->toString(); }
         };
 
         // https://tools.ietf.org/html/draft-ietf-mmusic-rid-05#section-10
@@ -726,10 +726,10 @@ namespace ortc
           PayloadTypeList mPayloadTypes;
           RIDParamList mParams;
 
-          ARIDLine(const Noop &) : AMediaLine(nullptr) {}
-          ARIDLine(MLinePtr mline, const char *value);
-          String toString() const;
-          static String toString(const ARIDLinePtr &line) { if (!line) return String(); return line->toString(); }
+          ARIDLine(const Noop &) noexcept : AMediaLine(nullptr) {}
+          ARIDLine(MLinePtr mline, const char *value) noexcept(false);
+          String toString() const noexcept;
+          static String toString(const ARIDLinePtr &line) noexcept { if (!line) return String(); return line->toString(); }
         };
 
         // https://tools.ietf.org/html/draft-ietf-mmusic-sdp-simulcast-04#section-6.1
@@ -752,7 +752,7 @@ namespace ortc
 
           SCValueList mValues;
 
-          ASimulcastLine(MLinePtr mline, const char *value);
+          ASimulcastLine(MLinePtr mline, const char *value) noexcept(false);
         };
 
         // https://tools.ietf.org/html/draft-ietf-mmusic-sctp-sdp-16#section-5.2
@@ -760,10 +760,10 @@ namespace ortc
         {
           WORD mPort {};
 
-          ASCTPPortLine(const Noop &) : AMediaLine(nullptr) {}
-          ASCTPPortLine(MLinePtr mline, const char *value);
-          String toString() const { return "sctp-port:" +string(mPort); }
-          static String toString(const ASCTPPortLinePtr &line) { if (!line) return String(); return line->toString(); }
+          ASCTPPortLine(const Noop &) noexcept : AMediaLine(nullptr) {}
+          ASCTPPortLine(MLinePtr mline, const char *value) noexcept(false);
+          String toString() const noexcept { return "sctp-port:" +string(mPort); }
+          static String toString(const ASCTPPortLinePtr &line) noexcept { if (!line) return String(); return line->toString(); }
         };
 
         // https://tools.ietf.org/html/draft-ietf-mmusic-sctp-sdp-16#section-6.2
@@ -771,10 +771,10 @@ namespace ortc
         {
           size_t mMaxMessageSize {};
 
-          AMaxMessageSizeLine(const Noop &) : AMediaLine(nullptr) {}
-          AMaxMessageSizeLine(MLinePtr mline, const char *value);
-          String toString() const { return "max-message-size:" + string(mMaxMessageSize); }
-          static String toString(const AMaxMessageSizeLinePtr &line) { if (!line) return String(); return line->toString(); }
+          AMaxMessageSizeLine(const Noop &) noexcept : AMediaLine(nullptr) {}
+          AMaxMessageSizeLine(MLinePtr mline, const char *value) noexcept(false);
+          String toString() const noexcept { return "max-message-size:" + string(mMaxMessageSize); }
+          static String toString(const AMaxMessageSizeLinePtr &line) noexcept { if (!line) return String(); return line->toString(); }
         };
 
         //---------------------------------------------------------------------
@@ -791,7 +791,7 @@ namespace ortc
 
           LineValuePtr mLineValue;
 
-          ElementPtr toDebug();
+          ElementPtr toDebug() noexcept;
         };
 
         struct SDP
@@ -830,9 +830,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SDPParser
-      #pragma mark
+      //
+      // SDPParser
+      //
 
       class SDPParser : public ISDPTypes
       {
@@ -844,75 +844,75 @@ namespace ortc
         };
 
       protected:
-        static void parseLines(SDP &sdp);
-        static void parseAttributes(SDP &sdp);
-        static void validateAttributeLevels(SDP &sdp);
-        static void parseLinesDetails(SDP &sdp);
-        static void processFlagAttributes(SDP &sdp);
-        static void processSessionLevelValues(SDP &sdp);
-        static void processMediaLevelValues(SDP &sdp);
-        static void processSourceLevelValues(SDP &sdp);
+        static void parseLines(SDP &sdp) noexcept(false);
+        static void parseAttributes(SDP &sdp) noexcept(false);
+        static void validateAttributeLevels(SDP &sdp) noexcept(false);
+        static void parseLinesDetails(SDP &sdp) noexcept(false);
+        static void processFlagAttributes(SDP &sdp) noexcept(false);
+        static void processSessionLevelValues(SDP &sdp) noexcept(false);
+        static void processMediaLevelValues(SDP &sdp) noexcept(false);
+        static void processSourceLevelValues(SDP &sdp) noexcept(false);
 
         static void createDescriptionDetails(
                                              const SDP &sdp,
                                              Description &ioDescription
-                                             );
+                                             ) noexcept;
         static void createTransports(
                                      const SDP &sdp,
                                      Description &ioDescription
-                                     );
+                                     ) noexcept;
         static void createRTPMediaLines(
                                         Locations location,
                                         const SDP &sdp,
                                         Description &ioDescription
-                                        );
+                                        ) noexcept;
         static void createSCTPMediaLines(
                                          Locations location,
                                          const SDP &sdp,
                                          Description &ioDescription
-                                         );
+                                         ) noexcept;
 
         static void createRTPSenderLines(
                                          Locations location,
                                          const SDP &sdp,
                                          Description &ioDescription
-                                         );
+                                         ) noexcept(false);
 
         static void createSDPSessionLevel(
                                           const GeneratorOptions &options,
                                           const Description &description,
                                           SDP &ioSDP
-                                          );
+                                          ) noexcept(false);
         static void createSDPMediaLevel(
                                         const GeneratorOptions &options,
                                         const Description &description,
                                         SDP &ioSDP
-                                        );
+                                        ) noexcept(false);
 
         static void generateSessionLevel(
                                          const SDP &sdp,
                                          String &ioResult
-                                         );
+                                         ) noexcept;
         static void generateMediaLevel(
                                        const SDP &sdp,
                                        String &ioResult
-                                       );
+                                       ) noexcept;
 
       public:
-        static SDPPtr parse(const char *blob);
-        static String generate(const SDP &sdp);
+        static SDPPtr parse(const char *blob) noexcept(false);
+        static String generate(const SDP &sdp) noexcept(false);
 
         static SDPPtr createSDP(
                                 const GeneratorOptions &options,
                                 const Description &description
-                                );
+                                ) noexcept(false);
         static DescriptionPtr createDescription(
                                                 Locations location,
                                                 const SDP &sdp
-                                                );
+                                                ) noexcept(false);
 
-        static String getCandidateSDP(const IICETypes::Candidate &candidate);
-        static IICETypes::GatherCandidatePtr getCandidateFromSDP(const char *candidate);
+        static String getCandidateSDP(const IICETypes::Candidate &candidate) noexcept;
+        static IICETypes::GatherCandidatePtr getCandidateFromSDP(const char *candidate) noexcept;
       };
     }
   }
