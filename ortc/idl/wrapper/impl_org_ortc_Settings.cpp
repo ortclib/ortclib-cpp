@@ -59,8 +59,7 @@ void wrapper::org::ortc::Settings::setInt(
   int64_t value
   )
 {
-  typedef unsigned long LONG;
-  NativeType::setInt(key, SafeInt<LONG>(value));
+  NativeType::setInt(key, SafeInt<long>(value));
 }
 
 //------------------------------------------------------------------------------
@@ -69,8 +68,7 @@ void wrapper::org::ortc::Settings::setUInt(
   uint64_t value
   )
 {
-  typedef unsigned long ULONG;
-  NativeType::setUInt(key, SafeInt<ULONG>(value));
+  NativeType::setUInt(key, SafeInt<unsigned long>(value));
 }
 
 //------------------------------------------------------------------------------

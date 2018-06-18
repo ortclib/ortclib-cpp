@@ -39,7 +39,7 @@ namespace wrapper {
             case zsLib::Log::Level::Trace:  return wrapper::org::ortc::log::Level_trace;
             case zsLib::Log::Level::Insane: return wrapper::org::ortc::log::Level_insane;
           }
-          ZS_THROW_INVALID_ARGUMENT("level is unknown");
+          ZS_ASSERT_FAIL("level is unknown");
           return toWrapper(zsLib::Log::Level_First);
         }
 
@@ -55,7 +55,7 @@ namespace wrapper {
             case wrapper::org::ortc::log::Level_trace:  return zsLib::Log::Level::Trace;
             case wrapper::org::ortc::log::Level_insane: return zsLib::Log::Level::Insane;
           }
-          ZS_THROW_INVALID_ARGUMENT("level is unknown");
+          ZS_ASSERT_FAIL("level is unknown");
           return zsLib::Log::Level_First;
         }
 
@@ -107,7 +107,7 @@ namespace wrapper {
             case IMediaStreamTrackTypes::Kind_Audio: return wrapper::org::ortc::MediaStreamTrackKind::MediaStreamTrackKind_audio;
             case IMediaStreamTrackTypes::Kind_Video: return wrapper::org::ortc::MediaStreamTrackKind::MediaStreamTrackKind_video;
           }
-          ZS_THROW_INVALID_ARGUMENT("kind is unknown");
+          ZS_ASSERT_FAIL("kind is unknown");
           return toWrapper(IMediaStreamTrackTypes::Kind_First);
         }
 
@@ -119,7 +119,7 @@ namespace wrapper {
             case wrapper::org::ortc::MediaStreamTrackKind::MediaStreamTrackKind_audio: return IMediaStreamTrackTypes::Kind_Audio;
             case wrapper::org::ortc::MediaStreamTrackKind::MediaStreamTrackKind_video: return IMediaStreamTrackTypes::Kind_Video;
           }
-          ZS_THROW_INVALID_ARGUMENT("kind is unknown");
+          ZS_ASSERT_FAIL("kind is unknown");
           return IMediaStreamTrackTypes::Kind_First;
         }
 
@@ -131,7 +131,7 @@ namespace wrapper {
             case IMediaStreamTrackTypes::State_Live: return wrapper::org::ortc::MediaStreamTrackState::MediaStreamTrackState_live;
             case IMediaStreamTrackTypes::State_Ended: return wrapper::org::ortc::MediaStreamTrackState::MediaStreamTrackState_ended;
           }
-          ZS_THROW_INVALID_ARGUMENT("state is unknown");
+          ZS_ASSERT_FAIL("state is unknown");
           return wrapper::org::ortc::MediaStreamTrackState::MediaStreamTrackState_ended;
         }
 
@@ -145,7 +145,7 @@ namespace wrapper {
             case wrapper::org::ortc::MediaDeviceKind_videoInput:       return ::ortc::IMediaDevicesTypes::DeviceKind_VideoInput;
           }
 
-          ZS_THROW_INVALID_ARGUMENT("kind is unknown");
+          ZS_ASSERT_FAIL("kind is unknown");
           return ::ortc::IMediaDevicesTypes::DeviceKind_First;
         }
 
@@ -158,7 +158,7 @@ namespace wrapper {
             case ::ortc::IMediaDevicesTypes::DeviceKind_AudioOutput:    return wrapper::org::ortc::MediaDeviceKind_audioOutput;
             case ::ortc::IMediaDevicesTypes::DeviceKind_VideoInput:     return wrapper::org::ortc::MediaDeviceKind_videoInput;
           }
-          ZS_THROW_INVALID_ARGUMENT("kind is unknown");
+          ZS_ASSERT_FAIL("kind is unknown");
           return toWrapper(::ortc::IMediaDevicesTypes::DeviceKind_First);
         }
 
@@ -185,7 +185,7 @@ namespace wrapper {
             case wrapper::org::ortc::RTCStatsType_remoteCandidate:  return ::ortc::IStatsReportTypes::StatsType_RemoteCandidate;
           }
 
-          ZS_THROW_INVALID_ARGUMENT("stats type is unknown");
+          ZS_ASSERT_FAIL("stats type is unknown");
           return ::ortc::IStatsReportTypes::StatsType_First;
         }
 
@@ -211,7 +211,7 @@ namespace wrapper {
             case ::ortc::IStatsReportTypes::StatsType_LocalCandidate:   return wrapper::org::ortc::RTCStatsType_localCandidate;
             case ::ortc::IStatsReportTypes::StatsType_RemoteCandidate:  return wrapper::org::ortc::RTCStatsType_remoteCandidate;
           }
-          ZS_THROW_INVALID_ARGUMENT("stats type is unknown");
+          ZS_ASSERT_FAIL("stats type is unknown");
           return toWrapper(::ortc::IStatsReportTypes::StatsType_First);
         }
 
@@ -225,7 +225,7 @@ namespace wrapper {
             case ::ortc::ISCTPTransportTypes::State_Connected:      return wrapper::org::ortc::RTCSctpTransportState_connected;
             case ::ortc::ISCTPTransportTypes::State_Closed:         return wrapper::org::ortc::RTCSctpTransportState_closed;
           }
-          ZS_THROW_INVALID_ARGUMENT("state is unknown");
+          ZS_ASSERT_FAIL("state is unknown");
           return toWrapper(::ortc::ISCTPTransportTypes::State_First);
         }
 
@@ -239,7 +239,7 @@ namespace wrapper {
             case ::ortc::IDataChannelTypes::State_Closing:    return wrapper::org::ortc::RTCDataChannelState_closing;
             case ::ortc::IDataChannelTypes::State_Closed:     return wrapper::org::ortc::RTCDataChannelState_closed;
           }
-          ZS_THROW_INVALID_ARGUMENT("data channel state is unknown");
+          ZS_ASSERT_FAIL("data channel state is unknown");
           return toWrapper(::ortc::IDataChannelTypes::State_First);
         }
 
@@ -255,7 +255,7 @@ namespace wrapper {
             case ::ortc::IStatsReportTypes::StatsICECandidatePairState_Succeeded:   return wrapper::org::ortc::RTCIceCandidatePairState_succeeded;
             case ::ortc::IStatsReportTypes::StatsICECandidatePairState_Cancelled:   return wrapper::org::ortc::RTCIceCandidatePairState_failed;
           }
-          ZS_THROW_INVALID_ARGUMENT("ICE candidate pair state is unknown");
+          ZS_ASSERT_FAIL("ICE candidate pair state is unknown");
           return toWrapper(::ortc::IStatsReportTypes::StatsICECandidatePairState_First);
         }
 
@@ -267,7 +267,7 @@ namespace wrapper {
             case ::ortc::adapter::IPeerConnectionTypes::SignalingMode_JSON:         return wrapper::org::ortc::adapter::RTCPeerConnectionSignalingMode_json;
             case ::ortc::adapter::IPeerConnectionTypes::SignalingMode_SDP:          return wrapper::org::ortc::adapter::RTCPeerConnectionSignalingMode_sdp;
           }
-          ZS_THROW_INVALID_ARGUMENT("signaling mode is unknown");
+          ZS_ASSERT_FAIL("signaling mode is unknown");
           return toWrapper(::ortc::adapter::IPeerConnectionTypes::SignalingMode_First);
         }
 
@@ -279,7 +279,7 @@ namespace wrapper {
             case wrapper::org::ortc::adapter::RTCPeerConnectionSignalingMode_json:         return ::ortc::adapter::IPeerConnectionTypes::SignalingMode_JSON;
             case wrapper::org::ortc::adapter::RTCPeerConnectionSignalingMode_sdp:          return ::ortc::adapter::IPeerConnectionTypes::SignalingMode_SDP;
           }
-          ZS_THROW_INVALID_ARGUMENT("signaling mode is unknown");
+          ZS_ASSERT_FAIL("signaling mode is unknown");
           return ::ortc::adapter::IPeerConnectionTypes::SignalingMode_First;
         }
 
@@ -291,7 +291,7 @@ namespace wrapper {
             case ::ortc::adapter::IPeerConnectionTypes::RTCPMuxPolicy_Negotiated:       return wrapper::org::ortc::adapter::RTCRtcpMuxPolicy_negotiated;
             case ::ortc::adapter::IPeerConnectionTypes::RTCPMuxPolicy_Require:          return wrapper::org::ortc::adapter::RTCRtcpMuxPolicy_require;
           }
-          ZS_THROW_INVALID_ARGUMENT("mux policy mode is unknown");
+          ZS_ASSERT_FAIL("mux policy mode is unknown");
           return toWrapper(::ortc::adapter::IPeerConnectionTypes::RTCPMuxPolicy_First);
         }
 
@@ -303,7 +303,7 @@ namespace wrapper {
             case wrapper::org::ortc::adapter::RTCRtcpMuxPolicy_negotiated:       return ::ortc::adapter::IPeerConnectionTypes::RTCPMuxPolicy_Negotiated;
             case wrapper::org::ortc::adapter::RTCRtcpMuxPolicy_require:          return ::ortc::adapter::IPeerConnectionTypes::RTCPMuxPolicy_Require;
           }
-          ZS_THROW_INVALID_ARGUMENT("mux policy is unknown");
+          ZS_ASSERT_FAIL("mux policy is unknown");
           return ::ortc::adapter::IPeerConnectionTypes::RTCPMuxPolicy_First;
         }
 
@@ -316,7 +316,7 @@ namespace wrapper {
             case ::ortc::adapter::IPeerConnectionTypes::BundlePolicy_MaxCompat:   return wrapper::org::ortc::adapter::RTCBundlePolicy_maxCompat;
             case ::ortc::adapter::IPeerConnectionTypes::BundlePolicy_MaxBundle:   return wrapper::org::ortc::adapter::RTCBundlePolicy_maxBundle;
           }
-          ZS_THROW_INVALID_ARGUMENT("bundle policy mode is unknown");
+          ZS_ASSERT_FAIL("bundle policy mode is unknown");
           return toWrapper(::ortc::adapter::IPeerConnectionTypes::BundlePolicy_First);
         }
 
@@ -329,7 +329,7 @@ namespace wrapper {
             case wrapper::org::ortc::adapter::RTCBundlePolicy_maxCompat:      return ::ortc::adapter::IPeerConnectionTypes::BundlePolicy_MaxCompat;
             case wrapper::org::ortc::adapter::RTCBundlePolicy_maxBundle:      return ::ortc::adapter::IPeerConnectionTypes::BundlePolicy_MaxBundle;
           }
-          ZS_THROW_INVALID_ARGUMENT("bundle policy is unknown");
+          ZS_ASSERT_FAIL("bundle policy is unknown");
           return ::ortc::adapter::IPeerConnectionTypes::BundlePolicy_First;
         }
 
@@ -345,7 +345,7 @@ namespace wrapper {
             case ::ortc::adapter::IPeerConnectionTypes::SignalingState_HaveRemotePranswer:  return wrapper::org::ortc::adapter::RTCSignalingState_haveRemotePranswer;
             case ::ortc::adapter::IPeerConnectionTypes::SignalingState_Closed:              return wrapper::org::ortc::adapter::RTCSignalingState_closed;
            }
-          ZS_THROW_INVALID_ARGUMENT("state is unknown");
+          ZS_ASSERT_FAIL("state is unknown");
           return toWrapper(::ortc::adapter::IPeerConnectionTypes::SignalingState_First);
         }
 
@@ -362,7 +362,7 @@ namespace wrapper {
             case ::ortc::IICETransportTypes::State_Failed:        return wrapper::org::ortc::adapter::RTCIceConnectionState_failed;
             case ::ortc::IICETransportTypes::State_Closed:        return wrapper::org::ortc::adapter::RTCIceConnectionState_closed;
          }
-          ZS_THROW_INVALID_ARGUMENT("state is unknown");
+         ZS_ASSERT_FAIL("state is unknown");
           return toPeerConnectionWrapper(::ortc::IICETransportTypes::State_First);
         }
 
@@ -378,7 +378,7 @@ namespace wrapper {
             case ::ortc::adapter::IPeerConnectionTypes::PeerConnectionState_Failed:       return wrapper::org::ortc::adapter::RTCPeerConnectionState_failed;
             case ::ortc::adapter::IPeerConnectionTypes::PeerConnectionState_Closed:       return wrapper::org::ortc::adapter::RTCPeerConnectionState_closed;
           }
-          ZS_THROW_INVALID_ARGUMENT("state is unknown");
+          ZS_ASSERT_FAIL("state is unknown");
           return toWrapper(::ortc::adapter::IPeerConnectionTypes::PeerConnectionState_First);
         }
 
@@ -402,7 +402,7 @@ namespace wrapper {
             case ::ortc::IICEGathererTypes::CredentialType_Password:  return wrapper::org::ortc::RTCIceCredentialType_password;
             case ::ortc::IICEGathererTypes::CredentialType_Token:     return wrapper::org::ortc::RTCIceCredentialType_token;
           }
-          ZS_THROW_INVALID_ARGUMENT("credential type is unknown");
+          ZS_ASSERT_FAIL("credential type is unknown");
           return toWrapper(::ortc::IICEGathererTypes::CredentialType_First);
         }
 
@@ -414,7 +414,7 @@ namespace wrapper {
             case wrapper::org::ortc::RTCIceCredentialType_password:   return ::ortc::IICEGathererTypes::CredentialType_Password;
             case wrapper::org::ortc::RTCIceCredentialType_token:      return ::ortc::IICEGathererTypes::CredentialType_Token;
           }
-          ZS_THROW_INVALID_ARGUMENT("credential type is unknown");
+          ZS_ASSERT_FAIL("credential type is unknown");
           return ::ortc::IICEGathererTypes::CredentialType_First;
         }
 
@@ -428,7 +428,7 @@ namespace wrapper {
             case ::ortc::IICEGathererTypes::State_Complete:   return wrapper::org::ortc::RTCIceGathererState_complete;
             case ::ortc::IICEGathererTypes::State_Closed:     return wrapper::org::ortc::RTCIceGathererState_closed;
           }
-          ZS_THROW_INVALID_ARGUMENT("state is unknown");
+          ZS_ASSERT_FAIL("state is unknown");
           return toWrapper(::ortc::IICEGathererTypes::State_First);
         }
 
@@ -442,7 +442,7 @@ namespace wrapper {
             case wrapper::org::ortc::RTCIceGathererState_complete:    return ::ortc::IICEGathererTypes::State_Complete;
             case wrapper::org::ortc::RTCIceGathererState_closed:      return ::ortc::IICEGathererTypes::State_Closed;
           }
-          ZS_THROW_INVALID_ARGUMENT("state is unknown");
+          ZS_ASSERT_FAIL("state is unknown");
           return ::ortc::IICEGathererTypes::State_First;
         }
 
@@ -456,7 +456,7 @@ namespace wrapper {
             case ::ortc::IICETypes::CandidateType_Prflx:    return wrapper::org::ortc::RTCIceCandidateType_prflx;
             case ::ortc::IICETypes::CandidateType_Relay:    return wrapper::org::ortc::RTCIceCandidateType_relay;
           }
-          ZS_THROW_INVALID_ARGUMENT("ice candidate type is unknown");
+          ZS_ASSERT_FAIL("ice candidate type is unknown");
           return toWrapper(::ortc::IICETypes::CandidateType_First);
         }
 
@@ -468,7 +468,7 @@ namespace wrapper {
             case ::ortc::IICETypes::Component_RTP:    return wrapper::org::ortc::RTCIceComponent_rtp;
             case ::ortc::IICETypes::Component_RTCP:   return wrapper::org::ortc::RTCIceComponent_rtcp;
           }
-          ZS_THROW_INVALID_ARGUMENT("component is unknown");
+          ZS_ASSERT_FAIL("component is unknown");
           return toWrapper(::ortc::IICETypes::Component_First);
         }
 
@@ -480,7 +480,7 @@ namespace wrapper {
             case ::ortc::IICETypes::Protocol_UDP:  return wrapper::org::ortc::RTCIceProtocol_udp;
             case ::ortc::IICETypes::Protocol_TCP:  return wrapper::org::ortc::RTCIceProtocol_tcp;
            }
-          ZS_THROW_INVALID_ARGUMENT("protocol is unknown");
+          ZS_ASSERT_FAIL("protocol is unknown");
           return toWrapper(::ortc::IICETypes::Protocol_First);
         }
 
@@ -493,7 +493,7 @@ namespace wrapper {
             case ::ortc::IICETypes::TCPCandidateType_Passive: return wrapper::org::ortc::RTCIceTcpCandidateType_passive;
             case ::ortc::IICETypes::TCPCandidateType_SO:      return wrapper::org::ortc::RTCIceTcpCandidateType_so;
           }
-          ZS_THROW_INVALID_ARGUMENT("tcp candidate type is unknown");
+          ZS_ASSERT_FAIL("tcp candidate type is unknown");
           return toWrapper(::ortc::IICETypes::TCPCandidateType_First);
         }
 
@@ -510,7 +510,7 @@ namespace wrapper {
             case ::ortc::IICETransportTypes::State_Failed:        return wrapper::org::ortc::RTCIceTransportState_failed;
             case ::ortc::IICETransportTypes::State_Closed:        return wrapper::org::ortc::RTCIceTransportState_closed;
           }
-          ZS_THROW_INVALID_ARGUMENT("state is unknown");
+          ZS_ASSERT_FAIL("state is unknown");
           return toWrapper(::ortc::IICETransportTypes::State_First);
         }
 
@@ -527,7 +527,7 @@ namespace wrapper {
             case wrapper::org::ortc::RTCIceTransportState_failed:       return ::ortc::IICETransportTypes::State_Failed;
             case wrapper::org::ortc::RTCIceTransportState_closed:       return ::ortc::IICETransportTypes::State_Closed;
           }
-          ZS_THROW_INVALID_ARGUMENT("state is unknown");
+          ZS_ASSERT_FAIL("state is unknown");
           return ::ortc::IICETransportTypes::State_First;
         }
 
@@ -539,7 +539,7 @@ namespace wrapper {
             case ::ortc::IICETypes::Role_Controlling:           return wrapper::org::ortc::RTCIceRole_controlling;
             case ::ortc::IICETypes::Role_Controlled:            return wrapper::org::ortc::RTCIceRole_controlled;
           }
-          ZS_THROW_INVALID_ARGUMENT("role is unknown");
+          ZS_ASSERT_FAIL("role is unknown");
           return toWrapper(::ortc::IICETypes::Role_First);
         }
 
@@ -551,7 +551,7 @@ namespace wrapper {
             case wrapper::org::ortc::RTCIceRole_controlling:    return ::ortc::IICETypes::Role_Controlling;
             case wrapper::org::ortc::RTCIceRole_controlled:     return ::ortc::IICETypes::Role_Controlled;
           }
-          ZS_THROW_INVALID_ARGUMENT("state is unknown");
+          ZS_ASSERT_FAIL("state is unknown");
           return ::ortc::IICETypes::Role_First;
         }
 
@@ -564,7 +564,7 @@ namespace wrapper {
             case ::ortc::IRTPTypes::OpusCodecCapabilityOptions::Signal_Music:  return wrapper::org::ortc::RTCRtpOpusCodecCapabilityOptionsSignal_music;
             case ::ortc::IRTPTypes::OpusCodecCapabilityOptions::Signal_Voice:  return wrapper::org::ortc::RTCRtpOpusCodecCapabilityOptionsSignal_voice;
           }
-          ZS_THROW_INVALID_ARGUMENT("signal type is unknown");
+          ZS_ASSERT_FAIL("signal type is unknown");
           return toWrapper(::ortc::IRTPTypes::OpusCodecCapabilityOptions::Signal_First);
         }
 
@@ -577,7 +577,7 @@ namespace wrapper {
             case wrapper::org::ortc::RTCRtpOpusCodecCapabilityOptionsSignal_music: return ::ortc::IRTPTypes::OpusCodecCapabilityOptions::Signal_Music;
             case wrapper::org::ortc::RTCRtpOpusCodecCapabilityOptionsSignal_voice: return ::ortc::IRTPTypes::OpusCodecCapabilityOptions::Signal_Voice;
           }
-          ZS_THROW_INVALID_ARGUMENT("signal type is unknown");
+          ZS_ASSERT_FAIL("signal type is unknown");
           return ::ortc::IRTPTypes::OpusCodecCapabilityOptions::Signal_First;
         }
 
@@ -590,7 +590,7 @@ namespace wrapper {
             case ::ortc::IRTPTypes::OpusCodecCapabilityOptions::Application_Audio:      return wrapper::org::ortc::RTCRtpOpusCodecCapabilityOptionsApplication_audio;
             case ::ortc::IRTPTypes::OpusCodecCapabilityOptions::Application_LowDelay:   return wrapper::org::ortc::RTCRtpOpusCodecCapabilityOptionsApplication_lowDelay;
           }
-          ZS_THROW_INVALID_ARGUMENT("application type is unknown");
+          ZS_ASSERT_FAIL("application type is unknown");
           return toWrapper(::ortc::IRTPTypes::OpusCodecCapabilityOptions::Application_First);
         }
 
@@ -603,7 +603,7 @@ namespace wrapper {
             case wrapper::org::ortc::RTCRtpOpusCodecCapabilityOptionsApplication_audio:     return ::ortc::IRTPTypes::OpusCodecCapabilityOptions::Application_Audio;
             case wrapper::org::ortc::RTCRtpOpusCodecCapabilityOptionsApplication_lowDelay:  return ::ortc::IRTPTypes::OpusCodecCapabilityOptions::Application_LowDelay;
           }
-          ZS_THROW_INVALID_ARGUMENT("application type is unknown");
+          ZS_ASSERT_FAIL("application type is unknown");
           return ::ortc::IRTPTypes::OpusCodecCapabilityOptions::Application_First;
         }
 
@@ -617,7 +617,7 @@ namespace wrapper {
             case ::ortc::IRTPTypes::FlexFECCodecCapabilityParameters::ToP_2DParityFEEC:         return wrapper::org::ortc::RTCRtpFlexFecCodecCapabilityParametersToP_n2DParityFEEC;
             case ::ortc::IRTPTypes::FlexFECCodecCapabilityParameters::ToP_Reserved:             return wrapper::org::ortc::RTCRtpFlexFecCodecCapabilityParametersToP_reserved;
           }
-          ZS_THROW_INVALID_ARGUMENT("ToP is unknown");
+          ZS_ASSERT_FAIL("ToP is unknown");
           return toWrapper(::ortc::IRTPTypes::FlexFECCodecCapabilityParameters::ToP_First);
         }
 
@@ -631,7 +631,7 @@ namespace wrapper {
             case wrapper::org::ortc::RTCRtpFlexFecCodecCapabilityParametersToP_n2DParityFEEC:         return ::ortc::IRTPTypes::FlexFECCodecCapabilityParameters::ToP_2DParityFEEC;
             case wrapper::org::ortc::RTCRtpFlexFecCodecCapabilityParametersToP_reserved:              return ::ortc::IRTPTypes::FlexFECCodecCapabilityParameters::ToP_Reserved;
           }
-          ZS_THROW_INVALID_ARGUMENT("ToP is unknown");
+          ZS_ASSERT_FAIL("ToP is unknown");
           return ::ortc::IRTPTypes::FlexFECCodecCapabilityParameters::ToP_First;
         }
 
@@ -644,7 +644,7 @@ namespace wrapper {
             case ::ortc::IRTPTypes::DegradationPreference_MaintainResolution:   return wrapper::org::ortc::RTCRtpDegradationPreference_maintainResolution;
             case ::ortc::IRTPTypes::DegradationPreference_Balanced:             return wrapper::org::ortc::RTCRtpDegradationPreference_balanced;
           }
-          ZS_THROW_INVALID_ARGUMENT("preference is unknown");
+          ZS_ASSERT_FAIL("preference is unknown");
           return toWrapper(::ortc::IRTPTypes::DegradationPreference_First);
         }
 
@@ -657,7 +657,7 @@ namespace wrapper {
             case wrapper::org::ortc::RTCRtpDegradationPreference_maintainResolution:    return ::ortc::IRTPTypes::DegradationPreference_MaintainResolution;
             case wrapper::org::ortc::RTCRtpDegradationPreference_balanced:              return ::ortc::IRTPTypes::DegradationPreference_Balanced;
           }
-          ZS_THROW_INVALID_ARGUMENT("preference is unknown");
+          ZS_ASSERT_FAIL("preference is unknown");
           return ::ortc::IRTPTypes::DegradationPreference_First;
         }
 
@@ -671,7 +671,7 @@ namespace wrapper {
             case ::ortc::IRTPTypes::PriorityType_Medium:      return wrapper::org::ortc::RTCRtpPriorityType_medium;
             case ::ortc::IRTPTypes::PriorityType_High:        return wrapper::org::ortc::RTCRtpPriorityType_high;
           }
-          ZS_THROW_INVALID_ARGUMENT("type is unknown");
+          ZS_ASSERT_FAIL("type is unknown");
           return toWrapper(::ortc::IRTPTypes::PriorityType_First);
         }
 
@@ -685,7 +685,7 @@ namespace wrapper {
             case wrapper::org::ortc::RTCRtpPriorityType_medium:     return ::ortc::IRTPTypes::PriorityType_Medium;
             case wrapper::org::ortc::RTCRtpPriorityType_high:       return ::ortc::IRTPTypes::PriorityType_High;
            }
-          ZS_THROW_INVALID_ARGUMENT("type is unknown");
+          ZS_ASSERT_FAIL("type is unknown");
           return ::ortc::IRTPTypes::PriorityType_First;
         }
 
@@ -700,7 +700,7 @@ namespace wrapper {
             case ::ortc::adapter::ISessionDescriptionTypes::SignalingType_SDPAnswer:    return wrapper::org::ortc::adapter::RTCSessionDescriptionSignalingType_sdpAnswer;
             case ::ortc::adapter::ISessionDescriptionTypes::SignalingType_SDPRollback:  return wrapper::org::ortc::adapter::RTCSessionDescriptionSignalingType_sdpRollback;
           }
-          ZS_THROW_INVALID_ARGUMENT("type is unknown");
+          ZS_ASSERT_FAIL("type is unknown");
           return toWrapper(::ortc::adapter::ISessionDescriptionTypes::SignalingType_First);
         }
 
@@ -715,7 +715,7 @@ namespace wrapper {
             case wrapper::org::ortc::adapter::RTCSessionDescriptionSignalingType_sdpAnswer:   return ::ortc::adapter::ISessionDescriptionTypes::SignalingType_SDPAnswer;
             case wrapper::org::ortc::adapter::RTCSessionDescriptionSignalingType_sdpRollback: return ::ortc::adapter::ISessionDescriptionTypes::SignalingType_SDPRollback;
           }
-          ZS_THROW_INVALID_ARGUMENT("type is unknown");
+          ZS_ASSERT_FAIL("type is unknown");
           return ::ortc::adapter::ISessionDescriptionTypes::SignalingType_First;
         }
 
@@ -728,7 +728,7 @@ namespace wrapper {
             case ::ortc::IDTLSTransportTypes::Role_Client:       return wrapper::org::ortc::RTCDtlsRole_client;
             case ::ortc::IDTLSTransportTypes::Role_Server:       return wrapper::org::ortc::RTCDtlsRole_server;
           }
-          ZS_THROW_INVALID_ARGUMENT("role is unknown");
+          ZS_ASSERT_FAIL("role is unknown");
           return toWrapper(::ortc::IDTLSTransportTypes::Role_First);
         }
 
@@ -741,7 +741,7 @@ namespace wrapper {
             case wrapper::org::ortc::RTCDtlsRole_client:      return ::ortc::IDTLSTransportTypes::Role_Client;
             case wrapper::org::ortc::RTCDtlsRole_server:      return ::ortc::IDTLSTransportTypes::Role_Server;
           }
-          ZS_THROW_INVALID_ARGUMENT("role is unknown");
+          ZS_ASSERT_FAIL("role is unknown");
           return ::ortc::IDTLSTransportTypes::Role_First;
         }
 
@@ -756,7 +756,7 @@ namespace wrapper {
             case ::ortc::IDTLSTransportTypes::State_Closed:       return wrapper::org::ortc::RTCDtlsTransportState_closed;
             case ::ortc::IDTLSTransportTypes::State_Failed:       return wrapper::org::ortc::RTCDtlsTransportState_failed;
           }
-          ZS_THROW_INVALID_ARGUMENT("state is unknown");
+          ZS_ASSERT_FAIL("state is unknown");
           return toWrapper(::ortc::IDTLSTransportTypes::State_First);
         }
 
@@ -771,7 +771,7 @@ namespace wrapper {
             case wrapper::org::ortc::RTCDtlsTransportState_closed:      return ::ortc::IDTLSTransportTypes::State_Closed;
             case wrapper::org::ortc::RTCDtlsTransportState_failed:      return ::ortc::IDTLSTransportTypes::State_Failed;
           }
-          ZS_THROW_INVALID_ARGUMENT("role is unknown");
+          ZS_ASSERT_FAIL("role is unknown");
           return ::ortc::IDTLSTransportTypes::State_First;
         }
 
@@ -785,7 +785,7 @@ namespace wrapper {
             case ::ortc::adapter::ISessionDescriptionTypes::MediaDirection_ReceiveOnly:   return wrapper::org::ortc::adapter::RTCSessionDescriptionMediaDirection_receiveOnly;
             case ::ortc::adapter::ISessionDescriptionTypes::MediaDirection_Inactive:      return wrapper::org::ortc::adapter::RTCSessionDescriptionMediaDirection_inactive;
           }
-          ZS_THROW_INVALID_ARGUMENT("direction is unknown");
+          ZS_ASSERT_FAIL("direction is unknown");
           return toWrapper(::ortc::adapter::ISessionDescriptionTypes::MediaDirection_First);
         }
 
@@ -799,7 +799,7 @@ namespace wrapper {
             case wrapper::org::ortc::adapter::RTCSessionDescriptionMediaDirection_receiveOnly:     return ::ortc::adapter::ISessionDescriptionTypes::MediaDirection_ReceiveOnly;
             case wrapper::org::ortc::adapter::RTCSessionDescriptionMediaDirection_inactive:        return ::ortc::adapter::ISessionDescriptionTypes::MediaDirection_Inactive;
           }
-          ZS_THROW_INVALID_ARGUMENT("direction is unknown");
+          ZS_ASSERT_FAIL("direction is unknown");
           return ::ortc::adapter::ISessionDescriptionTypes::MediaDirection_First;
         }
 

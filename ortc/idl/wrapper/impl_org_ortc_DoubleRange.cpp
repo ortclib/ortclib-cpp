@@ -51,12 +51,12 @@ void wrapper::impl::org::ortc::DoubleRange::wrapper_init_org_ortc_DoubleRange(do
 
 //------------------------------------------------------------------------------
 void wrapper::impl::org::ortc::DoubleRange::wrapper_init_org_ortc_DoubleRange(
-  double min,
-  double max
+  double inMin,
+  double inMax
   )
 {
-  this->min = min;
-  this->max = max;
+  this->min = inMin;
+  this->max = inMax;
 }
 
 //------------------------------------------------------------------------------

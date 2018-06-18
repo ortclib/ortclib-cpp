@@ -51,8 +51,8 @@ void wrapper::impl::org::ortc::LongRange::wrapper_init_org_ortc_LongRange(long v
 
 //------------------------------------------------------------------------------
 void wrapper::impl::org::ortc::LongRange::wrapper_init_org_ortc_LongRange(
-  long min,
-  long max
+  long inMin,
+  long inMax
   )
 {
   this->min = min;
