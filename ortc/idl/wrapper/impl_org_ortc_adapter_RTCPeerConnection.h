@@ -42,52 +42,52 @@ namespace wrapper {
             virtual ~RTCPeerConnection() noexcept;
 
             // methods RTCStatsProvider
-            virtual shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept override;
+            shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept(false) override;
 
             // methods RTCPeerConnection
-            virtual void wrapper_init_org_ortc_adapter_RTCPeerConnection() noexcept override;
-            virtual void wrapper_init_org_ortc_adapter_RTCPeerConnection(wrapper::org::ortc::adapter::RTCConfigurationPtr configuration) noexcept override;
-            virtual shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > createOffer() noexcept override;
-            virtual shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > createOffer(wrapper::org::ortc::adapter::RTCOfferOptionsPtr options) noexcept override;
-            virtual shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > createAnswer() noexcept override;
-            virtual shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > createAnswer(wrapper::org::ortc::adapter::RTCAnswerOptionsPtr options) noexcept override;
-            virtual shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > createCapabilities() noexcept override;
-            virtual shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > createCapabilities(wrapper::org::ortc::adapter::RTCCapabilityOptionsPtr options) noexcept override;
-            virtual PromisePtr setLocalDescription(wrapper::org::ortc::adapter::RTCSessionDescriptionPtr description) noexcept override;
-            virtual PromisePtr setRemoteDescription(wrapper::org::ortc::adapter::RTCSessionDescriptionPtr description) noexcept override;
-            virtual void addIceCandidate(wrapper::org::ortc::adapter::RTCIceCandidatePtr candidate) noexcept override;
-            virtual shared_ptr< list< wrapper::org::ortc::RTCIceServerPtr > > getDefaultIceServers() noexcept override;
-            virtual void close() noexcept override;
-            virtual shared_ptr< list< wrapper::org::ortc::RTCRtpSenderPtr > > getSenders() noexcept override;
-            virtual shared_ptr< list< wrapper::org::ortc::RTCRtpReceiverPtr > > getReceivers() noexcept override;
-            virtual shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCRtpSenderPtr > > addTrack(wrapper::org::ortc::MediaStreamTrackPtr track) noexcept override;
-            virtual shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCRtpSenderPtr > > addTrack(
+            void wrapper_init_org_ortc_adapter_RTCPeerConnection() noexcept override;
+            void wrapper_init_org_ortc_adapter_RTCPeerConnection(wrapper::org::ortc::adapter::RTCConfigurationPtr configuration) noexcept override;
+            shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > createOffer() noexcept override;
+            shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > createOffer(wrapper::org::ortc::adapter::RTCOfferOptionsPtr options) noexcept override;
+            shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > createAnswer() noexcept override;
+            shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > createAnswer(wrapper::org::ortc::adapter::RTCAnswerOptionsPtr options) noexcept override;
+            shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > createCapabilities() noexcept override;
+            shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > createCapabilities(wrapper::org::ortc::adapter::RTCCapabilityOptionsPtr options) noexcept override;
+            PromisePtr setLocalDescription(wrapper::org::ortc::adapter::RTCSessionDescriptionPtr description) noexcept override;
+            PromisePtr setRemoteDescription(wrapper::org::ortc::adapter::RTCSessionDescriptionPtr description) noexcept override;
+            void addIceCandidate(wrapper::org::ortc::adapter::RTCIceCandidatePtr candidate) noexcept override;
+            shared_ptr< list< wrapper::org::ortc::RTCIceServerPtr > > getDefaultIceServers() noexcept override;
+            void close() noexcept override;
+            shared_ptr< list< wrapper::org::ortc::RTCRtpSenderPtr > > getSenders() noexcept override;
+            shared_ptr< list< wrapper::org::ortc::RTCRtpReceiverPtr > > getReceivers() noexcept override;
+            shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCRtpSenderPtr > > addTrack(wrapper::org::ortc::MediaStreamTrackPtr track) noexcept override;
+            shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCRtpSenderPtr > > addTrack(
               wrapper::org::ortc::MediaStreamTrackPtr track,
               wrapper::org::ortc::adapter::RTCMediaStreamTrackConfigurationPtr config
               ) noexcept override;
-            virtual shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCRtpSenderPtr > > addTrack(
+            shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCRtpSenderPtr > > addTrack(
               wrapper::org::ortc::MediaStreamTrackPtr track,
               shared_ptr< list< wrapper::org::ortc::adapter::MediaStreamPtr > > mediaStreams,
               wrapper::org::ortc::adapter::RTCMediaStreamTrackConfigurationPtr config
               ) noexcept override;
-            virtual void removeTrack(wrapper::org::ortc::RTCRtpSenderPtr sender) noexcept override;
-            virtual shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCDataChannelPtr > > createDataChannel(wrapper::org::ortc::RTCDataChannelParametersPtr parameters) noexcept override;
+            void removeTrack(wrapper::org::ortc::RTCRtpSenderPtr sender) noexcept override;
+            shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCDataChannelPtr > > createDataChannel(wrapper::org::ortc::RTCDataChannelParametersPtr parameters) noexcept override;
 
             // properties RTCPeerConnection
-            virtual uint64_t get_objectId() noexcept override;
-            virtual wrapper::org::ortc::adapter::RTCSessionDescriptionPtr get_localDescription() noexcept override;
-            virtual wrapper::org::ortc::adapter::RTCSessionDescriptionPtr get_currentDescription() noexcept override;
-            virtual wrapper::org::ortc::adapter::RTCSessionDescriptionPtr get_pendingDescription() noexcept override;
-            virtual wrapper::org::ortc::adapter::RTCSessionDescriptionPtr get_remoteDescription() noexcept override;
-            virtual wrapper::org::ortc::adapter::RTCSessionDescriptionPtr get_currentRemoteDescription() noexcept override;
-            virtual wrapper::org::ortc::adapter::RTCSessionDescriptionPtr get_pendingRemoteDescription() noexcept override;
-            virtual wrapper::org::ortc::adapter::RTCSignalingState get_signalingState() noexcept override;
-            virtual wrapper::org::ortc::RTCIceGathererState get_iceGatheringState() noexcept override;
-            virtual wrapper::org::ortc::adapter::RTCIceConnectionState get_iceConnectionState() noexcept override;
-            virtual wrapper::org::ortc::adapter::RTCPeerConnectionState get_connectionState() noexcept override;
-            virtual bool get_canTrickleCandidates() noexcept override;
-            virtual wrapper::org::ortc::adapter::RTCConfigurationPtr get_getConfiguration() noexcept override;
-            virtual void set_getConfiguration(wrapper::org::ortc::adapter::RTCConfigurationPtr value) noexcept override;
+            uint64_t get_objectId() noexcept override;
+            wrapper::org::ortc::adapter::RTCSessionDescriptionPtr get_localDescription() noexcept override;
+            wrapper::org::ortc::adapter::RTCSessionDescriptionPtr get_currentDescription() noexcept override;
+            wrapper::org::ortc::adapter::RTCSessionDescriptionPtr get_pendingDescription() noexcept override;
+            wrapper::org::ortc::adapter::RTCSessionDescriptionPtr get_remoteDescription() noexcept override;
+            wrapper::org::ortc::adapter::RTCSessionDescriptionPtr get_currentRemoteDescription() noexcept override;
+            wrapper::org::ortc::adapter::RTCSessionDescriptionPtr get_pendingRemoteDescription() noexcept override;
+            wrapper::org::ortc::adapter::RTCSignalingState get_signalingState() noexcept override;
+            wrapper::org::ortc::RTCIceGathererState get_iceGatheringState() noexcept override;
+            wrapper::org::ortc::adapter::RTCIceConnectionState get_iceConnectionState() noexcept override;
+            wrapper::org::ortc::adapter::RTCPeerConnectionState get_connectionState() noexcept override;
+            bool get_canTrickleCandidates() noexcept override;
+            wrapper::org::ortc::adapter::RTCConfigurationPtr get_getConfiguration() noexcept override;
+            void set_getConfiguration(wrapper::org::ortc::adapter::RTCConfigurationPtr value) noexcept override;
 
             virtual void wrapper_onObserverCountChanged(size_t count) noexcept override;
 

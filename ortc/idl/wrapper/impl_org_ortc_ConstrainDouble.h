@@ -21,11 +21,11 @@ namespace wrapper {
           virtual ~ConstrainDouble() noexcept;
 
           // methods ConstrainDouble
-          virtual void wrapper_init_org_ortc_ConstrainDouble() noexcept override;
-          virtual void wrapper_init_org_ortc_ConstrainDouble(wrapper::org::ortc::ConstrainDoublePtr source) noexcept override;
-          virtual void wrapper_init_org_ortc_ConstrainDouble(wrapper::org::ortc::JsonPtr json) noexcept override;
-          virtual wrapper::org::ortc::JsonPtr toJson() noexcept override;
-          virtual String hash() noexcept override;
+          void wrapper_init_org_ortc_ConstrainDouble() noexcept override;
+          void wrapper_init_org_ortc_ConstrainDouble(wrapper::org::ortc::ConstrainDoublePtr source) noexcept override;
+          void wrapper_init_org_ortc_ConstrainDouble(wrapper::org::ortc::JsonPtr json) noexcept override;
+          wrapper::org::ortc::JsonPtr toJson() noexcept override;
+          String hash() noexcept override;
 
           static ConstrainDoublePtr toWrapper(NativeConstrainDoublePtr native) noexcept;
           static ConstrainDoublePtr toWrapper(const NativeConstrainDouble &native) noexcept;

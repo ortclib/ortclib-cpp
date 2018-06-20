@@ -21,7 +21,7 @@ namespace wrapper {
 
             RTCOfferOptions() noexcept;
             virtual ~RTCOfferOptions() noexcept;
-            virtual void wrapper_init_org_ortc_adapter_RTCOfferOptions() noexcept override;
+            void wrapper_init_org_ortc_adapter_RTCOfferOptions() noexcept override;
 
             static WrapperImplTypePtr toWrapper(NativeTypePtr native) noexcept;
             static WrapperImplTypePtr toWrapper(const NativeType &native) noexcept;

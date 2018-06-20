@@ -21,11 +21,11 @@ namespace wrapper {
           virtual ~ConstrainLongRange() noexcept;
 
           // methods ConstrainLongRange
-          virtual void wrapper_init_org_ortc_ConstrainLongRange() noexcept override;
-          virtual void wrapper_init_org_ortc_ConstrainLongRange(wrapper::org::ortc::ConstrainLongRangePtr source) noexcept override;
-          virtual void wrapper_init_org_ortc_ConstrainLongRange(wrapper::org::ortc::JsonPtr json) noexcept override;
-          virtual wrapper::org::ortc::JsonPtr toJson() noexcept override;
-          virtual String hash() noexcept override;
+          void wrapper_init_org_ortc_ConstrainLongRange() noexcept override;
+          void wrapper_init_org_ortc_ConstrainLongRange(wrapper::org::ortc::ConstrainLongRangePtr source) noexcept override;
+          void wrapper_init_org_ortc_ConstrainLongRange(wrapper::org::ortc::JsonPtr json) noexcept override;
+          wrapper::org::ortc::JsonPtr toJson() noexcept override;
+          String hash() noexcept override;
 
           static ConstrainLongRangePtr toWrapper(NativeConstrainLongRangePtr native) noexcept;
           static ConstrainLongRangePtr toWrapper(const NativeConstrainLongRange &native) noexcept;

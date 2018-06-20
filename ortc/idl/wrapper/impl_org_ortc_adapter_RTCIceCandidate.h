@@ -23,16 +23,24 @@ namespace wrapper {
             virtual ~RTCIceCandidate() noexcept;
 
             // methods RTCIceCandidate
-            virtual void wrapper_init_org_ortc_adapter_RTCIceCandidate() noexcept override;
-            virtual void wrapper_init_org_ortc_adapter_RTCIceCandidate(wrapper::org::ortc::adapter::RTCIceCandidatePtr source) noexcept override;
-            virtual void wrapper_init_org_ortc_adapter_RTCIceCandidate(wrapper::org::ortc::JsonPtr json) noexcept override;
-            virtual String toSdp() noexcept override;
-            virtual wrapper::org::ortc::JsonPtr toJson() noexcept override;
-            virtual String hash() noexcept override;
+            void wrapper_init_org_ortc_adapter_RTCIceCandidate() noexcept override;
+            void wrapper_init_org_ortc_adapter_RTCIceCandidate(wrapper::org::ortc::adapter::RTCIceCandidatePtr source) noexcept override;
+            void wrapper_init_org_ortc_adapter_RTCIceCandidate(wrapper::org::ortc::JsonPtr json) noexcept(false) override;
+            wrapper::org::ortc::adapter::RTCIceCandidatePtr fromSdpStringWithMLineIndex(
+              String sdp,
+              uint64_t mlineIndex
+              ) noexcept(false) override;
+            wrapper::org::ortc::adapter::RTCIceCandidatePtr fromSdpStringWithMid(
+              String sdp,
+              String mid
+              ) noexcept(false) override;
+            String toSdp() noexcept override;
+            wrapper::org::ortc::JsonPtr toJson() noexcept override;
+            String hash() noexcept override;
 
             // properties RTCIceCandidate
-            virtual String get_sdpMid() noexcept override;
-            virtual void set_sdpMid(String value) noexcept override;
+            String get_sdpMid() noexcept override;
+            void set_sdpMid(String value) noexcept override;
 
             static WrapperImplTypePtr toWrapper(NativeTypePtr native) noexcept;
             static WrapperImplTypePtr toWrapper(const NativeType &native) noexcept;

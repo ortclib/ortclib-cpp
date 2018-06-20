@@ -24,8 +24,8 @@ namespace wrapper {
             virtual ~RTCPeerConnectionIceEvent() noexcept;
 
             // properties RTCPeerConnectionIceEvent
-            virtual wrapper::org::ortc::adapter::RTCIceCandidatePtr get_candidate() noexcept override;
-            virtual String get_uri() noexcept override;
+            wrapper::org::ortc::adapter::RTCIceCandidatePtr get_candidate() noexcept override;
+            String get_uri() noexcept override;
 
             static WrapperImplTypePtr toWrapper(
               ::ortc::adapter::IPeerConnectionTypes::ICECandidatePtr candidate,

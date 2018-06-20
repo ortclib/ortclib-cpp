@@ -24,24 +24,26 @@ namespace wrapper {
             virtual ~RTCSessionDescription() noexcept;
 
             // methods RTCSessionDescription
-            virtual void wrapper_init_org_ortc_adapter_RTCSessionDescription(
+            void wrapper_init_org_ortc_adapter_RTCSessionDescription(
               wrapper::org::ortc::adapter::RTCSessionDescriptionSignalingType type,
               String description
-              ) noexcept override;
-            virtual void wrapper_init_org_ortc_adapter_RTCSessionDescription(
+              ) noexcept(false) override;
+            void wrapper_init_org_ortc_adapter_RTCSessionDescription(
               wrapper::org::ortc::adapter::RTCSessionDescriptionSignalingType type,
               wrapper::org::ortc::adapter::RTCSessionDescriptionDescriptionPtr description
-              ) noexcept override;
+              ) noexcept(false) override;
+            wrapper::org::ortc::RTCRtpParametersPtr convertCapabilitiesToParameters(wrapper::org::ortc::RTCRtpCapabilitiesPtr capabilitites) noexcept override;
+            wrapper::org::ortc::RTCRtpCapabilitiesPtr ConvertParametersToCapabilitites(wrapper::org::ortc::RTCRtpParametersPtr parameters) noexcept override;
 
             // properties RTCSessionDescription
-            virtual uint64_t get_objectId() noexcept override;
-            virtual wrapper::org::ortc::adapter::RTCSessionDescriptionSignalingType get_type() noexcept override;
-            virtual wrapper::org::ortc::adapter::RTCSdpType get_sdpType() noexcept override;
-            virtual bool get_isJsonSignalling() noexcept override;
-            virtual bool get_isSdpSignaling() noexcept override;
-            virtual wrapper::org::ortc::adapter::RTCSessionDescriptionDescriptionPtr get_description() noexcept override;
-            virtual String get_formattedDescription() noexcept override;
-            virtual String get_sdp() noexcept override;
+            uint64_t get_objectId() noexcept override;
+            wrapper::org::ortc::adapter::RTCSessionDescriptionSignalingType get_type() noexcept override;
+            wrapper::org::ortc::adapter::RTCSdpType get_sdpType() noexcept override;
+            bool get_isJsonSignalling() noexcept override;
+            bool get_isSdpSignaling() noexcept override;
+            wrapper::org::ortc::adapter::RTCSessionDescriptionDescriptionPtr get_description() noexcept override;
+            String get_formattedDescription() noexcept override;
+            String get_sdp() noexcept override;
 
             static WrapperImplTypePtr toWrapper(NativeTypePtr native) noexcept;
             static NativeTypePtr toNative(WrapperTypePtr wrapper) noexcept;

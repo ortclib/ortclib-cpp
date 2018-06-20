@@ -32,25 +32,25 @@ namespace wrapper {
             virtual ~MediaStream() noexcept;
 
             // methods RTCStatsProvider
-            virtual shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept override;
+            shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept(false) override;
 
             // methods MediaStream
-            virtual void wrapper_init_org_ortc_adapter_MediaStream() noexcept override;
-            virtual void wrapper_init_org_ortc_adapter_MediaStream(wrapper::org::ortc::adapter::MediaStreamPtr source) noexcept override;
-            virtual void wrapper_init_org_ortc_adapter_MediaStream(shared_ptr< list< wrapper::org::ortc::MediaStreamTrackPtr > > tracks) noexcept override;
-            virtual wrapper::org::ortc::MediaStreamTrackPtr getTrackById(String id) noexcept override;
-            virtual void addTrack(wrapper::org::ortc::MediaStreamTrackPtr track) noexcept override;
-            virtual void removeTrack(wrapper::org::ortc::MediaStreamTrackPtr track) noexcept override;
-            virtual wrapper::org::ortc::adapter::MediaStreamPtr clone() noexcept override;
+            void wrapper_init_org_ortc_adapter_MediaStream() noexcept override;
+            void wrapper_init_org_ortc_adapter_MediaStream(wrapper::org::ortc::adapter::MediaStreamPtr source) noexcept override;
+            void wrapper_init_org_ortc_adapter_MediaStream(shared_ptr< list< wrapper::org::ortc::MediaStreamTrackPtr > > tracks) noexcept override;
+            wrapper::org::ortc::MediaStreamTrackPtr getTrackById(String id) noexcept override;
+            void addTrack(wrapper::org::ortc::MediaStreamTrackPtr track) noexcept(false) override;
+            void removeTrack(wrapper::org::ortc::MediaStreamTrackPtr track) noexcept override;
+            wrapper::org::ortc::adapter::MediaStreamPtr clone() noexcept override;
 
             // properties MediaStream
-            virtual uint64_t get_objectId() noexcept override;
-            virtual String get_id() noexcept override;
-            virtual bool get_active() noexcept override;
-            virtual shared_ptr< list< wrapper::org::ortc::MediaStreamTrackPtr > > get_tracks() noexcept override;
-            virtual shared_ptr< list< wrapper::org::ortc::MediaStreamTrackPtr > > get_audioTracks() noexcept override;
-            virtual shared_ptr< list< wrapper::org::ortc::MediaStreamTrackPtr > > get_videoTracks() noexcept override;
-            virtual uint64_t get_count() noexcept override;
+            uint64_t get_objectId() noexcept override;
+            String get_id() noexcept override;
+            bool get_active() noexcept override;
+            shared_ptr< list< wrapper::org::ortc::MediaStreamTrackPtr > > get_tracks() noexcept override;
+            shared_ptr< list< wrapper::org::ortc::MediaStreamTrackPtr > > get_audioTracks() noexcept override;
+            shared_ptr< list< wrapper::org::ortc::MediaStreamTrackPtr > > get_videoTracks() noexcept override;
+            uint64_t get_count() noexcept override;
 
             virtual void wrapper_onObserverCountChanged(size_t count) noexcept override;
 

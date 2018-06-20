@@ -24,9 +24,9 @@ namespace wrapper {
             virtual ~RTCTrackEvent() noexcept;
 
             // properties RTCTrackEvent
-            virtual wrapper::org::ortc::RTCRtpReceiverPtr get_receiver() noexcept override;
-            virtual wrapper::org::ortc::MediaStreamTrackPtr get_track() noexcept override;
-            virtual shared_ptr< list< wrapper::org::ortc::adapter::MediaStreamPtr > > get_mediaStreams() noexcept override;
+            wrapper::org::ortc::RTCRtpReceiverPtr get_receiver() noexcept override;
+            wrapper::org::ortc::MediaStreamTrackPtr get_track() noexcept override;
+            shared_ptr< list< wrapper::org::ortc::adapter::MediaStreamPtr > > get_mediaStreams() noexcept override;
 
             static WrapperImplTypePtr toWrapper(NativeTypePtr native) noexcept;
             static NativeTypePtr toNative(WrapperTypePtr wrapper) noexcept;

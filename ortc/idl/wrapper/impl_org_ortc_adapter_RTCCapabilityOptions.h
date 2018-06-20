@@ -21,7 +21,7 @@ namespace wrapper {
 
             RTCCapabilityOptions() noexcept;
             virtual ~RTCCapabilityOptions() noexcept;
-            virtual void wrapper_init_org_ortc_adapter_RTCCapabilityOptions() noexcept override;
+            void wrapper_init_org_ortc_adapter_RTCCapabilityOptions() noexcept override;
 
             static WrapperImplTypePtr toWrapper(NativeTypePtr native) noexcept;
             static WrapperImplTypePtr toWrapper(const NativeType &native) noexcept;

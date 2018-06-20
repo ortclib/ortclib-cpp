@@ -24,8 +24,8 @@ namespace wrapper {
             virtual ~RTCMediaStreamTrackConfiguration() noexcept;
 
             // methods RTCMediaStreamTrackConfiguration
-            virtual void wrapper_init_org_ortc_adapter_RTCMediaStreamTrackConfiguration() noexcept override;
-            virtual void wrapper_init_org_ortc_adapter_RTCMediaStreamTrackConfiguration(wrapper::org::ortc::adapter::RTCMediaStreamTrackConfigurationPtr source) noexcept override;
+            void wrapper_init_org_ortc_adapter_RTCMediaStreamTrackConfiguration() noexcept override;
+            void wrapper_init_org_ortc_adapter_RTCMediaStreamTrackConfiguration(wrapper::org::ortc::adapter::RTCMediaStreamTrackConfigurationPtr source) noexcept override;
 
             static WrapperImplTypePtr toWrapper(NativeTypePtr native) noexcept;
             static WrapperImplTypePtr toWrapper(const NativeType &native) noexcept;

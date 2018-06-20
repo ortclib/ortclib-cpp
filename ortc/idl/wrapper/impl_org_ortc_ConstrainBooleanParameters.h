@@ -21,11 +21,11 @@ namespace wrapper {
           virtual ~ConstrainBooleanParameters() noexcept;
 
           // methods ConstrainBooleanParameters
-          virtual void wrapper_init_org_ortc_ConstrainBooleanParameters() noexcept override;
-          virtual void wrapper_init_org_ortc_ConstrainBooleanParameters(wrapper::org::ortc::ConstrainBooleanParametersPtr source) noexcept override;
-          virtual void wrapper_init_org_ortc_ConstrainBooleanParameters(wrapper::org::ortc::JsonPtr json) noexcept override;
-          virtual wrapper::org::ortc::JsonPtr toJson() noexcept override;
-          virtual String hash() noexcept override;
+          void wrapper_init_org_ortc_ConstrainBooleanParameters() noexcept override;
+          void wrapper_init_org_ortc_ConstrainBooleanParameters(wrapper::org::ortc::ConstrainBooleanParametersPtr source) noexcept override;
+          void wrapper_init_org_ortc_ConstrainBooleanParameters(wrapper::org::ortc::JsonPtr json) noexcept override;
+          wrapper::org::ortc::JsonPtr toJson() noexcept override;
+          String hash() noexcept override;
 
           static ConstrainBooleanParametersPtr toWrapper(NativeConstrainBooleanParametersPtr native) noexcept;
           static ConstrainBooleanParametersPtr toWrapper(const NativeConstrainBooleanParameters &native) noexcept;

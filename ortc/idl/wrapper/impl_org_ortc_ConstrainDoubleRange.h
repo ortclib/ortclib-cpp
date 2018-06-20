@@ -20,11 +20,11 @@ namespace wrapper {
           virtual ~ConstrainDoubleRange() noexcept;
 
           // methods ConstrainDoubleRange
-          virtual void wrapper_init_org_ortc_ConstrainDoubleRange() noexcept override;
-          virtual void wrapper_init_org_ortc_ConstrainDoubleRange(wrapper::org::ortc::ConstrainDoubleRangePtr source) noexcept override;
-          virtual void wrapper_init_org_ortc_ConstrainDoubleRange(wrapper::org::ortc::JsonPtr json) noexcept override;
-          virtual wrapper::org::ortc::JsonPtr toJson() noexcept override;
-          virtual String hash() noexcept override;
+          void wrapper_init_org_ortc_ConstrainDoubleRange() noexcept override;
+          void wrapper_init_org_ortc_ConstrainDoubleRange(wrapper::org::ortc::ConstrainDoubleRangePtr source) noexcept override;
+          void wrapper_init_org_ortc_ConstrainDoubleRange(wrapper::org::ortc::JsonPtr json) noexcept override;
+          wrapper::org::ortc::JsonPtr toJson() noexcept override;
+          String hash() noexcept override;
 
           static ConstrainDoubleRangePtr toWrapper(NativeConstrainDoubleRangePtr native) noexcept;
           static ConstrainDoubleRangePtr toWrapper(const NativeConstrainDoubleRange &native) noexcept;

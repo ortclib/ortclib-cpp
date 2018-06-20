@@ -20,8 +20,8 @@ namespace wrapper {
           virtual ~Json() noexcept;
 
           // methods Json
-          virtual void wrapper_init_org_ortc_Json(String jsonString) noexcept override;
-          virtual String toString() noexcept override;
+          void wrapper_init_org_ortc_Json(String jsonString) noexcept override;
+          String toString() noexcept override;
 
           static JsonPtr toWrapper(zsLib::XML::ElementPtr rootEl) noexcept;
           static zsLib::XML::ElementPtr toNative(wrapper::org::ortc::JsonPtr wrapper) noexcept;

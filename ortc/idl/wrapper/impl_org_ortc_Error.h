@@ -20,7 +20,7 @@ namespace wrapper {
 
           Error() noexcept;
           virtual ~Error() noexcept;
-          virtual void wrapper_init_org_ortc_Error() noexcept override;
+          void wrapper_init_org_ortc_Error() noexcept override;
 
           static WrapperImplTypePtr toWrapper(NativeTypePtr native) noexcept;
           static WrapperImplTypePtr toWrapper(const NativeType &native) noexcept;

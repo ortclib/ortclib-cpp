@@ -23,8 +23,8 @@ namespace wrapper {
             virtual ~RTCConfiguration() noexcept;
 
             // methods RTCConfiguration
-            virtual void wrapper_init_org_ortc_adapter_RTCConfiguration() noexcept override;
-            virtual void wrapper_init_org_ortc_adapter_RTCConfiguration(wrapper::org::ortc::adapter::RTCConfigurationPtr source) noexcept override;
+            void wrapper_init_org_ortc_adapter_RTCConfiguration() noexcept override;
+            void wrapper_init_org_ortc_adapter_RTCConfiguration(wrapper::org::ortc::adapter::RTCConfigurationPtr source) noexcept override;
 
             static WrapperImplTypePtr toWrapper(NativeTypePtr native) noexcept;
             static WrapperImplTypePtr toWrapper(const NativeType &native) noexcept;

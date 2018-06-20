@@ -24,10 +24,10 @@ namespace wrapper {
             virtual ~RTCPeerConnectionIceErrorEvent() noexcept;
 
             // properties RTCPeerConnectionIceErrorEvent
-            virtual wrapper::org::ortc::adapter::RTCIceCandidatePtr get_hostCandidate() noexcept override;
-            virtual String get_url() noexcept override;
-            virtual Optional< uint16_t > get_errorCode() noexcept override;
-            virtual String get_errorText() noexcept override;
+            wrapper::org::ortc::adapter::RTCIceCandidatePtr get_hostCandidate() noexcept override;
+            String get_url() noexcept override;
+            Optional< uint16_t > get_errorCode() noexcept override;
+            String get_errorText() noexcept override;
 
             static WrapperImplTypePtr toWrapper(NativeTypePtr native) noexcept;
             static NativeTypePtr toNative(WrapperTypePtr wrapper) noexcept;

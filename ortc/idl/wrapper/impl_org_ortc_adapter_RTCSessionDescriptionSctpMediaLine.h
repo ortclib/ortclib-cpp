@@ -23,13 +23,13 @@ namespace wrapper {
             virtual ~RTCSessionDescriptionSctpMediaLine() noexcept;
 
             // methods RTCSessionDescriptionMediaLine
-            virtual wrapper::org::ortc::JsonPtr toJson() noexcept override;
-            virtual String hash() noexcept override;
+            wrapper::org::ortc::JsonPtr toJson() noexcept override;
+            String hash() noexcept override;
 
             // methods RTCSessionDescriptionSctpMediaLine
-            virtual void wrapper_init_org_ortc_adapter_RTCSessionDescriptionSctpMediaLine() noexcept override;
-            virtual void wrapper_init_org_ortc_adapter_RTCSessionDescriptionSctpMediaLine(wrapper::org::ortc::adapter::RTCSessionDescriptionSctpMediaLinePtr source) noexcept override;
-            virtual void wrapper_init_org_ortc_adapter_RTCSessionDescriptionSctpMediaLine(wrapper::org::ortc::JsonPtr json) noexcept override;
+            void wrapper_init_org_ortc_adapter_RTCSessionDescriptionSctpMediaLine() noexcept override;
+            void wrapper_init_org_ortc_adapter_RTCSessionDescriptionSctpMediaLine(wrapper::org::ortc::adapter::RTCSessionDescriptionSctpMediaLinePtr source) noexcept override;
+            void wrapper_init_org_ortc_adapter_RTCSessionDescriptionSctpMediaLine(wrapper::org::ortc::JsonPtr json) noexcept override;
 
             static WrapperImplTypePtr toWrapper(NativeTypePtr native) noexcept;
             static WrapperImplTypePtr toWrapper(const NativeType &native) noexcept;

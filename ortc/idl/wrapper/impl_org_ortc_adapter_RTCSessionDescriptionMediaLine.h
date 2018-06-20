@@ -24,8 +24,8 @@ namespace wrapper {
             virtual ~RTCSessionDescriptionMediaLine() noexcept;
 
             // methods RTCSessionDescriptionMediaLine
-            virtual wrapper::org::ortc::JsonPtr toJson() noexcept override;
-            virtual String hash() noexcept override;
+            wrapper::org::ortc::JsonPtr toJson() noexcept override;
+            String hash() noexcept override;
 
             static WrapperImplTypePtr toWrapper(NativeTypePtr native) noexcept;
             static NativeTypePtr toNative(WrapperTypePtr wrapper) noexcept;

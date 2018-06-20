@@ -22,7 +22,7 @@ namespace wrapper {
           virtual ~ErrorEvent() noexcept;
 
           // properties ErrorEvent
-          virtual wrapper::org::ortc::ErrorPtr get_error() noexcept override;
+          wrapper::org::ortc::ErrorPtr get_error() noexcept override;
 
           static WrapperImplTypePtr toWrapper(::ortc::ErrorAnyPtr error) noexcept;
           static WrapperImplTypePtr toWrapper(wrapper::org::ortc::ErrorPtr error) noexcept;
