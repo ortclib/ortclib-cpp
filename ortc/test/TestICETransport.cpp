@@ -326,9 +326,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark ICETransportTester
-      #pragma mark
+      //
+      // ICETransportTester
+      //
 
       class ICETransportTester : public SharedRecursiveLock,
                                  public zsLib::MessageQueueAssociator,
@@ -673,9 +673,9 @@ void doTestICETransport()
       expectationsGatherer1.mStateGathering = 1;
       expectationsGatherer1.mStateComplete = 1;
       expectationsGatherer1.mStateClosed = 1;
-      expectationsGatherer1.mCandidatesUDPHost = totalHostIPs;
-      expectationsGatherer1.mCandidatesTCPHostActive = totalHostIPs;
-      expectationsGatherer1.mCandidatesTCPHostPassive = totalHostIPs;
+      expectationsGatherer1.mCandidatesUDPHost = static_cast<decltype(expectationsGatherer1.mCandidatesUDPHost)>(totalHostIPs);
+      expectationsGatherer1.mCandidatesTCPHostActive = static_cast<decltype(expectationsGatherer1.mCandidatesTCPHostActive)>(totalHostIPs);
+      expectationsGatherer1.mCandidatesTCPHostPassive = static_cast<decltype(expectationsGatherer1.mCandidatesTCPHostPassive)>(totalHostIPs);
       expectationsGatherer1.mCandidateGone = expectationsGatherer1.mCandidatesUDPHost + expectationsGatherer1.mCandidatesTCPHostActive + expectationsGatherer1.mCandidatesTCPHostPassive;
       expectationsGatherer1.mCandidateComplete = 1;
 

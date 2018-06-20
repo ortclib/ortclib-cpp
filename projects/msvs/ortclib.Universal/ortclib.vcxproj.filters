@@ -252,12 +252,6 @@
     <ClInclude Include="..\..\..\ortc\internal\ortc.events.h">
       <Filter>ortc\internal</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\ortc\internal\ortc.events_win_etw.h">
-      <Filter>ortc\internal</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\ortc\internal\ortc.stats.events_win_etw.h">
-      <Filter>ortc\internal</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\ortc\idl\Ortc.idl">
       <Filter>ortc\idl</Filter>
     </ClInclude>
@@ -342,20 +336,23 @@
     <ClInclude Include="..\..\..\ortc\internal\ortc_MediaStreamTrackMonitor.h">
       <Filter>ortc\internal</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc.events.jman.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc.stats.events.jman.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortcEvents.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\webrtc_post_include.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\webrtc_pre_include.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\..\..\ortc\internal\ortc_ETWStatsReport.man">
-      <Filter>ortc\internal</Filter>
-    </None>
-    <None Include="..\..\..\ortc\internal\ortc_ETWStatsReport.wprp">
-      <Filter>ortc\internal</Filter>
-    </None>
-    <None Include="..\..\..\ortc\internal\ortc_ETWTracing.man">
-      <Filter>ortc\internal</Filter>
-    </None>
-    <None Include="..\..\..\ortc\internal\ortc_ETWTracing.wprp">
-      <Filter>ortc\internal</Filter>
-    </None>
     <None Include="..\..\..\ortc\cpp\ortc.events.json">
       <Filter>ortc\cpp</Filter>
     </None>
@@ -554,6 +551,9 @@
       <Filter>ortc\cpp</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\ortc\cpp\ortc_MediaStreamTrackMonitor.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_RTP.cpp">
       <Filter>ortc\cpp</Filter>
     </ClCompile>
   </ItemGroup>

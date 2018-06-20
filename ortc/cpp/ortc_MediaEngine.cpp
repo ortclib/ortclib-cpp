@@ -914,8 +914,9 @@ namespace ortc
 
 #if defined(WINUWP)
     //-------------------------------------------------------------------------
-    const unsigned char *MediaEngine::GetCategoryGroupEnabled(const char *categoryGroup)
+    const unsigned char *MediaEngine::GetCategoryGroupEnabled(ZS_MAYBE_USED() const char *categoryGroup)
     {
+      ZS_MAYBE_USED(categoryGroup);
       return reinterpret_cast<const unsigned char*>("webrtc");
     }
 
@@ -951,18 +952,28 @@ namespace ortc
 #if defined(WINUWP)
     //-------------------------------------------------------------------------
     void MediaEngine::internalAddTraceEvent(
-                                            char phase,
-                                            const unsigned char *categoryGroupEnabled,
-                                            const char *name,
-                                            uint64_t id,
-                                            int numArgs,
-                                            const char **argNames,
-                                            const unsigned char *argTypes,
-                                            const uint64_t *argValues,
-                                            unsigned char flags
+                                            ZS_MAYBE_USED() char phase,
+                                            ZS_MAYBE_USED() const unsigned char *categoryGroupEnabled,
+                                            ZS_MAYBE_USED() const char *name,
+                                            ZS_MAYBE_USED() uint64_t id,
+                                            ZS_MAYBE_USED() int numArgs,
+                                            ZS_MAYBE_USED() const char **argNames,
+                                            ZS_MAYBE_USED() const unsigned char *argTypes,
+                                            ZS_MAYBE_USED() const uint64_t *argValues,
+                                            ZS_MAYBE_USED() unsigned char flags
                                             ) noexcept
     {
-      traceLog_.Add(phase, categoryGroupEnabled, name, id, numArgs, argNames, argTypes, argValues, flags);
+      ZS_MAYBE_USED(phase);
+      ZS_MAYBE_USED(categoryGroupEnabled);
+      ZS_MAYBE_USED(name);
+      ZS_MAYBE_USED(id);
+      ZS_MAYBE_USED(numArgs);
+      ZS_MAYBE_USED(argNames);
+      ZS_MAYBE_USED(argTypes);
+      ZS_MAYBE_USED(argValues);
+      ZS_MAYBE_USED(flags);
+#pragma ZS_BUILD_NOTE("TODO","traceLog_.Add needs new mapping")
+      //traceLog_.Add(phase, categoryGroupEnabled, name, id, numArgs, argNames, argTypes, argValues, flags);
     }
 #endif //defined(WINUWP)
 

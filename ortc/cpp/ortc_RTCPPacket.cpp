@@ -597,8 +597,9 @@ namespace ortc
     //
 
     //-------------------------------------------------------------------------
-    static void writePacketHeader(const RTCPPacket::Report *report, BYTE * &pos, size_t &remaining) noexcept
+    static void writePacketHeader(const RTCPPacket::Report *report, BYTE * &pos, ZS_MAYBE_USED() size_t &remaining) noexcept
     {
+      ZS_MAYBE_USED(remaining);
       ZS_ASSERT(remaining >= sizeof(DWORD))
       ZS_ASSERT(2 == report->version())
 
@@ -3590,13 +3591,14 @@ namespace ortc
                                           ZS_MAYBE_USED() BYTE version,
                                           ZS_MAYBE_USED() BYTE padding,
                                           ZS_MAYBE_USED() BYTE reportSpecific,
-                                          const BYTE *contents,
+                                          ZS_MAYBE_USED() const BYTE *contents,
                                           size_t contentSize
                                           ) noexcept
   {
     ZS_MAYBE_USED(version);
     ZS_MAYBE_USED(padding);
     ZS_MAYBE_USED(reportSpecific);
+    ZS_MAYBE_USED(contents);
     ++mAppCount;
 
     mAllocationSize += internal::alignedSize(sizeof(App));

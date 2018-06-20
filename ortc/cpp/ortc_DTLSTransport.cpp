@@ -3106,9 +3106,10 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool DTLSTransport::Adapter::sslPostConnectionCheck(
                                                         SSL* ssl,
-                                                        const char* server_name
+                                                        ZS_MAYBE_USED() const char* server_name
                                                         ) noexcept
     {
+      ZS_MAYBE_USED(server_name);
       ZS_ASSERT(server_name != NULL);
       bool ok;
 #if 0

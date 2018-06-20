@@ -62,9 +62,9 @@ namespace ortc
       //---------------------------------------------------------------------
       //---------------------------------------------------------------------
       //---------------------------------------------------------------------
-      #pragma mark
-      #pragma mark IFakeICETransportAsyncDelegate
-      #pragma mark
+      //
+      // IFakeICETransportAsyncDelegate
+      //
 
       interaction IFakeICETransportAsyncDelegate
       {
@@ -75,9 +75,9 @@ namespace ortc
       //---------------------------------------------------------------------
       //---------------------------------------------------------------------
       //---------------------------------------------------------------------
-      #pragma mark
-      #pragma mark IFakeSecureTransportAsyncDelegate
-      #pragma mark
+      //
+      // IFakeSecureTransportAsyncDelegate
+      //
 
       interaction IFakeSecureTransportAsyncDelegate
       {
@@ -89,7 +89,7 @@ namespace ortc
 
 ZS_DECLARE_PROXY_BEGIN(ortc::test::sctp::IFakeICETransportAsyncDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::services::SecureByteBlockPtr, SecureByteBlockPtr)
-ZS_DECLARE_PROXY_METHOD_1(onPacketFromLinkedFakedTransport, SecureByteBlockPtr)
+ZS_DECLARE_PROXY_METHOD(onPacketFromLinkedFakedTransport, SecureByteBlockPtr)
 ZS_DECLARE_PROXY_END()
 
 ZS_DECLARE_PROXY_BEGIN(ortc::test::sctp::IFakeSecureTransportAsyncDelegate)
@@ -117,9 +117,9 @@ namespace ortc
       //---------------------------------------------------------------------
       //---------------------------------------------------------------------
       //---------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeICETransport
-      #pragma mark
+      //
+      // FakeICETransport
+      //
 
       //---------------------------------------------------------------------
       class FakeICETransport : public ortc::internal::ICETransport,
@@ -148,9 +148,9 @@ namespace ortc
 
       public:
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark FakeICETransport => (test API)
-        #pragma mark
+        //
+        // FakeICETransport => (test API)
+        //
 
         ~FakeICETransport();
 
@@ -167,59 +167,59 @@ namespace ortc
 
       protected:
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark FakeICETransport => IICETransport
-        #pragma mark
+        //
+        // FakeICETransport => IICETransport
+        //
 
         //---------------------------------------------------------------------
-        virtual ElementPtr toDebug() const override;
+        ElementPtr toDebug() const noexcept override;
 
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark FakeICETransport => IICETransportForDataTransport
-        #pragma mark
+        //
+        // FakeICETransport => IICETransportForDataTransport
+        //
 
-        virtual PUID getID() const override;
+        PUID getID() const noexcept override;
 
-        virtual IICETransportSubscriptionPtr subscribe(IICETransportDelegatePtr originalDelegate) override;
+        IICETransportSubscriptionPtr subscribe(IICETransportDelegatePtr originalDelegate) noexcept override;
 
-        virtual IICETransport::States state() const override;
+        IICETransport::States state() const noexcept override;
 
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark FakeICETransport => IFakeICETransportAsyncDelegate
-        #pragma mark
+        //
+        // FakeICETransport => IFakeICETransportAsyncDelegate
+        //
 
         //---------------------------------------------------------------------
         virtual void onPacketFromLinkedFakedTransport(SecureByteBlockPtr buffer) override;
 
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark FakeICETransport => ITimerDelegate
-        #pragma mark
+        //
+        // FakeICETransport => ITimerDelegate
+        //
 
         //---------------------------------------------------------------------
         virtual void onTimer(ITimerPtr timer) override;
 
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark FakeICETransport => friend FakeSecureTransport
-        #pragma mark
+        //
+        // FakeICETransport => friend FakeSecureTransport
+        //
 
         void attachSecure(FakeSecureTransportPtr transport);
 
         void detachSecure(FakeSecureTransport &transport);
 
-        virtual bool sendPacket(
-                                const BYTE *buffer,
-                                size_t bufferSizeInBytes
-                                ) override;
+        bool sendPacket(
+                        const BYTE *buffer,
+                        size_t bufferSizeInBytes
+                        ) noexcept override;
 
       protected:
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark FakeICETransport => (internal)
-        #pragma mark
+        //
+        // FakeICETransport => (internal)
+        //
 
         void setState(IICETransportTypes::States state);
 
@@ -230,9 +230,9 @@ namespace ortc
 
       protected:
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark FakeICETransport => (data)
-        #pragma mark
+        //
+        // FakeICETransport => (data)
+        //
 
         FakeICETransportWeakPtr mThisWeak;
 
@@ -260,9 +260,9 @@ namespace ortc
       //---------------------------------------------------------------------
       //---------------------------------------------------------------------
       //---------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeSecureTransport
-      #pragma mark
+      //
+      // FakeSecureTransport
+      //
 
       //---------------------------------------------------------------------
       class FakeSecureTransport : public ortc::internal::DTLSTransport,
@@ -299,9 +299,9 @@ namespace ortc
 
       public:
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark FakeSecureTransport => (testing API)
-        #pragma mark
+        //
+        // FakeSecureTransport => (testing API)
+        //
 
         ~FakeSecureTransport();
 
@@ -316,66 +316,66 @@ namespace ortc
 
       protected:
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark FakeSecureTransport => IICETransport
-        #pragma mark
+        //
+        // FakeSecureTransport => IICETransport
+        //
 
         //---------------------------------------------------------------------
-        virtual ElementPtr toDebug() const override;
+        ElementPtr toDebug() const noexcept override;
 
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark FakeSecureTransport => IICETransportForDataTransport
-        #pragma mark
+        //
+        // FakeSecureTransport => IICETransportForDataTransport
+        //
 
-        virtual PUID getID() const override;
+        PUID getID() const noexcept override;
 
-        virtual IDTLSTransportSubscriptionPtr subscribe(IDTLSTransportDelegatePtr originalDelegate) override;
+        IDTLSTransportSubscriptionPtr subscribe(IDTLSTransportDelegatePtr originalDelegate) noexcept override;
 
-        virtual IDTLSTransport::States state() const override;
+        IDTLSTransport::States state() const noexcept override;
 
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark FakeSecureTransport => ISecureTransportForDataTransport
-        #pragma mark
+        //
+        // FakeSecureTransport => ISecureTransportForDataTransport
+        //
 
         // (duplicate) virtual PUID getID() const;
 
-        virtual ISecureTransportSubscriptionPtr subscribe(ISecureTransportDelegatePtr delegate) override;
+        ISecureTransportSubscriptionPtr subscribe(ISecureTransportDelegatePtr delegate) noexcept override;
 
-        virtual ISecureTransportTypes::States state(ISecureTransportTypes::States ignored) const override;
+        ISecureTransportTypes::States state(ISecureTransportTypes::States ignored) const noexcept override;
 
-        virtual bool isClientRole() const override;
+        bool isClientRole() const noexcept override;
 
-        virtual IICETransportPtr getICETransport() const override;
+        IICETransportPtr getICETransport() const noexcept override;
 
-        virtual UseDataTransportPtr getDataTransport() const override;
+        UseDataTransportPtr getDataTransport() const noexcept override;
 
-        virtual bool sendDataPacket(
-                                    const BYTE *buffer,
-                                    size_t bufferLengthInBytes
-                                    ) override;
-
-        //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark FakeSecureTransport => IFakeSecureTransportAsyncDelegate
-        #pragma mark
+        bool sendDataPacket(
+                            const BYTE *buffer,
+                            size_t bufferLengthInBytes
+                            ) noexcept override;
 
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark FakeSecureTransport => friend FakeICETransport
-        #pragma mark
+        //
+        // FakeSecureTransport => IFakeSecureTransportAsyncDelegate
+        //
+
+        //---------------------------------------------------------------------
+        //
+        // FakeSecureTransport => friend FakeICETransport
+        //
 
         bool handleReceivedPacket(
                                   IICETypes::Components component,
                                   const BYTE *buffer,
                                   size_t bufferSizeInBytes
-                                  ) override;
+                                  ) noexcept override;
 
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark FakeSecureTransport => friend IICETransportDelegate
-        #pragma mark
+        //
+        // FakeSecureTransport => friend IICETransportDelegate
+        //
 
         virtual void onICETransportStateChange(
                                                IICETransportPtr transport,
@@ -397,9 +397,9 @@ namespace ortc
                                                         ) override;
       protected:
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark FakeSecureTransport => (internal)
-        #pragma mark
+        //
+        // FakeSecureTransport => (internal)
+        //
 
         void setState(IDTLSTransportTypes::States state);
         void setState(ISecureTransportTypes::States state);
@@ -413,9 +413,9 @@ namespace ortc
 
       protected:
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark FakeSecureTransport => (data)
-        #pragma mark
+        //
+        // FakeSecureTransport => (data)
+        //
 
         FakeSecureTransportWeakPtr mThisWeak;
 
@@ -440,9 +440,9 @@ namespace ortc
       //---------------------------------------------------------------------
       //---------------------------------------------------------------------
       //---------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SCTPTester
-      #pragma mark
+      //
+      // SCTPTester
+      //
 
       //---------------------------------------------------------------------
       class SCTPTester : public SharedRecursiveLock,
@@ -542,9 +542,9 @@ namespace ortc
       protected:
 
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark SCTPTester::ISCTPTransportDelegate
-        #pragma mark
+        //
+        // SCTPTester::ISCTPTransportDelegate
+        //
 
         virtual void onSCTPTransportDataChannel(
                                                 ISCTPTransportPtr transport,
@@ -557,16 +557,16 @@ namespace ortc
                                                 ) override;
 
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark SCTPTester::ISCTPTransportListenerDelegate
-        #pragma mark
+        //
+        // SCTPTester::ISCTPTransportListenerDelegate
+        //
 
         virtual void onSCTPTransport(ISCTPTransportPtr transport) override;
 
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark SCTPTester::IDataChannelDelegate
-        #pragma mark
+        //
+        // SCTPTester::IDataChannelDelegate
+        //
 
         virtual void onDataChannelStateChange(
                                               IDataChannelPtr channel,
@@ -587,9 +587,9 @@ namespace ortc
 
       protected:
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark SCTPTester => (internal)
-        #pragma mark
+        //
+        // SCTPTester => (internal)
+        //
 
         Log::Params log(const char *message) const;
 
@@ -606,9 +606,9 @@ namespace ortc
 
       public:
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark SCTPTester => (data)
-        #pragma mark
+        //
+        // SCTPTester => (data)
+        //
 
         AutoPUID mID;
         SCTPTesterWeakPtr mThisWeak;

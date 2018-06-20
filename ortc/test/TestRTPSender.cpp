@@ -32,8 +32,8 @@
 
 #include "TestRTPSender.h"
 
-#include <ortc/internal/ortc_RTPPacket.h>
-#include <ortc/internal/ortc_RTCPPacket.h>
+#include <ortc/RTPPacket.h>
+#include <ortc/RTCPPacket.h>
 #include <ortc/IRTPTypes.h>
 
 #include <zsLib/IMessageQueueThread.h>
@@ -81,9 +81,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark (helpers)
-      #pragma mark
+      //
+      // (helpers)
+      //
 
       //-------------------------------------------------------------------------
       static bool isRTCPPacketType(const BYTE *data, size_t len)
@@ -99,9 +99,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeICETransport
-      #pragma mark
+      //
+      // FakeICETransport
+      //
 
       //-----------------------------------------------------------------------
       FakeICETransport::FakeICETransport(
@@ -175,12 +175,12 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeICETransport => IICETransport
-      #pragma mark
+      //
+      // FakeICETransport => IICETransport
+      //
 
       //-----------------------------------------------------------------------
-      ElementPtr FakeICETransport::toDebug() const
+      ElementPtr FakeICETransport::toDebug() const noexcept
       {
         AutoRecursiveLock lock(*this);
 
@@ -205,9 +205,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeICETransport => IFakeICETransportAsyncDelegate
-      #pragma mark
+      //
+      // FakeICETransport => IFakeICETransportAsyncDelegate
+      //
 
       //-----------------------------------------------------------------------
       void FakeICETransport::onPacketFromLinkedFakedTransport(SecureByteBlockPtr buffer)
@@ -257,9 +257,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeICETransport => ITimerDelegate
-      #pragma mark
+      //
+      // FakeICETransport => ITimerDelegate
+      //
 
       //-----------------------------------------------------------------------
       void FakeICETransport::onTimer(ITimerPtr timer)
@@ -323,9 +323,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeICETransport => friend FakeSecureTransport
-      #pragma mark
+      //
+      // FakeICETransport => friend FakeSecureTransport
+      //
 
       //-----------------------------------------------------------------------
       void FakeICETransport::attachSecure(FakeSecureTransportPtr transport)
@@ -349,7 +349,7 @@ namespace ortc
       bool FakeICETransport::sendPacket(
                                         const BYTE *buffer,
                                         size_t bufferSizeInBytes
-                                        )
+                                        ) noexcept
       {
         FakeICETransportPtr transport;
 
@@ -396,13 +396,13 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      IICETransportTypes::States FakeICETransport::state() const
+      IICETransportTypes::States FakeICETransport::state() const noexcept
       {
         return mCurrentState;
       }
 
       //-------------------------------------------------------------------------
-      IICETransportSubscriptionPtr FakeICETransport::subscribe(IICETransportDelegatePtr originalDelegate)
+      IICETransportSubscriptionPtr FakeICETransport::subscribe(IICETransportDelegatePtr originalDelegate) noexcept
       {
         ZS_LOG_DETAIL(log("subscribing to transport state"))
 
@@ -428,9 +428,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeICETransport => (internal)
-      #pragma mark
+      //
+      // FakeICETransport => (internal)
+      //
 
       //-----------------------------------------------------------------------
       void FakeICETransport::setState(IICETransportTypes::States state)
@@ -465,9 +465,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeSecureTransport
-      #pragma mark
+      //
+      // FakeSecureTransport
+      //
 
       //-----------------------------------------------------------------------
       FakeSecureTransport::FakeSecureTransport(
@@ -534,12 +534,12 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeSecureTransport => IICETransport
-      #pragma mark
+      //
+      // FakeSecureTransport => IICETransport
+      //
 
       //-----------------------------------------------------------------------
-      ElementPtr FakeSecureTransport::toDebug() const
+      ElementPtr FakeSecureTransport::toDebug() const noexcept
       {
         AutoRecursiveLock lock(*this);
 
@@ -561,12 +561,12 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeSecureTransport => ISecureTransportForRTPSender
-      #pragma mark
+      //
+      // FakeSecureTransport => ISecureTransportForRTPSender
+      //
 
       //-----------------------------------------------------------------------
-      RTPListenerPtr FakeSecureTransport::getListener() const
+      RTPListenerPtr FakeSecureTransport::getListener() const noexcept
       {
         return RTPListener::convert(mListener);
       }
@@ -575,26 +575,26 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeSecureTransport => ISecureTransportForRTPSender
-      #pragma mark
+      //
+      // FakeSecureTransport => ISecureTransportForRTPSender
+      //
 
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeSecureTransport => ISecureTransportForRTPSender
-      #pragma mark
+      //
+      // FakeSecureTransport => ISecureTransportForRTPSender
+      //
 
       //-----------------------------------------------------------------------
-      PUID FakeSecureTransport::getID() const
+      PUID FakeSecureTransport::getID() const noexcept
       {
         return DTLSTransport::getID();
       }
 
       //-----------------------------------------------------------------------
-      FakeSecureTransport::ISecureTransportSubscriptionPtr FakeSecureTransport::subscribe(ISecureTransportDelegatePtr originalDelegate)
+      FakeSecureTransport::ISecureTransportSubscriptionPtr FakeSecureTransport::subscribe(ISecureTransportDelegatePtr originalDelegate) noexcept
       {
         ZS_LOG_DETAIL(log("subscribing to transport state"))
 
@@ -617,7 +617,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      ISecureTransportTypes::States FakeSecureTransport::state(ISecureTransportTypes::States ignored) const
+      ISecureTransportTypes::States FakeSecureTransport::state(ISecureTransportTypes::States ignored) const noexcept
       {
         return getSecureState();
       }
@@ -628,7 +628,7 @@ namespace ortc
                                            IICETypes::Components packetType,
                                            const BYTE *buffer,
                                            size_t bufferLengthInBytes
-                                           )
+                                           ) noexcept
       {
         FakeICETransportPtr iceTransport;
 
@@ -646,7 +646,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      IICETransportPtr FakeSecureTransport::getICETransport() const
+      IICETransportPtr FakeSecureTransport::getICETransport() const noexcept
       {
         return mICETransport;
       }
@@ -655,9 +655,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeSecureTransport => IICETransportDelegate
-      #pragma mark
+      //
+      // FakeSecureTransport => IICETransportDelegate
+      //
 
       //-----------------------------------------------------------------------
       void FakeSecureTransport::onICETransportStateChange(
@@ -702,24 +702,24 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeSecureTransport => IFakeSecureTransportAsyncDelegate
-      #pragma mark
+      //
+      // FakeSecureTransport => IFakeSecureTransportAsyncDelegate
+      //
 
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeICETransport => friend FakeICETransport
-      #pragma mark
+      //
+      // FakeICETransport => friend FakeICETransport
+      //
 
       //-----------------------------------------------------------------------
       bool FakeSecureTransport::handleReceivedPacket(
                                                      IICETypes::Components component,
                                                      const BYTE *buffer,
                                                      size_t bufferSizeInBytes
-                                                     )
+                                                     ) noexcept
       {
         UseListenerPtr listener;
 
@@ -746,9 +746,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeSecureTransport => (internal)
-      #pragma mark
+      //
+      // FakeSecureTransport => (internal)
+      //
 
       //-----------------------------------------------------------------------
       void FakeSecureTransport::setState(IDTLSTransportTypes::States state)
@@ -789,7 +789,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      IDTLSTransportTypes::States FakeSecureTransport::state() const
+      IDTLSTransportTypes::States FakeSecureTransport::state() const noexcept
       {
         return mCurrentState;
       }
@@ -849,9 +849,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeListener
-      #pragma mark
+      //
+      // FakeListener
+      //
 
       //-----------------------------------------------------------------------
       FakeListener::FakeListener(IMessageQueuePtr queue) :
@@ -893,12 +893,12 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeListener => IRTPReceiverForRTPReceiver
-      #pragma mark
+      //
+      // FakeListener => IRTPReceiverForRTPReceiver
+      //
 
       //-----------------------------------------------------------------------
-      ElementPtr FakeListener::toDebug() const
+      ElementPtr FakeListener::toDebug() const noexcept
       {
         AutoRecursiveLock lock(*this);
 
@@ -928,7 +928,7 @@ namespace ortc
                                           UseReceiverPtr inReceiver,
                                           const Parameters &inParams,
                                           RTCPPacketList *outPacketList
-                                          )
+                                          ) noexcept
       {
         ZS_LOG_BASIC(log("register receiver") + ZS_PARAM("receiver", inReceiver->getID()) + inParams.toDebug())
 
@@ -951,7 +951,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void FakeListener::unregisterReceiver(UseReceiver &inReceiver)
+      void FakeListener::unregisterReceiver(UseReceiver &inReceiver) noexcept
       {
         ZS_LOG_BASIC(log("unregister receiver") + ZS_PARAM("receiver", inReceiver.getID()))
 
@@ -969,7 +969,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void FakeListener::getPackets(RTCPPacketList &outPacketList)
+      void FakeListener::getPackets(RTCPPacketList &outPacketList) noexcept
       {
         outPacketList.clear();
 
@@ -986,7 +986,7 @@ namespace ortc
                                          const String &rid,
                                          IRTPTypes::SSRCType ssrc,
                                          IRTPTypes::PayloadType payloadType
-                                         )
+                                         ) noexcept
       {
         AutoRecursiveLock lock(*this);
 
@@ -1019,16 +1019,16 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeListener => IRTPListenerForRTPSender
-      #pragma mark
+      //
+      // FakeListener => IRTPListenerForRTPSender
+      //
 
       //-----------------------------------------------------------------------
       void FakeListener::registerSender(
                                         UseSenderPtr inSender,
                                         const Parameters &inParams,
                                         RTCPPacketList &outPacketList
-                                        )
+                                        ) noexcept
       {
         AutoRecursiveLock lock(*this);
 
@@ -1046,7 +1046,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void FakeListener::unregisterSender(UseSender &inSender)
+      void FakeListener::unregisterSender(UseSender &inSender) noexcept
       {
         AutoRecursiveLock lock(*this);
 
@@ -1070,9 +1070,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeListener => IRTPListenerForSecureTransport
-      #pragma mark
+      //
+      // FakeListener => IRTPListenerForSecureTransport
+      //
 
       //-----------------------------------------------------------------------
       bool FakeListener::handleRTPPacket(
@@ -1080,7 +1080,7 @@ namespace ortc
                                          IICETypes::Components packetType,
                                          const BYTE *buffer,
                                          size_t bufferLengthInBytes
-                                         )
+                                         ) noexcept
       {
         RTPPacketPtr rtpPacket;
         RTCPPacketPtr rtcpPacket;
@@ -1154,9 +1154,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeListener => ITimerDelegate
-      #pragma mark
+      //
+      // FakeListener => ITimerDelegate
+      //
 
       //-----------------------------------------------------------------------
       void FakeListener::onTimer(ITimerPtr timer)
@@ -1190,9 +1190,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeListener => IFakeListenerAsyncDelegate
-      #pragma mark
+      //
+      // FakeListener => IFakeListenerAsyncDelegate
+      //
 
       //-----------------------------------------------------------------------
       void FakeListener::onForwardBufferedPacket(RTPPacketPtr packet)
@@ -1205,11 +1205,11 @@ namespace ortc
         }
 
         if (!receiver) {
-          ZS_LOG_WARNING(Basic, log("dropping packet as receiver is gone") + packet->toDebug())
+          //ZS_LOG_WARNING(Basic, log("dropping packet as receiver is gone") + packet->toDebug())
           return;
         }
 
-        ZS_LOG_DEBUG(log("forwarding packet to receiver") + ZS_PARAM("receiver", receiver->getID()) + packet->toDebug())
+        //ZS_LOG_DEBUG(log("forwarding packet to receiver") + ZS_PARAM("receiver", receiver->getID()) + packet->toDebug())
 
         receiver->handlePacket(IICETypes::Component_RTP, packet);
       }
@@ -1218,9 +1218,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeListener => (friend RTPReceiverTester)
-      #pragma mark
+      //
+      // FakeListener => (friend RTPReceiverTester)
+      //
 
       //-----------------------------------------------------------------------
       void FakeListener::setTransport(RTPSenderTesterPtr tester)
@@ -1231,7 +1231,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      IRTPListenerSubscriptionPtr FakeListener::subscribe(IRTPListenerDelegatePtr originalDelegate)
+      IRTPListenerSubscriptionPtr FakeListener::subscribe(IRTPListenerDelegatePtr originalDelegate) noexcept
       {
         ZS_LOG_DETAIL(log("subscribing to listener"))
 
@@ -1259,9 +1259,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeListener => (internal)
-      #pragma mark
+      //
+      // FakeListener => (internal)
+      //
 
       //-----------------------------------------------------------------------
       Log::Params FakeListener::log(const char *message) const
@@ -1294,9 +1294,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeSenderChannel
-      #pragma mark
+      //
+      // FakeSenderChannel
+      //
 
       //-----------------------------------------------------------------------
       FakeSenderChannel::FakeSenderChannel(
@@ -1318,12 +1318,12 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeSenderChannel => IRTPSenderChannelForRTPSender
-      #pragma mark
+      //
+      // FakeSenderChannel => IRTPSenderChannelForRTPSender
+      //
 
       //-----------------------------------------------------------------------
-      ElementPtr FakeSenderChannel::toDebug() const
+      ElementPtr FakeSenderChannel::toDebug() const noexcept
       {
         AutoRecursiveLock lock(*this);
 
@@ -1364,27 +1364,27 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void FakeSenderChannel::notifyTransportState(ISecureTransport::States state)
+      void FakeSenderChannel::notifyTransportState(ISecureTransport::States state) noexcept
       {
         IFakeSenderChannelAsyncDelegateProxy::create(mThisWeak.lock())->onState(state);
       }
 
       //-----------------------------------------------------------------------
-      void FakeSenderChannel::notifyPackets(RTCPPacketListPtr packets)
+      void FakeSenderChannel::notifyPackets(RTCPPacketListPtr packets) noexcept
       {
         IFakeSenderChannelAsyncDelegateProxy::create(mThisWeak.lock())->onRTCPPackets(packets);
       }
 
       //-----------------------------------------------------------------------
-      void FakeSenderChannel::notifyUpdate(const Parameters &params)
+      void FakeSenderChannel::notifyUpdate(const Parameters &params) noexcept
       {
         IFakeSenderChannelAsyncDelegateProxy::create(mThisWeak.lock())->onUpdate(make_shared<Parameters>(params));
       }
 
       //-----------------------------------------------------------------------
-      bool FakeSenderChannel::handlePacket(RTCPPacketPtr packet)
+      bool FakeSenderChannel::handlePacket(RTCPPacketPtr packet) noexcept
       {
-        ZS_LOG_BASIC(log("handle packet") + packet->toDebug())
+        //ZS_LOG_BASIC(log("handle packet") + packet->toDebug())
 
         RTPSenderTesterPtr tester;
 
@@ -1410,9 +1410,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeSenderChannel => IFakeSenderChannelAsyncDelegate
-      #pragma mark
+      //
+      // FakeSenderChannel => IFakeSenderChannelAsyncDelegate
+      //
 
       //-----------------------------------------------------------------------
       void FakeSenderChannel::onState(ISecureTransportTypes::States state)
@@ -1474,9 +1474,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeSenderChannel => (friend RTPSenderTester)
-      #pragma mark
+      //
+      // FakeSenderChannel => (friend RTPSenderTester)
+      //
 
       //-----------------------------------------------------------------------
       FakeSenderChannelPtr FakeSenderChannel::create(
@@ -1499,7 +1499,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      bool FakeSenderChannel::sendPacket(RTPPacketPtr packet)
+      bool FakeSenderChannel::send_Packet(RTPPacketPtr packet)
       {
         UseSenderPtr sender;
 
@@ -1516,7 +1516,7 @@ namespace ortc
       }
       
       //-----------------------------------------------------------------------
-      bool FakeSenderChannel::sendPacket(RTCPPacketPtr packet)
+      bool FakeSenderChannel::send_Packet(RTCPPacketPtr packet)
       {
         UseSenderPtr sender;
 
@@ -1565,9 +1565,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeSenderChannel => (internal)
-      #pragma mark
+      //
+      // FakeSenderChannel => (internal)
+      //
 
       //-----------------------------------------------------------------------
       Log::Params FakeSenderChannel::log(const char *message) const
@@ -1583,9 +1583,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeMediaStreamTrack
-      #pragma mark
+      //
+      // FakeMediaStreamTrack
+      //
 
       //-----------------------------------------------------------------------
       FakeMediaStreamTrack::FakeMediaStreamTrack(IMessageQueuePtr queue) :
@@ -1603,11 +1603,12 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeMediaStreamTrack => IMediaStreamTrackForRTPSender
-      #pragma mark
+      //
+      // FakeMediaStreamTrack => IMediaStreamTrackForRTPSender
+      //
 
       //-----------------------------------------------------------------------
+#if 0
       ElementPtr FakeMediaStreamTrack::toDebug() const
       {
         AutoRecursiveLock lock(*this);
@@ -1626,6 +1627,7 @@ namespace ortc
 
         return result;
       }
+#endif //0
 
       //-----------------------------------------------------------------------
       void FakeMediaStreamTrack::create(IMediaStreamTrackTypes::Kinds kind)
@@ -1637,11 +1639,11 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      IMediaStreamTrackTypes::Kinds FakeMediaStreamTrack::kind() const
+      IMediaStreamTrackTypes::Kinds FakeMediaStreamTrack::kind() const noexcept
       {
         return mKind;
       }
-
+#if 0
       //-----------------------------------------------------------------------
       void FakeMediaStreamTrack::notifyAttachSenderChannel(RTPSenderChannelPtr inChannel)
       {
@@ -1708,14 +1710,15 @@ namespace ortc
 
         tester->notifyDetachSenderChannel();
       }
+#endif //0
 
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeMediaStreamTrack => (friend RTPSenderTester)
-      #pragma mark
+      //
+      // FakeMediaStreamTrack => (friend RTPSenderTester)
+      //
 
       //-----------------------------------------------------------------------
       FakeMediaStreamTrackPtr FakeMediaStreamTrack::create(
@@ -1757,9 +1760,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeMediaStreamTrack => (internal)
-      #pragma mark
+      //
+      // FakeMediaStreamTrack => (internal)
+      //
 
       //-----------------------------------------------------------------------
       Log::Params FakeMediaStreamTrack::log(const char *message) const
@@ -1773,9 +1776,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeReceiver
-      #pragma mark
+      //
+      // FakeReceiver
+      //
 
       //-----------------------------------------------------------------------
       FakeReceiver::FakeReceiver(
@@ -1808,12 +1811,12 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeReceiver => IRTPSenderForRTPSender
-      #pragma mark
+      //
+      // FakeReceiver => IRTPSenderForRTPSender
+      //
 
       //-----------------------------------------------------------------------
-      ElementPtr FakeReceiver::toDebug() const
+      ElementPtr FakeReceiver::toDebug() const noexcept
       {
         AutoRecursiveLock lock(*this);
 
@@ -1832,9 +1835,9 @@ namespace ortc
       bool FakeReceiver::handlePacket(
                                       IICETypes::Components viaTransport,
                                       RTPPacketPtr packet
-                                      )
+                                      ) noexcept
       {
-        ZS_LOG_BASIC(log("received RTCP packet") + packet->toDebug())
+        //ZS_LOG_BASIC(log("received RTCP packet") + packet->toDebug())
 
         AutoRecursiveLock lock(*this);
 
@@ -1855,9 +1858,9 @@ namespace ortc
       bool FakeReceiver::handlePacket(
                                       IICETypes::Components viaTransport,
                                       RTCPPacketPtr packet
-                                      )
+                                      ) noexcept
       {
-        ZS_LOG_BASIC(log("received RTCP packet") + packet->toDebug())
+        //ZS_LOG_BASIC(log("received RTCP packet") + packet->toDebug())
 
         AutoRecursiveLock lock(*this);
 
@@ -1878,12 +1881,12 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeReceiver => (friend RTPSenderTester)
-      #pragma mark
+      //
+      // FakeReceiver => (friend RTPSenderTester)
+      //
 
       //-----------------------------------------------------------------------
-      void FakeReceiver::setTransport(RTPSenderTesterPtr tester)
+      void FakeReceiver::set_Transport(RTPSenderTesterPtr tester)
       {
         auto secureTransport = (((bool)tester) ? tester->getFakeSecureTransport() : FakeSecureTransportPtr());
         TESTING_CHECK(secureTransport)
@@ -1919,7 +1922,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      PromisePtr FakeReceiver::receive(const Parameters &parameters)
+      PromisePtr FakeReceiver::receive(const Parameters &parameters) noexcept
       {
         AutoRecursiveLock lock(*this);
 
@@ -1938,7 +1941,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void FakeReceiver::stop()
+      void FakeReceiver::stop() noexcept
       {
         AutoRecursiveLock lock(*this);
 
@@ -1960,7 +1963,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void FakeReceiver::sendPacket(SecureByteBlockPtr buffer)
+      void FakeReceiver::send_Packet(SecureByteBlockPtr buffer)
       {
         UseSecureTransportPtr transport;
 
@@ -1981,9 +1984,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeReceiver => (internal)
-      #pragma mark
+      //
+      // FakeReceiver => (internal)
+      //
 
       //-----------------------------------------------------------------------
       Log::Params FakeReceiver::log(const char *message) const
@@ -1998,17 +2001,17 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTPSenderTester::UnhandledEventData
-      #pragma mark
+      //
+      // RTPSenderTester::UnhandledEventData
+      //
 
       //-----------------------------------------------------------------------
       RTPSenderTester::UnhandledEventData::UnhandledEventData(
-                                                                DWORD ssrc,
-                                                                BYTE pt,
-                                                                const char *mid,
-                                                                const char *rid
-                                                                ) :
+                                                              DWORD ssrc,
+                                                              BYTE pt,
+                                                              const char *mid,
+                                                              const char *rid
+                                                              ) :
         mSSRC(ssrc),
         mPT(pt),
         mMID(mid),
@@ -2029,9 +2032,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTPSenderTester::Expectations
-      #pragma mark
+      //
+      // RTPSenderTester::Expectations
+      //
 
       //-----------------------------------------------------------------------
       bool RTPSenderTester::Expectations::operator==(const Expectations &op2) const
@@ -2055,9 +2058,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTPSenderTester::OverrideSenderChannelFactory
-      #pragma mark
+      //
+      // RTPSenderTester::OverrideSenderChannelFactory
+      //
 
       //-----------------------------------------------------------------------
       RTPSenderTester::OverrideSenderChannelFactoryPtr RTPSenderTester::OverrideSenderChannelFactory::create(RTPSenderTesterPtr tester)
@@ -2072,7 +2075,7 @@ namespace ortc
                                                                                 RTPSenderPtr receiver,
                                                                                 MediaStreamTrackPtr track,
                                                                                 const Parameters &params
-                                                                                )
+                                                                                ) noexcept
       {
         auto tester = mTester.lock();
         TESTING_CHECK(tester)
@@ -2084,9 +2087,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTPSenderTester::OverrideSenderChannelFactory
-      #pragma mark
+      //
+      // RTPSenderTester::OverrideSenderChannelFactory
+      //
 
       //-----------------------------------------------------------------------
       RTPSenderTester::OverrideMediaStreamTrackFactoryPtr RTPSenderTester::OverrideMediaStreamTrackFactory::create(RTPSenderTesterPtr tester)
@@ -2120,9 +2123,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTPSenderTester
-      #pragma mark
+      //
+      // RTPSenderTester
+      //
 
       //-----------------------------------------------------------------------
       RTPSenderTesterPtr RTPSenderTester::create(
@@ -2454,12 +2457,12 @@ namespace ortc
           }
 
           previousReceiver = receiver;
-          receiver->setTransport(mThisWeak.lock());
+          receiver->set_Transport(mThisWeak.lock());
           return;
         }
 
         mAttached[String(receiverID)] = FakeSenderChannelFakeReceiverPair(FakeSenderChannelPtr(), receiver);
-        receiver->setTransport(mThisWeak.lock());
+        receiver->set_Transport(mThisWeak.lock());
       }
 
       //-----------------------------------------------------------------------
@@ -2516,7 +2519,7 @@ namespace ortc
         FakeReceiverPtr receiver = currentReceiver;
 
         if (receiver) {
-          receiver->setTransport(RTPSenderTesterPtr());
+          receiver->set_Transport(RTPSenderTesterPtr());
         }
 
         currentReceiver.reset();
@@ -2791,9 +2794,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTPSenderTester::IRTPSenderDelegate
-      #pragma mark
+      //
+      // RTPSenderTester::IRTPSenderDelegate
+      //
 
       //-----------------------------------------------------------------------
       void RTPSenderTester::onRTPListenerUnhandledRTP(
@@ -2822,9 +2825,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTPSenderTester::IRTPSenderDelegate
-      #pragma mark
+      //
+      // RTPSenderTester::IRTPSenderDelegate
+      //
 
       //-----------------------------------------------------------------------
       void RTPSenderTester::onRTPSenderSSRCConflict(
@@ -2842,9 +2845,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTPSenderTester => (friend fake sender/receiver)
-      #pragma mark
+      //
+      // RTPSenderTester => (friend fake sender/receiver)
+      //
 
       //-----------------------------------------------------------------------
       FakeSecureTransportPtr RTPSenderTester::getFakeSecureTransport() const
@@ -2943,9 +2946,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTPSenderTester => (internal)
-      #pragma mark
+      //
+      // RTPSenderTester => (internal)
+      //
 
       //-----------------------------------------------------------------------
       Log::Params RTPSenderTester::log(const char *message) const
@@ -3012,7 +3015,7 @@ namespace ortc
         FakeReceiverPtr receiver = getReceiver(receiverOrSenderChannelID);
         TESTING_CHECK(receiver)
 
-        receiver->sendPacket(secureBuffer);
+        receiver->send_Packet(secureBuffer);
       }
     }
   }
@@ -3027,8 +3030,8 @@ ZS_DECLARE_USING_PTR(ortc, IDataChannel)
 ZS_DECLARE_USING_PTR(ortc, IRTPSender)
 ZS_DECLARE_USING_PTR(ortc, IRTPTypes)
 
-ZS_DECLARE_USING_PTR(ortc::internal, RTPPacket)
-ZS_DECLARE_USING_PTR(ortc::internal, RTCPPacket)
+ZS_DECLARE_USING_PTR(ortc, RTPPacket)
+ZS_DECLARE_USING_PTR(ortc, RTCPPacket)
 ZS_DECLARE_TYPEDEF_PTR(ortc::internal::ISecureTransportTypes, ISecureTransportTypes)
 
 ZS_DECLARE_TYPEDEF_PTR(ortc::IRTPTypes::Parameters, Parameters)

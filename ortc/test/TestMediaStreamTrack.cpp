@@ -29,6 +29,7 @@
 
 */
 
+#if 0
 
 #include "TestMediaStreamTrack.h"
 
@@ -42,8 +43,10 @@
 #include "config.h"
 #include "testing.h"
 
+#include <ortc/internal/webrtc_pre_include.h>
 #include <webrtc/rtc_base/logging.h>
 #include <webrtc/system_wrappers/include/trace.h>
+#include <ortc/internal/webrtc_post_include.h>
 
 namespace ortc { namespace test { ZS_DECLARE_SUBSYSTEM(org_ortc_test) } }
 
@@ -84,9 +87,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark WebRtcTraceCallback
-      #pragma mark
+      //
+      // WebRtcTraceCallback
+      //
 
       class WebRtcTraceCallback : public webrtc::TraceCallback
       {
@@ -120,9 +123,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark PromiseWithMediaStreamTrackListCallback
-      #pragma mark
+      //
+      // PromiseWithMediaStreamTrackListCallback
+      //
 
       class PromiseWithMediaStreamTrackListCallback : public IPromiseResolutionDelegate
       {
@@ -146,12 +149,11 @@ namespace ortc
             ortc::IMediaDevicesTypes::MediaStreamTrackListPtr trackList = promise->value<ortc::IMediaDevicesTypes::MediaStreamTrackList>();
             mTester.lock()->mLocalVideoMediaStreamTrack = MediaStreamTrack::convert(*trackList->begin());
 
-            ZS_LOG_DEBUG(log("getUserMedia promise resolved for video") + IMediaStreamTrack::toDebug(mTester.lock()->mLocalVideoMediaStreamTrack))
-          
-#define WARNING_THIS_HAS_CHANGED 1
-#define WARNING_THIS_HAS_CHANGED 2
+#pragma ZS_BUILD_NOTE("TODO","warning is changed")
 
 #if 0
+            ZS_LOG_DEBUG(log("getUserMedia promise resolved for video") + IMediaStreamTrack::toDebug(mTester.lock()->mLocalVideoMediaStreamTrack))
+
             IMediaStreamTrackPtr(mTester.lock()->mLocalVideoMediaStreamTrack)->setVideoRenderCallback(mTester.lock()->mVideoSurface);
 #endif //0
 
@@ -161,7 +163,11 @@ namespace ortc
           {
             ortc::IMediaDevicesTypes::MediaStreamTrackListPtr trackList = promise->value<ortc::IMediaDevicesTypes::MediaStreamTrackList>();
 
+#pragma ZS_BUILD_NOTE("TODO","warning is changed")
+
+#if 0
             ZS_LOG_DEBUG(log("getUserMedia promise resolved for audio") + IMediaStreamTrack::toDebug(mTester.lock()->mLocalVideoMediaStreamTrack))
+#endif //0
 
             mTester.lock()->mLocalAudioMediaStreamTrack = MediaStreamTrack::convert(*trackList->begin());
 
@@ -192,9 +198,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark PromiseWithDeviceListCallback
-      #pragma mark
+      //
+      // PromiseWithDeviceListCallback
+      //
 
       class PromiseWithDeviceListCallback : public IPromiseResolutionDelegate
       {
@@ -303,18 +309,18 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark (helpers)
-      #pragma mark
+      //
+      // (helpers)
+      //
 
 
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeReceiver
-      #pragma mark
+      //
+      // FakeReceiver
+      //
 
       //-----------------------------------------------------------------------
       FakeReceiver::FakeReceiver(
@@ -363,9 +369,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeReceiver => IRTPReceiver
-      #pragma mark
+      //
+      // FakeReceiver => IRTPReceiver
+      //
 
       //-----------------------------------------------------------------------
       ElementPtr FakeReceiver::toDebug() const
@@ -383,17 +389,17 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeReceiver => IFakeReceiverAsyncDelegate
-      #pragma mark
+      //
+      // FakeReceiver => IFakeReceiverAsyncDelegate
+      //
 
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeReceiver => (internal)
-      #pragma mark
+      //
+      // FakeReceiver => (internal)
+      //
 
       //-----------------------------------------------------------------------
       Log::Params FakeReceiver::log(const char *message) const
@@ -408,9 +414,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeReceiverChannel
-      #pragma mark
+      //
+      // FakeReceiverChannel
+      //
 
       //-----------------------------------------------------------------------
       FakeReceiverChannel::FakeReceiverChannel(
@@ -465,9 +471,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeReceiverChannel => IRTPReceiverChannelForMediaStreamTrack
-      #pragma mark
+      //
+      // FakeReceiverChannel => IRTPReceiverChannelForMediaStreamTrack
+      //
 
       //-----------------------------------------------------------------------
       ElementPtr FakeReceiverChannel::toDebug() const
@@ -524,17 +530,17 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeReceiverChannel => IFakeReceiverChannelAsyncDelegate
-      #pragma mark
+      //
+      // FakeReceiverChannel => IFakeReceiverChannelAsyncDelegate
+      //
 
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeReceiverChannel => ITimerDelegate
-      #pragma mark
+      //
+      // FakeReceiverChannel => ITimerDelegate
+      //
 
       //-----------------------------------------------------------------------
       void FakeReceiverChannel::onTimer(ITimerPtr timer)
@@ -584,9 +590,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeReceiverChannel => (internal)
-      #pragma mark
+      //
+      // FakeReceiverChannel => (internal)
+      //
 
       //-----------------------------------------------------------------------
       Log::Params FakeReceiverChannel::log(const char *message) const
@@ -601,9 +607,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeSender
-      #pragma mark
+      //
+      // FakeSender
+      //
 
       //-----------------------------------------------------------------------
       FakeSender::FakeSender(
@@ -652,9 +658,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeSender => IRTPSenderForMediaStreamTrack
-      #pragma mark
+      //
+      // FakeSender => IRTPSenderForMediaStreamTrack
+      //
 
       //-----------------------------------------------------------------------
       ElementPtr FakeSender::toDebug() const
@@ -672,17 +678,17 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeSender => IFakeSenderAsyncDelegate
-      #pragma mark
+      //
+      // FakeSender => IFakeSenderAsyncDelegate
+      //
 
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeSender => (internal)
-      #pragma mark
+      //
+      // FakeSender => (internal)
+      //
 
       //-----------------------------------------------------------------------
       Log::Params FakeSender::log(const char *message) const
@@ -697,9 +703,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeSenderChannel
-      #pragma mark
+      //
+      // FakeSenderChannel
+      //
 
       //-----------------------------------------------------------------------
       FakeSenderChannel::FakeSenderChannel(
@@ -750,9 +756,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeSenderChannel => IRTPSenderChannelForMediaStreamTrack
-      #pragma mark
+      //
+      // FakeSenderChannel => IRTPSenderChannelForMediaStreamTrack
+      //
 
       //-----------------------------------------------------------------------
       ElementPtr FakeSenderChannel::toDebug() const
@@ -808,9 +814,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeSenderChannel => IFakeSenderChannelAsyncDelegate
-      #pragma mark
+      //
+      // FakeSenderChannel => IFakeSenderChannelAsyncDelegate
+      //
 
       void FakeSenderChannel::onNotifyLocalVideoTrackEvent()
       {
@@ -823,9 +829,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeSenderChannel => (internal)
-      #pragma mark
+      //
+      // FakeSenderChannel => (internal)
+      //
 
       //-----------------------------------------------------------------------
       Log::Params FakeSenderChannel::log(const char *message) const
@@ -840,9 +846,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaStreamTrackTester::Expectations
-      #pragma mark
+      //
+      // MediaStreamTrackTester::Expectations
+      //
 
       //-----------------------------------------------------------------------
       bool MediaStreamTrackTester::Expectations::operator==(const Expectations &op2) const
@@ -857,9 +863,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaStreamTrackTester::OverrideReceiverFactory
-      #pragma mark
+      //
+      // MediaStreamTrackTester::OverrideReceiverFactory
+      //
 
       //-----------------------------------------------------------------------
       MediaStreamTrackTester::OverrideReceiverFactoryPtr MediaStreamTrackTester::OverrideReceiverFactory::create(MediaStreamTrackTesterPtr tester)
@@ -887,9 +893,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaStreamTrackTester::OverrideReceiverChannelFactory
-      #pragma mark
+      //
+      // MediaStreamTrackTester::OverrideReceiverChannelFactory
+      //
 
       //-----------------------------------------------------------------------
       MediaStreamTrackTester::OverrideReceiverChannelFactoryPtr MediaStreamTrackTester::OverrideReceiverChannelFactory::create(MediaStreamTrackTesterPtr tester)
@@ -917,9 +923,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaStreamTrackTester
-      #pragma mark
+      //
+      // MediaStreamTrackTester
+      //
 
       //-----------------------------------------------------------------------
       MediaStreamTrackTesterPtr MediaStreamTrackTester::create(
@@ -1091,9 +1097,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaStreamTrackTester::IMediaStreamTrackDelegate
-      #pragma mark
+      //
+      // MediaStreamTrackTester::IMediaStreamTrackDelegate
+      //
 
       //-----------------------------------------------------------------------
       void MediaStreamTrackTester::onMediaStreamTrackMute(
@@ -1122,9 +1128,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaStreamTrackTester => (friend fake receiver)
-      #pragma mark
+      //
+      // MediaStreamTrackTester => (friend fake receiver)
+      //
 
       RTPReceiverPtr MediaStreamTrackTester::create(
                                                     IRTPReceiverDelegatePtr delegate,
@@ -1140,9 +1146,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaStreamTrackTester => (friend fake receiver channel)
-      #pragma mark
+      //
+      // MediaStreamTrackTester => (friend fake receiver channel)
+      //
 
       RTPReceiverChannelPtr MediaStreamTrackTester::create(
                                                            RTPReceiverPtr receiver,
@@ -1196,17 +1202,17 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaStreamTrackTester => (friend fake sender)
-      #pragma mark
+      //
+      // MediaStreamTrackTester => (friend fake sender)
+      //
 
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaStreamTrackTester => (friend fake sender channel)
-      #pragma mark
+      //
+      // MediaStreamTrackTester => (friend fake sender channel)
+      //
 
       //-----------------------------------------------------------------------
       void MediaStreamTrackTester::notifyReceivedVideoFrame()
@@ -1250,9 +1256,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaStreamTrackTester => (internal)
-      #pragma mark
+      //
+      // MediaStreamTrackTester => (internal)
+      //
 
       //-----------------------------------------------------------------------
       Log::Params MediaStreamTrackTester::log(const char *message) const
@@ -1459,3 +1465,5 @@ void doTestMediaStreamTrack(void* videoSurface)
   TESTING_EQUAL(zsLib::proxyGetTotalConstructed(), 0);
 }
 
+
+#endif //0

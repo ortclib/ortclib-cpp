@@ -71,9 +71,9 @@ namespace ortc
       //---------------------------------------------------------------------
       //---------------------------------------------------------------------
       //---------------------------------------------------------------------
-      #pragma mark
-      #pragma mark IFakeICETransportAsyncDelegate
-      #pragma mark
+      //
+      // IFakeICETransportAsyncDelegate
+      //
 
       interaction IFakeICETransportAsyncDelegate
       {
@@ -86,7 +86,7 @@ namespace ortc
 
 ZS_DECLARE_PROXY_BEGIN(ortc::test::dtls::IFakeICETransportAsyncDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::services::SecureByteBlockPtr, SecureByteBlockPtr)
-ZS_DECLARE_PROXY_METHOD_1(onPacketFromLinkedFakedTransport, SecureByteBlockPtr)
+ZS_DECLARE_PROXY_METHOD(onPacketFromLinkedFakedTransport, SecureByteBlockPtr)
 ZS_DECLARE_PROXY_END()
 
 namespace ortc
@@ -102,9 +102,9 @@ namespace ortc
       //---------------------------------------------------------------------
       //---------------------------------------------------------------------
       //---------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeICETransport
-      #pragma mark
+      //
+      // FakeICETransport
+      //
 
       //---------------------------------------------------------------------
       class FakeICETransport : public ortc::internal::ICETransport,
@@ -172,7 +172,7 @@ namespace ortc
         }
 
         //---------------------------------------------------------------------
-        void role(IICETypes::Roles role)
+        void set_role(IICETypes::Roles role) noexcept
         {
           AutoRecursiveLock lock(*this);
           ZS_LOG_BASIC(log("setting role") + ZS_PARAM("role", IICETypes::toString(role)))
@@ -181,12 +181,12 @@ namespace ortc
 
       protected:
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark FakeICETransport => IICETransport
-        #pragma mark
+        //
+        // FakeICETransport => IICETransport
+        //
 
         //---------------------------------------------------------------------
-        virtual ElementPtr toDebug() const override
+        virtual ElementPtr toDebug() const noexcept override
         {
           AutoRecursiveLock lock(*this);
 
@@ -208,18 +208,18 @@ namespace ortc
         }
 
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark FakeICETransport => IICETransportForSecureTransport
-        #pragma mark
+        //
+        // FakeICETransport => IICETransportForSecureTransport
+        //
 
         //---------------------------------------------------------------------
-        virtual PUID getID() const override {return ICETransport::getID();}
+        PUID getID() const noexcept override {return ICETransport::getID();}
 
         //---------------------------------------------------------------------
-        virtual void notifyAttached(
-                                    PUID secureTransportID,
-                                    UseSecureTransportPtr transport
-                                    ) override
+        void notifyAttached(
+                            PUID secureTransportID,
+                            UseSecureTransportPtr transport
+                            ) noexcept override
         {
           AutoRecursiveLock lock(*this);
 
@@ -230,7 +230,7 @@ namespace ortc
         }
 
         //---------------------------------------------------------------------
-        virtual void notifyDetached(PUID secureTransportID) override
+        void notifyDetached(PUID secureTransportID) noexcept override
         {
           AutoRecursiveLock lock(*this);
           if (mSecureTransportID != secureTransportID) {
@@ -245,13 +245,13 @@ namespace ortc
         }
 
         //---------------------------------------------------------------------
-        virtual IICETypes::Components component() const override
+        IICETypes::Components component() const noexcept override
         {
           return mComponent;
         }
 
         //---------------------------------------------------------------------
-        virtual IICETransportSubscriptionPtr subscribe(IICETransportDelegatePtr originalDelegate) override
+        IICETransportSubscriptionPtr subscribe(IICETransportDelegatePtr originalDelegate) noexcept override
         {
           ZS_LOG_DETAIL(log("subscribing to transport state"))
 
@@ -278,24 +278,24 @@ namespace ortc
         }
 
         //---------------------------------------------------------------------
-        virtual IICETransport::States state() const override
+        IICETransport::States state() const noexcept override
         {
           AutoRecursiveLock lock(*this);
           return mCurrentState;
         }
 
         //---------------------------------------------------------------------
-        virtual IICETypes::Roles getRole() const override
+        IICETypes::Roles getRole() const noexcept override
         {
           AutoRecursiveLock lock(*this);
           return mRole;
         }
 
         //---------------------------------------------------------------------
-        virtual bool sendPacket(
-                                const BYTE *buffer,
-                                size_t bufferSizeInBytes
-                                ) override
+        bool sendPacket(
+                        const BYTE *buffer,
+                        size_t bufferSizeInBytes
+                        ) noexcept override
         {
           FakeICETransportPtr transport;
 
@@ -317,9 +317,9 @@ namespace ortc
         }
 
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark FakeICETransport => IFakeICETransportAsyncDelegate
-        #pragma mark
+        //
+        // FakeICETransport => IFakeICETransportAsyncDelegate
+        //
 
         //---------------------------------------------------------------------
         virtual void onPacketFromLinkedFakedTransport(SecureByteBlockPtr buffer) override
@@ -344,9 +344,9 @@ namespace ortc
 
       protected:
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark FakeICETransport => (internal)
-        #pragma mark
+        //
+        // FakeICETransport => (internal)
+        //
 
         //---------------------------------------------------------------------
         void setState(IICETransportTypes::States state)
@@ -379,9 +379,9 @@ namespace ortc
 
       protected:
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark FakeICETransport => (data)
-        #pragma mark
+        //
+        // FakeICETransport => (data)
+        //
 
         FakeICETransportWeakPtr mThisWeak;
 
@@ -404,9 +404,9 @@ namespace ortc
       //---------------------------------------------------------------------
       //---------------------------------------------------------------------
       //---------------------------------------------------------------------
-      #pragma mark
-      #pragma mark DTLSTester
-      #pragma mark
+      //
+      // DTLSTester
+      //
 
       //---------------------------------------------------------------------
       class DTLSTester : public SharedRecursiveLock,
@@ -531,9 +531,9 @@ namespace ortc
         //---------------------------------------------------------------------
         //---------------------------------------------------------------------
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark DTLSTester::IDTLSTransportDelegate
-        #pragma mark
+        //
+        // DTLSTester::IDTLSTransportDelegate
+        //
 
         //---------------------------------------------------------------------
         virtual void onDTLSTransportStateChange(
@@ -573,9 +573,9 @@ namespace ortc
         //---------------------------------------------------------------------
         //---------------------------------------------------------------------
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark DTLSTester::IPromiseSettledDelegate
-        #pragma mark
+        //
+        // DTLSTester::IPromiseSettledDelegate
+        //
 
         //---------------------------------------------------------------------
         virtual void onPromiseSettled(PromisePtr promise) override
@@ -603,9 +603,9 @@ namespace ortc
         //---------------------------------------------------------------------
         //---------------------------------------------------------------------
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark DTLSTester => (internal)
-        #pragma mark
+        //
+        // DTLSTester => (internal)
+        //
 
         //---------------------------------------------------------------------
         Log::Params log(const char *message) const
@@ -627,9 +627,9 @@ namespace ortc
         //---------------------------------------------------------------------
         //---------------------------------------------------------------------
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark DTLSTester => (data)
-        #pragma mark
+        //
+        // DTLSTester => (data)
+        //
 
         AutoPUID mID;
         DTLSTesterWeakPtr mThisWeak;
@@ -748,8 +748,8 @@ void doTestDTLS()
                 break;
               }
               case 6: {
-                if (fakeIceObject1) fakeIceObject1->role(IICETypes::Role_Controlling);
-                if (fakeIceObject2) fakeIceObject1->role(IICETypes::Role_Controlled);
+                if (fakeIceObject1) fakeIceObject1->set_role(IICETypes::Role_Controlling);
+                if (fakeIceObject2) fakeIceObject1->set_role(IICETypes::Role_Controlled);
                 break;
               }
               case 7: {
@@ -814,6 +814,7 @@ void doTestDTLS()
       TESTING_SLEEP(2000)
 
       switch (testNumber) {
+        case 999999: break;
         default:
         {
           if (testDTLSObject1) {TESTING_CHECK(testDTLSObject1->matches(expectationsDTLS1))}

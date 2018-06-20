@@ -351,7 +351,7 @@ namespace ortc
 
 #ifdef WINUWP
     //-------------------------------------------------------------------------
-    void ORTC::setup(Windows::UI::Core::CoreDispatcher ^dispatcher)
+    void ORTC::setup(Windows::UI::Core::CoreDispatcher ^dispatcher) noexcept
     {
       UseServicesHelper::setup(dispatcher);
       internalSetup();

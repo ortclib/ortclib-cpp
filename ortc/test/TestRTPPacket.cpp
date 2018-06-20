@@ -31,7 +31,7 @@
 
 
 
-#include <ortc/internal/ortc_RTPPacket.h>
+#include <ortc/RTPPacket.h>
 #include <ortc/internal/ortc_RTPUtils.h>
 #include <ortc/internal/ortc_Helper.h>
 
@@ -75,7 +75,7 @@ namespace ortc
     namespace rtppacket
     {
       ZS_DECLARE_CLASS_PTR(Tester)
-      ZS_DECLARE_USING_PTR(ortc::internal, RTPPacket)
+      ZS_DECLARE_USING_PTR(ortc, RTPPacket)
 
       class Tester : public SharedRecursiveLock
       {
@@ -239,7 +239,7 @@ static void bogusSleep()
 #define TEST_BASIC_RTP 0
 
 ZS_DECLARE_USING_PTR(ortc::test::rtppacket, Tester)
-ZS_DECLARE_USING_PTR(ortc::internal, RTPPacket)
+ZS_DECLARE_USING_PTR(ortc, RTPPacket)
 
 static BYTE gHeader1[] =
 {
