@@ -18,17 +18,17 @@ namespace wrapper {
           unsigned long leastLifetimeRemainingPercentageForAllKeys_{};
           unsigned long overallLifetimeRemainingPercentage_{};
 
-          RTCSrtpSdesTransportLifetimeRemainingEvent();
-          virtual ~RTCSrtpSdesTransportLifetimeRemainingEvent();
+          RTCSrtpSdesTransportLifetimeRemainingEvent() noexcept;
+          virtual ~RTCSrtpSdesTransportLifetimeRemainingEvent() noexcept;
 
           // properties RTCSrtpSdesTransportLifetimeRemainingEvent
-          virtual unsigned long get_leastLifetimeRemainingPercentageForAllKeys() override;
-          virtual unsigned long get_overallLifetimeRemainingPercentage() override;
+          virtual unsigned long get_leastLifetimeRemainingPercentageForAllKeys() noexcept override;
+          virtual unsigned long get_overallLifetimeRemainingPercentage() noexcept override;
 
           static WrapperImplTypePtr toWrapper(
             ULONG leastLifetimeRemainingPercentageForAllKeys,
             ULONG overallLifetimeRemainingPercentage
-          );
+          ) noexcept;
         };
 
       } // ortc

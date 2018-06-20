@@ -25,12 +25,12 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCDataTransport::WrapperImplTy
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCDataTransport::WrapperType, WrapperType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCDataTransport::RTCDataTransport()
+wrapper::impl::org::ortc::RTCDataTransport::RTCDataTransport() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCDataTransportPtr wrapper::org::ortc::RTCDataTransport::wrapper_create()
+wrapper::org::ortc::RTCDataTransportPtr wrapper::org::ortc::RTCDataTransport::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::RTCDataTransport>();
   pThis->thisWeak_ = pThis;
@@ -38,12 +38,12 @@ wrapper::org::ortc::RTCDataTransportPtr wrapper::org::ortc::RTCDataTransport::wr
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCDataTransport::~RTCDataTransport()
+wrapper::impl::org::ortc::RTCDataTransport::~RTCDataTransport() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr native)
+WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr native) noexcept
 {
   if (!native) return WrapperImplTypePtr();
 
@@ -54,7 +54,7 @@ WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr native)
 }
 
 //------------------------------------------------------------------------------
-NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper)
+NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper) noexcept
 {
   if (!wrapper) return NativeTypePtr();
 

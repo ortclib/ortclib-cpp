@@ -21,19 +21,19 @@ using ::std::set;
 using ::std::map;
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::MediaControl::~MediaControl()
+wrapper::impl::org::ortc::MediaControl::~MediaControl() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-AnyPtr wrapper::org::ortc::MediaControl::get_displayOrientation()
+AnyPtr wrapper::org::ortc::MediaControl::get_displayOrientation() noexcept
 {
   AnyPtr result {};
   return result;
 }
 
 //------------------------------------------------------------------------------
-void wrapper::org::ortc::MediaControl::set_displayOrientation(AnyPtr value)
+void wrapper::org::ortc::MediaControl::set_displayOrientation(AnyPtr value) noexcept
 {
 }
 

@@ -16,13 +16,13 @@ namespace wrapper {
           DispatcherWeakPtr thisWeak_;
           AnyPtr native_;
 
-          Dispatcher();
-          virtual ~Dispatcher();
+          Dispatcher() noexcept;
+          virtual ~Dispatcher() noexcept;
 
           // methods Dispatcher
-          virtual void wrapper_init_org_ortc_Dispatcher(AnyPtr source) override;
+          virtual void wrapper_init_org_ortc_Dispatcher(AnyPtr source) noexcept override;
 
-          static AnyPtr toNative(wrapper::org::ortc::DispatcherPtr wrapper);
+          static AnyPtr toNative(wrapper::org::ortc::DispatcherPtr wrapper) noexcept;
         };
 
       } // ortc

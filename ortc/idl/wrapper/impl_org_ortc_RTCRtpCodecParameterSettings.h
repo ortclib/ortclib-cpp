@@ -19,11 +19,11 @@ namespace wrapper {
           RTCRtpCodecParameterSettingsWeakPtr thisWeak_;
           NativeTypePtr native_;
 
-          RTCRtpCodecParameterSettings();
-          virtual ~RTCRtpCodecParameterSettings();
+          RTCRtpCodecParameterSettings() noexcept;
+          virtual ~RTCRtpCodecParameterSettings() noexcept;
 
-          static WrapperTypePtr toWrapper(NativeTypePtr native);
-          static NativeTypePtr toNative(WrapperTypePtr wrapper);
+          static WrapperTypePtr toWrapper(NativeTypePtr native) noexcept;
+          static NativeTypePtr toNative(WrapperTypePtr wrapper) noexcept;
         };
 
       } // ortc

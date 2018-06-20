@@ -16,19 +16,19 @@ namespace wrapper {
           ZS_DECLARE_TYPEDEF_PTR(::ortc::IConstraints::ConstrainDoubleRange, NativeConstrainDoubleRange);
           ConstrainDoubleRangeWeakPtr thisWeak_;
 
-          ConstrainDoubleRange();
-          virtual ~ConstrainDoubleRange();
+          ConstrainDoubleRange() noexcept;
+          virtual ~ConstrainDoubleRange() noexcept;
 
           // methods ConstrainDoubleRange
-          virtual void wrapper_init_org_ortc_ConstrainDoubleRange() override;
-          virtual void wrapper_init_org_ortc_ConstrainDoubleRange(wrapper::org::ortc::ConstrainDoubleRangePtr source) override;
-          virtual void wrapper_init_org_ortc_ConstrainDoubleRange(wrapper::org::ortc::JsonPtr json) override;
-          virtual wrapper::org::ortc::JsonPtr toJson() override;
-          virtual String hash() override;
+          virtual void wrapper_init_org_ortc_ConstrainDoubleRange() noexcept override;
+          virtual void wrapper_init_org_ortc_ConstrainDoubleRange(wrapper::org::ortc::ConstrainDoubleRangePtr source) noexcept override;
+          virtual void wrapper_init_org_ortc_ConstrainDoubleRange(wrapper::org::ortc::JsonPtr json) noexcept override;
+          virtual wrapper::org::ortc::JsonPtr toJson() noexcept override;
+          virtual String hash() noexcept override;
 
-          static ConstrainDoubleRangePtr toWrapper(NativeConstrainDoubleRangePtr native);
-          static ConstrainDoubleRangePtr toWrapper(const NativeConstrainDoubleRange &native);
-          static NativeConstrainDoubleRangePtr toNative(wrapper::org::ortc::ConstrainDoubleRangePtr wrapper);
+          static ConstrainDoubleRangePtr toWrapper(NativeConstrainDoubleRangePtr native) noexcept;
+          static ConstrainDoubleRangePtr toWrapper(const NativeConstrainDoubleRange &native) noexcept;
+          static NativeConstrainDoubleRangePtr toNative(wrapper::org::ortc::ConstrainDoubleRangePtr wrapper) noexcept;
         };
 
       } // ortc

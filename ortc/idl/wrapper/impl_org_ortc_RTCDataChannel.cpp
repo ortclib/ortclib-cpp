@@ -33,12 +33,12 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCDataChannel::WrapperImplType
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCDataChannel::WrapperType, WrapperType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCDataChannel::RTCDataChannel()
+wrapper::impl::org::ortc::RTCDataChannel::RTCDataChannel() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCDataChannelPtr wrapper::org::ortc::RTCDataChannel::wrapper_create()
+wrapper::org::ortc::RTCDataChannelPtr wrapper::org::ortc::RTCDataChannel::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::RTCDataChannel>();
   pThis->thisWeak_ = pThis;
@@ -46,12 +46,12 @@ wrapper::org::ortc::RTCDataChannelPtr wrapper::org::ortc::RTCDataChannel::wrappe
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCDataChannel::~RTCDataChannel()
+wrapper::impl::org::ortc::RTCDataChannel::~RTCDataChannel() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > wrapper::impl::org::ortc::RTCDataChannel::getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes)
+shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > wrapper::impl::org::ortc::RTCDataChannel::getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept
 {
   return Helper::getStats(native_, statTypes);
 }
@@ -60,88 +60,88 @@ shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > wrap
 void wrapper::impl::org::ortc::RTCDataChannel::wrapper_init_org_ortc_RTCDataChannel(
   wrapper::org::ortc::RTCDataTransportPtr transport,
   wrapper::org::ortc::RTCDataChannelParametersPtr params
-  )
+  ) noexcept
 {
   auto native = RTCDataChannelParameters::toNative(params);
-  ZS_THROW_INVALID_ARGUMENT_IF(!params);
+  ZS_ASSERT(params);
   native_ = NativeType::create(thisWeak_.lock(), RTCDataTransport::toNative(transport), *native);
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCDataChannel::close()
+void wrapper::impl::org::ortc::RTCDataChannel::close() noexcept
 {
   native_->close();
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCDataChannel::send(String text)
+void wrapper::impl::org::ortc::RTCDataChannel::send(String text) noexcept
 {
   native_->send(text);
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCDataChannel::send(SecureByteBlockPtr data)
+void wrapper::impl::org::ortc::RTCDataChannel::send(SecureByteBlockPtr data) noexcept
 {
   if (!data) return;
   native_->send(*data);
 }
 
 //------------------------------------------------------------------------------
-uint64_t wrapper::impl::org::ortc::RTCDataChannel::get_objectId()
+uint64_t wrapper::impl::org::ortc::RTCDataChannel::get_objectId() noexcept
 {
   return native_->getID();
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCDataTransportPtr wrapper::impl::org::ortc::RTCDataChannel::get_transport()
+wrapper::org::ortc::RTCDataTransportPtr wrapper::impl::org::ortc::RTCDataChannel::get_transport() noexcept
 {
   return RTCDataTransport::toWrapper(native_->transport());
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCDataChannelParametersPtr wrapper::impl::org::ortc::RTCDataChannel::get_parameters()
+wrapper::org::ortc::RTCDataChannelParametersPtr wrapper::impl::org::ortc::RTCDataChannel::get_parameters() noexcept
 {
   return RTCDataChannelParameters::toWrapper(native_->parameters());
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCDataChannelState wrapper::impl::org::ortc::RTCDataChannel::get_readyState()
+wrapper::org::ortc::RTCDataChannelState wrapper::impl::org::ortc::RTCDataChannel::get_readyState() noexcept
 {
   return Helper::toWrapper(native_->readyState());
 }
 
 //------------------------------------------------------------------------------
-uint64_t wrapper::impl::org::ortc::RTCDataChannel::get_bufferedAmount()
+uint64_t wrapper::impl::org::ortc::RTCDataChannel::get_bufferedAmount() noexcept
 {
   return SafeInt<uint64_t>(native_->bufferedAmount());
 }
 
 //------------------------------------------------------------------------------
-uint64_t wrapper::impl::org::ortc::RTCDataChannel::get_bufferedAmountLowThreshold()
+uint64_t wrapper::impl::org::ortc::RTCDataChannel::get_bufferedAmountLowThreshold() noexcept
 {
   return SafeInt<uint64_t>(native_->bufferedAmountLowThreshold());
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCDataChannel::set_bufferedAmountLowThreshold(uint64_t value)
+void wrapper::impl::org::ortc::RTCDataChannel::set_bufferedAmountLowThreshold(uint64_t value) noexcept
 {
   native_->bufferedAmountLowThreshold(SafeInt<size_t>(value));
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::ortc::RTCDataChannel::get_binaryType()
+String wrapper::impl::org::ortc::RTCDataChannel::get_binaryType() noexcept
 {
   return native_->binaryType();
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCDataChannel::set_binaryType(String value)
+void wrapper::impl::org::ortc::RTCDataChannel::set_binaryType(String value) noexcept
 {
   native_->binaryType(value);
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCDataChannel::wrapper_onObserverCountChanged(size_t count)
+void wrapper::impl::org::ortc::RTCDataChannel::wrapper_onObserverCountChanged(size_t count) noexcept
 {
   subscriptionCount_ = count;
   subscribe();
@@ -151,7 +151,7 @@ void wrapper::impl::org::ortc::RTCDataChannel::wrapper_onObserverCountChanged(si
 void WrapperImplType::onDataChannelStateChange(
   IDataChannelPtr channel,
   ::ortc::IDataChannelTypes::States state
-)
+) noexcept
 {
   onStateChange(RTCDataChannelStateChangeEvent::toWrapper(state));
 
@@ -166,13 +166,13 @@ void WrapperImplType::onDataChannelStateChange(
 void WrapperImplType::onDataChannelError(
   IDataChannelPtr channel,
   ::ortc::ErrorAnyPtr error
-)
+) noexcept
 {
   onError(ErrorEvent::toWrapper(error));
 }
 
 //------------------------------------------------------------------------------
-void WrapperImplType::onDataChannelBufferedAmountLow(IDataChannelPtr channel)
+void WrapperImplType::onDataChannelBufferedAmountLow(IDataChannelPtr channel) noexcept
 {
   onBufferedAmountLow();
 }
@@ -181,13 +181,13 @@ void WrapperImplType::onDataChannelBufferedAmountLow(IDataChannelPtr channel)
 void WrapperImplType::onDataChannelMessage(
   IDataChannelPtr channel,
   MessageEventDataPtr data
-)
+) noexcept
 {
   onMessage(RTCMessageEvent::toWrapper(data));
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr track)
+WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr track) noexcept
 {
   if (!track) return WrapperImplTypePtr();
 
@@ -200,7 +200,7 @@ WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr track)
 }
 
 //------------------------------------------------------------------------------
-NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper)
+NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper) noexcept
 {
   if (!wrapper) return NativeTypePtr();
   auto result = std::dynamic_pointer_cast<WrapperImplType>(wrapper);
@@ -209,7 +209,7 @@ NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper)
 }
 
 //------------------------------------------------------------------------------
-void WrapperImplType::subscribe()
+void WrapperImplType::subscribe() noexcept
 {
   if (defaultSubscription_) return;
   if (!native_) return;

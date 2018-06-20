@@ -19,11 +19,11 @@ namespace wrapper {
           MessageQueueWeakPtr thisWeak_;
           NativeTypePtr native_;
 
-          MessageQueue();
-          virtual ~MessageQueue();
+          MessageQueue() noexcept;
+          virtual ~MessageQueue() noexcept;
 
-          static WrapperImplTypePtr toWrapper(NativeTypePtr native);
-          static NativeTypePtr toNative(WrapperTypePtr wrapper);
+          static WrapperImplTypePtr toWrapper(NativeTypePtr native) noexcept;
+          static NativeTypePtr toNative(WrapperTypePtr wrapper) noexcept;
         };
 
       } // ortc

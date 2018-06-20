@@ -26,12 +26,12 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::MessageQueue::WrapperImplType, 
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::MessageQueue::WrapperType, WrapperType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::MessageQueue::MessageQueue()
+wrapper::impl::org::ortc::MessageQueue::MessageQueue() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::MessageQueuePtr wrapper::org::ortc::MessageQueue::wrapper_create()
+wrapper::org::ortc::MessageQueuePtr wrapper::org::ortc::MessageQueue::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::MessageQueue>();
   pThis->thisWeak_ = pThis;
@@ -39,18 +39,18 @@ wrapper::org::ortc::MessageQueuePtr wrapper::org::ortc::MessageQueue::wrapper_cr
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::MessageQueue::~MessageQueue()
+wrapper::impl::org::ortc::MessageQueue::~MessageQueue() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::MessageQueuePtr wrapper::org::ortc::MessageQueue::getDefaultForUi()
+wrapper::org::ortc::MessageQueuePtr wrapper::org::ortc::MessageQueue::getDefaultForUi() noexcept
 {
   return wrapper::impl::org::ortc::MessageQueue::toWrapper(zsLib::IMessageQueueThread::singletonUsingCurrentGUIThreadsMessageQueue());
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr native)
+WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr native) noexcept
 {
   if (!native) return WrapperImplTypePtr();
 
@@ -61,7 +61,7 @@ WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr native)
 }
 
 //------------------------------------------------------------------------------
-NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper)
+NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper) noexcept
 {
   if (!wrapper) return NativeTypePtr();
 

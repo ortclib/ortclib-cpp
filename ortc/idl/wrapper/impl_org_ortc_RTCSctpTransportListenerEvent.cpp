@@ -25,12 +25,12 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCSctpTransportListenerEvent::
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCSctpTransportListenerEvent::WrapperType, WrapperType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCSctpTransportListenerEvent::RTCSctpTransportListenerEvent()
+wrapper::impl::org::ortc::RTCSctpTransportListenerEvent::RTCSctpTransportListenerEvent() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCSctpTransportListenerEventPtr wrapper::org::ortc::RTCSctpTransportListenerEvent::wrapper_create()
+wrapper::org::ortc::RTCSctpTransportListenerEventPtr wrapper::org::ortc::RTCSctpTransportListenerEvent::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::RTCSctpTransportListenerEvent>();
   pThis->thisWeak_ = pThis;
@@ -38,18 +38,18 @@ wrapper::org::ortc::RTCSctpTransportListenerEventPtr wrapper::org::ortc::RTCSctp
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCSctpTransportListenerEvent::~RTCSctpTransportListenerEvent()
+wrapper::impl::org::ortc::RTCSctpTransportListenerEvent::~RTCSctpTransportListenerEvent() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCSctpTransportPtr wrapper::impl::org::ortc::RTCSctpTransportListenerEvent::get_transport()
+wrapper::org::ortc::RTCSctpTransportPtr wrapper::impl::org::ortc::RTCSctpTransportListenerEvent::get_transport() noexcept
 {
   return RTCSctpTransport::toWrapper(native_);
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr native)
+WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr native) noexcept
 {
   if (!native) return WrapperImplTypePtr();
   auto pThis = make_shared<WrapperImplType>();

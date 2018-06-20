@@ -25,12 +25,12 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::adapter::RTCOfferOptions::Wrapp
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::adapter::RTCOfferOptions::WrapperType, WrapperType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::adapter::RTCOfferOptions::RTCOfferOptions()
+wrapper::impl::org::ortc::adapter::RTCOfferOptions::RTCOfferOptions() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::adapter::RTCOfferOptionsPtr wrapper::org::ortc::adapter::RTCOfferOptions::wrapper_create()
+wrapper::org::ortc::adapter::RTCOfferOptionsPtr wrapper::org::ortc::adapter::RTCOfferOptions::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::adapter::RTCOfferOptions>();
   pThis->thisWeak_ = pThis;
@@ -38,24 +38,24 @@ wrapper::org::ortc::adapter::RTCOfferOptionsPtr wrapper::org::ortc::adapter::RTC
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::adapter::RTCOfferOptions::~RTCOfferOptions()
+wrapper::impl::org::ortc::adapter::RTCOfferOptions::~RTCOfferOptions() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::adapter::RTCOfferOptions::wrapper_init_org_ortc_adapter_RTCOfferOptions()
+void wrapper::impl::org::ortc::adapter::RTCOfferOptions::wrapper_init_org_ortc_adapter_RTCOfferOptions() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr native)
+WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr native) noexcept
 {
   if (!native) return RTCOfferOptionsPtr();
   return toWrapper(*native);
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(const NativeType &native)
+WrapperImplTypePtr WrapperImplType::toWrapper(const NativeType &native) noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::adapter::RTCOfferOptions>();
   pThis->thisWeak_ = pThis;
@@ -65,7 +65,7 @@ WrapperImplTypePtr WrapperImplType::toWrapper(const NativeType &native)
 }
 
 //------------------------------------------------------------------------------
-NativeTypePtr WrapperImplType::toNative(wrapper::org::ortc::adapter::RTCOfferOptionsPtr wrapper)
+NativeTypePtr WrapperImplType::toNative(wrapper::org::ortc::adapter::RTCOfferOptionsPtr wrapper) noexcept
 {
   if (!wrapper) return NativeTypePtr();
   auto result = make_shared < NativeType >();

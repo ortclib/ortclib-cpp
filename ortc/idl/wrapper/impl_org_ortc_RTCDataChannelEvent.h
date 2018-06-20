@@ -19,13 +19,13 @@ namespace wrapper {
           RTCDataChannelEventWeakPtr thisWeak_;
           NativeTypePtr native_;
 
-          RTCDataChannelEvent();
-          virtual ~RTCDataChannelEvent();
+          RTCDataChannelEvent() noexcept;
+          virtual ~RTCDataChannelEvent() noexcept;
 
           // properties RTCDataChannelEvent
-          virtual wrapper::org::ortc::RTCDataChannelPtr get_dataChannel() override;
+          virtual wrapper::org::ortc::RTCDataChannelPtr get_dataChannel() noexcept override;
 
-          static WrapperImplTypePtr toWrapper(NativeTypePtr native);
+          static WrapperImplTypePtr toWrapper(NativeTypePtr native) noexcept;
         };
 
       } // ortc

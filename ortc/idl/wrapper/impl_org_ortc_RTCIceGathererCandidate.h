@@ -19,18 +19,18 @@ namespace wrapper {
           RTCIceGathererCandidateWeakPtr thisWeak_;
           NativeTypePtr native_;
 
-          RTCIceGathererCandidate();
-          virtual ~RTCIceGathererCandidate();
+          RTCIceGathererCandidate() noexcept;
+          virtual ~RTCIceGathererCandidate() noexcept;
 
           // methods RTCIceGathererCandidate
-          virtual wrapper::org::ortc::JsonPtr toJson() override;
-          virtual String hash() override;
+          virtual wrapper::org::ortc::JsonPtr toJson() noexcept override;
+          virtual String hash() noexcept override;
 
           // properties RTCIceGathererCandidate
-          virtual wrapper::org::ortc::RTCIceComponent get_component() override;
+          virtual wrapper::org::ortc::RTCIceComponent get_component() noexcept override;
 
-          static WrapperTypePtr toWrapper(NativeTypePtr native);
-          static NativeTypePtr toNative(WrapperTypePtr wrapper);
+          static WrapperTypePtr toWrapper(NativeTypePtr native) noexcept;
+          static NativeTypePtr toNative(WrapperTypePtr wrapper) noexcept;
         };
 
       } // ortc

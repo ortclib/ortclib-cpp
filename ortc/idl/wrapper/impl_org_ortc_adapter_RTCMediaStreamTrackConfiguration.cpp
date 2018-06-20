@@ -27,12 +27,12 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::adapter::RTCMediaStreamTrackCon
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::adapter::RTCMediaStreamTrackConfiguration::WrapperType, WrapperType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::adapter::RTCMediaStreamTrackConfiguration::RTCMediaStreamTrackConfiguration()
+wrapper::impl::org::ortc::adapter::RTCMediaStreamTrackConfiguration::RTCMediaStreamTrackConfiguration() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::adapter::RTCMediaStreamTrackConfigurationPtr wrapper::org::ortc::adapter::RTCMediaStreamTrackConfiguration::wrapper_create()
+wrapper::org::ortc::adapter::RTCMediaStreamTrackConfigurationPtr wrapper::org::ortc::adapter::RTCMediaStreamTrackConfiguration::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::adapter::RTCMediaStreamTrackConfiguration>();
   pThis->thisWeak_ = pThis;
@@ -40,17 +40,17 @@ wrapper::org::ortc::adapter::RTCMediaStreamTrackConfigurationPtr wrapper::org::o
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::adapter::RTCMediaStreamTrackConfiguration::~RTCMediaStreamTrackConfiguration()
+wrapper::impl::org::ortc::adapter::RTCMediaStreamTrackConfiguration::~RTCMediaStreamTrackConfiguration() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::adapter::RTCMediaStreamTrackConfiguration::wrapper_init_org_ortc_adapter_RTCMediaStreamTrackConfiguration()
+void wrapper::impl::org::ortc::adapter::RTCMediaStreamTrackConfiguration::wrapper_init_org_ortc_adapter_RTCMediaStreamTrackConfiguration() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::adapter::RTCMediaStreamTrackConfiguration::wrapper_init_org_ortc_adapter_RTCMediaStreamTrackConfiguration(wrapper::org::ortc::adapter::RTCMediaStreamTrackConfigurationPtr source)
+void wrapper::impl::org::ortc::adapter::RTCMediaStreamTrackConfiguration::wrapper_init_org_ortc_adapter_RTCMediaStreamTrackConfiguration(wrapper::org::ortc::adapter::RTCMediaStreamTrackConfigurationPtr source) noexcept
 {
   WrapperTypePtr pThis = thisWeak_.lock();
   WrapperTypePtr wrapper = toWrapper(toNative(source));
@@ -60,14 +60,14 @@ void wrapper::impl::org::ortc::adapter::RTCMediaStreamTrackConfiguration::wrappe
 
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr native)
+WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr native) noexcept
 {
   if (!native) return WrapperImplTypePtr();
   return toWrapper(*native);
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(const NativeType &native)
+WrapperImplTypePtr WrapperImplType::toWrapper(const NativeType &native) noexcept
 {
   auto pThis = make_shared<WrapperImplType>();
   pThis->thisWeak_ = pThis;
@@ -77,7 +77,7 @@ WrapperImplTypePtr WrapperImplType::toWrapper(const NativeType &native)
 }
 
 //------------------------------------------------------------------------------
-NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper)
+NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper) noexcept
 {
   if (!wrapper) return NativeTypePtr();
 

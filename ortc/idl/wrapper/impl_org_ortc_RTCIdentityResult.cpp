@@ -20,12 +20,12 @@ using ::std::set;
 using ::std::map;
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCIdentityResult::RTCIdentityResult()
+wrapper::impl::org::ortc::RTCIdentityResult::RTCIdentityResult() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCIdentityResultPtr wrapper::org::ortc::RTCIdentityResult::wrapper_create()
+wrapper::org::ortc::RTCIdentityResultPtr wrapper::org::ortc::RTCIdentityResult::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::RTCIdentityResult>();
   pThis->thisWeak_ = pThis;
@@ -33,25 +33,25 @@ wrapper::org::ortc::RTCIdentityResultPtr wrapper::org::ortc::RTCIdentityResult::
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCIdentityResult::~RTCIdentityResult()
+wrapper::impl::org::ortc::RTCIdentityResult::~RTCIdentityResult() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCIdentityResult::wrapper_init_org_ortc_RTCIdentityResult()
+void wrapper::impl::org::ortc::RTCIdentityResult::wrapper_init_org_ortc_RTCIdentityResult() noexcept
 {
 }
 
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCIdentityResultPtr wrapper::impl::org::ortc::RTCIdentityResult::toWrapper(NativeResultPtr native)
+wrapper::impl::org::ortc::RTCIdentityResultPtr wrapper::impl::org::ortc::RTCIdentityResult::toWrapper(NativeResultPtr native) noexcept
 {
   if (!native) return RTCIdentityResultPtr();
   return toWrapper(*native);
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCIdentityResultPtr wrapper::impl::org::ortc::RTCIdentityResult::toWrapper(const NativeResult &native)
+wrapper::impl::org::ortc::RTCIdentityResultPtr wrapper::impl::org::ortc::RTCIdentityResult::toWrapper(const NativeResult &native) noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::RTCIdentityResult>();
   pThis->thisWeak_ = pThis;
@@ -60,7 +60,7 @@ wrapper::impl::org::ortc::RTCIdentityResultPtr wrapper::impl::org::ortc::RTCIden
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCIdentityResult::NativeResultPtr wrapper::impl::org::ortc::RTCIdentityResult::toNative(wrapper::org::ortc::RTCIdentityResultPtr wrapper)
+wrapper::impl::org::ortc::RTCIdentityResult::NativeResultPtr wrapper::impl::org::ortc::RTCIdentityResult::toNative(wrapper::org::ortc::RTCIdentityResultPtr wrapper) noexcept
 {
   if (!wrapper) return NativeResultPtr();
 

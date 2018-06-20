@@ -20,17 +20,17 @@ namespace wrapper {
           RTCCertificateWeakPtr thisWeak_;
           NativeTypePtr native_;
 
-          RTCCertificate();
-          virtual ~RTCCertificate();
+          RTCCertificate() noexcept;
+          virtual ~RTCCertificate() noexcept;
 
           // properties RTCCertificate
-          virtual uint64_t get_objectId() override;
-          virtual ::zsLib::Time get_expires() override;
-          virtual wrapper::org::ortc::RTCDtlsFingerprintPtr get_fingerprint() override;
+          virtual uint64_t get_objectId() noexcept override;
+          virtual ::zsLib::Time get_expires() noexcept override;
+          virtual wrapper::org::ortc::RTCDtlsFingerprintPtr get_fingerprint() noexcept override;
 
-          static PromiseWithTypePtr toWrapper(NativePromiseWithCertificatePtr promise);
-          static RTCCertificatePtr toWrapper(NativeTypePtr native);
-          static NativeTypePtr toNative(wrapper::org::ortc::RTCCertificatePtr wrapper);
+          static PromiseWithTypePtr toWrapper(NativePromiseWithCertificatePtr promise) noexcept;
+          static RTCCertificatePtr toWrapper(NativeTypePtr native) noexcept;
+          static NativeTypePtr toNative(wrapper::org::ortc::RTCCertificatePtr wrapper) noexcept;
         };
 
       } // ortc

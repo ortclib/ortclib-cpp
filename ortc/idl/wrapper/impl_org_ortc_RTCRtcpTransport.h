@@ -19,11 +19,11 @@ namespace wrapper {
           RTCRtcpTransportWeakPtr thisWeak_;
           NativeTypePtr native_;
 
-          RTCRtcpTransport();
-          virtual ~RTCRtcpTransport();
+          RTCRtcpTransport() noexcept;
+          virtual ~RTCRtcpTransport() noexcept;
 
-          static WrapperImplTypePtr toWrapper(NativeTypePtr native);
-          static NativeTypePtr toNative(WrapperTypePtr wrapper);
+          static WrapperImplTypePtr toWrapper(NativeTypePtr native) noexcept;
+          static NativeTypePtr toNative(WrapperTypePtr wrapper) noexcept;
         };
 
       } // ortc

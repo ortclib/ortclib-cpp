@@ -2,6 +2,7 @@
 #include "impl_org_ortc_ConstrainString.h"
 #include "impl_org_ortc_StringOrStringList.h"
 #include "impl_org_ortc_ConstrainStringParameters.h"
+#include "impl_org_ortc_Json.h"
 
 using ::zsLib::String;
 using ::zsLib::Optional;
@@ -22,12 +23,12 @@ using ::std::set;
 using ::std::map;
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::ConstrainString::ConstrainString()
+wrapper::impl::org::ortc::ConstrainString::ConstrainString() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::ConstrainStringPtr wrapper::org::ortc::ConstrainString::wrapper_create()
+wrapper::org::ortc::ConstrainStringPtr wrapper::org::ortc::ConstrainString::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::ConstrainString>();
   pThis->thisWeak_ = pThis;
@@ -35,48 +36,59 @@ wrapper::org::ortc::ConstrainStringPtr wrapper::org::ortc::ConstrainString::wrap
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::ConstrainString::~ConstrainString()
+wrapper::impl::org::ortc::ConstrainString::~ConstrainString() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::ConstrainString::wrapper_init_org_ortc_ConstrainString()
+void wrapper::impl::org::ortc::ConstrainString::wrapper_init_org_ortc_ConstrainString() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::ConstrainString::wrapper_init_org_ortc_ConstrainString(wrapper::org::ortc::ConstrainStringPtr source)
+void wrapper::impl::org::ortc::ConstrainString::wrapper_init_org_ortc_ConstrainString(wrapper::org::ortc::ConstrainStringPtr source) noexcept
 {
+  if (!source) return;
+
+  wrapper::org::ortc::ConstrainStringPtr pThis = thisWeak_.lock();
+  (*pThis) = (*source);
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::ConstrainString::wrapper_init_org_ortc_ConstrainString(wrapper::org::ortc::JsonPtr json)
+void wrapper::impl::org::ortc::ConstrainString::wrapper_init_org_ortc_ConstrainString(wrapper::org::ortc::JsonPtr json) noexcept
 {
+  if (!json) return;
+
+  auto native = make_shared<NativeConstrainString>(Json::toNative(json));
+  wrapper::org::ortc::ConstrainStringPtr wrapper = toWrapper(native);
+  if (!wrapper) return;
+
+  wrapper::org::ortc::ConstrainStringPtr pThis = thisWeak_.lock();
+
+  (*pThis) = (*wrapper);
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::JsonPtr wrapper::impl::org::ortc::ConstrainString::toJson()
+wrapper::org::ortc::JsonPtr wrapper::impl::org::ortc::ConstrainString::toJson() noexcept
 {
-  wrapper::org::ortc::JsonPtr result {};
-  return result;
+  return Json::toWrapper(toNative(thisWeak_.lock())->createElement("ConstrainString"));
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::ortc::ConstrainString::hash()
+String wrapper::impl::org::ortc::ConstrainString::hash() noexcept
 {
-  String result {};
-  return result;
+  return toNative(thisWeak_.lock())->hash();
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::ConstrainStringPtr wrapper::impl::org::ortc::ConstrainString::toWrapper(NativeConstrainStringPtr native)
+wrapper::impl::org::ortc::ConstrainStringPtr wrapper::impl::org::ortc::ConstrainString::toWrapper(NativeConstrainStringPtr native) noexcept
 {
   if (!native) return ConstrainStringPtr();
   return toWrapper(*native);
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::ConstrainStringPtr wrapper::impl::org::ortc::ConstrainString::toWrapper(const NativeConstrainString &native)
+wrapper::impl::org::ortc::ConstrainStringPtr wrapper::impl::org::ortc::ConstrainString::toWrapper(const NativeConstrainString &native) noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::ConstrainString>();
   pThis->thisWeak_ = pThis;
@@ -91,7 +103,7 @@ wrapper::impl::org::ortc::ConstrainStringPtr wrapper::impl::org::ortc::Constrain
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::ConstrainString::NativeConstrainStringPtr wrapper::impl::org::ortc::ConstrainString::toNative(wrapper::org::ortc::ConstrainStringPtr wrapper)
+wrapper::impl::org::ortc::ConstrainString::NativeConstrainStringPtr wrapper::impl::org::ortc::ConstrainString::toNative(wrapper::org::ortc::ConstrainStringPtr wrapper) noexcept
 {
   if (!wrapper) return NativeConstrainStringPtr();
 

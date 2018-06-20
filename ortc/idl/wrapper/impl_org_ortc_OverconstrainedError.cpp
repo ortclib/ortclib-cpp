@@ -24,12 +24,12 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::OverconstrainedError::WrapperIm
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::OverconstrainedError::WrapperType, WrapperType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::OverconstrainedError::OverconstrainedError()
+wrapper::impl::org::ortc::OverconstrainedError::OverconstrainedError() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::OverconstrainedErrorPtr wrapper::org::ortc::OverconstrainedError::wrapper_create()
+wrapper::org::ortc::OverconstrainedErrorPtr wrapper::org::ortc::OverconstrainedError::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::OverconstrainedError>();
   pThis->thisWeak_ = pThis;
@@ -37,17 +37,17 @@ wrapper::org::ortc::OverconstrainedErrorPtr wrapper::org::ortc::OverconstrainedE
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::OverconstrainedError::~OverconstrainedError()
+wrapper::impl::org::ortc::OverconstrainedError::~OverconstrainedError() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::OverconstrainedError::wrapper_init_org_ortc_OverconstrainedError()
+void wrapper::impl::org::ortc::OverconstrainedError::wrapper_init_org_ortc_OverconstrainedError() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr native)
+WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr native) noexcept
 {
   if (!native) return OverconstrainedErrorPtr();
 

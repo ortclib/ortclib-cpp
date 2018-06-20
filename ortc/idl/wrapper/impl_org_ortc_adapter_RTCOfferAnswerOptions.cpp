@@ -25,12 +25,12 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::adapter::RTCOfferAnswerOptions:
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::adapter::RTCOfferAnswerOptions::WrapperType, WrapperType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::adapter::RTCOfferAnswerOptions::RTCOfferAnswerOptions()
+wrapper::impl::org::ortc::adapter::RTCOfferAnswerOptions::RTCOfferAnswerOptions() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::adapter::RTCOfferAnswerOptionsPtr wrapper::org::ortc::adapter::RTCOfferAnswerOptions::wrapper_create()
+wrapper::org::ortc::adapter::RTCOfferAnswerOptionsPtr wrapper::org::ortc::adapter::RTCOfferAnswerOptions::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::adapter::RTCOfferAnswerOptions>();
   pThis->thisWeak_ = pThis;
@@ -38,19 +38,19 @@ wrapper::org::ortc::adapter::RTCOfferAnswerOptionsPtr wrapper::org::ortc::adapte
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::adapter::RTCOfferAnswerOptions::~RTCOfferAnswerOptions()
+wrapper::impl::org::ortc::adapter::RTCOfferAnswerOptions::~RTCOfferAnswerOptions() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr native)
+WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr native) noexcept
 {
   if (!native) return RTCOfferAnswerOptionsPtr();
   return toWrapper(*native);
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(const NativeType &native)
+WrapperImplTypePtr WrapperImplType::toWrapper(const NativeType &native) noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::adapter::RTCOfferAnswerOptions>();
   pThis->thisWeak_ = pThis;
@@ -59,7 +59,7 @@ WrapperImplTypePtr WrapperImplType::toWrapper(const NativeType &native)
 }
 
 //------------------------------------------------------------------------------
-NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper)
+NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper) noexcept
 {
   if (!wrapper) return NativeTypePtr();
   auto result = make_shared < NativeType >();

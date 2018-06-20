@@ -25,12 +25,12 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCRtpCodecCapabilityOptions::W
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCRtpCodecCapabilityOptions::WrapperType, WrapperType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCRtpCodecCapabilityOptions::RTCRtpCodecCapabilityOptions()
+wrapper::impl::org::ortc::RTCRtpCodecCapabilityOptions::RTCRtpCodecCapabilityOptions() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCRtpCodecCapabilityOptionsPtr wrapper::org::ortc::RTCRtpCodecCapabilityOptions::wrapper_create()
+wrapper::org::ortc::RTCRtpCodecCapabilityOptionsPtr wrapper::org::ortc::RTCRtpCodecCapabilityOptions::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::RTCRtpCodecCapabilityOptions>();
   pThis->thisWeak_ = pThis;
@@ -38,12 +38,12 @@ wrapper::org::ortc::RTCRtpCodecCapabilityOptionsPtr wrapper::org::ortc::RTCRtpCo
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCRtpCodecCapabilityOptions::~RTCRtpCodecCapabilityOptions()
+wrapper::impl::org::ortc::RTCRtpCodecCapabilityOptions::~RTCRtpCodecCapabilityOptions() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-WrapperTypePtr WrapperImplType::toWrapper(NativeTypePtr native)
+WrapperTypePtr WrapperImplType::toWrapper(NativeTypePtr native) noexcept
 {
   if (!native) return WrapperTypePtr();
 
@@ -59,7 +59,7 @@ WrapperTypePtr WrapperImplType::toWrapper(NativeTypePtr native)
 }
 
 //------------------------------------------------------------------------------
-NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper)
+NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper) noexcept
 {
   if (!wrapper) return NativeTypePtr();
   

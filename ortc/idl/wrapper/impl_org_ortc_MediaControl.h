@@ -15,7 +15,7 @@ namespace wrapper {
         {
           MediaControlWeakPtr thisWeak_;
 
-          virtual ~MediaControl();
+          virtual ~MediaControl() noexcept;
         };
 
       } // ortc

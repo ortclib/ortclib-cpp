@@ -18,13 +18,13 @@ namespace wrapper {
           RTCIceTransportStateChangeEventWeakPtr thisWeak_;
           ::ortc::IICETransportTypes::States state_ { ::ortc::IICETransportTypes::State_First};
 
-          RTCIceTransportStateChangeEvent();
-          virtual ~RTCIceTransportStateChangeEvent();
+          RTCIceTransportStateChangeEvent() noexcept;
+          virtual ~RTCIceTransportStateChangeEvent() noexcept;
 
           // properties RTCIceTransportStateChangeEvent
-          virtual wrapper::org::ortc::RTCIceTransportState get_state() override;
+          virtual wrapper::org::ortc::RTCIceTransportState get_state() noexcept override;
 
-          static WrapperImplTypePtr toWrapper(::ortc::IICETransportTypes::States state);
+          static WrapperImplTypePtr toWrapper(::ortc::IICETransportTypes::States state) noexcept;
         };
 
       } // ortc

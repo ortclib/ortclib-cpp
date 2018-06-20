@@ -17,23 +17,23 @@ namespace wrapper {
           ZS_DECLARE_TYPEDEF_PTR(::ortc::ICapabilities::CapabilityLong, NativeCapabilityLong);
           LongRangeWeakPtr thisWeak_;
 
-          LongRange();
-          virtual ~LongRange();
+          LongRange() noexcept;
+          virtual ~LongRange() noexcept;
 
           // methods LongRange
-          virtual void wrapper_init_org_ortc_LongRange() override;
-          virtual void wrapper_init_org_ortc_LongRange(long value) override;
+          virtual void wrapper_init_org_ortc_LongRange() noexcept override;
+          virtual void wrapper_init_org_ortc_LongRange(long value) noexcept override;
           virtual void wrapper_init_org_ortc_LongRange(
             long min,
             long max
-            ) override;
-          virtual void wrapper_init_org_ortc_LongRange(wrapper::org::ortc::JsonPtr json) override;
-          virtual wrapper::org::ortc::JsonPtr toJson() override;
-          virtual String hash() override;
+            ) noexcept override;
+          virtual void wrapper_init_org_ortc_LongRange(wrapper::org::ortc::JsonPtr json) noexcept override;
+          virtual wrapper::org::ortc::JsonPtr toJson() noexcept override;
+          virtual String hash() noexcept override;
 
-          static LongRangePtr toWrapper(NativeCapabilityLongPtr native);
-          static LongRangePtr toWrapper(const NativeCapabilityLong &native);
-          static NativeCapabilityLongPtr toNative(wrapper::org::ortc::LongRangePtr wrapper);
+          static LongRangePtr toWrapper(NativeCapabilityLongPtr native) noexcept;
+          static LongRangePtr toWrapper(const NativeCapabilityLong &native) noexcept;
+          static NativeCapabilityLongPtr toNative(wrapper::org::ortc::LongRangePtr wrapper) noexcept;
         };
 
       } // ortc

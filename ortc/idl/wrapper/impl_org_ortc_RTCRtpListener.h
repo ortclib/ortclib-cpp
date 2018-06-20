@@ -27,25 +27,25 @@ namespace wrapper {
           bool defaultSubscription_{ true };
           NativeTypeSubscriptionPtr subscription_;
 
-          RTCRtpListener();
-          virtual ~RTCRtpListener();
+          RTCRtpListener() noexcept;
+          virtual ~RTCRtpListener() noexcept;
 
           // methods RTCStatsProvider
-          virtual shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) override;
+          virtual shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept override;
 
           // methods RTCRtpListener
-          virtual void wrapper_init_org_ortc_RTCRtpListener(wrapper::org::ortc::RTCRtpTransportPtr transport) override;
+          virtual void wrapper_init_org_ortc_RTCRtpListener(wrapper::org::ortc::RTCRtpTransportPtr transport) noexcept override;
           virtual void wrapper_init_org_ortc_RTCRtpListener(
             wrapper::org::ortc::RTCRtpTransportPtr transport,
             shared_ptr< list< wrapper::org::ortc::RTCRtpHeaderExtensionParametersPtr > > headerExtensions
-            ) override;
-          virtual void setHeaderExtensions(shared_ptr< list< wrapper::org::ortc::RTCRtpHeaderExtensionParametersPtr > > headerExtensions) override;
+            ) noexcept override;
+          virtual void setHeaderExtensions(shared_ptr< list< wrapper::org::ortc::RTCRtpHeaderExtensionParametersPtr > > headerExtensions) noexcept override;
 
           // properties RTCRtpListener
-          virtual uint64_t get_objectId() override;
-          virtual wrapper::org::ortc::RTCRtpTransportPtr get_transport() override;
+          virtual uint64_t get_objectId() noexcept override;
+          virtual wrapper::org::ortc::RTCRtpTransportPtr get_transport() noexcept override;
 
-          virtual void wrapper_onObserverCountChanged(size_t count) override;
+          virtual void wrapper_onObserverCountChanged(size_t count) noexcept override;
 
           virtual void onRTPListenerUnhandledRTP(
             IRTPListenerPtr listener,
@@ -53,12 +53,12 @@ namespace wrapper {
             PayloadType payloadType,
             const char *mid,
             const char *rid
-          ) override;
+          ) noexcept override;
 
-          static WrapperImplTypePtr toWrapper(NativeTypePtr track);
-          static NativeTypePtr toNative(WrapperTypePtr wrapper);
+          static WrapperImplTypePtr toWrapper(NativeTypePtr track) noexcept;
+          static NativeTypePtr toNative(WrapperTypePtr wrapper) noexcept;
 
-          void subscribe();
+          void subscribe() noexcept;
         };
 
       } // ortc

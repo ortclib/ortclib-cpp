@@ -28,12 +28,12 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::adapter::RTCSessionDescriptionM
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::adapter::RTCSessionDescriptionMediaLine::WrapperType, WrapperType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::adapter::RTCSessionDescriptionMediaLine::RTCSessionDescriptionMediaLine()
+wrapper::impl::org::ortc::adapter::RTCSessionDescriptionMediaLine::RTCSessionDescriptionMediaLine() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::adapter::RTCSessionDescriptionMediaLinePtr wrapper::org::ortc::adapter::RTCSessionDescriptionMediaLine::wrapper_create()
+wrapper::org::ortc::adapter::RTCSessionDescriptionMediaLinePtr wrapper::org::ortc::adapter::RTCSessionDescriptionMediaLine::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::adapter::RTCSessionDescriptionMediaLine>();
   pThis->thisWeak_ = pThis;
@@ -41,12 +41,12 @@ wrapper::org::ortc::adapter::RTCSessionDescriptionMediaLinePtr wrapper::org::ort
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::adapter::RTCSessionDescriptionMediaLine::~RTCSessionDescriptionMediaLine()
+wrapper::impl::org::ortc::adapter::RTCSessionDescriptionMediaLine::~RTCSessionDescriptionMediaLine() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::JsonPtr wrapper::impl::org::ortc::adapter::RTCSessionDescriptionMediaLine::toJson()
+wrapper::org::ortc::JsonPtr wrapper::impl::org::ortc::adapter::RTCSessionDescriptionMediaLine::toJson() noexcept
 {
   {
     auto obj = std::dynamic_pointer_cast<::ortc::adapter::ISessionDescriptionTypes::RTPMediaLine>(native_);
@@ -61,7 +61,7 @@ wrapper::org::ortc::JsonPtr wrapper::impl::org::ortc::adapter::RTCSessionDescrip
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::ortc::adapter::RTCSessionDescriptionMediaLine::hash()
+String wrapper::impl::org::ortc::adapter::RTCSessionDescriptionMediaLine::hash() noexcept
 {
   {
     auto obj = std::dynamic_pointer_cast<::ortc::adapter::ISessionDescriptionTypes::RTPMediaLine>(native_);
@@ -76,7 +76,7 @@ String wrapper::impl::org::ortc::adapter::RTCSessionDescriptionMediaLine::hash()
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr native)
+WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr native) noexcept
 {
   if (!native) return WrapperImplTypePtr();
   auto pThis = make_shared<WrapperImplType>();
@@ -86,7 +86,7 @@ WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr native)
 }
 
 //------------------------------------------------------------------------------
-NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper)
+NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper) noexcept
 {
   if (!wrapper) return NativeTypePtr();
 

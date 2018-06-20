@@ -23,12 +23,12 @@ using ::std::set;
 using ::std::map;
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCCertificate::RTCCertificate()
+wrapper::impl::org::ortc::RTCCertificate::RTCCertificate() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCCertificatePtr wrapper::org::ortc::RTCCertificate::wrapper_create()
+wrapper::org::ortc::RTCCertificatePtr wrapper::org::ortc::RTCCertificate::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::RTCCertificate>();
   pThis->thisWeak_ = pThis;
@@ -36,25 +36,25 @@ wrapper::org::ortc::RTCCertificatePtr wrapper::org::ortc::RTCCertificate::wrappe
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCCertificate::~RTCCertificate()
+wrapper::impl::org::ortc::RTCCertificate::~RTCCertificate() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCCertificatePtr > > wrapper::org::ortc::RTCCertificate::generateCertificate()
+shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCCertificatePtr > > wrapper::org::ortc::RTCCertificate::generateCertificate() noexcept(false)
 {
   return impl::org::ortc::RTCCertificate::toWrapper(::ortc::ICertificate::generateCertificate());
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCCertificatePtr > > wrapper::org::ortc::RTCCertificate::generateCertificate(String keygenAlgorithm)
+shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCCertificatePtr > > wrapper::org::ortc::RTCCertificate::generateCertificate(String keygenAlgorithm) noexcept(false)
 {
   if (keygenAlgorithm.isEmpty()) return generateCertificate();
   return impl::org::ortc::RTCCertificate::toWrapper(::ortc::ICertificate::generateCertificate(keygenAlgorithm));
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCCertificatePtr > > wrapper::org::ortc::RTCCertificate::generateCertificate(wrapper::org::ortc::JsonPtr keygenAlgorithm)
+shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCCertificatePtr > > wrapper::org::ortc::RTCCertificate::generateCertificate(wrapper::org::ortc::JsonPtr keygenAlgorithm) noexcept
 {
   if (!keygenAlgorithm) return generateCertificate();
 
@@ -65,25 +65,25 @@ shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCCertificatePtr > > wrap
 }
 
 //------------------------------------------------------------------------------
-uint64_t wrapper::impl::org::ortc::RTCCertificate::get_objectId()
+uint64_t wrapper::impl::org::ortc::RTCCertificate::get_objectId() noexcept
 {
   return native_->getID();
 }
 
 //------------------------------------------------------------------------------
-::zsLib::Time wrapper::impl::org::ortc::RTCCertificate::get_expires()
+::zsLib::Time wrapper::impl::org::ortc::RTCCertificate::get_expires() noexcept
 {
   return native_->expires();
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCDtlsFingerprintPtr wrapper::impl::org::ortc::RTCCertificate::get_fingerprint()
+wrapper::org::ortc::RTCDtlsFingerprintPtr wrapper::impl::org::ortc::RTCCertificate::get_fingerprint() noexcept
 {
   return RTCDtlsFingerprint::toWrapper(native_->fingerprint());
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCCertificate::PromiseWithTypePtr wrapper::impl::org::ortc::RTCCertificate::toWrapper(NativePromiseWithCertificatePtr promise)
+wrapper::impl::org::ortc::RTCCertificate::PromiseWithTypePtr wrapper::impl::org::ortc::RTCCertificate::toWrapper(NativePromiseWithCertificatePtr promise) noexcept
 {
   if (!promise) return PromiseWithTypePtr();
 
@@ -101,7 +101,7 @@ wrapper::impl::org::ortc::RTCCertificate::PromiseWithTypePtr wrapper::impl::org:
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCCertificatePtr wrapper::impl::org::ortc::RTCCertificate::toWrapper(NativeTypePtr native)
+wrapper::impl::org::ortc::RTCCertificatePtr wrapper::impl::org::ortc::RTCCertificate::toWrapper(NativeTypePtr native) noexcept
 {
   if (!native) return RTCCertificatePtr();
 
@@ -112,7 +112,7 @@ wrapper::impl::org::ortc::RTCCertificatePtr wrapper::impl::org::ortc::RTCCertifi
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCCertificate::NativeTypePtr wrapper::impl::org::ortc::RTCCertificate::toNative(wrapper::org::ortc::RTCCertificatePtr wrapper)
+wrapper::impl::org::ortc::RTCCertificate::NativeTypePtr wrapper::impl::org::ortc::RTCCertificate::toNative(wrapper::org::ortc::RTCCertificatePtr wrapper) noexcept
 {
   if (!wrapper) return NativeTypePtr();
   return std::dynamic_pointer_cast<RTCCertificate>(wrapper)->native_;

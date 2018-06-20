@@ -16,15 +16,15 @@ namespace wrapper {
           JsonWeakPtr thisWeak_;
           zsLib::XML::ElementPtr native_;
 
-          Json();
-          virtual ~Json();
+          Json() noexcept;
+          virtual ~Json() noexcept;
 
           // methods Json
-          virtual void wrapper_init_org_ortc_Json(String jsonString) override;
-          virtual String toString() override;
+          virtual void wrapper_init_org_ortc_Json(String jsonString) noexcept override;
+          virtual String toString() noexcept override;
 
-          static JsonPtr toWrapper(zsLib::XML::ElementPtr rootEl);
-          static zsLib::XML::ElementPtr toNative(wrapper::org::ortc::JsonPtr wrapper);
+          static JsonPtr toWrapper(zsLib::XML::ElementPtr rootEl) noexcept;
+          static zsLib::XML::ElementPtr toNative(wrapper::org::ortc::JsonPtr wrapper) noexcept;
         };
 
       } // ortc

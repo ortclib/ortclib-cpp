@@ -26,46 +26,46 @@ namespace wrapper {
           bool defaultSubscription_{ true };
           NativeTypeSubscriptionPtr subscription_;
 
-          RTCDtlsTransport();
-          virtual ~RTCDtlsTransport();
+          RTCDtlsTransport() noexcept;
+          virtual ~RTCDtlsTransport() noexcept;
 
           // methods RTCStatsProvider
-          virtual shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) override;
+          shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept override;
 
           // methods RTCDtlsTransport
-          virtual void wrapper_init_org_ortc_RTCDtlsTransport(
+          void wrapper_init_org_ortc_RTCDtlsTransport(
             wrapper::org::ortc::RTCIceTransportPtr iceTransport,
             shared_ptr< list< wrapper::org::ortc::RTCCertificatePtr > > certificates
-            ) override;
-          virtual wrapper::org::ortc::RTCDtlsParametersPtr remoteParameters() override;
-          virtual shared_ptr< list< wrapper::org::ortc::RTCDtlsCertificateBinaryPtr > > getRemoteCertificates() override;
-          virtual void start(wrapper::org::ortc::RTCDtlsParametersPtr remoteParameters) override;
-          virtual void stop() override;
+            ) noexcept override;
+          wrapper::org::ortc::RTCDtlsParametersPtr remoteParameters() noexcept override;
+          shared_ptr< list< wrapper::org::ortc::RTCDtlsCertificateBinaryPtr > > getRemoteCertificates() noexcept override;
+          void start(wrapper::org::ortc::RTCDtlsParametersPtr remoteParameters) noexcept override;
+          void stop() noexcept override;
 
           // properties RTCDtlsTransport
-          virtual uint64_t get_objectId() override;
-          virtual shared_ptr< list< wrapper::org::ortc::RTCCertificatePtr > > get_certificates() override;
-          virtual wrapper::org::ortc::RTCIceTransportPtr get_transport() override;
-          virtual wrapper::org::ortc::RTCDtlsTransportState get_state() override;
-          virtual wrapper::org::ortc::RTCDtlsParametersPtr get_localParameters() override;
+          uint64_t get_objectId() noexcept override;
+          shared_ptr< list< wrapper::org::ortc::RTCCertificatePtr > > get_certificates() noexcept override;
+          wrapper::org::ortc::RTCIceTransportPtr get_transport() noexcept override;
+          wrapper::org::ortc::RTCDtlsTransportState get_state() noexcept override;
+          wrapper::org::ortc::RTCDtlsParametersPtr get_localParameters() noexcept override;
 
-          virtual void wrapper_onObserverCountChanged(size_t count) override;
+          void wrapper_onObserverCountChanged(size_t count) noexcept override;
 
           // IDTLSTransportDelegate
-          virtual void onDTLSTransportStateChange(
+          void onDTLSTransportStateChange(
             IDTLSTransportPtr transport,
             IDTLSTransport::States state
-          ) override;
+          ) noexcept override;
 
-          virtual void onDTLSTransportError(
+          void onDTLSTransportError(
             IDTLSTransportPtr transport,
             ::ortc::ErrorAnyPtr error
-          ) override;
+          ) noexcept override;
 
-          static WrapperImplTypePtr toWrapper(NativeTypePtr track);
-          static NativeTypePtr toNative(WrapperTypePtr wrapper);
+          static WrapperImplTypePtr toWrapper(NativeTypePtr track) noexcept;
+          static NativeTypePtr toNative(WrapperTypePtr wrapper) noexcept;
 
-          void subscribe();
+          void subscribe() noexcept;
         };
 
       } // ortc

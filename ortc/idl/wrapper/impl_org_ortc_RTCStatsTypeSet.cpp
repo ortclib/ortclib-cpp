@@ -21,12 +21,12 @@ using ::std::set;
 using ::std::map;
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCStatsTypeSet::RTCStatsTypeSet()
+wrapper::impl::org::ortc::RTCStatsTypeSet::RTCStatsTypeSet() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCStatsTypeSetPtr wrapper::org::ortc::RTCStatsTypeSet::wrapper_create()
+wrapper::org::ortc::RTCStatsTypeSetPtr wrapper::org::ortc::RTCStatsTypeSet::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::RTCStatsTypeSet>();
   pThis->thisWeak_ = pThis;
@@ -35,17 +35,17 @@ wrapper::org::ortc::RTCStatsTypeSetPtr wrapper::org::ortc::RTCStatsTypeSet::wrap
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCStatsTypeSet::~RTCStatsTypeSet()
+wrapper::impl::org::ortc::RTCStatsTypeSet::~RTCStatsTypeSet() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCStatsTypeSet::wrapper_init_org_ortc_RTCStatsTypeSet()
+void wrapper::impl::org::ortc::RTCStatsTypeSet::wrapper_init_org_ortc_RTCStatsTypeSet() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCStatsTypeSet::wrapper_init_org_ortc_RTCStatsTypeSet(shared_ptr< set< wrapper::org::ortc::RTCStatsType > > values)
+void wrapper::impl::org::ortc::RTCStatsTypeSet::wrapper_init_org_ortc_RTCStatsTypeSet(shared_ptr< set< wrapper::org::ortc::RTCStatsType > > values) noexcept
 {
   if (!values) return;
   for (auto iter = values->begin(); iter != values->end(); ++iter)
@@ -56,13 +56,13 @@ void wrapper::impl::org::ortc::RTCStatsTypeSet::wrapper_init_org_ortc_RTCStatsTy
 }
 
 //------------------------------------------------------------------------------
-bool wrapper::impl::org::ortc::RTCStatsTypeSet::hasStatType(wrapper::org::ortc::RTCStatsType type)
+bool wrapper::impl::org::ortc::RTCStatsTypeSet::hasStatType(wrapper::org::ortc::RTCStatsType type) noexcept
 {
   return native_->hasStatType(Helper::toNative(type));
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCStatsTypeSetPtr wrapper::impl::org::ortc::RTCStatsTypeSet::toWrapper(NativeStatsTypeSetPtr native)
+wrapper::impl::org::ortc::RTCStatsTypeSetPtr wrapper::impl::org::ortc::RTCStatsTypeSet::toWrapper(NativeStatsTypeSetPtr native) noexcept
 {
   if (!native) return RTCStatsTypeSetPtr();
 
@@ -73,7 +73,7 @@ wrapper::impl::org::ortc::RTCStatsTypeSetPtr wrapper::impl::org::ortc::RTCStatsT
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCStatsTypeSet::NativeStatsTypeSetPtr wrapper::impl::org::ortc::RTCStatsTypeSet::toNative(wrapper::org::ortc::RTCStatsTypeSetPtr wrapper)
+wrapper::impl::org::ortc::RTCStatsTypeSet::NativeStatsTypeSetPtr wrapper::impl::org::ortc::RTCStatsTypeSet::toNative(wrapper::org::ortc::RTCStatsTypeSetPtr wrapper) noexcept
 {
   if (!wrapper) return NativeStatsTypeSetPtr();
   return std::dynamic_pointer_cast<wrapper::impl::org::ortc::RTCStatsTypeSet>(wrapper)->native_;

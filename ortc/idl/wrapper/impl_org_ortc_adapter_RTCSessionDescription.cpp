@@ -33,12 +33,12 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::adapter::RTCSessionDescription:
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::adapter::RTCSessionDescription::WrapperType, WrapperType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::adapter::RTCSessionDescription::RTCSessionDescription()
+wrapper::impl::org::ortc::adapter::RTCSessionDescription::RTCSessionDescription() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::adapter::RTCSessionDescriptionPtr wrapper::org::ortc::adapter::RTCSessionDescription::wrapper_create()
+wrapper::org::ortc::adapter::RTCSessionDescriptionPtr wrapper::org::ortc::adapter::RTCSessionDescription::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::adapter::RTCSessionDescription>();
   pThis->thisWeak_ = pThis;
@@ -46,7 +46,7 @@ wrapper::org::ortc::adapter::RTCSessionDescriptionPtr wrapper::org::ortc::adapte
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::adapter::RTCSessionDescription::~RTCSessionDescription()
+wrapper::impl::org::ortc::adapter::RTCSessionDescription::~RTCSessionDescription() noexcept
 {
 }
 
@@ -54,7 +54,7 @@ wrapper::impl::org::ortc::adapter::RTCSessionDescription::~RTCSessionDescription
 void wrapper::impl::org::ortc::adapter::RTCSessionDescription::wrapper_init_org_ortc_adapter_RTCSessionDescription(
   wrapper::org::ortc::adapter::RTCSessionDescriptionSignalingType type,
   String description
-  )
+  ) noexcept
 {
   native_ = NativeType::create(Helper::toNative(type), description);
 }
@@ -63,15 +63,15 @@ void wrapper::impl::org::ortc::adapter::RTCSessionDescription::wrapper_init_org_
 void wrapper::impl::org::ortc::adapter::RTCSessionDescription::wrapper_init_org_ortc_adapter_RTCSessionDescription(
   wrapper::org::ortc::adapter::RTCSessionDescriptionSignalingType type,
   wrapper::org::ortc::adapter::RTCSessionDescriptionDescriptionPtr description
-  )
+  ) noexcept
 {
   auto wrapperDescription = RTCSessionDescriptionDescription::toNative(description);
-  ZS_THROW_INVALID_ARGUMENT_IF(!wrapperDescription);
+  ZS_ASSERT(wrapperDescription);
   native_ = NativeType::create(Helper::toNative(type), *wrapperDescription);
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCRtpParametersPtr wrapper::org::ortc::adapter::RTCSessionDescription::convertCapabilitiesToParameters(wrapper::org::ortc::RTCRtpCapabilitiesPtr capabilitites)
+wrapper::org::ortc::RTCRtpParametersPtr wrapper::org::ortc::adapter::RTCSessionDescription::convertCapabilitiesToParameters(wrapper::org::ortc::RTCRtpCapabilitiesPtr capabilitites) noexcept
 {
   auto native = wrapper::impl::org::ortc::RTCRtpCapabilities::toNative(capabilitites);
   if (!native) return RTCRtpParametersPtr();
@@ -81,7 +81,7 @@ wrapper::org::ortc::RTCRtpParametersPtr wrapper::org::ortc::adapter::RTCSessionD
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCRtpCapabilitiesPtr wrapper::org::ortc::adapter::RTCSessionDescription::ConvertParametersToCapabilitites(wrapper::org::ortc::RTCRtpParametersPtr parameters)
+wrapper::org::ortc::RTCRtpCapabilitiesPtr wrapper::org::ortc::adapter::RTCSessionDescription::ConvertParametersToCapabilitites(wrapper::org::ortc::RTCRtpParametersPtr parameters) noexcept
 {
   auto native = wrapper::impl::org::ortc::RTCRtpParameters::toNative(parameters);
   if (!native) return RTCRtpCapabilitiesPtr();
@@ -91,22 +91,22 @@ wrapper::org::ortc::RTCRtpCapabilitiesPtr wrapper::org::ortc::adapter::RTCSessio
 }
 
 //------------------------------------------------------------------------------
-uint64_t wrapper::impl::org::ortc::adapter::RTCSessionDescription::get_objectId()
+uint64_t wrapper::impl::org::ortc::adapter::RTCSessionDescription::get_objectId() noexcept
 {
   return native_->getID();
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::adapter::RTCSessionDescriptionSignalingType wrapper::impl::org::ortc::adapter::RTCSessionDescription::get_type()
+wrapper::org::ortc::adapter::RTCSessionDescriptionSignalingType wrapper::impl::org::ortc::adapter::RTCSessionDescription::get_type() noexcept
 {
   return Helper::toWrapper(native_->type());
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::adapter::RTCSdpType wrapper::impl::org::ortc::adapter::RTCSessionDescription::get_sdpType()
+wrapper::org::ortc::adapter::RTCSdpType wrapper::impl::org::ortc::adapter::RTCSessionDescription::get_sdpType() noexcept
 {
   auto type = native_->type();
-  ZS_THROW_NOT_IMPLEMENTED_IF(NativeType::SignalingType_JSON == type);
+  ZS_ASSERT_MESSAGE(NativeType::SignalingType_JSON != type, "JSON based signaling is not supported in the adapter");
 
   switch (type)
   {
@@ -122,37 +122,37 @@ wrapper::org::ortc::adapter::RTCSdpType wrapper::impl::org::ortc::adapter::RTCSe
 }
 
 //------------------------------------------------------------------------------
-bool wrapper::impl::org::ortc::adapter::RTCSessionDescription::get_isJsonSignalling()
+bool wrapper::impl::org::ortc::adapter::RTCSessionDescription::get_isJsonSignalling() noexcept
 {
   return NativeType::SignalingType_JSON == native_->type();
 }
 
 //------------------------------------------------------------------------------
-bool wrapper::impl::org::ortc::adapter::RTCSessionDescription::get_isSdpSignaling()
+bool wrapper::impl::org::ortc::adapter::RTCSessionDescription::get_isSdpSignaling() noexcept
 {
   return NativeType::SignalingType_JSON != native_->type();
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::adapter::RTCSessionDescriptionDescriptionPtr wrapper::impl::org::ortc::adapter::RTCSessionDescription::get_description()
+wrapper::org::ortc::adapter::RTCSessionDescriptionDescriptionPtr wrapper::impl::org::ortc::adapter::RTCSessionDescription::get_description() noexcept
 {
   return RTCSessionDescriptionDescription::toWrapper(native_->description());
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::ortc::adapter::RTCSessionDescription::get_formattedDescription()
+String wrapper::impl::org::ortc::adapter::RTCSessionDescription::get_formattedDescription() noexcept
 {
   return native_->formattedDescription();
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::ortc::adapter::RTCSessionDescription::get_sdp()
+String wrapper::impl::org::ortc::adapter::RTCSessionDescription::get_sdp() noexcept
 {
   return native_->formattedDescription();
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr native)
+WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr native) noexcept
 {
   if (!native) return WrapperImplTypePtr();
 
@@ -163,7 +163,7 @@ WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr native)
 }
 
 //------------------------------------------------------------------------------
-NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper)
+NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper) noexcept
 {
   if (!wrapper) return NativeTypePtr();
 

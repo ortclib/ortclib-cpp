@@ -18,19 +18,19 @@ namespace wrapper {
           ZS_DECLARE_TYPEDEF_PTR(wrapper::org::ortc::RTCRtpParameters, WrapperType);
           RTCRtpParametersWeakPtr thisWeak_;
 
-          RTCRtpParameters();
-          virtual ~RTCRtpParameters();
+          RTCRtpParameters() noexcept;
+          virtual ~RTCRtpParameters() noexcept;
 
           // methods RTCRtpParameters
-          virtual void wrapper_init_org_ortc_RTCRtpParameters() override;
-          virtual void wrapper_init_org_ortc_RTCRtpParameters(wrapper::org::ortc::RTCRtpParametersPtr source) override;
-          virtual void wrapper_init_org_ortc_RTCRtpParameters(wrapper::org::ortc::JsonPtr json) override;
-          virtual wrapper::org::ortc::JsonPtr toJson() override;
-          virtual String hash() override;
+          virtual void wrapper_init_org_ortc_RTCRtpParameters() noexcept override;
+          virtual void wrapper_init_org_ortc_RTCRtpParameters(wrapper::org::ortc::RTCRtpParametersPtr source) noexcept override;
+          virtual void wrapper_init_org_ortc_RTCRtpParameters(wrapper::org::ortc::JsonPtr json) noexcept override;
+          virtual wrapper::org::ortc::JsonPtr toJson() noexcept override;
+          virtual String hash() noexcept override;
 
-          static WrapperImplTypePtr toWrapper(NativeTypePtr native);
-          static WrapperImplTypePtr toWrapper(const NativeType &native);
-          static NativeTypePtr toNative(WrapperTypePtr wrapper);
+          static WrapperImplTypePtr toWrapper(NativeTypePtr native) noexcept;
+          static WrapperImplTypePtr toWrapper(const NativeType &native) noexcept;
+          static NativeTypePtr toNative(WrapperTypePtr wrapper) noexcept;
         };
 
       } // ortc

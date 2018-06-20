@@ -24,12 +24,12 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCIceGathererStateChangeEvent:
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCIceGathererStateChangeEvent::WrapperType, WrapperType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCIceGathererStateChangeEvent::RTCIceGathererStateChangeEvent()
+wrapper::impl::org::ortc::RTCIceGathererStateChangeEvent::RTCIceGathererStateChangeEvent() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCIceGathererStateChangeEventPtr wrapper::org::ortc::RTCIceGathererStateChangeEvent::wrapper_create()
+wrapper::org::ortc::RTCIceGathererStateChangeEventPtr wrapper::org::ortc::RTCIceGathererStateChangeEvent::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::RTCIceGathererStateChangeEvent>();
   pThis->thisWeak_ = pThis;
@@ -37,18 +37,18 @@ wrapper::org::ortc::RTCIceGathererStateChangeEventPtr wrapper::org::ortc::RTCIce
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCIceGathererStateChangeEvent::~RTCIceGathererStateChangeEvent()
+wrapper::impl::org::ortc::RTCIceGathererStateChangeEvent::~RTCIceGathererStateChangeEvent() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCIceGathererState wrapper::impl::org::ortc::RTCIceGathererStateChangeEvent::get_state()
+wrapper::org::ortc::RTCIceGathererState wrapper::impl::org::ortc::RTCIceGathererStateChangeEvent::get_state() noexcept
 {
   return Helper::toWrapper(state_);
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(::ortc::IICEGathererTypes::States state)
+WrapperImplTypePtr WrapperImplType::toWrapper(::ortc::IICEGathererTypes::States state) noexcept
 {
   auto pThis = make_shared<WrapperImplType>();
   pThis->thisWeak_ = pThis;

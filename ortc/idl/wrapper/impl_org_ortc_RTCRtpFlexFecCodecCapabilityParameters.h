@@ -18,20 +18,20 @@ namespace wrapper {
           ZS_DECLARE_TYPEDEF_PTR(wrapper::org::ortc::RTCRtpFlexFecCodecCapabilityParameters, WrapperType);
           RTCRtpFlexFecCodecCapabilityParametersWeakPtr thisWeak_;
 
-          RTCRtpFlexFecCodecCapabilityParameters();
-          virtual ~RTCRtpFlexFecCodecCapabilityParameters();
+          RTCRtpFlexFecCodecCapabilityParameters() noexcept;
+          virtual ~RTCRtpFlexFecCodecCapabilityParameters() noexcept;
 
           // methods RTCRtpFlexFecCodecCapabilityParameters
-          virtual void wrapper_init_org_ortc_RTCRtpFlexFecCodecCapabilityParameters() override;
-          virtual void wrapper_init_org_ortc_RTCRtpFlexFecCodecCapabilityParameters(wrapper::org::ortc::RTCRtpFlexFecCodecCapabilityParametersPtr source) override;
-          virtual void wrapper_init_org_ortc_RTCRtpFlexFecCodecCapabilityParameters(wrapper::org::ortc::JsonPtr json) override;
-          virtual wrapper::org::ortc::JsonPtr toJson() override;
-          virtual String hash() override;
+          virtual void wrapper_init_org_ortc_RTCRtpFlexFecCodecCapabilityParameters() noexcept override;
+          virtual void wrapper_init_org_ortc_RTCRtpFlexFecCodecCapabilityParameters(wrapper::org::ortc::RTCRtpFlexFecCodecCapabilityParametersPtr source) noexcept override;
+          virtual void wrapper_init_org_ortc_RTCRtpFlexFecCodecCapabilityParameters(wrapper::org::ortc::JsonPtr json) noexcept override;
+          virtual wrapper::org::ortc::JsonPtr toJson() noexcept override;
+          virtual String hash() noexcept override;
 
-          static WrapperImplTypePtr toWrapper(AnyPtr native);
-          static WrapperImplTypePtr toWrapper(NativeTypePtr native);
-          static WrapperImplTypePtr toWrapper(const NativeType &native);
-          static NativeTypePtr toNative(WrapperTypePtr wrapper);
+          static WrapperImplTypePtr toWrapper(AnyPtr native) noexcept;
+          static WrapperImplTypePtr toWrapper(NativeTypePtr native) noexcept;
+          static WrapperImplTypePtr toWrapper(const NativeType &native) noexcept;
+          static NativeTypePtr toNative(WrapperTypePtr wrapper) noexcept;
         };
 
       } // ortc

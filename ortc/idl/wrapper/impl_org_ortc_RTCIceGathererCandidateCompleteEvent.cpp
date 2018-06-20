@@ -24,12 +24,12 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCIceGathererCandidateComplete
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCIceGathererCandidateCompleteEvent::WrapperType, WrapperType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCIceGathererCandidateCompleteEvent::RTCIceGathererCandidateCompleteEvent()
+wrapper::impl::org::ortc::RTCIceGathererCandidateCompleteEvent::RTCIceGathererCandidateCompleteEvent() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCIceGathererCandidateCompleteEventPtr wrapper::org::ortc::RTCIceGathererCandidateCompleteEvent::wrapper_create()
+wrapper::org::ortc::RTCIceGathererCandidateCompleteEventPtr wrapper::org::ortc::RTCIceGathererCandidateCompleteEvent::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::RTCIceGathererCandidateCompleteEvent>();
   pThis->thisWeak_ = pThis;
@@ -37,18 +37,18 @@ wrapper::org::ortc::RTCIceGathererCandidateCompleteEventPtr wrapper::org::ortc::
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCIceGathererCandidateCompleteEvent::~RTCIceGathererCandidateCompleteEvent()
+wrapper::impl::org::ortc::RTCIceGathererCandidateCompleteEvent::~RTCIceGathererCandidateCompleteEvent() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCIceCandidateCompletePtr wrapper::impl::org::ortc::RTCIceGathererCandidateCompleteEvent::get_candidate()
+wrapper::org::ortc::RTCIceCandidateCompletePtr wrapper::impl::org::ortc::RTCIceGathererCandidateCompleteEvent::get_candidate() noexcept
 {
   return candidate_;
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(::ortc::IICEGathererTypes::CandidateCompletePtr candidate)
+WrapperImplTypePtr WrapperImplType::toWrapper(::ortc::IICEGathererTypes::CandidateCompletePtr candidate) noexcept
 {
   auto pThis = make_shared<WrapperImplType>();
   pThis->thisWeak_ = pThis;

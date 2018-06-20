@@ -19,19 +19,19 @@ namespace wrapper {
             ZS_DECLARE_TYPEDEF_PTR(wrapper::org::ortc::adapter::RTCSessionDescriptionTransport, WrapperType);
             RTCSessionDescriptionTransportWeakPtr thisWeak_;
 
-            RTCSessionDescriptionTransport();
-            virtual ~RTCSessionDescriptionTransport();
+            RTCSessionDescriptionTransport() noexcept;
+            virtual ~RTCSessionDescriptionTransport() noexcept;
 
             // methods RTCSessionDescriptionTransport
-            virtual void wrapper_init_org_ortc_adapter_RTCSessionDescriptionTransport() override;
-            virtual void wrapper_init_org_ortc_adapter_RTCSessionDescriptionTransport(wrapper::org::ortc::adapter::RTCSessionDescriptionTransportPtr source) override;
-            virtual void wrapper_init_org_ortc_adapter_RTCSessionDescriptionTransport(wrapper::org::ortc::JsonPtr json) override;
-            virtual wrapper::org::ortc::JsonPtr toJson() override;
-            virtual String hash() override;
+            virtual void wrapper_init_org_ortc_adapter_RTCSessionDescriptionTransport() noexcept override;
+            virtual void wrapper_init_org_ortc_adapter_RTCSessionDescriptionTransport(wrapper::org::ortc::adapter::RTCSessionDescriptionTransportPtr source) noexcept override;
+            virtual void wrapper_init_org_ortc_adapter_RTCSessionDescriptionTransport(wrapper::org::ortc::JsonPtr json) noexcept override;
+            virtual wrapper::org::ortc::JsonPtr toJson() noexcept override;
+            virtual String hash() noexcept override;
 
-            static WrapperImplTypePtr toWrapper(NativeTypePtr native);
-            static WrapperImplTypePtr toWrapper(const NativeType &native);
-            static NativeTypePtr toNative(WrapperTypePtr wrapper);
+            static WrapperImplTypePtr toWrapper(NativeTypePtr native) noexcept;
+            static WrapperImplTypePtr toWrapper(const NativeType &native) noexcept;
+            static NativeTypePtr toNative(WrapperTypePtr wrapper) noexcept;
           };
 
         } // adapter

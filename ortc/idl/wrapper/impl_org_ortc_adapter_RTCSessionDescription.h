@@ -20,31 +20,31 @@ namespace wrapper {
             RTCSessionDescriptionWeakPtr thisWeak_;
             NativeTypePtr native_;
 
-            RTCSessionDescription();
-            virtual ~RTCSessionDescription();
+            RTCSessionDescription() noexcept;
+            virtual ~RTCSessionDescription() noexcept;
 
             // methods RTCSessionDescription
             virtual void wrapper_init_org_ortc_adapter_RTCSessionDescription(
               wrapper::org::ortc::adapter::RTCSessionDescriptionSignalingType type,
               String description
-              ) override;
+              ) noexcept override;
             virtual void wrapper_init_org_ortc_adapter_RTCSessionDescription(
               wrapper::org::ortc::adapter::RTCSessionDescriptionSignalingType type,
               wrapper::org::ortc::adapter::RTCSessionDescriptionDescriptionPtr description
-              ) override;
+              ) noexcept override;
 
             // properties RTCSessionDescription
-            virtual uint64_t get_objectId() override;
-            virtual wrapper::org::ortc::adapter::RTCSessionDescriptionSignalingType get_type() override;
-            virtual wrapper::org::ortc::adapter::RTCSdpType get_sdpType() override;
-            virtual bool get_isJsonSignalling() override;
-            virtual bool get_isSdpSignaling() override;
-            virtual wrapper::org::ortc::adapter::RTCSessionDescriptionDescriptionPtr get_description() override;
-            virtual String get_formattedDescription() override;
-            virtual String get_sdp() override;
+            virtual uint64_t get_objectId() noexcept override;
+            virtual wrapper::org::ortc::adapter::RTCSessionDescriptionSignalingType get_type() noexcept override;
+            virtual wrapper::org::ortc::adapter::RTCSdpType get_sdpType() noexcept override;
+            virtual bool get_isJsonSignalling() noexcept override;
+            virtual bool get_isSdpSignaling() noexcept override;
+            virtual wrapper::org::ortc::adapter::RTCSessionDescriptionDescriptionPtr get_description() noexcept override;
+            virtual String get_formattedDescription() noexcept override;
+            virtual String get_sdp() noexcept override;
 
-            static WrapperImplTypePtr toWrapper(NativeTypePtr native);
-            static NativeTypePtr toNative(WrapperTypePtr wrapper);
+            static WrapperImplTypePtr toWrapper(NativeTypePtr native) noexcept;
+            static NativeTypePtr toNative(WrapperTypePtr wrapper) noexcept;
           };
 
         } // adapter

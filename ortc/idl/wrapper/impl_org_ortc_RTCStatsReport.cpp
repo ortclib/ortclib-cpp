@@ -21,12 +21,12 @@ using ::std::set;
 using ::std::map;
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCStatsReport::RTCStatsReport()
+wrapper::impl::org::ortc::RTCStatsReport::RTCStatsReport() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCStatsReportPtr wrapper::org::ortc::RTCStatsReport::wrapper_create()
+wrapper::org::ortc::RTCStatsReportPtr wrapper::org::ortc::RTCStatsReport::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::RTCStatsReport>();
   pThis->thisWeak_ = pThis;
@@ -34,29 +34,29 @@ wrapper::org::ortc::RTCStatsReportPtr wrapper::org::ortc::RTCStatsReport::wrappe
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCStatsReport::~RTCStatsReport()
+wrapper::impl::org::ortc::RTCStatsReport::~RTCStatsReport() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCStatsPtr wrapper::impl::org::ortc::RTCStatsReport::getStats(String id)
+wrapper::org::ortc::RTCStatsPtr wrapper::impl::org::ortc::RTCStatsReport::getStats(String id) noexcept
 {
   return RTCStats::toWrapper(native_->getStats(id));
 }
 
 //------------------------------------------------------------------------------
-uint64_t wrapper::impl::org::ortc::RTCStatsReport::get_objectId()
+uint64_t wrapper::impl::org::ortc::RTCStatsReport::get_objectId() noexcept
 {
   return native_->getID();
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< list< String > > wrapper::impl::org::ortc::RTCStatsReport::get_statsIds()
+shared_ptr< list< String > > wrapper::impl::org::ortc::RTCStatsReport::get_statsIds() noexcept
 {
   return native_->getStatesIDs();
 }
 
-wrapper::impl::org::ortc::RTCStatsReportPtr wrapper::impl::org::ortc::RTCStatsReport::toWrapper(::ortc::IStatsReportPtr native)
+wrapper::impl::org::ortc::RTCStatsReportPtr wrapper::impl::org::ortc::RTCStatsReport::toWrapper(::ortc::IStatsReportPtr native) noexcept
 {
   if (!native) return RTCStatsReportPtr();
 

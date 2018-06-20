@@ -20,12 +20,12 @@ using ::std::set;
 using ::std::map;
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCIdentityError::RTCIdentityError()
+wrapper::impl::org::ortc::RTCIdentityError::RTCIdentityError() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCIdentityErrorPtr wrapper::org::ortc::RTCIdentityError::wrapper_create()
+wrapper::org::ortc::RTCIdentityErrorPtr wrapper::org::ortc::RTCIdentityError::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::RTCIdentityError>();
   pThis->thisWeak_ = pThis;
@@ -33,25 +33,25 @@ wrapper::org::ortc::RTCIdentityErrorPtr wrapper::org::ortc::RTCIdentityError::wr
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCIdentityError::~RTCIdentityError()
+wrapper::impl::org::ortc::RTCIdentityError::~RTCIdentityError() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCIdentityError::wrapper_init_org_ortc_RTCIdentityError()
+void wrapper::impl::org::ortc::RTCIdentityError::wrapper_init_org_ortc_RTCIdentityError() noexcept
 {
 }
 
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCIdentityErrorPtr wrapper::impl::org::ortc::RTCIdentityError::toWrapper(NativeErrorPtr native)
+wrapper::impl::org::ortc::RTCIdentityErrorPtr wrapper::impl::org::ortc::RTCIdentityError::toWrapper(NativeErrorPtr native) noexcept
 {
   if (!native) return RTCIdentityErrorPtr();
   return toWrapper(*native);
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCIdentityErrorPtr wrapper::impl::org::ortc::RTCIdentityError::toWrapper(const NativeError &native)
+wrapper::impl::org::ortc::RTCIdentityErrorPtr wrapper::impl::org::ortc::RTCIdentityError::toWrapper(const NativeError &native) noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::RTCIdentityError>();
   pThis->thisWeak_ = pThis;
@@ -62,7 +62,7 @@ wrapper::impl::org::ortc::RTCIdentityErrorPtr wrapper::impl::org::ortc::RTCIdent
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCIdentityError::NativeErrorPtr wrapper::impl::org::ortc::RTCIdentityError::toWrapper(wrapper::org::ortc::RTCIdentityErrorPtr wrapper)
+wrapper::impl::org::ortc::RTCIdentityError::NativeErrorPtr wrapper::impl::org::ortc::RTCIdentityError::toWrapper(wrapper::org::ortc::RTCIdentityErrorPtr wrapper) noexcept
 {
   if (!wrapper) return NativeErrorPtr();
 

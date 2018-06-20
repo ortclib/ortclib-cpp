@@ -19,19 +19,19 @@ namespace wrapper {
 
           RTCIceGatherInterfacePolicyWeakPtr thisWeak_;
 
-          RTCIceGatherInterfacePolicy();
-          virtual ~RTCIceGatherInterfacePolicy();
+          RTCIceGatherInterfacePolicy() noexcept;
+          virtual ~RTCIceGatherInterfacePolicy() noexcept;
 
           // methods RTCIceGatherInterfacePolicy
-          virtual void wrapper_init_org_ortc_RTCIceGatherInterfacePolicy() override;
-          virtual void wrapper_init_org_ortc_RTCIceGatherInterfacePolicy(wrapper::org::ortc::RTCIceGatherInterfacePolicyPtr source) override;
-          virtual void wrapper_init_org_ortc_RTCIceGatherInterfacePolicy(wrapper::org::ortc::JsonPtr json) override;
-          virtual wrapper::org::ortc::JsonPtr toJson() override;
-          virtual String hash() override;
+          virtual void wrapper_init_org_ortc_RTCIceGatherInterfacePolicy() noexcept override;
+          virtual void wrapper_init_org_ortc_RTCIceGatherInterfacePolicy(wrapper::org::ortc::RTCIceGatherInterfacePolicyPtr source) noexcept override;
+          virtual void wrapper_init_org_ortc_RTCIceGatherInterfacePolicy(wrapper::org::ortc::JsonPtr json) noexcept override;
+          virtual wrapper::org::ortc::JsonPtr toJson() noexcept override;
+          virtual String hash() noexcept override;
 
-          static WrapperImplTypePtr toWrapper(NativeTypePtr native);
-          static WrapperImplTypePtr toWrapper(const NativeType &native);
-          static NativeTypePtr toNative(WrapperTypePtr wrapper);
+          static WrapperImplTypePtr toWrapper(NativeTypePtr native) noexcept;
+          static WrapperImplTypePtr toWrapper(const NativeType &native) noexcept;
+          static NativeTypePtr toNative(WrapperTypePtr wrapper) noexcept;
         };
 
       } // ortc

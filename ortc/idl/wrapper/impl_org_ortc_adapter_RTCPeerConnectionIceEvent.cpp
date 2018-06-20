@@ -24,12 +24,12 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::adapter::RTCPeerConnectionIceEv
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::adapter::RTCPeerConnectionIceEvent::WrapperType, WrapperType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::adapter::RTCPeerConnectionIceEvent::RTCPeerConnectionIceEvent()
+wrapper::impl::org::ortc::adapter::RTCPeerConnectionIceEvent::RTCPeerConnectionIceEvent() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::adapter::RTCPeerConnectionIceEventPtr wrapper::org::ortc::adapter::RTCPeerConnectionIceEvent::wrapper_create()
+wrapper::org::ortc::adapter::RTCPeerConnectionIceEventPtr wrapper::org::ortc::adapter::RTCPeerConnectionIceEvent::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::adapter::RTCPeerConnectionIceEvent>();
   pThis->thisWeak_ = pThis;
@@ -37,18 +37,18 @@ wrapper::org::ortc::adapter::RTCPeerConnectionIceEventPtr wrapper::org::ortc::ad
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::adapter::RTCPeerConnectionIceEvent::~RTCPeerConnectionIceEvent()
+wrapper::impl::org::ortc::adapter::RTCPeerConnectionIceEvent::~RTCPeerConnectionIceEvent() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::adapter::RTCIceCandidatePtr wrapper::impl::org::ortc::adapter::RTCPeerConnectionIceEvent::get_candidate()
+wrapper::org::ortc::adapter::RTCIceCandidatePtr wrapper::impl::org::ortc::adapter::RTCPeerConnectionIceEvent::get_candidate() noexcept
 {
   return candidate_;
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::ortc::adapter::RTCPeerConnectionIceEvent::get_uri()
+String wrapper::impl::org::ortc::adapter::RTCPeerConnectionIceEvent::get_uri() noexcept
 {
   return uri_;
 }
@@ -58,7 +58,7 @@ String wrapper::impl::org::ortc::adapter::RTCPeerConnectionIceEvent::get_uri()
 WrapperImplTypePtr WrapperImplType::toWrapper(
   ::ortc::adapter::IPeerConnectionTypes::ICECandidatePtr candidate,
   const String &uri
-)
+) noexcept
 {
   auto pThis = make_shared<WrapperImplType>();
   pThis->thisWeak_ = pThis;

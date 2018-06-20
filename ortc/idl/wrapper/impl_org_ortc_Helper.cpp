@@ -22,13 +22,13 @@ namespace wrapper {
         } // namespace adapater
 
         //---------------------------------------------------------------------
-        zsLib::IMessageQueuePtr Helper::getGuiQueue()
+        zsLib::IMessageQueuePtr Helper::getGuiQueue() noexcept
         {
           return zsLib::IMessageQueueThread::singletonUsingCurrentGUIThreadsMessageQueue();
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::log::Level Helper::toWrapper(zsLib::Log::Level level)
+        wrapper::org::ortc::log::Level Helper::toWrapper(zsLib::Log::Level level) noexcept
         {
           switch (level)
           {
@@ -44,7 +44,7 @@ namespace wrapper {
         }
 
         //---------------------------------------------------------------------
-        zsLib::Log::Level Helper::toNative(wrapper::org::ortc::log::Level level)
+        zsLib::Log::Level Helper::toNative(wrapper::org::ortc::log::Level level) noexcept
         {
           switch (level)
           {
@@ -60,7 +60,7 @@ namespace wrapper {
         }
 
         //---------------------------------------------------------------------
-        const char *Helper::toNative(wrapper::org::ortc::log::Component component)
+        const char *Helper::toNative(wrapper::org::ortc::log::Component component) noexcept
         {
           const char *componentStr{};
           switch (component) {
@@ -95,12 +95,12 @@ namespace wrapper {
             case wrapper::org::ortc::log::Component_stats:                   componentStr = "org_ortc_stats"; break;
             case wrapper::org::ortc::log::Component_adapter:                 componentStr = "org_ortc_adapter"; break;
           };
-          ZS_THROW_INVALID_ARGUMENT_IF(!componentStr);
+          ZS_ASSERT(componentStr);
           return componentStr;
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::MediaStreamTrackKind Helper::toWrapper(IMediaStreamTrackTypes::Kinds kind)
+        wrapper::org::ortc::MediaStreamTrackKind Helper::toWrapper(IMediaStreamTrackTypes::Kinds kind) noexcept
         {
           switch (kind)
           {
@@ -112,7 +112,7 @@ namespace wrapper {
         }
 
         //---------------------------------------------------------------------
-        ::ortc::IMediaStreamTrackTypes::Kinds Helper::toNative(wrapper::org::ortc::MediaStreamTrackKind kind)
+        ::ortc::IMediaStreamTrackTypes::Kinds Helper::toNative(wrapper::org::ortc::MediaStreamTrackKind kind) noexcept
         {
           switch (kind)
           {
@@ -124,7 +124,7 @@ namespace wrapper {
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::MediaStreamTrackState Helper::toWrapper(IMediaStreamTrackTypes::States state)
+        wrapper::org::ortc::MediaStreamTrackState Helper::toWrapper(IMediaStreamTrackTypes::States state) noexcept
         {
           switch (state)
           {
@@ -136,7 +136,7 @@ namespace wrapper {
         }
 
         //---------------------------------------------------------------------
-        ::ortc::IMediaDevicesTypes::DeviceKinds Helper::toNative(wrapper::org::ortc::MediaDeviceKind kind)
+        ::ortc::IMediaDevicesTypes::DeviceKinds Helper::toNative(wrapper::org::ortc::MediaDeviceKind kind) noexcept
         {
           switch (kind)
           {
@@ -150,7 +150,7 @@ namespace wrapper {
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::MediaDeviceKind Helper::toWrapper(::ortc::IMediaDevicesTypes::DeviceKinds kind)
+        wrapper::org::ortc::MediaDeviceKind Helper::toWrapper(::ortc::IMediaDevicesTypes::DeviceKinds kind) noexcept
         {
           switch (kind)
           {
@@ -163,7 +163,7 @@ namespace wrapper {
         }
 
         //---------------------------------------------------------------------
-        ::ortc::IStatsReportTypes::StatsTypes Helper::toNative(wrapper::org::ortc::RTCStatsType type)
+        ::ortc::IStatsReportTypes::StatsTypes Helper::toNative(wrapper::org::ortc::RTCStatsType type) noexcept
         {
           switch (type)
           {
@@ -190,7 +190,7 @@ namespace wrapper {
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::RTCStatsType Helper::toWrapper(::ortc::IStatsReportTypes::StatsTypes type)
+        wrapper::org::ortc::RTCStatsType Helper::toWrapper(::ortc::IStatsReportTypes::StatsTypes type) noexcept
         {
           switch (type)
           {
@@ -216,7 +216,7 @@ namespace wrapper {
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::RTCSctpTransportState Helper::toWrapper(::ortc::ISCTPTransportTypes::States state)
+        wrapper::org::ortc::RTCSctpTransportState Helper::toWrapper(::ortc::ISCTPTransportTypes::States state) noexcept
         {
           switch (state)
           {
@@ -230,7 +230,7 @@ namespace wrapper {
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::RTCDataChannelState Helper::toWrapper(::ortc::IDataChannelTypes::States state)
+        wrapper::org::ortc::RTCDataChannelState Helper::toWrapper(::ortc::IDataChannelTypes::States state) noexcept
         {
           switch (state)
           {
@@ -244,7 +244,7 @@ namespace wrapper {
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::RTCIceCandidatePairState Helper::toWrapper(::ortc::IStatsReportTypes::StatsICECandidatePairStates state)
+        wrapper::org::ortc::RTCIceCandidatePairState Helper::toWrapper(::ortc::IStatsReportTypes::StatsICECandidatePairStates state) noexcept
         {
           switch (state)
           {
@@ -260,7 +260,7 @@ namespace wrapper {
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::adapter::RTCPeerConnectionSignalingMode Helper::toWrapper(::ortc::adapter::IPeerConnectionTypes::SignalingModes mode)
+        wrapper::org::ortc::adapter::RTCPeerConnectionSignalingMode Helper::toWrapper(::ortc::adapter::IPeerConnectionTypes::SignalingModes mode) noexcept
         {
           switch (mode)
           {
@@ -272,7 +272,7 @@ namespace wrapper {
         }
 
         //---------------------------------------------------------------------
-        ::ortc::adapter::IPeerConnectionTypes::SignalingModes Helper::toNative(wrapper::org::ortc::adapter::RTCPeerConnectionSignalingMode mode)
+        ::ortc::adapter::IPeerConnectionTypes::SignalingModes Helper::toNative(wrapper::org::ortc::adapter::RTCPeerConnectionSignalingMode mode) noexcept
         {
           switch (mode)
           {
@@ -284,7 +284,7 @@ namespace wrapper {
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::adapter::RTCRtcpMuxPolicy Helper::toWrapper(::ortc::adapter::IPeerConnectionTypes::RTCPMuxPolicies policy)
+        wrapper::org::ortc::adapter::RTCRtcpMuxPolicy Helper::toWrapper(::ortc::adapter::IPeerConnectionTypes::RTCPMuxPolicies policy) noexcept
         {
           switch (policy)
           {
@@ -296,7 +296,7 @@ namespace wrapper {
         }
 
         //---------------------------------------------------------------------
-        ::ortc::adapter::IPeerConnectionTypes::RTCPMuxPolicies Helper::toNative(wrapper::org::ortc::adapter::RTCRtcpMuxPolicy policy)
+        ::ortc::adapter::IPeerConnectionTypes::RTCPMuxPolicies Helper::toNative(wrapper::org::ortc::adapter::RTCRtcpMuxPolicy policy) noexcept
         {
           switch (policy)
           {
@@ -308,7 +308,7 @@ namespace wrapper {
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::adapter::RTCBundlePolicy Helper::toWrapper(::ortc::adapter::IPeerConnectionTypes::BundlePolicies policy)
+        wrapper::org::ortc::adapter::RTCBundlePolicy Helper::toWrapper(::ortc::adapter::IPeerConnectionTypes::BundlePolicies policy) noexcept
         {
           switch (policy)
           {
@@ -321,7 +321,7 @@ namespace wrapper {
         }
 
         //---------------------------------------------------------------------
-        ::ortc::adapter::IPeerConnectionTypes::BundlePolicies Helper::toNative(wrapper::org::ortc::adapter::RTCBundlePolicy policy)
+        ::ortc::adapter::IPeerConnectionTypes::BundlePolicies Helper::toNative(wrapper::org::ortc::adapter::RTCBundlePolicy policy) noexcept
         {
           switch (policy)
           {
@@ -334,7 +334,7 @@ namespace wrapper {
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::adapter::RTCSignalingState Helper::toWrapper(::ortc::adapter::IPeerConnectionTypes::SignalingStates state)
+        wrapper::org::ortc::adapter::RTCSignalingState Helper::toWrapper(::ortc::adapter::IPeerConnectionTypes::SignalingStates state) noexcept
         {
           switch (state)
           {
@@ -350,7 +350,7 @@ namespace wrapper {
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::adapter::RTCIceConnectionState Helper::toPeerConnectionWrapper(::ortc::IICETransportTypes::States state)
+        wrapper::org::ortc::adapter::RTCIceConnectionState Helper::toPeerConnectionWrapper(::ortc::IICETransportTypes::States state) noexcept
         {
          switch (state)
           {
@@ -367,7 +367,7 @@ namespace wrapper {
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::adapter::RTCPeerConnectionState Helper::toWrapper(::ortc::adapter::IPeerConnectionTypes::PeerConnectionStates state)
+        wrapper::org::ortc::adapter::RTCPeerConnectionState Helper::toWrapper(::ortc::adapter::IPeerConnectionTypes::PeerConnectionStates state) noexcept
         {
           switch (state)
           {
@@ -383,19 +383,19 @@ namespace wrapper {
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::RTCIceGatherFilterPolicy Helper::toWrapper(::ortc::IICEGathererTypes::FilterPolicies policy)
+        wrapper::org::ortc::RTCIceGatherFilterPolicy Helper::toWrapper(::ortc::IICEGathererTypes::FilterPolicies policy) noexcept
         {
           return static_cast<wrapper::org::ortc::RTCIceGatherFilterPolicy>(static_cast<std::underlying_type<::ortc::IICEGathererTypes::FilterPolicies>::type>(policy));
         }
 
         //---------------------------------------------------------------------
-        ::ortc::IICEGathererTypes::FilterPolicies Helper::toNative(wrapper::org::ortc::RTCIceGatherFilterPolicy policy)
+        ::ortc::IICEGathererTypes::FilterPolicies Helper::toNative(wrapper::org::ortc::RTCIceGatherFilterPolicy policy) noexcept
         {
           return static_cast<::ortc::IICEGathererTypes::FilterPolicies>(static_cast<std::underlying_type<wrapper::org::ortc::RTCIceGatherFilterPolicy>::type>(policy));
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::RTCIceCredentialType Helper::toWrapper(::ortc::IICEGathererTypes::CredentialTypes type)
+        wrapper::org::ortc::RTCIceCredentialType Helper::toWrapper(::ortc::IICEGathererTypes::CredentialTypes type) noexcept
         {
           switch (type)
           {
@@ -407,7 +407,7 @@ namespace wrapper {
         }
 
         //---------------------------------------------------------------------
-        ::ortc::IICEGathererTypes::CredentialTypes Helper::toNative(wrapper::org::ortc::RTCIceCredentialType type)
+        ::ortc::IICEGathererTypes::CredentialTypes Helper::toNative(wrapper::org::ortc::RTCIceCredentialType type) noexcept
         {
           switch (type)
           {
@@ -419,7 +419,7 @@ namespace wrapper {
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::RTCIceGathererState Helper::toWrapper(::ortc::IICEGathererTypes::States state)
+        wrapper::org::ortc::RTCIceGathererState Helper::toWrapper(::ortc::IICEGathererTypes::States state) noexcept
         {
           switch (state)
           {
@@ -433,7 +433,7 @@ namespace wrapper {
         }
 
         //---------------------------------------------------------------------
-        ::ortc::IICEGathererTypes::States Helper::toNative(wrapper::org::ortc::RTCIceGathererState state)
+        ::ortc::IICEGathererTypes::States Helper::toNative(wrapper::org::ortc::RTCIceGathererState state) noexcept
         {
           switch (state)
           {
@@ -447,7 +447,7 @@ namespace wrapper {
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::RTCIceCandidateType Helper::toWrapper(::ortc::IICETypes::CandidateTypes type)
+        wrapper::org::ortc::RTCIceCandidateType Helper::toWrapper(::ortc::IICETypes::CandidateTypes type) noexcept
         {
           switch (type)
           {
@@ -461,7 +461,7 @@ namespace wrapper {
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::RTCIceComponent Helper::toWrapper(::ortc::IICETypes::Components component)
+        wrapper::org::ortc::RTCIceComponent Helper::toWrapper(::ortc::IICETypes::Components component) noexcept
         {
           switch (component)
           {
@@ -473,7 +473,7 @@ namespace wrapper {
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::RTCIceProtocol Helper::toWrapper(::ortc::IICETypes::Protocols protocol)
+        wrapper::org::ortc::RTCIceProtocol Helper::toWrapper(::ortc::IICETypes::Protocols protocol) noexcept
         {
           switch (protocol)
           {
@@ -485,7 +485,7 @@ namespace wrapper {
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::RTCIceTcpCandidateType Helper::toWrapper(::ortc::IICETypes::TCPCandidateTypes type)
+        wrapper::org::ortc::RTCIceTcpCandidateType Helper::toWrapper(::ortc::IICETypes::TCPCandidateTypes type) noexcept
         {
           switch (type)
           {
@@ -498,7 +498,7 @@ namespace wrapper {
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::RTCIceTransportState Helper::toWrapper(::ortc::IICETransportTypes::States state)
+        wrapper::org::ortc::RTCIceTransportState Helper::toWrapper(::ortc::IICETransportTypes::States state) noexcept
         {
           switch (state)
           {
@@ -515,7 +515,7 @@ namespace wrapper {
         }
 
         //---------------------------------------------------------------------
-        ::ortc::IICETransportTypes::States Helper::toNative(wrapper::org::ortc::RTCIceTransportState state)
+        ::ortc::IICETransportTypes::States Helper::toNative(wrapper::org::ortc::RTCIceTransportState state) noexcept
         {
           switch (state)
           {
@@ -532,7 +532,7 @@ namespace wrapper {
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::RTCIceRole Helper::toWrapper(::ortc::IICETypes::Roles role)
+        wrapper::org::ortc::RTCIceRole Helper::toWrapper(::ortc::IICETypes::Roles role) noexcept
         {
           switch (role)
           {
@@ -544,7 +544,7 @@ namespace wrapper {
         }
 
         //---------------------------------------------------------------------
-        ::ortc::IICETypes::Roles Helper::toNative(wrapper::org::ortc::RTCIceRole role)
+        ::ortc::IICETypes::Roles Helper::toNative(wrapper::org::ortc::RTCIceRole role) noexcept
         {
           switch (role)
           {
@@ -556,7 +556,7 @@ namespace wrapper {
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::RTCRtpOpusCodecCapabilityOptionsSignal Helper::toWrapper(::ortc::IRTPTypes::OpusCodecCapabilityOptions::Signals signal)
+        wrapper::org::ortc::RTCRtpOpusCodecCapabilityOptionsSignal Helper::toWrapper(::ortc::IRTPTypes::OpusCodecCapabilityOptions::Signals signal) noexcept
         {
           switch (signal)
           {
@@ -569,7 +569,7 @@ namespace wrapper {
         }
 
         //---------------------------------------------------------------------
-        ::ortc::IRTPTypes::OpusCodecCapabilityOptions::Signals Helper::toNative(wrapper::org::ortc::RTCRtpOpusCodecCapabilityOptionsSignal signal)
+        ::ortc::IRTPTypes::OpusCodecCapabilityOptions::Signals Helper::toNative(wrapper::org::ortc::RTCRtpOpusCodecCapabilityOptionsSignal signal) noexcept
         {
           switch (signal)
           {
@@ -582,7 +582,7 @@ namespace wrapper {
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::RTCRtpOpusCodecCapabilityOptionsApplication Helper::toWrapper(::ortc::IRTPTypes::OpusCodecCapabilityOptions::Applications application)
+        wrapper::org::ortc::RTCRtpOpusCodecCapabilityOptionsApplication Helper::toWrapper(::ortc::IRTPTypes::OpusCodecCapabilityOptions::Applications application) noexcept
         {
           switch (application)
           {
@@ -595,7 +595,7 @@ namespace wrapper {
         }
 
         //---------------------------------------------------------------------
-        ::ortc::IRTPTypes::OpusCodecCapabilityOptions::Applications Helper::toNative(wrapper::org::ortc::RTCRtpOpusCodecCapabilityOptionsApplication application)
+        ::ortc::IRTPTypes::OpusCodecCapabilityOptions::Applications Helper::toNative(wrapper::org::ortc::RTCRtpOpusCodecCapabilityOptionsApplication application) noexcept
         {
           switch (application)
           {
@@ -608,7 +608,7 @@ namespace wrapper {
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::RTCRtpFlexFecCodecCapabilityParametersToP Helper::toWrapper(::ortc::IRTPTypes::FlexFECCodecCapabilityParameters::ToPs top)
+        wrapper::org::ortc::RTCRtpFlexFecCodecCapabilityParametersToP Helper::toWrapper(::ortc::IRTPTypes::FlexFECCodecCapabilityParameters::ToPs top) noexcept
         {
           switch (top)
           {
@@ -622,7 +622,7 @@ namespace wrapper {
         }
 
         //---------------------------------------------------------------------
-        ::ortc::IRTPTypes::FlexFECCodecCapabilityParameters::ToPs Helper::toNative(wrapper::org::ortc::RTCRtpFlexFecCodecCapabilityParametersToP top)
+        ::ortc::IRTPTypes::FlexFECCodecCapabilityParameters::ToPs Helper::toNative(wrapper::org::ortc::RTCRtpFlexFecCodecCapabilityParametersToP top) noexcept
         {
           switch (top)
           {
@@ -636,7 +636,7 @@ namespace wrapper {
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::RTCRtpDegradationPreference Helper::toWrapper(::ortc::IRTPTypes::DegradationPreferences preference)
+        wrapper::org::ortc::RTCRtpDegradationPreference Helper::toWrapper(::ortc::IRTPTypes::DegradationPreferences preference) noexcept
         {
           switch (preference)
           {
@@ -649,7 +649,7 @@ namespace wrapper {
         }
 
         //---------------------------------------------------------------------
-        ::ortc::IRTPTypes::DegradationPreferences Helper::toNative(wrapper::org::ortc::RTCRtpDegradationPreference preference)
+        ::ortc::IRTPTypes::DegradationPreferences Helper::toNative(wrapper::org::ortc::RTCRtpDegradationPreference preference) noexcept
         {
           switch (preference)
           {
@@ -662,7 +662,7 @@ namespace wrapper {
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::RTCRtpPriorityType Helper::toWrapper(::ortc::IRTPTypes::PriorityTypes type)
+        wrapper::org::ortc::RTCRtpPriorityType Helper::toWrapper(::ortc::IRTPTypes::PriorityTypes type) noexcept
         {
           switch (type)
           {
@@ -676,7 +676,7 @@ namespace wrapper {
         }
 
         //---------------------------------------------------------------------
-        ::ortc::IRTPTypes::PriorityTypes Helper::toNative(wrapper::org::ortc::RTCRtpPriorityType type)
+        ::ortc::IRTPTypes::PriorityTypes Helper::toNative(wrapper::org::ortc::RTCRtpPriorityType type) noexcept
         {
           switch (type)
           {
@@ -690,7 +690,7 @@ namespace wrapper {
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::adapter::RTCSessionDescriptionSignalingType Helper::toWrapper(::ortc::adapter::ISessionDescriptionTypes::SignalingTypes type)
+        wrapper::org::ortc::adapter::RTCSessionDescriptionSignalingType Helper::toWrapper(::ortc::adapter::ISessionDescriptionTypes::SignalingTypes type) noexcept
         {
           switch (type)
           {
@@ -705,7 +705,7 @@ namespace wrapper {
         }
 
         //---------------------------------------------------------------------
-        ::ortc::adapter::ISessionDescriptionTypes::SignalingTypes Helper::toNative(wrapper::org::ortc::adapter::RTCSessionDescriptionSignalingType type)
+        ::ortc::adapter::ISessionDescriptionTypes::SignalingTypes Helper::toNative(wrapper::org::ortc::adapter::RTCSessionDescriptionSignalingType type) noexcept
         {
           switch (type)
           {
@@ -720,7 +720,7 @@ namespace wrapper {
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::RTCDtlsRole Helper::toWrapper(::ortc::IDTLSTransportTypes::Roles role)
+        wrapper::org::ortc::RTCDtlsRole Helper::toWrapper(::ortc::IDTLSTransportTypes::Roles role) noexcept
         {  
           switch (role)
           {
@@ -733,7 +733,7 @@ namespace wrapper {
         }
 
         //---------------------------------------------------------------------
-        ::ortc::IDTLSTransportTypes::Roles Helper::toNative(wrapper::org::ortc::RTCDtlsRole role)
+        ::ortc::IDTLSTransportTypes::Roles Helper::toNative(wrapper::org::ortc::RTCDtlsRole role) noexcept
         {
           switch (role)
           {
@@ -746,7 +746,7 @@ namespace wrapper {
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::RTCDtlsTransportState Helper::toWrapper(::ortc::IDTLSTransportTypes::States state)
+        wrapper::org::ortc::RTCDtlsTransportState Helper::toWrapper(::ortc::IDTLSTransportTypes::States state) noexcept
         {
           switch (state)
           {
@@ -761,7 +761,7 @@ namespace wrapper {
         }
 
         //---------------------------------------------------------------------
-        ::ortc::IDTLSTransportTypes::States Helper::toNative(wrapper::org::ortc::RTCDtlsTransportState state)
+        ::ortc::IDTLSTransportTypes::States Helper::toNative(wrapper::org::ortc::RTCDtlsTransportState state) noexcept
         {
           switch (state)
           {
@@ -776,7 +776,7 @@ namespace wrapper {
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::adapter::RTCSessionDescriptionMediaDirection Helper::toWrapper(::ortc::adapter::ISessionDescriptionTypes::MediaDirections direction)
+        wrapper::org::ortc::adapter::RTCSessionDescriptionMediaDirection Helper::toWrapper(::ortc::adapter::ISessionDescriptionTypes::MediaDirections direction) noexcept
         {
           switch (direction)
           {
@@ -790,7 +790,7 @@ namespace wrapper {
         }
 
         //---------------------------------------------------------------------
-        ::ortc::adapter::ISessionDescriptionTypes::MediaDirections Helper::toNative(wrapper::org::ortc::adapter::RTCSessionDescriptionMediaDirection direction)
+        ::ortc::adapter::ISessionDescriptionTypes::MediaDirections Helper::toNative(wrapper::org::ortc::adapter::RTCSessionDescriptionMediaDirection direction) noexcept
         {
           switch (direction)
           {
@@ -804,7 +804,7 @@ namespace wrapper {
         }
 
         //---------------------------------------------------------------------
-        Helper::WrapperMediaStreamTrackListPtr Helper::toWrapper(MediaStreamTrackListPtr tracks)
+        Helper::WrapperMediaStreamTrackListPtr Helper::toWrapper(MediaStreamTrackListPtr tracks) noexcept
         {
           auto result = make_shared<WrapperMediaStreamTrackList>();
           if (!tracks) return result;
@@ -818,7 +818,7 @@ namespace wrapper {
         }
 
         //---------------------------------------------------------------------
-        Helper::MediaStreamTrackListPtr Helper::toNative(WrapperMediaStreamTrackListPtr tracks)
+        Helper::MediaStreamTrackListPtr Helper::toNative(WrapperMediaStreamTrackListPtr tracks) noexcept
         {
           if (!tracks) return MediaStreamTrackListPtr();
 
@@ -833,7 +833,7 @@ namespace wrapper {
         }
 
         //---------------------------------------------------------------------
-        PromisePtr Helper::toWrapper(PromisePtr promise)
+        PromisePtr Helper::toWrapper(PromisePtr promise) noexcept
         {
           if (!promise) return promise;
 
@@ -855,7 +855,7 @@ namespace wrapper {
         void Helper::reject(
                             PromisePtr nativePromise,
                             PromisePtr wrapperPromise
-                            )
+                            ) noexcept
         {
           {
             auto reason = nativePromise->reason<::ortc::ErrorAny>();
@@ -882,13 +882,13 @@ namespace wrapper {
         }
 
         //---------------------------------------------------------------------
-        Helper::PromiseWithStatsReportPtr Helper::getStats(IStatsProviderPtr native, wrapper::org::ortc::RTCStatsTypeSetPtr statTypes)
+        Helper::PromiseWithStatsReportPtr Helper::getStats(IStatsProviderPtr native, wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept
         {
-          ZS_THROW_INVALID_ARGUMENT_IF(!native);
-          ZS_THROW_INVALID_ARGUMENT_IF(!statTypes);
+          ZS_ASSERT(native);
+          ZS_ASSERT(statTypes);
 
           auto value = wrapper::impl::org::ortc::RTCStatsTypeSet::toNative(statTypes);
-          ZS_THROW_INVALID_ARGUMENT_IF(!value);
+          ZS_ASSERT(value);
 
           auto promise = native->getStats(*value);
           if (!promise) return PromiseWithStatsReportPtr();

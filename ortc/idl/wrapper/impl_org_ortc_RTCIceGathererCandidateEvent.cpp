@@ -24,12 +24,12 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCIceGathererCandidateEvent::W
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCIceGathererCandidateEvent::WrapperType, WrapperType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCIceGathererCandidateEvent::RTCIceGathererCandidateEvent()
+wrapper::impl::org::ortc::RTCIceGathererCandidateEvent::RTCIceGathererCandidateEvent() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCIceGathererCandidateEventPtr wrapper::org::ortc::RTCIceGathererCandidateEvent::wrapper_create()
+wrapper::org::ortc::RTCIceGathererCandidateEventPtr wrapper::org::ortc::RTCIceGathererCandidateEvent::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::RTCIceGathererCandidateEvent>();
   pThis->thisWeak_ = pThis;
@@ -37,18 +37,18 @@ wrapper::org::ortc::RTCIceGathererCandidateEventPtr wrapper::org::ortc::RTCIceGa
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCIceGathererCandidateEvent::~RTCIceGathererCandidateEvent()
+wrapper::impl::org::ortc::RTCIceGathererCandidateEvent::~RTCIceGathererCandidateEvent() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCIceCandidatePtr wrapper::impl::org::ortc::RTCIceGathererCandidateEvent::get_candidate()
+wrapper::org::ortc::RTCIceCandidatePtr wrapper::impl::org::ortc::RTCIceGathererCandidateEvent::get_candidate() noexcept
 {
   return candidate_;
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::ortc::RTCIceGathererCandidateEvent::get_url()
+String wrapper::impl::org::ortc::RTCIceGathererCandidateEvent::get_url() noexcept
 {
   return url_;
 }
@@ -57,7 +57,7 @@ String wrapper::impl::org::ortc::RTCIceGathererCandidateEvent::get_url()
 WrapperImplTypePtr WrapperImplType::toWrapper(
   ::ortc::IICEGathererTypes::CandidatePtr candidate,
   const String &url
-)
+) noexcept
 {
   auto pThis = make_shared<WrapperImplType>();
   pThis->thisWeak_ = pThis;

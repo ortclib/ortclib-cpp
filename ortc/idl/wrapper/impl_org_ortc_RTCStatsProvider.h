@@ -17,14 +17,14 @@ namespace wrapper {
           RTCStatsProviderWeakPtr thisWeak_;
           NativeTypePtr native_;
 
-          RTCStatsProvider();
-          virtual ~RTCStatsProvider();
+          RTCStatsProvider() noexcept;
+          virtual ~RTCStatsProvider() noexcept;
 
           // methods RTCStatsProvider
-          virtual shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) override;
+          virtual shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept override;
 
-          static RTCStatsProviderPtr toWrapper(NativeTypePtr native);
-          static NativeTypePtr toNative(wrapper::org::ortc::RTCStatsProviderPtr wrapper);
+          static RTCStatsProviderPtr toWrapper(NativeTypePtr native) noexcept;
+          static NativeTypePtr toNative(wrapper::org::ortc::RTCStatsProviderPtr wrapper) noexcept;
         };
 
       } // ortc

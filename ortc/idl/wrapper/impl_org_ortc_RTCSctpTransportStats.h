@@ -17,30 +17,30 @@ namespace wrapper {
           RTCSctpTransportStatsWeakPtr thisWeak_;
           NativeStatsPtr native_;
 
-          RTCSctpTransportStats();
-          virtual ~RTCSctpTransportStats();
+          RTCSctpTransportStats() noexcept;
+          virtual ~RTCSctpTransportStats() noexcept;
 
           // methods RTCStats
-          virtual wrapper::org::ortc::JsonPtr toJson() override;
-          virtual String hash() override;
+          virtual wrapper::org::ortc::JsonPtr toJson() noexcept override;
+          virtual String hash() noexcept override;
 
           // properties RTCStats
-          virtual ::zsLib::Time get_timestamp() override;
-          virtual Optional< wrapper::org::ortc::RTCStatsType > get_statsType() override;
-          virtual String get_statsTypeOther() override;
-          virtual String get_id() override;
+          virtual ::zsLib::Time get_timestamp() noexcept override;
+          virtual Optional< wrapper::org::ortc::RTCStatsType > get_statsType() noexcept override;
+          virtual String get_statsTypeOther() noexcept override;
+          virtual String get_id() noexcept override;
 
           // methods RTCSctpTransportStats
-          virtual void wrapper_init_org_ortc_RTCSctpTransportStats() override;
-          virtual void wrapper_init_org_ortc_RTCSctpTransportStats(wrapper::org::ortc::RTCSctpTransportStatsPtr source) override;
-          virtual void wrapper_init_org_ortc_RTCSctpTransportStats(wrapper::org::ortc::JsonPtr json) override;
+          virtual void wrapper_init_org_ortc_RTCSctpTransportStats() noexcept override;
+          virtual void wrapper_init_org_ortc_RTCSctpTransportStats(wrapper::org::ortc::RTCSctpTransportStatsPtr source) noexcept override;
+          virtual void wrapper_init_org_ortc_RTCSctpTransportStats(wrapper::org::ortc::JsonPtr json) noexcept override;
 
           // properties RTCSctpTransportStats
-          virtual unsigned long get_dataChannelsOpened() override;
-          virtual unsigned long get_dataChannelsClosed() override;
+          virtual unsigned long get_dataChannelsOpened() noexcept override;
+          virtual unsigned long get_dataChannelsClosed() noexcept override;
 
-          static RTCSctpTransportStatsPtr toWrapper(NativeStatsPtr native);
-          static NativeStatsPtr toNative(wrapper::org::ortc::RTCSctpTransportStatsPtr wrapper);
+          static RTCSctpTransportStatsPtr toWrapper(NativeStatsPtr native) noexcept;
+          static NativeStatsPtr toNative(wrapper::org::ortc::RTCSctpTransportStatsPtr wrapper) noexcept;
         };
 
       } // ortc

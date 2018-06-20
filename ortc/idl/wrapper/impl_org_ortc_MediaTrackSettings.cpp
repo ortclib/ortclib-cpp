@@ -21,12 +21,12 @@ using ::std::set;
 using ::std::map;
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::MediaTrackSettings::MediaTrackSettings()
+wrapper::impl::org::ortc::MediaTrackSettings::MediaTrackSettings() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::MediaTrackSettingsPtr wrapper::org::ortc::MediaTrackSettings::wrapper_create()
+wrapper::org::ortc::MediaTrackSettingsPtr wrapper::org::ortc::MediaTrackSettings::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::MediaTrackSettings>();
   pThis->thisWeak_ = pThis;
@@ -34,17 +34,17 @@ wrapper::org::ortc::MediaTrackSettingsPtr wrapper::org::ortc::MediaTrackSettings
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::MediaTrackSettings::~MediaTrackSettings()
+wrapper::impl::org::ortc::MediaTrackSettings::~MediaTrackSettings() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::MediaTrackSettings::wrapper_init_org_ortc_MediaTrackSettings()
+void wrapper::impl::org::ortc::MediaTrackSettings::wrapper_init_org_ortc_MediaTrackSettings() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::MediaTrackSettings::wrapper_init_org_ortc_MediaTrackSettings(wrapper::org::ortc::MediaTrackSettingsPtr source)
+void wrapper::impl::org::ortc::MediaTrackSettings::wrapper_init_org_ortc_MediaTrackSettings(wrapper::org::ortc::MediaTrackSettingsPtr source) noexcept
 {
   if (!source) return;
 
@@ -54,7 +54,7 @@ void wrapper::impl::org::ortc::MediaTrackSettings::wrapper_init_org_ortc_MediaTr
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::MediaTrackSettings::wrapper_init_org_ortc_MediaTrackSettings(wrapper::org::ortc::JsonPtr json)
+void wrapper::impl::org::ortc::MediaTrackSettings::wrapper_init_org_ortc_MediaTrackSettings(wrapper::org::ortc::JsonPtr json) noexcept
 {
   auto rootEl = Json::toNative(json);
   if (!rootEl) return;
@@ -70,19 +70,19 @@ void wrapper::impl::org::ortc::MediaTrackSettings::wrapper_init_org_ortc_MediaTr
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::JsonPtr wrapper::impl::org::ortc::MediaTrackSettings::toJson()
+wrapper::org::ortc::JsonPtr wrapper::impl::org::ortc::MediaTrackSettings::toJson() noexcept
 {
   return Json::toWrapper(toNative(thisWeak_.lock())->createElement());
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::ortc::MediaTrackSettings::hash()
+String wrapper::impl::org::ortc::MediaTrackSettings::hash() noexcept
 {
   return toNative(thisWeak_.lock())->hash();
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::MediaTrackSettingsPtr wrapper::impl::org::ortc::MediaTrackSettings::toWrapper(SettingsPtr native)
+wrapper::impl::org::ortc::MediaTrackSettingsPtr wrapper::impl::org::ortc::MediaTrackSettings::toWrapper(SettingsPtr native) noexcept
 {
   if (!native) return MediaTrackSettingsPtr();
 
@@ -108,7 +108,7 @@ wrapper::impl::org::ortc::MediaTrackSettingsPtr wrapper::impl::org::ortc::MediaT
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::MediaTrackSettings::SettingsPtr wrapper::impl::org::ortc::MediaTrackSettings::toNative(MediaTrackSettingsPtr wrapper)
+wrapper::impl::org::ortc::MediaTrackSettings::SettingsPtr wrapper::impl::org::ortc::MediaTrackSettings::toNative(MediaTrackSettingsPtr wrapper) noexcept
 {
   if (!wrapper) return SettingsPtr();
 

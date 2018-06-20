@@ -18,24 +18,24 @@ namespace wrapper {
           RTCStatsWeakPtr thisWeak_;
           NativeStatsPtr native_;
 
-          RTCStats();
-          virtual ~RTCStats();
+          RTCStats() noexcept;
+          virtual ~RTCStats() noexcept;
 
           // methods RTCStats
-          virtual void wrapper_init_org_ortc_RTCStats() override;
-          virtual void wrapper_init_org_ortc_RTCStats(wrapper::org::ortc::RTCStatsPtr source) override;
-          virtual void wrapper_init_org_ortc_RTCStats(wrapper::org::ortc::JsonPtr json) override;
-          virtual wrapper::org::ortc::JsonPtr toJson() override;
-          virtual String hash() override;
+          virtual void wrapper_init_org_ortc_RTCStats() noexcept override;
+          virtual void wrapper_init_org_ortc_RTCStats(wrapper::org::ortc::RTCStatsPtr source) noexcept override;
+          virtual void wrapper_init_org_ortc_RTCStats(wrapper::org::ortc::JsonPtr json) noexcept override;
+          virtual wrapper::org::ortc::JsonPtr toJson() noexcept override;
+          virtual String hash() noexcept override;
 
           // properties RTCStats
-          virtual ::zsLib::Time get_timestamp() override;
-          virtual Optional< wrapper::org::ortc::RTCStatsType > get_statsType() override;
-          virtual String get_statsTypeOther() override;
-          virtual String get_id() override;
+          virtual ::zsLib::Time get_timestamp() noexcept override;
+          virtual Optional< wrapper::org::ortc::RTCStatsType > get_statsType() noexcept override;
+          virtual String get_statsTypeOther() noexcept override;
+          virtual String get_id() noexcept override;
 
-          static RTCStatsPtr toWrapper(NativeStatsPtr native);
-          static NativeStatsPtr toNative(wrapper::org::ortc::RTCStatsPtr wrapper);
+          static RTCStatsPtr toWrapper(NativeStatsPtr native) noexcept;
+          static NativeStatsPtr toNative(wrapper::org::ortc::RTCStatsPtr wrapper) noexcept;
         };
 
       } // ortc

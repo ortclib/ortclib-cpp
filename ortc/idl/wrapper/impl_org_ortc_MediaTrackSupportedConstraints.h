@@ -18,19 +18,19 @@ namespace wrapper {
           ZS_DECLARE_TYPEDEF_PTR(wrapper::org::ortc::MediaTrackSupportedConstraints, WrapperType);
           MediaTrackSupportedConstraintsWeakPtr thisWeak_;
 
-          MediaTrackSupportedConstraints();
-          virtual ~MediaTrackSupportedConstraints();
+          MediaTrackSupportedConstraints() noexcept;
+          virtual ~MediaTrackSupportedConstraints() noexcept;
 
           // methods MediaTrackSupportedConstraints
-          virtual void wrapper_init_org_ortc_MediaTrackSupportedConstraints() override;
-          virtual void wrapper_init_org_ortc_MediaTrackSupportedConstraints(wrapper::org::ortc::MediaTrackSupportedConstraintsPtr source) override;
-          virtual void wrapper_init_org_ortc_MediaTrackSupportedConstraints(wrapper::org::ortc::JsonPtr json) override;
-          virtual wrapper::org::ortc::JsonPtr toJson() override;
-          virtual String hash() override;
+          virtual void wrapper_init_org_ortc_MediaTrackSupportedConstraints() noexcept override;
+          virtual void wrapper_init_org_ortc_MediaTrackSupportedConstraints(wrapper::org::ortc::MediaTrackSupportedConstraintsPtr source) noexcept override;
+          virtual void wrapper_init_org_ortc_MediaTrackSupportedConstraints(wrapper::org::ortc::JsonPtr json) noexcept override;
+          virtual wrapper::org::ortc::JsonPtr toJson() noexcept override;
+          virtual String hash() noexcept override;
 
-          static WrapperImplTypePtr toWrapper(NativeTypePtr native);
-          static WrapperImplTypePtr toWrapper(const NativeType &native);
-          static NativeTypePtr toNative(WrapperTypePtr wrapper);
+          static WrapperImplTypePtr toWrapper(NativeTypePtr native) noexcept;
+          static WrapperImplTypePtr toWrapper(const NativeType &native) noexcept;
+          static NativeTypePtr toNative(WrapperTypePtr wrapper) noexcept;
         };
 
       } // ortc

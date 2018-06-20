@@ -35,12 +35,12 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCSctpTransport::WrapperImplTy
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCSctpTransport::WrapperType, WrapperType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCSctpTransport::RTCSctpTransport()
+wrapper::impl::org::ortc::RTCSctpTransport::RTCSctpTransport() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCSctpTransportPtr wrapper::org::ortc::RTCSctpTransport::wrapper_create()
+wrapper::org::ortc::RTCSctpTransportPtr wrapper::org::ortc::RTCSctpTransport::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::RTCSctpTransport>();
   pThis->thisWeak_ = pThis;
@@ -48,18 +48,18 @@ wrapper::org::ortc::RTCSctpTransportPtr wrapper::org::ortc::RTCSctpTransport::wr
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCSctpTransport::~RTCSctpTransport()
+wrapper::impl::org::ortc::RTCSctpTransport::~RTCSctpTransport() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > wrapper::impl::org::ortc::RTCSctpTransport::getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes)
+shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > wrapper::impl::org::ortc::RTCSctpTransport::getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept
 {
   return Helper::getStats(native_, statTypes);
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCSctpTransport::wrapper_init_org_ortc_RTCSctpTransport(wrapper::org::ortc::RTCDtlsTransportPtr transport)
+void wrapper::impl::org::ortc::RTCSctpTransport::wrapper_init_org_ortc_RTCSctpTransport(wrapper::org::ortc::RTCDtlsTransportPtr transport) noexcept
 {
   native_ = NativeType::create(thisWeak_.lock(), RTCDtlsTransport::toNative(transport));
 }
@@ -68,7 +68,7 @@ void wrapper::impl::org::ortc::RTCSctpTransport::wrapper_init_org_ortc_RTCSctpTr
 void wrapper::impl::org::ortc::RTCSctpTransport::wrapper_init_org_ortc_RTCSctpTransport(
   wrapper::org::ortc::RTCDtlsTransportPtr transport,
   uint16_t localPort
-  )
+  ) noexcept
 {
   native_ = NativeType::create(thisWeak_.lock(), RTCDtlsTransport::toNative(transport), localPort);
 }
@@ -77,7 +77,7 @@ void wrapper::impl::org::ortc::RTCSctpTransport::wrapper_init_org_ortc_RTCSctpTr
 wrapper::org::ortc::RTCSctpTransportListenerPtr wrapper::org::ortc::RTCSctpTransport::listen(
   wrapper::org::ortc::RTCDtlsTransportPtr transport,
   wrapper::org::ortc::RTCSctpCapabilitiesPtr remoteCapabilities
-  )
+  ) noexcept(false)
 {
   auto native = wrapper::impl::org::ortc::RTCSctpCapabilities::toNative(remoteCapabilities);
   ZS_THROW_INVALID_ARGUMENT_IF(!native);
@@ -85,16 +85,16 @@ wrapper::org::ortc::RTCSctpTransportListenerPtr wrapper::org::ortc::RTCSctpTrans
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCSctpCapabilitiesPtr wrapper::org::ortc::RTCSctpTransport::getCapabilities()
+wrapper::org::ortc::RTCSctpCapabilitiesPtr wrapper::org::ortc::RTCSctpTransport::getCapabilities() noexcept
 {
   return wrapper::impl::org::ortc::RTCSctpCapabilities::toWrapper(NativeType::getCapabilities());
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCSctpTransport::start(wrapper::org::ortc::RTCSctpCapabilitiesPtr remoteCapabilities)
+void wrapper::impl::org::ortc::RTCSctpTransport::start(wrapper::org::ortc::RTCSctpCapabilitiesPtr remoteCapabilities) noexcept
 {
   auto native = RTCSctpCapabilities::toNative(remoteCapabilities);
-  ZS_THROW_INVALID_ARGUMENT_IF(!native);
+  ZS_ASSERT(native);
   native_->start(*native);
 }
 
@@ -102,51 +102,51 @@ void wrapper::impl::org::ortc::RTCSctpTransport::start(wrapper::org::ortc::RTCSc
 void wrapper::impl::org::ortc::RTCSctpTransport::start(
   wrapper::org::ortc::RTCSctpCapabilitiesPtr remoteCapabilities,
   uint16_t remotePort
-  )
+  ) noexcept
 {
   auto native = RTCSctpCapabilities::toNative(remoteCapabilities);
-  ZS_THROW_INVALID_ARGUMENT_IF(!native);
+  ZS_ASSERT(native);
   native_->start(*native, remotePort);
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCSctpTransport::stop()
+void wrapper::impl::org::ortc::RTCSctpTransport::stop() noexcept
 {
   native_->stop();
 }
 
 //------------------------------------------------------------------------------
-uint64_t wrapper::impl::org::ortc::RTCSctpTransport::get_objectId()
+uint64_t wrapper::impl::org::ortc::RTCSctpTransport::get_objectId() noexcept
 {
   return native_->getID();
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCDtlsTransportPtr wrapper::impl::org::ortc::RTCSctpTransport::get_transport()
+wrapper::org::ortc::RTCDtlsTransportPtr wrapper::impl::org::ortc::RTCSctpTransport::get_transport() noexcept
 {
   return RTCDtlsTransport::toWrapper(native_->transport());
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCSctpTransportState wrapper::impl::org::ortc::RTCSctpTransport::get_state()
+wrapper::org::ortc::RTCSctpTransportState wrapper::impl::org::ortc::RTCSctpTransport::get_state() noexcept
 {
   return Helper::toWrapper(native_->state());
 }
 
 //------------------------------------------------------------------------------
-uint16_t wrapper::impl::org::ortc::RTCSctpTransport::get_port()
+uint16_t wrapper::impl::org::ortc::RTCSctpTransport::get_port() noexcept
 {
   return SafeInt<uint16_t>(native_->port());
 }
 
 //------------------------------------------------------------------------------
-uint16_t wrapper::impl::org::ortc::RTCSctpTransport::get_localPort()
+uint16_t wrapper::impl::org::ortc::RTCSctpTransport::get_localPort() noexcept
 {
   return SafeInt<uint16_t>(native_->localPort());
 }
 
 //------------------------------------------------------------------------------
-Optional< uint16_t > wrapper::impl::org::ortc::RTCSctpTransport::get_remotePort()
+Optional< uint16_t > wrapper::impl::org::ortc::RTCSctpTransport::get_remotePort() noexcept
 {
   Optional< uint16_t > result {};
   auto native = native_->remotePort();
@@ -155,7 +155,7 @@ Optional< uint16_t > wrapper::impl::org::ortc::RTCSctpTransport::get_remotePort(
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCSctpTransport::wrapper_onObserverCountChanged(size_t count)
+void wrapper::impl::org::ortc::RTCSctpTransport::wrapper_onObserverCountChanged(size_t count) noexcept
 {
   subscriptionCount_ = count;
   subscribe();
@@ -165,7 +165,7 @@ void wrapper::impl::org::ortc::RTCSctpTransport::wrapper_onObserverCountChanged(
 void WrapperImplType::onSCTPTransportStateChange(
   ISCTPTransportPtr transport,
   States state
-)
+) noexcept
 {
   onStateChange(RTCSctpTransportStateChangeEvent::toWrapper(state));
 }
@@ -174,13 +174,13 @@ void WrapperImplType::onSCTPTransportStateChange(
 void WrapperImplType::onSCTPTransportDataChannel(
   ISCTPTransportPtr transport,
   ::ortc::IDataChannelPtr channel
-)
+) noexcept
 {
   onDataChannel(RTCDataChannelEvent::toWrapper(channel));
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr track)
+WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr track) noexcept
 {
   if (!track) return WrapperImplTypePtr();
 
@@ -193,7 +193,7 @@ WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr track)
 }
 
 //------------------------------------------------------------------------------
-NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper)
+NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper) noexcept
 {
   if (!wrapper) return NativeTypePtr();
   auto result = std::dynamic_pointer_cast<WrapperImplType>(wrapper);
@@ -202,7 +202,7 @@ NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper)
 }
 
 //------------------------------------------------------------------------------
-void WrapperImplType::subscribe()
+void WrapperImplType::subscribe() noexcept
 {
   if (defaultSubscription_) return;
   if (!native_) return;

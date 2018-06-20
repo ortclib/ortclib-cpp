@@ -26,74 +26,74 @@ namespace wrapper {
           bool defaultSubscription_{ true };
           NativeTypeSubscriptionPtr subscription_;
 
-          RTCIceTransport();
-          virtual ~RTCIceTransport();
+          RTCIceTransport() noexcept;
+          virtual ~RTCIceTransport() noexcept;
 
           // methods RTCStatsProvider
-          virtual shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) override;
+          virtual shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept override;
 
           // methods RTCIceTransport
-          virtual void wrapper_init_org_ortc_RTCIceTransport() override;
-          virtual void wrapper_init_org_ortc_RTCIceTransport(wrapper::org::ortc::RTCIceGathererPtr gatherer) override;
+          virtual void wrapper_init_org_ortc_RTCIceTransport() noexcept override;
+          virtual void wrapper_init_org_ortc_RTCIceTransport(wrapper::org::ortc::RTCIceGathererPtr gatherer) noexcept override;
           virtual void start(
             wrapper::org::ortc::RTCIceGathererPtr gatherer,
             wrapper::org::ortc::RTCIceParametersPtr remoteParameters
-            ) override;
+            ) noexcept override;
           virtual void start(
             wrapper::org::ortc::RTCIceGathererPtr gatherer,
             wrapper::org::ortc::RTCIceParametersPtr remoteParameters,
             wrapper::org::ortc::RTCIceRole role
-            ) override;
+            ) noexcept override;
           virtual void start(
             wrapper::org::ortc::RTCIceGathererPtr gatherer,
             wrapper::org::ortc::RTCIceParametersPtr remoteParameters,
             wrapper::org::ortc::RTCIceTransportOptionsPtr options
-            ) override;
-          virtual void stop() override;
-          virtual wrapper::org::ortc::RTCIceTransportPtr createAssociatedTransport() override;
-          virtual void addRemoteCandidate(wrapper::org::ortc::RTCIceGathererCandidatePtr remoteCandidate) override;
-          virtual void setRemoteCandidates(shared_ptr< list< wrapper::org::ortc::RTCIceCandidatePtr > > remoteCandidates) override;
-          virtual void removeRemoteCandidate(wrapper::org::ortc::RTCIceGathererCandidatePtr remoteCandidate) override;
-          virtual void keepWarm(wrapper::org::ortc::RTCIceCandidatePairPtr candidatePair) override;
+            ) noexcept override;
+          virtual void stop() noexcept override;
+          virtual wrapper::org::ortc::RTCIceTransportPtr createAssociatedTransport() noexcept override;
+          virtual void addRemoteCandidate(wrapper::org::ortc::RTCIceGathererCandidatePtr remoteCandidate) noexcept override;
+          virtual void setRemoteCandidates(shared_ptr< list< wrapper::org::ortc::RTCIceCandidatePtr > > remoteCandidates) noexcept override;
+          virtual void removeRemoteCandidate(wrapper::org::ortc::RTCIceGathererCandidatePtr remoteCandidate) noexcept override;
+          virtual void keepWarm(wrapper::org::ortc::RTCIceCandidatePairPtr candidatePair) noexcept override;
           virtual void keepWarm(
             wrapper::org::ortc::RTCIceCandidatePairPtr candidatePair,
             bool keepWarm
-            ) override;
+            ) noexcept override;
 
           // properties RTCIceTransport
-          virtual uint64_t get_objectId() override;
-          virtual wrapper::org::ortc::RTCIceGathererPtr get_gatherer() override;
-          virtual wrapper::org::ortc::RTCIceRole get_role() override;
-          virtual wrapper::org::ortc::RTCIceComponent get_component() override;
-          virtual wrapper::org::ortc::RTCIceTransportState get_state() override;
-          virtual shared_ptr< list< wrapper::org::ortc::RTCIceCandidatePtr > > get_remoteCandidates() override;
-          virtual wrapper::org::ortc::RTCIceCandidatePairPtr get_selectedCandidatePair() override;
-          virtual wrapper::org::ortc::RTCIceParametersPtr get_remoteParameters() override;
+          virtual uint64_t get_objectId() noexcept override;
+          virtual wrapper::org::ortc::RTCIceGathererPtr get_gatherer() noexcept override;
+          virtual wrapper::org::ortc::RTCIceRole get_role() noexcept override;
+          virtual wrapper::org::ortc::RTCIceComponent get_component() noexcept override;
+          virtual wrapper::org::ortc::RTCIceTransportState get_state() noexcept override;
+          virtual shared_ptr< list< wrapper::org::ortc::RTCIceCandidatePtr > > get_remoteCandidates() noexcept override;
+          virtual wrapper::org::ortc::RTCIceCandidatePairPtr get_selectedCandidatePair() noexcept override;
+          virtual wrapper::org::ortc::RTCIceParametersPtr get_remoteParameters() noexcept override;
 
-          virtual void wrapper_onObserverCountChanged(size_t count) override;
+          virtual void wrapper_onObserverCountChanged(size_t count) noexcept override;
 
           virtual void onICETransportStateChange(
             IICETransportPtr transport,
             IICETransport::States state
-          ) override;
+          ) noexcept override;
           virtual void onICETransportCandidatePairAvailable(
             IICETransportPtr transport,
             CandidatePairPtr candidatePair
-          ) override;
+          ) noexcept override;
           virtual void onICETransportCandidatePairGone(
             IICETransportPtr transport,
             CandidatePairPtr candidatePair
-          ) override;
+          ) noexcept override;
 
           virtual void onICETransportCandidatePairChanged(
             IICETransportPtr transport,
             CandidatePairPtr candidatePair
-          ) override;
+          ) noexcept override;
 
-          static WrapperImplTypePtr toWrapper(NativeTypePtr track);
-          static NativeTypePtr toNative(WrapperTypePtr wrapper);
+          static WrapperImplTypePtr toWrapper(NativeTypePtr track) noexcept;
+          static NativeTypePtr toNative(WrapperTypePtr wrapper) noexcept;
 
-          void subscribe();
+          void subscribe() noexcept;
         };
 
       } // ortc

@@ -25,14 +25,14 @@ namespace wrapper {
           std::atomic<size_t> subscriptionCount_{};
           NativeTypeSubscriptionPtr subscription_;
 
-          MediaDevices();
-          virtual ~MediaDevices();
+          MediaDevices() noexcept;
+          virtual ~MediaDevices() noexcept;
 
-          virtual void wrapper_onObserverCountChanged(size_t count) override;
+          virtual void wrapper_onObserverCountChanged(size_t count) noexcept override;
 
-          virtual void onMediaDevicesChanged() override;
+          virtual void onMediaDevicesChanged() noexcept override;
 
-          void subscribe();
+          void subscribe() noexcept;
         };
 
       } // ortc

@@ -20,17 +20,17 @@ namespace wrapper {
             wrapper::org::ortc::adapter::RTCIceCandidatePtr candidate_;
             String uri_;
 
-            RTCPeerConnectionIceEvent();
-            virtual ~RTCPeerConnectionIceEvent();
+            RTCPeerConnectionIceEvent() noexcept;
+            virtual ~RTCPeerConnectionIceEvent() noexcept;
 
             // properties RTCPeerConnectionIceEvent
-            virtual wrapper::org::ortc::adapter::RTCIceCandidatePtr get_candidate() override;
-            virtual String get_uri() override;
+            virtual wrapper::org::ortc::adapter::RTCIceCandidatePtr get_candidate() noexcept override;
+            virtual String get_uri() noexcept override;
 
             static WrapperImplTypePtr toWrapper(
               ::ortc::adapter::IPeerConnectionTypes::ICECandidatePtr candidate,
               const String &uri
-            );
+            ) noexcept;
           };
 
         } // adapter

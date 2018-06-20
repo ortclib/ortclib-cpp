@@ -26,12 +26,12 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::adapter::RTCPeerConnectionIceEr
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::adapter::RTCPeerConnectionIceErrorEvent::WrapperType, WrapperType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::adapter::RTCPeerConnectionIceErrorEvent::RTCPeerConnectionIceErrorEvent()
+wrapper::impl::org::ortc::adapter::RTCPeerConnectionIceErrorEvent::RTCPeerConnectionIceErrorEvent() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::adapter::RTCPeerConnectionIceErrorEventPtr wrapper::org::ortc::adapter::RTCPeerConnectionIceErrorEvent::wrapper_create()
+wrapper::org::ortc::adapter::RTCPeerConnectionIceErrorEventPtr wrapper::org::ortc::adapter::RTCPeerConnectionIceErrorEvent::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::adapter::RTCPeerConnectionIceErrorEvent>();
   pThis->thisWeak_ = pThis;
@@ -39,24 +39,24 @@ wrapper::org::ortc::adapter::RTCPeerConnectionIceErrorEventPtr wrapper::org::ort
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::adapter::RTCPeerConnectionIceErrorEvent::~RTCPeerConnectionIceErrorEvent()
+wrapper::impl::org::ortc::adapter::RTCPeerConnectionIceErrorEvent::~RTCPeerConnectionIceErrorEvent() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::adapter::RTCIceCandidatePtr wrapper::impl::org::ortc::adapter::RTCPeerConnectionIceErrorEvent::get_hostCandidate()
+wrapper::org::ortc::adapter::RTCIceCandidatePtr wrapper::impl::org::ortc::adapter::RTCPeerConnectionIceErrorEvent::get_hostCandidate() noexcept
 {
   return RTCIceCandidate::toWrapper(native_->mHostCandidate);
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::ortc::adapter::RTCPeerConnectionIceErrorEvent::get_url()
+String wrapper::impl::org::ortc::adapter::RTCPeerConnectionIceErrorEvent::get_url() noexcept
 {
   return native_->mURL;
 }
 
 //------------------------------------------------------------------------------
-Optional< uint16_t > wrapper::impl::org::ortc::adapter::RTCPeerConnectionIceErrorEvent::get_errorCode()
+Optional< uint16_t > wrapper::impl::org::ortc::adapter::RTCPeerConnectionIceErrorEvent::get_errorCode() noexcept
 {
   Optional< uint16_t > result {};
   Helper::optionalSafeIntConvert(native_->mErrorCode, result);
@@ -64,13 +64,13 @@ Optional< uint16_t > wrapper::impl::org::ortc::adapter::RTCPeerConnectionIceErro
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::ortc::adapter::RTCPeerConnectionIceErrorEvent::get_errorText()
+String wrapper::impl::org::ortc::adapter::RTCPeerConnectionIceErrorEvent::get_errorText() noexcept
 {
   return native_->mErrorText;
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr native)
+WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr native) noexcept
 {
   if (!native) return WrapperImplTypePtr();
 
@@ -81,7 +81,7 @@ WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr native)
 }
 
 //------------------------------------------------------------------------------
-NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper)
+NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper) noexcept
 {
   if (!wrapper) return NativeTypePtr();
 

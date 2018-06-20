@@ -21,12 +21,12 @@ using ::std::set;
 using ::std::map;
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::LongRange::LongRange()
+wrapper::impl::org::ortc::LongRange::LongRange() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::LongRangePtr wrapper::org::ortc::LongRange::wrapper_create()
+wrapper::org::ortc::LongRangePtr wrapper::org::ortc::LongRange::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::LongRange>();
   pThis->thisWeak_ = pThis;
@@ -34,17 +34,17 @@ wrapper::org::ortc::LongRangePtr wrapper::org::ortc::LongRange::wrapper_create()
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::LongRange::~LongRange()
+wrapper::impl::org::ortc::LongRange::~LongRange() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::LongRange::wrapper_init_org_ortc_LongRange()
+void wrapper::impl::org::ortc::LongRange::wrapper_init_org_ortc_LongRange() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::LongRange::wrapper_init_org_ortc_LongRange(long value)
+void wrapper::impl::org::ortc::LongRange::wrapper_init_org_ortc_LongRange(long value) noexcept
 {
   min = max = value;
 }
@@ -53,14 +53,14 @@ void wrapper::impl::org::ortc::LongRange::wrapper_init_org_ortc_LongRange(long v
 void wrapper::impl::org::ortc::LongRange::wrapper_init_org_ortc_LongRange(
   long inMin,
   long inMax
-  )
+  ) noexcept
 {
   this->min = min;
   this->max = max;
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::LongRange::wrapper_init_org_ortc_LongRange(wrapper::org::ortc::JsonPtr json)
+void wrapper::impl::org::ortc::LongRange::wrapper_init_org_ortc_LongRange(wrapper::org::ortc::JsonPtr json) noexcept
 {
   if (!json) return;
 
@@ -74,26 +74,26 @@ void wrapper::impl::org::ortc::LongRange::wrapper_init_org_ortc_LongRange(wrappe
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::JsonPtr wrapper::impl::org::ortc::LongRange::toJson()
+wrapper::org::ortc::JsonPtr wrapper::impl::org::ortc::LongRange::toJson() noexcept
 {
   return Json::toWrapper(toNative(thisWeak_.lock())->createElement("LongRange"));
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::ortc::LongRange::hash()
+String wrapper::impl::org::ortc::LongRange::hash() noexcept
 {
   return toNative(thisWeak_.lock())->hash();
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::LongRangePtr wrapper::impl::org::ortc::LongRange::toWrapper(NativeCapabilityLongPtr native)
+wrapper::impl::org::ortc::LongRangePtr wrapper::impl::org::ortc::LongRange::toWrapper(NativeCapabilityLongPtr native) noexcept
 {
   if (!native) return LongRangePtr();
   return toWrapper(*native);
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::LongRangePtr wrapper::impl::org::ortc::LongRange::toWrapper(const NativeCapabilityLong &native)
+wrapper::impl::org::ortc::LongRangePtr wrapper::impl::org::ortc::LongRange::toWrapper(const NativeCapabilityLong &native) noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::LongRange>();
   pThis->thisWeak_ = pThis;
@@ -105,7 +105,7 @@ wrapper::impl::org::ortc::LongRangePtr wrapper::impl::org::ortc::LongRange::toWr
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::LongRange::NativeCapabilityLongPtr wrapper::impl::org::ortc::LongRange::toNative(wrapper::org::ortc::LongRangePtr wrapper)
+wrapper::impl::org::ortc::LongRange::NativeCapabilityLongPtr wrapper::impl::org::ortc::LongRange::toNative(wrapper::org::ortc::LongRangePtr wrapper) noexcept
 {
   if (!wrapper) return NativeCapabilityLongPtr();
 

@@ -20,15 +20,15 @@ namespace wrapper {
             RTCSessionDescriptionMediaLineWeakPtr thisWeak_;
             NativeTypePtr native_;
 
-            RTCSessionDescriptionMediaLine();
-            virtual ~RTCSessionDescriptionMediaLine();
+            RTCSessionDescriptionMediaLine() noexcept;
+            virtual ~RTCSessionDescriptionMediaLine() noexcept;
 
             // methods RTCSessionDescriptionMediaLine
-            virtual wrapper::org::ortc::JsonPtr toJson() override;
-            virtual String hash() override;
+            virtual wrapper::org::ortc::JsonPtr toJson() noexcept override;
+            virtual String hash() noexcept override;
 
-            static WrapperImplTypePtr toWrapper(NativeTypePtr native);
-            static NativeTypePtr toNative(WrapperTypePtr wrapper);
+            static WrapperImplTypePtr toWrapper(NativeTypePtr native) noexcept;
+            static NativeTypePtr toNative(WrapperTypePtr wrapper) noexcept;
           };
 
         } // adapter

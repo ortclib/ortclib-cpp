@@ -21,12 +21,12 @@ using ::std::set;
 using ::std::map;
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::StringOrStringList::StringOrStringList()
+wrapper::impl::org::ortc::StringOrStringList::StringOrStringList() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::StringOrStringListPtr wrapper::org::ortc::StringOrStringList::wrapper_create()
+wrapper::org::ortc::StringOrStringListPtr wrapper::org::ortc::StringOrStringList::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::StringOrStringList>();
   pThis->thisWeak_ = pThis;
@@ -34,17 +34,17 @@ wrapper::org::ortc::StringOrStringListPtr wrapper::org::ortc::StringOrStringList
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::StringOrStringList::~StringOrStringList()
+wrapper::impl::org::ortc::StringOrStringList::~StringOrStringList() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::StringOrStringList::wrapper_init_org_ortc_StringOrStringList()
+void wrapper::impl::org::ortc::StringOrStringList::wrapper_init_org_ortc_StringOrStringList() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::StringOrStringList::wrapper_init_org_ortc_StringOrStringList(wrapper::org::ortc::StringOrStringListPtr source)
+void wrapper::impl::org::ortc::StringOrStringList::wrapper_init_org_ortc_StringOrStringList(wrapper::org::ortc::StringOrStringListPtr source) noexcept
 {
   if (!source) return;
   wrapper::org::ortc::StringOrStringListPtr pThis = thisWeak_.lock();
@@ -52,7 +52,7 @@ void wrapper::impl::org::ortc::StringOrStringList::wrapper_init_org_ortc_StringO
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::StringOrStringList::wrapper_init_org_ortc_StringOrStringList(wrapper::org::ortc::JsonPtr json)
+void wrapper::impl::org::ortc::StringOrStringList::wrapper_init_org_ortc_StringOrStringList(wrapper::org::ortc::JsonPtr json) noexcept
 {
   if (!json) return;
 
@@ -65,26 +65,26 @@ void wrapper::impl::org::ortc::StringOrStringList::wrapper_init_org_ortc_StringO
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::JsonPtr wrapper::impl::org::ortc::StringOrStringList::toJson()
+wrapper::org::ortc::JsonPtr wrapper::impl::org::ortc::StringOrStringList::toJson() noexcept
 {
   return Json::toWrapper(toNative(thisWeak_.lock())->createElement("StringOrStringList"));
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::ortc::StringOrStringList::hash()
+String wrapper::impl::org::ortc::StringOrStringList::hash() noexcept
 {
   return toNative(thisWeak_.lock())->hash();
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::StringOrStringListPtr wrapper::impl::org::ortc::StringOrStringList::toWrapper(NativeStringOrStringListPtr native)
+wrapper::impl::org::ortc::StringOrStringListPtr wrapper::impl::org::ortc::StringOrStringList::toWrapper(NativeStringOrStringListPtr native) noexcept
 {
   if (!native) return StringOrStringListPtr();
   return toWrapper(*native);
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::StringOrStringListPtr wrapper::impl::org::ortc::StringOrStringList::toWrapper(const NativeStringOrStringList &native)
+wrapper::impl::org::ortc::StringOrStringListPtr wrapper::impl::org::ortc::StringOrStringList::toWrapper(const NativeStringOrStringList &native) noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::StringOrStringList>();
   pThis->thisWeak_ = pThis;
@@ -98,7 +98,7 @@ wrapper::impl::org::ortc::StringOrStringListPtr wrapper::impl::org::ortc::String
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::StringOrStringList::NativeStringOrStringListPtr wrapper::impl::org::ortc::StringOrStringList::toNative(wrapper::org::ortc::StringOrStringListPtr wrapper)
+wrapper::impl::org::ortc::StringOrStringList::NativeStringOrStringListPtr wrapper::impl::org::ortc::StringOrStringList::toNative(wrapper::org::ortc::StringOrStringListPtr wrapper) noexcept
 {
   if (!wrapper) return NativeStringOrStringListPtr();
 

@@ -27,48 +27,48 @@ namespace wrapper {
           bool defaultSubscription_{ true };
           NativeTypeSubscriptionPtr subscription_;
 
-          RTCRtpSender();
-          virtual ~RTCRtpSender();
+          RTCRtpSender() noexcept;
+          virtual ~RTCRtpSender() noexcept;
 
           // methods RTCStatsProvider
-          virtual shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) override;
+          virtual shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept override;
 
           // methods RTCRtpSender
           virtual void wrapper_init_org_ortc_RTCRtpSender(
             wrapper::org::ortc::MediaStreamTrackPtr track,
             wrapper::org::ortc::RTCRtpTransportPtr transport
-            ) override;
+            ) noexcept override;
           virtual void wrapper_init_org_ortc_RTCRtpSender(
             wrapper::org::ortc::MediaStreamTrackPtr track,
             wrapper::org::ortc::RTCRtpTransportPtr transport,
             wrapper::org::ortc::RTCRtcpTransportPtr rtcpTransport
-            ) override;
-          virtual void setTransport(wrapper::org::ortc::RTCRtpTransportPtr transport) override;
+            ) noexcept override;
+          virtual void setTransport(wrapper::org::ortc::RTCRtpTransportPtr transport) noexcept override;
           virtual void setTransport(
             wrapper::org::ortc::RTCRtpTransportPtr transport,
             wrapper::org::ortc::RTCRtcpTransportPtr rtcpTransport
-            ) override;
-          virtual PromisePtr setTrack(wrapper::org::ortc::MediaStreamTrackPtr track) override;
-          virtual PromisePtr send(wrapper::org::ortc::RTCRtpParametersPtr parameters) override;
-          virtual void stop() override;
+            ) noexcept override;
+          virtual PromisePtr setTrack(wrapper::org::ortc::MediaStreamTrackPtr track) noexcept override;
+          virtual PromisePtr send(wrapper::org::ortc::RTCRtpParametersPtr parameters) noexcept override;
+          virtual void stop() noexcept override;
 
           // properties RTCRtpSender
-          virtual uint64_t get_objectId() override;
-          virtual wrapper::org::ortc::MediaStreamTrackPtr get_track() override;
-          virtual wrapper::org::ortc::RTCRtpTransportPtr get_transport() override;
-          virtual wrapper::org::ortc::RTCRtcpTransportPtr get_rtcpTransport() override;
+          virtual uint64_t get_objectId() noexcept override;
+          virtual wrapper::org::ortc::MediaStreamTrackPtr get_track() noexcept override;
+          virtual wrapper::org::ortc::RTCRtpTransportPtr get_transport() noexcept override;
+          virtual wrapper::org::ortc::RTCRtcpTransportPtr get_rtcpTransport() noexcept override;
 
-          virtual void wrapper_onObserverCountChanged(size_t count) override;
+          virtual void wrapper_onObserverCountChanged(size_t count) noexcept override;
 
           virtual void onRTPSenderSSRCConflict(
             IRTPSenderPtr sender,
             SSRCType ssrc
-          ) override;
+          ) noexcept override;
 
-          static WrapperImplTypePtr toWrapper(NativeTypePtr track);
-          static NativeTypePtr toNative(WrapperTypePtr wrapper);
+          static WrapperImplTypePtr toWrapper(NativeTypePtr track) noexcept;
+          static NativeTypePtr toNative(WrapperTypePtr wrapper) noexcept;
 
-          void subscribe();
+          void subscribe() noexcept;
         };
 
       } // ortc

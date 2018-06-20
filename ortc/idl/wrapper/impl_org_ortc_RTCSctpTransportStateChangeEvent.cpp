@@ -25,12 +25,12 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCSctpTransportStateChangeEven
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCSctpTransportStateChangeEvent::WrapperType, WrapperType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCSctpTransportStateChangeEvent::RTCSctpTransportStateChangeEvent()
+wrapper::impl::org::ortc::RTCSctpTransportStateChangeEvent::RTCSctpTransportStateChangeEvent() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCSctpTransportStateChangeEventPtr wrapper::org::ortc::RTCSctpTransportStateChangeEvent::wrapper_create()
+wrapper::org::ortc::RTCSctpTransportStateChangeEventPtr wrapper::org::ortc::RTCSctpTransportStateChangeEvent::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::RTCSctpTransportStateChangeEvent>();
   pThis->thisWeak_ = pThis;
@@ -38,18 +38,18 @@ wrapper::org::ortc::RTCSctpTransportStateChangeEventPtr wrapper::org::ortc::RTCS
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCSctpTransportStateChangeEvent::~RTCSctpTransportStateChangeEvent()
+wrapper::impl::org::ortc::RTCSctpTransportStateChangeEvent::~RTCSctpTransportStateChangeEvent() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCSctpTransportState wrapper::impl::org::ortc::RTCSctpTransportStateChangeEvent::get_state()
+wrapper::org::ortc::RTCSctpTransportState wrapper::impl::org::ortc::RTCSctpTransportStateChangeEvent::get_state() noexcept
 {
   return Helper::toWrapper(native_);
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(NativeType native)
+WrapperImplTypePtr WrapperImplType::toWrapper(NativeType native) noexcept
 {
   if (!native) return WrapperImplTypePtr();
   auto pThis = make_shared<WrapperImplType>();

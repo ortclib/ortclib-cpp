@@ -17,19 +17,19 @@ namespace wrapper {
 
           ConstrainStringWeakPtr thisWeak_;
 
-          ConstrainString();
-          virtual ~ConstrainString();
+          ConstrainString() noexcept;
+          virtual ~ConstrainString() noexcept;
 
           // methods ConstrainString
-          virtual void wrapper_init_org_ortc_ConstrainString() override;
-          virtual void wrapper_init_org_ortc_ConstrainString(wrapper::org::ortc::ConstrainStringPtr source) override;
-          virtual void wrapper_init_org_ortc_ConstrainString(wrapper::org::ortc::JsonPtr json) override;
-          virtual wrapper::org::ortc::JsonPtr toJson() override;
-          virtual String hash() override;
+          virtual void wrapper_init_org_ortc_ConstrainString() noexcept override;
+          virtual void wrapper_init_org_ortc_ConstrainString(wrapper::org::ortc::ConstrainStringPtr source) noexcept override;
+          virtual void wrapper_init_org_ortc_ConstrainString(wrapper::org::ortc::JsonPtr json) noexcept override;
+          virtual wrapper::org::ortc::JsonPtr toJson() noexcept override;
+          virtual String hash() noexcept override;
 
-          static ConstrainStringPtr toWrapper(NativeConstrainStringPtr native);
-          static ConstrainStringPtr toWrapper(const NativeConstrainString &native);
-          static NativeConstrainStringPtr toNative(wrapper::org::ortc::ConstrainStringPtr wrapper);
+          static ConstrainStringPtr toWrapper(NativeConstrainStringPtr native) noexcept;
+          static ConstrainStringPtr toWrapper(const NativeConstrainString &native) noexcept;
+          static NativeConstrainStringPtr toNative(wrapper::org::ortc::ConstrainStringPtr wrapper) noexcept;
         };
 
       } // ortc

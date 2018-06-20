@@ -19,13 +19,13 @@ namespace wrapper {
             ZS_DECLARE_TYPEDEF_PTR(wrapper::org::ortc::adapter::RTCCapabilityOptions, WrapperType);
             RTCCapabilityOptionsWeakPtr thisWeak_;
 
-            RTCCapabilityOptions();
-            virtual ~RTCCapabilityOptions();
-            virtual void wrapper_init_org_ortc_adapter_RTCCapabilityOptions() override;
+            RTCCapabilityOptions() noexcept;
+            virtual ~RTCCapabilityOptions() noexcept;
+            virtual void wrapper_init_org_ortc_adapter_RTCCapabilityOptions() noexcept override;
 
-            static WrapperImplTypePtr toWrapper(NativeTypePtr native);
-            static WrapperImplTypePtr toWrapper(const NativeType &native);
-            static NativeTypePtr toNative(WrapperTypePtr wrapper);
+            static WrapperImplTypePtr toWrapper(NativeTypePtr native) noexcept;
+            static WrapperImplTypePtr toWrapper(const NativeType &native) noexcept;
+            static NativeTypePtr toNative(WrapperTypePtr wrapper) noexcept;
           };
 
         } // adapter

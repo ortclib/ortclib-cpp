@@ -29,12 +29,12 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCDtmfSender::WrapperImplType,
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCDtmfSender::WrapperType, WrapperType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCDtmfSender::RTCDtmfSender()
+wrapper::impl::org::ortc::RTCDtmfSender::RTCDtmfSender() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCDtmfSenderPtr wrapper::org::ortc::RTCDtmfSender::wrapper_create()
+wrapper::org::ortc::RTCDtmfSenderPtr wrapper::org::ortc::RTCDtmfSender::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::RTCDtmfSender>();
   pThis->thisWeak_ = pThis;
@@ -42,24 +42,24 @@ wrapper::org::ortc::RTCDtmfSenderPtr wrapper::org::ortc::RTCDtmfSender::wrapper_
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCDtmfSender::~RTCDtmfSender()
+wrapper::impl::org::ortc::RTCDtmfSender::~RTCDtmfSender() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCDtmfSender::wrapper_init_org_ortc_RTCDtmfSender(wrapper::org::ortc::RTCRtpSenderPtr sender)
+void wrapper::impl::org::ortc::RTCDtmfSender::wrapper_init_org_ortc_RTCDtmfSender(wrapper::org::ortc::RTCRtpSenderPtr sender) noexcept
 {
   native_ = NativeType::create(thisWeak_.lock(), RTCRtpSender::toNative(sender));
 }
 
 //------------------------------------------------------------------------------
-bool wrapper::impl::org::ortc::RTCDtmfSender::canInsertDtmf()
+bool wrapper::impl::org::ortc::RTCDtmfSender::canInsertDtmf() noexcept
 {
   return native_->canInsertDTMF();
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCDtmfSender::insertDtmf(String tones)
+void wrapper::impl::org::ortc::RTCDtmfSender::insertDtmf(String tones) noexcept
 {
   native_->insertDTMF(tones);
 }
@@ -68,7 +68,7 @@ void wrapper::impl::org::ortc::RTCDtmfSender::insertDtmf(String tones)
 void wrapper::impl::org::ortc::RTCDtmfSender::insertDtmf(
   String tones,
   ::zsLib::Milliseconds duration
-  )
+  ) noexcept
 {
   native_->insertDTMF(tones, duration);
 }
@@ -78,43 +78,43 @@ void wrapper::impl::org::ortc::RTCDtmfSender::insertDtmf(
   String tones,
   ::zsLib::Milliseconds duration,
   ::zsLib::Milliseconds interToneGap
-  )
+  ) noexcept
 {
   native_->insertDTMF(tones, duration, interToneGap);
 }
 
 //------------------------------------------------------------------------------
-uint64_t wrapper::impl::org::ortc::RTCDtmfSender::get_objectId()
+uint64_t wrapper::impl::org::ortc::RTCDtmfSender::get_objectId() noexcept
 {
   return native_->getID();
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCRtpSenderPtr wrapper::impl::org::ortc::RTCDtmfSender::get_sender()
+wrapper::org::ortc::RTCRtpSenderPtr wrapper::impl::org::ortc::RTCDtmfSender::get_sender() noexcept
 {
   return RTCRtpSender::toWrapper(native_->sender());
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::ortc::RTCDtmfSender::get_toneBuffer()
+String wrapper::impl::org::ortc::RTCDtmfSender::get_toneBuffer() noexcept
 {
   return native_->toneBuffer();
 }
 
 //------------------------------------------------------------------------------
-::zsLib::Milliseconds wrapper::impl::org::ortc::RTCDtmfSender::get_duration()
+::zsLib::Milliseconds wrapper::impl::org::ortc::RTCDtmfSender::get_duration() noexcept
 {
   return native_->duration();
 }
 
 //------------------------------------------------------------------------------
-::zsLib::Milliseconds wrapper::impl::org::ortc::RTCDtmfSender::get_interToneGap()
+::zsLib::Milliseconds wrapper::impl::org::ortc::RTCDtmfSender::get_interToneGap() noexcept
 {
   return native_->interToneGap();
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCDtmfSender::wrapper_onObserverCountChanged(size_t count)
+void wrapper::impl::org::ortc::RTCDtmfSender::wrapper_onObserverCountChanged(size_t count) noexcept
 {
   subscriptionCount_ = count;
   subscribe();
@@ -124,13 +124,13 @@ void wrapper::impl::org::ortc::RTCDtmfSender::wrapper_onObserverCountChanged(siz
 void WrapperImplType::onDTMFSenderToneChanged(
   IDTMFSenderPtr sender,
   String tone
-)
+) noexcept
 {
   onToneChange(RTCDtmfToneChangeEvent::toWrapper(tone));
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr track)
+WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr track) noexcept
 {
   if (!track) return WrapperImplTypePtr();
 
@@ -143,7 +143,7 @@ WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr track)
 }
 
 //------------------------------------------------------------------------------
-NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper)
+NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper) noexcept
 {
   if (!wrapper) return NativeTypePtr();
   auto result = std::dynamic_pointer_cast<WrapperImplType>(wrapper);
@@ -152,7 +152,7 @@ NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper)
 }
 
 //------------------------------------------------------------------------------
-void WrapperImplType::subscribe()
+void WrapperImplType::subscribe() noexcept
 {
   if (defaultSubscription_) return;
   if (!native_) return;

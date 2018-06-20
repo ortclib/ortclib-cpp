@@ -24,12 +24,12 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCIceTransportStateChangeEvent
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCIceTransportStateChangeEvent::WrapperType, WrapperType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCIceTransportStateChangeEvent::RTCIceTransportStateChangeEvent()
+wrapper::impl::org::ortc::RTCIceTransportStateChangeEvent::RTCIceTransportStateChangeEvent() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCIceTransportStateChangeEventPtr wrapper::org::ortc::RTCIceTransportStateChangeEvent::wrapper_create()
+wrapper::org::ortc::RTCIceTransportStateChangeEventPtr wrapper::org::ortc::RTCIceTransportStateChangeEvent::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::RTCIceTransportStateChangeEvent>();
   pThis->thisWeak_ = pThis;
@@ -37,18 +37,18 @@ wrapper::org::ortc::RTCIceTransportStateChangeEventPtr wrapper::org::ortc::RTCIc
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCIceTransportStateChangeEvent::~RTCIceTransportStateChangeEvent()
+wrapper::impl::org::ortc::RTCIceTransportStateChangeEvent::~RTCIceTransportStateChangeEvent() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCIceTransportState wrapper::impl::org::ortc::RTCIceTransportStateChangeEvent::get_state()
+wrapper::org::ortc::RTCIceTransportState wrapper::impl::org::ortc::RTCIceTransportStateChangeEvent::get_state() noexcept
 {
   return Helper::toWrapper(state_);
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(::ortc::IICETransportTypes::States state)
+WrapperImplTypePtr WrapperImplType::toWrapper(::ortc::IICETransportTypes::States state) noexcept
 {
   auto pThis = make_shared<WrapperImplType>();
   pThis->thisWeak_ = pThis;

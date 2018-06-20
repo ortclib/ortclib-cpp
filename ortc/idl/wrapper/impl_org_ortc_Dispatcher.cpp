@@ -20,12 +20,12 @@ using ::std::set;
 using ::std::map;
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::Dispatcher::Dispatcher()
+wrapper::impl::org::ortc::Dispatcher::Dispatcher() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::DispatcherPtr wrapper::org::ortc::Dispatcher::wrapper_create()
+wrapper::org::ortc::DispatcherPtr wrapper::org::ortc::Dispatcher::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::Dispatcher>();
   pThis->thisWeak_ = pThis;
@@ -33,30 +33,30 @@ wrapper::org::ortc::DispatcherPtr wrapper::org::ortc::Dispatcher::wrapper_create
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::Dispatcher::~Dispatcher()
+wrapper::impl::org::ortc::Dispatcher::~Dispatcher() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::Dispatcher::wrapper_init_org_ortc_Dispatcher(AnyPtr source)
+void wrapper::impl::org::ortc::Dispatcher::wrapper_init_org_ortc_Dispatcher(AnyPtr source) noexcept
 {
   native_ = source;
 }
 
 //------------------------------------------------------------------------------
-AnyPtr wrapper::org::ortc::Dispatcher::get_source()
+AnyPtr wrapper::org::ortc::Dispatcher::get_source() noexcept
 {
   AnyPtr result {};
   return result;
 }
 
 //------------------------------------------------------------------------------
-void wrapper::org::ortc::Dispatcher::set_source(AnyPtr value)
+void wrapper::org::ortc::Dispatcher::set_source(AnyPtr value) noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-AnyPtr wrapper::impl::org::ortc::Dispatcher::toNative(wrapper::org::ortc::DispatcherPtr wrapper)
+AnyPtr wrapper::impl::org::ortc::Dispatcher::toNative(wrapper::org::ortc::DispatcherPtr wrapper) noexcept
 {
   if (!wrapper) return AnyPtr();
 

@@ -28,18 +28,18 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::Settings::WrapperImplType, Wrap
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::Settings::WrapperType, WrapperType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::Settings::~Settings()
+wrapper::impl::org::ortc::Settings::~Settings() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::org::ortc::Settings::applyDefaults()
+void wrapper::org::ortc::Settings::applyDefaults() noexcept
 {
   NativeType::applyDefaults();
 }
 
 //------------------------------------------------------------------------------
-bool wrapper::org::ortc::Settings::apply(wrapper::org::ortc::JsonPtr jsonSettings)
+bool wrapper::org::ortc::Settings::apply(wrapper::org::ortc::JsonPtr jsonSettings) noexcept
 {
   return NativeType::apply(zsLib::IHelper::toString(wrapper::impl::org::ortc::Json::toNative(jsonSettings)));
 }
@@ -48,7 +48,7 @@ bool wrapper::org::ortc::Settings::apply(wrapper::org::ortc::JsonPtr jsonSetting
 void wrapper::org::ortc::Settings::setString(
   String key,
   String value
-  )
+  ) noexcept
 {
   NativeType::setString(key, value);
 }
@@ -57,7 +57,7 @@ void wrapper::org::ortc::Settings::setString(
 void wrapper::org::ortc::Settings::setInt(
   String key,
   int64_t value
-  )
+  ) noexcept
 {
   NativeType::setInt(key, SafeInt<long>(value));
 }
@@ -66,7 +66,7 @@ void wrapper::org::ortc::Settings::setInt(
 void wrapper::org::ortc::Settings::setUInt(
   String key,
   uint64_t value
-  )
+  ) noexcept
 {
   NativeType::setUInt(key, SafeInt<unsigned long>(value));
 }
@@ -75,7 +75,7 @@ void wrapper::org::ortc::Settings::setUInt(
 void wrapper::org::ortc::Settings::setBool(
   String key,
   bool value
-  )
+  ) noexcept
 {
   NativeType::setBool(key, value);
 }
@@ -84,7 +84,7 @@ void wrapper::org::ortc::Settings::setBool(
 void wrapper::org::ortc::Settings::setFloat(
   String key,
   float value
-  )
+  ) noexcept
 {
   NativeType::setFloat(key, value);
 }
@@ -93,19 +93,19 @@ void wrapper::org::ortc::Settings::setFloat(
 void wrapper::org::ortc::Settings::setDouble(
   String key,
   double value
-  )
+  ) noexcept
 {
   NativeType::setDouble(key, value);
 }
 
 //------------------------------------------------------------------------------
-void wrapper::org::ortc::Settings::clear(String key)
+void wrapper::org::ortc::Settings::clear(String key) noexcept
 {
   NativeType::clear(key);
 }
 
 //------------------------------------------------------------------------------
-void wrapper::org::ortc::Settings::clearAll()
+void wrapper::org::ortc::Settings::clearAll() noexcept
 {
   NativeType::clearAll();
 }

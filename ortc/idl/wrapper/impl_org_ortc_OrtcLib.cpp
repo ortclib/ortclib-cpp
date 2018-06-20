@@ -28,42 +28,42 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::OrtcLib::WrapperImplType, Wrapp
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::OrtcLib::WrapperType, WrapperType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::OrtcLib::~OrtcLib()
+wrapper::impl::org::ortc::OrtcLib::~OrtcLib() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::org::ortc::OrtcLib::setup()
+void wrapper::org::ortc::OrtcLib::setup() noexcept
 {
   setup(wrapper::org::ortc::MessageQueue::getDefaultForUi());
 }
 
 //------------------------------------------------------------------------------
-void wrapper::org::ortc::OrtcLib::setup(wrapper::org::ortc::MessageQueuePtr queue)
+void wrapper::org::ortc::OrtcLib::setup(wrapper::org::ortc::MessageQueuePtr queue) noexcept
 {
   NativeType::setup(wrapper::impl::org::ortc::MessageQueue::toNative(queue));
 }
 
 //------------------------------------------------------------------------------
-void wrapper::org::ortc::OrtcLib::startMediaTracing()
+void wrapper::org::ortc::OrtcLib::startMediaTracing() noexcept
 {
   NativeType::startMediaTracing();
 }
 
 //------------------------------------------------------------------------------
-void wrapper::org::ortc::OrtcLib::stopMediaTracing()
+void wrapper::org::ortc::OrtcLib::stopMediaTracing() noexcept
 {
   NativeType::stopMediaTracing();
 }
 
 //------------------------------------------------------------------------------
-bool wrapper::org::ortc::OrtcLib::isMediaTracing()
+bool wrapper::org::ortc::OrtcLib::isMediaTracing() noexcept
 {
   return NativeType::isMediaTracing();
 }
 
 //------------------------------------------------------------------------------
-bool wrapper::org::ortc::OrtcLib::saveMediaTrace(String filename)
+bool wrapper::org::ortc::OrtcLib::saveMediaTrace(String filename) noexcept
 {
   return NativeType::saveMediaTrace(filename);  
 }
@@ -72,18 +72,18 @@ bool wrapper::org::ortc::OrtcLib::saveMediaTrace(String filename)
 bool wrapper::org::ortc::OrtcLib::saveMediaTrace(
   String host,
   int port
-  )
+  ) noexcept
 {
   return NativeType::saveMediaTrace(host, port);
 }
 
 //------------------------------------------------------------------------------
-PromisePtr wrapper::org::ortc::OrtcLib::notifyGoingToBackground()
+PromisePtr wrapper::org::ortc::OrtcLib::notifyGoingToBackground() noexcept
 {
   struct Notified : public Any,
                     public ::ortc::services::IBackgroundingCompletionDelegate
   {
-    virtual void onBackgroundingReady(::ortc::services::IBackgroundingQueryPtr query)
+    virtual void onBackgroundingReady(::ortc::services::IBackgroundingQueryPtr query) noexcept
     {
       promise_->resolve();
       promise_.reset();
@@ -101,25 +101,25 @@ PromisePtr wrapper::org::ortc::OrtcLib::notifyGoingToBackground()
 }
 
 //------------------------------------------------------------------------------
-void wrapper::org::ortc::OrtcLib::notifyGoingToBackgroundNow()
+void wrapper::org::ortc::OrtcLib::notifyGoingToBackgroundNow() noexcept
 {
   ::ortc::services::IBackgrounding::notifyGoingToBackgroundNow();
 }
 
 //------------------------------------------------------------------------------
-void wrapper::org::ortc::OrtcLib::notifyReturningFromBackground()
+void wrapper::org::ortc::OrtcLib::notifyReturningFromBackground() noexcept
 {
   ::ortc::services::IBackgrounding::notifyReturningFromBackground();
 }
 
 //------------------------------------------------------------------------------
-::zsLib::Milliseconds wrapper::org::ortc::OrtcLib::get_ntpServerTime()
+::zsLib::Milliseconds wrapper::org::ortc::OrtcLib::get_ntpServerTime() noexcept
 {
   return NativeType::ntpServerTime();
 }
 
 //------------------------------------------------------------------------------
-void wrapper::org::ortc::OrtcLib::set_ntpServerTime(::zsLib::Milliseconds value)
+void wrapper::org::ortc::OrtcLib::set_ntpServerTime(::zsLib::Milliseconds value) noexcept
 {
   NativeType::ntpServerTime(value);
 }

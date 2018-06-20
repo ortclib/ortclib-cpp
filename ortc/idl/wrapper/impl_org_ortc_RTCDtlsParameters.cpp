@@ -27,12 +27,12 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCDtlsParameters::WrapperImplT
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCDtlsParameters::WrapperType, WrapperType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCDtlsParameters::RTCDtlsParameters()
+wrapper::impl::org::ortc::RTCDtlsParameters::RTCDtlsParameters() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCDtlsParametersPtr wrapper::org::ortc::RTCDtlsParameters::wrapper_create()
+wrapper::org::ortc::RTCDtlsParametersPtr wrapper::org::ortc::RTCDtlsParameters::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::RTCDtlsParameters>();
   pThis->thisWeak_ = pThis;
@@ -40,17 +40,17 @@ wrapper::org::ortc::RTCDtlsParametersPtr wrapper::org::ortc::RTCDtlsParameters::
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCDtlsParameters::~RTCDtlsParameters()
+wrapper::impl::org::ortc::RTCDtlsParameters::~RTCDtlsParameters() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCDtlsParameters::wrapper_init_org_ortc_RTCDtlsParameters()
+void wrapper::impl::org::ortc::RTCDtlsParameters::wrapper_init_org_ortc_RTCDtlsParameters() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCDtlsParameters::wrapper_init_org_ortc_RTCDtlsParameters(wrapper::org::ortc::RTCDtlsParametersPtr source)
+void wrapper::impl::org::ortc::RTCDtlsParameters::wrapper_init_org_ortc_RTCDtlsParameters(wrapper::org::ortc::RTCDtlsParametersPtr source) noexcept
 {
   WrapperTypePtr pThis = thisWeak_.lock();
   WrapperTypePtr wrapper = toWrapper(toNative(source));
@@ -59,7 +59,7 @@ void wrapper::impl::org::ortc::RTCDtlsParameters::wrapper_init_org_ortc_RTCDtlsP
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCDtlsParameters::wrapper_init_org_ortc_RTCDtlsParameters(wrapper::org::ortc::JsonPtr json)
+void wrapper::impl::org::ortc::RTCDtlsParameters::wrapper_init_org_ortc_RTCDtlsParameters(wrapper::org::ortc::JsonPtr json) noexcept
 {
   if (!json) return;
 
@@ -71,26 +71,26 @@ void wrapper::impl::org::ortc::RTCDtlsParameters::wrapper_init_org_ortc_RTCDtlsP
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::JsonPtr wrapper::impl::org::ortc::RTCDtlsParameters::toJson()
+wrapper::org::ortc::JsonPtr wrapper::impl::org::ortc::RTCDtlsParameters::toJson() noexcept
 {
   return Json::toWrapper(toNative(thisWeak_.lock())->createElement("RTCDtlsParameters"));
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::ortc::RTCDtlsParameters::hash()
+String wrapper::impl::org::ortc::RTCDtlsParameters::hash() noexcept
 {
   return toNative(thisWeak_.lock())->hash();
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr native)
+WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr native) noexcept
 {
   if (!native) return WrapperImplTypePtr();
   return toWrapper(*native);
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(const NativeType &native)
+WrapperImplTypePtr WrapperImplType::toWrapper(const NativeType &native) noexcept
 {
   auto pThis = make_shared<WrapperImplType>();
   pThis->thisWeak_ = pThis;
@@ -105,7 +105,7 @@ WrapperImplTypePtr WrapperImplType::toWrapper(const NativeType &native)
 }
 
 //------------------------------------------------------------------------------
-NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper)
+NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper) noexcept
 {
   if (!wrapper) return NativeTypePtr();
 

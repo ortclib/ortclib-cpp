@@ -21,12 +21,12 @@ using ::std::set;
 using ::std::map;
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::ConstrainBooleanParameters::ConstrainBooleanParameters()
+wrapper::impl::org::ortc::ConstrainBooleanParameters::ConstrainBooleanParameters() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::ConstrainBooleanParametersPtr wrapper::org::ortc::ConstrainBooleanParameters::wrapper_create()
+wrapper::org::ortc::ConstrainBooleanParametersPtr wrapper::org::ortc::ConstrainBooleanParameters::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::ConstrainBooleanParameters>();
   pThis->thisWeak_ = pThis;
@@ -34,17 +34,17 @@ wrapper::org::ortc::ConstrainBooleanParametersPtr wrapper::org::ortc::ConstrainB
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::ConstrainBooleanParameters::~ConstrainBooleanParameters()
+wrapper::impl::org::ortc::ConstrainBooleanParameters::~ConstrainBooleanParameters() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::ConstrainBooleanParameters::wrapper_init_org_ortc_ConstrainBooleanParameters()
+void wrapper::impl::org::ortc::ConstrainBooleanParameters::wrapper_init_org_ortc_ConstrainBooleanParameters() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::ConstrainBooleanParameters::wrapper_init_org_ortc_ConstrainBooleanParameters(wrapper::org::ortc::ConstrainBooleanParametersPtr source)
+void wrapper::impl::org::ortc::ConstrainBooleanParameters::wrapper_init_org_ortc_ConstrainBooleanParameters(wrapper::org::ortc::ConstrainBooleanParametersPtr source) noexcept
 {
   if (!source) return;
   wrapper::org::ortc::ConstrainBooleanParametersPtr pThis = thisWeak_.lock();
@@ -52,7 +52,7 @@ void wrapper::impl::org::ortc::ConstrainBooleanParameters::wrapper_init_org_ortc
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::ConstrainBooleanParameters::wrapper_init_org_ortc_ConstrainBooleanParameters(wrapper::org::ortc::JsonPtr json)
+void wrapper::impl::org::ortc::ConstrainBooleanParameters::wrapper_init_org_ortc_ConstrainBooleanParameters(wrapper::org::ortc::JsonPtr json) noexcept
 {
   if (!json) return;
 
@@ -66,26 +66,26 @@ void wrapper::impl::org::ortc::ConstrainBooleanParameters::wrapper_init_org_ortc
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::JsonPtr wrapper::impl::org::ortc::ConstrainBooleanParameters::toJson()
+wrapper::org::ortc::JsonPtr wrapper::impl::org::ortc::ConstrainBooleanParameters::toJson() noexcept
 {
   return Json::toWrapper(toNative(thisWeak_.lock())->createElement("ConstrainBooleanParameters"));
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::ortc::ConstrainBooleanParameters::hash()
+String wrapper::impl::org::ortc::ConstrainBooleanParameters::hash() noexcept
 {
   return toNative(thisWeak_.lock())->hash();
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::ConstrainBooleanParametersPtr wrapper::impl::org::ortc::ConstrainBooleanParameters::toWrapper(NativeConstrainBooleanParametersPtr native)
+wrapper::impl::org::ortc::ConstrainBooleanParametersPtr wrapper::impl::org::ortc::ConstrainBooleanParameters::toWrapper(NativeConstrainBooleanParametersPtr native) noexcept
 {
   if (!native) return ConstrainBooleanParametersPtr();
   return toWrapper(*native);
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::ConstrainBooleanParametersPtr wrapper::impl::org::ortc::ConstrainBooleanParameters::toWrapper(const NativeConstrainBooleanParameters &native)
+wrapper::impl::org::ortc::ConstrainBooleanParametersPtr wrapper::impl::org::ortc::ConstrainBooleanParameters::toWrapper(const NativeConstrainBooleanParameters &native) noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::ConstrainBooleanParameters>();
   pThis->thisWeak_ = pThis;
@@ -97,7 +97,7 @@ wrapper::impl::org::ortc::ConstrainBooleanParametersPtr wrapper::impl::org::ortc
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::ConstrainBooleanParameters::NativeConstrainBooleanParametersPtr wrapper::impl::org::ortc::ConstrainBooleanParameters::toNative(wrapper::org::ortc::ConstrainBooleanParametersPtr wrapper)
+wrapper::impl::org::ortc::ConstrainBooleanParameters::NativeConstrainBooleanParametersPtr wrapper::impl::org::ortc::ConstrainBooleanParameters::toNative(wrapper::org::ortc::ConstrainBooleanParametersPtr wrapper) noexcept
 {
   if (!wrapper) return NativeConstrainBooleanParametersPtr();
 

@@ -24,12 +24,12 @@ using ::std::set;
 using ::std::map;
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCIdentity::RTCIdentity()
+wrapper::impl::org::ortc::RTCIdentity::RTCIdentity() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCIdentityPtr wrapper::org::ortc::RTCIdentity::wrapper_create()
+wrapper::org::ortc::RTCIdentityPtr wrapper::org::ortc::RTCIdentity::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::RTCIdentity>();
   pThis->thisWeak_ = pThis;
@@ -37,17 +37,17 @@ wrapper::org::ortc::RTCIdentityPtr wrapper::org::ortc::RTCIdentity::wrapper_crea
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCIdentity::~RTCIdentity()
+wrapper::impl::org::ortc::RTCIdentity::~RTCIdentity() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCIdentity::wrapper_init_org_ortc_RTCIdentity(wrapper::org::ortc::RTCDtlsTransportPtr transport)
+void wrapper::impl::org::ortc::RTCIdentity::wrapper_init_org_ortc_RTCIdentity(wrapper::org::ortc::RTCDtlsTransportPtr transport) noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCIdentityResultPtr > > wrapper::impl::org::ortc::RTCIdentity::getIdentityAssertion(String provider)
+shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCIdentityResultPtr > > wrapper::impl::org::ortc::RTCIdentity::getIdentityAssertion(String provider) noexcept
 {
   return getIdentityAssertion(provider, String(), String());
 }
@@ -56,7 +56,7 @@ shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCIdentityResultPtr > > w
 shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCIdentityResultPtr > > wrapper::impl::org::ortc::RTCIdentity::getIdentityAssertion(
   String provider,
   String protocol
-  )
+  ) noexcept
 {
   return getIdentityAssertion(provider, protocol, String());
 }
@@ -66,7 +66,7 @@ shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCIdentityResultPtr > > w
   String provider,
   String protocol,
   String username
-  )
+  ) noexcept
 {
   typedef PromiseWithHolderPtr< wrapper::org::ortc::RTCIdentityResultPtr > PromiseWithType;
 
@@ -99,7 +99,7 @@ shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCIdentityResultPtr > > w
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCIdentityAssertionPtr > > wrapper::impl::org::ortc::RTCIdentity::setIdentityAssertion(String assertion)
+shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCIdentityAssertionPtr > > wrapper::impl::org::ortc::RTCIdentity::setIdentityAssertion(String assertion) noexcept
 {
   ZS_DECLARE_TYPEDEF_PTR(PromiseWithHolderPtr< wrapper::org::ortc::RTCIdentityAssertionPtr >, PromiseWithType);
 
@@ -120,20 +120,20 @@ shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCIdentityAssertionPtr > 
 }
 
 //------------------------------------------------------------------------------
-uint64_t wrapper::impl::org::ortc::RTCIdentity::get_objectId()
+uint64_t wrapper::impl::org::ortc::RTCIdentity::get_objectId() noexcept
 {
   return native_->getID();
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCIdentityAssertionPtr wrapper::impl::org::ortc::RTCIdentity::get_peerIdentity()
+wrapper::org::ortc::RTCIdentityAssertionPtr wrapper::impl::org::ortc::RTCIdentity::get_peerIdentity() noexcept
 {
   return RTCIdentityAssertion::toWrapper(native_->peerIdentity());
 }
 
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCIdentityPtr wrapper::impl::org::ortc::RTCIdentity::toWrapper(NativeIdentityPtr native)
+wrapper::impl::org::ortc::RTCIdentityPtr wrapper::impl::org::ortc::RTCIdentity::toWrapper(NativeIdentityPtr native) noexcept
 {
   if (!native) return RTCIdentityPtr();
   auto pThis = make_shared<wrapper::impl::org::ortc::RTCIdentity>();
@@ -143,7 +143,7 @@ wrapper::impl::org::ortc::RTCIdentityPtr wrapper::impl::org::ortc::RTCIdentity::
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCIdentity::NativeIdentityPtr wrapper::impl::org::ortc::RTCIdentity::toNative(wrapper::org::ortc::RTCIdentityPtr wrapper)
+wrapper::impl::org::ortc::RTCIdentity::NativeIdentityPtr wrapper::impl::org::ortc::RTCIdentity::toNative(wrapper::org::ortc::RTCIdentityPtr wrapper) noexcept
 {
   if (!wrapper) return NativeIdentityPtr();
   return std::dynamic_pointer_cast<wrapper::impl::org::ortc::RTCIdentity>(wrapper)->native_;

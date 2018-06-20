@@ -15,14 +15,14 @@ namespace wrapper {
           OverconstrainedErrorEventWeakPtr thisWeak_;
           OverconstrainedErrorPtr error_;
 
-          OverconstrainedErrorEvent();
-          virtual ~OverconstrainedErrorEvent();
-          virtual void wrapper_init_org_ortc_OverconstrainedErrorEvent() override;
+          OverconstrainedErrorEvent() noexcept;
+          virtual ~OverconstrainedErrorEvent() noexcept;
+          virtual void wrapper_init_org_ortc_OverconstrainedErrorEvent() noexcept override;
 
           // properties OverconstrainedErrorEvent
-          virtual wrapper::org::ortc::OverconstrainedErrorPtr get_error() override;
+          virtual wrapper::org::ortc::OverconstrainedErrorPtr get_error() noexcept override;
 
-          static OverconstrainedErrorEventPtr toWrapper(OverconstrainedErrorPtr error);
+          static OverconstrainedErrorEventPtr toWrapper(OverconstrainedErrorPtr error) noexcept;
         };
 
       } // ortc

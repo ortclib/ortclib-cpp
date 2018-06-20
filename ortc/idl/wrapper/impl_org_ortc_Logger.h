@@ -12,7 +12,7 @@ namespace wrapper {
 
         struct Logger : public wrapper::org::ortc::Logger
         {
-          virtual ~Logger();
+          virtual ~Logger() noexcept;
         };
 
       } // ortc

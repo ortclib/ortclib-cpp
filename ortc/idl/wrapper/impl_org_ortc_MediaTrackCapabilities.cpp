@@ -23,12 +23,12 @@ using ::std::set;
 using ::std::map;
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::MediaTrackCapabilities::MediaTrackCapabilities()
+wrapper::impl::org::ortc::MediaTrackCapabilities::MediaTrackCapabilities() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::MediaTrackCapabilitiesPtr wrapper::org::ortc::MediaTrackCapabilities::wrapper_create()
+wrapper::org::ortc::MediaTrackCapabilitiesPtr wrapper::org::ortc::MediaTrackCapabilities::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::MediaTrackCapabilities>();
   pThis->thisWeak_ = pThis;
@@ -36,17 +36,17 @@ wrapper::org::ortc::MediaTrackCapabilitiesPtr wrapper::org::ortc::MediaTrackCapa
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::MediaTrackCapabilities::~MediaTrackCapabilities()
+wrapper::impl::org::ortc::MediaTrackCapabilities::~MediaTrackCapabilities() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::MediaTrackCapabilities::wrapper_init_org_ortc_MediaTrackCapabilities()
+void wrapper::impl::org::ortc::MediaTrackCapabilities::wrapper_init_org_ortc_MediaTrackCapabilities() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::MediaTrackCapabilities::wrapper_init_org_ortc_MediaTrackCapabilities(wrapper::org::ortc::MediaTrackCapabilitiesPtr source)
+void wrapper::impl::org::ortc::MediaTrackCapabilities::wrapper_init_org_ortc_MediaTrackCapabilities(wrapper::org::ortc::MediaTrackCapabilitiesPtr source) noexcept
 {
   wrapper::org::ortc::MediaTrackCapabilitiesPtr pThis = thisWeak_.lock();
   wrapper::org::ortc::MediaTrackCapabilitiesPtr wrapper = toWrapper(toNative(source));
@@ -55,7 +55,7 @@ void wrapper::impl::org::ortc::MediaTrackCapabilities::wrapper_init_org_ortc_Med
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::MediaTrackCapabilities::wrapper_init_org_ortc_MediaTrackCapabilities(wrapper::org::ortc::JsonPtr json)
+void wrapper::impl::org::ortc::MediaTrackCapabilities::wrapper_init_org_ortc_MediaTrackCapabilities(wrapper::org::ortc::JsonPtr json) noexcept
 {
   if (!json) return;
 
@@ -67,26 +67,26 @@ void wrapper::impl::org::ortc::MediaTrackCapabilities::wrapper_init_org_ortc_Med
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::JsonPtr wrapper::impl::org::ortc::MediaTrackCapabilities::toJson()
+wrapper::org::ortc::JsonPtr wrapper::impl::org::ortc::MediaTrackCapabilities::toJson() noexcept
 {
   return Json::toWrapper(toNative(thisWeak_.lock())->createElement());
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::ortc::MediaTrackCapabilities::hash()
+String wrapper::impl::org::ortc::MediaTrackCapabilities::hash() noexcept
 {
   return toNative(thisWeak_.lock())->hash();
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::MediaTrackCapabilitiesPtr wrapper::impl::org::ortc::MediaTrackCapabilities::toWrapper(NativeCapabilitiesPtr native)
+wrapper::impl::org::ortc::MediaTrackCapabilitiesPtr wrapper::impl::org::ortc::MediaTrackCapabilities::toWrapper(NativeCapabilitiesPtr native) noexcept
 {
   if (!native) return MediaTrackCapabilitiesPtr();
   return toWrapper(*native);
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::MediaTrackCapabilitiesPtr wrapper::impl::org::ortc::MediaTrackCapabilities::toWrapper(const NativeCapabilities &native)
+wrapper::impl::org::ortc::MediaTrackCapabilitiesPtr wrapper::impl::org::ortc::MediaTrackCapabilities::toWrapper(const NativeCapabilities &native) noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::MediaTrackCapabilities>();
   pThis->thisWeak_ = pThis;
@@ -139,7 +139,7 @@ wrapper::impl::org::ortc::MediaTrackCapabilitiesPtr wrapper::impl::org::ortc::Me
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::MediaTrackCapabilities::NativeCapabilitiesPtr wrapper::impl::org::ortc::MediaTrackCapabilities::toNative(wrapper::org::ortc::MediaTrackCapabilitiesPtr wrapper)
+wrapper::impl::org::ortc::MediaTrackCapabilities::NativeCapabilitiesPtr wrapper::impl::org::ortc::MediaTrackCapabilities::toNative(wrapper::org::ortc::MediaTrackCapabilitiesPtr wrapper) noexcept
 {
   if (!wrapper) return NativeCapabilitiesPtr();
 

@@ -73,7 +73,6 @@ namespace org
       string toString();
     };
 
-    //!EXCLUSIVE WINUWP
     /// <summary>
     /// An reference holder to the system dispatcher object.
     /// </summary>
@@ -92,7 +91,6 @@ namespace org
       [static]
       Any source;
     };
-    //!EXCLUSIVE x
 
     /// <summary>
     /// Setup methods for the ORTC Lib stack.
@@ -170,7 +168,6 @@ namespace org
       void notifyReturningFromBackground();
     };
 
-    //!EXCLUSIVE WINUWP
     /// <summary>
     /// Setup methods for the ORTC Lib stack when using dispatcher.
     /// </summary>
@@ -183,6 +180,5 @@ namespace org
       [static, default, altname(SetupWithDispatcher)]
       void setup(Dispatcher dispatcher);
     };
-    //!EXCLUSIVE x
   }
 }

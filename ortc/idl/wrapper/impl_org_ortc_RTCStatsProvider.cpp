@@ -21,12 +21,12 @@ using ::std::set;
 using ::std::map;
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCStatsProvider::RTCStatsProvider()
+wrapper::impl::org::ortc::RTCStatsProvider::RTCStatsProvider() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCStatsProviderPtr wrapper::org::ortc::RTCStatsProvider::wrapper_create()
+wrapper::org::ortc::RTCStatsProviderPtr wrapper::org::ortc::RTCStatsProvider::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::RTCStatsProvider>();
   pThis->thisWeak_ = pThis;
@@ -34,18 +34,18 @@ wrapper::org::ortc::RTCStatsProviderPtr wrapper::org::ortc::RTCStatsProvider::wr
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCStatsProvider::~RTCStatsProvider()
+wrapper::impl::org::ortc::RTCStatsProvider::~RTCStatsProvider() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > wrapper::impl::org::ortc::RTCStatsProvider::getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes)
+shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > wrapper::impl::org::ortc::RTCStatsProvider::getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept
 {
   return Helper::getStats(native_, statTypes);
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCStatsProviderPtr wrapper::impl::org::ortc::RTCStatsProvider::toWrapper(NativeTypePtr native)
+wrapper::impl::org::ortc::RTCStatsProviderPtr wrapper::impl::org::ortc::RTCStatsProvider::toWrapper(NativeTypePtr native) noexcept
 {
   if (!native) return RTCStatsProviderPtr();
 
@@ -56,7 +56,7 @@ wrapper::impl::org::ortc::RTCStatsProviderPtr wrapper::impl::org::ortc::RTCStats
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCStatsProvider::NativeTypePtr wrapper::impl::org::ortc::RTCStatsProvider::toNative(wrapper::org::ortc::RTCStatsProviderPtr wrapper)
+wrapper::impl::org::ortc::RTCStatsProvider::NativeTypePtr wrapper::impl::org::ortc::RTCStatsProvider::toNative(wrapper::org::ortc::RTCStatsProviderPtr wrapper) noexcept
 {
   if (!wrapper) return NativeTypePtr();
   return std::dynamic_pointer_cast<RTCStatsProvider>(wrapper)->native_;

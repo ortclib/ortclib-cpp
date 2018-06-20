@@ -29,12 +29,12 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCIceGathererCandidate::Wrappe
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCIceGathererCandidate::WrapperType, WrapperType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCIceGathererCandidate::RTCIceGathererCandidate()
+wrapper::impl::org::ortc::RTCIceGathererCandidate::RTCIceGathererCandidate() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCIceGathererCandidatePtr wrapper::org::ortc::RTCIceGathererCandidate::wrapper_create()
+wrapper::org::ortc::RTCIceGathererCandidatePtr wrapper::org::ortc::RTCIceGathererCandidate::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::RTCIceGathererCandidate>();
   pThis->thisWeak_ = pThis;
@@ -42,12 +42,12 @@ wrapper::org::ortc::RTCIceGathererCandidatePtr wrapper::org::ortc::RTCIceGathere
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCIceGathererCandidate::~RTCIceGathererCandidate()
+wrapper::impl::org::ortc::RTCIceGathererCandidate::~RTCIceGathererCandidate() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCIceGathererCandidatePtr wrapper::org::ortc::RTCIceGathererCandidate::create(wrapper::org::ortc::JsonPtr json)
+wrapper::org::ortc::RTCIceGathererCandidatePtr wrapper::org::ortc::RTCIceGathererCandidate::create(wrapper::org::ortc::JsonPtr json) noexcept
 {
   auto result = ::ortc::IICETypes::GatherCandidate::create(impl::org::ortc::Json::toNative(json));
   {
@@ -62,7 +62,7 @@ wrapper::org::ortc::RTCIceGathererCandidatePtr wrapper::org::ortc::RTCIceGathere
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::JsonPtr wrapper::impl::org::ortc::RTCIceGathererCandidate::toJson()
+wrapper::org::ortc::JsonPtr wrapper::impl::org::ortc::RTCIceGathererCandidate::toJson() noexcept
 {
   {
     auto native = std::dynamic_pointer_cast<::ortc::IICETypes::Candidate>(native_);
@@ -76,7 +76,7 @@ wrapper::org::ortc::JsonPtr wrapper::impl::org::ortc::RTCIceGathererCandidate::t
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::ortc::RTCIceGathererCandidate::hash()
+String wrapper::impl::org::ortc::RTCIceGathererCandidate::hash() noexcept
 {
   {
     auto native = std::dynamic_pointer_cast<::ortc::IICETypes::Candidate>(native_);
@@ -90,13 +90,13 @@ String wrapper::impl::org::ortc::RTCIceGathererCandidate::hash()
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCIceComponent wrapper::impl::org::ortc::RTCIceGathererCandidate::get_component()
+wrapper::org::ortc::RTCIceComponent wrapper::impl::org::ortc::RTCIceGathererCandidate::get_component() noexcept
 {
   return Helper::toWrapper(native_->mComponent);
 }
 
 //------------------------------------------------------------------------------
-WrapperTypePtr WrapperImplType::toWrapper(NativeTypePtr native)
+WrapperTypePtr WrapperImplType::toWrapper(NativeTypePtr native) noexcept
 {
   if (!native) return WrapperTypePtr();
 
@@ -116,7 +116,7 @@ WrapperTypePtr WrapperImplType::toWrapper(NativeTypePtr native)
 }
 
 //------------------------------------------------------------------------------
-NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper)
+NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper) noexcept
 {
   if (!wrapper) return NativeTypePtr();
 

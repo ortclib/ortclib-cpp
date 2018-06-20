@@ -19,16 +19,16 @@ namespace wrapper {
           zsLib::Lock lock_;
           AnyPtr source_;
 
-          MediaSource();
-          virtual ~MediaSource();
-          virtual void wrapper_init_org_ortc_MediaSource() override;
+          MediaSource() noexcept;
+          virtual ~MediaSource() noexcept;
+          virtual void wrapper_init_org_ortc_MediaSource() noexcept override;
 
           // properties MediaSource
-          virtual AnyPtr get_source() override;
-          virtual void set_source(AnyPtr value) override;
-          virtual AnyPtr get_track() override;
+          virtual AnyPtr get_source() noexcept override;
+          virtual void set_source(AnyPtr value) noexcept override;
+          virtual AnyPtr get_track() noexcept override;
 
-          static MediaSourcePtr createWithTrack(MediaStreamTrackPtr track);
+          static MediaSourcePtr createWithTrack(MediaStreamTrackPtr track) noexcept;
         };
 
       } // ortc

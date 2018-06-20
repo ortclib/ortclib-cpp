@@ -18,13 +18,13 @@ namespace wrapper {
           RTCIceGathererStateChangeEventWeakPtr thisWeak_;
           ::ortc::IICEGathererTypes::States state_ { ::ortc::IICEGathererTypes::State_First};
 
-          RTCIceGathererStateChangeEvent();
-          virtual ~RTCIceGathererStateChangeEvent();
+          RTCIceGathererStateChangeEvent() noexcept;
+          virtual ~RTCIceGathererStateChangeEvent() noexcept;
 
           // properties RTCIceGathererStateChangeEvent
-          virtual wrapper::org::ortc::RTCIceGathererState get_state() override;
+          virtual wrapper::org::ortc::RTCIceGathererState get_state() noexcept override;
 
-          static WrapperImplTypePtr toWrapper(::ortc::IICEGathererTypes::States state);
+          static WrapperImplTypePtr toWrapper(::ortc::IICEGathererTypes::States state) noexcept;
         };
 
       } // ortc

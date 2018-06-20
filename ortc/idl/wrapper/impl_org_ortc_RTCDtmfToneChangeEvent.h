@@ -18,13 +18,13 @@ namespace wrapper {
           RTCDtmfToneChangeEventWeakPtr thisWeak_;
           NativeType native_;
 
-          RTCDtmfToneChangeEvent();
-          virtual ~RTCDtmfToneChangeEvent();
+          RTCDtmfToneChangeEvent() noexcept;
+          virtual ~RTCDtmfToneChangeEvent() noexcept;
 
           // properties RTCDtmfToneChangeEvent
-          virtual String get_tone() override;
+          virtual String get_tone() noexcept override;
 
-          static WrapperImplTypePtr toWrapper(NativeType native);
+          static WrapperImplTypePtr toWrapper(NativeType native) noexcept;
         };
 
       } // ortc

@@ -27,12 +27,12 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCIceCandidateComplete::Wrappe
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCIceCandidateComplete::WrapperType, WrapperType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCIceCandidateComplete::RTCIceCandidateComplete()
+wrapper::impl::org::ortc::RTCIceCandidateComplete::RTCIceCandidateComplete() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCIceCandidateCompletePtr wrapper::org::ortc::RTCIceCandidateComplete::wrapper_create()
+wrapper::org::ortc::RTCIceCandidateCompletePtr wrapper::org::ortc::RTCIceCandidateComplete::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::RTCIceCandidateComplete>();
   pThis->thisWeak_ = pThis;
@@ -40,42 +40,42 @@ wrapper::org::ortc::RTCIceCandidateCompletePtr wrapper::org::ortc::RTCIceCandida
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCIceCandidateComplete::~RTCIceCandidateComplete()
+wrapper::impl::org::ortc::RTCIceCandidateComplete::~RTCIceCandidateComplete() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCIceCandidateComplete::wrapper_init_org_ortc_RTCIceCandidateComplete()
+void wrapper::impl::org::ortc::RTCIceCandidateComplete::wrapper_init_org_ortc_RTCIceCandidateComplete() noexcept
 {
   native_ = make_shared< NativeType >();
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::JsonPtr wrapper::impl::org::ortc::RTCIceCandidateComplete::toJson()
+wrapper::org::ortc::JsonPtr wrapper::impl::org::ortc::RTCIceCandidateComplete::toJson() noexcept
 {
   return Json::toWrapper(native_->createElement());
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::ortc::RTCIceCandidateComplete::hash()
+String wrapper::impl::org::ortc::RTCIceCandidateComplete::hash() noexcept
 {
   return native_->hash();
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCIceComponent wrapper::impl::org::ortc::RTCIceCandidateComplete::get_component()
+wrapper::org::ortc::RTCIceComponent wrapper::impl::org::ortc::RTCIceCandidateComplete::get_component() noexcept
 {
   return Helper::toWrapper(native_->mComponent);
 }
 
 //------------------------------------------------------------------------------
-bool wrapper::impl::org::ortc::RTCIceCandidateComplete::get_complete()
+bool wrapper::impl::org::ortc::RTCIceCandidateComplete::get_complete() noexcept
 {
   return native_->mComplete;
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr native)
+WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr native) noexcept
 {
   if (!native) return WrapperImplTypePtr();
 
@@ -86,7 +86,7 @@ WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr native)
 }
 
 //------------------------------------------------------------------------------
-NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper)
+NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper) noexcept
 {
   if (!wrapper) return NativeTypePtr();
 
@@ -94,7 +94,7 @@ NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper)
 }
 
 //------------------------------------------------------------------------------
-NativeTypePtr WrapperImplType::toNative(wrapper::org::ortc::RTCIceGathererCandidatePtr wrapper)
+NativeTypePtr WrapperImplType::toNative(wrapper::org::ortc::RTCIceGathererCandidatePtr wrapper) noexcept
 {
   if (!wrapper) return NativeTypePtr();
 
