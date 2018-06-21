@@ -21,28 +21,28 @@ namespace wrapper {
           virtual ~RTCIceCandidateAttributes() noexcept;
 
           // methods RTCStats
-          virtual wrapper::org::ortc::JsonPtr toJson() noexcept override;
-          virtual String hash() noexcept override;
+          wrapper::org::ortc::JsonPtr toJson() noexcept override;
+          String hash() noexcept override;
 
           // properties RTCStats
-          virtual ::zsLib::Time get_timestamp() noexcept override;
-          virtual Optional< wrapper::org::ortc::RTCStatsType > get_statsType() noexcept override;
-          virtual String get_statsTypeOther() noexcept override;
-          virtual String get_id() noexcept override;
+          ::zsLib::Time get_timestamp() noexcept override;
+          Optional< wrapper::org::ortc::RTCStatsType > get_statsType() noexcept override;
+          String get_statsTypeOther() noexcept override;
+          String get_id() noexcept override;
 
           // methods RTCIceCandidateAttributes
-          virtual void wrapper_init_org_ortc_RTCIceCandidateAttributes() noexcept override;
-          virtual void wrapper_init_org_ortc_RTCIceCandidateAttributes(wrapper::org::ortc::RTCIceCandidateAttributesPtr source) noexcept override;
-          virtual void wrapper_init_org_ortc_RTCIceCandidateAttributes(wrapper::org::ortc::JsonPtr json) noexcept override;
+          void wrapper_init_org_ortc_RTCIceCandidateAttributes() noexcept override;
+          void wrapper_init_org_ortc_RTCIceCandidateAttributes(wrapper::org::ortc::RTCIceCandidateAttributesPtr source) noexcept override;
+          void wrapper_init_org_ortc_RTCIceCandidateAttributes(wrapper::org::ortc::JsonPtr json) noexcept override;
 
           // properties RTCIceCandidateAttributes
-          virtual String get_relatedId() noexcept override;
-          virtual String get_ipAddress() noexcept override;
-          virtual unsigned long get_portNumber() noexcept override;
-          virtual String get_transport() noexcept override;
-          virtual wrapper::org::ortc::RTCIceCandidateType get_candidateType() noexcept override;
-          virtual unsigned long get_priority() noexcept override;
-          virtual String get_addressSourceUrl() noexcept override;
+          String get_relatedId() noexcept override;
+          String get_ipAddress() noexcept override;
+          unsigned long get_portNumber() noexcept override;
+          String get_transport() noexcept override;
+          wrapper::org::ortc::RTCIceCandidateType get_candidateType() noexcept override;
+          unsigned long get_priority() noexcept override;
+          String get_addressSourceUrl() noexcept override;
 
           static RTCIceCandidateAttributesPtr toWrapper(NativeStatsPtr native) noexcept;
           static NativeStatsPtr toNative(wrapper::org::ortc::RTCIceCandidateAttributesPtr wrapper) noexcept;

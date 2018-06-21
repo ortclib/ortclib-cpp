@@ -30,45 +30,45 @@ namespace wrapper {
           virtual ~RTCIceTransport() noexcept;
 
           // methods RTCStatsProvider
-          virtual shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept override;
+          shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept(false) override;
 
           // methods RTCIceTransport
-          virtual void wrapper_init_org_ortc_RTCIceTransport() noexcept override;
-          virtual void wrapper_init_org_ortc_RTCIceTransport(wrapper::org::ortc::RTCIceGathererPtr gatherer) noexcept override;
-          virtual void start(
+          void wrapper_init_org_ortc_RTCIceTransport() noexcept override;
+          void wrapper_init_org_ortc_RTCIceTransport(wrapper::org::ortc::RTCIceGathererPtr gatherer) noexcept(false) override;
+          void start(
             wrapper::org::ortc::RTCIceGathererPtr gatherer,
             wrapper::org::ortc::RTCIceParametersPtr remoteParameters
-            ) noexcept override;
-          virtual void start(
+            ) noexcept(false) override;
+          void start(
             wrapper::org::ortc::RTCIceGathererPtr gatherer,
             wrapper::org::ortc::RTCIceParametersPtr remoteParameters,
             wrapper::org::ortc::RTCIceRole role
-            ) noexcept override;
-          virtual void start(
+            ) noexcept(false) override;
+          void start(
             wrapper::org::ortc::RTCIceGathererPtr gatherer,
             wrapper::org::ortc::RTCIceParametersPtr remoteParameters,
             wrapper::org::ortc::RTCIceTransportOptionsPtr options
-            ) noexcept override;
-          virtual void stop() noexcept override;
-          virtual wrapper::org::ortc::RTCIceTransportPtr createAssociatedTransport() noexcept override;
-          virtual void addRemoteCandidate(wrapper::org::ortc::RTCIceGathererCandidatePtr remoteCandidate) noexcept override;
-          virtual void setRemoteCandidates(shared_ptr< list< wrapper::org::ortc::RTCIceCandidatePtr > > remoteCandidates) noexcept override;
-          virtual void removeRemoteCandidate(wrapper::org::ortc::RTCIceGathererCandidatePtr remoteCandidate) noexcept override;
-          virtual void keepWarm(wrapper::org::ortc::RTCIceCandidatePairPtr candidatePair) noexcept override;
-          virtual void keepWarm(
+            ) noexcept(false) override;
+          void stop() noexcept override;
+          wrapper::org::ortc::RTCIceTransportPtr createAssociatedTransport() noexcept override;
+          void addRemoteCandidate(wrapper::org::ortc::RTCIceGathererCandidatePtr remoteCandidate) noexcept(false) override;
+          void setRemoteCandidates(shared_ptr< list< wrapper::org::ortc::RTCIceCandidatePtr > > remoteCandidates) noexcept(false) override;
+          void removeRemoteCandidate(wrapper::org::ortc::RTCIceGathererCandidatePtr remoteCandidate) noexcept(false) override;
+          void keepWarm(wrapper::org::ortc::RTCIceCandidatePairPtr candidatePair) noexcept(false) override;
+          void keepWarm(
             wrapper::org::ortc::RTCIceCandidatePairPtr candidatePair,
             bool keepWarm
-            ) noexcept override;
+            ) noexcept(false) override;
 
           // properties RTCIceTransport
-          virtual uint64_t get_objectId() noexcept override;
-          virtual wrapper::org::ortc::RTCIceGathererPtr get_gatherer() noexcept override;
-          virtual wrapper::org::ortc::RTCIceRole get_role() noexcept override;
-          virtual wrapper::org::ortc::RTCIceComponent get_component() noexcept override;
-          virtual wrapper::org::ortc::RTCIceTransportState get_state() noexcept override;
-          virtual shared_ptr< list< wrapper::org::ortc::RTCIceCandidatePtr > > get_remoteCandidates() noexcept override;
-          virtual wrapper::org::ortc::RTCIceCandidatePairPtr get_selectedCandidatePair() noexcept override;
-          virtual wrapper::org::ortc::RTCIceParametersPtr get_remoteParameters() noexcept override;
+          uint64_t get_objectId() noexcept override;
+          wrapper::org::ortc::RTCIceGathererPtr get_gatherer() noexcept override;
+          wrapper::org::ortc::RTCIceRole get_role() noexcept override;
+          wrapper::org::ortc::RTCIceComponent get_component() noexcept override;
+          wrapper::org::ortc::RTCIceTransportState get_state() noexcept override;
+          shared_ptr< list< wrapper::org::ortc::RTCIceCandidatePtr > > get_remoteCandidates() noexcept override;
+          wrapper::org::ortc::RTCIceCandidatePairPtr get_selectedCandidatePair() noexcept override;
+          wrapper::org::ortc::RTCIceParametersPtr get_remoteParameters() noexcept override;
 
           virtual void wrapper_onObserverCountChanged(size_t count) noexcept override;
 

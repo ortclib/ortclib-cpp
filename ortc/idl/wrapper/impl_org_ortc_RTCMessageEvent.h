@@ -23,8 +23,8 @@ namespace wrapper {
           virtual ~RTCMessageEvent() noexcept;
 
           // properties RTCMessageEvent
-          virtual SecureByteBlockPtr get_binary() noexcept override;
-          virtual String get_text() noexcept override;
+          SecureByteBlockPtr get_binary() noexcept override;
+          String get_text() noexcept override;
 
           static WrapperImplTypePtr toWrapper(NativeTypePtr native) noexcept;
         };

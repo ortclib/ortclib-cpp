@@ -21,7 +21,7 @@ namespace wrapper {
           virtual ~RTCDtlsTransportStateChangeEvent() noexcept;
 
           // properties RTCDtlsTransportStateChangeEvent
-          virtual wrapper::org::ortc::RTCDtlsTransportState get_state() noexcept override;
+          wrapper::org::ortc::RTCDtlsTransportState get_state() noexcept override;
 
           static WrapperImplTypePtr toWrapper(wrapper::org::ortc::RTCDtlsTransportState state) noexcept;
         };

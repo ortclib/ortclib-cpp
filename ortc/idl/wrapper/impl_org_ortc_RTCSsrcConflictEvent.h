@@ -23,7 +23,7 @@ namespace wrapper {
           virtual ~RTCSsrcConflictEvent() noexcept;
 
           // properties RTCSsrcConflictEvent
-          virtual uint32_t get_ssrc() noexcept override;
+          uint32_t get_ssrc() noexcept override;
 
           static WrapperImplTypePtr toWrapper(NativeType native) noexcept;
         };

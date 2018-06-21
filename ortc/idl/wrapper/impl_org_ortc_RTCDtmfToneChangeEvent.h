@@ -22,7 +22,7 @@ namespace wrapper {
           virtual ~RTCDtmfToneChangeEvent() noexcept;
 
           // properties RTCDtmfToneChangeEvent
-          virtual String get_tone() noexcept override;
+          String get_tone() noexcept override;
 
           static WrapperImplTypePtr toWrapper(NativeType native) noexcept;
         };

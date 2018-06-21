@@ -30,21 +30,21 @@ namespace wrapper {
           virtual ~RTCIceGatherer() noexcept;
 
           // methods RTCStatsProvider
-          virtual shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept override;
+          shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept(false) override;
 
           // methods RTCIceGatherer
-          virtual void wrapper_init_org_ortc_RTCIceGatherer(wrapper::org::ortc::RTCIceGatherOptionsPtr options) noexcept override;
-          virtual wrapper::org::ortc::RTCIceGathererPtr createAssociatedGatherer() noexcept override;
-          virtual void gather() noexcept override;
-          virtual void gather(wrapper::org::ortc::RTCIceGatherOptionsPtr options) noexcept override;
-          virtual void close() noexcept override;
+          void wrapper_init_org_ortc_RTCIceGatherer(wrapper::org::ortc::RTCIceGatherOptionsPtr options) noexcept(false) override;
+          wrapper::org::ortc::RTCIceGathererPtr createAssociatedGatherer() noexcept(false) override;
+          void gather() noexcept override;
+          void gather(wrapper::org::ortc::RTCIceGatherOptionsPtr options) noexcept override;
+          void close() noexcept override;
 
           // properties RTCIceGatherer
-          virtual uint64_t get_objectId() noexcept override;
-          virtual wrapper::org::ortc::RTCIceComponent get_component() noexcept override;
-          virtual wrapper::org::ortc::RTCIceGathererState get_state() noexcept override;
-          virtual wrapper::org::ortc::RTCIceParametersPtr get_localParameters() noexcept override;
-          virtual shared_ptr< list< wrapper::org::ortc::RTCIceCandidatePtr > > get_localCandidates() noexcept override;
+          uint64_t get_objectId() noexcept override;
+          wrapper::org::ortc::RTCIceComponent get_component() noexcept override;
+          wrapper::org::ortc::RTCIceGathererState get_state() noexcept override;
+          wrapper::org::ortc::RTCIceParametersPtr get_localParameters() noexcept override;
+          shared_ptr< list< wrapper::org::ortc::RTCIceCandidatePtr > > get_localCandidates() noexcept override;
 
           virtual void wrapper_onObserverCountChanged(size_t count) noexcept override;
 

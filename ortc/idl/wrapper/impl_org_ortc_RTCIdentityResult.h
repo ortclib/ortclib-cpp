@@ -18,7 +18,7 @@ namespace wrapper {
 
           RTCIdentityResult() noexcept;
           virtual ~RTCIdentityResult() noexcept;
-          virtual void wrapper_init_org_ortc_RTCIdentityResult() noexcept override;
+          void wrapper_init_org_ortc_RTCIdentityResult() noexcept override;
 
           static RTCIdentityResultPtr toWrapper(NativeResultPtr native) noexcept;
           static RTCIdentityResultPtr toWrapper(const NativeResult &native) noexcept;

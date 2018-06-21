@@ -82,10 +82,9 @@ wrapper::org::ortc::MediaTrackSettingsPtr wrapper::impl::org::ortc::MediaStreamT
 }
 
 //------------------------------------------------------------------------------
-PromisePtr wrapper::impl::org::ortc::MediaStreamTrack::applyConstraints(wrapper::org::ortc::MediaTrackConstraintsPtr constraints) noexcept
+PromisePtr wrapper::impl::org::ortc::MediaStreamTrack::applyConstraints(wrapper::org::ortc::MediaTrackConstraintsPtr constraints) noexcept(false)
 {
-  ZS_ASSERT(constraints);
-
+  ZS_THROW_INVALID_ARGUMENT_IF(!constraints);
   return Helper::toWrapper(native_->applyConstraints(*MediaTrackConstraints::toNative(constraints)));
 }
 

@@ -21,7 +21,7 @@ namespace wrapper {
 
           OverconstrainedError() noexcept;
           virtual ~OverconstrainedError() noexcept;
-          virtual void wrapper_init_org_ortc_OverconstrainedError() noexcept override;
+          void wrapper_init_org_ortc_OverconstrainedError() noexcept override;
 
           static WrapperImplTypePtr toWrapper(NativeTypePtr native) noexcept;
         };

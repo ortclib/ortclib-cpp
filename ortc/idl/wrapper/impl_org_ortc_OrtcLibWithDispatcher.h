@@ -17,7 +17,7 @@ namespace wrapper {
           ZS_DECLARE_TYPEDEF_PTR(OrtcLibWithDispatcher, WrapperImplType);
           ZS_DECLARE_TYPEDEF_PTR(wrapper::org::ortc::OrtcLibWithDispatcher, WrapperType);
 
-          virtual ~OrtcLibWithDispatcher();
+          virtual ~OrtcLibWithDispatcher() noexcept;
         };
 
       } // ortc

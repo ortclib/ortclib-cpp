@@ -21,15 +21,15 @@ namespace wrapper {
           virtual ~LongRange() noexcept;
 
           // methods LongRange
-          virtual void wrapper_init_org_ortc_LongRange() noexcept override;
-          virtual void wrapper_init_org_ortc_LongRange(long value) noexcept override;
-          virtual void wrapper_init_org_ortc_LongRange(
-            long min,
-            long max
+          void wrapper_init_org_ortc_LongRange() noexcept override;
+          void wrapper_init_org_ortc_LongRange(long value) noexcept override;
+          void wrapper_init_org_ortc_LongRange(
+            long minimum,
+            long maximum
             ) noexcept override;
-          virtual void wrapper_init_org_ortc_LongRange(wrapper::org::ortc::JsonPtr json) noexcept override;
-          virtual wrapper::org::ortc::JsonPtr toJson() noexcept override;
-          virtual String hash() noexcept override;
+          void wrapper_init_org_ortc_LongRange(wrapper::org::ortc::JsonPtr json) noexcept override;
+          wrapper::org::ortc::JsonPtr toJson() noexcept override;
+          String hash() noexcept override;
 
           static LongRangePtr toWrapper(NativeCapabilityLongPtr native) noexcept;
           static LongRangePtr toWrapper(const NativeCapabilityLong &native) noexcept;

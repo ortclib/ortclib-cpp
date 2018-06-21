@@ -22,7 +22,7 @@ namespace wrapper {
           virtual ~RTCIceCandidatePairChangeEvent() noexcept;
 
           // properties RTCIceCandidatePairChangeEvent
-          virtual wrapper::org::ortc::RTCIceCandidatePairPtr get_candidatePair() noexcept override;
+          wrapper::org::ortc::RTCIceCandidatePairPtr get_candidatePair() noexcept override;
 
           static WrapperImplTypePtr toWrapper(::ortc::IICETransportTypes::CandidatePairPtr candidatePair) noexcept;
         };

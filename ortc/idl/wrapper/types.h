@@ -176,11 +176,6 @@ namespace wrapper {
 
       } // namespace ortc
     } // namespace org
-
-    namespace zs {
-      namespace exceptions {
-      } // namespace exceptions
-    } // namespace zs
   } // namespace impl
 } // namespace wrapper
 

@@ -26,14 +26,6 @@ namespace wrapper {
             void wrapper_init_org_ortc_adapter_RTCIceCandidate() noexcept override;
             void wrapper_init_org_ortc_adapter_RTCIceCandidate(wrapper::org::ortc::adapter::RTCIceCandidatePtr source) noexcept override;
             void wrapper_init_org_ortc_adapter_RTCIceCandidate(wrapper::org::ortc::JsonPtr json) noexcept(false) override;
-            wrapper::org::ortc::adapter::RTCIceCandidatePtr fromSdpStringWithMLineIndex(
-              String sdp,
-              uint64_t mlineIndex
-              ) noexcept(false) override;
-            wrapper::org::ortc::adapter::RTCIceCandidatePtr fromSdpStringWithMid(
-              String sdp,
-              String mid
-              ) noexcept(false) override;
             String toSdp() noexcept override;
             wrapper::org::ortc::JsonPtr toJson() noexcept override;
             String hash() noexcept override;

@@ -31,27 +31,27 @@ namespace wrapper {
           virtual ~RTCDataChannel() noexcept;
 
           // methods RTCStatsProvider
-          virtual shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept override;
+          shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept(false) override;
 
           // methods RTCDataChannel
-          virtual void wrapper_init_org_ortc_RTCDataChannel(
+          void wrapper_init_org_ortc_RTCDataChannel(
             wrapper::org::ortc::RTCDataTransportPtr transport,
             wrapper::org::ortc::RTCDataChannelParametersPtr params
-            ) noexcept override;
-          virtual void close() noexcept override;
-          virtual void send(String text) noexcept override;
-          virtual void send(SecureByteBlockPtr data) noexcept override;
+            ) noexcept(false) override;
+          void close() noexcept override;
+          void send(String text) noexcept(false) override;
+          void send(SecureByteBlockPtr data) noexcept(false) override;
 
           // properties RTCDataChannel
-          virtual uint64_t get_objectId() noexcept override;
-          virtual wrapper::org::ortc::RTCDataTransportPtr get_transport() noexcept override;
-          virtual wrapper::org::ortc::RTCDataChannelParametersPtr get_parameters() noexcept override;
-          virtual wrapper::org::ortc::RTCDataChannelState get_readyState() noexcept override;
-          virtual uint64_t get_bufferedAmount() noexcept override;
-          virtual uint64_t get_bufferedAmountLowThreshold() noexcept override;
-          virtual void set_bufferedAmountLowThreshold(uint64_t value) noexcept override;
-          virtual String get_binaryType() noexcept override;
-          virtual void set_binaryType(String value) noexcept override;
+          uint64_t get_objectId() noexcept override;
+          wrapper::org::ortc::RTCDataTransportPtr get_transport() noexcept override;
+          wrapper::org::ortc::RTCDataChannelParametersPtr get_parameters() noexcept override;
+          wrapper::org::ortc::RTCDataChannelState get_readyState() noexcept override;
+          uint64_t get_bufferedAmount() noexcept override;
+          uint64_t get_bufferedAmountLowThreshold() noexcept override;
+          void set_bufferedAmountLowThreshold(uint64_t value) noexcept override;
+          String get_binaryType() noexcept override;
+          void set_binaryType(String value) noexcept override;
 
           virtual void wrapper_onObserverCountChanged(size_t count) noexcept override;
 

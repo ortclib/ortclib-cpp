@@ -53,22 +53,22 @@ wrapper::impl::org::ortc::RTCIceGatherer::~RTCIceGatherer() noexcept
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > wrapper::impl::org::ortc::RTCIceGatherer::getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept
+shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > wrapper::impl::org::ortc::RTCIceGatherer::getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept(false)
 {
   return Helper::getStats(native_, statTypes);
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCIceGatherer::wrapper_init_org_ortc_RTCIceGatherer(wrapper::org::ortc::RTCIceGatherOptionsPtr options) noexcept
+void wrapper::impl::org::ortc::RTCIceGatherer::wrapper_init_org_ortc_RTCIceGatherer(wrapper::org::ortc::RTCIceGatherOptionsPtr options) noexcept(false)
 {
   auto native = RTCIceGatherOptions::toNative(options);
-  ZS_ASSERT(native);
+  ZS_THROW_INVALID_ARGUMENT_IF(!native);
 
   native_ = NativeType::create(thisWeak_.lock(), *native);
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCIceGathererPtr wrapper::impl::org::ortc::RTCIceGatherer::createAssociatedGatherer() noexcept
+wrapper::org::ortc::RTCIceGathererPtr wrapper::impl::org::ortc::RTCIceGatherer::createAssociatedGatherer() noexcept(false)
 {
   return RTCIceGatherer::toWrapper(native_->createAssociatedGatherer(::ortc::IICEGathererDelegatePtr()));
 }

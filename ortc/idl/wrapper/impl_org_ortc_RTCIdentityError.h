@@ -19,7 +19,7 @@ namespace wrapper {
 
           RTCIdentityError() noexcept;
           virtual ~RTCIdentityError() noexcept;
-          virtual void wrapper_init_org_ortc_RTCIdentityError() noexcept override;
+          void wrapper_init_org_ortc_RTCIdentityError() noexcept override;
 
           static RTCIdentityErrorPtr toWrapper(NativeErrorPtr native) noexcept;
           static RTCIdentityErrorPtr toWrapper(const NativeError &native) noexcept;

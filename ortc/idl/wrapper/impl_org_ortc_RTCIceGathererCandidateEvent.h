@@ -23,8 +23,8 @@ namespace wrapper {
           virtual ~RTCIceGathererCandidateEvent() noexcept;
 
           // properties RTCIceGathererCandidateEvent
-          virtual wrapper::org::ortc::RTCIceCandidatePtr get_candidate() noexcept override;
-          virtual String get_url() noexcept override;
+          wrapper::org::ortc::RTCIceCandidatePtr get_candidate() noexcept override;
+          String get_url() noexcept override;
 
           static WrapperImplTypePtr toWrapper(
             ::ortc::IICEGathererTypes::CandidatePtr candidate,

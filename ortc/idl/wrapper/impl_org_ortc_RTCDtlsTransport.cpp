@@ -52,7 +52,7 @@ wrapper::impl::org::ortc::RTCDtlsTransport::~RTCDtlsTransport() noexcept
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > wrapper::impl::org::ortc::RTCDtlsTransport::getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept
+shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > wrapper::impl::org::ortc::RTCDtlsTransport::getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept(false)
 {
   return Helper::getStats(native_, statTypes);
 }
@@ -61,9 +61,9 @@ shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > wrap
 void wrapper::impl::org::ortc::RTCDtlsTransport::wrapper_init_org_ortc_RTCDtlsTransport(
   wrapper::org::ortc::RTCIceTransportPtr iceTransport,
   shared_ptr< list< wrapper::org::ortc::RTCCertificatePtr > > certificates
-  ) noexcept
+  ) noexcept(false)
 {
-  ZS_ASSERT(iceTransport);
+  ZS_THROW_INVALID_ARGUMENT_IF(!iceTransport);
 
   list< ::ortc::ICertificatePtr > nativeList;
   if (certificates) {
@@ -99,11 +99,11 @@ shared_ptr< list< wrapper::org::ortc::RTCDtlsCertificateBinaryPtr > > wrapper::i
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCDtlsTransport::start(wrapper::org::ortc::RTCDtlsParametersPtr remoteParameters) noexcept
+void wrapper::impl::org::ortc::RTCDtlsTransport::start(wrapper::org::ortc::RTCDtlsParametersPtr remoteParameters) noexcept(false)
 {
-  ZS_ASSERT(remoteParameters);
+  ZS_THROW_INVALID_ARGUMENT_IF(!remoteParameters);
   auto native = RTCDtlsParameters::toNative(remoteParameters);
-  ZS_ASSERT(native);
+  ZS_THROW_INVALID_ARGUMENT_IF(!native);
   native_->start(*native);
 }
 

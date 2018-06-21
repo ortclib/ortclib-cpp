@@ -23,7 +23,7 @@ namespace wrapper {
           virtual ~RTCSctpTransportListenerEvent() noexcept;
 
           // properties RTCSctpTransportListenerEvent
-          virtual wrapper::org::ortc::RTCSctpTransportPtr get_transport() noexcept override;
+          wrapper::org::ortc::RTCSctpTransportPtr get_transport() noexcept override;
 
           static WrapperImplTypePtr toWrapper(NativeTypePtr native) noexcept;
         };

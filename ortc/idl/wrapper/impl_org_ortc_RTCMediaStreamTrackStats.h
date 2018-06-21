@@ -21,35 +21,35 @@ namespace wrapper {
           virtual ~RTCMediaStreamTrackStats() noexcept;
 
           // methods RTCStats
-          virtual wrapper::org::ortc::JsonPtr toJson() noexcept override;
-          virtual String hash() noexcept override;
+          wrapper::org::ortc::JsonPtr toJson() noexcept override;
+          String hash() noexcept override;
 
           // properties RTCStats
-          virtual ::zsLib::Time get_timestamp() noexcept override;
-          virtual Optional< wrapper::org::ortc::RTCStatsType > get_statsType() noexcept override;
-          virtual String get_statsTypeOther() noexcept override;
-          virtual String get_id() noexcept override;
+          ::zsLib::Time get_timestamp() noexcept override;
+          Optional< wrapper::org::ortc::RTCStatsType > get_statsType() noexcept override;
+          String get_statsTypeOther() noexcept override;
+          String get_id() noexcept override;
 
           // methods RTCMediaStreamTrackStats
-          virtual void wrapper_init_org_ortc_RTCMediaStreamTrackStats() noexcept override;
-          virtual void wrapper_init_org_ortc_RTCMediaStreamTrackStats(wrapper::org::ortc::RTCMediaStreamTrackStatsPtr source) noexcept override;
-          virtual void wrapper_init_org_ortc_RTCMediaStreamTrackStats(wrapper::org::ortc::JsonPtr json) noexcept override;
+          void wrapper_init_org_ortc_RTCMediaStreamTrackStats() noexcept override;
+          void wrapper_init_org_ortc_RTCMediaStreamTrackStats(wrapper::org::ortc::RTCMediaStreamTrackStatsPtr source) noexcept override;
+          void wrapper_init_org_ortc_RTCMediaStreamTrackStats(wrapper::org::ortc::JsonPtr json) noexcept override;
 
           // properties RTCMediaStreamTrackStats
-          virtual String get_trackId() noexcept override;
-          virtual bool get_remoteSource() noexcept override;
-          virtual shared_ptr< list< uint32_t > > get_ssrcIds() noexcept override;
-          virtual unsigned long get_frameWidth() noexcept override;
-          virtual unsigned long get_frameHeight() noexcept override;
-          virtual double get_framesPerSecond() noexcept override;
-          virtual unsigned long get_framesSent() noexcept override;
-          virtual unsigned long get_framesReceived() noexcept override;
-          virtual unsigned long get_framesDecoded() noexcept override;
-          virtual unsigned long get_framesDropped() noexcept override;
-          virtual unsigned long get_framesCorrupted() noexcept override;
-          virtual double get_audioLevel() noexcept override;
-          virtual double get_echoReturnLoss() noexcept override;
-          virtual double get_echoReturnLossEnhancement() noexcept override;
+          String get_trackId() noexcept override;
+          bool get_remoteSource() noexcept override;
+          shared_ptr< list< uint32_t > > get_ssrcIds() noexcept override;
+          unsigned long get_frameWidth() noexcept override;
+          unsigned long get_frameHeight() noexcept override;
+          double get_framesPerSecond() noexcept override;
+          unsigned long get_framesSent() noexcept override;
+          unsigned long get_framesReceived() noexcept override;
+          unsigned long get_framesDecoded() noexcept override;
+          unsigned long get_framesDropped() noexcept override;
+          unsigned long get_framesCorrupted() noexcept override;
+          double get_audioLevel() noexcept override;
+          double get_echoReturnLoss() noexcept override;
+          double get_echoReturnLossEnhancement() noexcept override;
 
           static RTCMediaStreamTrackStatsPtr toWrapper(NativeStatsPtr native) noexcept;
           static NativeStatsPtr toNative(wrapper::org::ortc::RTCMediaStreamTrackStatsPtr wrapper) noexcept;

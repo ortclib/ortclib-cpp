@@ -21,9 +21,9 @@ namespace wrapper {
           virtual ~RTCStatsTypeSet() noexcept;
 
           // methods RTCStatsTypeSet
-          virtual void wrapper_init_org_ortc_RTCStatsTypeSet() noexcept override;
-          virtual void wrapper_init_org_ortc_RTCStatsTypeSet(shared_ptr< set< wrapper::org::ortc::RTCStatsType > > values) noexcept override;
-          virtual bool hasStatType(wrapper::org::ortc::RTCStatsType type) noexcept override;
+          void wrapper_init_org_ortc_RTCStatsTypeSet() noexcept override;
+          void wrapper_init_org_ortc_RTCStatsTypeSet(shared_ptr< set< wrapper::org::ortc::RTCStatsType > > values) noexcept override;
+          bool hasStatType(wrapper::org::ortc::RTCStatsType type) noexcept override;
 
           static RTCStatsTypeSetPtr toWrapper(NativeStatsTypeSetPtr native) noexcept;
           static NativeStatsTypeSetPtr toNative(wrapper::org::ortc::RTCStatsTypeSetPtr wrapper) noexcept;

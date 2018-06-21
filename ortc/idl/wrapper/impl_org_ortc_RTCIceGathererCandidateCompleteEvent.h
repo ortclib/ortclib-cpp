@@ -22,7 +22,7 @@ namespace wrapper {
           virtual ~RTCIceGathererCandidateCompleteEvent() noexcept;
 
           // properties RTCIceGathererCandidateCompleteEvent
-          virtual wrapper::org::ortc::RTCIceCandidateCompletePtr get_candidate() noexcept override;
+          wrapper::org::ortc::RTCIceCandidateCompletePtr get_candidate() noexcept override;
 
           static WrapperImplTypePtr toWrapper(::ortc::IICEGathererTypes::CandidateCompletePtr candidate) noexcept;
         };

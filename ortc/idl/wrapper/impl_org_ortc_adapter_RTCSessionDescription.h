@@ -32,8 +32,6 @@ namespace wrapper {
               wrapper::org::ortc::adapter::RTCSessionDescriptionSignalingType type,
               wrapper::org::ortc::adapter::RTCSessionDescriptionDescriptionPtr description
               ) noexcept(false) override;
-            wrapper::org::ortc::RTCRtpParametersPtr convertCapabilitiesToParameters(wrapper::org::ortc::RTCRtpCapabilitiesPtr capabilitites) noexcept override;
-            wrapper::org::ortc::RTCRtpCapabilitiesPtr ConvertParametersToCapabilitites(wrapper::org::ortc::RTCRtpParametersPtr parameters) noexcept override;
 
             // properties RTCSessionDescription
             uint64_t get_objectId() noexcept override;

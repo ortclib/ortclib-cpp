@@ -22,11 +22,11 @@ namespace wrapper {
           virtual ~RTCStatsReport() noexcept;
 
           // methods RTCStatsReport
-          virtual wrapper::org::ortc::RTCStatsPtr getStats(String id) noexcept override;
+          wrapper::org::ortc::RTCStatsPtr getStats(String id) noexcept override;
 
           // properties RTCStatsReport
-          virtual uint64_t get_objectId() noexcept override;
-          virtual shared_ptr< list< String > > get_statsIds() noexcept override;
+          uint64_t get_objectId() noexcept override;
+          shared_ptr< list< String > > get_statsIds() noexcept override;
 
           static RTCStatsReportPtr toWrapper(NativeStatsReportPtr native) noexcept;
         };

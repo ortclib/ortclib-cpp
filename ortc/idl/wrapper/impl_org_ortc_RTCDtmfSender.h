@@ -30,25 +30,25 @@ namespace wrapper {
           virtual ~RTCDtmfSender() noexcept;
 
           // methods RTCDtmfSender
-          virtual void wrapper_init_org_ortc_RTCDtmfSender(wrapper::org::ortc::RTCRtpSenderPtr sender) noexcept override;
-          virtual bool canInsertDtmf() noexcept override;
-          virtual void insertDtmf(String tones) noexcept override;
-          virtual void insertDtmf(
+          void wrapper_init_org_ortc_RTCDtmfSender(wrapper::org::ortc::RTCRtpSenderPtr sender) noexcept(false) override;
+          bool canInsertDtmf() noexcept override;
+          void insertDtmf(String tones) noexcept(false) override;
+          void insertDtmf(
             String tones,
             ::zsLib::Milliseconds duration
-            ) noexcept override;
-          virtual void insertDtmf(
+            ) noexcept(false) override;
+          void insertDtmf(
             String tones,
             ::zsLib::Milliseconds duration,
             ::zsLib::Milliseconds interToneGap
-            ) noexcept override;
+            ) noexcept(false) override;
 
           // properties RTCDtmfSender
-          virtual uint64_t get_objectId() noexcept override;
-          virtual wrapper::org::ortc::RTCRtpSenderPtr get_sender() noexcept override;
-          virtual String get_toneBuffer() noexcept override;
-          virtual ::zsLib::Milliseconds get_duration() noexcept override;
-          virtual ::zsLib::Milliseconds get_interToneGap() noexcept override;
+          uint64_t get_objectId() noexcept override;
+          wrapper::org::ortc::RTCRtpSenderPtr get_sender() noexcept override;
+          String get_toneBuffer() noexcept override;
+          ::zsLib::Milliseconds get_duration() noexcept override;
+          ::zsLib::Milliseconds get_interToneGap() noexcept override;
 
           virtual void wrapper_onObserverCountChanged(size_t count) noexcept override;
 

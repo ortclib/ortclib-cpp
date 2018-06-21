@@ -23,25 +23,25 @@ namespace wrapper {
           virtual ~RTCIceCandidate() noexcept;
 
           // methods RTCIceGathererCandidate
-          virtual wrapper::org::ortc::JsonPtr toJson() noexcept override;
-          virtual String hash() noexcept override;
+          wrapper::org::ortc::JsonPtr toJson() noexcept override;
+          String hash() noexcept override;
 
           // properties RTCIceGathererCandidate
-          virtual wrapper::org::ortc::RTCIceComponent get_component() noexcept override;
-          virtual void wrapper_init_org_ortc_RTCIceCandidate() noexcept override;
+          wrapper::org::ortc::RTCIceComponent get_component() noexcept override;
+          void wrapper_init_org_ortc_RTCIceCandidate() noexcept override;
 
           // properties RTCIceCandidate
-          virtual String get_interfaceType() noexcept override;
-          virtual String get_foundation() noexcept override;
-          virtual uint32_t get_priority() noexcept override;
-          virtual uint32_t get_unfreezePriority() noexcept override;
-          virtual wrapper::org::ortc::RTCIceProtocol get_protocol() noexcept override;
-          virtual String get_ip() noexcept override;
-          virtual uint16_t get_port() noexcept override;
-          virtual wrapper::org::ortc::RTCIceCandidateType get_candidateType() noexcept override;
-          virtual wrapper::org::ortc::RTCIceTcpCandidateType get_tcpType() noexcept override;
-          virtual String get_relatedAddress() noexcept override;
-          virtual uint16_t get_relatedPort() noexcept override;
+          String get_interfaceType() noexcept override;
+          String get_foundation() noexcept override;
+          uint32_t get_priority() noexcept override;
+          uint32_t get_unfreezePriority() noexcept override;
+          wrapper::org::ortc::RTCIceProtocol get_protocol() noexcept override;
+          String get_ip() noexcept override;
+          uint16_t get_port() noexcept override;
+          wrapper::org::ortc::RTCIceCandidateType get_candidateType() noexcept override;
+          wrapper::org::ortc::RTCIceTcpCandidateType get_tcpType() noexcept override;
+          String get_relatedAddress() noexcept override;
+          uint16_t get_relatedPort() noexcept override;
 
           static WrapperImplTypePtr toWrapper(NativeTypePtr native) noexcept;
           static NativeTypePtr toNative(WrapperTypePtr wrapper) noexcept;

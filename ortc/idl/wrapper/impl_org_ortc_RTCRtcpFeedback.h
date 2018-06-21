@@ -22,11 +22,11 @@ namespace wrapper {
           virtual ~RTCRtcpFeedback() noexcept;
 
           // methods RTCRtcpFeedback
-          virtual void wrapper_init_org_ortc_RTCRtcpFeedback() noexcept override;
-          virtual void wrapper_init_org_ortc_RTCRtcpFeedback(wrapper::org::ortc::RTCRtcpFeedbackPtr source) noexcept override;
-          virtual void wrapper_init_org_ortc_RTCRtcpFeedback(wrapper::org::ortc::JsonPtr json) noexcept override;
-          virtual wrapper::org::ortc::JsonPtr toJson() noexcept override;
-          virtual String hash() noexcept override;
+          void wrapper_init_org_ortc_RTCRtcpFeedback() noexcept override;
+          void wrapper_init_org_ortc_RTCRtcpFeedback(wrapper::org::ortc::RTCRtcpFeedbackPtr source) noexcept override;
+          void wrapper_init_org_ortc_RTCRtcpFeedback(wrapper::org::ortc::JsonPtr json) noexcept override;
+          wrapper::org::ortc::JsonPtr toJson() noexcept override;
+          String hash() noexcept override;
 
           static WrapperImplTypePtr toWrapper(NativeTypePtr native) noexcept;
           static WrapperImplTypePtr toWrapper(const NativeType &native) noexcept;

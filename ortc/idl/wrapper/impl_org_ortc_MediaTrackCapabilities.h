@@ -23,11 +23,11 @@ namespace wrapper {
           virtual ~MediaTrackCapabilities() noexcept;
 
           // methods MediaTrackCapabilities
-          virtual void wrapper_init_org_ortc_MediaTrackCapabilities() noexcept override;
-          virtual void wrapper_init_org_ortc_MediaTrackCapabilities(wrapper::org::ortc::MediaTrackCapabilitiesPtr source) noexcept override;
-          virtual void wrapper_init_org_ortc_MediaTrackCapabilities(wrapper::org::ortc::JsonPtr json) noexcept override;
-          virtual wrapper::org::ortc::JsonPtr toJson() noexcept override;
-          virtual String hash() noexcept override;
+          void wrapper_init_org_ortc_MediaTrackCapabilities() noexcept override;
+          void wrapper_init_org_ortc_MediaTrackCapabilities(wrapper::org::ortc::MediaTrackCapabilitiesPtr source) noexcept override;
+          void wrapper_init_org_ortc_MediaTrackCapabilities(wrapper::org::ortc::JsonPtr json) noexcept override;
+          wrapper::org::ortc::JsonPtr toJson() noexcept override;
+          String hash() noexcept override;
 
           static MediaTrackCapabilitiesPtr toWrapper(NativeCapabilitiesPtr native) noexcept;
           static MediaTrackCapabilitiesPtr toWrapper(const NativeCapabilities &native) noexcept;

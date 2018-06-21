@@ -30,16 +30,16 @@ namespace wrapper {
           virtual ~RTCDtlsTransport() noexcept;
 
           // methods RTCStatsProvider
-          shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept override;
+          shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept(false) override;
 
           // methods RTCDtlsTransport
           void wrapper_init_org_ortc_RTCDtlsTransport(
             wrapper::org::ortc::RTCIceTransportPtr iceTransport,
             shared_ptr< list< wrapper::org::ortc::RTCCertificatePtr > > certificates
-            ) noexcept override;
+            ) noexcept(false) override;
           wrapper::org::ortc::RTCDtlsParametersPtr remoteParameters() noexcept override;
           shared_ptr< list< wrapper::org::ortc::RTCDtlsCertificateBinaryPtr > > getRemoteCertificates() noexcept override;
-          void start(wrapper::org::ortc::RTCDtlsParametersPtr remoteParameters) noexcept override;
+          void start(wrapper::org::ortc::RTCDtlsParametersPtr remoteParameters) noexcept(false) override;
           void stop() noexcept override;
 
           // properties RTCDtlsTransport
@@ -49,7 +49,7 @@ namespace wrapper {
           wrapper::org::ortc::RTCDtlsTransportState get_state() noexcept override;
           wrapper::org::ortc::RTCDtlsParametersPtr get_localParameters() noexcept override;
 
-          void wrapper_onObserverCountChanged(size_t count) noexcept override;
+          virtual void wrapper_onObserverCountChanged(size_t count) noexcept override;
 
           // IDTLSTransportDelegate
           void onDTLSTransportStateChange(

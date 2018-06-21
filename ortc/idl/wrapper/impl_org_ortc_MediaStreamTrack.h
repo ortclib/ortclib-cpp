@@ -32,26 +32,26 @@ namespace wrapper {
           virtual ~MediaStreamTrack() noexcept;
 
           // methods MediaStreamTrack
-          virtual wrapper::org::ortc::MediaStreamTrackPtr clone() noexcept override;
-          virtual void stop() noexcept override;
-          virtual wrapper::org::ortc::MediaTrackCapabilitiesPtr getCapabilities() noexcept override;
-          virtual wrapper::org::ortc::MediaTrackConstraintsPtr getConstraints() noexcept override;
-          virtual wrapper::org::ortc::MediaTrackSettingsPtr getSettings() noexcept override;
-          virtual PromisePtr applyConstraints(wrapper::org::ortc::MediaTrackConstraintsPtr constraints) noexcept override;
+          wrapper::org::ortc::MediaStreamTrackPtr clone() noexcept override;
+          void stop() noexcept override;
+          wrapper::org::ortc::MediaTrackCapabilitiesPtr getCapabilities() noexcept override;
+          wrapper::org::ortc::MediaTrackConstraintsPtr getConstraints() noexcept override;
+          wrapper::org::ortc::MediaTrackSettingsPtr getSettings() noexcept override;
+          PromisePtr applyConstraints(wrapper::org::ortc::MediaTrackConstraintsPtr constraints) noexcept(false) override;
 
           // properties MediaStreamTrack
-          virtual uint64_t get_objectId() noexcept override;
-          virtual wrapper::org::ortc::MediaStreamTrackKind get_kind() noexcept override;
-          virtual String get_id() noexcept override;
-          virtual String get_deviceId() noexcept override;
-          virtual String get_label() noexcept override;
-          virtual bool get_enabled() noexcept override;
-          virtual void set_enabled(bool value) noexcept override;
-          virtual bool get_muted() noexcept override;
-          virtual void set_muted(bool value) noexcept override;
-          virtual bool get_remote() noexcept override;
-          virtual wrapper::org::ortc::MediaStreamTrackState get_readyState() noexcept override;
-          virtual wrapper::org::ortc::MediaSourcePtr get_source() noexcept override;
+          uint64_t get_objectId() noexcept override;
+          wrapper::org::ortc::MediaStreamTrackKind get_kind() noexcept override;
+          String get_id() noexcept override;
+          String get_deviceId() noexcept override;
+          String get_label() noexcept override;
+          bool get_enabled() noexcept override;
+          void set_enabled(bool value) noexcept override;
+          bool get_muted() noexcept override;
+          void set_muted(bool value) noexcept override;
+          bool get_remote() noexcept override;
+          wrapper::org::ortc::MediaStreamTrackState get_readyState() noexcept override;
+          wrapper::org::ortc::MediaSourcePtr get_source() noexcept override;
 
           virtual void wrapper_onObserverCountChanged(size_t count) noexcept override;
 
@@ -72,7 +72,6 @@ namespace wrapper {
 
           void subscribe() noexcept;
         };
-
 
       } // ortc
     } // org

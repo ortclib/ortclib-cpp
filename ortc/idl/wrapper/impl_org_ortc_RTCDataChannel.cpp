@@ -51,7 +51,7 @@ wrapper::impl::org::ortc::RTCDataChannel::~RTCDataChannel() noexcept
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > wrapper::impl::org::ortc::RTCDataChannel::getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept
+shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > wrapper::impl::org::ortc::RTCDataChannel::getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept(false)
 {
   return Helper::getStats(native_, statTypes);
 }
@@ -60,10 +60,10 @@ shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > wrap
 void wrapper::impl::org::ortc::RTCDataChannel::wrapper_init_org_ortc_RTCDataChannel(
   wrapper::org::ortc::RTCDataTransportPtr transport,
   wrapper::org::ortc::RTCDataChannelParametersPtr params
-  ) noexcept
+  ) noexcept(false)
 {
   auto native = RTCDataChannelParameters::toNative(params);
-  ZS_ASSERT(params);
+  ZS_THROW_INVALID_ARGUMENT_IF(!params);
   native_ = NativeType::create(thisWeak_.lock(), RTCDataTransport::toNative(transport), *native);
 }
 
@@ -74,13 +74,13 @@ void wrapper::impl::org::ortc::RTCDataChannel::close() noexcept
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCDataChannel::send(String text) noexcept
+void wrapper::impl::org::ortc::RTCDataChannel::send(String text) noexcept(false)
 {
   native_->send(text);
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCDataChannel::send(SecureByteBlockPtr data) noexcept
+void wrapper::impl::org::ortc::RTCDataChannel::send(SecureByteBlockPtr data) noexcept(false)
 {
   if (!data) return;
   native_->send(*data);

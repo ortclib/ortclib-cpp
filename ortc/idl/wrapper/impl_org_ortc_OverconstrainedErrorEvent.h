@@ -17,10 +17,10 @@ namespace wrapper {
 
           OverconstrainedErrorEvent() noexcept;
           virtual ~OverconstrainedErrorEvent() noexcept;
-          virtual void wrapper_init_org_ortc_OverconstrainedErrorEvent() noexcept override;
+          void wrapper_init_org_ortc_OverconstrainedErrorEvent() noexcept override;
 
           // properties OverconstrainedErrorEvent
-          virtual wrapper::org::ortc::OverconstrainedErrorPtr get_error() noexcept override;
+          wrapper::org::ortc::OverconstrainedErrorPtr get_error() noexcept override;
 
           static OverconstrainedErrorEventPtr toWrapper(OverconstrainedErrorPtr error) noexcept;
         };

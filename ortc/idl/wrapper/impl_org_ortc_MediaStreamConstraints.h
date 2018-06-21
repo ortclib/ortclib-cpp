@@ -22,11 +22,11 @@ namespace wrapper {
           virtual ~MediaStreamConstraints() noexcept;
 
           // methods MediaStreamConstraints
-          virtual void wrapper_init_org_ortc_MediaStreamConstraints() noexcept override;
-          virtual void wrapper_init_org_ortc_MediaStreamConstraints(wrapper::org::ortc::MediaStreamConstraintsPtr source) noexcept override;
-          virtual void wrapper_init_org_ortc_MediaStreamConstraints(wrapper::org::ortc::JsonPtr json) noexcept override;
-          virtual wrapper::org::ortc::JsonPtr toJson() noexcept override;
-          virtual String hash() noexcept override;
+          void wrapper_init_org_ortc_MediaStreamConstraints() noexcept override;
+          void wrapper_init_org_ortc_MediaStreamConstraints(wrapper::org::ortc::MediaStreamConstraintsPtr source) noexcept override;
+          void wrapper_init_org_ortc_MediaStreamConstraints(wrapper::org::ortc::JsonPtr json) noexcept override;
+          wrapper::org::ortc::JsonPtr toJson() noexcept override;
+          String hash() noexcept override;
 
           static WrapperImplTypePtr toWrapper(NativeTypePtr native) noexcept;
           static WrapperImplTypePtr toWrapper(const NativeType &native) noexcept;

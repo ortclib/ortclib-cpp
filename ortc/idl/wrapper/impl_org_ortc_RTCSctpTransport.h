@@ -31,28 +31,28 @@ namespace wrapper {
           virtual ~RTCSctpTransport() noexcept;
 
           // methods RTCStatsProvider
-          virtual shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept override;
+          shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept(false) override;
 
           // methods RTCSctpTransport
-          virtual void wrapper_init_org_ortc_RTCSctpTransport(wrapper::org::ortc::RTCDtlsTransportPtr transport) noexcept override;
-          virtual void wrapper_init_org_ortc_RTCSctpTransport(
+          void wrapper_init_org_ortc_RTCSctpTransport(wrapper::org::ortc::RTCDtlsTransportPtr transport) noexcept(false) override;
+          void wrapper_init_org_ortc_RTCSctpTransport(
             wrapper::org::ortc::RTCDtlsTransportPtr transport,
             uint16_t localPort
-            ) noexcept override;
-          virtual void start(wrapper::org::ortc::RTCSctpCapabilitiesPtr remoteCapabilities) noexcept override;
-          virtual void start(
+            ) noexcept(false) override;
+          void start(wrapper::org::ortc::RTCSctpCapabilitiesPtr remoteCapabilities) noexcept(false) override;
+          void start(
             wrapper::org::ortc::RTCSctpCapabilitiesPtr remoteCapabilities,
             uint16_t remotePort
-            ) noexcept override;
-          virtual void stop() noexcept override;
+            ) noexcept(false) override;
+          void stop() noexcept override;
 
           // properties RTCSctpTransport
-          virtual uint64_t get_objectId() noexcept override;
-          virtual wrapper::org::ortc::RTCDtlsTransportPtr get_transport() noexcept override;
-          virtual wrapper::org::ortc::RTCSctpTransportState get_state() noexcept override;
-          virtual uint16_t get_port() noexcept override;
-          virtual uint16_t get_localPort() noexcept override;
-          virtual Optional< uint16_t > get_remotePort() noexcept override;
+          uint64_t get_objectId() noexcept override;
+          wrapper::org::ortc::RTCDtlsTransportPtr get_transport() noexcept override;
+          wrapper::org::ortc::RTCSctpTransportState get_state() noexcept override;
+          uint16_t get_port() noexcept override;
+          uint16_t get_localPort() noexcept override;
+          Optional< uint16_t > get_remotePort() noexcept override;
 
           virtual void wrapper_onObserverCountChanged(size_t count) noexcept override;
 

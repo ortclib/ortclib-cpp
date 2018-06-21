@@ -22,7 +22,7 @@ namespace wrapper {
           virtual ~RTCDtlsCertificateBinary() noexcept;
 
           // properties RTCDtlsCertificateBinary
-          virtual SecureByteBlockPtr get_certificate() noexcept override;
+          SecureByteBlockPtr get_certificate() noexcept override;
 
           static WrapperImplTypePtr toWrapper(NativeTypePtr native) noexcept;
           static WrapperImplTypePtr toWrapper(const NativeType &native) noexcept;

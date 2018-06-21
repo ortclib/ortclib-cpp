@@ -22,8 +22,8 @@ namespace wrapper {
           virtual ~RTCRtpContributingSource() noexcept;
 
           // methods RTCRtpContributingSource
-          virtual void wrapper_init_org_ortc_RTCRtpContributingSource() noexcept override;
-          virtual String hash() noexcept override;
+          void wrapper_init_org_ortc_RTCRtpContributingSource() noexcept override;
+          String hash() noexcept override;
 
           static WrapperImplTypePtr toWrapper(NativeTypePtr native) noexcept;
           static WrapperImplTypePtr toWrapper(const NativeType &native) noexcept;

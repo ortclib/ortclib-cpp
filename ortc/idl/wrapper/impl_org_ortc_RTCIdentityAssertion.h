@@ -18,7 +18,7 @@ namespace wrapper {
 
           RTCIdentityAssertion() noexcept;
           virtual ~RTCIdentityAssertion() noexcept;
-          virtual void wrapper_init_org_ortc_RTCIdentityAssertion() noexcept override;
+          void wrapper_init_org_ortc_RTCIdentityAssertion() noexcept override;
 
           static RTCIdentityAssertionPtr toWrapper(NativeAssertionPtr native) noexcept;
           static RTCIdentityAssertionPtr toWrapper(const NativeAssertion &native) noexcept;

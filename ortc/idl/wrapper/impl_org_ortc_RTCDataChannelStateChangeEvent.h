@@ -23,7 +23,7 @@ namespace wrapper {
           virtual ~RTCDataChannelStateChangeEvent() noexcept;
 
           // properties RTCDataChannelStateChangeEvent
-          virtual wrapper::org::ortc::RTCDataChannelState get_state() noexcept override;
+          wrapper::org::ortc::RTCDataChannelState get_state() noexcept override;
 
           static WrapperImplTypePtr toWrapper(NativeType native) noexcept;
         };

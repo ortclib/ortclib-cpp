@@ -23,15 +23,15 @@ namespace wrapper {
           virtual ~RTCIceCandidateComplete() noexcept;
 
           // methods RTCIceGathererCandidate
-          virtual wrapper::org::ortc::JsonPtr toJson() noexcept override;
-          virtual String hash() noexcept override;
+          wrapper::org::ortc::JsonPtr toJson() noexcept override;
+          String hash() noexcept override;
 
           // properties RTCIceGathererCandidate
-          virtual wrapper::org::ortc::RTCIceComponent get_component() noexcept override;
-          virtual void wrapper_init_org_ortc_RTCIceCandidateComplete() noexcept override;
+          wrapper::org::ortc::RTCIceComponent get_component() noexcept override;
+          void wrapper_init_org_ortc_RTCIceCandidateComplete() noexcept override;
 
           // properties RTCIceCandidateComplete
-          virtual bool get_complete() noexcept override;
+          bool get_complete() noexcept override;
 
           static WrapperImplTypePtr toWrapper(NativeTypePtr native) noexcept;
           static NativeTypePtr toNative(WrapperTypePtr wrapper) noexcept;

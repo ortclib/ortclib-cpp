@@ -22,7 +22,7 @@ namespace wrapper {
           virtual ~RTCIceTransportStateChangeEvent() noexcept;
 
           // properties RTCIceTransportStateChangeEvent
-          virtual wrapper::org::ortc::RTCIceTransportState get_state() noexcept override;
+          wrapper::org::ortc::RTCIceTransportState get_state() noexcept override;
 
           static WrapperImplTypePtr toWrapper(::ortc::IICETransportTypes::States state) noexcept;
         };

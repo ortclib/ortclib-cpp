@@ -24,9 +24,9 @@ namespace wrapper {
           virtual ~RTCCertificate() noexcept;
 
           // properties RTCCertificate
-          virtual uint64_t get_objectId() noexcept override;
-          virtual ::zsLib::Time get_expires() noexcept override;
-          virtual wrapper::org::ortc::RTCDtlsFingerprintPtr get_fingerprint() noexcept override;
+          uint64_t get_objectId() noexcept override;
+          ::zsLib::Time get_expires() noexcept override;
+          wrapper::org::ortc::RTCDtlsFingerprintPtr get_fingerprint() noexcept override;
 
           static PromiseWithTypePtr toWrapper(NativePromiseWithCertificatePtr promise) noexcept;
           static RTCCertificatePtr toWrapper(NativeTypePtr native) noexcept;

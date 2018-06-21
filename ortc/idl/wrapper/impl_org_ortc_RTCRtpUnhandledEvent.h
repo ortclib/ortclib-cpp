@@ -25,13 +25,13 @@ namespace wrapper {
 
           RTCRtpUnhandledEvent() noexcept;
           virtual ~RTCRtpUnhandledEvent() noexcept;
-          virtual void wrapper_init_org_ortc_RTCRtpUnhandledEvent() noexcept override;
+          void wrapper_init_org_ortc_RTCRtpUnhandledEvent() noexcept override;
 
           // properties RTCRtpUnhandledEvent
-          virtual uint32_t get_ssrc() noexcept override;
-          virtual uint8_t get_payloadType() noexcept override;
-          virtual String get_muxId() noexcept override;
-          virtual String get_rid() noexcept override;
+          uint32_t get_ssrc() noexcept override;
+          uint8_t get_payloadType() noexcept override;
+          String get_muxId() noexcept override;
+          String get_rid() noexcept override;
 
           static WrapperImplTypePtr toWrapper(
             SSRCType ssrc,

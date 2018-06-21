@@ -22,8 +22,8 @@ namespace wrapper {
           virtual ~RTCSrtpSdesTransportLifetimeRemainingEvent() noexcept;
 
           // properties RTCSrtpSdesTransportLifetimeRemainingEvent
-          virtual unsigned long get_leastLifetimeRemainingPercentageForAllKeys() noexcept override;
-          virtual unsigned long get_overallLifetimeRemainingPercentage() noexcept override;
+          unsigned long get_leastLifetimeRemainingPercentageForAllKeys() noexcept override;
+          unsigned long get_overallLifetimeRemainingPercentage() noexcept override;
 
           static WrapperImplTypePtr toWrapper(
             ULONG leastLifetimeRemainingPercentageForAllKeys,

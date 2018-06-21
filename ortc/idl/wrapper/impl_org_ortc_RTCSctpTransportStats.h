@@ -21,23 +21,23 @@ namespace wrapper {
           virtual ~RTCSctpTransportStats() noexcept;
 
           // methods RTCStats
-          virtual wrapper::org::ortc::JsonPtr toJson() noexcept override;
-          virtual String hash() noexcept override;
+          wrapper::org::ortc::JsonPtr toJson() noexcept override;
+          String hash() noexcept override;
 
           // properties RTCStats
-          virtual ::zsLib::Time get_timestamp() noexcept override;
-          virtual Optional< wrapper::org::ortc::RTCStatsType > get_statsType() noexcept override;
-          virtual String get_statsTypeOther() noexcept override;
-          virtual String get_id() noexcept override;
+          ::zsLib::Time get_timestamp() noexcept override;
+          Optional< wrapper::org::ortc::RTCStatsType > get_statsType() noexcept override;
+          String get_statsTypeOther() noexcept override;
+          String get_id() noexcept override;
 
           // methods RTCSctpTransportStats
-          virtual void wrapper_init_org_ortc_RTCSctpTransportStats() noexcept override;
-          virtual void wrapper_init_org_ortc_RTCSctpTransportStats(wrapper::org::ortc::RTCSctpTransportStatsPtr source) noexcept override;
-          virtual void wrapper_init_org_ortc_RTCSctpTransportStats(wrapper::org::ortc::JsonPtr json) noexcept override;
+          void wrapper_init_org_ortc_RTCSctpTransportStats() noexcept override;
+          void wrapper_init_org_ortc_RTCSctpTransportStats(wrapper::org::ortc::RTCSctpTransportStatsPtr source) noexcept override;
+          void wrapper_init_org_ortc_RTCSctpTransportStats(wrapper::org::ortc::JsonPtr json) noexcept override;
 
           // properties RTCSctpTransportStats
-          virtual unsigned long get_dataChannelsOpened() noexcept override;
-          virtual unsigned long get_dataChannelsClosed() noexcept override;
+          unsigned long get_dataChannelsOpened() noexcept override;
+          unsigned long get_dataChannelsClosed() noexcept override;
 
           static RTCSctpTransportStatsPtr toWrapper(NativeStatsPtr native) noexcept;
           static NativeStatsPtr toNative(wrapper::org::ortc::RTCSctpTransportStatsPtr wrapper) noexcept;

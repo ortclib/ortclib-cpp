@@ -21,23 +21,23 @@ namespace wrapper {
           virtual ~RTCDtlsTransportStats() noexcept;
 
           // methods RTCStats
-          virtual wrapper::org::ortc::JsonPtr toJson() noexcept override;
-          virtual String hash() noexcept override;
+          wrapper::org::ortc::JsonPtr toJson() noexcept override;
+          String hash() noexcept override;
 
           // properties RTCStats
-          virtual ::zsLib::Time get_timestamp() noexcept override;
-          virtual Optional< wrapper::org::ortc::RTCStatsType > get_statsType() noexcept override;
-          virtual String get_statsTypeOther() noexcept override;
-          virtual String get_id() noexcept override;
+          ::zsLib::Time get_timestamp() noexcept override;
+          Optional< wrapper::org::ortc::RTCStatsType > get_statsType() noexcept override;
+          String get_statsTypeOther() noexcept override;
+          String get_id() noexcept override;
 
           // methods RTCDtlsTransportStats
-          virtual void wrapper_init_org_ortc_RTCDtlsTransportStats() noexcept override;
-          virtual void wrapper_init_org_ortc_RTCDtlsTransportStats(wrapper::org::ortc::RTCDtlsTransportStatsPtr source) noexcept override;
-          virtual void wrapper_init_org_ortc_RTCDtlsTransportStats(wrapper::org::ortc::JsonPtr json) noexcept override;
+          void wrapper_init_org_ortc_RTCDtlsTransportStats() noexcept override;
+          void wrapper_init_org_ortc_RTCDtlsTransportStats(wrapper::org::ortc::RTCDtlsTransportStatsPtr source) noexcept override;
+          void wrapper_init_org_ortc_RTCDtlsTransportStats(wrapper::org::ortc::JsonPtr json) noexcept override;
 
           // properties RTCDtlsTransportStats
-          virtual String get_localCertificateId() noexcept override;
-          virtual String get_remoteCertificateId() noexcept override;
+          String get_localCertificateId() noexcept override;
+          String get_remoteCertificateId() noexcept override;
 
           static RTCDtlsTransportStatsPtr toWrapper(NativeStatsPtr native) noexcept;
           static NativeStatsPtr toNative(wrapper::org::ortc::RTCDtlsTransportStatsPtr wrapper) noexcept;

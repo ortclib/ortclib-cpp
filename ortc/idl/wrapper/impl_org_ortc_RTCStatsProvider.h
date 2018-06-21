@@ -21,7 +21,7 @@ namespace wrapper {
           virtual ~RTCStatsProvider() noexcept;
 
           // methods RTCStatsProvider
-          virtual shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept override;
+          shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept(false) override;
 
           static RTCStatsProviderPtr toWrapper(NativeTypePtr native) noexcept;
           static NativeTypePtr toNative(wrapper::org::ortc::RTCStatsProviderPtr wrapper) noexcept;

@@ -56,7 +56,7 @@ wrapper::impl::org::ortc::RTCIceTransport::~RTCIceTransport() noexcept
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > wrapper::impl::org::ortc::RTCIceTransport::getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept
+shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > wrapper::impl::org::ortc::RTCIceTransport::getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept(false)
 {
   return Helper::getStats(native_, statTypes);
 }
@@ -68,7 +68,7 @@ void wrapper::impl::org::ortc::RTCIceTransport::wrapper_init_org_ortc_RTCIceTran
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCIceTransport::wrapper_init_org_ortc_RTCIceTransport(wrapper::org::ortc::RTCIceGathererPtr gatherer) noexcept
+void wrapper::impl::org::ortc::RTCIceTransport::wrapper_init_org_ortc_RTCIceTransport(wrapper::org::ortc::RTCIceGathererPtr gatherer) noexcept(false)
 {
   native_ = NativeType::create(thisWeak_.lock(), RTCIceGatherer::toNative(gatherer));
 }
@@ -77,7 +77,7 @@ void wrapper::impl::org::ortc::RTCIceTransport::wrapper_init_org_ortc_RTCIceTran
 void wrapper::impl::org::ortc::RTCIceTransport::start(
   wrapper::org::ortc::RTCIceGathererPtr gatherer,
   wrapper::org::ortc::RTCIceParametersPtr remoteParameters
-  ) noexcept
+  ) noexcept(false)
 {
   auto nativeParams = RTCIceParameters::toNative(remoteParameters);
   ZS_ASSERT(nativeParams);

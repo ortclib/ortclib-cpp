@@ -22,11 +22,11 @@ namespace wrapper {
           virtual ~RTCRtpOpusCodecCapabilityParameters() noexcept;
 
           // methods RTCRtpOpusCodecCapabilityParameters
-          virtual void wrapper_init_org_ortc_RTCRtpOpusCodecCapabilityParameters() noexcept override;
-          virtual void wrapper_init_org_ortc_RTCRtpOpusCodecCapabilityParameters(wrapper::org::ortc::RTCRtpOpusCodecCapabilityParametersPtr source) noexcept override;
-          virtual void wrapper_init_org_ortc_RTCRtpOpusCodecCapabilityParameters(wrapper::org::ortc::JsonPtr json) noexcept override;
-          virtual wrapper::org::ortc::JsonPtr toJson() noexcept override;
-          virtual String hash() noexcept override;
+          void wrapper_init_org_ortc_RTCRtpOpusCodecCapabilityParameters() noexcept override;
+          void wrapper_init_org_ortc_RTCRtpOpusCodecCapabilityParameters(wrapper::org::ortc::RTCRtpOpusCodecCapabilityParametersPtr source) noexcept override;
+          void wrapper_init_org_ortc_RTCRtpOpusCodecCapabilityParameters(wrapper::org::ortc::JsonPtr json) noexcept override;
+          wrapper::org::ortc::JsonPtr toJson() noexcept override;
+          String hash() noexcept override;
 
           static WrapperImplTypePtr toWrapper(AnyPtr native) noexcept;
           static WrapperImplTypePtr toWrapper(NativeTypePtr native) noexcept;

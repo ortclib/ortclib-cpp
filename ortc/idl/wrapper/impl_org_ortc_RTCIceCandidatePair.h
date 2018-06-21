@@ -23,17 +23,17 @@ namespace wrapper {
           virtual ~RTCIceCandidatePair() noexcept;
 
           // methods RTCIceCandidatePair
-          virtual void wrapper_init_org_ortc_RTCIceCandidatePair() noexcept override;
-          virtual void wrapper_init_org_ortc_RTCIceCandidatePair(wrapper::org::ortc::RTCIceCandidatePairPtr source) noexcept override;
-          virtual void wrapper_init_org_ortc_RTCIceCandidatePair(wrapper::org::ortc::JsonPtr json) noexcept override;
-          virtual wrapper::org::ortc::JsonPtr toJson() noexcept override;
-          virtual String hash() noexcept override;
+          void wrapper_init_org_ortc_RTCIceCandidatePair() noexcept override;
+          void wrapper_init_org_ortc_RTCIceCandidatePair(wrapper::org::ortc::RTCIceCandidatePairPtr source) noexcept override;
+          void wrapper_init_org_ortc_RTCIceCandidatePair(wrapper::org::ortc::JsonPtr json) noexcept override;
+          wrapper::org::ortc::JsonPtr toJson() noexcept override;
+          String hash() noexcept override;
 
           // properties RTCIceCandidatePair
-          virtual wrapper::org::ortc::RTCIceCandidatePtr get_local() noexcept override;
-          virtual void set_local(wrapper::org::ortc::RTCIceCandidatePtr value) noexcept override;
-          virtual wrapper::org::ortc::RTCIceCandidatePtr get_remote() noexcept override;
-          virtual void set_remote(wrapper::org::ortc::RTCIceCandidatePtr value) noexcept override;
+          wrapper::org::ortc::RTCIceCandidatePtr get_local() noexcept override;
+          void set_local(wrapper::org::ortc::RTCIceCandidatePtr value) noexcept override;
+          wrapper::org::ortc::RTCIceCandidatePtr get_remote() noexcept override;
+          void set_remote(wrapper::org::ortc::RTCIceCandidatePtr value) noexcept override;
 
           static WrapperImplTypePtr toWrapper(NativeTypePtr native) noexcept;
           static NativeTypePtr toNative(WrapperTypePtr wrapper) noexcept;

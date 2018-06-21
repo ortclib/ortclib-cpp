@@ -47,7 +47,7 @@ wrapper::impl::org::ortc::RTCDtmfSender::~RTCDtmfSender() noexcept
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCDtmfSender::wrapper_init_org_ortc_RTCDtmfSender(wrapper::org::ortc::RTCRtpSenderPtr sender) noexcept
+void wrapper::impl::org::ortc::RTCDtmfSender::wrapper_init_org_ortc_RTCDtmfSender(wrapper::org::ortc::RTCRtpSenderPtr sender) noexcept(false)
 {
   native_ = NativeType::create(thisWeak_.lock(), RTCRtpSender::toNative(sender));
 }
@@ -59,7 +59,7 @@ bool wrapper::impl::org::ortc::RTCDtmfSender::canInsertDtmf() noexcept
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCDtmfSender::insertDtmf(String tones) noexcept
+void wrapper::impl::org::ortc::RTCDtmfSender::insertDtmf(String tones) noexcept(false)
 {
   native_->insertDTMF(tones);
 }
@@ -68,7 +68,7 @@ void wrapper::impl::org::ortc::RTCDtmfSender::insertDtmf(String tones) noexcept
 void wrapper::impl::org::ortc::RTCDtmfSender::insertDtmf(
   String tones,
   ::zsLib::Milliseconds duration
-  ) noexcept
+  ) noexcept(false)
 {
   native_->insertDTMF(tones, duration);
 }

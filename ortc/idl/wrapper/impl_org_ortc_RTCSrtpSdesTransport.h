@@ -31,20 +31,20 @@ namespace wrapper {
           virtual ~RTCSrtpSdesTransport() noexcept;
 
           // methods RTCStatsProvider
-          virtual shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept override;
+          shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept(false) override;
 
           // methods RTCSrtpSdesTransport
-          virtual void wrapper_init_org_ortc_RTCSrtpSdesTransport(
+          void wrapper_init_org_ortc_RTCSrtpSdesTransport(
             wrapper::org::ortc::RTCIceTransportPtr iceTransport,
             wrapper::org::ortc::RTCSrtpSdesCryptoParametersPtr encryptParameters,
             wrapper::org::ortc::RTCSrtpSdesCryptoParametersPtr decryptParameters
-            ) noexcept override;
-          virtual void stop() noexcept override;
+            ) noexcept(false) override;
+          void stop() noexcept override;
 
           // properties RTCSrtpSdesTransport
-          virtual uint64_t get_objectId() noexcept override;
-          virtual wrapper::org::ortc::RTCIceTransportPtr get_transport() noexcept override;
-          virtual wrapper::org::ortc::RTCIceTransportPtr get_rtcpTransport() noexcept override;
+          uint64_t get_objectId() noexcept override;
+          wrapper::org::ortc::RTCIceTransportPtr get_transport() noexcept override;
+          wrapper::org::ortc::RTCIceTransportPtr get_rtcpTransport() noexcept override;
 
           virtual void wrapper_onObserverCountChanged(size_t count) noexcept override;
 
