@@ -1,6 +1,8 @@
 
 #pragma once
 
+#ifdef WINUWP
+
 #include "types.h"
 #include "generated/org_ortc_OrtcLibWithDispatcher.h"
 
@@ -25,3 +27,4 @@ namespace wrapper {
   } // namespace impl
 } // namespace wrapper
 
+#endif //WINUWP

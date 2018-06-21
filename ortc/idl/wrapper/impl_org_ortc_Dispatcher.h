@@ -1,6 +1,8 @@
 
 #pragma once
 
+#ifdef WINUWP
+
 #include "types.h"
 #include "generated/org_ortc_Dispatcher.h"
 
@@ -29,3 +31,4 @@ namespace wrapper {
   } // namespace impl
 } // namespace wrapper
 
+#endif //ndef WINUWP

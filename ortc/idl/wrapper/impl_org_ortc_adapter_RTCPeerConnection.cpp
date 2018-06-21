@@ -384,36 +384,40 @@ void WrapperImplType::onPeerConnectionIceCandidateError(
 //------------------------------------------------------------------------------
 void WrapperImplType::onPeerConnectionSignalingStateChange(
   IPeerConnectionPtr connection,
-  SignalingStates state
+  ZS_MAYBE_USED() SignalingStates state
 ) noexcept
 {
+  ZS_MAYBE_USED(state);
   onSignalingStateChange();
 }
 
 //------------------------------------------------------------------------------
 void WrapperImplType::onPeerConnectionICEGatheringStateChange(
   IPeerConnectionPtr connection,
-  ICEGatheringStates state
+  ZS_MAYBE_USED() ICEGatheringStates state
 ) noexcept
 {
+  ZS_MAYBE_USED(state);
   onIceGatheringStateChange();
 }
 
 //------------------------------------------------------------------------------
 void WrapperImplType::onPeerConnectionICEConnectionStateChange(
   IPeerConnectionPtr connection,
-  ICEConnectionStates state
+  ZS_MAYBE_USED() ICEConnectionStates state
 ) noexcept
 {
+  ZS_MAYBE_USED(state);
   onIceConnectionStateChange();
 }
 
 //------------------------------------------------------------------------------
 void WrapperImplType::onPeerConnectionConnectionStateChange(
   IPeerConnectionPtr connection,
-  PeerConnectionStates state
+  ZS_MAYBE_USED() PeerConnectionStates state
 ) noexcept
 {
+  ZS_MAYBE_USED(state);
   onConnectionStateChange();
 }
 

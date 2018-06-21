@@ -55,8 +55,8 @@ void wrapper::impl::org::ortc::LongRange::wrapper_init_org_ortc_LongRange(
   long inMax
   ) noexcept
 {
-  this->min = min;
-  this->max = max;
+  this->min = inMin;
+  this->max = inMax;
 }
 
 //------------------------------------------------------------------------------

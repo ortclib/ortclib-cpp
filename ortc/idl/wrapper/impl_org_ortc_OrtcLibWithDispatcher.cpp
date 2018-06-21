@@ -3,6 +3,8 @@
 #include "impl_org_ortc_OrtcLib.h"
 #include "impl_org_ortc_Dispatcher.h"
 
+#ifdef WINUWP
+
 using ::zsLib::String;
 using ::zsLib::Optional;
 using ::zsLib::Any;
@@ -26,12 +28,12 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::OrtcLibWithDispatcher::WrapperI
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::OrtcLibWithDispatcher::WrapperType, WrapperType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::OrtcLibWithDispatcher::~OrtcLibWithDispatcher()
+wrapper::impl::org::ortc::OrtcLibWithDispatcher::~OrtcLibWithDispatcher() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::org::ortc::OrtcLibWithDispatcher::setup(wrapper::org::ortc::DispatcherPtr dispatcher)
+void wrapper::org::ortc::OrtcLibWithDispatcher::setup(wrapper::org::ortc::DispatcherPtr dispatcher) noexcept
 {
   typedef zsLib::AnyHolder< Windows::UI::Core::CoreDispatcher^ > AnyDispatchHolder;
 
@@ -50,4 +52,4 @@ void wrapper::org::ortc::OrtcLibWithDispatcher::setup(wrapper::org::ortc::Dispat
   NativeType::setup(holder->value_);
 }
 
-
+#endif //WINUWP
