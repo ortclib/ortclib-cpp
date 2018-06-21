@@ -53,13 +53,13 @@ wrapper::impl::org::ortc::RTCSctpTransport::~RTCSctpTransport() noexcept
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > wrapper::impl::org::ortc::RTCSctpTransport::getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept
+shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > wrapper::impl::org::ortc::RTCSctpTransport::getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept(false)
 {
   return Helper::getStats(native_, statTypes);
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCSctpTransport::wrapper_init_org_ortc_RTCSctpTransport(wrapper::org::ortc::RTCDtlsTransportPtr transport) noexcept
+void wrapper::impl::org::ortc::RTCSctpTransport::wrapper_init_org_ortc_RTCSctpTransport(wrapper::org::ortc::RTCDtlsTransportPtr transport) noexcept(false)
 {
   native_ = NativeType::create(thisWeak_.lock(), RTCDtlsTransport::toNative(transport));
 }
@@ -68,7 +68,7 @@ void wrapper::impl::org::ortc::RTCSctpTransport::wrapper_init_org_ortc_RTCSctpTr
 void wrapper::impl::org::ortc::RTCSctpTransport::wrapper_init_org_ortc_RTCSctpTransport(
   wrapper::org::ortc::RTCDtlsTransportPtr transport,
   uint16_t localPort
-  ) noexcept
+  ) noexcept(false)
 {
   native_ = NativeType::create(thisWeak_.lock(), RTCDtlsTransport::toNative(transport), localPort);
 }
@@ -91,10 +91,10 @@ wrapper::org::ortc::RTCSctpCapabilitiesPtr wrapper::org::ortc::RTCSctpTransport:
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCSctpTransport::start(wrapper::org::ortc::RTCSctpCapabilitiesPtr remoteCapabilities) noexcept
+void wrapper::impl::org::ortc::RTCSctpTransport::start(wrapper::org::ortc::RTCSctpCapabilitiesPtr remoteCapabilities) noexcept(false)
 {
   auto native = RTCSctpCapabilities::toNative(remoteCapabilities);
-  ZS_ASSERT(native);
+  ZS_THROW_INVALID_ARGUMENT_IF(!native);
   native_->start(*native);
 }
 
@@ -102,10 +102,10 @@ void wrapper::impl::org::ortc::RTCSctpTransport::start(wrapper::org::ortc::RTCSc
 void wrapper::impl::org::ortc::RTCSctpTransport::start(
   wrapper::org::ortc::RTCSctpCapabilitiesPtr remoteCapabilities,
   uint16_t remotePort
-  ) noexcept
+  ) noexcept(false)
 {
   auto native = RTCSctpCapabilities::toNative(remoteCapabilities);
-  ZS_ASSERT(native);
+  ZS_THROW_INVALID_ARGUMENT_IF(!native);
   native_->start(*native, remotePort);
 }
 

@@ -49,7 +49,7 @@ wrapper::impl::org::ortc::RTCRtpListener::~RTCRtpListener() noexcept
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > wrapper::impl::org::ortc::RTCRtpListener::getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept
+shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > wrapper::impl::org::ortc::RTCRtpListener::getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept(false)
 {
   return Helper::getStats(native_, statTypes);
 }
@@ -64,7 +64,7 @@ void wrapper::impl::org::ortc::RTCRtpListener::wrapper_init_org_ortc_RTCRtpListe
 void wrapper::impl::org::ortc::RTCRtpListener::wrapper_init_org_ortc_RTCRtpListener(
   wrapper::org::ortc::RTCRtpTransportPtr transport,
   shared_ptr< list< wrapper::org::ortc::RTCRtpHeaderExtensionParametersPtr > > headerExtensions
-  ) noexcept
+  ) noexcept(false)
 {
   ::ortc::IRTPTypes::HeaderExtensionParametersList nativeList;
   if (headerExtensions) {
@@ -78,7 +78,7 @@ void wrapper::impl::org::ortc::RTCRtpListener::wrapper_init_org_ortc_RTCRtpListe
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCRtpListener::setHeaderExtensions(shared_ptr< list< wrapper::org::ortc::RTCRtpHeaderExtensionParametersPtr > > headerExtensions) noexcept
+void wrapper::impl::org::ortc::RTCRtpListener::setHeaderExtensions(shared_ptr< list< wrapper::org::ortc::RTCRtpHeaderExtensionParametersPtr > > headerExtensions) noexcept(false)
 {
   ::ortc::IRTPTypes::HeaderExtensionParametersList nativeList;
   if (headerExtensions) {

@@ -52,7 +52,7 @@ wrapper::impl::org::ortc::RTCSrtpSdesTransport::~RTCSrtpSdesTransport() noexcept
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > wrapper::impl::org::ortc::RTCSrtpSdesTransport::getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept
+shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > wrapper::impl::org::ortc::RTCSrtpSdesTransport::getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept(false)
 {
   return Helper::getStats(native_, statTypes);  
 }
@@ -62,12 +62,12 @@ void wrapper::impl::org::ortc::RTCSrtpSdesTransport::wrapper_init_org_ortc_RTCSr
   wrapper::org::ortc::RTCIceTransportPtr iceTransport,
   wrapper::org::ortc::RTCSrtpSdesCryptoParametersPtr encryptParameters,
   wrapper::org::ortc::RTCSrtpSdesCryptoParametersPtr decryptParameters
-  ) noexcept
+  ) noexcept(false)
 {
   auto nativeEnc = RTCSrtpSdesCryptoParameters::toNative(encryptParameters);
   auto nativeDec = RTCSrtpSdesCryptoParameters::toNative(decryptParameters);
-  ZS_ASSERT(nativeEnc);
-  ZS_ASSERT(nativeDec);
+  ZS_THROW_INVALID_ARGUMENT_IF(!nativeEnc);
+  ZS_THROW_INVALID_ARGUMENT_IF(!nativeDec);
 
   native_ = ISRTPSDESTransport::create(thisWeak_.lock(), RTCIceTransport::toNative(iceTransport), *nativeEnc, *nativeDec);
 }

@@ -53,7 +53,7 @@ wrapper::impl::org::ortc::RTCRtpReceiver::~RTCRtpReceiver() noexcept
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > wrapper::impl::org::ortc::RTCRtpReceiver::getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept
+shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > wrapper::impl::org::ortc::RTCRtpReceiver::getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept(false)
 {
   return Helper::getStats(native_, statTypes);
 }
@@ -62,7 +62,7 @@ shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > wrap
 void wrapper::impl::org::ortc::RTCRtpReceiver::wrapper_init_org_ortc_RTCRtpReceiver(
   wrapper::org::ortc::MediaStreamTrackKind kind,
   wrapper::org::ortc::RTCRtpTransportPtr transport
-  ) noexcept
+  ) noexcept(false)
 {
   native_ = IRTPReceiver::create(thisWeak_.lock(), Helper::toNative(kind), RTCRtpTransport::toNative(transport));
 }
@@ -72,13 +72,13 @@ void wrapper::impl::org::ortc::RTCRtpReceiver::wrapper_init_org_ortc_RTCRtpRecei
   wrapper::org::ortc::MediaStreamTrackKind kind,
   wrapper::org::ortc::RTCRtpTransportPtr transport,
   wrapper::org::ortc::RTCRtcpTransportPtr rtcpTransport
-  ) noexcept
+  ) noexcept(false)
 {
   native_ = IRTPReceiver::create(thisWeak_.lock(), Helper::toNative(kind), RTCRtpTransport::toNative(transport), RTCRtcpTransport::toNative(rtcpTransport));
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCRtpReceiver::setTransport(wrapper::org::ortc::RTCRtpTransportPtr transport) noexcept
+void wrapper::impl::org::ortc::RTCRtpReceiver::setTransport(wrapper::org::ortc::RTCRtpTransportPtr transport) noexcept(false)
 {
   native_->setTransport(RTCRtpTransport::toNative(transport));
 }
@@ -87,7 +87,7 @@ void wrapper::impl::org::ortc::RTCRtpReceiver::setTransport(wrapper::org::ortc::
 void wrapper::impl::org::ortc::RTCRtpReceiver::setTransport(
   wrapper::org::ortc::RTCRtpTransportPtr transport,
   wrapper::org::ortc::RTCRtcpTransportPtr rtcpTransport
-  ) noexcept
+  ) noexcept(false)
 {
   native_->setTransport(RTCRtpTransport::toNative(transport), RTCRtcpTransport::toNative(rtcpTransport));
 }
@@ -99,7 +99,7 @@ wrapper::org::ortc::RTCRtpCapabilitiesPtr wrapper::org::ortc::RTCRtpReceiver::ge
 }
 
 //------------------------------------------------------------------------------
-PromisePtr wrapper::impl::org::ortc::RTCRtpReceiver::receive(wrapper::org::ortc::RTCRtpParametersPtr parameters) noexcept
+PromisePtr wrapper::impl::org::ortc::RTCRtpReceiver::receive(wrapper::org::ortc::RTCRtpParametersPtr parameters) noexcept(false)
 {
   auto native = RTCRtpParameters::toNative(parameters);
   if (!native) return Promise::createRejected(Helper::getGuiQueue());

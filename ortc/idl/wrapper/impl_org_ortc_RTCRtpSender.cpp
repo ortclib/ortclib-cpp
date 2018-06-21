@@ -52,7 +52,7 @@ wrapper::impl::org::ortc::RTCRtpSender::~RTCRtpSender() noexcept
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > wrapper::impl::org::ortc::RTCRtpSender::getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept
+shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > wrapper::impl::org::ortc::RTCRtpSender::getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept(false)
 {
   return Helper::getStats(native_, statTypes);
 }
@@ -61,7 +61,7 @@ shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > wrap
 void wrapper::impl::org::ortc::RTCRtpSender::wrapper_init_org_ortc_RTCRtpSender(
   wrapper::org::ortc::MediaStreamTrackPtr track,
   wrapper::org::ortc::RTCRtpTransportPtr transport
-  ) noexcept
+  ) noexcept(false)
 {
   native_ = NativeType::create(thisWeak_.lock(), wrapper::impl::org::ortc::MediaStreamTrack::toNative(track), wrapper::impl::org::ortc::RTCRtpTransport::toNative(transport));
 }
@@ -71,13 +71,13 @@ void wrapper::impl::org::ortc::RTCRtpSender::wrapper_init_org_ortc_RTCRtpSender(
   wrapper::org::ortc::MediaStreamTrackPtr track,
   wrapper::org::ortc::RTCRtpTransportPtr transport,
   wrapper::org::ortc::RTCRtcpTransportPtr rtcpTransport
-  ) noexcept
+  ) noexcept(false)
 {
   native_ = NativeType::create(thisWeak_.lock(), wrapper::impl::org::ortc::MediaStreamTrack::toNative(track), wrapper::impl::org::ortc::RTCRtpTransport::toNative(transport), wrapper::impl::org::ortc::RTCRtcpTransport::toNative(rtcpTransport));
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCRtpSender::setTransport(wrapper::org::ortc::RTCRtpTransportPtr transport) noexcept
+void wrapper::impl::org::ortc::RTCRtpSender::setTransport(wrapper::org::ortc::RTCRtpTransportPtr transport) noexcept(false)
 {
   native_->setTransport(RTCRtpTransport::toNative(transport));
 }
@@ -86,13 +86,13 @@ void wrapper::impl::org::ortc::RTCRtpSender::setTransport(wrapper::org::ortc::RT
 void wrapper::impl::org::ortc::RTCRtpSender::setTransport(
   wrapper::org::ortc::RTCRtpTransportPtr transport,
   wrapper::org::ortc::RTCRtcpTransportPtr rtcpTransport
-  ) noexcept
+  ) noexcept(false)
 {
   native_->setTransport(RTCRtpTransport::toNative(transport), RTCRtcpTransport::toNative(rtcpTransport));
 }
 
 //------------------------------------------------------------------------------
-PromisePtr wrapper::impl::org::ortc::RTCRtpSender::setTrack(wrapper::org::ortc::MediaStreamTrackPtr track) noexcept
+PromisePtr wrapper::impl::org::ortc::RTCRtpSender::setTrack(wrapper::org::ortc::MediaStreamTrackPtr track) noexcept(false)
 {
   return Helper::toWrapper(native_->setTrack(MediaStreamTrack::toNative(track)));
 }
@@ -108,7 +108,7 @@ wrapper::org::ortc::RTCRtpCapabilitiesPtr wrapper::org::ortc::RTCRtpSender::getC
 }
 
 //------------------------------------------------------------------------------
-PromisePtr wrapper::impl::org::ortc::RTCRtpSender::send(wrapper::org::ortc::RTCRtpParametersPtr parameters) noexcept
+PromisePtr wrapper::impl::org::ortc::RTCRtpSender::send(wrapper::org::ortc::RTCRtpParametersPtr parameters) noexcept(false)
 {
   auto native = RTCRtpParameters::toNative(parameters);
   ZS_ASSERT(native);

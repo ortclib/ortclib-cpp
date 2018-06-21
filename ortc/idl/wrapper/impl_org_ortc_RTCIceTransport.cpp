@@ -90,10 +90,10 @@ void wrapper::impl::org::ortc::RTCIceTransport::start(
   wrapper::org::ortc::RTCIceGathererPtr gatherer,
   wrapper::org::ortc::RTCIceParametersPtr remoteParameters,
   wrapper::org::ortc::RTCIceRole role
-  ) noexcept
+  ) noexcept(false)
 {
   auto nativeParams = RTCIceParameters::toNative(remoteParameters);
-  ZS_ASSERT(nativeParams);
+  ZS_THROW_INVALID_ARGUMENT_IF(!nativeParams);
 
   ::ortc::IICETransport::Options optionalOptions;
   optionalOptions.mRole = Helper::toNative(role);
@@ -106,10 +106,10 @@ void wrapper::impl::org::ortc::RTCIceTransport::start(
   wrapper::org::ortc::RTCIceGathererPtr gatherer,
   wrapper::org::ortc::RTCIceParametersPtr remoteParameters,
   wrapper::org::ortc::RTCIceTransportOptionsPtr options
-  ) noexcept
+  ) noexcept(false)
 {
   auto nativeParams = RTCIceParameters::toNative(remoteParameters);
-  ZS_ASSERT(nativeParams);
+  ZS_THROW_INVALID_ARGUMENT_IF(!nativeParams);
 
   auto nativeOptions = RTCIceTransportOptions::toNative(options);
   Optional<::ortc::IICETransport::Options> optionalOptions;
@@ -133,7 +133,7 @@ wrapper::org::ortc::RTCIceTransportPtr wrapper::impl::org::ortc::RTCIceTransport
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCIceTransport::addRemoteCandidate(wrapper::org::ortc::RTCIceGathererCandidatePtr remoteCandidate) noexcept
+void wrapper::impl::org::ortc::RTCIceTransport::addRemoteCandidate(wrapper::org::ortc::RTCIceGathererCandidatePtr remoteCandidate) noexcept(false)
 {
   auto native = RTCIceGathererCandidate::toNative(remoteCandidate);
   if (!native) return;
@@ -141,7 +141,7 @@ void wrapper::impl::org::ortc::RTCIceTransport::addRemoteCandidate(wrapper::org:
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCIceTransport::setRemoteCandidates(shared_ptr< list< wrapper::org::ortc::RTCIceCandidatePtr > > remoteCandidates) noexcept
+void wrapper::impl::org::ortc::RTCIceTransport::setRemoteCandidates(shared_ptr< list< wrapper::org::ortc::RTCIceCandidatePtr > > remoteCandidates) noexcept(false)
 {
   list< ::ortc::IICETypes::Candidate > nativeList;
   if (remoteCandidates) {
@@ -155,7 +155,7 @@ void wrapper::impl::org::ortc::RTCIceTransport::setRemoteCandidates(shared_ptr< 
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCIceTransport::removeRemoteCandidate(wrapper::org::ortc::RTCIceGathererCandidatePtr remoteCandidate) noexcept
+void wrapper::impl::org::ortc::RTCIceTransport::removeRemoteCandidate(wrapper::org::ortc::RTCIceGathererCandidatePtr remoteCandidate) noexcept(false)
 {
   auto native = RTCIceGathererCandidate::toNative(remoteCandidate);
   if (!native) return;
@@ -163,7 +163,7 @@ void wrapper::impl::org::ortc::RTCIceTransport::removeRemoteCandidate(wrapper::o
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCIceTransport::keepWarm(wrapper::org::ortc::RTCIceCandidatePairPtr candidatePair) noexcept
+void wrapper::impl::org::ortc::RTCIceTransport::keepWarm(wrapper::org::ortc::RTCIceCandidatePairPtr candidatePair) noexcept(false)
 {
   auto native = RTCIceCandidatePair::toNative(candidatePair);
   if (!native) return;
@@ -174,7 +174,7 @@ void wrapper::impl::org::ortc::RTCIceTransport::keepWarm(wrapper::org::ortc::RTC
 void wrapper::impl::org::ortc::RTCIceTransport::keepWarm(
   wrapper::org::ortc::RTCIceCandidatePairPtr candidatePair,
   bool keepWarm
-  ) noexcept
+  ) noexcept(false)
 {
   auto native = RTCIceCandidatePair::toNative(candidatePair);
   if (!native) return;

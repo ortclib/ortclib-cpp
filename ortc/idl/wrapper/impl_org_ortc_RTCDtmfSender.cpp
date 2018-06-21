@@ -78,7 +78,7 @@ void wrapper::impl::org::ortc::RTCDtmfSender::insertDtmf(
   String tones,
   ::zsLib::Milliseconds duration,
   ::zsLib::Milliseconds interToneGap
-  ) noexcept
+  ) noexcept(false)
 {
   native_->insertDTMF(tones, duration, interToneGap);
 }

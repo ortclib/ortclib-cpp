@@ -47,7 +47,7 @@ wrapper::impl::org::ortc::adapter::MediaStream::~MediaStream() noexcept
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > wrapper::impl::org::ortc::adapter::MediaStream::getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept
+shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > wrapper::impl::org::ortc::adapter::MediaStream::getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept(false)
 {
   return Helper::getStats(native_, statTypes);
 }
@@ -91,7 +91,7 @@ wrapper::org::ortc::MediaStreamTrackPtr wrapper::impl::org::ortc::adapter::Media
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::adapter::MediaStream::addTrack(wrapper::org::ortc::MediaStreamTrackPtr track) noexcept
+void wrapper::impl::org::ortc::adapter::MediaStream::addTrack(wrapper::org::ortc::MediaStreamTrackPtr track) noexcept(false)
 {
   if (!track) return;
   native_->addTrack(wrapper::impl::org::ortc::MediaStreamTrack::toNative(track));

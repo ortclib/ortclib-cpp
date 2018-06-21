@@ -52,7 +52,7 @@ void wrapper::impl::org::ortc::RTCIceTransportController::wrapper_init_org_ortc_
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCIceTransportController::addTransport(wrapper::org::ortc::RTCIceTransportPtr transport) noexcept
+void wrapper::impl::org::ortc::RTCIceTransportController::addTransport(wrapper::org::ortc::RTCIceTransportPtr transport) noexcept(false)
 {
   return native_->addTransport(RTCIceTransport::toNative(transport));
 }
@@ -61,7 +61,7 @@ void wrapper::impl::org::ortc::RTCIceTransportController::addTransport(wrapper::
 void wrapper::impl::org::ortc::RTCIceTransportController::addTransport(
   wrapper::org::ortc::RTCIceTransportPtr transport,
   uint64_t index
-  ) noexcept
+  ) noexcept(false)
 {
   size_t native = SafeInt<size_t>(index);
   return native_->addTransport(RTCIceTransport::toNative(transport), native);

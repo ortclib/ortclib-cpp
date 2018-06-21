@@ -54,7 +54,7 @@ wrapper::impl::org::ortc::adapter::RTCSessionDescription::~RTCSessionDescription
 void wrapper::impl::org::ortc::adapter::RTCSessionDescription::wrapper_init_org_ortc_adapter_RTCSessionDescription(
   wrapper::org::ortc::adapter::RTCSessionDescriptionSignalingType type,
   String description
-  ) noexcept
+  ) noexcept(false)
 {
   native_ = NativeType::create(Helper::toNative(type), description);
 }
@@ -63,10 +63,10 @@ void wrapper::impl::org::ortc::adapter::RTCSessionDescription::wrapper_init_org_
 void wrapper::impl::org::ortc::adapter::RTCSessionDescription::wrapper_init_org_ortc_adapter_RTCSessionDescription(
   wrapper::org::ortc::adapter::RTCSessionDescriptionSignalingType type,
   wrapper::org::ortc::adapter::RTCSessionDescriptionDescriptionPtr description
-  ) noexcept
+  ) noexcept(false)
 {
   auto wrapperDescription = RTCSessionDescriptionDescription::toNative(description);
-  ZS_ASSERT(wrapperDescription);
+  ZS_THROW_INVALID_ARGUMENT_IF(!wrapperDescription);
   native_ = NativeType::create(Helper::toNative(type), *wrapperDescription);
 }
 

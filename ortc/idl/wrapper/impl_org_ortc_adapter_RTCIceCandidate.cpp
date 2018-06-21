@@ -63,7 +63,7 @@ void wrapper::impl::org::ortc::adapter::RTCIceCandidate::wrapper_init_org_ortc_a
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::adapter::RTCIceCandidate::wrapper_init_org_ortc_adapter_RTCIceCandidate(wrapper::org::ortc::JsonPtr json) noexcept
+void wrapper::impl::org::ortc::adapter::RTCIceCandidate::wrapper_init_org_ortc_adapter_RTCIceCandidate(wrapper::org::ortc::JsonPtr json) noexcept(false)
 {
   if (!json) return;
 
