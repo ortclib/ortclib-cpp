@@ -1,6 +1,6 @@
 
 #include "impl_org_ortc_OrtcLib.h"
-#include "impl_org_ortc_MessageQueue.h"
+#include "impl_org_ortc_EventQueue.h"
 #include "impl_org_ortc_Helper.h"
 
 #include <ortc/services/IBackgrounding.h>
@@ -35,13 +35,13 @@ wrapper::impl::org::ortc::OrtcLib::~OrtcLib() noexcept
 //------------------------------------------------------------------------------
 void wrapper::org::ortc::OrtcLib::setup() noexcept
 {
-  setup(wrapper::org::ortc::MessageQueue::getDefaultForUi());
+  setup(wrapper::org::ortc::EventQueue::getDefaultForUi());
 }
 
 //------------------------------------------------------------------------------
-void wrapper::org::ortc::OrtcLib::setup(wrapper::org::ortc::MessageQueuePtr queue) noexcept
+void wrapper::org::ortc::OrtcLib::setup(wrapper::org::ortc::EventQueuePtr queue) noexcept
 {
-  NativeType::setup(wrapper::impl::org::ortc::MessageQueue::toNative(queue));
+  NativeType::setup(wrapper::impl::org::ortc::EventQueue::toNative(queue));
 }
 
 //------------------------------------------------------------------------------
@@ -123,3 +123,5 @@ void wrapper::org::ortc::OrtcLib::set_ntpServerTime(::zsLib::Milliseconds value)
 {
   NativeType::ntpServerTime(value);
 }
+
+

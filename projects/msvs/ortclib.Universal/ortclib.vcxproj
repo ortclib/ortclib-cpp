@@ -168,6 +168,14 @@
     <None Include="..\..\..\ortc\internal\ortc.stats.events.jman" />
     <None Include="..\..\..\ortc\internal\ortc.stats.events_win_etw.man" />
     <None Include="..\..\..\ortc\internal\ortc.stats.events_win_etw.wprp" />
+    <None Include="compiler.resp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\ortc\adapter\cpp\ortc_adapter_adapter.cpp" />

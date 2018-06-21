@@ -383,6 +383,7 @@
     <None Include="..\..\..\ortc\idl\winuwp.json">
       <Filter>ortc\idl</Filter>
     </None>
+    <None Include="compiler.resp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\..\ortc\cpp\ortc.cpp">

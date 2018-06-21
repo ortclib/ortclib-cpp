@@ -111,9 +111,6 @@
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_ConstrainStringParameters.cpp">
       <Filter>ortc\idl\wrapper</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_Dispatcher.cpp">
-      <Filter>ortc\idl\wrapper</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_DoubleRange.cpp">
       <Filter>ortc\idl\wrapper</Filter>
     </ClCompile>
@@ -447,13 +444,7 @@
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_Logger.cpp">
       <Filter>ortc\idl\wrapper</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_OrtcLibWithDispatcher.cpp">
-      <Filter>ortc\idl\wrapper</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_OrtcLib.cpp">
-      <Filter>ortc\idl\wrapper</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_MessageQueue.cpp">
       <Filter>ortc\idl\wrapper</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_Json.cpp">
@@ -493,6 +484,9 @@
       <Filter>ortc\idl\wrapper</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_RTCSctpTransportListenerEvent.cpp">
+      <Filter>ortc\idl\wrapper</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_EventQueue.cpp">
       <Filter>ortc\idl\wrapper</Filter>
     </ClCompile>
   </ItemGroup>
@@ -588,9 +582,6 @@
       <Filter>ortc\idl\wrapper</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_ConstrainStringParameters.h">
-      <Filter>ortc\idl\wrapper</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_Dispatcher.h">
       <Filter>ortc\idl\wrapper</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_DoubleRange.h">
@@ -1019,9 +1010,6 @@
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_ConstrainStringParameters.h">
       <Filter>ortc\idl\wrapper\generated</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_Dispatcher.h">
-      <Filter>ortc\idl\wrapper\generated</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_DoubleRange.h">
       <Filter>ortc\idl\wrapper\generated</Filter>
     </ClInclude>
@@ -1361,23 +1349,11 @@
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_OrtcLib.h">
       <Filter>ortc\idl\wrapper\generated</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_OrtcLibWithDispatcher.h">
-      <Filter>ortc\idl\wrapper\generated</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_OrtcLib.h">
-      <Filter>ortc\idl\wrapper</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_OrtcLibWithDispatcher.h">
-      <Filter>ortc\idl\wrapper</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_MessageQueue.h">
       <Filter>ortc\idl\wrapper</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_Json.h">
       <Filter>ortc\idl\wrapper</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_MessageQueue.h">
-      <Filter>ortc\idl\wrapper\generated</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_Json.h">
       <Filter>ortc\idl\wrapper\generated</Filter>
@@ -1439,9 +1415,6 @@
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_RTCDtmfToneChangeEvent.h">
       <Filter>ortc\idl\wrapper\generated</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\ortc\idl\wrapper\override\org_ortc_Dispatcher.h">
-      <Filter>ortc\idl\wrapper\override</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\ortc\idl\wrapper\override\org_ortc_MediaControl.h">
       <Filter>ortc\idl\wrapper\override</Filter>
     </ClInclude>
@@ -1456,6 +1429,15 @@
     </ClInclude>
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_RTCSctpTransportListenerEvent.h">
       <Filter>ortc\idl\wrapper\generated</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_EventQueue.h">
+      <Filter>ortc\idl\wrapper</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_EventQueue.h">
+      <Filter>ortc\idl\wrapper\generated</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\override\org_ortc_EventQueue.h">
+      <Filter>ortc\idl\wrapper\override</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

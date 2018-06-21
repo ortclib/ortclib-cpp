@@ -44,16 +44,29 @@ namespace org
     /// <summary>
     /// A message queue for receiving delegate events.
     /// </summary>
-    interface MessageQueue
+    [special]
+    interface EventQueue
     {
       [constructor, delete]
-      void MessageQueue();
+      void EventQueue();
+
+      [constructor, default]
+      void EventQueue(Any queue);
 
       /// <summary>
       /// The default windows message queue for the system GUI thread.
       /// </summary>
       [static]
-      MessageQueue getDefaultForUi();
+      EventQueue getDefaultForUi();
+
+      /// <summary>
+      /// Gets or sets the default system dispatcher object.
+      /// </summary>
+      [static, getter, setter]
+      EventQueue singleton;
+
+      [getter]
+      Any queue;
     };
 
     /// <summary>
@@ -74,25 +87,6 @@ namespace org
     };
 
     /// <summary>
-    /// An reference holder to the system dispatcher object.
-    /// </summary>
-    [special, platform(webhidden)]
-    interface Dispatcher
-    {
-      /// <summary>
-      /// Construct an object reference holder to the system dispatcher object.
-      /// </summary>
-      [constructor]
-      void Dispatcher(Any source);
-
-      /// <summary>
-      /// Gets or sets the default system dispatcher object.
-      /// </summary>
-      [static]
-      Any source;
-    };
-
-    /// <summary>
     /// Setup methods for the ORTC Lib stack.
     /// </summary>
     [static]
@@ -108,7 +102,7 @@ namespace org
       /// Initialize the ORTC stack with a target event queue for delegate events.
       /// </summary>
       [static, altname(setupWithQueue)]
-      void setup(MessageQueue queue);
+      void setup(EventQueue queue);
 
       /// <summary>
       /// Gets or sets the NTP server time discovered in milliseconds since
@@ -166,19 +160,6 @@ namespace org
       /// </summary>
       [static]
       void notifyReturningFromBackground();
-    };
-
-    /// <summary>
-    /// Setup methods for the ORTC Lib stack when using dispatcher.
-    /// </summary>
-    [static, platform(webhidden)]
-    interface OrtcLibWithDispatcher
-    {
-      /// <summary>
-      /// Initialize the ORTC stack with a target dispatcher for delegate events.
-      /// </summary>
-      [static, default, altname(SetupWithDispatcher)]
-      void setup(Dispatcher dispatcher);
     };
   }
 }

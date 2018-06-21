@@ -1,5 +1,5 @@
 
-#include "impl_org_ortc_Dispatcher.h"
+#include "impl_org_ortc_EventQueue.h"
 
 using ::zsLib::String;
 using ::zsLib::Optional;
@@ -20,48 +20,41 @@ using ::std::set;
 using ::std::map;
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::Dispatcher::Dispatcher() noexcept
+wrapper::impl::org::ortc::EventQueue::EventQueue() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::DispatcherPtr wrapper::org::ortc::Dispatcher::wrapper_create() noexcept
+wrapper::org::ortc::EventQueuePtr wrapper::org::ortc::EventQueue::wrapper_create() noexcept
 {
-  auto pThis = make_shared<wrapper::impl::org::ortc::Dispatcher>();
+  auto pThis = make_shared<wrapper::impl::org::ortc::EventQueue>();
   pThis->thisWeak_ = pThis;
   return pThis;
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::Dispatcher::~Dispatcher() noexcept
+wrapper::impl::org::ortc::EventQueue::~EventQueue()
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::Dispatcher::wrapper_init_org_ortc_Dispatcher(AnyPtr source) noexcept
+wrapper::org::ortc::EventQueuePtr wrapper::org::ortc::EventQueue::getDefaultForUi() noexcept
 {
-  native_ = source;
+#ifndef WINUWP
+  return wrapper::impl::org::ortc::MessageQueue::toWrapper(zsLib::IMessageQueueThread::singletonUsingCurrentGUIThreadsMessageQueue());
+#else
+  return get_singleton();
+#endif //ndef WINUWP
 }
 
 //------------------------------------------------------------------------------
-AnyPtr wrapper::org::ortc::Dispatcher::get_source() noexcept
+wrapper::org::ortc::EventQueuePtr wrapper::org::ortc::EventQueue::get_singleton() noexcept
 {
-  AnyPtr result {};
-  return result;
+  return singleton_;
 }
 
 //------------------------------------------------------------------------------
-void wrapper::org::ortc::Dispatcher::set_source(AnyPtr value) noexcept
+void wrapper::org::ortc::EventQueue::set_singleton(wrapper::org::ortc::EventQueuePtr value) noexcept
 {
-}
-
-//------------------------------------------------------------------------------
-AnyPtr wrapper::impl::org::ortc::Dispatcher::toNative(wrapper::org::ortc::DispatcherPtr wrapper) noexcept
-{
-  if (!wrapper) return AnyPtr();
-
-  auto impl = std::dynamic_pointer_cast<Dispatcher>(wrapper);
-  if (!impl) return AnyPtr();
-
-  return impl->native_;
+  singleton_ = value;
 }

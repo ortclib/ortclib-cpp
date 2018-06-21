@@ -49,10 +49,10 @@ namespace wrapper {
         ZS_DECLARE_STRUCT_PTR(ConstrainLongRange);
         ZS_DECLARE_STRUCT_PTR(ConstrainString);
         ZS_DECLARE_STRUCT_PTR(ConstrainStringParameters);
-        ZS_DECLARE_STRUCT_PTR(Dispatcher);
         ZS_DECLARE_STRUCT_PTR(DoubleRange);
         ZS_DECLARE_STRUCT_PTR(Error);
         ZS_DECLARE_STRUCT_PTR(ErrorEvent);
+        ZS_DECLARE_STRUCT_PTR(EventQueue);
         ZS_DECLARE_STRUCT_PTR(Json);
         ZS_DECLARE_STRUCT_PTR(Logger);
         ZS_DECLARE_STRUCT_PTR(LongRange);
@@ -67,9 +67,7 @@ namespace wrapper {
         ZS_DECLARE_STRUCT_PTR(MediaTrackConstraints);
         ZS_DECLARE_STRUCT_PTR(MediaTrackSettings);
         ZS_DECLARE_STRUCT_PTR(MediaTrackSupportedConstraints);
-        ZS_DECLARE_STRUCT_PTR(MessageQueue);
         ZS_DECLARE_STRUCT_PTR(OrtcLib);
-        ZS_DECLARE_STRUCT_PTR(OrtcLibWithDispatcher);
         ZS_DECLARE_STRUCT_PTR(OverconstrainedError);
         ZS_DECLARE_STRUCT_PTR(OverconstrainedErrorEvent);
         ZS_DECLARE_STRUCT_PTR(RTCCertificate);
