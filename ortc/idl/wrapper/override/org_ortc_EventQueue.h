@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include "types.h"
+#include <wrapper/generated/types.h>
 
 #ifdef WINUWP
 #ifdef __cplusplus_winrt
@@ -12,7 +12,7 @@
 #include <winrt/windows.ui.core.h>
 #endif //__cplusplus_winrt
 #else
-virtual ::zsLib::IMessageQueuePtr get_queue() noexcept = 0;
+#include <zsLib/IMessageQueue.h>
 #endif //WINUWP
 
 

@@ -1,6 +1,8 @@
 
 #include "impl_org_ortc_EventQueue.h"
 
+#include <zsLib/IMessageQueueThread.h>
+
 using ::zsLib::String;
 using ::zsLib::Optional;
 using ::zsLib::Any;
@@ -41,7 +43,9 @@ wrapper::impl::org::ortc::EventQueue::~EventQueue()
 wrapper::org::ortc::EventQueuePtr wrapper::org::ortc::EventQueue::getDefaultForUi() noexcept
 {
 #ifndef WINUWP
-  return wrapper::impl::org::ortc::MessageQueue::toWrapper(zsLib::IMessageQueueThread::singletonUsingCurrentGUIThreadsMessageQueue());
+  auto result = std::make_shared<wrapper::impl::org::ortc::EventQueue>();
+  result->queue_ = zsLib::IMessageQueueThread::singletonUsingCurrentGUIThreadsMessageQueue();
+  return result;
 #else
   return get_singleton();
 #endif //ndef WINUWP
@@ -50,11 +54,11 @@ wrapper::org::ortc::EventQueuePtr wrapper::org::ortc::EventQueue::getDefaultForU
 //------------------------------------------------------------------------------
 wrapper::org::ortc::EventQueuePtr wrapper::org::ortc::EventQueue::get_singleton() noexcept
 {
-  return singleton_;
+  return wrapper::impl::org::ortc::EventQueue::singleton_;
 }
 
 //------------------------------------------------------------------------------
 void wrapper::org::ortc::EventQueue::set_singleton(wrapper::org::ortc::EventQueuePtr value) noexcept
 {
-  singleton_ = value;
+  wrapper::impl::org::ortc::EventQueue::singleton_ = value;
 }

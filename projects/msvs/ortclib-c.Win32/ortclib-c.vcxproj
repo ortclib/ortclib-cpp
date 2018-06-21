@@ -22,7 +22,7 @@
     <ProjectGuid>{2ACCF81D-4C88-4677-834A-CBE8488A66E7}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>ortclibc</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -100,16 +100,18 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>ORTC_WRAPPER_C_GENERATED_IMPLEMENTATION;WIN32;_DEBUG;_WINDOWS;_USRDLL;ORTCLIBC_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..;$(ProjectDir)..\..\..\..\zsLib;$(ProjectDir)..\..\..\..\zsLib-eventing;$(ProjectDir)..\..\..\..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..;$(ProjectDir)..\..\..\ortc\idl;$(ProjectDir)..\..\..\..\zsLib;$(ProjectDir)..\..\..\..\zsLib-eventing;$(ProjectDir)..\..\..\..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAsWinRT>false</CompileAsWinRT>
       <MinimalRebuild>false</MinimalRebuild>
-      <DisableSpecificWarnings>4068</DisableSpecificWarnings>
-      <CompileAsManaged>
-      </CompileAsManaged>
+      <DisableSpecificWarnings>
+      </DisableSpecificWarnings>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -121,15 +123,18 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>ORTC_WRAPPER_C_GENERATED_IMPLEMENTATION;_DEBUG;_WINDOWS;_USRDLL;ORTCLIBC_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..;$(ProjectDir)..\..\..\..\zsLib;$(ProjectDir)..\..\..\..\zsLib-eventing;$(ProjectDir)..\..\..\..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..;$(ProjectDir)..\..\..\ortc\idl;$(ProjectDir)..\..\..\..\zsLib;$(ProjectDir)..\..\..\..\zsLib-eventing;$(ProjectDir)..\..\..\..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAsWinRT>false</CompileAsWinRT>
       <MinimalRebuild>false</MinimalRebuild>
-      <DisableSpecificWarnings>4068</DisableSpecificWarnings>
-      <CompileAsManaged>true</CompileAsManaged>
+      <DisableSpecificWarnings>
+      </DisableSpecificWarnings>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -140,17 +145,20 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>ORTC_WRAPPER_C_GENERATED_IMPLEMENTATION;WIN32;NDEBUG;_WINDOWS;_USRDLL;ORTCLIBC_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..;$(ProjectDir)..\..\..\..\zsLib;$(ProjectDir)..\..\..\..\zsLib-eventing;$(ProjectDir)..\..\..\..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..;$(ProjectDir)..\..\..\ortc\idl;$(ProjectDir)..\..\..\..\zsLib;$(ProjectDir)..\..\..\..\zsLib-eventing;$(ProjectDir)..\..\..\..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAsWinRT>false</CompileAsWinRT>
-      <DisableSpecificWarnings>4068</DisableSpecificWarnings>
-      <CompileAsManaged>true</CompileAsManaged>
+      <DisableSpecificWarnings>
+      </DisableSpecificWarnings>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -163,17 +171,20 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <PreprocessorDefinitions>ORTC_WRAPPER_C_GENERATED_IMPLEMENTATION;NDEBUG;_WINDOWS;_USRDLL;ORTCLIBC_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..;$(ProjectDir)..\..\..\..\zsLib;$(ProjectDir)..\..\..\..\zsLib-eventing;$(ProjectDir)..\..\..\..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..;$(ProjectDir)..\..\..\ortc\idl;$(ProjectDir)..\..\..\..\zsLib;$(ProjectDir)..\..\..\..\zsLib-eventing;$(ProjectDir)..\..\..\..;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAsWinRT>false</CompileAsWinRT>
-      <DisableSpecificWarnings>4068</DisableSpecificWarnings>
-      <CompileAsManaged>true</CompileAsManaged>
+      <DisableSpecificWarnings>
+      </DisableSpecificWarnings>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
+      <TreatWarningAsError>true</TreatWarningAsError>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -219,10 +230,10 @@
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_ConstrainLongRange.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_ConstrainString.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_ConstrainStringParameters.h" />
-    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_Dispatcher.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_DoubleRange.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_Error.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_ErrorEvent.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_EventQueue.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_Json.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_Logger.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_LongRange.h" />
@@ -237,9 +248,7 @@
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_MediaTrackConstraintSet.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_MediaTrackSettings.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_MediaTrackSupportedConstraints.h" />
-    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_MessageQueue.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_OrtcLib.h" />
-    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_OrtcLibWithDispatcher.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_OverconstrainedError.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_OverconstrainedErrorEvent.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCCertificate.h" />
@@ -344,6 +353,9 @@
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_Settings.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_StringOrStringList.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\types.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\override\c\c_org_ortc_EventQueue.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\override\c\c_org_ortc_MediaControl.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\override\c\c_org_ortc_MediaSource.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
   </ItemGroup>
@@ -382,10 +394,10 @@
     <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_ConstrainLongRange.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_ConstrainString.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_ConstrainStringParameters.cpp" />
-    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_Dispatcher.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_DoubleRange.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_Error.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_ErrorEvent.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_EventQueue.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_Json.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_Logger.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_LongRange.cpp" />
@@ -400,9 +412,7 @@
     <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_MediaTrackConstraintSet.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_MediaTrackSettings.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_MediaTrackSupportedConstraints.cpp" />
-    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_MessageQueue.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_OrtcLib.cpp" />
-    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_OrtcLibWithDispatcher_Bogus.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_OverconstrainedError.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_OverconstrainedErrorEvent.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCCertificate.cpp" />
@@ -506,6 +516,24 @@
     <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_RTCStatsTypeSet.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_Settings.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_StringOrStringList.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\override\c\c_org_ortc_EventQueue.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\override\c\c_org_ortc_MediaControl.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\override\c\c_org_ortc_MediaSource.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="dllmain.cpp">
       <CompileAsManaged Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">false</CompileAsManaged>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">

@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <wrapper/types.h>
+#include <wrapper/generated/types.h>
 
 namespace wrapper {
   namespace org {

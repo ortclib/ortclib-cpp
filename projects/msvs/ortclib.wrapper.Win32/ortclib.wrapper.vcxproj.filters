@@ -118,9 +118,6 @@
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_ConstrainStringParameters.cpp">
       <Filter>wrapper</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_Dispatcher.cpp">
-      <Filter>wrapper</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_DoubleRange.cpp">
       <Filter>wrapper</Filter>
     </ClCompile>
@@ -173,9 +170,6 @@
       <Filter>wrapper</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_MediaTrackSupportedConstraints.cpp">
-      <Filter>wrapper</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_MessageQueue.cpp">
       <Filter>wrapper</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_OrtcLib.cpp">
@@ -490,14 +484,11 @@
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_StringOrStringList.cpp">
       <Filter>wrapper</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_OrtcLibWithDispatcher.cpp">
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_EventQueue.cpp">
       <Filter>wrapper</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\ortc\idl\wrapper\override\org_ortc_Dispatcher.h">
-      <Filter>wrapper\override</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_adapter_MediaStream.h">
       <Filter>wrapper\generated</Filter>
     </ClInclude>
@@ -595,9 +586,6 @@
       <Filter>wrapper\generated</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_ConstrainStringParameters.h">
-      <Filter>wrapper\generated</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_Dispatcher.h">
       <Filter>wrapper\generated</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_DoubleRange.h">
@@ -1071,9 +1059,6 @@
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_ConstrainStringParameters.h">
       <Filter>wrapper</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_Dispatcher.h">
-      <Filter>wrapper</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_DoubleRange.h">
       <Filter>wrapper</Filter>
     </ClInclude>
@@ -1126,9 +1111,6 @@
       <Filter>wrapper</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_MediaTrackSupportedConstraints.h">
-      <Filter>wrapper</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_MessageQueue.h">
       <Filter>wrapper</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_OrtcLib.h">
@@ -1452,7 +1434,10 @@
     <ClInclude Include="..\..\..\ortc\idl\wrapper\override\org_ortc_MediaControl.h">
       <Filter>wrapper\override</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_OrtcLibWithDispatcher.h">
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\override\org_ortc_EventQueue.h">
+      <Filter>wrapper\override</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_EventQueue.h">
       <Filter>wrapper</Filter>
     </ClInclude>
   </ItemGroup>
