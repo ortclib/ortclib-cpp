@@ -35,7 +35,8 @@ wrapper::impl::org::ortc::OrtcLib::~OrtcLib() noexcept
 //------------------------------------------------------------------------------
 void wrapper::org::ortc::OrtcLib::setup() noexcept
 {
-  setup(wrapper::org::ortc::EventQueue::getDefaultForUi());
+  auto defaultEventQueue = wrapper::org::ortc::EventQueue::get_singleton();
+  setup(defaultEventQueue ? defaultEventQueue : wrapper::org::ortc::EventQueue::getDefaultForUi());
 }
 
 //------------------------------------------------------------------------------

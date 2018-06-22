@@ -696,16 +696,16 @@ namespace org
 
       /// <summary>
       /// Gets or sets the default number of columns of the source block that
-      /// are protected by this FEC block.
+      /// are protected by this FEC block, aka L value.
       /// </summary>
       [optional]
-      unsigned long l;
+      unsigned long columns;
       /// <summary>
       /// Gets or sets the default number of rows of the source block that are
-      /// protected by this FEC block.
+      /// protected by this FEC block, aka D value.
       /// </summary>
       [optional]
-      unsigned long d;
+      unsigned long rows;
       /// <summary>
       /// Gets or sets the default type of protection for the sender: 0 for
       /// 1-D interleaved FEC protection, 1 for 1-D non-interleaved FEC

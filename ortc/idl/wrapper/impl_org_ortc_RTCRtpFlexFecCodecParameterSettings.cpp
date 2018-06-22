@@ -103,8 +103,8 @@ WrapperImplTypePtr WrapperImplType::toWrapper(const NativeType &native) noexcept
   pThis->thisWeak_ = pThis;
 
   pThis->repairWindow = native.mRepairWindow;
-  Helper::optionalSafeIntConvert(native.mL, pThis->l);
-  Helper::optionalSafeIntConvert(native.mD, pThis->d);
+  Helper::optionalSafeIntConvert(native.mL, pThis->columns);
+  Helper::optionalSafeIntConvert(native.mD, pThis->rows);
   if (native.mToP.hasValue()) {
     pThis->toP = Helper::toWrapper(native.mToP.value());
   }
@@ -118,8 +118,8 @@ NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper) noexcept
 
   auto result = make_shared<NativeType>();
   result->mRepairWindow = wrapper->repairWindow;
-  Helper::optionalSafeIntConvert(wrapper->l, result->mL);
-  Helper::optionalSafeIntConvert(wrapper->d, result->mD);
+  Helper::optionalSafeIntConvert(wrapper->columns, result->mL);
+  Helper::optionalSafeIntConvert(wrapper->rows, result->mD);
   if (wrapper->toP.hasValue()) {
     result->mToP = Helper::toNative(wrapper->toP.value());
   }

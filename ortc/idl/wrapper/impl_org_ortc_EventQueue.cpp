@@ -22,6 +22,13 @@ using ::std::set;
 using ::std::map;
 
 //------------------------------------------------------------------------------
+static wrapper::org::ortc::EventQueuePtr &getSingleton()
+{
+  static wrapper::org::ortc::EventQueuePtr singleton_ {};
+  return singleton_;
+}
+
+//------------------------------------------------------------------------------
 wrapper::impl::org::ortc::EventQueue::EventQueue() noexcept
 {
 }
@@ -54,11 +61,11 @@ wrapper::org::ortc::EventQueuePtr wrapper::org::ortc::EventQueue::getDefaultForU
 //------------------------------------------------------------------------------
 wrapper::org::ortc::EventQueuePtr wrapper::org::ortc::EventQueue::get_singleton() noexcept
 {
-  return wrapper::impl::org::ortc::EventQueue::singleton_;
+  return getSingleton();
 }
 
 //------------------------------------------------------------------------------
 void wrapper::org::ortc::EventQueue::set_singleton(wrapper::org::ortc::EventQueuePtr value) noexcept
 {
-  wrapper::impl::org::ortc::EventQueue::singleton_ = value;
+  getSingleton() = value;
 }

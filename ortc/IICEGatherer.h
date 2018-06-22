@@ -237,7 +237,7 @@ namespace ortc
     virtual ParametersPtr getLocalParameters() const noexcept = 0;
     virtual CandidateListPtr getLocalCandidates() const noexcept = 0;
 
-    virtual IICEGathererPtr createAssociatedGatherer(IICEGathererDelegatePtr delegate) noexcept(false); // throws InvalidStateError
+    virtual IICEGathererPtr createAssociatedGatherer(IICEGathererDelegatePtr delegate) noexcept(false) = 0; // throws InvalidStateError
 
     virtual void gather(const Optional<Options> &options = Optional<Options>()) noexcept = 0;
 

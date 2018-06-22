@@ -265,7 +265,7 @@ ortc_sources_cxx_generated = [
  "$target_gen_dir/../../../../../ortc/ortclib/ortc/idl/wrapper/generated/org_ortc_Error.h",
  "$target_gen_dir/../../../../../ortc/ortclib/ortc/idl/wrapper/generated/org_ortc_RTCRtpOpusCodecCapabilityOptions.h",
  "$target_gen_dir/../../../../../ortc/ortclib/ortc/idl/wrapper/generated/org_ortc_adapter_MediaStream.h",
- "$target_gen_dir/../../../../../ortc/ortclib/ortc/idl/wrapper/generated/org_ortc_MessageQueue.h",
+ "$target_gen_dir/../../../../../ortc/ortclib/ortc/idl/wrapper/generated/org_ortc_EventQueue.h",
  "$target_gen_dir/../../../../../ortc/ortclib/ortc/idl/wrapper/generated/org_ortc_adapter_RTCSessionDescriptionConnectionData.h",
  "$target_gen_dir/../../../../../ortc/ortclib/ortc/idl/wrapper/generated/org_ortc_MediaSource.h",
  "$target_gen_dir/../../../../../ortc/ortclib/ortc/idl/wrapper/generated/org_ortc_RTCIceGathererStats.h",
@@ -528,7 +528,7 @@ ortc_sources = [
  "$target_gen_dir/../../../../../ortc/ortclib/ortc/idl/wrapper/generated/c/c_org_ortc_RTCRtpSender.cpp",
  "$target_gen_dir/../../../../../ortc/ortclib/ortc/idl/wrapper/generated/c/c_org_ortc_adapter_RTCOfferOptions.h",
  "$target_gen_dir/../../../../../ortc/ortclib/ortc/idl/wrapper/generated/c/c_org_ortc_RTCRtpContributingSource.h",
- "$target_gen_dir/../../../../../ortc/ortclib/ortc/idl/wrapper/generated/c/c_org_ortc_MessageQueue.h",
+ "$target_gen_dir/../../../../../ortc/ortclib/ortc/idl/wrapper/generated/c/c_org_ortc_EventQueue.h",
  "$target_gen_dir/../../../../../ortc/ortclib/ortc/idl/wrapper/generated/c/c_org_ortc_RTCRtpSender.h",
  "$target_gen_dir/../../../../../ortc/ortclib/ortc/idl/wrapper/generated/c/c_org_ortc_RTCIceTransport.cpp",
  "$target_gen_dir/../../../../../ortc/ortclib/ortc/idl/wrapper/generated/c/c_org_ortc_ConstrainLong.h",
@@ -698,7 +698,7 @@ ortc_sources = [
  "$target_gen_dir/../../../../../ortc/ortclib/ortc/idl/wrapper/generated/c/c_org_ortc_RTCIceGathererCandidateEvent.h",
  "$target_gen_dir/../../../../../ortc/ortclib/ortc/idl/wrapper/generated/c/c_org_ortc_adapter_RTCSessionDescriptionTransportParameters.cpp",
  "$target_gen_dir/../../../../../ortc/ortclib/ortc/idl/wrapper/generated/c/c_org_ortc_RTCRtpOpusCodecParameterSettings.cpp",
- "$target_gen_dir/../../../../../ortc/ortclib/ortc/idl/wrapper/generated/c/c_org_ortc_MessageQueue.cpp",
+ "$target_gen_dir/../../../../../ortc/ortclib/ortc/idl/wrapper/generated/c/c_org_ortc_EventQueue.cpp",
  "$target_gen_dir/../../../../../ortc/ortclib/ortc/idl/wrapper/generated/c/c_org_ortc_RTCStatsTypeSet.cpp",
  "$target_gen_dir/../../../../../ortc/ortclib/ortc/idl/wrapper/generated/c/c_org_ortc_adapter_RTCMediaStreamTrackConfiguration.cpp",
  "$target_gen_dir/../../../../../ortc/ortclib/ortc/idl/wrapper/generated/c/c_org_ortc_RTCIceCandidatePairStats.h",
@@ -777,12 +777,12 @@ if(current_os == "winuwp"){
   "$target_gen_dir/../../../../../ortc/ortclib/ortc/idl/wrapper/generated/cx/Org_Ortc_ConstrainString.h",
   "$target_gen_dir/../../../../../ortc/ortclib/ortc/idl/wrapper/generated/cx/Org_Ortc_ConstrainStringParameters.cpp",
   "$target_gen_dir/../../../../../ortc/ortclib/ortc/idl/wrapper/generated/cx/Org_Ortc_ConstrainStringParameters.h",
-  "$target_gen_dir/../../../../../ortc/ortclib/ortc/idl/wrapper/generated/cx/Org_Ortc_Dispatcher.cpp",
-  "$target_gen_dir/../../../../../ortc/ortclib/ortc/idl/wrapper/generated/cx/Org_Ortc_Dispatcher.h",
   "$target_gen_dir/../../../../../ortc/ortclib/ortc/idl/wrapper/generated/cx/Org_Ortc_DoubleRange.cpp",
   "$target_gen_dir/../../../../../ortc/ortclib/ortc/idl/wrapper/generated/cx/Org_Ortc_DoubleRange.h",
   "$target_gen_dir/../../../../../ortc/ortclib/ortc/idl/wrapper/generated/cx/Org_Ortc_Error.cpp",
   "$target_gen_dir/../../../../../ortc/ortclib/ortc/idl/wrapper/generated/cx/Org_Ortc_Error.h",
+  "$target_gen_dir/../../../../../ortc/ortclib/ortc/idl/wrapper/generated/cx/Org_Ortc_EventQueue.cpp",
+  "$target_gen_dir/../../../../../ortc/ortclib/ortc/idl/wrapper/generated/cx/Org_Ortc_EventQueue.h",
   "$target_gen_dir/../../../../../ortc/ortclib/ortc/idl/wrapper/generated/cx/Org_Ortc_ErrorEvent.cpp",
   "$target_gen_dir/../../../../../ortc/ortclib/ortc/idl/wrapper/generated/cx/Org_Ortc_ErrorEvent.h",
   "$target_gen_dir/../../../../../ortc/ortclib/ortc/idl/wrapper/generated/cx/Org_Ortc_Json.cpp",
@@ -813,12 +813,8 @@ if(current_os == "winuwp"){
   "$target_gen_dir/../../../../../ortc/ortclib/ortc/idl/wrapper/generated/cx/Org_Ortc_MediaTrackSettings.h",
   "$target_gen_dir/../../../../../ortc/ortclib/ortc/idl/wrapper/generated/cx/Org_Ortc_MediaTrackSupportedConstraints.cpp",
   "$target_gen_dir/../../../../../ortc/ortclib/ortc/idl/wrapper/generated/cx/Org_Ortc_MediaTrackSupportedConstraints.h",
-  "$target_gen_dir/../../../../../ortc/ortclib/ortc/idl/wrapper/generated/cx/Org_Ortc_MessageQueue.cpp",
-  "$target_gen_dir/../../../../../ortc/ortclib/ortc/idl/wrapper/generated/cx/Org_Ortc_MessageQueue.h",
   "$target_gen_dir/../../../../../ortc/ortclib/ortc/idl/wrapper/generated/cx/Org_Ortc_OrtcLib.cpp",
   "$target_gen_dir/../../../../../ortc/ortclib/ortc/idl/wrapper/generated/cx/Org_Ortc_OrtcLib.h",
-  "$target_gen_dir/../../../../../ortc/ortclib/ortc/idl/wrapper/generated/cx/Org_Ortc_OrtcLibWithDispatcher.cpp",
-  "$target_gen_dir/../../../../../ortc/ortclib/ortc/idl/wrapper/generated/cx/Org_Ortc_OrtcLibWithDispatcher.h",
   "$target_gen_dir/../../../../../ortc/ortclib/ortc/idl/wrapper/generated/cx/Org_Ortc_OverconstrainedError.cpp",
   "$target_gen_dir/../../../../../ortc/ortclib/ortc/idl/wrapper/generated/cx/Org_Ortc_OverconstrainedError.h",
   "$target_gen_dir/../../../../../ortc/ortclib/ortc/idl/wrapper/generated/cx/Org_Ortc_OverconstrainedErrorEvent.cpp",
@@ -1147,11 +1143,12 @@ shared_library("libOrtc") {
   {
     include_dirs += [ "../ortclib/ortc/idl/wrapper/cx", ]
     
-  sources += [
-    "../ortclib/ortc/idl/wrapper/cx/cx_custom_Org_Ortc_Dispatcher.cpp",
-    "../ortclib/ortc/idl/wrapper/cx/cx_custom_Org_Ortc_MediaControl.cpp",
-    "../ortclib/ortc/idl/wrapper/cx/cx_custom_Org_Ortc_MediaSource.cpp",
-  ]
+    sources += [
+      "../ortclib/ortc/idl/wrapper/override/cx/MediaSourceHelper.cc",
+      "../ortclib/ortc/idl/wrapper/override/cx/RTMediaStreamSource.cc",
+      "../ortclib/ortc/idl/wrapper/override/cx/WebRtcMediaSource.cc",
+      "../ortclib/ortc/idl/wrapper/override/cx/WebRtcMediaStream.cc",
+    ]
   }
   if (is_linux) {
 
@@ -1270,14 +1267,6 @@ static_library("ortclib_generated_static") {
   sources = ortc_sources_cxx_glue
   sources += ortc_sources_cxx_generated
 
-  if (current_os != "winuwp")
-  {
-    sources -= [ 
-      "ortc/idl/wrapper/impl_org_ortc_Dispatcher.cpp",
-      "ortc/idl/wrapper/impl_org_ortc_OrtcLibWithDispatcher.cpp",
-    ]
-  }
-  
   defines = [
     "_LIB",
     "USE_ETW",

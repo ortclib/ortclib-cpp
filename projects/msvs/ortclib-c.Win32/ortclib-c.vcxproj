@@ -116,8 +116,8 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>Strmiids.lib;Userenv.lib;libcurl.lib;webrtc.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;Dmoguids.lib;wmcodecdspuuid.lib;Msdmo.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(ProjectDir)..\..\..\..\curl\$(PlatformTarget)-$(Configuration)-static\lib\;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\webrtc\WEBRTC_BUILD\ortc\$(Configuration)\win32</AdditionalLibraryDirectories>
+      <AdditionalDependencies>webrtc.lib;Strmiids.lib;Userenv.lib;libcurl.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;Dmoguids.lib;wmcodecdspuuid.lib;Msdmo.lib;Winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)..\..\..\..\curl\$(PlatformTarget)-$(Configuration)-static\lib\;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\webrtc\WEBRTC_BUILD\ortc\$(Configuration)\win32_$(PlatformTarget)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -139,8 +139,8 @@
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>Strmiids.lib;Userenv.lib;libcurl.lib;webrtc.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;Dmoguids.lib;wmcodecdspuuid.lib;Msdmo.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(ProjectDir)..\..\..\..\curl\$(PlatformTarget)-$(Configuration)-static\lib\;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\webrtc\WEBRTC_BUILD\ortc\$(Configuration)\$(PlatformTarget);</AdditionalLibraryDirectories>
+      <AdditionalDependencies>webrtc.lib;Strmiids.lib;Userenv.lib;libcurl.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;Dmoguids.lib;wmcodecdspuuid.lib;Msdmo.lib;Winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)..\..\..\..\curl\$(PlatformTarget)-$(Configuration)-static\lib\;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\webrtc\WEBRTC_BUILD\ortc\$(Configuration)\win32_$(PlatformTarget)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -165,8 +165,8 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>Strmiids.lib;Userenv.lib;libcurl.lib;webrtc.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;Dmoguids.lib;wmcodecdspuuid.lib;Msdmo.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(ProjectDir)..\..\..\..\curl\$(PlatformTarget)-$(Configuration)-static\lib\;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\webrtc\WEBRTC_BUILD\ortc\$(Configuration)\win32</AdditionalLibraryDirectories>
+      <AdditionalDependencies>webrtc.lib;Strmiids.lib;Userenv.lib;libcurl.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;Dmoguids.lib;wmcodecdspuuid.lib;Msdmo.lib;Winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)..\..\..\..\curl\$(PlatformTarget)-$(Configuration)-static\lib\;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\webrtc\WEBRTC_BUILD\ortc\$(Configuration)\win32_$(PlatformTarget)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -191,8 +191,8 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>Strmiids.lib;Userenv.lib;libcurl.lib;webrtc.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;Dmoguids.lib;wmcodecdspuuid.lib;Msdmo.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(ProjectDir)..\..\..\..\curl\$(PlatformTarget)-$(Configuration)-static\lib\;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\webrtc\WEBRTC_BUILD\ortc\$(Configuration)\$(PlatformTarget);</AdditionalLibraryDirectories>
+      <AdditionalDependencies>webrtc.lib;Strmiids.lib;Userenv.lib;libcurl.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;Dmoguids.lib;wmcodecdspuuid.lib;Msdmo.lib;Winmm.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)..\..\..\..\curl\$(PlatformTarget)-$(Configuration)-static\lib\;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\webrtc\WEBRTC_BUILD\ortc\$(Configuration)\win32_$(PlatformTarget)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -565,9 +565,6 @@
     </ProjectReference>
     <ProjectReference Include="..\..\..\..\zsLib-eventing\projects\msvc\zsLib.Eventing.Win32\zsLib.Eventing.vcxproj">
       <Project>{fff92483-103e-4c15-86c3-8865737273cf}</Project>
-    </ProjectReference>
-    <ProjectReference Include="..\..\..\..\zsLib\projects\msvs\zsLib.Win32\zsLib.vcxproj">
-      <Project>{80306fbe-b1df-4741-ae97-9be65c8c4cae}</Project>
     </ProjectReference>
     <ProjectReference Include="..\ortclib.Win32\ortclib.vcxproj">
       <Project>{0cad64d3-2e39-49af-961f-f57f6b1ae786}</Project>

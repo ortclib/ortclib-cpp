@@ -12,7 +12,6 @@ namespace wrapper {
 
         struct EventQueue : public wrapper::org::ortc::EventQueue
         {
-          static wrapper::org::ortc::EventQueuePtr singleton_;
           EventQueueWeakPtr thisWeak_;
 
 #ifdef WINUWP

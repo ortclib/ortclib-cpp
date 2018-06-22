@@ -1,4 +1,8 @@
+
 #pragma once
+
+
+#ifndef CPPWINRT_USE_GENERATED_ORG_ORTC_MEDIASOURCE
 
 #include "types.h"
 
@@ -23,22 +27,30 @@ namespace winrt {
           struct WrapperCreate {};
           MediaSource(const WrapperCreate &) {}
 
+          // ToCppWinrtImpl
           static winrt::com_ptr< Org::Ortc::implementation::MediaSource > ToCppWinrtImpl(wrapper::org::ortc::MediaSourcePtr value);
           static winrt::com_ptr< Org::Ortc::implementation::MediaSource > ToCppWinrtImpl(Org::Ortc::MediaSource const & value);
-          static winrt::com_ptr< Org::Ortc::implementation::MediaSource > ToCppWinrtImpl(winrt::com_ptr< Org::Ortc::implementation::MediaSource > const & value) { return value; }
+          static winrt::com_ptr< Org::Ortc::implementation::MediaSource > ToCppWinrtImpl(winrt::com_ptr< Org::Ortc::implementation::MediaSource > const & value);
           static winrt::com_ptr< Org::Ortc::implementation::MediaSource > ToCppWinrtImpl(Org::Ortc::IMediaSource const & value);
+
+          // ToCppWinrt
           static Org::Ortc::MediaSource ToCppWinrt(wrapper::org::ortc::MediaSourcePtr value);
-          static Org::Ortc::MediaSource ToCppWinrt(Org::Ortc::MediaSource const & value) { return value; }
+          static Org::Ortc::MediaSource ToCppWinrt(Org::Ortc::MediaSource const & value);
           static Org::Ortc::MediaSource ToCppWinrt(winrt::com_ptr< Org::Ortc::implementation::MediaSource > const & value);
           static Org::Ortc::MediaSource ToCppWinrt(Org::Ortc::IMediaSource const & value);
+
+          // ToCppWinrtInterface
           static Org::Ortc::IMediaSource ToCppWinrtInterface(wrapper::org::ortc::MediaSourcePtr value);
           static Org::Ortc::IMediaSource ToCppWinrtInterface(Org::Ortc::MediaSource const & value);
           static Org::Ortc::IMediaSource ToCppWinrtInterface(winrt::com_ptr< Org::Ortc::implementation::MediaSource > const & value);
-          static Org::Ortc::IMediaSource ToCppWinrtInterface(Org::Ortc::IMediaSource const & value) { return value; }
-          static wrapper::org::ortc::MediaSourcePtr FromCppWinrt(wrapper::org::ortc::MediaSourcePtr value) { return value; }
+          static Org::Ortc::IMediaSource ToCppWinrtInterface(Org::Ortc::IMediaSource const & value);
+
+          // FromCppWinrt
+          static wrapper::org::ortc::MediaSourcePtr FromCppWinrt(wrapper::org::ortc::MediaSourcePtr value);
           static wrapper::org::ortc::MediaSourcePtr FromCppWinrt(winrt::com_ptr< Org::Ortc::implementation::MediaSource > const & value);
           static wrapper::org::ortc::MediaSourcePtr FromCppWinrt(Org::Ortc::MediaSource const & value);
           static wrapper::org::ortc::MediaSourcePtr FromCppWinrt(Org::Ortc::IMediaSource const & value);
+
 
 
 
@@ -74,3 +86,4 @@ namespace winrt {
     } // namespace Ortc
   } // namespace Org
 } // namespace winrt
+#endif //ifndef CPPWINRT_USE_GENERATED_ORG_ORTC_MEDIASOURCE
