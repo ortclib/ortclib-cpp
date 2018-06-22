@@ -98,6 +98,9 @@
       </IgnoreSpecificDefaultLibraries>
       <IgnoreSpecificDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
       </IgnoreSpecificDefaultLibraries>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">/defaultlib:vccorlib /defaultlib:msvcrt %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">/defaultlib:vccorlib /defaultlib:msvcrt %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/defaultlib:vccorlib /defaultlib:msvcrt %(AdditionalOptions)</AdditionalOptions>
     </Link>
     <Midl>
       <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">$(ProjectDir)..\..\..\ortc\idl\wrapper\generated\msidl;$(ProjectDir)..\..\..\ortc\idl\wrapper\override\msidl</AdditionalIncludeDirectories>
