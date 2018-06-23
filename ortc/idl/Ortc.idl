@@ -47,9 +47,15 @@ namespace org
     [special]
     interface EventQueue
     {
+      /// <summary>
+      /// Constructs an event queue object.
+      /// </summary>
       [constructor, delete]
       void EventQueue();
 
+      /// <summary>
+      /// Constructs an event queue object from a native queue type.
+      /// </summary>
       [constructor, default]
       void EventQueue(Any queue);
 
@@ -65,8 +71,26 @@ namespace org
       [static, getter, setter]
       EventQueue singleton;
 
+      /// <summary>
+      /// Gets a native queue from an event queue object.
+      /// </summary>
       [getter]
       Any queue;
+    };
+
+    [special, static, platform(webhidden)]
+    interface EventQueueMaker
+    {
+      /// <summary>
+      /// Creates an event queue object from a native queue type.
+      /// </summary>
+      [static]
+      EventQueue bindQueue(Any queue);
+      /// <summary>
+      /// Extracts a native queue from an event queue object.
+      /// </summary>
+      [static]
+      Any extractQueue(EventQueue queue);
     };
 
     /// <summary>

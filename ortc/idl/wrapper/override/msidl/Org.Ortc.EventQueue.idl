@@ -23,10 +23,6 @@ namespace Org
         /// </summary>
         runtimeclass EventQueue : [default] IEventQueue
         {
-
-            [default_overload]
-            EventQueue(Windows.UI.Core.CoreDispatcher Queue);
-
             /// <summary>
             /// Cast from Org.Ortc.IEventQueue to Org.Ortc.EventQueue
             /// </summary>

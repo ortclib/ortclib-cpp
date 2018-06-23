@@ -126,14 +126,6 @@ Org::Ortc::EventQueue Org::Ortc::implementation::EventQueue::CastFromIEventQueue
 }
 
 //------------------------------------------------------------------------------
-Org::Ortc::implementation::EventQueue::EventQueue(Windows::UI::Core::CoreDispatcher const & queue)
- : native_(wrapper::org::ortc::EventQueue::wrapper_create())
-{
-  if (!native_) {throw hresult_error(E_POINTER);}
-  native_->wrapper_init_org_ortc_EventQueue(queue);
-}
-
-//------------------------------------------------------------------------------
 Org::Ortc::IEventQueue Org::Ortc::implementation::EventQueue::GetDefaultForUi()
 {
   Org::Ortc::IEventQueue result {nullptr};
@@ -151,13 +143,6 @@ Org::Ortc::IEventQueue Org::Ortc::implementation::EventQueue::Singleton()
 void Org::Ortc::implementation::EventQueue::Singleton(Org::Ortc::IEventQueue const & value)
 {
   wrapper::org::ortc::EventQueue::set_singleton(::Internal::Helper::FromCppWinrt_Org_Ortc_EventQueue(value));
-}
-
-//------------------------------------------------------------------------------
-Windows::UI::Core::CoreDispatcher Org::Ortc::implementation::EventQueue::Queue()
-{
-  if (!native_) {throw hresult_error(E_POINTER);}
-  return native_->get_queue();
 }
 
 

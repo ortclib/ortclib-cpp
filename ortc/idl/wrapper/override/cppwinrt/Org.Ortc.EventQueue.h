@@ -60,7 +60,6 @@ namespace winrt {
 
           // ::org::ortc::EventQueue
 
-          EventQueue(Windows::UI::Core::CoreDispatcher const & queue);
           /// <summary>
           /// The default windows message queue for the system GUI thread.
           /// </summary>
@@ -71,7 +70,6 @@ namespace winrt {
           /// </summary>
           static Org::Ortc::IEventQueue Singleton();
           static void Singleton(Org::Ortc::IEventQueue const & value);
-          Windows::UI::Core::CoreDispatcher Queue();
 
         };
 

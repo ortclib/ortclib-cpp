@@ -30,8 +30,6 @@ namespace Org {
     public:
       // ::org::ortc::EventQueue
 
-      [Windows::Foundation::Metadata::DefaultOverloadAttribute]
-      EventQueue(Windows::UI::Core::CoreDispatcher^ queue);
       /// <summary>
       /// The default windows message queue for the system GUI thread.
       /// </summary>
@@ -45,7 +43,6 @@ namespace Org {
         ::Org::Ortc::EventQueue^ get();
         void set(::Org::Ortc::EventQueue^ value);
       }
-      property Windows::UI::Core::CoreDispatcher^ Queue { Windows::UI::Core::CoreDispatcher^ get(); }
 
     };
 
