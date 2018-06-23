@@ -1143,12 +1143,12 @@ shared_library("libOrtc") {
   {
     include_dirs += [ "../ortclib/ortc/idl/wrapper/cx", ]
     
-    sources += [
-      "../ortclib/ortc/idl/wrapper/override/cx/MediaSourceHelper.cc",
-      "../ortclib/ortc/idl/wrapper/override/cx/RTMediaStreamSource.cc",
-      "../ortclib/ortc/idl/wrapper/override/cx/WebRtcMediaSource.cc",
-      "../ortclib/ortc/idl/wrapper/override/cx/WebRtcMediaStream.cc",
-    ]
+    #sources += [
+    #  "../ortclib/ortc/idl/wrapper/override/cx/MediaSourceHelper.cc",
+    #  "../ortclib/ortc/idl/wrapper/override/cx/RTMediaStreamSource.cc",
+    #  "../ortclib/ortc/idl/wrapper/override/cx/WebRtcMediaSource.cc",
+    #  "../ortclib/ortc/idl/wrapper/override/cx/WebRtcMediaStream.cc",
+    #]
   }
   if (is_linux) {
 
