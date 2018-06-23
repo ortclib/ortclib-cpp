@@ -38,8 +38,8 @@ wrapper::org::ortc::EventQueuePtr wrapper::org::ortc::EventQueueMaker::bindQueue
 //------------------------------------------------------------------------------
 Windows::UI::Core::CoreDispatcher^ wrapper::org::ortc::EventQueueMaker::extractQueue(wrapper::org::ortc::EventQueuePtr queue) noexcept
 {
-  if (!result) return nullptr;
-  return result->get_queue();
+  if (!queue) return nullptr;
+  return queue->get_queue();
 }
 #else // __cplusplus_winrt
 
@@ -54,8 +54,8 @@ wrapper::org::ortc::EventQueuePtr wrapper::org::ortc::EventQueueMaker::bindQueue
 //------------------------------------------------------------------------------
 winrt::Windows::UI::Core::CoreDispatcher wrapper::org::ortc::EventQueueMaker::extractQueue(wrapper::org::ortc::EventQueuePtr queue) noexcept
 {
-  if (!result) return nullptr;
-  return result->get_queue();
+  if (!queue) return nullptr;
+  return queue->get_queue();
 }
 
 #endif //__cplusplus_winrt
@@ -72,8 +72,8 @@ wrapper::org::ortc::EventQueuePtr wrapper::org::ortc::EventQueueMaker::bindQueue
 //------------------------------------------------------------------------------
 ::zsLib::IMessageQueuePtr wrapper::org::ortc::EventQueueMaker::extractQueue(wrapper::org::ortc::EventQueuePtr queue) noexcept
 {
-  if (!result) return nullptr;
-  return result->get_queue();
+  if (!queue) return nullptr;
+  return queue->get_queue();
 }
 
 #endif //WINUWP

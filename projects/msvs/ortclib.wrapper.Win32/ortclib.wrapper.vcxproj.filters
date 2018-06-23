@@ -487,6 +487,9 @@
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_EventQueue.cpp">
       <Filter>wrapper</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_EventQueueMaker.cpp">
+      <Filter>wrapper</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\org_ortc_adapter_MediaStream.h">
@@ -1438,6 +1441,9 @@
       <Filter>wrapper\override</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_EventQueue.h">
+      <Filter>wrapper</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_EventQueueMaker.h">
       <Filter>wrapper</Filter>
     </ClInclude>
   </ItemGroup>

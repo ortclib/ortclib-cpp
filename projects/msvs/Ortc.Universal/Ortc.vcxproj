@@ -189,6 +189,7 @@
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Error.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.ErrorEvent.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.EventQueue.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.EventQueueMaker.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Json.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Logger.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.LongRange.h" />
@@ -309,6 +310,7 @@
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.StringOrStringList.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\types.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\override\cppwinrt\Org.Ortc.EventQueue.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\override\cppwinrt\Org.Ortc.EventQueueMaker.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\override\cppwinrt\Org.Ortc.MediaControl.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\override\cppwinrt\Org.Ortc.MediaSource.h" />
     <ClInclude Include="pch.h" />
@@ -352,6 +354,7 @@
     <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Error.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.ErrorEvent.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.EventQueue.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.EventQueueMaker.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Json.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Logger.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.LongRange.cpp" />
@@ -478,6 +481,14 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\override\cppwinrt\Org.Ortc.EventQueueMaker.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\..\ortc\idl\wrapper\override\cppwinrt\Org.Ortc.MediaControl.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
@@ -501,6 +512,14 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="..\..\..\ortc\idl\wrapper\generated\msidl\Org.Ortc.EventQueue.idl.template">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="..\..\..\ortc\idl\wrapper\generated\msidl\Org.Ortc.EventQueueMaker.idl.template">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</ExcludedFromBuild>
@@ -534,6 +553,7 @@
   <ItemGroup>
     <Midl Include="..\..\..\ortc\idl\wrapper\generated\msidl\output.idl" />
     <Midl Include="..\..\..\ortc\idl\wrapper\override\msidl\Org.Ortc.EventQueue.idl" />
+    <Midl Include="..\..\..\ortc\idl\wrapper\override\msidl\Org.Ortc.EventQueueMaker.idl" />
     <Midl Include="..\..\..\ortc\idl\wrapper\override\msidl\Org.Ortc.MediaControl.idl" />
     <Midl Include="..\..\..\ortc\idl\wrapper\override\msidl\Org.Ortc.MediaSource.idl" />
   </ItemGroup>

@@ -18,6 +18,8 @@ ortc_sources_cxx_glue = [
  "ortc/idl/wrapper/impl_org_ortc_RTCRtpCodecCapability.h",
  "ortc/idl/wrapper/impl_org_ortc_EventQueue.h",
  "ortc/idl/wrapper/impl_org_ortc_EventQueue.cpp",
+ "ortc/idl/wrapper/impl_org_ortc_EventQueueMaker.h",
+ "ortc/idl/wrapper/impl_org_ortc_EventQueueMaker.cpp",
  "ortc/idl/wrapper/impl_org_ortc_RTCRtcpFeedback.cpp",
  "ortc/idl/wrapper/impl_org_ortc_RTCIceTransport.h",
  "ortc/idl/wrapper/impl_org_ortc_RTCMessageEvent.cpp",

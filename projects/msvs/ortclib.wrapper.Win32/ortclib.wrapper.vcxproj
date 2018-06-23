@@ -365,6 +365,7 @@
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_Error.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_ErrorEvent.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_EventQueue.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_EventQueueMaker.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_Helper.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_Json.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_Logger.h" />
@@ -528,6 +529,7 @@
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_Error.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_ErrorEvent.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_EventQueue.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_EventQueueMaker.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_Helper.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_Json.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_Logger.cpp" />

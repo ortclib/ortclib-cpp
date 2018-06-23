@@ -32,7 +32,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="pch.cpp" />
-    <ClCompile Include="Class.cpp" />
     <ClCompile Include="Generated Files\module.g.cpp">
       <Filter>Generated Files</Filter>
     </ClCompile>
@@ -513,10 +512,15 @@
     <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.StringOrStringList.cpp">
       <Filter>wrapper\generated\cppwinrt</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\override\cppwinrt\Org.Ortc.EventQueueMaker.cpp">
+      <Filter>wrapper\override\cppwinrt</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.EventQueueMaker.cpp">
+      <Filter>wrapper\generated\cppwinrt</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="pch.h" />
-    <ClInclude Include="Class.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\override\cppwinrt\Org.Ortc.EventQueue.h">
       <Filter>wrapper\override\cppwinrt</Filter>
     </ClInclude>
@@ -997,6 +1001,12 @@
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\types.h">
       <Filter>wrapper\generated\cppwinrt</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\override\cppwinrt\Org.Ortc.EventQueueMaker.h">
+      <Filter>wrapper\override\cppwinrt</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.EventQueueMaker.h">
+      <Filter>wrapper\generated\cppwinrt</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="Ortc.def" />
@@ -1007,6 +1017,9 @@
       <Filter>wrapper\generated\msidl</Filter>
     </None>
     <None Include="..\..\..\ortc\idl\wrapper\generated\msidl\Org.Ortc.MediaSource.idl.template">
+      <Filter>wrapper\generated\msidl</Filter>
+    </None>
+    <None Include="..\..\..\ortc\idl\wrapper\generated\msidl\Org.Ortc.EventQueueMaker.idl.template">
       <Filter>wrapper\generated\msidl</Filter>
     </None>
   </ItemGroup>
@@ -1025,6 +1038,9 @@
     </Midl>
     <Midl Include="..\..\..\ortc\idl\wrapper\generated\msidl\output.idl">
       <Filter>wrapper\generated\msidl</Filter>
+    </Midl>
+    <Midl Include="..\..\..\ortc\idl\wrapper\override\msidl\Org.Ortc.EventQueueMaker.idl">
+      <Filter>wrapper\override\msidl</Filter>
     </Midl>
   </ItemGroup>
 </Project>

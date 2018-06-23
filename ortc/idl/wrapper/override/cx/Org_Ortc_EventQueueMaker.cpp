@@ -26,7 +26,7 @@ wrapper::org::ortc::EventQueueMakerPtr Org::Ortc::EventQueueMaker::FromCx(::Org:
 ::Org::Ortc::EventQueue^ Org::Ortc::EventQueueMaker::BindQueue(Windows::UI::Core::CoreDispatcher^ queue)
 {
   ::Org::Ortc::EventQueue^ result {};
-  result = wrapper::org::ortc::EventQueueMaker::bindQueue(::Internal::Helper::FromCx(queue));
+  result = ::Org::Ortc::EventQueue::ToCx(wrapper::org::ortc::EventQueueMaker::bindQueue(queue));
   return result;
 }
 
@@ -34,7 +34,7 @@ wrapper::org::ortc::EventQueueMakerPtr Org::Ortc::EventQueueMaker::FromCx(::Org:
 Windows::UI::Core::CoreDispatcher^ Org::Ortc::EventQueueMaker::ExtractQueue(::Org::Ortc::EventQueue^ queue)
 {
   Windows::UI::Core::CoreDispatcher^ result {};
-  result = wrapper::org::ortc::EventQueueMaker::extractQueue(::Internal::Helper::FromCx_Org_Ortc_EventQueue(queue));
+  result = wrapper::org::ortc::EventQueueMaker::extractQueue(::Org::Ortc::EventQueue::FromCx(queue));
   return result;
 }
 

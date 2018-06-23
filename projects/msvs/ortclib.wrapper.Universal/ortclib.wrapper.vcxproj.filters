@@ -489,6 +489,9 @@
     <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_EventQueue.cpp">
       <Filter>ortc\idl\wrapper</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_EventQueueMaker.cpp">
+      <Filter>ortc\idl\wrapper</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_adapter_RTCCapabilityOptions.h">
@@ -1438,6 +1441,9 @@
     </ClInclude>
     <ClInclude Include="..\..\..\ortc\idl\wrapper\override\org_ortc_EventQueue.h">
       <Filter>ortc\idl\wrapper\override</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\impl_org_ortc_EventQueueMaker.h">
+      <Filter>ortc\idl\wrapper</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

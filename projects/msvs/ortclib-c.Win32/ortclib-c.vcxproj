@@ -234,6 +234,7 @@
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_Error.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_ErrorEvent.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_EventQueue.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_EventQueueMaker.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_Json.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_Logger.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_LongRange.h" />
@@ -354,6 +355,7 @@
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_StringOrStringList.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\types.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\override\c\c_org_ortc_EventQueue.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\override\c\c_org_ortc_EventQueueMaker.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\override\c\c_org_ortc_MediaControl.h" />
     <ClInclude Include="..\..\..\ortc\idl\wrapper\override\c\c_org_ortc_MediaSource.h" />
     <ClInclude Include="stdafx.h" />
@@ -398,6 +400,7 @@
     <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_Error.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_ErrorEvent.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_EventQueue.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_EventQueueMaker.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_Json.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_Logger.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_LongRange.cpp" />
@@ -517,6 +520,12 @@
     <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_Settings.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_StringOrStringList.cpp" />
     <ClCompile Include="..\..\..\ortc\idl\wrapper\override\c\c_org_ortc_EventQueue.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\override\c\c_org_ortc_EventQueueMaker.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>

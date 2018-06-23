@@ -516,6 +516,12 @@
     <ClInclude Include="..\..\..\ortc\idl\wrapper\override\c\c_org_ortc_MediaSource.h">
       <Filter>wrapper\override\c</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\override\c\c_org_ortc_EventQueueMaker.h">
+      <Filter>wrapper\override\c</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_EventQueueMaker.h">
+      <Filter>wrapper\generated\c</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
@@ -1000,6 +1006,12 @@
     </ClCompile>
     <ClCompile Include="..\..\..\ortc\idl\wrapper\override\c\c_org_ortc_MediaSource.cpp">
       <Filter>wrapper\override\c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\override\c\c_org_ortc_EventQueueMaker.cpp">
+      <Filter>wrapper\override\c</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\c\c_org_ortc_EventQueueMaker.cpp">
+      <Filter>wrapper\generated\c</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
