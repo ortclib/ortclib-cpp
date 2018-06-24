@@ -1,4 +1,4 @@
-import "windows.foundation.customattributes.idl";
+//import "windows.foundation.customattributes.idl";
 import "forwards.idl";
 import "output.idl";
 

@@ -15,7 +15,6 @@ namespace Org
         [uuid(8494c796-81c9-dc99-e460-2de261b993ea)]
         interface IEventQueue : IInspectable
         {
-            Windows.UI.Core.CoreDispatcher Queue { get; };
         };
 
         /// <summary>

@@ -1,9 +1,27 @@
 
-#include "impl_org_ortc_OrtcLib.h"
-#include "impl_org_ortc_EventQueue.h"
 #include "impl_org_ortc_Helper.h"
 
 #include <ortc/services/IBackgrounding.h>
+
+#ifdef WINUWP
+
+#ifdef __cplusplus_winrt
+#include <windows.ui.core.h>
+#endif //__cplusplus_winrt
+
+#ifdef __has_include
+#if __has_include(<winrt/windows.ui.core.h>)
+#include <winrt/windows.ui.core.h>
+#endif //__has_include(<winrt/windows.ui.core.h>)
+#endif //__has_include
+
+#else
+
+#include <zsLib/IMessageQueue.h>
+#endif //WINUWP
+
+#include "impl_org_ortc_EventQueue.h"
+#include "impl_org_ortc_OrtcLib.h"
 
 using ::zsLib::String;
 using ::zsLib::Optional;
@@ -42,7 +60,16 @@ void wrapper::org::ortc::OrtcLib::setup() noexcept
 //------------------------------------------------------------------------------
 void wrapper::org::ortc::OrtcLib::setup(wrapper::org::ortc::EventQueuePtr queue) noexcept
 {
+#ifdef WINUWP
+#ifdef __cplusplus_winrt
+  NativeType::setup(wrapper::impl::org::ortc::EventQueue::toNative_cx(queue));
+#endif //__cplusplus_winrt
+#ifdef CPPWINRT_VERSION
+  NativeType::setup(wrapper::impl::org::ortc::EventQueue::toNative_winrt(queue));
+#endif //CPPWINRT_VERSION
+#else //WINUWP
   NativeType::setup(wrapper::impl::org::ortc::EventQueue::toNative(queue));
+#endif //WINUWP
 }
 
 //------------------------------------------------------------------------------

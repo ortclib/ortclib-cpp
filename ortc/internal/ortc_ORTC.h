@@ -31,6 +31,15 @@
 
 #pragma once
 
+#ifdef WINUWP
+#ifdef __cplusplus_winrt
+#include <windows.ui.core.h>
+#endif  //__cplusplus_winrt
+#ifdef CPPWINRT_VERSION
+#include <winrt/windows.ui.core.h>
+#endif //CPPWINRT_VERSION
+#endif //WINUWP
+
 #include <ortc/internal/types.h>
 #include <ortc/IORTC.h>
 
@@ -117,41 +126,46 @@ namespace ortc
 
       static ORTCPtr singleton() noexcept;
 
-      virtual PUID getID() const noexcept {return mID;}
+      PUID getID() const noexcept {return mID;}
 
-      virtual void setup(IMessageQueuePtr defaultDelegateMessageQueue) noexcept;
+      void setup(IMessageQueuePtr defaultDelegateMessageQueue) noexcept;
 #ifdef WINUWP
-      virtual void setup(Windows::UI::Core::CoreDispatcher ^dispatcher) noexcept;
+#ifdef __cplusplus_winrt
+      void setup(Windows::UI::Core::CoreDispatcher ^dispatcher) noexcept;
+#endif  //__cplusplus_winrt
+#ifdef CPPWINRT_VERSION
+      void setup(winrt::Windows::UI::Core::CoreDispatcher dispatcher) noexcept;
+#endif //CPPWINRT_VERSION
 #endif //WINUWP
 
-      virtual Milliseconds ntpServerTime() const noexcept;
-      virtual void ntpServerTime(const Milliseconds &value) noexcept;
+      Milliseconds ntpServerTime() const noexcept;
+      void ntpServerTime(const Milliseconds &value) noexcept;
 
-      virtual void defaultWebrtcLogLevel(Log::Level level) noexcept;
-      virtual void webrtcLogLevel(Log::Level level) noexcept;
+      void defaultWebrtcLogLevel(Log::Level level) noexcept;
+      void webrtcLogLevel(Log::Level level) noexcept;
 
-      virtual void startMediaTracing() noexcept;
-      virtual void stopMediaTracing() noexcept;
-      virtual bool isMediaTracing() noexcept;
-      virtual bool saveMediaTrace(String filename) noexcept;
-      virtual bool saveMediaTrace(String host, int port) noexcept;
-      virtual bool isMRPInstalled() noexcept;
+      void startMediaTracing() noexcept;
+      void stopMediaTracing() noexcept;
+      bool isMediaTracing() noexcept;
+      bool saveMediaTrace(String filename) noexcept;
+      bool saveMediaTrace(String host, int port) noexcept;
+      bool isMRPInstalled() noexcept;
 
       //---------------------------------------------------------------------
       //
       // ORTC => IORTCForInternal
       //
 
-      virtual void overrideQueueDelegate(IMessageQueuePtr queue) noexcept;
-      virtual IMessageQueuePtr queueDelegate() const noexcept;
-      virtual IMessageQueuePtr queueORTC() const noexcept;
-      virtual IMessageQueuePtr queueMediaDevices() const noexcept;
-      virtual IMessageQueuePtr queueRTP() const noexcept;
-      virtual IMessageQueuePtr queueORTCPipeline() const noexcept;
-      virtual IMessageQueuePtr queueBlockingMediaStartStopThread() const noexcept;
-      virtual IMessageQueuePtr queueCertificateGeneration() const noexcept;
+      void overrideQueueDelegate(IMessageQueuePtr queue) noexcept;
+      IMessageQueuePtr queueDelegate() const noexcept;
+      IMessageQueuePtr queueORTC() const noexcept;
+      IMessageQueuePtr queueMediaDevices() const noexcept;
+      IMessageQueuePtr queueRTP() const noexcept;
+      IMessageQueuePtr queueORTCPipeline() const noexcept;
+      IMessageQueuePtr queueBlockingMediaStartStopThread() const noexcept;
+      IMessageQueuePtr queueCertificateGeneration() const noexcept;
 
-      virtual Optional<Log::Level> webrtcLogLevel() const noexcept;
+      Optional<Log::Level> webrtcLogLevel() const noexcept;
 
       //---------------------------------------------------------------------
       //

@@ -49,7 +49,12 @@ namespace ortc
 
     static void setup(IMessageQueuePtr defaultDelegateMessageQueue) noexcept;
 #ifdef WINUWP
-    static void setup(Windows::UI::Core::CoreDispatcher ^dispatcher) noexcept;
+#ifdef __cplusplus_winrt
+    static void setup(Windows::UI::Core::CoreDispatcher ^ dispatcher) noexcept;
+#endif  //__cplusplus_winrt
+#ifdef CPPWINRT_VERSION
+    static void setup(winrt::Windows::UI::Core::CoreDispatcher dispatcher) noexcept;
+#endif //CPPWINRT_VERSION
 #endif //WINUWP
     
     static Milliseconds ntpServerTime() noexcept;

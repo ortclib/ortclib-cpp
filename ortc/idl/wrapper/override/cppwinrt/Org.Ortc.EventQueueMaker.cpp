@@ -8,6 +8,8 @@
 #include "Org.Ortc.EventQueueMaker.h"
 #include "Org.Ortc.EventQueue.h"
 
+#include <wrapper/impl_org_ortc_EventQueue.h>
+
 using namespace winrt;
 
 //------------------------------------------------------------------------------
@@ -131,15 +133,15 @@ Org::Ortc::EventQueueMaker Org::Ortc::implementation::EventQueueMaker::CastFromI
 Org::Ortc::IEventQueue Org::Ortc::implementation::EventQueueMaker::BindQueue(Windows::UI::Core::CoreDispatcher const & queue)
 {
   Org::Ortc::IEventQueue result {nullptr};
-  result = wrapper::org::ortc::EventQueueMaker::bindQueue(::Internal::Helper::FromCppWinrt(queue));
+  result = Org::Ortc::implementation::EventQueue::ToCppWinrtInterface(wrapper::impl::org::ortc::EventQueue::toWrapper(queue));
   return result;
 }
 
 //------------------------------------------------------------------------------
 Windows::UI::Core::CoreDispatcher Org::Ortc::implementation::EventQueueMaker::ExtractQueue(Org::Ortc::IEventQueue const & queue)
 {
-  Windows::Foundation::IInspectable result {nullptr};
-  result = wrapper::org::ortc::EventQueueMaker::extractQueue(::Internal::Helper::FromCppWinrt_Org_Ortc_EventQueue(queue));
+  Windows::UI::Core::CoreDispatcher result {nullptr};
+  result = wrapper::impl::org::ortc::EventQueue::toNative_winrt(Org::Ortc::implementation::EventQueue::FromCppWinrt(queue));
   return result;
 }
 

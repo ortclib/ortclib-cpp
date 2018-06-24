@@ -6,6 +6,8 @@
 #include "Org_Ortc_EventQueueMaker.h"
 #include "Org_Ortc_EventQueue.h"
 
+#include <wrapper/impl_org_ortc_EventQueue.h>
+
 //------------------------------------------------------------------------------
 ::Org::Ortc::EventQueueMaker^ Org::Ortc::EventQueueMaker::ToCx(wrapper::org::ortc::EventQueueMakerPtr value)
 {
@@ -26,7 +28,7 @@ wrapper::org::ortc::EventQueueMakerPtr Org::Ortc::EventQueueMaker::FromCx(::Org:
 ::Org::Ortc::EventQueue^ Org::Ortc::EventQueueMaker::BindQueue(Windows::UI::Core::CoreDispatcher^ queue)
 {
   ::Org::Ortc::EventQueue^ result {};
-  result = ::Org::Ortc::EventQueue::ToCx(wrapper::org::ortc::EventQueueMaker::bindQueue(queue));
+  result = ::Org::Ortc::EventQueue::ToCx(wrapper::impl::org::ortc::EventQueue::toWrapper(queue));
   return result;
 }
 
@@ -34,7 +36,7 @@ wrapper::org::ortc::EventQueueMakerPtr Org::Ortc::EventQueueMaker::FromCx(::Org:
 Windows::UI::Core::CoreDispatcher^ Org::Ortc::EventQueueMaker::ExtractQueue(::Org::Ortc::EventQueue^ queue)
 {
   Windows::UI::Core::CoreDispatcher^ result {};
-  result = wrapper::org::ortc::EventQueueMaker::extractQueue(::Org::Ortc::EventQueue::FromCx(queue));
+  result = wrapper::impl::org::ortc::EventQueue::toNative_cx(::Org::Ortc::EventQueue::FromCx(queue));
   return result;
 }
 

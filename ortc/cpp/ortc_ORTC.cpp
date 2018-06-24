@@ -30,6 +30,21 @@
  
  */
 
+
+#ifdef WINUWP
+
+#ifdef __cplusplus_winrt
+#include <windows.ui.core.h>
+#endif //__cplusplus_winrt
+
+#ifdef __has_include
+#if __has_include(<winrt/windows.ui.core.h>)
+#include <winrt/windows.ui.core.h>
+#endif //__has_include(<winrt/windows.ui.core.h>)
+#endif //__has_include
+
+#endif //WINUWP
+
 #include <ortc/internal/ortc_ORTC.h>
 #include <ortc/internal/ortc.events.h>
 #include <ortc/internal/ortc.events.jman.h>
@@ -350,12 +365,22 @@ namespace ortc
     }
 
 #ifdef WINUWP
+#ifdef __cplusplus_winrt
     //-------------------------------------------------------------------------
     void ORTC::setup(Windows::UI::Core::CoreDispatcher ^dispatcher) noexcept
     {
       UseServicesHelper::setup(dispatcher);
       internalSetup();
     }
+#endif //__cplusplus_winrt
+#ifdef CPPWINRT_VERSION
+    //-------------------------------------------------------------------------
+    void ORTC::setup(winrt::Windows::UI::Core::CoreDispatcher dispatcher) noexcept
+    {
+      UseServicesHelper::setup(dispatcher);
+      internalSetup();
+    }
+#endif //CPPWINRT_VERSION
 #endif //WINUWP
 
     //-------------------------------------------------------------------------
@@ -602,14 +627,25 @@ namespace ortc
     singleton->setup(defaultDelegateMessageQueue);
   }
 
-  //---------------------------------------------------------------------------
 #ifdef WINUWP
+#ifdef __cplusplus_winrt
+  //---------------------------------------------------------------------------
   void IORTC::setup(Windows::UI::Core::CoreDispatcher ^dispatcher) noexcept
   {
     auto singleton = internal::ORTC::singleton();
     if (!singleton) return;
     singleton->setup(dispatcher);
   }
+#endif  //__cplusplus_winrt
+#ifdef CPPWINRT_VERSION
+  //---------------------------------------------------------------------------
+  void IORTC::setup(winrt::Windows::UI::Core::CoreDispatcher dispatcher) noexcept
+  {
+    auto singleton = internal::ORTC::singleton();
+    if (!singleton) return;
+    singleton->setup(dispatcher);
+  }
+#endif //CPPWINRT_VERSION
 #endif //WINUWP
 
   //-------------------------------------------------------------------------

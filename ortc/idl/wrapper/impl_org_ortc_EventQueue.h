@@ -4,7 +4,6 @@
 #include "types.h"
 #include "generated/org_ortc_EventQueue.h"
 
-
 namespace wrapper {
   namespace impl {
     namespace org {
@@ -14,50 +13,31 @@ namespace wrapper {
         {
           EventQueueWeakPtr thisWeak_;
 
-#ifdef WINUWP
-#ifdef __cplusplus_winrt
-          Windows::UI::Core::CoreDispatcher^ queue_{};
-#else // __cplusplus_winrt
-          winrt::Windows::UI::Core::CoreDispatcher queue_ {nullptr};
-#endif //__cplusplus_winrt
-#else
-          ::zsLib::IMessageQueuePtr queue_{};
-#endif //WINUWP
+          AnyPtr queue_{};
 
           EventQueue() noexcept;
           virtual ~EventQueue() noexcept;
 
           // methods EventQueue
-#ifdef WINUWP
-#ifdef __cplusplus_winrt
-          void wrapper_init_org_ortc_EventQueue(Windows::UI::Core::CoreDispatcher^ queue) noexcept override { queue_ = queue; }
-#else // __cplusplus_winrt
-          void wrapper_init_org_ortc_EventQueue(winrt::Windows::UI::Core::CoreDispatcher queue) noexcept override { queue_ = queue; }
-#endif //__cplusplus_winrt
-#else
-          void wrapper_init_org_ortc_EventQueue(::zsLib::IMessageQueuePtr queue) noexcept override { queue_ = queue; }
-#endif //WINUWP
+          void wrapper_init_org_ortc_EventQueue(AnyPtr queue) noexcept override { queue_ = queue; }
 
           // properties EventQueue
-#ifdef WINUWP
-#ifdef __cplusplus_winrt
-          Windows::UI::Core::CoreDispatcher^ get_queue() noexcept override { return queue_; }
-#else // __cplusplus_winrt
-          winrt::Windows::UI::Core::CoreDispatcher get_queue() noexcept override { return queue_; }
-#endif //__cplusplus_winrt
-#else
-          ::zsLib::IMessageQueuePtr get_queue() noexcept override { return queue_; }
-#endif //WINUWP
+          AnyPtr get_queue() noexcept override { return queue_; }
 
 #ifdef WINUWP
 #ifdef __cplusplus_winrt
-          static Windows::UI::Core::CoreDispatcher^ toNative(wrapper::org::ortc::EventQueuePtr queue) { if (!queue) return nullptr; return queue->get_queue(); }
-#else // __cplusplus_winrt
-          static winrt::Windows::UI::Core::CoreDispatcher toNative(wrapper::org::ortc::EventQueuePtr queue) { if (!queue) return nullptr; return queue->get_queue(); }
+          static wrapper::org::ortc::EventQueuePtr toWrapper(Windows::UI::Core::CoreDispatcher^ queue) noexcept;
+          static Windows::UI::Core::CoreDispatcher^ toNative_cx(wrapper::org::ortc::EventQueuePtr queue) noexcept;
 #endif //__cplusplus_winrt
+#ifdef CPPWINRT_VERSION
+          static wrapper::org::ortc::EventQueuePtr toWrapper(winrt::Windows::UI::Core::CoreDispatcher queue) noexcept;
+          static winrt::Windows::UI::Core::CoreDispatcher toNative_winrt(wrapper::org::ortc::EventQueuePtr queue) noexcept;
+#endif // CPPWINRT_VERSION
 #else
-          static ::zsLib::IMessageQueuePtr toNative(wrapper::org::ortc::EventQueuePtr queue) { if (!queue) return nullptr; return queue->get_queue(); }
+          static wrapper::org::ortc::EventQueuePtr toWrapper(::zsLib::IMessageQueuePtr queue) noexcept;
+          static ::zsLib::IMessageQueuePtr toNative(wrapper::org::ortc::EventQueuePtr queue) noexcept;
 #endif //WINUWP
+
         };
 
       } // ortc
