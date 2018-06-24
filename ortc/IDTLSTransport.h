@@ -45,24 +45,24 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IDTLSTransportTypes
-  #pragma mark
+  //
+  // IDTLSTransportTypes
+  //
   
   interaction IDTLSTransportTypes
   {
-    ZS_DECLARE_STRUCT_PTR(Parameters)
-    ZS_DECLARE_TYPEDEF_PTR(std::list<SecureByteBlock>, SecureByteBlockList)
-    ZS_DECLARE_TYPEDEF_PTR(ICertificateTypes::FingerprintList, FingerprintList)
-    ZS_DECLARE_TYPEDEF_PTR(std::list<ICertificatePtr>, CertificateList)
+    ZS_DECLARE_STRUCT_PTR(Parameters);
+    ZS_DECLARE_TYPEDEF_PTR(std::list<SecureByteBlock>, SecureByteBlockList);
+    ZS_DECLARE_TYPEDEF_PTR(ICertificateTypes::FingerprintList, FingerprintList);
+    ZS_DECLARE_TYPEDEF_PTR(std::list<ICertificatePtr>, CertificateList);
 
     typedef PromiseWith<Parameters> PromiseWithParameters;
-    ZS_DECLARE_PTR(PromiseWithParameters)
+    ZS_DECLARE_PTR(PromiseWithParameters);
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark TransportStates
-    #pragma mark
+    //
+    // TransportStates
+    //
     
     enum States
     {
@@ -77,13 +77,13 @@ namespace ortc
       State_Last        = State_Failed,
     };
 
-    static const char *toString(States state);
-    static States toState(const char *state) throw (InvalidParameters);
+    static const char *toString(States state) noexcept;
+    static States toState(const char *state) noexcept(false); // throws InvalidParameters
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark Roles
-    #pragma mark
+    //
+    // Roles
+    //
 
     enum Roles
     {
@@ -96,29 +96,29 @@ namespace ortc
       Role_Last     = Role_Server,
     };
 
-    static const char *toString(Roles role);
-    static Roles toRole(const char *role) throw (InvalidParameters);
+    static const char *toString(Roles role) noexcept;
+    static Roles toRole(const char *role) noexcept(false); // throws InvalidParameters
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark Roles
-    #pragma mark
+    //
+    // Roles
+    //
 
     struct Parameters : public Any
     {
       Roles mRole {Role_Auto};
       FingerprintList mFingerprints;
 
-      Parameters() {}
-      Parameters(const Parameters &op2) {(*this) = op2;}
-      Parameters(ElementPtr rootEl);
+      Parameters() noexcept {}
+      Parameters(const Parameters &op2) noexcept {(*this) = op2;}
+      Parameters(ElementPtr rootEl) noexcept;
 
-      static ParametersPtr create(ElementPtr rootEl) { if (!rootEl) return ParametersPtr(); return make_shared<Parameters>(rootEl); }
-      ElementPtr createElement(const char *objectName) const;
+      static ParametersPtr create(ElementPtr rootEl) noexcept { if (!rootEl) return ParametersPtr(); return make_shared<Parameters>(rootEl); }
+      ElementPtr createElement(const char *objectName) const noexcept;
 
-      static ParametersPtr convert(AnyPtr any);
-      ElementPtr toDebug() const;
-      String hash() const;
+      static ParametersPtr convert(AnyPtr any) noexcept;
+      ElementPtr toDebug() const noexcept;
+      String hash() const noexcept;
     };
   };
 
@@ -126,55 +126,52 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IDTLSTransport
-  #pragma mark
+  //
+  // IDTLSTransport
+  //
 
   interaction IDTLSTransport : public IDTLSTransportTypes,
                                public IRTPTransport,
                                public IRTCPTransport,
                                public IStatsProvider
   {
-    static ElementPtr toDebug(IDTLSTransportPtr transport);
+    static ElementPtr toDebug(IDTLSTransportPtr transport) noexcept;
 
-    static IDTLSTransportPtr convert(IRTPTransportPtr object);
-    static IDTLSTransportPtr convert(IRTCPTransportPtr object);
+    static IDTLSTransportPtr convert(IRTPTransportPtr object) noexcept;
+    static IDTLSTransportPtr convert(IRTCPTransportPtr object) noexcept;
 
     static IDTLSTransportPtr create(
                                     IDTLSTransportDelegatePtr delegate,
                                     IICETransportPtr iceTransport,
                                     const CertificateList &certificates
-                                    );
+                                    ) noexcept(false); // throws InvalidParameters
 
-    virtual PUID getID() const = 0;
+    virtual PUID getID() const noexcept = 0;
 
-    virtual IDTLSTransportSubscriptionPtr subscribe(IDTLSTransportDelegatePtr delegate) = 0;
+    virtual IDTLSTransportSubscriptionPtr subscribe(IDTLSTransportDelegatePtr delegate) noexcept = 0;
 
-    virtual CertificateListPtr certificates() const = 0;
-    virtual IICETransportPtr transport() const = 0;
+    virtual CertificateListPtr certificates() const noexcept = 0;
+    virtual IICETransportPtr transport() const noexcept = 0;
 
-    virtual States state() const = 0;
+    virtual States state() const noexcept = 0;
 
-    virtual ParametersPtr getLocalParameters() const = 0;
-    virtual ParametersPtr getRemoteParameters() const = 0;
+    virtual ParametersPtr getLocalParameters() const noexcept = 0;
+    virtual ParametersPtr getRemoteParameters() const noexcept = 0;
 
-    virtual SecureByteBlockListPtr getRemoteCertificates() const = 0;
+    virtual SecureByteBlockListPtr getRemoteCertificates() const noexcept = 0;
 
-    virtual void start(const Parameters &remoteParameters) throw (
-                                                                  InvalidStateError,
-                                                                  InvalidParameters
-                                                                  ) = 0;
+    virtual void start(const Parameters &remoteParameters) noexcept(false) = 0; // throws InvalidStateError, InvalidParameters
 
-    virtual void stop() = 0;
+    virtual void stop() noexcept = 0;
   };
 
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IDTLSTransportDelegate
-  #pragma mark
+  //
+  // IDTLSTransportDelegate
+  //
 
   interaction IDTLSTransportDelegate
   {
@@ -193,17 +190,17 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IDTLSTransportSubscription
-  #pragma mark
+  //
+  // IDTLSTransportSubscription
+  //
 
   interaction IDTLSTransportSubscription
   {
-    virtual PUID getID() const = 0;
+    virtual PUID getID() const noexcept = 0;
 
-    virtual void cancel() = 0;
+    virtual void cancel() noexcept = 0;
 
-    virtual void background() = 0;
+    virtual void background() noexcept = 0;
   };
 }
 
@@ -211,14 +208,14 @@ ZS_DECLARE_PROXY_BEGIN(ortc::IDTLSTransportDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IDTLSTransportPtr, IDTLSTransportPtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IDTLSTransport::States, States)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::ErrorAnyPtr, ErrorAnyPtr)
-ZS_DECLARE_PROXY_METHOD_2(onDTLSTransportStateChange, IDTLSTransportPtr, States)
-ZS_DECLARE_PROXY_METHOD_2(onDTLSTransportError, IDTLSTransportPtr, ErrorAnyPtr)
+ZS_DECLARE_PROXY_METHOD(onDTLSTransportStateChange, IDTLSTransportPtr, States)
+ZS_DECLARE_PROXY_METHOD(onDTLSTransportError, IDTLSTransportPtr, ErrorAnyPtr)
 ZS_DECLARE_PROXY_END()
 
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_BEGIN(ortc::IDTLSTransportDelegate, ortc::IDTLSTransportSubscription)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IDTLSTransportPtr, IDTLSTransportPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IDTLSTransport::States, States)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::ErrorAnyPtr, ErrorAnyPtr)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onDTLSTransportStateChange, IDTLSTransportPtr, States)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onDTLSTransportError, IDTLSTransportPtr, ErrorAnyPtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD(onDTLSTransportStateChange, IDTLSTransportPtr, States)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD(onDTLSTransportError, IDTLSTransportPtr, ErrorAnyPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()

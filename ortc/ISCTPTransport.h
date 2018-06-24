@@ -40,9 +40,9 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark ISCTPTransportTypes
-  #pragma mark
+  //
+  // ISCTPTransportTypes
+  //
   
   interaction ISCTPTransportTypes
   {
@@ -62,12 +62,12 @@ namespace ortc
       State_Last          = State_Closed,
     };
 
-    static const char *toString(States state);
+    static const char *toString(States state) noexcept;
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISCTPTransportTypes::Capabilities
-    #pragma mark
+    //
+    // ISCTPTransportTypes::Capabilities
+    //
 
     struct Capabilities {
       size_t mMaxMessageSize {};
@@ -76,15 +76,15 @@ namespace ortc
       WORD mMaxUsablePorts {};
       WORD mMaxSessionsPerPort {};
 
-      Capabilities() {}
-      Capabilities(const Capabilities &op2) {(*this) = op2;}
-      Capabilities(ElementPtr rootEl);
+      Capabilities() noexcept {}
+      Capabilities(const Capabilities &op2) noexcept {(*this) = op2;}
+      Capabilities(ElementPtr rootEl) noexcept;
 
-      static CapabilitiesPtr create(ElementPtr rootEl) { if (!rootEl) return CapabilitiesPtr(); return make_shared<Capabilities>(rootEl); }
-      ElementPtr createElement(const char *objectName) const;
+      static CapabilitiesPtr create(ElementPtr rootEl) noexcept { if (!rootEl) return CapabilitiesPtr(); return make_shared<Capabilities>(rootEl); }
+      ElementPtr createElement(const char *objectName) const noexcept;
 
-      ElementPtr toDebug() const;
-      String hash() const;
+      ElementPtr toDebug() const noexcept;
+      String hash() const noexcept;
     };
 
     // Example set:
@@ -169,7 +169,7 @@ namespace ortc
       Optional<SackInfo> mSackInfo;
       Optional<Status> mStatus;
 
-      bool hasValue() const;
+      bool hasValue() const noexcept;
     };
   };
 
@@ -177,60 +177,60 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark ISCTPTransport
-  #pragma mark
+  //
+  // ISCTPTransport
+  //
   
   interaction ISCTPTransport : public ISCTPTransportTypes,
                                public IDataTransport
   {
-    static ElementPtr toDebug(ISCTPTransportPtr transport);
+    static ElementPtr toDebug(ISCTPTransportPtr transport) noexcept;
 
-    static ISCTPTransportPtr convert(IDataTransportPtr object);
+    static ISCTPTransportPtr convert(IDataTransportPtr object) noexcept;
 
     static ISCTPTransportPtr create(
                                     ISCTPTransportDelegatePtr delegate,
                                     IDTLSTransportPtr transport,
                                     WORD localPort = 0    // 0 = port automatically chosen
-                                    ) throw (InvalidParameters, InvalidStateError);
+                                    ) noexcept(false); // throws InvalidParameters, InvalidStateError
 
     static ISCTPTransportListenerSubscriptionPtr listen(
                                                         ISCTPTransportListenerDelegatePtr delegate,
                                                         IDTLSTransportPtr transport,
                                                         const Capabilities &remoteCapabilities
-                                                        );
+                                                        ) noexcept;
 
-    virtual PUID getID() const = 0;
+    virtual PUID getID() const noexcept = 0;
 
-    static CapabilitiesPtr getCapabilities();
+    static CapabilitiesPtr getCapabilities() noexcept;
 
-    virtual IDTLSTransportPtr transport() const = 0;
-    virtual States state() const = 0;
+    virtual IDTLSTransportPtr transport() const noexcept = 0;
+    virtual States state() const noexcept = 0;
 
-    virtual WORD port() const = 0;
+    virtual WORD port() const noexcept = 0;
 
-    virtual WORD localPort() const = 0;
-    virtual Optional<WORD> remotePort() const = 0;
+    virtual WORD localPort() const noexcept = 0;
+    virtual Optional<WORD> remotePort() const noexcept = 0;
 
-    virtual PromiseWithSocketOptionsPtr getOptions(const SocketOptions &inWhichOptions) = 0;
-    virtual PromisePtr setOptions(const SocketOptions &inOptions) = 0;
+    virtual PromiseWithSocketOptionsPtr getOptions(const SocketOptions &inWhichOptions) noexcept = 0;
+    virtual PromisePtr setOptions(const SocketOptions &inOptions) noexcept = 0;
 
     virtual void start(
                        const Capabilities &remoteCapabilities,
                        WORD remotePort = 0
-                       ) throw (InvalidStateError, InvalidParameters) = 0;
-    virtual void stop() = 0;
+                       ) noexcept(false) = 0; // throws InvalidStateError, InvalidParameters
+    virtual void stop() noexcept = 0;
 
-    virtual ISCTPTransportSubscriptionPtr subscribe(ISCTPTransportDelegatePtr delegate) = 0;
+    virtual ISCTPTransportSubscriptionPtr subscribe(ISCTPTransportDelegatePtr delegate) noexcept = 0;
   };
 
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark ISCTPTransportDelegate
-  #pragma mark
+  //
+  // ISCTPTransportDelegate
+  //
 
   interaction ISCTPTransportDelegate
   {
@@ -250,26 +250,26 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark ISCTPTransportSubscription
-  #pragma mark
+  //
+  // ISCTPTransportSubscription
+  //
 
   interaction ISCTPTransportSubscription
   {
-    virtual PUID getID() const = 0;
+    virtual PUID getID() const noexcept = 0;
 
-    virtual void cancel() = 0;
+    virtual void cancel() noexcept = 0;
 
-    virtual void background() = 0;
+    virtual void background() noexcept = 0;
   };
 
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark ISCTPTransportListenerDelegate
-  #pragma mark
+  //
+  // ISCTPTransportListenerDelegate
+  //
 
   interaction ISCTPTransportListenerDelegate
   {
@@ -280,9 +280,9 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark ISCTPTransportListenerSubscription
-  #pragma mark
+  //
+  // ISCTPTransportListenerSubscription
+  //
 
   interaction ISCTPTransportListenerSubscription
   {
@@ -299,23 +299,23 @@ namespace ortc
 ZS_DECLARE_PROXY_BEGIN(ortc::ISCTPTransportDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::ISCTPTransportPtr, ISCTPTransportPtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IDataChannelPtr, IDataChannelPtr)
-ZS_DECLARE_PROXY_METHOD_2(onSCTPTransportStateChange, ISCTPTransportPtr, States)
-ZS_DECLARE_PROXY_METHOD_2(onSCTPTransportDataChannel, ISCTPTransportPtr, IDataChannelPtr)
+ZS_DECLARE_PROXY_METHOD(onSCTPTransportStateChange, ISCTPTransportPtr, States)
+ZS_DECLARE_PROXY_METHOD(onSCTPTransportDataChannel, ISCTPTransportPtr, IDataChannelPtr)
 ZS_DECLARE_PROXY_END()
 
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_BEGIN(ortc::ISCTPTransportDelegate, ortc::ISCTPTransportSubscription)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::ISCTPTransportPtr, ISCTPTransportPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IDataChannelPtr, IDataChannelPtr)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onSCTPTransportStateChange, ISCTPTransportPtr, States)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onSCTPTransportDataChannel, ISCTPTransportPtr, IDataChannelPtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD(onSCTPTransportStateChange, ISCTPTransportPtr, States)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD(onSCTPTransportDataChannel, ISCTPTransportPtr, IDataChannelPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()
 
 ZS_DECLARE_PROXY_BEGIN(ortc::ISCTPTransportListenerDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::ISCTPTransportPtr, ISCTPTransportPtr)
-ZS_DECLARE_PROXY_METHOD_1(onSCTPTransport, ISCTPTransportPtr)
+ZS_DECLARE_PROXY_METHOD(onSCTPTransport, ISCTPTransportPtr)
 ZS_DECLARE_PROXY_END()
 
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_BEGIN(ortc::ISCTPTransportListenerDelegate, ortc::ISCTPTransportListenerSubscription)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::ISCTPTransportPtr, ISCTPTransportPtr)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_1(onSCTPTransport, ISCTPTransportPtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD(onSCTPTransport, ISCTPTransportPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()

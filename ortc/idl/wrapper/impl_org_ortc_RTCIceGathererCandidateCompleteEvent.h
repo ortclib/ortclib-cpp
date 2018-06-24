@@ -18,13 +18,13 @@ namespace wrapper {
           RTCIceGathererCandidateCompleteEventWeakPtr thisWeak_;
           wrapper::org::ortc::RTCIceCandidateCompletePtr candidate_;
 
-          RTCIceGathererCandidateCompleteEvent();
-          virtual ~RTCIceGathererCandidateCompleteEvent();
+          RTCIceGathererCandidateCompleteEvent() noexcept;
+          virtual ~RTCIceGathererCandidateCompleteEvent() noexcept;
 
           // properties RTCIceGathererCandidateCompleteEvent
-          virtual wrapper::org::ortc::RTCIceCandidateCompletePtr get_candidate() override;
+          wrapper::org::ortc::RTCIceCandidateCompletePtr get_candidate() noexcept override;
 
-          static WrapperImplTypePtr toWrapper(::ortc::IICEGathererTypes::CandidateCompletePtr candidate);
+          static WrapperImplTypePtr toWrapper(::ortc::IICEGathererTypes::CandidateCompletePtr candidate) noexcept;
         };
 
       } // ortc

@@ -24,12 +24,12 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCIceCandidatePairChangeEvent:
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCIceCandidatePairChangeEvent::WrapperType, WrapperType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCIceCandidatePairChangeEvent::RTCIceCandidatePairChangeEvent()
+wrapper::impl::org::ortc::RTCIceCandidatePairChangeEvent::RTCIceCandidatePairChangeEvent() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCIceCandidatePairChangeEventPtr wrapper::org::ortc::RTCIceCandidatePairChangeEvent::wrapper_create()
+wrapper::org::ortc::RTCIceCandidatePairChangeEventPtr wrapper::org::ortc::RTCIceCandidatePairChangeEvent::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::RTCIceCandidatePairChangeEvent>();
   pThis->thisWeak_ = pThis;
@@ -37,18 +37,18 @@ wrapper::org::ortc::RTCIceCandidatePairChangeEventPtr wrapper::org::ortc::RTCIce
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCIceCandidatePairChangeEvent::~RTCIceCandidatePairChangeEvent()
+wrapper::impl::org::ortc::RTCIceCandidatePairChangeEvent::~RTCIceCandidatePairChangeEvent() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCIceCandidatePairPtr wrapper::impl::org::ortc::RTCIceCandidatePairChangeEvent::get_candidatePair()
+wrapper::org::ortc::RTCIceCandidatePairPtr wrapper::impl::org::ortc::RTCIceCandidatePairChangeEvent::get_candidatePair() noexcept
 {
   return RTCIceCandidatePair::toWrapper(candidatePair_);
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(::ortc::IICETransportTypes::CandidatePairPtr candidatePair)
+WrapperImplTypePtr WrapperImplType::toWrapper(::ortc::IICETransportTypes::CandidatePairPtr candidatePair) noexcept
 {
   auto pThis = make_shared<WrapperImplType>();
   pThis->thisWeak_ = pThis;

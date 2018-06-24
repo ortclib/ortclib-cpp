@@ -45,16 +45,10 @@
 
 
 #ifdef __GNUC__
+#error MOVE THIS TO PROJECT SETTING RATHER THAN PUTTING ON INDIVIDUAL FILES
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-local-typedef"
 #endif //__GNUC__
-
-
-#ifdef _DEBUG
-#define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))
-#else
-#define ASSERT(x)
-#endif //_DEBUG
 
 namespace ortc { ZS_DECLARE_SUBSYSTEM(org_ortc_media_engine) }
 
@@ -72,28 +66,28 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPEncoderVideoSettingsDefaults
-    #pragma mark
+    //
+    // RTPEncoderVideoSettingsDefaults
+    //
 
     class RTPEncoderVideoSettingsDefaults : public ISettingsApplyDefaultsDelegate
     {
     public:
       //-----------------------------------------------------------------------
-      ~RTPEncoderVideoSettingsDefaults()
+      ~RTPEncoderVideoSettingsDefaults() noexcept
       {
         ISettings::removeDefaults(*this);
       }
 
       //-----------------------------------------------------------------------
-      static RTPEncoderVideoSettingsDefaultsPtr singleton()
+      static RTPEncoderVideoSettingsDefaultsPtr singleton() noexcept
       {
         static SingletonLazySharedPtr<RTPEncoderVideoSettingsDefaults> singleton(create());
         return singleton.singleton();
       }
 
       //-----------------------------------------------------------------------
-      static RTPEncoderVideoSettingsDefaultsPtr create()
+      static RTPEncoderVideoSettingsDefaultsPtr create() noexcept
       {
         auto pThis(make_shared<RTPEncoderVideoSettingsDefaults>());
         ISettings::installDefaults(pThis);
@@ -101,14 +95,14 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      virtual void notifySettingsApplyDefaults() override
+      virtual void notifySettingsApplyDefaults() noexcept override
       {
       }
       
     };
 
     //-------------------------------------------------------------------------
-    void installRTPEncoderVideoSettingsDefaults()
+    void installRTPEncoderVideoSettingsDefaults() noexcept
     {
       RTPEncoderVideoSettingsDefaults::singleton();
     }
@@ -117,15 +111,15 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPEncoderVideoForMediaEngine
-    #pragma mark
+    //
+    // IRTPEncoderVideoForMediaEngine
+    //
 
     //-------------------------------------------------------------------------
     IRTPEncoderVideo::PromiseWithRTPEncoderVideoPtr IRTPEncoderVideo::create(
                                                                              const Parameters &parameters,
                                                                              IRTPEncoderDelegatePtr delegate
-                                                                             )
+                                                                             ) noexcept
     {
       ZS_DECLARE_TYPEDEF_PTR(IMediaEngineForRTPEncoderVideo, UseEngine);
       return UseEngine::createRTPEncoderVideo(parameters, delegate);
@@ -135,9 +129,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaEngineForRTPEncoderVideo
-    #pragma mark
+    //
+    // IMediaEngineForRTPEncoderVideo
+    //
 
     //-------------------------------------------------------------------------
     IRTPEncoderVideoForMediaEngine::ForMediaEnginePtr IRTPEncoderVideoForMediaEngine::create(
@@ -145,7 +139,7 @@ namespace ortc
                                                                                              UseMediaEnginePtr mediaEngine,
                                                                                              ParametersPtr parameters,
                                                                                              IRTPEncoderDelegatePtr delegate
-                                                                                             )
+                                                                                             ) noexcept
     {
       return internal::IRTPEncoderVideoFactory::singleton().create(promise, mediaEngine, parameters, delegate);
     }
@@ -154,9 +148,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaEngine
-    #pragma mark
+    //
+    // MediaEngine
+    //
     
     //-------------------------------------------------------------------------
     RTPEncoderVideo::RTPEncoderVideo(
@@ -166,7 +160,7 @@ namespace ortc
                                      UseMediaEnginePtr mediaEngine,
                                      ParametersPtr parameters,
                                      IRTPEncoderDelegatePtr delegate
-                                     ) :
+                                     ) noexcept :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
       mediaEngine_(mediaEngine),
@@ -180,7 +174,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPEncoderVideo::init()
+    void RTPEncoderVideo::init() noexcept
     {
       asyncThisDelegate_ = IRTPEncoderAysncDelegateProxy::createWeak(thisWeak_.lock());
       AutoRecursiveLock lock(*this);
@@ -188,7 +182,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    RTPEncoderVideo::~RTPEncoderVideo()
+    RTPEncoderVideo::~RTPEncoderVideo() noexcept
     {
       if (isNoop()) return;
 
@@ -204,7 +198,7 @@ namespace ortc
                                                UseMediaEnginePtr mediaEngine,
                                                ParametersPtr parameters,
                                                IRTPEncoderDelegatePtr delegate
-                                               )
+                                               ) noexcept
     {
       auto pThis(make_shared<RTPEncoderVideo>(make_private{}, IORTCForInternal::queueRTP(), promise, mediaEngine, parameters, delegate));
       pThis->thisWeak_ = pThis;
@@ -213,7 +207,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    RTPEncoderVideoPtr RTPEncoderVideo::convert(ForMediaEnginePtr object)
+    RTPEncoderVideoPtr RTPEncoderVideo::convert(ForMediaEnginePtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(RTPEncoderVideo, object);
     }
@@ -222,12 +216,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPEncoderVideo => IRTP
-    #pragma mark
+    //
+    // RTPEncoderVideo => IRTP
+    //
 
     //-------------------------------------------------------------------------
-    void RTPEncoderVideo::cancel()
+    void RTPEncoderVideo::cancel() noexcept
     {
       ZS_EVENTING_1(x, i, Debug, RTPEncoderVideoCancel, ol, MediaEngine, Cancel, puid, id, id_);
 
@@ -236,7 +230,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    RTPEncoderVideo::States RTPEncoderVideo::getState() const
+    RTPEncoderVideo::States RTPEncoderVideo::getState() const noexcept
     {
       AutoRecursiveLock lock(*this);
       return currentState_;
@@ -246,15 +240,15 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPEncoderVideo => IRTPEncoder
-    #pragma mark
+    //
+    // RTPEncoderVideo => IRTPEncoder
+    //
 
     //-------------------------------------------------------------------------
     void RTPEncoderVideo::notifyVideoFrame(
                                            ImmutableMediaChannelTracePtr trace,
                                            VideoFramePtr frame
-                                           )
+                                           ) noexcept
     {
       try {
         asyncThisDelegate_->onRTPEncoderVideoFrame(trace, frame);
@@ -267,20 +261,20 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPEncoderVideo => IRTPEncoderVideo
-    #pragma mark
+    //
+    // RTPEncoderVideo => IRTPEncoderVideo
+    //
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPEncoderVideo => IRTPForMediaEngine
-    #pragma mark
+    //
+    // RTPEncoderVideo => IRTPForMediaEngine
+    //
 
     //-------------------------------------------------------------------------
-    void RTPEncoderVideo::shutdown()
+    void RTPEncoderVideo::shutdown() noexcept
     {
       ZS_EVENTING_1(x, i, Detail, RTPEncoderVideoShutdown, ol, MediaEngine, Close, puid, id, id_);
 
@@ -293,25 +287,25 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPEncoderVideo => IRTPEncoderForMediaEngine
-    #pragma mark
+    //
+    // RTPEncoderVideo => IRTPEncoderForMediaEngine
+    //
     
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPEncoderVideo => IRTPEncoderVideoForMediaEngine
-    #pragma mark
+    //
+    // RTPEncoderVideo => IRTPEncoderVideoForMediaEngine
+    //
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPEncoderVideo => IWakeDelegate
-    #pragma mark
+    //
+    // RTPEncoderVideo => IWakeDelegate
+    //
 
     //-------------------------------------------------------------------------
     void RTPEncoderVideo::onWake()
@@ -326,9 +320,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPEncoderVideo => IPromiseSettledDelegate
-    #pragma mark
+    //
+    // RTPEncoderVideo => IPromiseSettledDelegate
+    //
 
     //-------------------------------------------------------------------------
     void RTPEncoderVideo::onPromiseSettled(PromisePtr promise)
@@ -343,9 +337,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPEncoderVideo => IRTPEncoderAysncDelegate
-    #pragma mark
+    //
+    // RTPEncoderVideo => IRTPEncoderAysncDelegate
+    //
     
     //-------------------------------------------------------------------------
     void RTPEncoderVideo::onRTPEncoderVideoFrame(
@@ -353,20 +347,19 @@ namespace ortc
                                                  VideoFramePtr frame
                                                  )
     {
-#define TODO 1
-#define TODO 2
+#pragma ZS_BUILD_NOTE("TODO","Implement onRTPEncoderVideoFrame")
     }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPEncoderVideo => (internal)
-    #pragma mark
+    //
+    // RTPEncoderVideo => (internal)
+    //
 
     //-------------------------------------------------------------------------
-    void RTPEncoderVideo::innerCancel()
+    void RTPEncoderVideo::innerCancel() noexcept
     {
       //.......................................................................
       // try to gracefully shutdown
@@ -407,7 +400,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool RTPEncoderVideo::stepShutdownPendingPromise()
+    bool RTPEncoderVideo::stepShutdownPendingPromise() noexcept
     {
       if (!promise_) {
         ZS_EVENTING_2(x, i, Debug, RTPEncoderVideoShutdownStepMessage, ol, MediaEngine, Step, puid, id, id_, string, message, "no pending promise");
@@ -422,18 +415,17 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool RTPEncoderVideo::stepShutdownCoder()
+    bool RTPEncoderVideo::stepShutdownCoder() noexcept
     {
       ZS_EVENTING_2(x, i, Debug, RTPEncoderVideoShutdownStepMessage, ol, MediaEngine, Step, puid, id, id_, string, message, "coder");
 
-#define TODO 1
-#define TODO 2
+#pragma ZS_BUILD_NOTE("TODO","Implement stepShutdownCoder")
 
       return true;
     }
 
     //-------------------------------------------------------------------------
-    void RTPEncoderVideo::step()
+    void RTPEncoderVideo::step() noexcept
     {
       ZS_EVENTING_1(x, i, Trace, RTPEncoderVideoStep, ol, MediaEngine, Step, puid, id, id_);
 
@@ -464,13 +456,13 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool RTPEncoderVideo::stepSetup()
+    bool RTPEncoderVideo::stepSetup() noexcept
     {
       return true;
     }
 
     //-------------------------------------------------------------------------
-    bool RTPEncoderVideo::stepResolve()
+    bool RTPEncoderVideo::stepResolve() noexcept
     {
       if (!promise_) {
         ZS_EVENTING_2(x, i, Trace, RTPEncoderVideoStepMessage, ol, MediaEngine, Step, puid, id, id_, string, message, "promise already resolved");
@@ -485,7 +477,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPEncoderVideo::setState(States state)
+    void RTPEncoderVideo::setState(States state) noexcept
     {
       if (state == currentState_) return;
 
@@ -510,7 +502,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPEncoderVideo::setError(PromisePtr promise)
+    void RTPEncoderVideo::setError(PromisePtr promise) noexcept
     {
       if (!promise) return;
 
@@ -521,7 +513,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPEncoderVideo::setError(WORD errorCode, const char *inReason)
+    void RTPEncoderVideo::setError(WORD errorCode, const char *inReason) noexcept
     {
       String reason(inReason);
       if (reason.isEmpty()) {
@@ -543,7 +535,7 @@ namespace ortc
     void RTPEncoderVideo::innerNotifyRTP(
                                          ImmutableMediaChannelTracePtr trace,
                                          RTPPacketPtr packet
-                                         )
+                                         ) noexcept
     {
       IRTPEncoderDelegatePtr delegate;
 
@@ -561,7 +553,7 @@ namespace ortc
     void RTPEncoderVideo::innerNotifyRTCP(
                                           ImmutableMediaChannelTracePtr trace,
                                           RTCPPacketPtr packet
-                                          )
+                                          ) noexcept
     {
       IRTPEncoderDelegatePtr delegate;
 
@@ -579,12 +571,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPEncoderVideoFactory
-    #pragma mark
+    //
+    // IRTPEncoderVideoFactory
+    //
 
     //-------------------------------------------------------------------------
-    IRTPEncoderVideoFactory &IRTPEncoderVideoFactory::singleton()
+    IRTPEncoderVideoFactory &IRTPEncoderVideoFactory::singleton() noexcept
     {
       return RTPEncoderVideoFactory::singleton();
     }
@@ -595,7 +587,7 @@ namespace ortc
                                                        UseMediaEnginePtr mediaEngine,
                                                        ParametersPtr parameters,
                                                        IRTPEncoderDelegatePtr delegate
-                                                       )
+                                                       ) noexcept
     {
       if (this) {}
       return internal::RTPEncoderVideo::create(promise, mediaEngine, parameters, delegate);

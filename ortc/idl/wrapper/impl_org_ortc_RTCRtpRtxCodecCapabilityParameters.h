@@ -18,20 +18,20 @@ namespace wrapper {
           ZS_DECLARE_TYPEDEF_PTR(wrapper::org::ortc::RTCRtpRtxCodecCapabilityParameters, WrapperType);
           RTCRtpRtxCodecCapabilityParametersWeakPtr thisWeak_;
 
-          RTCRtpRtxCodecCapabilityParameters();
-          virtual ~RTCRtpRtxCodecCapabilityParameters();
+          RTCRtpRtxCodecCapabilityParameters() noexcept;
+          virtual ~RTCRtpRtxCodecCapabilityParameters() noexcept;
 
           // methods RTCRtpRtxCodecCapabilityParameters
-          virtual void wrapper_init_org_ortc_RTCRtpRtxCodecCapabilityParameters() override;
-          virtual void wrapper_init_org_ortc_RTCRtpRtxCodecCapabilityParameters(wrapper::org::ortc::RTCRtpRtxCodecCapabilityParametersPtr source) override;
-          virtual void wrapper_init_org_ortc_RTCRtpRtxCodecCapabilityParameters(wrapper::org::ortc::JsonPtr json) override;
-          virtual wrapper::org::ortc::JsonPtr toJson() override;
-          virtual String hash() override;
+          void wrapper_init_org_ortc_RTCRtpRtxCodecCapabilityParameters() noexcept override;
+          void wrapper_init_org_ortc_RTCRtpRtxCodecCapabilityParameters(wrapper::org::ortc::RTCRtpRtxCodecCapabilityParametersPtr source) noexcept override;
+          void wrapper_init_org_ortc_RTCRtpRtxCodecCapabilityParameters(wrapper::org::ortc::JsonPtr json) noexcept override;
+          wrapper::org::ortc::JsonPtr toJson() noexcept override;
+          String hash() noexcept override;
 
-          static WrapperImplTypePtr toWrapper(AnyPtr native);
-          static WrapperImplTypePtr toWrapper(NativeTypePtr native);
-          static WrapperImplTypePtr toWrapper(const NativeType &native);
-          static NativeTypePtr toNative(WrapperTypePtr wrapper);
+          static WrapperImplTypePtr toWrapper(AnyPtr native) noexcept;
+          static WrapperImplTypePtr toWrapper(NativeTypePtr native) noexcept;
+          static WrapperImplTypePtr toWrapper(const NativeType &native) noexcept;
+          static NativeTypePtr toNative(WrapperTypePtr wrapper) noexcept;
         };
 
       } // ortc

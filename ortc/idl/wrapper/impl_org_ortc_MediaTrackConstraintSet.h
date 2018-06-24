@@ -17,19 +17,19 @@ namespace wrapper {
 
           MediaTrackConstraintSetWeakPtr thisWeak_;
 
-          MediaTrackConstraintSet();
-          virtual ~MediaTrackConstraintSet();
+          MediaTrackConstraintSet() noexcept;
+          virtual ~MediaTrackConstraintSet() noexcept;
 
           // methods MediaTrackConstraintSet
-          virtual void wrapper_init_org_ortc_MediaTrackConstraintSet() override;
-          virtual void wrapper_init_org_ortc_MediaTrackConstraintSet(wrapper::org::ortc::MediaTrackConstraintSetPtr source) override;
-          virtual void wrapper_init_org_ortc_MediaTrackConstraintSet(wrapper::org::ortc::JsonPtr json) override;
-          virtual wrapper::org::ortc::JsonPtr toJson() override;
-          virtual String hash() override;
+          void wrapper_init_org_ortc_MediaTrackConstraintSet() noexcept override;
+          void wrapper_init_org_ortc_MediaTrackConstraintSet(wrapper::org::ortc::MediaTrackConstraintSetPtr source) noexcept override;
+          void wrapper_init_org_ortc_MediaTrackConstraintSet(wrapper::org::ortc::JsonPtr json) noexcept override;
+          wrapper::org::ortc::JsonPtr toJson() noexcept override;
+          String hash() noexcept override;
 
-          static MediaTrackConstraintSetPtr toWrapper(NativeConstraintSetPtr native);
-          static MediaTrackConstraintSetPtr toWrapper(const NativeConstraintSet &native);
-          static NativeConstraintSetPtr toNative(wrapper::org::ortc::MediaTrackConstraintSetPtr wrapper);
+          static MediaTrackConstraintSetPtr toWrapper(NativeConstraintSetPtr native) noexcept;
+          static MediaTrackConstraintSetPtr toWrapper(const NativeConstraintSet &native) noexcept;
+          static NativeConstraintSetPtr toNative(wrapper::org::ortc::MediaTrackConstraintSetPtr wrapper) noexcept;
         };
 
       } // ortc

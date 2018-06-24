@@ -23,12 +23,12 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCDtlsTransportStateChangeEven
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCDtlsTransportStateChangeEvent::WrapperType, WrapperType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCDtlsTransportStateChangeEvent::RTCDtlsTransportStateChangeEvent()
+wrapper::impl::org::ortc::RTCDtlsTransportStateChangeEvent::RTCDtlsTransportStateChangeEvent() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCDtlsTransportStateChangeEventPtr wrapper::org::ortc::RTCDtlsTransportStateChangeEvent::wrapper_create()
+wrapper::org::ortc::RTCDtlsTransportStateChangeEventPtr wrapper::org::ortc::RTCDtlsTransportStateChangeEvent::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::RTCDtlsTransportStateChangeEvent>();
   pThis->thisWeak_ = pThis;
@@ -36,18 +36,18 @@ wrapper::org::ortc::RTCDtlsTransportStateChangeEventPtr wrapper::org::ortc::RTCD
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCDtlsTransportStateChangeEvent::~RTCDtlsTransportStateChangeEvent()
+wrapper::impl::org::ortc::RTCDtlsTransportStateChangeEvent::~RTCDtlsTransportStateChangeEvent() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCDtlsTransportState wrapper::impl::org::ortc::RTCDtlsTransportStateChangeEvent::get_state()
+wrapper::org::ortc::RTCDtlsTransportState wrapper::impl::org::ortc::RTCDtlsTransportStateChangeEvent::get_state() noexcept
 {
   return state_;
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(wrapper::org::ortc::RTCDtlsTransportState state)
+WrapperImplTypePtr WrapperImplType::toWrapper(wrapper::org::ortc::RTCDtlsTransportState state) noexcept
 {
   auto pThis = make_shared<WrapperImplType>();
   pThis->thisWeak_ = pThis;

@@ -50,12 +50,6 @@
 #include <cryptopp/sha.h>
 #include <ortc/types.h>
 
-#ifdef _DEBUG
-#define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))
-#else
-#define ASSERT(x)
-#endif //_DEBUG
-
 
 namespace ortc { ZS_DECLARE_SUBSYSTEM(org_ortc) }
 
@@ -72,9 +66,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark (helpers)
-    #pragma mark
+    //
+    // (helpers)
+    //
 
     const float kExactMatchRankAmount = 1000000.0;
 
@@ -82,12 +76,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPTypesHelper::FindCodecOptions
-    #pragma mark
+    //
+    // RTPTypesHelper::FindCodecOptions
+    //
 
     //-------------------------------------------------------------------------
-    ElementPtr RTPTypesHelper::FindCodecOptions::toDebug() const
+    ElementPtr RTPTypesHelper::FindCodecOptions::toDebug() const noexcept
     {
       ElementPtr resultEl = Element::create("ortc::RTPTypesHelper::FindCodecOptions");
 
@@ -117,12 +111,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPTypesHelper::DecodedCodecInfo
-    #pragma mark
+    //
+    // RTPTypesHelper::DecodedCodecInfo
+    //
 
     //-------------------------------------------------------------------------
-    ElementPtr RTPTypesHelper::DecodedCodecInfo::toDebug() const
+    ElementPtr RTPTypesHelper::DecodedCodecInfo::toDebug() const noexcept
     {
       ElementPtr resultEl = Element::create("ortc::RTPTypesHelper::DecodedCodecInfo");
 
@@ -146,12 +140,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPTypesHelper::DecodedCodecInfo::DepthInfo
-    #pragma mark
+    //
+    // RTPTypesHelper::DecodedCodecInfo::DepthInfo
+    //
 
     //-------------------------------------------------------------------------
-    ElementPtr RTPTypesHelper::DecodedCodecInfo::DepthInfo::toDebug() const
+    ElementPtr RTPTypesHelper::DecodedCodecInfo::DepthInfo::toDebug() const noexcept
     {
       if (NULL == mCodecParameters) return ElementPtr();
 
@@ -166,15 +160,15 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPTypesHelper
-    #pragma mark
+    //
+    // RTPTypesHelper
+    //
 
     //-------------------------------------------------------------------------
     void RTPTypesHelper::validateCodecParameters(
                                                  const Parameters &params,
                                                  Optional<IMediaStreamTrackTypes::Kinds> &ioKind
-                                                 ) throw (InvalidParameters)
+                                                 ) noexcept(false)
     {
       for (auto iter = params.mCodecs.begin(); iter != params.mCodecs.end(); ++iter)
       {
@@ -438,7 +432,7 @@ namespace ortc
     void RTPTypesHelper::splitParamsIntoChannels(
                                                 const Parameters &params,
                                                 ParametersPtrList &outParamsGroupedIntoChannels
-                                                )
+                                                ) noexcept(false)
     {
       typedef IRTPTypes::EncodingID EncodingID;
       typedef std::map<EncodingID, ParametersPtr> StreamMap;
@@ -476,7 +470,7 @@ namespace ortc
 
           if (encoding.mDependencyEncodingIDs.size() < 1) continue;         // skip all that do not have any dependencies
 
-          ORTC_THROW_INVALID_PARAMETERS_IF(encoding.mEncodingID.isEmpty())  // if dependencies exist, this layer must have an encoding id
+          ORTC_THROW_INVALID_PARAMETERS_IF(encoding.mEncodingID.isEmpty());  // if dependencies exist, this layer must have an encoding id
 
           auto foundExisting = streamMap.find(encoding.mEncodingID);
           if (foundExisting != streamMap.end()) continue;                   // already processed this entry
@@ -521,7 +515,7 @@ namespace ortc
                                                          ParametersPtrList &outNewChannels,
                                                          ParametersPtrPairList &outUpdatedChannels,
                                                          ParametersPtrList &outRemovedChannels
-                                                         )
+                                                         ) noexcept
     {
       typedef String Hash;
       typedef std::pair<Hash, ParametersPtr> HashParameterPair;
@@ -904,7 +898,7 @@ namespace ortc
     bool RTPTypesHelper::isGeneralizedSSRCCompatibleChange(
                                                           const Parameters &oldParams,
                                                           const Parameters &newParams
-                                                          )
+                                                          ) noexcept
     {
       ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
 
@@ -919,7 +913,7 @@ namespace ortc
                                           const CodecParameters &oldCodec,
                                           const CodecParameters &newCodec,
                                           float &ioRank
-                                          )
+                                          ) noexcept
     {
       auto supportedCodec = IRTPTypes::toSupportedCodec(oldCodec.mName);
 
@@ -994,7 +988,7 @@ namespace ortc
     const RTPTypesHelper::CodecParameters *RTPTypesHelper::findCodec(
                                                                      const Parameters &params,
                                                                      const FindCodecOptions &options
-                                                                     )
+                                                                     ) noexcept
     {
       const CodecParameters *foundCodec = NULL;
       const CodecParameters *preferredCodec = NULL;
@@ -1159,7 +1153,7 @@ namespace ortc
                                                                      Optional<PayloadType> packetPayloadType,
                                                                      const EncodingParameters *encoding,
                                                                      const EncodingParameters *baseEncoding
-                                                                     )
+                                                                     ) noexcept
     {
       typedef IRTPTypes::CodecKinds CodecKinds;
 
@@ -1214,7 +1208,7 @@ namespace ortc
                                         const Parameters &oldParams,
                                         const Parameters &newParams,
                                         float &outRank
-                                        )
+                                        ) noexcept
     {
       outRank = 0;
 
@@ -1275,7 +1269,7 @@ namespace ortc
     check_other_properties:
       {
         if (oldParams.mEncodings.size() > 0) {
-          ASSERT(newParams.mEncodings.size() > 0)
+          ZS_ASSERT(newParams.mEncodings.size() > 0);
 
           auto &oldEncoding = oldParams.mEncodings.front();
           auto &newEncoding = newParams.mEncodings.front();
@@ -1334,7 +1328,7 @@ namespace ortc
     RTPTypesHelper::EncodingParameters *RTPTypesHelper::findEncodingBase(
                                                                          Parameters &inParams,
                                                                          EncodingParameters *inEncoding
-                                                                         )
+                                                                         ) noexcept
     {
       typedef std::map<String, EncodingParameters *> DependencyMap;
 
@@ -1391,7 +1385,7 @@ namespace ortc
     static bool verifyFECKnownMechanism(
                                         const IRTPTypes::EncodingParameters &encoding,
                                         IRTPTypes::SupportedCodecs supportedCodec
-                                        )
+                                        ) noexcept
     {
       if (!encoding.mFEC.hasValue()) return false;
 
@@ -1430,7 +1424,7 @@ namespace ortc
                                                                            Parameters &filledParams,
                                                                            const DecodedCodecInfo &decodedCodec,
                                                                            EncodingParameters * &outBaseEncoding
-                                                                           )
+                                                                           ) noexcept
     {
       outBaseEncoding = NULL;
 
@@ -1438,8 +1432,6 @@ namespace ortc
         // "latch all" allows this codec to match all incoming packets
         return NULL;
       }
-
-      (*(filledParams.mEncodings.begin()));
 
       for (auto encodingIter = filledParams.mEncodings.begin(); encodingIter != filledParams.mEncodings.end(); ++encodingIter) {
 
@@ -1459,7 +1451,7 @@ namespace ortc
         }
 
         switch (decodedCodec.mDepth[0].mCodecKind) {
-          case IRTPTypes::CodecKind_Unknown:  ASSERT(false) break;
+          case IRTPTypes::CodecKind_Unknown:  ZS_ASSERT_FAIL("unknown codec"); break;
           case IRTPTypes::CodecKind_Audio:
           case IRTPTypes::CodecKind_Video:
           case IRTPTypes::CodecKind_AV:
@@ -1621,7 +1613,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    Optional<IMediaStreamTrackTypes::Kinds> RTPTypesHelper::getCodecsKind(const Parameters &params)
+    Optional<IMediaStreamTrackTypes::Kinds> RTPTypesHelper::getCodecsKind(const Parameters &params) noexcept
     {
       Optional<IMediaStreamTrack::Kinds> foundKind;
 
@@ -1669,7 +1661,7 @@ namespace ortc
     static bool checkDecodedKind(
                                  Optional<IMediaStreamTrackTypes::Kinds> &ioKind,
                                  IMediaStreamTrackTypes::Kinds foundKind
-                                 )
+                                 ) noexcept
     {
       if (ioKind.hasValue()) {
         if (ioKind.value() != foundKind) {
@@ -1688,7 +1680,7 @@ namespace ortc
                                             const RTPPacket &packet,
                                             const Parameters &params,
                                             DecodedCodecInfo &decodedCodecInfo
-                                            )
+                                            ) noexcept
     {
       decodedCodecInfo.mFilledDepth = 0;
 
@@ -1706,7 +1698,7 @@ namespace ortc
       switch (decodedCodecInfo.mDepth[nextDepth].mCodecKind) {
         case IRTPTypes::CodecKind_Unknown:
         {
-          ASSERT(false);
+          ZS_ASSERT_FAIL("unknown codec");
           return false;
         }
         case IRTPTypes::CodecKind_Audio:              return checkDecodedKind(ioKind, IMediaStreamTrackTypes::Kind_Audio);
@@ -1745,13 +1737,13 @@ namespace ortc
         getRTXCodecPayload(packet.payload(), packet.payloadSize(), innerPayload, innerPayloadSize);
 
         switch (decodedCodecInfo.mDepth[nextDepth].mCodecKind) {
-          case IRTPTypes::CodecKind_Unknown:            ASSERT(false); return false;
+          case IRTPTypes::CodecKind_Unknown:            ZS_ASSERT_FAIL("unknown codec"); return false;
           case IRTPTypes::CodecKind_Audio:              return checkDecodedKind(ioKind, IMediaStreamTrackTypes::Kind_Audio);
           case IRTPTypes::CodecKind_AudioSupplemental:  return checkDecodedKind(ioKind, IMediaStreamTrackTypes::Kind_Audio);
           case IRTPTypes::CodecKind_Video:              return checkDecodedKind(ioKind, IMediaStreamTrackTypes::Kind_Video);
           case IRTPTypes::CodecKind_AV:                 return true;
           case IRTPTypes::CodecKind_Data:               return true;
-          case IRTPTypes::CodecKind_RTX:                ASSERT(false); return false;
+          case IRTPTypes::CodecKind_RTX:                ZS_ASSERT_FAIL("rtx not possible"); return false;
           case IRTPTypes::CodecKind_FEC:                break;
         }
       } else {
@@ -1819,7 +1811,7 @@ namespace ortc
         }
         default:
         {
-          ASSERT(false);
+          ZS_ASSERT(false);
           return false;
         }
       }
@@ -1828,7 +1820,7 @@ namespace ortc
       {
         auto fecRecoveryPayloadType = getFecRecoveryPayloadType(innerPayload, innerPayloadSize);
         if (!fecRecoveryPayloadType.hasValue()) {
-          ZS_LOG_WARNING(Trace, slog("FEC recovery codec type was not understood") + decodedCodecInfo.toDebug())
+          ZS_LOG_WARNING(Trace, slog("FEC recovery codec type was not understood") + decodedCodecInfo.toDebug());
           return false;
         }
 
@@ -1838,7 +1830,7 @@ namespace ortc
         decodedCodecInfo.mDepth[nextDepth].mCodecParameters = findCodec(params, options);
 
         if (NULL == decodedCodecInfo.mDepth[nextDepth].mCodecParameters) {
-          ZS_LOG_WARNING(Trace, slog("Recovery codec type was not understood") + decodedCodecInfo.toDebug())
+          ZS_LOG_WARNING(Trace, slog("Recovery codec type was not understood") + decodedCodecInfo.toDebug());
           return false;
         }
 
@@ -1847,7 +1839,7 @@ namespace ortc
 
         switch (decodedCodecInfo.mDepth[nextDepth].mCodecKind) {
           case IRTPTypes::CodecKind_Unknown:            {
-            ZS_LOG_WARNING(Trace, slog("Recovery codec type was not understood") + decodedCodecInfo.toDebug())
+            ZS_LOG_WARNING(Trace, slog("Recovery codec type was not understood") + decodedCodecInfo.toDebug());
             return false;
           }
           case IRTPTypes::CodecKind_Audio:              return checkDecodedKind(ioKind, IMediaStreamTrackTypes::Kind_Audio);
@@ -1856,11 +1848,11 @@ namespace ortc
           case IRTPTypes::CodecKind_AV:                 return true;
           case IRTPTypes::CodecKind_Data:               return true;
           case IRTPTypes::CodecKind_RTX:                {
-            ZS_LOG_WARNING(Trace, slog("Recovery codec type containing RTX codec is not supported") + decodedCodecInfo.toDebug())
+            ZS_LOG_WARNING(Trace, slog("Recovery codec type containing RTX codec is not supported") + decodedCodecInfo.toDebug());
             return false;
           }
           case IRTPTypes::CodecKind_FEC:                {
-            ZS_LOG_WARNING(Trace, slog("Recovery codec type containing another recovery codec is not supported") + decodedCodecInfo.toDebug())
+            ZS_LOG_WARNING(Trace, slog("Recovery codec type containing another recovery codec is not supported") + decodedCodecInfo.toDebug());
             return false;
           }
         }
@@ -1875,7 +1867,7 @@ namespace ortc
                                             size_t packetPayloadSizeInBytes,
                                             const BYTE * &outInnterPayload,
                                             size_t &outInnerPayloadSizeBytes
-                                            )
+                                            ) noexcept
     {
       if (packetPayloadSizeInBytes < sizeof(WORD)) {
         outInnterPayload = packetPayload + packetPayloadSizeInBytes;
@@ -1893,7 +1885,7 @@ namespace ortc
                                                                         size_t packetPayloadSizeInBytes,
                                                                         const BYTE * &outInnterPayload,
                                                                         size_t &outInnerPayloadSizeBytes
-                                                                        )
+                                                                        ) noexcept
     {
       Optional<IRTPTypes::PayloadType> result;
       if (NULL == packetPayload) return result;
@@ -1915,7 +1907,7 @@ namespace ortc
     Optional<IRTPTypes::PayloadType> RTPTypesHelper::getFecRecoveryPayloadType(
                                                                                const BYTE *packetPayload,
                                                                                size_t packetPayloadSizeInBytes
-                                                                               )
+                                                                               ) noexcept
     {
       Optional<IRTPTypes::PayloadType> result;
       if (NULL == packetPayload) return result;
@@ -1926,7 +1918,7 @@ namespace ortc
     }
     
     //-------------------------------------------------------------------------
-    Log::Params RTPTypesHelper::slog(const char *message)
+    Log::Params RTPTypesHelper::slog(const char *message) noexcept
     {
       return Log::Params(message, "ortc::RTPTypesHelper");
     }
@@ -1938,12 +1930,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark (helpers)
-  #pragma mark
+  //
+  // (helpers)
+  //
 
   //-----------------------------------------------------------------------
-  static Log::Params slog(const char *message)
+  static Log::Params slog(const char *message) noexcept
   {
     return Log::Params(message, "ortc::IRTPTypes");
   }
@@ -1952,12 +1944,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IRTPTypes::DegradationPreferences
-  #pragma mark
+  //
+  // IRTPTypes::DegradationPreferences
+  //
 
   //---------------------------------------------------------------------------
-  const char *IRTPTypes::toString(DegradationPreferences preference)
+  const char *IRTPTypes::toString(DegradationPreferences preference) noexcept
   {
     switch (preference) {
       case DegradationPreference_MaintainFramerate:   return "maintain-framerate";
@@ -1968,7 +1960,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IRTPTypes::DegradationPreferences IRTPTypes::toDegredationPreference(const char *preference) throw (InvalidParameters)
+  IRTPTypes::DegradationPreferences IRTPTypes::toDegredationPreference(const char *preference) noexcept(false)
   {
     String str(preference);
     for (IRTPTypes::DegradationPreferences index = IRTPTypes::DegradationPreference_First; index <= IRTPTypes::DegradationPreference_Last; index = static_cast<IRTPTypes::DegradationPreferences>(static_cast<std::underlying_type<IRTPTypes::DegradationPreferences>::type>(index) + 1)) {
@@ -1984,13 +1976,13 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IRTPTypes::Capabilities
-  #pragma mark
+  //
+  // IRTPTypes::Capabilities
+  //
 
 
   //---------------------------------------------------------------------------
-  IRTPTypes::Capabilities::Capabilities(ElementPtr elem)
+  IRTPTypes::Capabilities::Capabilities(ElementPtr elem) noexcept
   {
     if (!elem) return;
 
@@ -2030,7 +2022,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IRTPTypes::Capabilities::createElement(const char *objectName) const
+  ElementPtr IRTPTypes::Capabilities::createElement(const char *objectName) const noexcept
   {
     ElementPtr elem = Element::create(objectName);
 
@@ -2070,13 +2062,13 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IRTPTypes::Capabilities::toDebug() const
+  ElementPtr IRTPTypes::Capabilities::toDebug() const noexcept
   {
     return createElement("ortc::IRTPTypes::Capabilities");
   }
 
   //---------------------------------------------------------------------------
-  String IRTPTypes::Capabilities::hash() const
+  String IRTPTypes::Capabilities::hash() const noexcept
   {
     auto hasher = IHasher::sha1();
 
@@ -2116,12 +2108,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IRTPTypes::CodecCapability
-  #pragma mark
+  //
+  // IRTPTypes::CodecCapability
+  //
 
   //---------------------------------------------------------------------------
-  IRTPTypes::CodecCapability::CodecCapability(ElementPtr elem)
+  IRTPTypes::CodecCapability::CodecCapability(ElementPtr elem) noexcept
   {
     if (!elem) return;
 
@@ -2195,7 +2187,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IRTPTypes::CodecCapability::createElement(const char *objectName) const
+  ElementPtr IRTPTypes::CodecCapability::createElement(const char *objectName) const noexcept
   {
     ElementPtr elem = Element::create(objectName);
 
@@ -2301,7 +2293,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IRTPTypes::CodecCapability::CodecCapability(const CodecCapability &source) :
+  IRTPTypes::CodecCapability::CodecCapability(const CodecCapability &source) noexcept :
     mName(source.mName),
     mKind(source.mKind),
     mClockRate(source.mClockRate),
@@ -2318,7 +2310,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IRTPTypes::CodecCapability &IRTPTypes::CodecCapability::operator=(const CodecCapability &op2)
+  IRTPTypes::CodecCapability &IRTPTypes::CodecCapability::operator=(const CodecCapability &op2) noexcept
   {    
     mName = op2.mName;
     mKind = op2.mKind;
@@ -2336,13 +2328,13 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IRTPTypes::CodecCapability::toDebug() const
+  ElementPtr IRTPTypes::CodecCapability::toDebug() const noexcept
   {
     return createElement("ortc::IRTPTypes::CodecCapability");
   }
 
   //---------------------------------------------------------------------------
-  String IRTPTypes::CodecCapability::hash() const
+  String IRTPTypes::CodecCapability::hash() const noexcept
   {
     auto hasher = IHasher::sha1();
 
@@ -2441,7 +2433,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  void IRTPTypes::CodecCapability::copyAny(const CodecCapability &source)
+  void IRTPTypes::CodecCapability::copyAny(const CodecCapability &source) noexcept
   {
     mParameters.reset();
     mOptions.reset();
@@ -2510,12 +2502,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IRTPTypes::OpusCodecCapabilityOptions
-  #pragma mark
+  //
+  // IRTPTypes::OpusCodecCapabilityOptions
+  //
 
   //---------------------------------------------------------------------------
-  const char *IRTPTypes::OpusCodecCapabilityOptions::toString(Signals signal)
+  const char *IRTPTypes::OpusCodecCapabilityOptions::toString(Signals signal) noexcept
   {
     switch (signal) {
       case Signal_Auto:         return "auto";
@@ -2527,7 +2519,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IRTPTypes::OpusCodecParameters::Signals IRTPTypes::OpusCodecCapabilityOptions::toSignal(const char *signal)
+  IRTPTypes::OpusCodecParameters::Signals IRTPTypes::OpusCodecCapabilityOptions::toSignal(const char *signal) noexcept(false)
   {
     String signalStr(signal);
     if (signalStr.isEmpty()) return Signal_Auto;
@@ -2540,7 +2532,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  const char *IRTPTypes::OpusCodecCapabilityOptions::toString(Applications application)
+  const char *IRTPTypes::OpusCodecCapabilityOptions::toString(Applications application) noexcept
   {
     switch (application) {
       case Application_VoIP:      return "voip";
@@ -2552,7 +2544,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IRTPTypes::OpusCodecParameters::Applications IRTPTypes::OpusCodecCapabilityOptions::toApplication(const char *application)
+  IRTPTypes::OpusCodecParameters::Applications IRTPTypes::OpusCodecCapabilityOptions::toApplication(const char *application) noexcept(false)
   {
     String applicationStr(application);
     if (applicationStr.isEmpty()) return Application_VoIP;
@@ -2561,11 +2553,11 @@ namespace ortc
       if (0 == applicationStr.compareNoCase(IRTPTypes::OpusCodecCapabilityOptions::toString(index))) return index;
     }
 
-    ORTC_THROW_INVALID_PARAMETERS((String("unknown application: ") + applicationStr).c_str())
+    ORTC_THROW_INVALID_PARAMETERS((String("unknown application: ") + applicationStr).c_str());
   }
 
   //---------------------------------------------------------------------------
-  IRTPTypes::OpusCodecCapabilityOptions::OpusCodecCapabilityOptions(ElementPtr elem)
+  IRTPTypes::OpusCodecCapabilityOptions::OpusCodecCapabilityOptions(ElementPtr elem) noexcept
   {
     if (!elem) return;
 
@@ -2597,7 +2589,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IRTPTypes::OpusCodecCapabilityOptions::createElement(const char *objectName) const
+  ElementPtr IRTPTypes::OpusCodecCapabilityOptions::createElement(const char *objectName) const noexcept
   {
     ElementPtr elem = Element::create(objectName);
 
@@ -2619,25 +2611,25 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IRTPTypes::OpusCodecCapabilityOptionsPtr IRTPTypes::OpusCodecCapabilityOptions::create(const OpusCodecCapabilityOptions &capability)
+  IRTPTypes::OpusCodecCapabilityOptionsPtr IRTPTypes::OpusCodecCapabilityOptions::create(const OpusCodecCapabilityOptions &capability) noexcept
   {
     return make_shared<OpusCodecCapabilityOptions>(capability);
   }
 
   //---------------------------------------------------------------------------
-  IRTPTypes::OpusCodecCapabilityOptionsPtr IRTPTypes::OpusCodecCapabilityOptions::convert(AnyPtr any)
+  IRTPTypes::OpusCodecCapabilityOptionsPtr IRTPTypes::OpusCodecCapabilityOptions::convert(AnyPtr any) noexcept
   {
     return ZS_DYNAMIC_PTR_CAST(OpusCodecCapabilityOptions, any);
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IRTPTypes::OpusCodecCapabilityOptions::toDebug() const
+  ElementPtr IRTPTypes::OpusCodecCapabilityOptions::toDebug() const noexcept
   {
     return createElement("ortc::IRTPTypes::OpusCodecCapabilityOptions");
   }
 
   //---------------------------------------------------------------------------
-  String IRTPTypes::OpusCodecCapabilityOptions::hash() const
+  String IRTPTypes::OpusCodecCapabilityOptions::hash() const noexcept
   {
     auto hasher = IHasher::sha1();
 
@@ -2660,12 +2652,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IRTPTypes::OpusCodecCapabilityParameters
-  #pragma mark
+  //
+  // IRTPTypes::OpusCodecCapabilityParameters
+  //
 
   //---------------------------------------------------------------------------
-  IRTPTypes::OpusCodecCapabilityParameters::OpusCodecCapabilityParameters(ElementPtr elem)
+  IRTPTypes::OpusCodecCapabilityParameters::OpusCodecCapabilityParameters(ElementPtr elem) noexcept
   {
     if (!elem) return;
 
@@ -2680,7 +2672,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IRTPTypes::OpusCodecCapabilityParameters::createElement(const char *objectName) const
+  ElementPtr IRTPTypes::OpusCodecCapabilityParameters::createElement(const char *objectName) const noexcept
   {
     ElementPtr elem = Element::create(objectName);
 
@@ -2699,25 +2691,25 @@ namespace ortc
   }
   
   //---------------------------------------------------------------------------
-  IRTPTypes::OpusCodecCapabilityParametersPtr IRTPTypes::OpusCodecCapabilityParameters::create(const OpusCodecCapabilityParameters &capability)
+  IRTPTypes::OpusCodecCapabilityParametersPtr IRTPTypes::OpusCodecCapabilityParameters::create(const OpusCodecCapabilityParameters &capability) noexcept
   {
     return make_shared<OpusCodecCapabilityParameters>(capability);
   }
 
   //---------------------------------------------------------------------------
-  IRTPTypes::OpusCodecCapabilityParametersPtr IRTPTypes::OpusCodecCapabilityParameters::convert(AnyPtr any)
+  IRTPTypes::OpusCodecCapabilityParametersPtr IRTPTypes::OpusCodecCapabilityParameters::convert(AnyPtr any) noexcept
   {
     return ZS_DYNAMIC_PTR_CAST(OpusCodecCapabilityParameters, any);
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IRTPTypes::OpusCodecCapabilityParameters::toDebug() const
+  ElementPtr IRTPTypes::OpusCodecCapabilityParameters::toDebug() const noexcept
   {
     return createElement("ortc::IRTPTypes::OpusCodecCapabilityParameters");
   }
 
   //---------------------------------------------------------------------------
-  String IRTPTypes::OpusCodecCapabilityParameters::hash() const
+  String IRTPTypes::OpusCodecCapabilityParameters::hash() const noexcept
   {
     auto hasher = IHasher::sha1();
 
@@ -2747,12 +2739,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IRTPTypes::VP8CodecCapability
-  #pragma mark
+  //
+  // IRTPTypes::VP8CodecCapability
+  //
 
   //---------------------------------------------------------------------------
-  IRTPTypes::VP8CodecCapabilityParameters::VP8CodecCapabilityParameters(ElementPtr elem)
+  IRTPTypes::VP8CodecCapabilityParameters::VP8CodecCapabilityParameters(ElementPtr elem) noexcept
   {
     if (!elem) return;
 
@@ -2761,7 +2753,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IRTPTypes::VP8CodecCapabilityParameters::createElement(const char *objectName) const
+  ElementPtr IRTPTypes::VP8CodecCapabilityParameters::createElement(const char *objectName) const noexcept
   {
     ElementPtr elem = Element::create(objectName);
 
@@ -2774,25 +2766,25 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IRTPTypes::VP8CodecCapabilityParametersPtr IRTPTypes::VP8CodecCapabilityParameters::create(const VP8CodecCapabilityParameters &capability)
+  IRTPTypes::VP8CodecCapabilityParametersPtr IRTPTypes::VP8CodecCapabilityParameters::create(const VP8CodecCapabilityParameters &capability) noexcept
   {
     return make_shared<VP8CodecCapabilityParameters>(capability);
   }
 
   //---------------------------------------------------------------------------
-  IRTPTypes::VP8CodecCapabilityParametersPtr IRTPTypes::VP8CodecCapabilityParameters::convert(AnyPtr any)
+  IRTPTypes::VP8CodecCapabilityParametersPtr IRTPTypes::VP8CodecCapabilityParameters::convert(AnyPtr any) noexcept
   {
     return ZS_DYNAMIC_PTR_CAST(VP8CodecCapabilityParameters, any);
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IRTPTypes::VP8CodecCapabilityParameters::toDebug() const
+  ElementPtr IRTPTypes::VP8CodecCapabilityParameters::toDebug() const noexcept
   {
     return createElement("ortc::IRTPTypes::VP8CodecCapabilityParameters");
   }
 
   //---------------------------------------------------------------------------
-  String IRTPTypes::VP8CodecCapabilityParameters::hash() const
+  String IRTPTypes::VP8CodecCapabilityParameters::hash() const noexcept
   {
     auto hasher = IHasher::sha1();
 
@@ -2810,12 +2802,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IRTPTypes::H264CodecCapabilityParameters
-  #pragma mark
+  //
+  // IRTPTypes::H264CodecCapabilityParameters
+  //
 
   //---------------------------------------------------------------------------
-  IRTPTypes::H264CodecCapabilityParameters::H264CodecCapabilityParameters(ElementPtr elem)
+  IRTPTypes::H264CodecCapabilityParameters::H264CodecCapabilityParameters(ElementPtr elem) noexcept
   {
     if (!elem) return;
 
@@ -2849,7 +2841,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IRTPTypes::H264CodecCapabilityParameters::createElement(const char *objectName) const
+  ElementPtr IRTPTypes::H264CodecCapabilityParameters::createElement(const char *objectName) const noexcept
   {
     ElementPtr elem = Element::create(objectName);
 
@@ -2878,25 +2870,25 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IRTPTypes::H264CodecCapabilityParametersPtr IRTPTypes::H264CodecCapabilityParameters::create(const H264CodecCapabilityParameters &capability)
+  IRTPTypes::H264CodecCapabilityParametersPtr IRTPTypes::H264CodecCapabilityParameters::create(const H264CodecCapabilityParameters &capability) noexcept
   {
     return make_shared<H264CodecCapabilityParameters>(capability);
   }
 
   //---------------------------------------------------------------------------
-  IRTPTypes::H264CodecCapabilityParametersPtr IRTPTypes::H264CodecCapabilityParameters::convert(AnyPtr any)
+  IRTPTypes::H264CodecCapabilityParametersPtr IRTPTypes::H264CodecCapabilityParameters::convert(AnyPtr any) noexcept
   {
     return ZS_DYNAMIC_PTR_CAST(H264CodecCapabilityParameters, any);
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IRTPTypes::H264CodecCapabilityParameters::toDebug() const
+  ElementPtr IRTPTypes::H264CodecCapabilityParameters::toDebug() const noexcept
   {
     return createElement("ortc::IRTPTypes::H264CodecCapabilityParameters");
   }
 
   //---------------------------------------------------------------------------
-  String IRTPTypes::H264CodecCapabilityParameters::hash() const
+  String IRTPTypes::H264CodecCapabilityParameters::hash() const noexcept
   {
     auto hasher = IHasher::sha1();
 
@@ -2932,12 +2924,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IRTPTypes::RTXCodecCapabilityParameters
-  #pragma mark
+  //
+  // IRTPTypes::RTXCodecCapabilityParameters
+  //
 
   //---------------------------------------------------------------------------
-  IRTPTypes::RTXCodecCapabilityParameters::RTXCodecCapabilityParameters(ElementPtr elem)
+  IRTPTypes::RTXCodecCapabilityParameters::RTXCodecCapabilityParameters(ElementPtr elem) noexcept
   {
     if (!elem) return;
 
@@ -2946,7 +2938,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IRTPTypes::RTXCodecCapabilityParameters::createElement(const char *objectName) const
+  ElementPtr IRTPTypes::RTXCodecCapabilityParameters::createElement(const char *objectName) const noexcept
   {
     ElementPtr elem = Element::create(objectName);
 
@@ -2959,25 +2951,25 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IRTPTypes::RTXCodecParametersPtr IRTPTypes::RTXCodecCapabilityParameters::create(const RTXCodecParameters &params)
+  IRTPTypes::RTXCodecParametersPtr IRTPTypes::RTXCodecCapabilityParameters::create(const RTXCodecParameters &params) noexcept
   {
     return make_shared<RTXCodecParameters>(params);
   }
 
   //---------------------------------------------------------------------------
-  IRTPTypes::RTXCodecParametersPtr IRTPTypes::RTXCodecCapabilityParameters::convert(AnyPtr any)
+  IRTPTypes::RTXCodecParametersPtr IRTPTypes::RTXCodecCapabilityParameters::convert(AnyPtr any) noexcept
   {
     return ZS_DYNAMIC_PTR_CAST(RTXCodecParameters, any);
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IRTPTypes::RTXCodecCapabilityParameters::toDebug() const
+  ElementPtr IRTPTypes::RTXCodecCapabilityParameters::toDebug() const noexcept
   {
     return createElement("ortc::IRTPTypes::RTXCodecCapabilityParameters");
   }
 
   //---------------------------------------------------------------------------
-  String IRTPTypes::RTXCodecCapabilityParameters::hash() const
+  String IRTPTypes::RTXCodecCapabilityParameters::hash() const noexcept
   {
     auto hasher = IHasher::sha1();
 
@@ -2993,12 +2985,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IRTPTypes::FlexFECCodecCapabilityParameters
-  #pragma mark
+  //
+  // IRTPTypes::FlexFECCodecCapabilityParameters
+  //
 
   //---------------------------------------------------------------------------
-  IRTPTypes::FlexFECCodecCapabilityParameters::FlexFECCodecCapabilityParameters(ElementPtr elem)
+  IRTPTypes::FlexFECCodecCapabilityParameters::FlexFECCodecCapabilityParameters(ElementPtr elem) noexcept
   {
     if (!elem) return;
 
@@ -3020,7 +3012,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IRTPTypes::FlexFECCodecCapabilityParameters::createElement(const char *objectName) const
+  ElementPtr IRTPTypes::FlexFECCodecCapabilityParameters::createElement(const char *objectName) const noexcept
   {
     ElementPtr elem = Element::create(objectName);
 
@@ -3035,7 +3027,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  const char *IRTPTypes::FlexFECCodecCapabilityParameters::toString(ToPs top)
+  const char *IRTPTypes::FlexFECCodecCapabilityParameters::toString(ToPs top) noexcept
   {
     switch (top) {
       case ToP_1DInterleavedFEC:      return "1d-interleaved-fec";
@@ -3048,7 +3040,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IRTPTypes::FlexFECCodecCapabilityParameters::ToPs IRTPTypes::FlexFECCodecCapabilityParameters::toToP(const char *top)
+  IRTPTypes::FlexFECCodecCapabilityParameters::ToPs IRTPTypes::FlexFECCodecCapabilityParameters::toToP(const char *top) noexcept
   {
     String topStr(top);
 
@@ -3060,7 +3052,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IRTPTypes::FlexFECCodecCapabilityParameters::ToPs IRTPTypes::FlexFECCodecCapabilityParameters::toToP(ULONG value)
+  IRTPTypes::FlexFECCodecCapabilityParameters::ToPs IRTPTypes::FlexFECCodecCapabilityParameters::toToP(ULONG value) noexcept(false)
   {
     ToPs result = static_cast<ToPs>((std::underlying_type<ToPs>::type)(SafeInt<std::underlying_type<ToPs>::type>(value)));
 
@@ -3076,25 +3068,25 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IRTPTypes::FlexFECCodecCapabilityParametersPtr IRTPTypes::FlexFECCodecCapabilityParameters::create(const FlexFECCodecParameters &capability)
+  IRTPTypes::FlexFECCodecCapabilityParametersPtr IRTPTypes::FlexFECCodecCapabilityParameters::create(const FlexFECCodecParameters &capability) noexcept
   {
     return make_shared<FlexFECCodecParameters>(capability);
   }
 
   //---------------------------------------------------------------------------
-  IRTPTypes::FlexFECCodecCapabilityParametersPtr IRTPTypes::FlexFECCodecCapabilityParameters::convert(AnyPtr any)
+  IRTPTypes::FlexFECCodecCapabilityParametersPtr IRTPTypes::FlexFECCodecCapabilityParameters::convert(AnyPtr any) noexcept
   {
     return ZS_DYNAMIC_PTR_CAST(FlexFECCodecCapabilityParameters, any);
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IRTPTypes::FlexFECCodecCapabilityParameters::toDebug() const
+  ElementPtr IRTPTypes::FlexFECCodecCapabilityParameters::toDebug() const noexcept
   {
     return createElement("ortc::IRTPTypes::FlexFECCodecCapabilityParameters");
   }
 
   //---------------------------------------------------------------------------
-  String IRTPTypes::FlexFECCodecCapabilityParameters::hash() const
+  String IRTPTypes::FlexFECCodecCapabilityParameters::hash() const noexcept
   {
     auto hasher = IHasher::sha1();
 
@@ -3116,12 +3108,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IRTPTypes::HeaderExtensions
-  #pragma mark
+  //
+  // IRTPTypes::HeaderExtensions
+  //
 
   //---------------------------------------------------------------------------
-  IRTPTypes::HeaderExtension::HeaderExtension(ElementPtr elem)
+  IRTPTypes::HeaderExtension::HeaderExtension(ElementPtr elem) noexcept
   {
     if (!elem) return;
 
@@ -3132,7 +3124,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IRTPTypes::HeaderExtension::createElement(const char *objectName) const
+  ElementPtr IRTPTypes::HeaderExtension::createElement(const char *objectName) const noexcept
   {
     ElementPtr elem = Element::create(objectName);
 
@@ -3147,13 +3139,13 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IRTPTypes::HeaderExtension::toDebug() const
+  ElementPtr IRTPTypes::HeaderExtension::toDebug() const noexcept
   {
    return createElement("ortc::IRTPTypes::HeaderExtensions");
   }
 
   //---------------------------------------------------------------------------
-  String IRTPTypes::HeaderExtension::hash() const
+  String IRTPTypes::HeaderExtension::hash() const noexcept
   {
     auto hasher = IHasher::sha1();
 
@@ -3175,12 +3167,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IRTPTypes::RTCPFeedback
-  #pragma mark
+  //
+  // IRTPTypes::RTCPFeedback
+  //
 
   //---------------------------------------------------------------------------
-  IRTPTypes::RTCPFeedback::RTCPFeedback(ElementPtr elem)
+  IRTPTypes::RTCPFeedback::RTCPFeedback(ElementPtr elem) noexcept
   {
     if (!elem) return;
 
@@ -3189,7 +3181,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IRTPTypes::RTCPFeedback::createElement(const char *objectName) const
+  ElementPtr IRTPTypes::RTCPFeedback::createElement(const char *objectName) const noexcept
   {
     ElementPtr elem = Element::create(objectName);
 
@@ -3202,13 +3194,13 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IRTPTypes::RTCPFeedback::toDebug() const
+  ElementPtr IRTPTypes::RTCPFeedback::toDebug() const noexcept
   {
     return createElement("ortc::IRTPTypes::RTCPFeedback");
   }
 
   //---------------------------------------------------------------------------
-  String IRTPTypes::RTCPFeedback::hash() const
+  String IRTPTypes::RTCPFeedback::hash() const noexcept
   {
     auto hasher = IHasher::sha1();
 
@@ -3226,12 +3218,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IRTPTypes::RTCPParameters
-  #pragma mark
+  //
+  // IRTPTypes::RTCPParameters
+  //
 
   //---------------------------------------------------------------------------
-  IRTPTypes::RTCPParameters::RTCPParameters(ElementPtr elem)
+  IRTPTypes::RTCPParameters::RTCPParameters(ElementPtr elem) noexcept
   {
     if (!elem) return;
 
@@ -3242,7 +3234,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IRTPTypes::RTCPParameters::createElement(const char *objectName) const
+  ElementPtr IRTPTypes::RTCPParameters::createElement(const char *objectName) const noexcept
   {
     ElementPtr elem = Element::create(objectName);
 
@@ -3257,13 +3249,13 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IRTPTypes::RTCPParameters::toDebug() const
+  ElementPtr IRTPTypes::RTCPParameters::toDebug() const noexcept
   {
     return createElement("ortc::IRTPTypes::RTCPParameters");
   }
 
   //---------------------------------------------------------------------------
-  String IRTPTypes::RTCPParameters::hash() const
+  String IRTPTypes::RTCPParameters::hash() const noexcept
   {
     auto hasher = IHasher::sha1();
 
@@ -3285,12 +3277,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IRTPTypes::Parameters
-  #pragma mark
+  //
+  // IRTPTypes::Parameters
+  //
 
   //---------------------------------------------------------------------------
-  IRTPTypes::Parameters::Parameters(const Parameters &op2) :
+  IRTPTypes::Parameters::Parameters(const Parameters &op2) noexcept :
     mMuxID(op2.mMuxID),
     mCodecs(op2.mCodecs),
     mHeaderExtensions(op2.mHeaderExtensions),
@@ -3301,7 +3293,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IRTPTypes::Parameters &IRTPTypes::Parameters::operator=(const Parameters &op2)
+  IRTPTypes::Parameters &IRTPTypes::Parameters::operator=(const Parameters &op2) noexcept
   {
     if (this == (&op2)) return *this;
 
@@ -3316,7 +3308,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IRTPTypes::Parameters::Parameters(ElementPtr elem)
+  IRTPTypes::Parameters::Parameters(ElementPtr elem) noexcept
   {
     if (!elem) return;
 
@@ -3379,7 +3371,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IRTPTypes::Parameters::createElement(const char *objectName) const
+  ElementPtr IRTPTypes::Parameters::createElement(const char *objectName) const noexcept
   {
     ElementPtr elem = Element::create(objectName);
 
@@ -3420,13 +3412,13 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IRTPTypes::Parameters::toDebug() const
+  ElementPtr IRTPTypes::Parameters::toDebug() const noexcept
   {
     return createElement("ortc::IRTPTypes::Parameters");
   }
 
   //---------------------------------------------------------------------------
-  String IRTPTypes::Parameters::hash(const HashOptions &options) const
+  String IRTPTypes::Parameters::hash(const HashOptions &options) const noexcept
   {
     auto hasher = IHasher::sha1();
 
@@ -3484,13 +3476,13 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IRTPTypes::CodecParameters
-  #pragma mark
+  //
+  // IRTPTypes::CodecParameters
+  //
 
 
   //---------------------------------------------------------------------------
-  IRTPTypes::CodecParameters::CodecParameters(const CodecParameters &source) :
+  IRTPTypes::CodecParameters::CodecParameters(const CodecParameters &source) noexcept :
     mName(source.mName),
     mPayloadType(source.mPayloadType),
     mClockRate(source.mClockRate),
@@ -3503,7 +3495,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IRTPTypes::CodecParameters::CodecParameters(ElementPtr elem)
+  IRTPTypes::CodecParameters::CodecParameters(ElementPtr elem) noexcept
   {
     if (!elem) return;
 
@@ -3562,7 +3554,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IRTPTypes::CodecParameters &IRTPTypes::CodecParameters::operator=(const CodecParameters &source)
+  IRTPTypes::CodecParameters &IRTPTypes::CodecParameters::operator=(const CodecParameters &source) noexcept
   {
     mName = source.mName;
     mPayloadType = source.mPayloadType;
@@ -3576,7 +3568,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IRTPTypes::CodecParameters::createElement(const char *objectName) const
+  ElementPtr IRTPTypes::CodecParameters::createElement(const char *objectName) const noexcept
   {
     ElementPtr elem = Element::create(objectName);
 
@@ -3656,13 +3648,13 @@ namespace ortc
 
 
   //---------------------------------------------------------------------------
-  ElementPtr IRTPTypes::CodecParameters::toDebug() const
+  ElementPtr IRTPTypes::CodecParameters::toDebug() const noexcept
   {
     return createElement("ortc::IRTPTypes::CodecParameters");
   }
 
   //---------------------------------------------------------------------------
-  String IRTPTypes::CodecParameters::hash() const
+  String IRTPTypes::CodecParameters::hash() const noexcept
   {
     auto hasher = IHasher::sha1();
 
@@ -3734,7 +3726,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  void IRTPTypes::CodecParameters::copyAny(const CodecParameters &source)
+  void IRTPTypes::CodecParameters::copyAny(const CodecParameters &source) noexcept
   {
     mParameters.reset();
 
@@ -3792,12 +3784,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IRTPTypes::OpusCodecParameters
-  #pragma mark
+  //
+  // IRTPTypes::OpusCodecParameters
+  //
 
   //---------------------------------------------------------------------------
-  IRTPTypes::OpusCodecParameters::OpusCodecParameters(ElementPtr elem)
+  IRTPTypes::OpusCodecParameters::OpusCodecParameters(ElementPtr elem) noexcept
   {
     if (!elem) return;
 
@@ -3840,7 +3832,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IRTPTypes::OpusCodecParameters::createElement(const char *objectName) const
+  ElementPtr IRTPTypes::OpusCodecParameters::createElement(const char *objectName) const noexcept
   {
     ElementPtr elem = Element::create(objectName);
 
@@ -3866,25 +3858,25 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IRTPTypes::OpusCodecParametersPtr IRTPTypes::OpusCodecParameters::create(const OpusCodecParameters &capability)
+  IRTPTypes::OpusCodecParametersPtr IRTPTypes::OpusCodecParameters::create(const OpusCodecParameters &capability) noexcept
   {
     return make_shared<OpusCodecParameters>(capability);
   }
 
   //---------------------------------------------------------------------------
-  IRTPTypes::OpusCodecParametersPtr IRTPTypes::OpusCodecParameters::convert(AnyPtr any)
+  IRTPTypes::OpusCodecParametersPtr IRTPTypes::OpusCodecParameters::convert(AnyPtr any) noexcept
   {
     return ZS_DYNAMIC_PTR_CAST(OpusCodecParameters, any);
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IRTPTypes::OpusCodecParameters::toDebug() const
+  ElementPtr IRTPTypes::OpusCodecParameters::toDebug() const noexcept
   {
     return createElement("ortc::IRTPTypes::OpusCodecParameters");
   }
 
   //---------------------------------------------------------------------------
-  String IRTPTypes::OpusCodecParameters::hash() const
+  String IRTPTypes::OpusCodecParameters::hash() const noexcept
   {
     auto hasher = IHasher::sha1();
 
@@ -3908,13 +3900,13 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IRTPTypes::REDCodecParameters
-  #pragma mark
+  //
+  // IRTPTypes::REDCodecParameters
+  //
 
 
   //---------------------------------------------------------------------------
-  IRTPTypes::REDCodecParameters::REDCodecParameters(ElementPtr elem)
+  IRTPTypes::REDCodecParameters::REDCodecParameters(ElementPtr elem) noexcept
   {
     if (!elem) return;
 
@@ -3938,7 +3930,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IRTPTypes::REDCodecParameters::createElement(const char *objectName) const
+  ElementPtr IRTPTypes::REDCodecParameters::createElement(const char *objectName) const noexcept
   {
     ElementPtr elem = Element::create(objectName);
 
@@ -3959,25 +3951,25 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IRTPTypes::REDCodecParametersPtr IRTPTypes::REDCodecParameters::create(const REDCodecParameters &capability)
+  IRTPTypes::REDCodecParametersPtr IRTPTypes::REDCodecParameters::create(const REDCodecParameters &capability) noexcept
   {
     return make_shared<REDCodecParameters>(capability);
   }
 
   //---------------------------------------------------------------------------
-  IRTPTypes::REDCodecParametersPtr IRTPTypes::REDCodecParameters::convert(AnyPtr any)
+  IRTPTypes::REDCodecParametersPtr IRTPTypes::REDCodecParameters::convert(AnyPtr any) noexcept
   {
     return ZS_DYNAMIC_PTR_CAST(REDCodecParameters, any);
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IRTPTypes::REDCodecParameters::toDebug() const
+  ElementPtr IRTPTypes::REDCodecParameters::toDebug() const noexcept
   {
     return createElement("ortc::IRTPTypes::REDCodecParameters");
   }
 
   //---------------------------------------------------------------------------
-  String IRTPTypes::REDCodecParameters::hash() const
+  String IRTPTypes::REDCodecParameters::hash() const noexcept
   {
     auto hasher = IHasher::sha1();
 
@@ -3998,12 +3990,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IRTPTypes::HeaderExtensionParameters
-  #pragma mark
+  //
+  // IRTPTypes::HeaderExtensionParameters
+  //
 
   //---------------------------------------------------------------------------
-  IRTPTypes::HeaderExtensionParameters::HeaderExtensionParameters(ElementPtr elem)
+  IRTPTypes::HeaderExtensionParameters::HeaderExtensionParameters(ElementPtr elem) noexcept
   {
     if (!elem) return;
 
@@ -4013,7 +4005,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IRTPTypes::HeaderExtensionParameters::createElement(const char *objectName) const
+  ElementPtr IRTPTypes::HeaderExtensionParameters::createElement(const char *objectName) const noexcept
   {
     ElementPtr elem = Element::create(objectName);
 
@@ -4027,13 +4019,13 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IRTPTypes::HeaderExtensionParameters::toDebug() const
+  ElementPtr IRTPTypes::HeaderExtensionParameters::toDebug() const noexcept
   {
     return createElement("ortc::IRTPTypes::HeaderExtensionParameters");
   }
 
   //---------------------------------------------------------------------------
-  String IRTPTypes::HeaderExtensionParameters::hash() const
+  String IRTPTypes::HeaderExtensionParameters::hash() const noexcept
   {
     auto hasher = IHasher::sha1();
 
@@ -4053,12 +4045,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IRTPTypes::FECParameters
-  #pragma mark
+  //
+  // IRTPTypes::FECParameters
+  //
 
   //---------------------------------------------------------------------------
-  IRTPTypes::FECParameters::FECParameters(ElementPtr elem)
+  IRTPTypes::FECParameters::FECParameters(ElementPtr elem) noexcept
   {
     if (!elem) return;
 
@@ -4067,7 +4059,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IRTPTypes::FECParameters::createElement(const char *objectName) const
+  ElementPtr IRTPTypes::FECParameters::createElement(const char *objectName) const noexcept
   {
     ElementPtr elem = Element::create(objectName);
 
@@ -4080,13 +4072,13 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IRTPTypes::FECParameters::toDebug() const
+  ElementPtr IRTPTypes::FECParameters::toDebug() const noexcept
   {
     return createElement("ortc::IRTPTypes::FECParameters");
   }
 
   //---------------------------------------------------------------------------
-  String IRTPTypes::FECParameters::hash() const
+  String IRTPTypes::FECParameters::hash() const noexcept
   {
     auto hasher = IHasher::sha1();
 
@@ -4104,12 +4096,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IRTPTypes::RTXParameters
-  #pragma mark
+  //
+  // IRTPTypes::RTXParameters
+  //
 
   //---------------------------------------------------------------------------
-  IRTPTypes::RTXParameters::RTXParameters(ElementPtr elem)
+  IRTPTypes::RTXParameters::RTXParameters(ElementPtr elem) noexcept
   {
     if (!elem) return;
 
@@ -4117,7 +4109,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IRTPTypes::RTXParameters::createElement(const char *objectName) const
+  ElementPtr IRTPTypes::RTXParameters::createElement(const char *objectName) const noexcept
   {
     ElementPtr elem = Element::create(objectName);
 
@@ -4129,13 +4121,13 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IRTPTypes::RTXParameters::toDebug() const
+  ElementPtr IRTPTypes::RTXParameters::toDebug() const noexcept
   {
     return createElement("ortc::IRTPTypes::RTXParameters");
   }
 
   //---------------------------------------------------------------------------
-  String IRTPTypes::RTXParameters::hash() const
+  String IRTPTypes::RTXParameters::hash() const noexcept
   {
     auto hasher = IHasher::sha1();
 
@@ -4151,12 +4143,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IRTPTypes::PriorityTypes
-  #pragma mark
+  //
+  // IRTPTypes::PriorityTypes
+  //
 
   //---------------------------------------------------------------------------
-  const char *IRTPTypes::toString(PriorityTypes type)
+  const char *IRTPTypes::toString(PriorityTypes type) noexcept
   {
     switch (type) {
       case PriorityType_VeryLow:        return "very-low";
@@ -4169,7 +4161,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IRTPTypes::PriorityTypes IRTPTypes::toPriorityType(const char *type)
+  IRTPTypes::PriorityTypes IRTPTypes::toPriorityType(const char *type) noexcept(false)
   {
     String typeStr(type);
 
@@ -4185,12 +4177,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IRTPTypes::EncodingParameters
-  #pragma mark
+  //
+  // IRTPTypes::EncodingParameters
+  //
 
   //---------------------------------------------------------------------------
-  IRTPTypes::EncodingParameters::EncodingParameters(ElementPtr elem)
+  IRTPTypes::EncodingParameters::EncodingParameters(ElementPtr elem) noexcept
   {
     if (!elem) return;
 
@@ -4249,7 +4241,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IRTPTypes::EncodingParameters::createElement(const char *objectName) const
+  ElementPtr IRTPTypes::EncodingParameters::createElement(const char *objectName) const noexcept
   {
     ElementPtr elem = Element::create(objectName);
 
@@ -4288,13 +4280,13 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IRTPTypes::EncodingParameters::toDebug() const
+  ElementPtr IRTPTypes::EncodingParameters::toDebug() const noexcept
   {
    return createElement("ortc::IRTPTypes::EncodingParameters");
   }
 
   //---------------------------------------------------------------------------
-  String IRTPTypes::EncodingParameters::hash() const
+  String IRTPTypes::EncodingParameters::hash() const noexcept
   {
     auto hasher = IHasher::sha1();
 
@@ -4335,12 +4327,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IRTPTypes::CodecKinds
-  #pragma mark
+  //
+  // IRTPTypes::CodecKinds
+  //
 
   //---------------------------------------------------------------------------
-  const char *IRTPTypes::toString(CodecKinds kind)
+  const char *IRTPTypes::toString(CodecKinds kind) noexcept
   {
     switch (kind) {
       case CodecKind_Unknown:           return "";
@@ -4357,7 +4349,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IRTPTypes::CodecKinds IRTPTypes::toCodecKind(const char *kind)
+  IRTPTypes::CodecKinds IRTPTypes::toCodecKind(const char *kind) noexcept
   {
     String kindStr(kind);
 
@@ -4372,12 +4364,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IRTPTypes::SupportedCodecs
-  #pragma mark
+  //
+  // IRTPTypes::SupportedCodecs
+  //
 
   //---------------------------------------------------------------------------
-  const char *IRTPTypes::toString(SupportedCodecs codec)
+  const char *IRTPTypes::toString(SupportedCodecs codec) noexcept
   {
     switch (codec) {
       case SupportedCodec_Unknown:            return "";
@@ -4408,7 +4400,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IRTPTypes::SupportedCodecs IRTPTypes::toSupportedCodec(const char *codec)
+  IRTPTypes::SupportedCodecs IRTPTypes::toSupportedCodec(const char *codec) noexcept
   {
     String codecStr(codec);
 
@@ -4420,7 +4412,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  bool IRTPTypes::hasCapabilityOptions(SupportedCodecs codec)
+  bool IRTPTypes::hasCapabilityOptions(SupportedCodecs codec) noexcept
   {
     switch (codec) {
       case SupportedCodec_Unknown:            return false;
@@ -4447,11 +4439,12 @@ namespace ortc
       case SupportedCodec_TelephoneEvent:     return false;
     }
 
-    ORTC_THROW_NOT_SUPPORTED_ERRROR("missing definition for supported codec");
+    ZS_ASSERT_FAIL("missing definition for supported codec");
+    return false;
   }
 
   //---------------------------------------------------------------------------
-  bool IRTPTypes::hasCapabilityParameters(SupportedCodecs codec)
+  bool IRTPTypes::hasCapabilityParameters(SupportedCodecs codec) noexcept
   {
     switch (codec) {
       case SupportedCodec_Unknown:            return false;
@@ -4478,11 +4471,12 @@ namespace ortc
       case SupportedCodec_TelephoneEvent:     return false;
     }
 
-    ORTC_THROW_NOT_SUPPORTED_ERRROR("missing definition for supported codec");
+    ZS_ASSERT_FAIL("missing definition for supported codec");
+    return false;
   }
 
   //---------------------------------------------------------------------------
-  bool IRTPTypes::hasParameters(SupportedCodecs codec)
+  bool IRTPTypes::hasParameters(SupportedCodecs codec) noexcept
   {
     switch (codec) {
       case SupportedCodec_Unknown:            return false;
@@ -4509,11 +4503,12 @@ namespace ortc
       case SupportedCodec_TelephoneEvent:     return false;
     }
 
-    ORTC_THROW_NOT_SUPPORTED_ERRROR("missing definition for supported codec");
+    ZS_ASSERT_FAIL("missing definition for supported codec");
+    return false;
   }
 
   //---------------------------------------------------------------------------
-  bool IRTPTypes::requiresCapabilityParameters(SupportedCodecs codec)
+  bool IRTPTypes::requiresCapabilityParameters(SupportedCodecs codec) noexcept
   {
     switch (codec) {
       case SupportedCodec_Unknown:            return false;
@@ -4540,11 +4535,12 @@ namespace ortc
       case SupportedCodec_TelephoneEvent:     return false;
     }
 
-    ORTC_THROW_NOT_SUPPORTED_ERRROR("missing definition for supported codec");
+    ZS_ASSERT_FAIL("missing definition for supported codec");
+    return false;
   }
 
   //---------------------------------------------------------------------------
-  bool IRTPTypes::requiresParameters(SupportedCodecs codec)
+  bool IRTPTypes::requiresParameters(SupportedCodecs codec) noexcept
   {
     switch (codec) {
       case SupportedCodec_Unknown:            return false;
@@ -4571,11 +4567,12 @@ namespace ortc
       case SupportedCodec_TelephoneEvent:     return false;
     }
 
-    ORTC_THROW_NOT_SUPPORTED_ERRROR("missing definition for supported codec");
+    ZS_ASSERT_FAIL("missing definition for supported codec");
+    return false;
   }
 
   //---------------------------------------------------------------------------
-  IRTPTypes::CodecKinds IRTPTypes::getCodecKind(SupportedCodecs codec)
+  IRTPTypes::CodecKinds IRTPTypes::getCodecKind(SupportedCodecs codec) noexcept
   {
     switch (codec) {
       case SupportedCodec_Unknown:            return CodecKind_Unknown;
@@ -4606,7 +4603,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  bool IRTPTypes::isSRSTCodec(SupportedCodecs codec)
+  bool IRTPTypes::isSRSTCodec(SupportedCodecs codec) noexcept
   {
     switch (codec) {
       case SupportedCodec_Unknown:            return false;
@@ -4638,7 +4635,7 @@ namespace ortc
   
 
   //---------------------------------------------------------------------------
-  bool IRTPTypes::isMRSTCodec(SupportedCodecs codec)
+  bool IRTPTypes::isMRSTCodec(SupportedCodecs codec) noexcept
   {
     switch (codec) {
       case SupportedCodec_Unknown:            return false;
@@ -4673,12 +4670,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IRTPTypes::ReservedCodecPayloadTypes
-  #pragma mark
+  //
+  // IRTPTypes::ReservedCodecPayloadTypes
+  //
 
   //---------------------------------------------------------------------------
-  const char *IRTPTypes::toString(ReservedCodecPayloadTypes reservedCodec)
+  const char *IRTPTypes::toString(ReservedCodecPayloadTypes reservedCodec) noexcept
   {
     switch (reservedCodec) {
       case ReservedCodecPayloadType_Unknown:      return "";
@@ -4716,7 +4713,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IRTPTypes::ReservedCodecPayloadTypes IRTPTypes::toReservedCodec(PayloadType pt)
+  IRTPTypes::ReservedCodecPayloadTypes IRTPTypes::toReservedCodec(PayloadType pt) noexcept
   {
     auto result = static_cast<ReservedCodecPayloadTypes>(pt);
 
@@ -4757,7 +4754,7 @@ namespace ortc
 
 
   //---------------------------------------------------------------------------
-  IRTPTypes::ReservedCodecPayloadTypes IRTPTypes::toReservedCodec(const char *encodingName)
+  IRTPTypes::ReservedCodecPayloadTypes IRTPTypes::toReservedCodec(const char *encodingName) noexcept
   {
     static ReservedCodecPayloadTypes types[] = {
       ReservedCodecPayloadType_PCMU_8000,
@@ -4801,7 +4798,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ULONG IRTPTypes::getDefaultClockRate(ReservedCodecPayloadTypes reservedCodec)
+  ULONG IRTPTypes::getDefaultClockRate(ReservedCodecPayloadTypes reservedCodec) noexcept
   {
     switch (reservedCodec) {
       case ReservedCodecPayloadType_Unknown:      return 0;
@@ -4839,7 +4836,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  Optional<ULONG> IRTPTypes::getDefaultNumberOfChannels(ReservedCodecPayloadTypes reservedCodec)
+  Optional<ULONG> IRTPTypes::getDefaultNumberOfChannels(ReservedCodecPayloadTypes reservedCodec) noexcept
   {
     Optional<ULONG> result;
 
@@ -4879,7 +4876,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IRTPTypes::CodecKinds IRTPTypes::getCodecKind(ReservedCodecPayloadTypes reservedCodec)
+  IRTPTypes::CodecKinds IRTPTypes::getCodecKind(ReservedCodecPayloadTypes reservedCodec) noexcept
   {
     switch (reservedCodec) {
       case ReservedCodecPayloadType_Unknown:      return CodecKind_Unknown;
@@ -4917,7 +4914,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IRTPTypes::SupportedCodecs IRTPTypes::toSupportedCodec(ReservedCodecPayloadTypes reservedCodec)
+  IRTPTypes::SupportedCodecs IRTPTypes::toSupportedCodec(ReservedCodecPayloadTypes reservedCodec) noexcept
   {
     switch (reservedCodec) {
       case ReservedCodecPayloadType_Unknown:      return SupportedCodec_Unknown;
@@ -4958,12 +4955,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IRTPTypes::HeaderExtensionURIs
-  #pragma mark
+  //
+  // IRTPTypes::HeaderExtensionURIs
+  //
 
   //---------------------------------------------------------------------------
-  const char *IRTPTypes::toString(HeaderExtensionURIs extension)
+  const char *IRTPTypes::toString(HeaderExtensionURIs extension) noexcept
   {
     switch (extension) {
       case HeaderExtensionURI_Unknown:                            return "";
@@ -4979,11 +4976,12 @@ namespace ortc
       case HeaderExtensionURI_TransportSequenceNumber:            return "http://www.ietf.org/id/draft-holmer-rmcat-transport-wide-cc-extensions-01";
     }
 
-    ORTC_THROW_NOT_SUPPORTED_ERRROR("header extension uri is not known");
+    ZS_ASSERT_FAIL("header extension uri is not known");
+    return false;
   }
 
   //---------------------------------------------------------------------------
-  IRTPTypes::HeaderExtensionURIs IRTPTypes::toHeaderExtensionURI(const char *uri)
+  IRTPTypes::HeaderExtensionURIs IRTPTypes::toHeaderExtensionURI(const char *uri) noexcept
   {
     String uriStr(uri);
 
@@ -4995,7 +4993,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  String IRTPTypes::toKind(HeaderExtensionURIs extension)
+  String IRTPTypes::toKind(HeaderExtensionURIs extension) noexcept
   {
     switch (extension) {
       case HeaderExtensionURI_Unknown:                            return "";
@@ -5011,7 +5009,8 @@ namespace ortc
       case HeaderExtensionURI_TransportSequenceNumber:            return "";
     }
 
-    ORTC_THROW_NOT_SUPPORTED_ERRROR("header extension uri is not known");
+    ZS_ASSERT_FAIL("header extension uri is not known");
+    return "";
   }
 
 
@@ -5019,12 +5018,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IRTPTypes::KnownFeedbackTypes
-  #pragma mark
+  //
+  // IRTPTypes::KnownFeedbackTypes
+  //
 
   //---------------------------------------------------------------------------
-  const char *IRTPTypes::toString(KnownFECMechanisms mechanism)
+  const char *IRTPTypes::toString(KnownFECMechanisms mechanism) noexcept
   {
     switch (mechanism) {
       case KnownFECMechanism_Unknown:       return "";
@@ -5037,7 +5036,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IRTPTypes::KnownFECMechanisms IRTPTypes::toKnownFECMechanism(const char *mechanism)
+  IRTPTypes::KnownFECMechanisms IRTPTypes::toKnownFECMechanism(const char *mechanism) noexcept
   {
     String mechanismStr(mechanism);
 
@@ -5053,12 +5052,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IRTPTypes::KnownFeedbackTypes
-  #pragma mark
+  //
+  // IRTPTypes::KnownFeedbackTypes
+  //
 
   //---------------------------------------------------------------------------
-  const char *IRTPTypes::toString(KnownFeedbackTypes type)
+  const char *IRTPTypes::toString(KnownFeedbackTypes type) noexcept
   {
     switch (type) {
       case KnownFeedbackType_Unknown:               return "";
@@ -5078,7 +5077,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IRTPTypes::KnownFeedbackTypes IRTPTypes::toKnownFeedbackType(const char *type)
+  IRTPTypes::KnownFeedbackTypes IRTPTypes::toKnownFeedbackType(const char *type) noexcept
   {
     String typeStr(type);
 
@@ -5093,12 +5092,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IRTPTypes::KnownFeedbackParameters
-  #pragma mark
+  //
+  // IRTPTypes::KnownFeedbackParameters
+  //
 
   //---------------------------------------------------------------------------
-  const char *IRTPTypes::toString(KnownFeedbackParameters mechanism)
+  const char *IRTPTypes::toString(KnownFeedbackParameters mechanism) noexcept
   {
     switch (mechanism) {
       case KnownFeedbackParameter_Unknown:    return "";
@@ -5121,7 +5120,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IRTPTypes::KnownFeedbackParameters IRTPTypes::toKnownFeedbackParameter(const char *mechanism)
+  IRTPTypes::KnownFeedbackParameters IRTPTypes::toKnownFeedbackParameter(const char *mechanism) noexcept
   {
     String mechanismStr(mechanism);
 
@@ -5133,7 +5132,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IRTPTypes::KnownFeedbackTypesSet IRTPTypes::getUseableWithFeedbackTypes(KnownFeedbackParameters mechanism)
+  IRTPTypes::KnownFeedbackTypesSet IRTPTypes::getUseableWithFeedbackTypes(KnownFeedbackParameters mechanism) noexcept
   {
     KnownFeedbackTypesSet result;
 
@@ -5170,12 +5169,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IRTPTypes::SupportedRTCPMechanisms
-  #pragma mark
+  //
+  // IRTPTypes::SupportedRTCPMechanisms
+  //
 
   //---------------------------------------------------------------------------
-  const char *IRTPTypes::toString(SupportedRTCPMechanisms mechanism)
+  const char *IRTPTypes::toString(SupportedRTCPMechanisms mechanism) noexcept
   {
     switch (mechanism) {
       case SupportedRTCPMechanism_Unknown:   return "";
@@ -5191,7 +5190,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IRTPTypes::SupportedRTCPMechanisms IRTPTypes::toSupportedRTCPMechanism(const char *mechanism)
+  IRTPTypes::SupportedRTCPMechanisms IRTPTypes::toSupportedRTCPMechanism(const char *mechanism) noexcept
   {
     String mechanismStr(mechanism);
 

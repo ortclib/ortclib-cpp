@@ -52,11 +52,6 @@
 #include <cryptopp/sha.h>
 
 
-#ifdef _DEBUG
-#define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))
-#else
-#define ASSERT(x)
-#endif //_DEBUG
 
 using namespace date;
 
@@ -79,19 +74,19 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark (helpers)
-    #pragma mark
+    //
+    // (helpers)
+    //
 
     //-------------------------------------------------------------------------
-    static Log::Params slog(const char *message)
+    static Log::Params slog(const char *message) noexcept
     {
       ElementPtr objectEl = Element::create("ortc::StatsReport");
       return Log::Params(message, objectEl);
     }
 
     //-------------------------------------------------------------------------
-    static double getTimestamp(const Time &originalTimestamp)
+    static double getTimestamp(const Time &originalTimestamp) noexcept
     {
       // Time since 1970-01-01T00:00:00Z in milliseconds.
       auto t = day_point(jan / 1 / 1601);
@@ -102,7 +97,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    static void reportInt32(const char *reportID, double timestamp, const char *statName, int32_t value)
+    static void reportInt32(const char *reportID, double timestamp, const char *statName, int32_t value) noexcept
     {
       ZS_EVENTING_4(
                     x, i, Debug, StatsReportInt32, ols, Stats, Info,
@@ -116,7 +111,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    static void reportInt64(const char *reportID, double timestamp, const char *statName, int64_t value)
+    static void reportInt64(const char *reportID, double timestamp, const char *statName, int64_t value) noexcept
     {
       ZS_EVENTING_4(
                     x, i, Debug, StatsReportInt64, ols, Stats, Info,
@@ -131,7 +126,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    static void reportFloat(const char *reportID, double timestamp, const char *statName, float value)
+    static void reportFloat(const char *reportID, double timestamp, const char *statName, float value) noexcept
     {
       ZS_EVENTING_4(
                     x, i, Debug, StatsReportFloat, ols, Stats, Info,
@@ -146,7 +141,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    static void reportBool(const char *reportID, double timestamp, const char *statName, bool value)
+    static void reportBool(const char *reportID, double timestamp, const char *statName, bool value) noexcept
     {
       ZS_EVENTING_4(
                     x, i, Debug, StatsReportBool, ols, Stats, Info,
@@ -160,7 +155,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    static void reportString(const char *reportID, double timestamp, const char *statName, const char *value)
+    static void reportString(const char *reportID, double timestamp, const char *statName, const char *value) noexcept
     {
       ZS_EVENTING_4(
                     x, i, Debug, StatsReportString, ols, Stats, Info,
@@ -178,28 +173,28 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark StatsReportSettingsDefaults
-    #pragma mark
+    //
+    // StatsReportSettingsDefaults
+    //
 
     class StatsReportSettingsDefaults : public ISettingsApplyDefaultsDelegate
     {
     public:
       //-----------------------------------------------------------------------
-      ~StatsReportSettingsDefaults()
+      ~StatsReportSettingsDefaults() noexcept
       {
         ISettings::removeDefaults(*this);
       }
 
       //-----------------------------------------------------------------------
-      static StatsReportSettingsDefaultsPtr singleton()
+      static StatsReportSettingsDefaultsPtr singleton() noexcept
       {
         static SingletonLazySharedPtr<StatsReportSettingsDefaults> singleton(create());
         return singleton.singleton();
       }
 
       //-----------------------------------------------------------------------
-      static StatsReportSettingsDefaultsPtr create()
+      static StatsReportSettingsDefaultsPtr create() noexcept
       {
         auto pThis(make_shared<StatsReportSettingsDefaults>());
         ISettings::installDefaults(pThis);
@@ -207,7 +202,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      virtual void notifySettingsApplyDefaults() override
+      virtual void notifySettingsApplyDefaults() noexcept override
       {
         //      ISettings::setUInt(ORTC_SETTING_STATS_REPORT_, 0);
       }
@@ -215,7 +210,7 @@ namespace ortc
     };
 
     //-------------------------------------------------------------------------
-    void installStatsReportSettingsDefaults()
+    void installStatsReportSettingsDefaults() noexcept
     {
       StatsReportSettingsDefaults::singleton();
     }
@@ -224,12 +219,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IStatsReportForInternal
-    #pragma mark
+    //
+    // IStatsReportForInternal
+    //
 
     //-------------------------------------------------------------------------
-    StatsReportPtr IStatsReportForInternal::create(const StatMap &stats)
+    StatsReportPtr IStatsReportForInternal::create(const StatMap &stats) noexcept
     {
       return IStatsReportFactory::singleton().create(stats);
     }
@@ -238,7 +233,7 @@ namespace ortc
     IStatsReportForInternal::PromiseWithStatsReportPtr IStatsReportForInternal::collectReports(
                                                                                                const PromiseWithStatsReportList &promises,
                                                                                                PromiseWithStatsReportPtr previouslyCreatedPromiseToResolve
-                                                                                               )
+                                                                                               ) noexcept
     {
       return IStatsReportFactory::singleton().collectReports(promises, previouslyCreatedPromiseToResolve);
     }
@@ -247,16 +242,16 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark StatsReport
-    #pragma mark
+    //
+    // StatsReport
+    //
     
     //-------------------------------------------------------------------------
     StatsReport::StatsReport(
                              const make_private &,
                              IMessageQueuePtr queue,
                              const StatMap &stats
-                             ) :
+                             ) noexcept :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
       mStats(stats)
@@ -265,7 +260,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void StatsReport::init()
+    void StatsReport::init() noexcept
     {
     }
 
@@ -273,7 +268,7 @@ namespace ortc
     void StatsReport::init(
                            PromiseWithStatsReportPtr resolvePromise,
                            const PromiseWithStatsReportList &promises
-                           )
+                           ) noexcept
     {
       bool resolveNow = false;
       auto pThis = mThisWeak.lock();
@@ -301,7 +296,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    StatsReport::~StatsReport()
+    StatsReport::~StatsReport() noexcept
     {
       if (isNoop()) return;
 
@@ -312,13 +307,13 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    StatsReportPtr StatsReport::convert(IStatsReportPtr object)
+    StatsReportPtr StatsReport::convert(IStatsReportPtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(StatsReport, object);
     }
 
     //-------------------------------------------------------------------------
-    StatsReportPtr StatsReport::convert(ForInternalPtr object)
+    StatsReportPtr StatsReport::convert(ForInternalPtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(StatsReport, object);
     }
@@ -327,19 +322,19 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark StatsReport => IStatsReport
-    #pragma mark
+    //
+    // StatsReport => IStatsReport
+    //
     
     //-------------------------------------------------------------------------
-    ElementPtr StatsReport::toDebug(StatsReportPtr report)
+    ElementPtr StatsReport::toDebug(StatsReportPtr report) noexcept
     {
       if (!report) return ElementPtr();
       return report->toDebug();
     }
 
     //-------------------------------------------------------------------------
-    IStatsReportTypes::IDListPtr StatsReport::getStatesIDs() const
+    IStatsReportTypes::IDListPtr StatsReport::getStatesIDs() const noexcept
     {
       IDListPtr result(make_shared<IDList>());
       AutoRecursiveLock lock(*this);
@@ -351,7 +346,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    IStatsReportTypes::StatsPtr StatsReport::getStats(const char *id) const
+    IStatsReportTypes::StatsPtr StatsReport::getStats(const char *id) const noexcept
     {
       AutoRecursiveLock lock(*this);
 
@@ -365,12 +360,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark StatsReport => IStatsReportForInternal
-    #pragma mark
+    //
+    // StatsReport => IStatsReportForInternal
+    //
     
     //-------------------------------------------------------------------------
-    StatsReportPtr StatsReport::create(const StatMap &stats)
+    StatsReportPtr StatsReport::create(const StatMap &stats) noexcept
     {
       StatsReportPtr pThis(make_shared<StatsReport>(make_private {}, IORTCForInternal::queueORTC(), stats));
       pThis->mThisWeak = pThis;
@@ -382,7 +377,7 @@ namespace ortc
     StatsReport::PromiseWithStatsReportPtr StatsReport::collectReports(
                                                                        const PromiseWithStatsReportList &promises,
                                                                        PromiseWithStatsReportPtr previouslyCreatedPromiseToResolve
-                                                                       )
+                                                                       ) noexcept
     {
       StatsReportPtr pThis(make_shared<StatsReport>(make_private{}, IORTCForInternal::queueORTC(), StatMap()));
       pThis->mThisWeak = pThis;
@@ -398,9 +393,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark StatsReport => IPromiseSettledDelegate
-    #pragma mark
+    //
+    // StatsReport => IPromiseSettledDelegate
+    //
 
     //-------------------------------------------------------------------------
     void StatsReport::onPromiseSettled(PromisePtr promise)
@@ -446,12 +441,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark StatsReport => (internal)
-    #pragma mark
+    //
+    // StatsReport => (internal)
+    //
 
     //-------------------------------------------------------------------------
-    Log::Params StatsReport::log(const char *message) const
+    Log::Params StatsReport::log(const char *message) const noexcept
     {
       ElementPtr objectEl = Element::create("ortc::StatsReport");
       IHelper::debugAppend(objectEl, "id", mID);
@@ -459,13 +454,13 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    Log::Params StatsReport::debug(const char *message) const
+    Log::Params StatsReport::debug(const char *message) const noexcept
     {
       return Log::Params(message, toDebug());
     }
 
     //-------------------------------------------------------------------------
-    ElementPtr StatsReport::toDebug() const
+    ElementPtr StatsReport::toDebug() const noexcept
     {
       AutoRecursiveLock lock(*this);
 
@@ -498,7 +493,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void StatsReport::cancel()
+    void StatsReport::cancel() noexcept
     {
       //.......................................................................
       // final cleanup
@@ -511,18 +506,18 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IStatsReportFactory
-    #pragma mark
+    //
+    // IStatsReportFactory
+    //
 
     //-------------------------------------------------------------------------
-    IStatsReportFactory &IStatsReportFactory::singleton()
+    IStatsReportFactory &IStatsReportFactory::singleton() noexcept
     {
       return StatsReportFactory::singleton();
     }
 
     //-------------------------------------------------------------------------
-    StatsReportPtr IStatsReportFactory::create(const StatMap &stats)
+    StatsReportPtr IStatsReportFactory::create(const StatMap &stats) noexcept
     {
       if (this) {}
       return internal::StatsReport::create(stats);
@@ -532,7 +527,7 @@ namespace ortc
     IStatsReportFactory::PromiseWithStatsReportPtr IStatsReportFactory::collectReports(
                                                                                        const PromiseWithStatsReportList &promises,
                                                                                        PromiseWithStatsReportPtr previouslyCreatedPromiseToResolve
-                                                                                       )
+                                                                                       ) noexcept
     {
       if (this) {}
       return internal::StatsReport::collectReports(promises, previouslyCreatedPromiseToResolve);
@@ -545,12 +540,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IStatsReportTypes
-  #pragma mark
+  //
+  // IStatsReportTypes
+  //
 
   //---------------------------------------------------------------------------
-  Optional<IStatsReportTypes::StatsTypes> IStatsReportTypes::toStatsType(const char *type)
+  Optional<IStatsReportTypes::StatsTypes> IStatsReportTypes::toStatsType(const char *type) noexcept
   {
     String str(type);
     for (IStatsReportTypes::StatsTypes index = IStatsReportTypes::StatsType_First; index <= IStatsReportTypes::StatsType_Last; index = static_cast<IStatsReportTypes::StatsTypes>(static_cast<std::underlying_type<IStatsReportTypes::StatsTypes>::type>(index) + 1)) {
@@ -561,7 +556,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  const char *IStatsReportTypes::toString(StatsTypes type)
+  const char *IStatsReportTypes::toString(StatsTypes type) noexcept
   {
     switch (type)
     {
@@ -587,14 +582,14 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  const char *IStatsReportTypes::toString(const Optional<StatsTypes> &type)
+  const char *IStatsReportTypes::toString(const Optional<StatsTypes> &type) noexcept
   {
     if (!type.hasValue()) return "";
     return toString(type.value());
   }
 
   //---------------------------------------------------------------------------
-  Optional<IStatsReportTypes::StatsICECandidatePairStates> IStatsReportTypes::toCandidatePairState(const char *type)
+  Optional<IStatsReportTypes::StatsICECandidatePairStates> IStatsReportTypes::toCandidatePairState(const char *type) noexcept
   {
     String str(type);
     for (IStatsReportTypes::StatsICECandidatePairStates index = IStatsReportTypes::StatsICECandidatePairState_First; index <= IStatsReportTypes::StatsICECandidatePairState_Last; index = static_cast<IStatsReportTypes::StatsICECandidatePairStates>(static_cast<std::underlying_type<IStatsReportTypes::StatsICECandidatePairStates>::type>(index) + 1)) {
@@ -605,7 +600,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  const char *IStatsReportTypes::toString(StatsICECandidatePairStates state)
+  const char *IStatsReportTypes::toString(StatsICECandidatePairStates state) noexcept
   {
     switch (state)
     {
@@ -621,7 +616,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  bool IStatsReportTypes::StatsTypeSet::hasStatType(StatsTypes type) const
+  bool IStatsReportTypes::StatsTypeSet::hasStatType(StatsTypes type) const noexcept
   {
     if (size() < 1) return true;
 
@@ -634,19 +629,19 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IStatsReportTypes::Stats
-  #pragma mark
+  //
+  // IStatsReportTypes::Stats
+  //
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::Stats::Stats() :
+  IStatsReportTypes::Stats::Stats() noexcept :
     mTimestamp(zsLib::now()),
     mStatsType(IStatsReportTypes::StatsType_First)
   {
   }
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::Stats::Stats(const Stats &op2) :
+  IStatsReportTypes::Stats::Stats(const Stats &op2) noexcept :
     mTimestamp(op2.mTimestamp),
     mStatsType(op2.mStatsType),
     mStatsTypeOther(op2.mStatsTypeOther),
@@ -655,7 +650,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::Stats::Stats(ElementPtr rootEl)
+  IStatsReportTypes::Stats::Stats(ElementPtr rootEl) noexcept
   {
     if (!rootEl) return;
 
@@ -672,7 +667,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::StatsPtr IStatsReportTypes::Stats::create(const Stats &source)
+  IStatsReportTypes::StatsPtr IStatsReportTypes::Stats::create(const Stats &source) noexcept
   {
     if (!source.mStatsType.hasValue()) return make_shared<Stats>(source);
     switch (source.mStatsType.value())
@@ -699,7 +694,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::StatsPtr IStatsReportTypes::Stats::create(ElementPtr rootEl)
+  IStatsReportTypes::StatsPtr IStatsReportTypes::Stats::create(ElementPtr rootEl) noexcept
   {
     if (!rootEl) return StatsPtr();
 
@@ -730,13 +725,13 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::StatsPtr IStatsReportTypes::Stats::convert(AnyPtr any)
+  IStatsReportTypes::StatsPtr IStatsReportTypes::Stats::convert(AnyPtr any) noexcept
   {
     return ZS_DYNAMIC_PTR_CAST(Stats, any);
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IStatsReportTypes::Stats::createElement(const char *objectName) const
+  ElementPtr IStatsReportTypes::Stats::createElement(const char *objectName) const noexcept
   {
     ElementPtr rootEl = Element::create(objectName);
 
@@ -750,13 +745,13 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IStatsReportTypes::Stats::toDebug() const
+  ElementPtr IStatsReportTypes::Stats::toDebug() const noexcept
   {
     return Element::create("ortc::IStatsReportTypes::Stats");
   }
 
   //---------------------------------------------------------------------------
-  String IStatsReportTypes::Stats::hash() const
+  String IStatsReportTypes::Stats::hash() const noexcept
   {
     auto hasher = IHasher::sha1();
 
@@ -772,7 +767,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  void IStatsReportTypes::Stats::eventTrace() const
+  void IStatsReportTypes::Stats::eventTrace() const noexcept
   {
     auto timestamp = internal::getTimestamp(mTimestamp);
     eventTrace(timestamp);
@@ -780,7 +775,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  void IStatsReportTypes::Stats::eventTrace(double timestamp) const
+  void IStatsReportTypes::Stats::eventTrace(double timestamp) const noexcept
   {
     internal::reportString(mID, timestamp, "statsType", statsType());
   }
@@ -789,12 +784,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IStatsReportTypes::RTPStreamStats
-  #pragma mark
+  //
+  // IStatsReportTypes::RTPStreamStats
+  //
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::RTPStreamStats::RTPStreamStats(const RTPStreamStats &op2) :
+  IStatsReportTypes::RTPStreamStats::RTPStreamStats(const RTPStreamStats &op2) noexcept :
     Stats(op2),
     mSSRC(op2.mSSRC),
     mAssociatedStatID(op2.mAssociatedStatID),
@@ -811,7 +806,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::RTPStreamStats::RTPStreamStats(ElementPtr rootEl) :
+  IStatsReportTypes::RTPStreamStats::RTPStreamStats(ElementPtr rootEl) noexcept :
     Stats(rootEl)
   {
     if (!rootEl) return;
@@ -830,20 +825,20 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::RTPStreamStatsPtr IStatsReportTypes::RTPStreamStats::create(ElementPtr rootEl)
+  IStatsReportTypes::RTPStreamStatsPtr IStatsReportTypes::RTPStreamStats::create(ElementPtr rootEl) noexcept
   {
     if (!rootEl) return RTPStreamStatsPtr();
     return make_shared<RTPStreamStats>(rootEl);
   }
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::RTPStreamStatsPtr IStatsReportTypes::RTPStreamStats::convert(AnyPtr any)
+  IStatsReportTypes::RTPStreamStatsPtr IStatsReportTypes::RTPStreamStats::convert(AnyPtr any) noexcept
   {
     return ZS_DYNAMIC_PTR_CAST(RTPStreamStats, any);
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IStatsReportTypes::RTPStreamStats::createElement(const char *objectName) const
+  ElementPtr IStatsReportTypes::RTPStreamStats::createElement(const char *objectName) const noexcept
   {
     ElementPtr rootEl = Stats::createElement(objectName);
 
@@ -865,13 +860,13 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IStatsReportTypes::RTPStreamStats::toDebug() const
+  ElementPtr IStatsReportTypes::RTPStreamStats::toDebug() const noexcept
   {
     return Element::create("ortc::IStatsReportTypes::RTPStreamStats");
   }
 
   //---------------------------------------------------------------------------
-  String IStatsReportTypes::RTPStreamStats::hash() const
+  String IStatsReportTypes::RTPStreamStats::hash() const noexcept
   {
     auto hasher = IHasher::sha1();
 
@@ -905,7 +900,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  void IStatsReportTypes::RTPStreamStats::eventTrace(double timestamp) const
+  void IStatsReportTypes::RTPStreamStats::eventTrace(double timestamp) const noexcept
   {
     Stats::eventTrace(timestamp);
 
@@ -928,12 +923,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IStatsReportTypes::Codec
-  #pragma mark
+  //
+  // IStatsReportTypes::Codec
+  //
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::Codec::Codec(const Codec &op2) :
+  IStatsReportTypes::Codec::Codec(const Codec &op2) noexcept :
     Stats(op2),
     mPayloadType(op2.mPayloadType),
     mCodec(op2.mCodec),
@@ -944,7 +939,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::Codec::Codec(ElementPtr rootEl) :
+  IStatsReportTypes::Codec::Codec(ElementPtr rootEl) noexcept :
     Stats(rootEl)
   {
     mStatsType = IStatsReportTypes::StatsType_Codec;
@@ -959,20 +954,20 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::CodecPtr IStatsReportTypes::Codec::create(ElementPtr rootEl)
+  IStatsReportTypes::CodecPtr IStatsReportTypes::Codec::create(ElementPtr rootEl) noexcept
   {
     if (!rootEl) return CodecPtr();
     return make_shared<Codec>(rootEl);
   }
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::CodecPtr IStatsReportTypes::Codec::convert(AnyPtr any)
+  IStatsReportTypes::CodecPtr IStatsReportTypes::Codec::convert(AnyPtr any) noexcept
   {
     return ZS_DYNAMIC_PTR_CAST(Codec, any);
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IStatsReportTypes::Codec::createElement(const char *objectName) const
+  ElementPtr IStatsReportTypes::Codec::createElement(const char *objectName) const noexcept
   {
     ElementPtr rootEl = Stats::createElement(objectName);
 
@@ -988,13 +983,13 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IStatsReportTypes::Codec::toDebug() const
+  ElementPtr IStatsReportTypes::Codec::toDebug() const noexcept
   {
     return Element::create("ortc::IStatsReportTypes::Codec");
   }
 
   //---------------------------------------------------------------------------
-  String IStatsReportTypes::Codec::hash() const
+  String IStatsReportTypes::Codec::hash() const noexcept
   {
     auto hasher = IHasher::sha1();
 
@@ -1017,7 +1012,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  void IStatsReportTypes::Codec::eventTrace(double timestamp) const
+  void IStatsReportTypes::Codec::eventTrace(double timestamp) const noexcept
   {
     Stats::eventTrace(timestamp);
 
@@ -1036,12 +1031,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IStatsReportTypes::InboundRTPStreamStats
-  #pragma mark
+  //
+  // IStatsReportTypes::InboundRTPStreamStats
+  //
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::InboundRTPStreamStats::InboundRTPStreamStats(const InboundRTPStreamStats &op2) :
+  IStatsReportTypes::InboundRTPStreamStats::InboundRTPStreamStats(const InboundRTPStreamStats &op2) noexcept :
     RTPStreamStats(op2),
     mPacketsReceived(op2.mPacketsReceived),
     mBytesReceived(op2.mBytesReceived),
@@ -1053,7 +1048,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::InboundRTPStreamStats::InboundRTPStreamStats(ElementPtr rootEl) :
+  IStatsReportTypes::InboundRTPStreamStats::InboundRTPStreamStats(ElementPtr rootEl) noexcept :
     RTPStreamStats(rootEl)
   {
     mStatsType = IStatsReportTypes::StatsType_InboundRTP;
@@ -1069,20 +1064,20 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::InboundRTPStreamStatsPtr IStatsReportTypes::InboundRTPStreamStats::create(ElementPtr rootEl)
+  IStatsReportTypes::InboundRTPStreamStatsPtr IStatsReportTypes::InboundRTPStreamStats::create(ElementPtr rootEl) noexcept
   {
     if (!rootEl) return InboundRTPStreamStatsPtr();
     return make_shared<InboundRTPStreamStats>(rootEl);
   }
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::InboundRTPStreamStatsPtr IStatsReportTypes::InboundRTPStreamStats::convert(AnyPtr any)
+  IStatsReportTypes::InboundRTPStreamStatsPtr IStatsReportTypes::InboundRTPStreamStats::convert(AnyPtr any) noexcept
   {
     return ZS_DYNAMIC_PTR_CAST(InboundRTPStreamStats, any);
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IStatsReportTypes::InboundRTPStreamStats::createElement(const char *objectName) const
+  ElementPtr IStatsReportTypes::InboundRTPStreamStats::createElement(const char *objectName) const noexcept
   {
     ElementPtr rootEl = RTPStreamStats::createElement(objectName);
 
@@ -1099,13 +1094,13 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IStatsReportTypes::InboundRTPStreamStats::toDebug() const
+  ElementPtr IStatsReportTypes::InboundRTPStreamStats::toDebug() const noexcept
   {
     return Element::create("ortc::IStatsReportTypes::InboundRTPStreamStats");
   }
 
   //---------------------------------------------------------------------------
-  String IStatsReportTypes::InboundRTPStreamStats::hash() const
+  String IStatsReportTypes::InboundRTPStreamStats::hash() const noexcept
   {
     auto hasher = IHasher::sha1();
 
@@ -1130,7 +1125,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  void IStatsReportTypes::InboundRTPStreamStats::eventTrace(double timestamp) const
+  void IStatsReportTypes::InboundRTPStreamStats::eventTrace(double timestamp) const noexcept
   {
     RTPStreamStats::eventTrace(timestamp);
 
@@ -1152,12 +1147,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IStatsReportTypes::OutboundRTPStreamStats
-  #pragma mark
+  //
+  // IStatsReportTypes::OutboundRTPStreamStats
+  //
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::OutboundRTPStreamStats::OutboundRTPStreamStats(const OutboundRTPStreamStats &op2) :
+  IStatsReportTypes::OutboundRTPStreamStats::OutboundRTPStreamStats(const OutboundRTPStreamStats &op2) noexcept :
     RTPStreamStats(op2),
     mPacketsSent(op2.mPacketsSent),
     mBytesSent(op2.mBytesSent),
@@ -1167,7 +1162,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::OutboundRTPStreamStats::OutboundRTPStreamStats(ElementPtr rootEl) :
+  IStatsReportTypes::OutboundRTPStreamStats::OutboundRTPStreamStats(ElementPtr rootEl) noexcept :
     RTPStreamStats(rootEl)
   {
     mStatsType = IStatsReportTypes::StatsType_OutboundRTP;
@@ -1181,20 +1176,20 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::OutboundRTPStreamStatsPtr IStatsReportTypes::OutboundRTPStreamStats::create(ElementPtr rootEl)
+  IStatsReportTypes::OutboundRTPStreamStatsPtr IStatsReportTypes::OutboundRTPStreamStats::create(ElementPtr rootEl) noexcept
   {
     if (!rootEl) return OutboundRTPStreamStatsPtr();
     return make_shared<OutboundRTPStreamStats>(rootEl);
   }
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::OutboundRTPStreamStatsPtr IStatsReportTypes::OutboundRTPStreamStats::convert(AnyPtr any)
+  IStatsReportTypes::OutboundRTPStreamStatsPtr IStatsReportTypes::OutboundRTPStreamStats::convert(AnyPtr any) noexcept
   {
     return ZS_DYNAMIC_PTR_CAST(OutboundRTPStreamStats, any);
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IStatsReportTypes::OutboundRTPStreamStats::createElement(const char *objectName) const
+  ElementPtr IStatsReportTypes::OutboundRTPStreamStats::createElement(const char *objectName) const noexcept
   {
     ElementPtr rootEl = RTPStreamStats::createElement(objectName);
 
@@ -1209,13 +1204,13 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IStatsReportTypes::OutboundRTPStreamStats::toDebug() const
+  ElementPtr IStatsReportTypes::OutboundRTPStreamStats::toDebug() const noexcept
   {
     return Element::create("ortc::IStatsReportTypes::OutboundRTPStreamStats");
   }
 
   //---------------------------------------------------------------------------
-  String IStatsReportTypes::OutboundRTPStreamStats::hash() const
+  String IStatsReportTypes::OutboundRTPStreamStats::hash() const noexcept
   {
     auto hasher = IHasher::sha1();
 
@@ -1235,7 +1230,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  void IStatsReportTypes::OutboundRTPStreamStats::eventTrace(double timestamp) const
+  void IStatsReportTypes::OutboundRTPStreamStats::eventTrace(double timestamp) const noexcept
   {
     RTPStreamStats::eventTrace(timestamp);
 
@@ -1256,12 +1251,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IStatsReportTypes::SCTPTransportStats
-  #pragma mark
+  //
+  // IStatsReportTypes::SCTPTransportStats
+  //
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::SCTPTransportStats::SCTPTransportStats(const SCTPTransportStats &op2) :
+  IStatsReportTypes::SCTPTransportStats::SCTPTransportStats(const SCTPTransportStats &op2) noexcept :
     Stats(op2),
     mDataChannelsOpened(op2.mDataChannelsOpened),
     mDataChannelsClosed(op2.mDataChannelsClosed)
@@ -1269,7 +1264,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::SCTPTransportStats::SCTPTransportStats(ElementPtr rootEl) :
+  IStatsReportTypes::SCTPTransportStats::SCTPTransportStats(ElementPtr rootEl) noexcept :
     Stats(rootEl)
   {
     mStatsType = IStatsReportTypes::StatsType_SCTPTransport;
@@ -1281,20 +1276,20 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::SCTPTransportStatsPtr IStatsReportTypes::SCTPTransportStats::create(ElementPtr rootEl)
+  IStatsReportTypes::SCTPTransportStatsPtr IStatsReportTypes::SCTPTransportStats::create(ElementPtr rootEl) noexcept
   {
     if (!rootEl) return SCTPTransportStatsPtr();
     return make_shared<SCTPTransportStats>(rootEl);
   }
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::SCTPTransportStatsPtr IStatsReportTypes::SCTPTransportStats::convert(AnyPtr any)
+  IStatsReportTypes::SCTPTransportStatsPtr IStatsReportTypes::SCTPTransportStats::convert(AnyPtr any) noexcept
   {
     return ZS_DYNAMIC_PTR_CAST(SCTPTransportStats, any);
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IStatsReportTypes::SCTPTransportStats::createElement(const char *objectName) const
+  ElementPtr IStatsReportTypes::SCTPTransportStats::createElement(const char *objectName) const noexcept
   {
     ElementPtr rootEl = Stats::createElement(objectName);
 
@@ -1307,13 +1302,13 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IStatsReportTypes::SCTPTransportStats::toDebug() const
+  ElementPtr IStatsReportTypes::SCTPTransportStats::toDebug() const noexcept
   {
     return Element::create("ortc::IStatsReportTypes::SCTPTransportStats");
   }
 
   //---------------------------------------------------------------------------
-  String IStatsReportTypes::SCTPTransportStats::hash() const
+  String IStatsReportTypes::SCTPTransportStats::hash() const noexcept
   {
     auto hasher = IHasher::sha1();
 
@@ -1329,7 +1324,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  void IStatsReportTypes::SCTPTransportStats::eventTrace(double timestamp) const
+  void IStatsReportTypes::SCTPTransportStats::eventTrace(double timestamp) const noexcept
   {
     Stats::eventTrace(timestamp);
 
@@ -1342,12 +1337,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IStatsReportTypes::MediaStreamStats
-  #pragma mark
+  //
+  // IStatsReportTypes::MediaStreamStats
+  //
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::MediaStreamStats::MediaStreamStats(const MediaStreamStats &op2) :
+  IStatsReportTypes::MediaStreamStats::MediaStreamStats(const MediaStreamStats &op2) noexcept :
     Stats(op2),
     mStreamID(op2.mStreamID),
     mTrackIDs(op2.mTrackIDs)
@@ -1355,7 +1350,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::MediaStreamStats::MediaStreamStats(ElementPtr rootEl) :
+  IStatsReportTypes::MediaStreamStats::MediaStreamStats(ElementPtr rootEl) noexcept :
     Stats(rootEl)
   {
     mStatsType = IStatsReportTypes::StatsType_Stream;
@@ -1380,20 +1375,20 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::MediaStreamStatsPtr IStatsReportTypes::MediaStreamStats::create(ElementPtr rootEl)
+  IStatsReportTypes::MediaStreamStatsPtr IStatsReportTypes::MediaStreamStats::create(ElementPtr rootEl) noexcept
   {
     if (!rootEl) return MediaStreamStatsPtr();
     return make_shared<MediaStreamStats>(rootEl);
   }
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::MediaStreamStatsPtr IStatsReportTypes::MediaStreamStats::convert(AnyPtr any)
+  IStatsReportTypes::MediaStreamStatsPtr IStatsReportTypes::MediaStreamStats::convert(AnyPtr any) noexcept
   {
     return ZS_DYNAMIC_PTR_CAST(MediaStreamStats, any);
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IStatsReportTypes::MediaStreamStats::createElement(const char *objectName) const
+  ElementPtr IStatsReportTypes::MediaStreamStats::createElement(const char *objectName) const noexcept
   {
     ElementPtr rootEl = Stats::createElement(objectName);
 
@@ -1416,13 +1411,13 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IStatsReportTypes::MediaStreamStats::toDebug() const
+  ElementPtr IStatsReportTypes::MediaStreamStats::toDebug() const noexcept
   {
     return Element::create("ortc::IStatsReportTypes::MediaStreamStats");
   }
 
   //---------------------------------------------------------------------------
-  String IStatsReportTypes::MediaStreamStats::hash() const
+  String IStatsReportTypes::MediaStreamStats::hash() const noexcept
   {
     auto hasher = IHasher::sha1();
 
@@ -1444,7 +1439,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  void IStatsReportTypes::MediaStreamStats::eventTrace(double timestamp) const
+  void IStatsReportTypes::MediaStreamStats::eventTrace(double timestamp) const noexcept
   {
     Stats::eventTrace(timestamp);
 
@@ -1461,12 +1456,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IStatsReportTypes::MediaStreamTrackStats
-  #pragma mark
+  //
+  // IStatsReportTypes::MediaStreamTrackStats
+  //
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::MediaStreamTrackStats::MediaStreamTrackStats(const MediaStreamTrackStats &op2) :
+  IStatsReportTypes::MediaStreamTrackStats::MediaStreamTrackStats(const MediaStreamTrackStats &op2) noexcept :
     Stats(op2),
     mTrackID(op2.mTrackID),
     mRemoteSource(op2.mRemoteSource),
@@ -1486,7 +1481,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::MediaStreamTrackStats::MediaStreamTrackStats(ElementPtr rootEl) :
+  IStatsReportTypes::MediaStreamTrackStats::MediaStreamTrackStats(ElementPtr rootEl) noexcept :
     Stats(rootEl)
   {
     mStatsType = IStatsReportTypes::StatsType_Track;
@@ -1528,20 +1523,20 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::MediaStreamTrackStatsPtr IStatsReportTypes::MediaStreamTrackStats::create(ElementPtr rootEl)
+  IStatsReportTypes::MediaStreamTrackStatsPtr IStatsReportTypes::MediaStreamTrackStats::create(ElementPtr rootEl) noexcept
   {
     if (!rootEl) return MediaStreamTrackStatsPtr();
     return make_shared<MediaStreamTrackStats>(rootEl);
   }
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::MediaStreamTrackStatsPtr IStatsReportTypes::MediaStreamTrackStats::convert(AnyPtr any)
+  IStatsReportTypes::MediaStreamTrackStatsPtr IStatsReportTypes::MediaStreamTrackStats::convert(AnyPtr any) noexcept
   {
     return ZS_DYNAMIC_PTR_CAST(MediaStreamTrackStats, any);
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IStatsReportTypes::MediaStreamTrackStats::createElement(const char *objectName) const
+  ElementPtr IStatsReportTypes::MediaStreamTrackStats::createElement(const char *objectName) const noexcept
   {
     ElementPtr rootEl = Stats::createElement(objectName);
 
@@ -1577,13 +1572,13 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IStatsReportTypes::MediaStreamTrackStats::toDebug() const
+  ElementPtr IStatsReportTypes::MediaStreamTrackStats::toDebug() const noexcept
   {
     return Element::create("ortc::IStatsReportTypes::MediaStreamTrackStats");
   }
 
   //---------------------------------------------------------------------------
-  String IStatsReportTypes::MediaStreamTrackStats::hash() const
+  String IStatsReportTypes::MediaStreamTrackStats::hash() const noexcept
   {
     auto hasher = IHasher::sha1();
 
@@ -1629,7 +1624,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  void IStatsReportTypes::MediaStreamTrackStats::eventTrace(double timestamp) const
+  void IStatsReportTypes::MediaStreamTrackStats::eventTrace(double timestamp) const noexcept
   {
     Stats::eventTrace(timestamp);
 
@@ -1673,12 +1668,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IStatsReportTypes::DataChannelStats
-  #pragma mark
+  //
+  // IStatsReportTypes::DataChannelStats
+  //
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::DataChannelStats::DataChannelStats(const DataChannelStats &op2) :
+  IStatsReportTypes::DataChannelStats::DataChannelStats(const DataChannelStats &op2) noexcept :
     Stats(op2),
     mLabel(op2.mLabel),
     mProtocol(op2.mProtocol),
@@ -1692,7 +1687,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::DataChannelStats::DataChannelStats(ElementPtr rootEl) :
+  IStatsReportTypes::DataChannelStats::DataChannelStats(ElementPtr rootEl) noexcept :
     Stats(rootEl)
   {
     mStatsType = IStatsReportTypes::StatsType_DataChannel;
@@ -1718,20 +1713,20 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::DataChannelStatsPtr IStatsReportTypes::DataChannelStats::create(ElementPtr rootEl)
+  IStatsReportTypes::DataChannelStatsPtr IStatsReportTypes::DataChannelStats::create(ElementPtr rootEl) noexcept
   {
     if (!rootEl) return DataChannelStatsPtr();
     return make_shared<DataChannelStats>(rootEl);
   }
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::DataChannelStatsPtr IStatsReportTypes::DataChannelStats::convert(AnyPtr any)
+  IStatsReportTypes::DataChannelStatsPtr IStatsReportTypes::DataChannelStats::convert(AnyPtr any) noexcept
   {
     return ZS_DYNAMIC_PTR_CAST(DataChannelStats, any);
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IStatsReportTypes::DataChannelStats::createElement(const char *objectName) const
+  ElementPtr IStatsReportTypes::DataChannelStats::createElement(const char *objectName) const noexcept
   {
     ElementPtr rootEl = Stats::createElement(objectName);
 
@@ -1750,13 +1745,13 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IStatsReportTypes::DataChannelStats::toDebug() const
+  ElementPtr IStatsReportTypes::DataChannelStats::toDebug() const noexcept
   {
     return Element::create("ortc::IStatsReportTypes::DataChannelStats");
   }
 
   //---------------------------------------------------------------------------
-  String IStatsReportTypes::DataChannelStats::hash() const
+  String IStatsReportTypes::DataChannelStats::hash() const noexcept
   {
     auto hasher = IHasher::sha1();
 
@@ -1785,7 +1780,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  void IStatsReportTypes::DataChannelStats::eventTrace(double timestamp) const
+  void IStatsReportTypes::DataChannelStats::eventTrace(double timestamp) const noexcept
   {
     Stats::eventTrace(timestamp);
 
@@ -1803,12 +1798,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IStatsReportTypes::ICEGathererStats
-  #pragma mark
+  //
+  // IStatsReportTypes::ICEGathererStats
+  //
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::ICEGathererStats::ICEGathererStats(const ICEGathererStats &op2) :
+  IStatsReportTypes::ICEGathererStats::ICEGathererStats(const ICEGathererStats &op2) noexcept :
     Stats(op2),
     mBytesSent(op2.mBytesSent),
     mBytesReceived(op2.mBytesReceived),
@@ -1817,7 +1812,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::ICEGathererStats::ICEGathererStats(ElementPtr rootEl) :
+  IStatsReportTypes::ICEGathererStats::ICEGathererStats(ElementPtr rootEl) noexcept :
     Stats(rootEl)
   {
     mStatsType = IStatsReportTypes::StatsType_ICEGatherer;
@@ -1830,20 +1825,20 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::ICEGathererStatsPtr IStatsReportTypes::ICEGathererStats::create(ElementPtr rootEl)
+  IStatsReportTypes::ICEGathererStatsPtr IStatsReportTypes::ICEGathererStats::create(ElementPtr rootEl) noexcept
   {
     if (!rootEl) return ICEGathererStatsPtr();
     return make_shared<ICEGathererStats>(rootEl);
   }
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::ICEGathererStatsPtr IStatsReportTypes::ICEGathererStats::convert(AnyPtr any)
+  IStatsReportTypes::ICEGathererStatsPtr IStatsReportTypes::ICEGathererStats::convert(AnyPtr any) noexcept
   {
     return ZS_DYNAMIC_PTR_CAST(ICEGathererStats, any);
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IStatsReportTypes::ICEGathererStats::createElement(const char *objectName) const
+  ElementPtr IStatsReportTypes::ICEGathererStats::createElement(const char *objectName) const noexcept
   {
     ElementPtr rootEl = Stats::createElement(objectName);
 
@@ -1857,13 +1852,13 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IStatsReportTypes::ICEGathererStats::toDebug() const
+  ElementPtr IStatsReportTypes::ICEGathererStats::toDebug() const noexcept
   {
     return Element::create("ortc::IStatsReportTypes::ICEGathererStats");
   }
 
   //---------------------------------------------------------------------------
-  String IStatsReportTypes::ICEGathererStats::hash() const
+  String IStatsReportTypes::ICEGathererStats::hash() const noexcept
   {
     auto hasher = IHasher::sha1();
 
@@ -1882,7 +1877,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  void IStatsReportTypes::ICEGathererStats::eventTrace(double timestamp) const
+  void IStatsReportTypes::ICEGathererStats::eventTrace(double timestamp) const noexcept
   {
     Stats::eventTrace(timestamp);
 
@@ -1896,12 +1891,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IStatsReportTypes::ICETransportStats
-  #pragma mark
+  //
+  // IStatsReportTypes::ICETransportStats
+  //
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::ICETransportStats::ICETransportStats(const ICETransportStats &op2) :
+  IStatsReportTypes::ICETransportStats::ICETransportStats(const ICETransportStats &op2) noexcept :
     Stats(op2),
     mBytesSent(op2.mBytesSent),
     mBytesReceived(op2.mBytesReceived),
@@ -1912,7 +1907,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::ICETransportStats::ICETransportStats(ElementPtr rootEl) :
+  IStatsReportTypes::ICETransportStats::ICETransportStats(ElementPtr rootEl) noexcept :
     Stats(rootEl)
   {
     mStatsType = IStatsReportTypes::StatsType_ICETransport;
@@ -1927,20 +1922,20 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::ICETransportStatsPtr IStatsReportTypes::ICETransportStats::create(ElementPtr rootEl)
+  IStatsReportTypes::ICETransportStatsPtr IStatsReportTypes::ICETransportStats::create(ElementPtr rootEl) noexcept
   {
     if (!rootEl) return ICETransportStatsPtr();
     return make_shared<ICETransportStats>(rootEl);
   }
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::ICETransportStatsPtr IStatsReportTypes::ICETransportStats::convert(AnyPtr any)
+  IStatsReportTypes::ICETransportStatsPtr IStatsReportTypes::ICETransportStats::convert(AnyPtr any) noexcept
   {
     return ZS_DYNAMIC_PTR_CAST(ICETransportStats, any);
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IStatsReportTypes::ICETransportStats::createElement(const char *objectName) const
+  ElementPtr IStatsReportTypes::ICETransportStats::createElement(const char *objectName) const noexcept
   {
     ElementPtr rootEl = Stats::createElement(objectName);
 
@@ -1956,13 +1951,13 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IStatsReportTypes::ICETransportStats::toDebug() const
+  ElementPtr IStatsReportTypes::ICETransportStats::toDebug() const noexcept
   {
     return Element::create("ortc::IStatsReportTypes::ICETransportStats");
   }
 
   //---------------------------------------------------------------------------
-  String IStatsReportTypes::ICETransportStats::hash() const
+  String IStatsReportTypes::ICETransportStats::hash() const noexcept
   {
     auto hasher = IHasher::sha1();
 
@@ -1985,7 +1980,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  void IStatsReportTypes::ICETransportStats::eventTrace(double timestamp) const
+  void IStatsReportTypes::ICETransportStats::eventTrace(double timestamp) const noexcept
   {
     Stats::eventTrace(timestamp);
 
@@ -2001,12 +1996,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IStatsReportTypes::DTLSTransportStats
-  #pragma mark
+  //
+  // IStatsReportTypes::DTLSTransportStats
+  //
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::DTLSTransportStats::DTLSTransportStats(const DTLSTransportStats &op2) :
+  IStatsReportTypes::DTLSTransportStats::DTLSTransportStats(const DTLSTransportStats &op2) noexcept :
     Stats(op2),
     mLocalCertificateID(op2.mLocalCertificateID),
     mRemoteCertificateID(op2.mRemoteCertificateID)
@@ -2014,7 +2009,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::DTLSTransportStats::DTLSTransportStats(ElementPtr rootEl) :
+  IStatsReportTypes::DTLSTransportStats::DTLSTransportStats(ElementPtr rootEl) noexcept :
     Stats(rootEl)
   {
     mStatsType = IStatsReportTypes::StatsType_DTLSTransport;
@@ -2026,20 +2021,20 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::DTLSTransportStatsPtr IStatsReportTypes::DTLSTransportStats::create(ElementPtr rootEl)
+  IStatsReportTypes::DTLSTransportStatsPtr IStatsReportTypes::DTLSTransportStats::create(ElementPtr rootEl) noexcept
   {
     if (!rootEl) return DTLSTransportStatsPtr();
     return make_shared<DTLSTransportStats>(rootEl);
   }
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::DTLSTransportStatsPtr IStatsReportTypes::DTLSTransportStats::convert(AnyPtr any)
+  IStatsReportTypes::DTLSTransportStatsPtr IStatsReportTypes::DTLSTransportStats::convert(AnyPtr any) noexcept
   {
     return ZS_DYNAMIC_PTR_CAST(DTLSTransportStats, any);
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IStatsReportTypes::DTLSTransportStats::createElement(const char *objectName) const
+  ElementPtr IStatsReportTypes::DTLSTransportStats::createElement(const char *objectName) const noexcept
   {
     ElementPtr rootEl = Stats::createElement(objectName);
 
@@ -2052,13 +2047,13 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IStatsReportTypes::DTLSTransportStats::toDebug() const
+  ElementPtr IStatsReportTypes::DTLSTransportStats::toDebug() const noexcept
   {
     return Element::create("ortc::IStatsReportTypes::DTLSTransportStats");
   }
 
   //---------------------------------------------------------------------------
-  String IStatsReportTypes::DTLSTransportStats::hash() const
+  String IStatsReportTypes::DTLSTransportStats::hash() const noexcept
   {
     auto hasher = IHasher::sha1();
 
@@ -2075,7 +2070,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  void IStatsReportTypes::DTLSTransportStats::eventTrace(double timestamp) const
+  void IStatsReportTypes::DTLSTransportStats::eventTrace(double timestamp) const noexcept
   {
     Stats::eventTrace(timestamp);
 
@@ -2088,18 +2083,18 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IStatsReportTypes::SRTPTransportStats
-  #pragma mark
+  //
+  // IStatsReportTypes::SRTPTransportStats
+  //
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::SRTPTransportStats::SRTPTransportStats(const SRTPTransportStats &op2) :
+  IStatsReportTypes::SRTPTransportStats::SRTPTransportStats(const SRTPTransportStats &op2) noexcept :
     Stats(op2)
   {
   }
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::SRTPTransportStats::SRTPTransportStats(ElementPtr rootEl) :
+  IStatsReportTypes::SRTPTransportStats::SRTPTransportStats(ElementPtr rootEl) noexcept :
     Stats(rootEl)
   {
     mStatsType = IStatsReportTypes::StatsType_SRTPTransport;
@@ -2108,20 +2103,20 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::SRTPTransportStatsPtr IStatsReportTypes::SRTPTransportStats::create(ElementPtr rootEl)
+  IStatsReportTypes::SRTPTransportStatsPtr IStatsReportTypes::SRTPTransportStats::create(ElementPtr rootEl) noexcept
   {
     if (!rootEl) return SRTPTransportStatsPtr();
     return make_shared<SRTPTransportStats>(rootEl);
   }
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::SRTPTransportStatsPtr IStatsReportTypes::SRTPTransportStats::convert(AnyPtr any)
+  IStatsReportTypes::SRTPTransportStatsPtr IStatsReportTypes::SRTPTransportStats::convert(AnyPtr any) noexcept
   {
     return ZS_DYNAMIC_PTR_CAST(SRTPTransportStats, any);
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IStatsReportTypes::SRTPTransportStats::createElement(const char *objectName) const
+  ElementPtr IStatsReportTypes::SRTPTransportStats::createElement(const char *objectName) const noexcept
   {
     ElementPtr rootEl = Stats::createElement(objectName);
 
@@ -2131,13 +2126,13 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IStatsReportTypes::SRTPTransportStats::toDebug() const
+  ElementPtr IStatsReportTypes::SRTPTransportStats::toDebug() const noexcept
   {
     return Element::create("ortc::IStatsReportTypes::SRTPTransportStats");
   }
 
   //---------------------------------------------------------------------------
-  String IStatsReportTypes::SRTPTransportStats::hash() const
+  String IStatsReportTypes::SRTPTransportStats::hash() const noexcept
   {
     auto hasher = IHasher::sha1();
 
@@ -2151,7 +2146,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  void IStatsReportTypes::SRTPTransportStats::eventTrace(double timestamp) const
+  void IStatsReportTypes::SRTPTransportStats::eventTrace(double timestamp) const noexcept
   {
     Stats::eventTrace(timestamp);
   }
@@ -2161,12 +2156,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IStatsReportTypes::ICECandidateAttributes
-  #pragma mark
+  //
+  // IStatsReportTypes::ICECandidateAttributes
+  //
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::ICECandidateAttributes::ICECandidateAttributes(const ICECandidateAttributes &op2) :
+  IStatsReportTypes::ICECandidateAttributes::ICECandidateAttributes(const ICECandidateAttributes &op2) noexcept :
     Stats(op2),
     mRelatedID(op2.mRelatedID),
     mIPAddress(op2.mIPAddress),
@@ -2179,7 +2174,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::ICECandidateAttributes::ICECandidateAttributes(ElementPtr rootEl) :
+  IStatsReportTypes::ICECandidateAttributes::ICECandidateAttributes(ElementPtr rootEl) noexcept :
     Stats(rootEl)
   {
     mStatsType = IStatsReportTypes::StatsType_Candidate;
@@ -2208,20 +2203,20 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::ICECandidateAttributesPtr IStatsReportTypes::ICECandidateAttributes::create(ElementPtr rootEl)
+  IStatsReportTypes::ICECandidateAttributesPtr IStatsReportTypes::ICECandidateAttributes::create(ElementPtr rootEl) noexcept
   {
     if (!rootEl) return ICECandidateAttributesPtr();
     return make_shared<ICECandidateAttributes>(rootEl);
   }
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::ICECandidateAttributesPtr IStatsReportTypes::ICECandidateAttributes::convert(AnyPtr any)
+  IStatsReportTypes::ICECandidateAttributesPtr IStatsReportTypes::ICECandidateAttributes::convert(AnyPtr any) noexcept
   {
     return ZS_DYNAMIC_PTR_CAST(ICECandidateAttributes, any);
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IStatsReportTypes::ICECandidateAttributes::createElement(const char *objectName) const
+  ElementPtr IStatsReportTypes::ICECandidateAttributes::createElement(const char *objectName) const noexcept
   {
     ElementPtr rootEl = Stats::createElement(objectName);
 
@@ -2239,13 +2234,13 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IStatsReportTypes::ICECandidateAttributes::toDebug() const
+  ElementPtr IStatsReportTypes::ICECandidateAttributes::toDebug() const noexcept
   {
     return Element::create("ortc::IStatsReportTypes::ICECandidateAttributes");
   }
 
   //---------------------------------------------------------------------------
-  String IStatsReportTypes::ICECandidateAttributes::hash() const
+  String IStatsReportTypes::ICECandidateAttributes::hash() const noexcept
   {
     auto hasher = IHasher::sha1();
 
@@ -2272,7 +2267,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  void IStatsReportTypes::ICECandidateAttributes::eventTrace(double timestamp) const
+  void IStatsReportTypes::ICECandidateAttributes::eventTrace(double timestamp) const noexcept
   {
     Stats::eventTrace(timestamp);
 
@@ -2289,12 +2284,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IStatsReportTypes::ICECandidatePairStats
-  #pragma mark
+  //
+  // IStatsReportTypes::ICECandidatePairStats
+  //
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::ICECandidatePairStats::ICECandidatePairStats(const ICECandidatePairStats &op2) :
+  IStatsReportTypes::ICECandidatePairStats::ICECandidatePairStats(const ICECandidatePairStats &op2) noexcept :
     Stats(op2),
     mTransportID(op2.mTransportID),
     mLocalCandidateID(op2.mLocalCandidateID),
@@ -2313,7 +2308,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::ICECandidatePairStats::ICECandidatePairStats(ElementPtr rootEl) :
+  IStatsReportTypes::ICECandidatePairStats::ICECandidatePairStats(ElementPtr rootEl) noexcept :
     Stats(rootEl)
   {
     mStatsType = IStatsReportTypes::StatsType_CandidatePair;
@@ -2348,20 +2343,20 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::ICECandidatePairStatsPtr IStatsReportTypes::ICECandidatePairStats::create(ElementPtr rootEl)
+  IStatsReportTypes::ICECandidatePairStatsPtr IStatsReportTypes::ICECandidatePairStats::create(ElementPtr rootEl) noexcept
   {
     if (!rootEl) return ICECandidatePairStatsPtr();
     return make_shared<ICECandidatePairStats>(rootEl);
   }
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::ICECandidatePairStatsPtr IStatsReportTypes::ICECandidatePairStats::convert(AnyPtr any)
+  IStatsReportTypes::ICECandidatePairStatsPtr IStatsReportTypes::ICECandidatePairStats::convert(AnyPtr any) noexcept
   {
     return ZS_DYNAMIC_PTR_CAST(ICECandidatePairStats, any);
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IStatsReportTypes::ICECandidatePairStats::createElement(const char *objectName) const
+  ElementPtr IStatsReportTypes::ICECandidatePairStats::createElement(const char *objectName) const noexcept
   {
     ElementPtr rootEl = Stats::createElement(objectName);
 
@@ -2385,13 +2380,13 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IStatsReportTypes::ICECandidatePairStats::toDebug() const
+  ElementPtr IStatsReportTypes::ICECandidatePairStats::toDebug() const noexcept
   {
     return Element::create("ortc::IStatsReportTypes::ICECandidatePairStats");
   }
 
   //---------------------------------------------------------------------------
-  String IStatsReportTypes::ICECandidatePairStats::hash() const
+  String IStatsReportTypes::ICECandidatePairStats::hash() const noexcept
   {
     auto hasher = IHasher::sha1();
 
@@ -2428,7 +2423,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  void IStatsReportTypes::ICECandidatePairStats::eventTrace(double timestamp) const
+  void IStatsReportTypes::ICECandidatePairStats::eventTrace(double timestamp) const noexcept
   {
     Stats::eventTrace(timestamp);
 
@@ -2451,12 +2446,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IStatsReportTypes::CertificateStats
-  #pragma mark
+  //
+  // IStatsReportTypes::CertificateStats
+  //
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::CertificateStats::CertificateStats(const CertificateStats &op2) :
+  IStatsReportTypes::CertificateStats::CertificateStats(const CertificateStats &op2) noexcept :
     Stats(op2),
     mFingerprint(op2.mFingerprint),
     mFingerprintAlgorithm(op2.mFingerprintAlgorithm),
@@ -2466,7 +2461,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::CertificateStats::CertificateStats(ElementPtr rootEl) :
+  IStatsReportTypes::CertificateStats::CertificateStats(ElementPtr rootEl) noexcept :
     Stats(rootEl)
   {
     mStatsType = IStatsReportTypes::StatsType_Certificate;
@@ -2480,20 +2475,20 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::CertificateStatsPtr IStatsReportTypes::CertificateStats::create(ElementPtr rootEl)
+  IStatsReportTypes::CertificateStatsPtr IStatsReportTypes::CertificateStats::create(ElementPtr rootEl) noexcept
   {
     if (!rootEl) return CertificateStatsPtr();
     return make_shared<CertificateStats>(rootEl);
   }
 
   //---------------------------------------------------------------------------
-  IStatsReportTypes::CertificateStatsPtr IStatsReportTypes::CertificateStats::convert(AnyPtr any)
+  IStatsReportTypes::CertificateStatsPtr IStatsReportTypes::CertificateStats::convert(AnyPtr any) noexcept
   {
     return ZS_DYNAMIC_PTR_CAST(CertificateStats, any);
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IStatsReportTypes::CertificateStats::createElement(const char *objectName) const
+  ElementPtr IStatsReportTypes::CertificateStats::createElement(const char *objectName) const noexcept
   {
     ElementPtr rootEl = Stats::createElement(objectName);
 
@@ -2508,13 +2503,13 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IStatsReportTypes::CertificateStats::toDebug() const
+  ElementPtr IStatsReportTypes::CertificateStats::toDebug() const noexcept
   {
     return Element::create("ortc::IStatsReportTypes::CertificateStats");
   }
 
   //---------------------------------------------------------------------------
-  String IStatsReportTypes::CertificateStats::hash() const
+  String IStatsReportTypes::CertificateStats::hash() const noexcept
   {
     auto hasher = IHasher::sha1();
 
@@ -2535,7 +2530,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  void IStatsReportTypes::CertificateStats::eventTrace(double timestamp) const
+  void IStatsReportTypes::CertificateStats::eventTrace(double timestamp) const noexcept
   {
     Stats::eventTrace(timestamp);
 
@@ -2549,18 +2544,18 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IStatsReportTypes
-  #pragma mark
+  //
+  // IStatsReportTypes
+  //
 
   //---------------------------------------------------------------------------
-  ElementPtr IStatsReport::toDebug(IStatsReportPtr report)
+  ElementPtr IStatsReport::toDebug(IStatsReportPtr report) noexcept
   {
     return internal::StatsReport::toDebug(internal::StatsReport::convert(report));
   }
 
   //---------------------------------------------------------------------------
-  IStatsReportPtr IStatsReport::convert(AnyPtr any)
+  IStatsReportPtr IStatsReport::convert(AnyPtr any) noexcept
   {
     return ZS_DYNAMIC_PTR_CAST(IStatsReport, any);
   }

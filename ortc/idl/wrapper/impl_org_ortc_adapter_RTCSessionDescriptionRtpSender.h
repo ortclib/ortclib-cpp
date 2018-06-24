@@ -19,19 +19,19 @@ namespace wrapper {
             ZS_DECLARE_TYPEDEF_PTR(wrapper::org::ortc::adapter::RTCSessionDescriptionRtpSender, WrapperType);
             RTCSessionDescriptionRtpSenderWeakPtr thisWeak_;
 
-            RTCSessionDescriptionRtpSender();
-            virtual ~RTCSessionDescriptionRtpSender();
+            RTCSessionDescriptionRtpSender() noexcept;
+            virtual ~RTCSessionDescriptionRtpSender() noexcept;
 
             // methods RTCSessionDescriptionRtpSender
-            virtual void wrapper_init_org_ortc_adapter_RTCSessionDescriptionRtpSender() override;
-            virtual void wrapper_init_org_ortc_adapter_RTCSessionDescriptionRtpSender(wrapper::org::ortc::adapter::RTCSessionDescriptionRtpSenderPtr source) override;
-            virtual void wrapper_init_org_ortc_adapter_RTCSessionDescriptionRtpSender(wrapper::org::ortc::JsonPtr json) override;
-            virtual wrapper::org::ortc::JsonPtr toJson() override;
-            virtual String hash() override;
+            void wrapper_init_org_ortc_adapter_RTCSessionDescriptionRtpSender() noexcept override;
+            void wrapper_init_org_ortc_adapter_RTCSessionDescriptionRtpSender(wrapper::org::ortc::adapter::RTCSessionDescriptionRtpSenderPtr source) noexcept override;
+            void wrapper_init_org_ortc_adapter_RTCSessionDescriptionRtpSender(wrapper::org::ortc::JsonPtr json) noexcept override;
+            wrapper::org::ortc::JsonPtr toJson() noexcept override;
+            String hash() noexcept override;
 
-            static WrapperImplTypePtr toWrapper(NativeTypePtr native);
-            static WrapperImplTypePtr toWrapper(const NativeType &native);
-            static NativeTypePtr toNative(WrapperTypePtr wrapper);
+            static WrapperImplTypePtr toWrapper(NativeTypePtr native) noexcept;
+            static WrapperImplTypePtr toWrapper(const NativeType &native) noexcept;
+            static NativeTypePtr toNative(WrapperTypePtr wrapper) noexcept;
           };
 
         } // adapter

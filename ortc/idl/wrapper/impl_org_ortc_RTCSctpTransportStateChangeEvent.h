@@ -19,13 +19,13 @@ namespace wrapper {
           RTCSctpTransportStateChangeEventWeakPtr thisWeak_;
           NativeType native_;
 
-          RTCSctpTransportStateChangeEvent();
-          virtual ~RTCSctpTransportStateChangeEvent();
+          RTCSctpTransportStateChangeEvent() noexcept;
+          virtual ~RTCSctpTransportStateChangeEvent() noexcept;
 
           // properties RTCSctpTransportStateChangeEvent
-          virtual wrapper::org::ortc::RTCSctpTransportState get_state() override;
+          wrapper::org::ortc::RTCSctpTransportState get_state() noexcept override;
 
-          static WrapperImplTypePtr toWrapper(NativeType native);
+          static WrapperImplTypePtr toWrapper(NativeType native) noexcept;
         };
 
       } // ortc

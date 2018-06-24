@@ -29,12 +29,12 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::adapter::RTCConfiguration::Wrap
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::adapter::RTCConfiguration::WrapperType, WrapperType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::adapter::RTCConfiguration::RTCConfiguration()
+wrapper::impl::org::ortc::adapter::RTCConfiguration::RTCConfiguration() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::adapter::RTCConfigurationPtr wrapper::org::ortc::adapter::RTCConfiguration::wrapper_create()
+wrapper::org::ortc::adapter::RTCConfigurationPtr wrapper::org::ortc::adapter::RTCConfiguration::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::adapter::RTCConfiguration>();
   pThis->thisWeak_ = pThis;
@@ -42,17 +42,17 @@ wrapper::org::ortc::adapter::RTCConfigurationPtr wrapper::org::ortc::adapter::RT
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::adapter::RTCConfiguration::~RTCConfiguration()
+wrapper::impl::org::ortc::adapter::RTCConfiguration::~RTCConfiguration() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::adapter::RTCConfiguration::wrapper_init_org_ortc_adapter_RTCConfiguration()
+void wrapper::impl::org::ortc::adapter::RTCConfiguration::wrapper_init_org_ortc_adapter_RTCConfiguration() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::adapter::RTCConfiguration::wrapper_init_org_ortc_adapter_RTCConfiguration(wrapper::org::ortc::adapter::RTCConfigurationPtr source)
+void wrapper::impl::org::ortc::adapter::RTCConfiguration::wrapper_init_org_ortc_adapter_RTCConfiguration(wrapper::org::ortc::adapter::RTCConfigurationPtr source) noexcept
 {
   WrapperTypePtr pThis = thisWeak_.lock();
   WrapperTypePtr wrapper = toWrapper(toNative(source));
@@ -61,14 +61,14 @@ void wrapper::impl::org::ortc::adapter::RTCConfiguration::wrapper_init_org_ortc_
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr native)
+WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr native) noexcept
 {
   if (!native) return RTCConfigurationPtr();
   return toWrapper(*native);
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(const NativeType &native)
+WrapperImplTypePtr WrapperImplType::toWrapper(const NativeType &native) noexcept
 {
   auto pThis = make_shared<WrapperImplType>();
   pThis->thisWeak_ = pThis;
@@ -86,7 +86,7 @@ WrapperImplTypePtr WrapperImplType::toWrapper(const NativeType &native)
 }
 
 //------------------------------------------------------------------------------
-NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper)
+NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper) noexcept
 {
   if (!wrapper) return NativeTypePtr();
   auto result = make_shared < NativeType >();

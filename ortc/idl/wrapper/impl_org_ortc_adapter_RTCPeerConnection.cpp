@@ -46,12 +46,12 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::adapter::RTCPeerConnection::Wra
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::adapter::RTCPeerConnection::WrapperType, WrapperType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::adapter::RTCPeerConnection::RTCPeerConnection()
+wrapper::impl::org::ortc::adapter::RTCPeerConnection::RTCPeerConnection() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::adapter::RTCPeerConnectionPtr wrapper::org::ortc::adapter::RTCPeerConnection::wrapper_create()
+wrapper::org::ortc::adapter::RTCPeerConnectionPtr wrapper::org::ortc::adapter::RTCPeerConnection::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::adapter::RTCPeerConnection>();
   pThis->thisWeak_ = pThis;
@@ -59,38 +59,38 @@ wrapper::org::ortc::adapter::RTCPeerConnectionPtr wrapper::org::ortc::adapter::R
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::adapter::RTCPeerConnection::~RTCPeerConnection()
+wrapper::impl::org::ortc::adapter::RTCPeerConnection::~RTCPeerConnection() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > wrapper::impl::org::ortc::adapter::RTCPeerConnection::getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes)
+shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > wrapper::impl::org::ortc::adapter::RTCPeerConnection::getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept(false)
 {
   return Helper::getStats(native_, statTypes);
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::adapter::RTCPeerConnection::wrapper_init_org_ortc_adapter_RTCPeerConnection()
+void wrapper::impl::org::ortc::adapter::RTCPeerConnection::wrapper_init_org_ortc_adapter_RTCPeerConnection() noexcept
 {
   native_ = NativeType::create(thisWeak_.lock());
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::adapter::RTCPeerConnection::wrapper_init_org_ortc_adapter_RTCPeerConnection(wrapper::org::ortc::adapter::RTCConfigurationPtr configuration)
+void wrapper::impl::org::ortc::adapter::RTCPeerConnection::wrapper_init_org_ortc_adapter_RTCPeerConnection(wrapper::org::ortc::adapter::RTCConfigurationPtr configuration) noexcept
 {
   auto native = RTCConfiguration::toNative(configuration);
-  ZS_THROW_INVALID_ARGUMENT_IF(!native);
+  ZS_ASSERT(native);
   native_ = NativeType::create(thisWeak_.lock(), *native);
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > wrapper::impl::org::ortc::adapter::RTCPeerConnection::createOffer()
+shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > wrapper::impl::org::ortc::adapter::RTCPeerConnection::createOffer() noexcept
 {
   return toWrapper(native_->createOffer());
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > wrapper::impl::org::ortc::adapter::RTCPeerConnection::createOffer(wrapper::org::ortc::adapter::RTCOfferOptionsPtr options)
+shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > wrapper::impl::org::ortc::adapter::RTCPeerConnection::createOffer(wrapper::org::ortc::adapter::RTCOfferOptionsPtr options) noexcept
 {
   Optional< ::ortc::adapter::IPeerConnectionTypes::OfferOptions > native;
   auto convert = RTCOfferOptions::toNative(options);
@@ -102,13 +102,13 @@ shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::adapter::RTCSessionDescrip
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > wrapper::impl::org::ortc::adapter::RTCPeerConnection::createAnswer()
+shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > wrapper::impl::org::ortc::adapter::RTCPeerConnection::createAnswer() noexcept
 {
   return toWrapper(native_->createAnswer());
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > wrapper::impl::org::ortc::adapter::RTCPeerConnection::createAnswer(wrapper::org::ortc::adapter::RTCAnswerOptionsPtr options)
+shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > wrapper::impl::org::ortc::adapter::RTCPeerConnection::createAnswer(wrapper::org::ortc::adapter::RTCAnswerOptionsPtr options) noexcept
 {
   Optional< ::ortc::adapter::IPeerConnectionTypes::AnswerOptions > native;
   auto convert = RTCAnswerOptions::toNative(options);
@@ -120,13 +120,13 @@ shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::adapter::RTCSessionDescrip
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > wrapper::impl::org::ortc::adapter::RTCPeerConnection::createCapabilities()
+shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > wrapper::impl::org::ortc::adapter::RTCPeerConnection::createCapabilities() noexcept
 {
   return toWrapper(native_->createCapabilities());
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > wrapper::impl::org::ortc::adapter::RTCPeerConnection::createCapabilities(wrapper::org::ortc::adapter::RTCCapabilityOptionsPtr options)
+shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > wrapper::impl::org::ortc::adapter::RTCPeerConnection::createCapabilities(wrapper::org::ortc::adapter::RTCCapabilityOptionsPtr options) noexcept
 {
   Optional< ::ortc::adapter::IPeerConnectionTypes::CapabilityOptions > native;
   auto convert = RTCCapabilityOptions::toNative(options);
@@ -138,27 +138,27 @@ shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::adapter::RTCSessionDescrip
 }
 
 //------------------------------------------------------------------------------
-PromisePtr wrapper::impl::org::ortc::adapter::RTCPeerConnection::setLocalDescription(wrapper::org::ortc::adapter::RTCSessionDescriptionPtr description)
+PromisePtr wrapper::impl::org::ortc::adapter::RTCPeerConnection::setLocalDescription(wrapper::org::ortc::adapter::RTCSessionDescriptionPtr description) noexcept
 {
   return Helper::toWrapper(native_->setLocalDescription(RTCSessionDescription::toNative(description)));
 }
 
 //------------------------------------------------------------------------------
-PromisePtr wrapper::impl::org::ortc::adapter::RTCPeerConnection::setRemoteDescription(wrapper::org::ortc::adapter::RTCSessionDescriptionPtr description)
+PromisePtr wrapper::impl::org::ortc::adapter::RTCPeerConnection::setRemoteDescription(wrapper::org::ortc::adapter::RTCSessionDescriptionPtr description) noexcept
 {
   return Helper::toWrapper(native_->setRemoteDescription(RTCSessionDescription::toNative(description)));
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::adapter::RTCPeerConnection::addIceCandidate(wrapper::org::ortc::adapter::RTCIceCandidatePtr candidate)
+void wrapper::impl::org::ortc::adapter::RTCPeerConnection::addIceCandidate(wrapper::org::ortc::adapter::RTCIceCandidatePtr candidate) noexcept
 {
   auto native = RTCIceCandidate::toNative(candidate);
-  ZS_THROW_INVALID_ARGUMENT_IF(!native);
+  ZS_ASSERT(native);
   native_->addICECandidate(*native);
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< list< wrapper::org::ortc::RTCIceServerPtr > > wrapper::impl::org::ortc::adapter::RTCPeerConnection::getDefaultIceServers()
+shared_ptr< list< wrapper::org::ortc::RTCIceServerPtr > > wrapper::impl::org::ortc::adapter::RTCPeerConnection::getDefaultIceServers() noexcept
 {
   auto resultList = make_shared< list< wrapper::org::ortc::RTCIceServerPtr > >();
   auto nativeList = native_->getDefaultIceServers();
@@ -173,13 +173,13 @@ shared_ptr< list< wrapper::org::ortc::RTCIceServerPtr > > wrapper::impl::org::or
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::adapter::RTCPeerConnection::close()
+void wrapper::impl::org::ortc::adapter::RTCPeerConnection::close() noexcept
 {
   native_->close();
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< list< wrapper::org::ortc::RTCRtpSenderPtr > > wrapper::impl::org::ortc::adapter::RTCPeerConnection::getSenders()
+shared_ptr< list< wrapper::org::ortc::RTCRtpSenderPtr > > wrapper::impl::org::ortc::adapter::RTCPeerConnection::getSenders() noexcept
 {
   auto resultList = make_shared< list< wrapper::org::ortc::RTCRtpSenderPtr > >();
   auto nativeList = native_->getSenders();
@@ -194,7 +194,7 @@ shared_ptr< list< wrapper::org::ortc::RTCRtpSenderPtr > > wrapper::impl::org::or
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< list< wrapper::org::ortc::RTCRtpReceiverPtr > > wrapper::impl::org::ortc::adapter::RTCPeerConnection::getReceivers()
+shared_ptr< list< wrapper::org::ortc::RTCRtpReceiverPtr > > wrapper::impl::org::ortc::adapter::RTCPeerConnection::getReceivers() noexcept
 {
   auto resultList = make_shared< list< wrapper::org::ortc::RTCRtpReceiverPtr > >();
   auto nativeList = native_->getReceivers();
@@ -209,7 +209,7 @@ shared_ptr< list< wrapper::org::ortc::RTCRtpReceiverPtr > > wrapper::impl::org::
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCRtpSenderPtr > > wrapper::impl::org::ortc::adapter::RTCPeerConnection::addTrack(wrapper::org::ortc::MediaStreamTrackPtr track)
+shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCRtpSenderPtr > > wrapper::impl::org::ortc::adapter::RTCPeerConnection::addTrack(wrapper::org::ortc::MediaStreamTrackPtr track) noexcept
 {
   return toWrapper(native_->addTrack(MediaStreamTrack::toNative(track)));
 }
@@ -218,11 +218,11 @@ shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCRtpSenderPtr > > wrappe
 shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCRtpSenderPtr > > wrapper::impl::org::ortc::adapter::RTCPeerConnection::addTrack(
   wrapper::org::ortc::MediaStreamTrackPtr track,
   wrapper::org::ortc::adapter::RTCMediaStreamTrackConfigurationPtr config
-  )
+  ) noexcept
 {
   auto nativeTrack = MediaStreamTrack::toNative(track);
   auto nativeConfig = RTCMediaStreamTrackConfiguration::toNative(config);
-  ZS_THROW_INVALID_ARGUMENT_IF(!nativeConfig);
+  ZS_ASSERT(nativeConfig);
 
   return toWrapper(native_->addTrack(nativeTrack, *nativeConfig));
 }
@@ -232,7 +232,7 @@ shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCRtpSenderPtr > > wrappe
   wrapper::org::ortc::MediaStreamTrackPtr track,
   shared_ptr< list< wrapper::org::ortc::adapter::MediaStreamPtr > > mediaStreams,
   wrapper::org::ortc::adapter::RTCMediaStreamTrackConfigurationPtr config
-  )
+  ) noexcept
 {
   auto nativeTrack = MediaStreamTrack::toNative(track);
   list<::ortc::adapter::IMediaStreamPtr> nativeList;
@@ -244,120 +244,120 @@ shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCRtpSenderPtr > > wrappe
     }
   }
   auto nativeConfig = RTCMediaStreamTrackConfiguration::toNative(config);
-  ZS_THROW_INVALID_ARGUMENT_IF(!nativeConfig);
+  ZS_ASSERT(nativeConfig);
 
   return toWrapper(native_->addTrack(nativeTrack, nativeList, *nativeConfig));
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::adapter::RTCPeerConnection::removeTrack(wrapper::org::ortc::RTCRtpSenderPtr sender)
+void wrapper::impl::org::ortc::adapter::RTCPeerConnection::removeTrack(wrapper::org::ortc::RTCRtpSenderPtr sender) noexcept
 {
   native_->removeTrack(RTCRtpSender::toNative(sender));
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCDataChannelPtr > > wrapper::impl::org::ortc::adapter::RTCPeerConnection::createDataChannel(wrapper::org::ortc::RTCDataChannelParametersPtr parameters)
+shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCDataChannelPtr > > wrapper::impl::org::ortc::adapter::RTCPeerConnection::createDataChannel(wrapper::org::ortc::RTCDataChannelParametersPtr parameters) noexcept
 {
   auto native = RTCDataChannelParameters::toNative(parameters);
-  ZS_THROW_INVALID_ARGUMENT_IF(!native);
+  ZS_ASSERT(!native);
   return toWrapper(native_->createDataChannel(*native));
 }
 
 //------------------------------------------------------------------------------
-uint64_t wrapper::impl::org::ortc::adapter::RTCPeerConnection::get_objectId()
+uint64_t wrapper::impl::org::ortc::adapter::RTCPeerConnection::get_objectId() noexcept
 {
   return native_->getID();
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::adapter::RTCSessionDescriptionPtr wrapper::impl::org::ortc::adapter::RTCPeerConnection::get_localDescription()
+wrapper::org::ortc::adapter::RTCSessionDescriptionPtr wrapper::impl::org::ortc::adapter::RTCPeerConnection::get_localDescription() noexcept
 {
   return RTCSessionDescription::toWrapper(native_->localDescription());
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::adapter::RTCSessionDescriptionPtr wrapper::impl::org::ortc::adapter::RTCPeerConnection::get_currentDescription()
+wrapper::org::ortc::adapter::RTCSessionDescriptionPtr wrapper::impl::org::ortc::adapter::RTCPeerConnection::get_currentDescription() noexcept
 {
   return RTCSessionDescription::toWrapper(native_->currentDescription());
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::adapter::RTCSessionDescriptionPtr wrapper::impl::org::ortc::adapter::RTCPeerConnection::get_pendingDescription()
+wrapper::org::ortc::adapter::RTCSessionDescriptionPtr wrapper::impl::org::ortc::adapter::RTCPeerConnection::get_pendingDescription() noexcept
 {
   return RTCSessionDescription::toWrapper(native_->pendingDescription());
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::adapter::RTCSessionDescriptionPtr wrapper::impl::org::ortc::adapter::RTCPeerConnection::get_remoteDescription()
+wrapper::org::ortc::adapter::RTCSessionDescriptionPtr wrapper::impl::org::ortc::adapter::RTCPeerConnection::get_remoteDescription() noexcept
 {
   return RTCSessionDescription::toWrapper(native_->remoteDescription());
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::adapter::RTCSessionDescriptionPtr wrapper::impl::org::ortc::adapter::RTCPeerConnection::get_currentRemoteDescription()
+wrapper::org::ortc::adapter::RTCSessionDescriptionPtr wrapper::impl::org::ortc::adapter::RTCPeerConnection::get_currentRemoteDescription() noexcept
 {
   return RTCSessionDescription::toWrapper(native_->currentRemoteDescription());
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::adapter::RTCSessionDescriptionPtr wrapper::impl::org::ortc::adapter::RTCPeerConnection::get_pendingRemoteDescription()
+wrapper::org::ortc::adapter::RTCSessionDescriptionPtr wrapper::impl::org::ortc::adapter::RTCPeerConnection::get_pendingRemoteDescription() noexcept
 {
   return RTCSessionDescription::toWrapper(native_->pendingRemoteDescription());
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::adapter::RTCSignalingState wrapper::impl::org::ortc::adapter::RTCPeerConnection::get_signalingState()
+wrapper::org::ortc::adapter::RTCSignalingState wrapper::impl::org::ortc::adapter::RTCPeerConnection::get_signalingState() noexcept
 {
   return Helper::toWrapper(native_->signalingState());
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCIceGathererState wrapper::impl::org::ortc::adapter::RTCPeerConnection::get_iceGatheringState()
+wrapper::org::ortc::RTCIceGathererState wrapper::impl::org::ortc::adapter::RTCPeerConnection::get_iceGatheringState() noexcept
 {
   return Helper::toWrapper(native_->iceGatheringState());
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::adapter::RTCIceConnectionState wrapper::impl::org::ortc::adapter::RTCPeerConnection::get_iceConnectionState()
+wrapper::org::ortc::adapter::RTCIceConnectionState wrapper::impl::org::ortc::adapter::RTCPeerConnection::get_iceConnectionState() noexcept
 {
   return Helper::toPeerConnectionWrapper(native_->iceConnectionState());
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::adapter::RTCPeerConnectionState wrapper::impl::org::ortc::adapter::RTCPeerConnection::get_connectionState()
+wrapper::org::ortc::adapter::RTCPeerConnectionState wrapper::impl::org::ortc::adapter::RTCPeerConnection::get_connectionState() noexcept
 {
   return Helper::toWrapper(native_->connectionState());
 }
 
 //------------------------------------------------------------------------------
-bool wrapper::impl::org::ortc::adapter::RTCPeerConnection::get_canTrickleCandidates()
+bool wrapper::impl::org::ortc::adapter::RTCPeerConnection::get_canTrickleCandidates() noexcept
 {
   return native_->canTrickleCandidates();
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::adapter::RTCConfigurationPtr wrapper::impl::org::ortc::adapter::RTCPeerConnection::get_getConfiguration()
+wrapper::org::ortc::adapter::RTCConfigurationPtr wrapper::impl::org::ortc::adapter::RTCPeerConnection::get_getConfiguration() noexcept
 {
   return RTCConfiguration::toWrapper(native_->getConfiguration());
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::adapter::RTCPeerConnection::set_getConfiguration(wrapper::org::ortc::adapter::RTCConfigurationPtr value)
+void wrapper::impl::org::ortc::adapter::RTCPeerConnection::set_getConfiguration(wrapper::org::ortc::adapter::RTCConfigurationPtr value) noexcept
 {
   auto native = RTCConfiguration::toNative(value);
-  ZS_THROW_INVALID_ARGUMENT_IF(!native);
+  ZS_ASSERT(native);
   native_->setConfiguration(*native);
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::adapter::RTCPeerConnection::wrapper_onObserverCountChanged(size_t count)
+void wrapper::impl::org::ortc::adapter::RTCPeerConnection::wrapper_onObserverCountChanged(size_t count) noexcept
 {
   subscriptionCount_ = count;
   subscribe();
 }
 
 //------------------------------------------------------------------------------
-void WrapperImplType::onPeerConnectionNegotiationNeeded(IPeerConnectionPtr connection)
+void WrapperImplType::onPeerConnectionNegotiationNeeded(IPeerConnectionPtr connection) noexcept
 {
   onNegotiationNeeded();
 }
@@ -367,7 +367,7 @@ void WrapperImplType::onPeerConnectionIceCandidate(
   IPeerConnectionPtr connection,
   ICECandidatePtr candidate,
   const char *url
-)
+) noexcept
 {
   onIceCandidate(RTCPeerConnectionIceEvent::toWrapper(candidate, String(url)));
 }
@@ -376,7 +376,7 @@ void WrapperImplType::onPeerConnectionIceCandidate(
 void WrapperImplType::onPeerConnectionIceCandidateError(
   IPeerConnectionPtr connection,
   ICECandidateErrorEventPtr error
-)
+) noexcept
 {
   onIceCandidateError(RTCPeerConnectionIceErrorEvent::toWrapper(error));
 }
@@ -384,36 +384,40 @@ void WrapperImplType::onPeerConnectionIceCandidateError(
 //------------------------------------------------------------------------------
 void WrapperImplType::onPeerConnectionSignalingStateChange(
   IPeerConnectionPtr connection,
-  SignalingStates state
-)
+  ZS_MAYBE_USED() SignalingStates state
+) noexcept
 {
+  ZS_MAYBE_USED(state);
   onSignalingStateChange();
 }
 
 //------------------------------------------------------------------------------
 void WrapperImplType::onPeerConnectionICEGatheringStateChange(
   IPeerConnectionPtr connection,
-  ICEGatheringStates state
-)
+  ZS_MAYBE_USED() ICEGatheringStates state
+) noexcept
 {
+  ZS_MAYBE_USED(state);
   onIceGatheringStateChange();
 }
 
 //------------------------------------------------------------------------------
 void WrapperImplType::onPeerConnectionICEConnectionStateChange(
   IPeerConnectionPtr connection,
-  ICEConnectionStates state
-)
+  ZS_MAYBE_USED() ICEConnectionStates state
+) noexcept
 {
+  ZS_MAYBE_USED(state);
   onIceConnectionStateChange();
 }
 
 //------------------------------------------------------------------------------
 void WrapperImplType::onPeerConnectionConnectionStateChange(
   IPeerConnectionPtr connection,
-  PeerConnectionStates state
-)
+  ZS_MAYBE_USED() PeerConnectionStates state
+) noexcept
 {
+  ZS_MAYBE_USED(state);
   onConnectionStateChange();
 }
 
@@ -421,7 +425,7 @@ void WrapperImplType::onPeerConnectionConnectionStateChange(
 void WrapperImplType::onPeerConnectionTrack(
   IPeerConnectionPtr connection,
   MediaStreamTrackEventPtr event
-)
+) noexcept
 {
   onTrack(RTCTrackEvent::toWrapper(event));
 }
@@ -430,7 +434,7 @@ void WrapperImplType::onPeerConnectionTrack(
 void WrapperImplType::onPeerConnectionTrackGone(
   IPeerConnectionPtr connection,
   MediaStreamTrackEventPtr event
-)
+) noexcept
 {
   onTrackGone(RTCTrackEvent::toWrapper(event));
 }
@@ -439,13 +443,13 @@ void WrapperImplType::onPeerConnectionTrackGone(
 void WrapperImplType::onPeerConnectionDataChannel(
   IPeerConnectionPtr connection,
   IDataChannelPtr dataChannel
-)
+) noexcept
 {
   onDataChannel(RTCDataChannelEvent::toWrapper(dataChannel));
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr track)
+WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr track) noexcept
 {
   if (!track) return WrapperImplTypePtr();
 
@@ -458,7 +462,7 @@ WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr track)
 }
 
 //------------------------------------------------------------------------------
-NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper)
+NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper) noexcept
 {
   if (!wrapper) return NativeTypePtr();
   auto result = std::dynamic_pointer_cast<WrapperImplType>(wrapper);
@@ -467,7 +471,7 @@ NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper)
 }
 
 //------------------------------------------------------------------------------
-void WrapperImplType::subscribe()
+void WrapperImplType::subscribe() noexcept
 {
   if (defaultSubscription_) return;
   if (!native_) return;
@@ -483,7 +487,7 @@ void WrapperImplType::subscribe()
 }
 
 //------------------------------------------------------------------------------
-WrapperImplType::WrapperPromiseWithSessionDescriptionPtr WrapperImplType::toWrapper(NativePromiseWithSessionDescriptionPtr promise)
+WrapperImplType::WrapperPromiseWithSessionDescriptionPtr WrapperImplType::toWrapper(NativePromiseWithSessionDescriptionPtr promise) noexcept
 {
   if (!promise) return WrapperPromiseWithSessionDescriptionPtr();
 
@@ -500,7 +504,7 @@ WrapperImplType::WrapperPromiseWithSessionDescriptionPtr WrapperImplType::toWrap
 }
 
 //------------------------------------------------------------------------------
-WrapperImplType::WrapperPromiseWithSenderPtr WrapperImplType::toWrapper(NativePromiseWithSenderPtr promise)
+WrapperImplType::WrapperPromiseWithSenderPtr WrapperImplType::toWrapper(NativePromiseWithSenderPtr promise) noexcept
 {
   if (!promise) return WrapperPromiseWithSenderPtr();
 
@@ -517,7 +521,7 @@ WrapperImplType::WrapperPromiseWithSenderPtr WrapperImplType::toWrapper(NativePr
 }
 
 //------------------------------------------------------------------------------
-WrapperImplType::WrapperPromiseWithDataChannelPtr WrapperImplType::toWrapper(NativePromiseWithDataChannelPtr promise)
+WrapperImplType::WrapperPromiseWithDataChannelPtr WrapperImplType::toWrapper(NativePromiseWithDataChannelPtr promise) noexcept
 {
   if (!promise) return WrapperPromiseWithDataChannelPtr();
 

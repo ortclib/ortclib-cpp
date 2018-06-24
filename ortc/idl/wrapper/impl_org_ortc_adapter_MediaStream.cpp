@@ -29,12 +29,12 @@ using ::std::map;
 namespace wrapper { namespace impl { namespace org { namespace ortc { namespace adapter { ZS_DECLARE_SUBSYSTEM(org_ortc_wrapper_adapter); } } } } }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::adapter::MediaStream::MediaStream()
+wrapper::impl::org::ortc::adapter::MediaStream::MediaStream() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::adapter::MediaStreamPtr wrapper::org::ortc::adapter::MediaStream::wrapper_create()
+wrapper::org::ortc::adapter::MediaStreamPtr wrapper::org::ortc::adapter::MediaStream::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::adapter::MediaStream>();
   pThis->thisWeak_ = pThis;
@@ -42,24 +42,24 @@ wrapper::org::ortc::adapter::MediaStreamPtr wrapper::org::ortc::adapter::MediaSt
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::adapter::MediaStream::~MediaStream()
+wrapper::impl::org::ortc::adapter::MediaStream::~MediaStream() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > wrapper::impl::org::ortc::adapter::MediaStream::getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes)
+shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > wrapper::impl::org::ortc::adapter::MediaStream::getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept(false)
 {
   return Helper::getStats(native_, statTypes);
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::adapter::MediaStream::wrapper_init_org_ortc_adapter_MediaStream()
+void wrapper::impl::org::ortc::adapter::MediaStream::wrapper_init_org_ortc_adapter_MediaStream() noexcept
 {
   native_ = IMediaStream::create(thisWeak_.lock());
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::adapter::MediaStream::wrapper_init_org_ortc_adapter_MediaStream(wrapper::org::ortc::adapter::MediaStreamPtr source)
+void wrapper::impl::org::ortc::adapter::MediaStream::wrapper_init_org_ortc_adapter_MediaStream(wrapper::org::ortc::adapter::MediaStreamPtr source) noexcept
 {
   if (!source) {
     wrapper_init_org_ortc_adapter_MediaStream();
@@ -69,7 +69,7 @@ void wrapper::impl::org::ortc::adapter::MediaStream::wrapper_init_org_ortc_adapt
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::adapter::MediaStream::wrapper_init_org_ortc_adapter_MediaStream(shared_ptr< list< wrapper::org::ortc::MediaStreamTrackPtr > > tracks)
+void wrapper::impl::org::ortc::adapter::MediaStream::wrapper_init_org_ortc_adapter_MediaStream(shared_ptr< list< wrapper::org::ortc::MediaStreamTrackPtr > > tracks) noexcept
 {
   if (!tracks) {
     wrapper_init_org_ortc_adapter_MediaStream();
@@ -80,7 +80,7 @@ void wrapper::impl::org::ortc::adapter::MediaStream::wrapper_init_org_ortc_adapt
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::MediaStreamTrackPtr wrapper::impl::org::ortc::adapter::MediaStream::getTrackById(String id)
+wrapper::org::ortc::MediaStreamTrackPtr wrapper::impl::org::ortc::adapter::MediaStream::getTrackById(String id) noexcept
 {
   if (!native_) return MediaStreamTrackPtr();
 
@@ -91,69 +91,69 @@ wrapper::org::ortc::MediaStreamTrackPtr wrapper::impl::org::ortc::adapter::Media
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::adapter::MediaStream::addTrack(wrapper::org::ortc::MediaStreamTrackPtr track)
+void wrapper::impl::org::ortc::adapter::MediaStream::addTrack(wrapper::org::ortc::MediaStreamTrackPtr track) noexcept(false)
 {
   if (!track) return;
   native_->addTrack(wrapper::impl::org::ortc::MediaStreamTrack::toNative(track));
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::adapter::MediaStream::removeTrack(wrapper::org::ortc::MediaStreamTrackPtr track)
+void wrapper::impl::org::ortc::adapter::MediaStream::removeTrack(wrapper::org::ortc::MediaStreamTrackPtr track) noexcept
 {
   if (!track) return;
   native_->removeTrack(wrapper::impl::org::ortc::MediaStreamTrack::toNative(track));
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::adapter::MediaStreamPtr wrapper::impl::org::ortc::adapter::MediaStream::clone()
+wrapper::org::ortc::adapter::MediaStreamPtr wrapper::impl::org::ortc::adapter::MediaStream::clone() noexcept
 {
   return toWrapper(native_->clone());
 }
 
 //------------------------------------------------------------------------------
-uint64_t wrapper::impl::org::ortc::adapter::MediaStream::get_objectId()
+uint64_t wrapper::impl::org::ortc::adapter::MediaStream::get_objectId() noexcept
 {
   return native_->getID();
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::ortc::adapter::MediaStream::get_id()
+String wrapper::impl::org::ortc::adapter::MediaStream::get_id() noexcept
 {
   return native_->id();
 }
 
 //------------------------------------------------------------------------------
-bool wrapper::impl::org::ortc::adapter::MediaStream::get_active()
+bool wrapper::impl::org::ortc::adapter::MediaStream::get_active() noexcept
 {
   return native_->active();
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< list< wrapper::org::ortc::MediaStreamTrackPtr > > wrapper::impl::org::ortc::adapter::MediaStream::get_tracks()
+shared_ptr< list< wrapper::org::ortc::MediaStreamTrackPtr > > wrapper::impl::org::ortc::adapter::MediaStream::get_tracks() noexcept
 {
   return Helper::toWrapper(native_->getTracks());
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< list< wrapper::org::ortc::MediaStreamTrackPtr > > wrapper::impl::org::ortc::adapter::MediaStream::get_audioTracks()
+shared_ptr< list< wrapper::org::ortc::MediaStreamTrackPtr > > wrapper::impl::org::ortc::adapter::MediaStream::get_audioTracks() noexcept
 {
   return Helper::toWrapper(native_->getAudioTracks());
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< list< wrapper::org::ortc::MediaStreamTrackPtr > > wrapper::impl::org::ortc::adapter::MediaStream::get_videoTracks()
+shared_ptr< list< wrapper::org::ortc::MediaStreamTrackPtr > > wrapper::impl::org::ortc::adapter::MediaStream::get_videoTracks() noexcept
 {
   return Helper::toWrapper(native_->getVideoTracks());
 }
 
 //------------------------------------------------------------------------------
-uint64_t wrapper::impl::org::ortc::adapter::MediaStream::get_count()
+uint64_t wrapper::impl::org::ortc::adapter::MediaStream::get_count() noexcept
 {
   return native_->size();
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::adapter::MediaStream::wrapper_onObserverCountChanged(size_t count)
+void wrapper::impl::org::ortc::adapter::MediaStream::wrapper_onObserverCountChanged(size_t count) noexcept
 {
   subscriptionCount_ = count;
   subscribe();
@@ -163,7 +163,7 @@ void wrapper::impl::org::ortc::adapter::MediaStream::wrapper_onObserverCountChan
 void wrapper::impl::org::ortc::adapter::MediaStream::onMediaStreamAddTrack(
                                                                            IMediaStreamPtr stream,
                                                                            IMediaStreamTrackPtr track
-                                                                           )
+                                                                           ) noexcept
 {
   onAddTrack(wrapper::impl::org::ortc::MediaStreamTrack::toWrapper(track));
 }
@@ -172,13 +172,13 @@ void wrapper::impl::org::ortc::adapter::MediaStream::onMediaStreamAddTrack(
 void wrapper::impl::org::ortc::adapter::MediaStream::onMediaStreamRemoveTrack(
                                                                               IMediaStreamPtr stream,
                                                                               IMediaStreamTrackPtr track
-                                                                              )
+                                                                              ) noexcept
 {
   onRemoveTrack(wrapper::impl::org::ortc::MediaStreamTrack::toWrapper(track));
 }
 
 //------------------------------------------------------------------------------
-::wrapper::impl::org::ortc::adapter::MediaStreamPtr wrapper::impl::org::ortc::adapter::MediaStream::toWrapper(IMediaStreamPtr native)
+::wrapper::impl::org::ortc::adapter::MediaStreamPtr wrapper::impl::org::ortc::adapter::MediaStream::toWrapper(IMediaStreamPtr native) noexcept
 {
   if (!native) return MediaStreamPtr();
 
@@ -191,7 +191,7 @@ void wrapper::impl::org::ortc::adapter::MediaStream::onMediaStreamRemoveTrack(
 }
 
 //------------------------------------------------------------------------------
-::ortc::adapter::IMediaStreamPtr wrapper::impl::org::ortc::adapter::MediaStream::toNative(::wrapper::org::ortc::adapter::MediaStreamPtr wrapper)
+::ortc::adapter::IMediaStreamPtr wrapper::impl::org::ortc::adapter::MediaStream::toNative(::wrapper::org::ortc::adapter::MediaStreamPtr wrapper) noexcept
 {
   if (!wrapper) return IMediaStreamPtr();
   auto result = std::dynamic_pointer_cast<wrapper::impl::org::ortc::adapter::MediaStream>(wrapper);
@@ -200,7 +200,7 @@ void wrapper::impl::org::ortc::adapter::MediaStream::onMediaStreamRemoveTrack(
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::adapter::MediaStream::subscribe()
+void wrapper::impl::org::ortc::adapter::MediaStream::subscribe() noexcept
 {
   if (defaultSubscription_) return;
   if (!native_) return;

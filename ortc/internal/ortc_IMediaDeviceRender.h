@@ -53,9 +53,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaDeviceRender
-    #pragma mark
+    //
+    // IMediaDeviceRender
+    //
 
     interaction IMediaDeviceRender : public IMediaDevice
     {
@@ -76,18 +76,18 @@ namespace ortc
                                                 MediaDeviceObjectID repaceExistingDeviceObjectID,
                                                 const TrackConstraints &constraints,
                                                 IMediaDeviceRenderDelegatePtr delegate
-                                                );
+                                                ) noexcept;
 
       virtual void notifyAudioFrame(
                                     ImmutableMediaChannelTracePtr trace,
                                     AudioFramePtr frame
-                                    ) = 0;
+                                    ) noexcept = 0;
       virtual void notifyVideoFrame(
                                     ImmutableMediaChannelTracePtr trace,
                                     VideoFramePtr frame
-                                    ) = 0;
+                                    ) noexcept = 0;
 
-      virtual ~IMediaDeviceRender() {}
+      virtual ~IMediaDeviceRender() noexcept {}
     };
 
     
@@ -95,25 +95,25 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaDeviceRenderAudio
-    #pragma mark
+    //
+    // IMediaDeviceRenderAudio
+    //
 
     interaction IMediaDeviceRenderAudio : public IMediaDeviceRender
     {
-      virtual void notifyVideoFrame(
-                                    ImmutableMediaChannelTracePtr trace,
-                                    VideoFramePtr frame
-                                    ) override {} // ignored
+      void notifyVideoFrame(
+                            ImmutableMediaChannelTracePtr trace,
+                            VideoFramePtr frame
+                            ) noexcept override {} // ignored
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaDeviceRenderDelegate
-    #pragma mark
+    //
+    // IMediaDeviceRenderDelegate
+    //
 
     interaction IMediaDeviceRenderDelegate
     {
@@ -124,33 +124,33 @@ namespace ortc
                                                    States state
                                                    ) = 0;
 
-      virtual ~IMediaDeviceRenderDelegate() {}
+      virtual ~IMediaDeviceRenderDelegate() noexcept {}
     };
 
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaDeviceRenderSubscription
-    #pragma mark
+    //
+    // IMediaDeviceRenderSubscription
+    //
 
     interaction IMediaDeviceRenderSubscription
     {
-      virtual PUID getID() const = 0;
+      virtual PUID getID() const noexcept = 0;
 
-      virtual void cancel() = 0;
+      virtual void cancel() noexcept = 0;
 
-      virtual void background() = 0;
+      virtual void background() noexcept = 0;
     };
 
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaDeviceRenderForMediaEngine
-    #pragma mark
+    //
+    // IMediaDeviceRenderForMediaEngine
+    //
 
     interaction IMediaDeviceRenderForMediaEngine : public IMediaDeviceForMediaEngine
     {
@@ -167,16 +167,16 @@ namespace ortc
                                               MediaDeviceObjectID repaceExistingDeviceObjectID,
                                               TrackConstraintsPtr constraints,
                                               IMediaDeviceRenderDelegatePtr delegate
-                                              ) = 0;
+                                              ) noexcept = 0;
     };
 
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaDeviceRenderAudioForMediaEngine
-    #pragma mark
+    //
+    // IMediaDeviceRenderAudioForMediaEngine
+    //
 
     interaction IMediaDeviceRenderAudioForMediaEngine : public IMediaDeviceRenderForMediaEngine
     {
@@ -187,7 +187,7 @@ namespace ortc
       static ForMediaEnginePtr create(
                                       UseMediaEnginePtr mediaEngine,
                                       const String &deviceID
-                                      );
+                                      ) noexcept;
     };
 
   }
@@ -197,11 +197,11 @@ namespace ortc
 ZS_DECLARE_PROXY_BEGIN(ortc::internal::IMediaDeviceRenderDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::IMediaDeviceRenderPtr, IMediaDeviceRenderPtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::IMediaDevice::States, States)
-ZS_DECLARE_PROXY_METHOD_2(onMediaDeviceRenderStateChanged, IMediaDeviceRenderPtr, States)
+ZS_DECLARE_PROXY_METHOD(onMediaDeviceRenderStateChanged, IMediaDeviceRenderPtr, States)
 ZS_DECLARE_PROXY_END()
 
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_BEGIN(ortc::internal::IMediaDeviceRenderDelegate, ortc::internal::IMediaDeviceRenderSubscription)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::internal::IMediaDeviceRenderPtr, IMediaDeviceRenderPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::internal::IMediaDevice::States, States)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onMediaDeviceRenderStateChanged, IMediaDeviceRenderPtr, States)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD(onMediaDeviceRenderStateChanged, IMediaDeviceRenderPtr, States)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()

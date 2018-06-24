@@ -65,12 +65,12 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark Helpers
-      #pragma mark
+      //
+      // Helpers
+      //
 
       //-----------------------------------------------------------------------
-      static Log::Params slog(const char *message)
+      static Log::Params slog(const char *message) noexcept
       {
         return Log::Params(message, "ortc::adapter::SDPParser");
       }
@@ -79,12 +79,12 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark ISDPTypes
-      #pragma mark
+      //
+      // ISDPTypes
+      //
 
       //-----------------------------------------------------------------------
-      const char *ISDPTypes::toString(LineTypes type)
+      const char *ISDPTypes::toString(LineTypes type) noexcept(false)
       {
         switch (type)
         {
@@ -103,7 +103,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      ISDPTypes::LineTypes ISDPTypes::toLineType(const char *type)
+      ISDPTypes::LineTypes ISDPTypes::toLineType(const char *type) noexcept
       {
         String str(type);
         
@@ -128,7 +128,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      ISDPTypes::LineTypes ISDPTypes::toLineType(const char type)
+      ISDPTypes::LineTypes ISDPTypes::toLineType(const char type) noexcept
       {
         Optional<ISDPTypes::LineTypes> result;
 
@@ -150,7 +150,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      const char *ISDPTypes::toString(Attributes attribute)
+      const char *ISDPTypes::toString(Attributes attribute) noexcept
       {
         switch (attribute)
         {
@@ -190,11 +190,12 @@ namespace ortc
           case Attribute_SCTPPort:          return "sctp-port";
           case Attribute_MaxMessageSize:    return "max-message-size";
         }
-        ORTC_THROW_NOT_SUPPORTED_ERRROR("unknown attribute");
+        ZS_ASSERT_FAIL("unknown attribute");
+        return "";
       }
 
       //-----------------------------------------------------------------------
-      bool ISDPTypes::requiresValue(Attributes attribute)
+      bool ISDPTypes::requiresValue(Attributes attribute) noexcept
       {
         switch (attribute)
         {
@@ -238,7 +239,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      bool ISDPTypes::requiresEmptyValue(Attributes attribute)
+      bool ISDPTypes::requiresEmptyValue(Attributes attribute) noexcept
       {
         switch (attribute)
         {
@@ -282,7 +283,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      ISDPTypes::Attributes ISDPTypes::toAttribute(const char *attribute)
+      ISDPTypes::Attributes ISDPTypes::toAttribute(const char *attribute) noexcept
       {
         String str(attribute);
         for (Attributes index = Attribute_First; index <= Attribute_Last; index = static_cast<Attributes>(static_cast<std::underlying_type<Attributes>::type>(index) + 1)) {
@@ -293,7 +294,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      const char *ISDPTypes::toString(AttributeLevels level)
+      const char *ISDPTypes::toString(AttributeLevels level) noexcept
       {
         switch (level)
         {
@@ -306,11 +307,12 @@ namespace ortc
           case AttributeLevel_MediaAndSource:       return "media+source";
           case AttributeLevel_All:                  return "all";
         }
-        ORTC_THROW_NOT_SUPPORTED_ERRROR("unknown attribute level");
+        ZS_ASSERT_FAIL("unknown attribute level");
+        return "unknown";
       }
 
       //-----------------------------------------------------------------------
-      ISDPTypes::AttributeLevels ISDPTypes::toAttributeLevel(const char *level)
+      ISDPTypes::AttributeLevels ISDPTypes::toAttributeLevel(const char *level) noexcept(false)
       {
         static AttributeLevels check[] =
         {
@@ -332,7 +334,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      ISDPTypes::AttributeLevels ISDPTypes::getAttributeLevel(LineTypes lineType)
+      ISDPTypes::AttributeLevels ISDPTypes::getAttributeLevel(LineTypes lineType) noexcept
       {
         switch (lineType)
         {
@@ -347,11 +349,12 @@ namespace ortc
           case LineType_m_MediaLine:          return AttributeLevel_Session;
           case LineType_c_ConnectionDataLine: return AttributeLevel_SessionAndMedia;
         }
-        ORTC_THROW_NOT_SUPPORTED_ERRROR("unknown line type");
+        ZS_ASSERT_FAIL("unknown line type");
+        return AttributeLevel_None;
       }
 
       //-----------------------------------------------------------------------
-      ISDPTypes::AttributeLevels ISDPTypes::getAttributeLevel(Attributes attribute)
+      ISDPTypes::AttributeLevels ISDPTypes::getAttributeLevel(Attributes attribute) noexcept
       {
         switch (attribute)
         {
@@ -391,14 +394,15 @@ namespace ortc
           case Attribute_SCTPPort:          return AttributeLevel_Media;
           case Attribute_MaxMessageSize:    return AttributeLevel_Media;
         }
-        ORTC_THROW_NOT_SUPPORTED_ERRROR("unknown attribute");
+        ZS_ASSERT_FAIL("unknown attribute");
+        return AttributeLevel_None;
       }
 
       //-----------------------------------------------------------------------
       bool ISDPTypes::supportedAtLevel(
                                        AttributeLevels currentLevel,
                                        LineTypes lineType
-                                       )
+                                       ) noexcept
       {
         auto allowedLevels = getAttributeLevel(lineType);
         return (0 != (allowedLevels & currentLevel));
@@ -408,35 +412,36 @@ namespace ortc
       bool ISDPTypes::supportedAtLevel(
                                        AttributeLevels currentLevel,
                                        Attributes attribute
-                                       )
+                                       ) noexcept
       {
         auto allowedLevels = getAttributeLevel(attribute);
         return (0 != (allowedLevels & currentLevel));
       }
 
       //-----------------------------------------------------------------------
-      const char *ISDPTypes::toString(Locations location)
+      const char *ISDPTypes::toString(Locations location) noexcept
       {
         switch (location)
         {
           case Location_Local:  return "local";
           case Location_Remote: return "remote";
         }
-        ORTC_THROW_NOT_SUPPORTED_ERRROR("unknown location");
+        ZS_ASSERT_FAIL("unknown location");
+        return "";
       }
 
       //-----------------------------------------------------------------------
-      ISDPTypes::Locations ISDPTypes::toLocation(const char *location)
+      ISDPTypes::Locations ISDPTypes::toLocation(const char *location) noexcept(false)
       {
         String str(location);
         for (Locations index = Location_First; index <= Location_Last; index = static_cast<Locations>(static_cast<std::underlying_type<Locations>::type>(index) + 1)) {
           if (0 == str.compare(toString(index))) return index;
         }
-        ORTC_THROW_NOT_SUPPORTED_ERRROR("unknown location");
+        ORTC_THROW_INVALID_PARAMETERS("unknown location");
       }
 
       //-----------------------------------------------------------------------
-      const char *ISDPTypes::toStringForA(Directions direction)
+      const char *ISDPTypes::toStringForA(Directions direction) noexcept
       {
         switch (direction)
         {
@@ -446,11 +451,12 @@ namespace ortc
         case Direction_SendReceive: return "sendrecv";
         }
 
-        ORTC_THROW_NOT_SUPPORTED_ERRROR("unknown direction");
+        ZS_ASSERT_FAIL("unknown direction");
+        return "";
       }
 
       //-----------------------------------------------------------------------
-      const char *ISDPTypes::toStringForRID(Directions direction)
+      const char *ISDPTypes::toStringForRID(Directions direction) noexcept
       {
         switch (direction)
         {
@@ -460,11 +466,12 @@ namespace ortc
           case Direction_SendReceive: return "sendrecv";
         }
 
-        ORTC_THROW_NOT_SUPPORTED_ERRROR("unknown direction");
+        ZS_ASSERT_FAIL("unknown direction");
+        return "";
       }
 
       //-----------------------------------------------------------------------
-      ISDPTypes::Directions ISDPTypes::toDirection(const char *direction)
+      ISDPTypes::Directions ISDPTypes::toDirection(const char *direction) noexcept(false)
       {
         static Directions check[] =
         {
@@ -494,7 +501,7 @@ namespace ortc
                               bool allowSend,
                               bool allowReceive,
                               bool allowSendReceive
-                              )
+                              ) noexcept
       {
         if ((!allowNone) &&
             (Direction_None == direction)) return false;
@@ -508,7 +515,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      const char *ISDPTypes::toString(ActorRoles actor)
+      const char *ISDPTypes::toString(ActorRoles actor) noexcept
       {
         switch (actor)
         {
@@ -516,11 +523,12 @@ namespace ortc
           case ActorRole_Receiver:    return "receiver";
           case ActorRole_Transceiver: return "transceiver";
         }
-        ORTC_THROW_NOT_SUPPORTED_ERRROR("unknown actor role");
+        ZS_ASSERT_FAIL("unknown actor role");
+        return "";
       }
 
       //-----------------------------------------------------------------------
-      ISDPTypes::ActorRoles ISDPTypes::toActorRole(const char *actor)
+      ISDPTypes::ActorRoles ISDPTypes::toActorRole(const char *actor) noexcept(false)
       {
         static ActorRoles check[] =
         {
@@ -543,7 +551,7 @@ namespace ortc
                                    ActorRoles actor,
                                    Locations location,
                                    Directions direction
-                                   )
+                                   ) noexcept
       {
         switch (actor)
         {
@@ -572,11 +580,12 @@ namespace ortc
             }
           }
         }
-        ORTC_THROW_NOT_SUPPORTED_ERRROR("role / location was not found");
+        ZS_ASSERT_FAIL("role / location was not found");
+        return false;
       }
 
       //-----------------------------------------------------------------------
-      const char *ISDPTypes::toString(ProtocolTypes proto)
+      const char *ISDPTypes::toString(ProtocolTypes proto) noexcept
       {
         switch (proto)
         {
@@ -584,11 +593,12 @@ namespace ortc
           case ProtocolType_RTP:      return "UDP/TLS/RTP/SAVPF";
           case ProtocolType_SCTP:     return "UDP/DTLS/SCTP";
         }
-        ORTC_THROW_NOT_SUPPORTED_ERRROR("unknown protocol type");
+        ZS_ASSERT_FAIL("unknown protocol type");
+        return "";
       }
 
       //-----------------------------------------------------------------------
-      ISDPTypes::ProtocolTypes ISDPTypes::toProtocolType(const char *proto)
+      ISDPTypes::ProtocolTypes ISDPTypes::toProtocolType(const char *proto) noexcept(false)
       {
         String str(proto);
         IHelper::SplitMap protoSplit;
@@ -628,12 +638,12 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark LineValue types
-      #pragma mark
+      //
+      // LineValue types
+      //
 
       //-----------------------------------------------------------------------
-      ISDPTypes::VLine::VLine(const char *value)
+      ISDPTypes::VLine::VLine(const char *value) noexcept(false)
       {
         String str(value);
         str.trim();
@@ -648,7 +658,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      ISDPTypes::OLine::OLine(const char *value)
+      ISDPTypes::OLine::OLine(const char *value) noexcept(false)
       {
         IHelper::SplitMap split;
         IHelper::split(String(value), split, " ");
@@ -673,7 +683,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      String ISDPTypes::OLine::toString() const
+      String ISDPTypes::OLine::toString() const noexcept
       {
         String result;
         result.reserve(50);
@@ -692,13 +702,13 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      ISDPTypes::SLine::SLine(const char *value) :
+      ISDPTypes::SLine::SLine(const char *value) noexcept :
           mSessionName(value)
       {
       }
 
       //-----------------------------------------------------------------------
-      ISDPTypes::BLine::BLine(MLinePtr mline, const char *value) :
+      ISDPTypes::BLine::BLine(MLinePtr mline, const char *value) noexcept(false) :
         MediaLine(mline)
       {
         String str(value);
@@ -717,7 +727,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      ISDPTypes::TLine::TLine(const char *value)
+      ISDPTypes::TLine::TLine(const char *value) noexcept(false)
       {
         IHelper::SplitMap split;
         IHelper::split(String(value), split, " ");
@@ -737,7 +747,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      ISDPTypes::MLine::MLine(const char *value)
+      ISDPTypes::MLine::MLine(const char *value) noexcept(false)
       {
         IHelper::SplitMap split;
         IHelper::split(String(value), split, " ");
@@ -779,7 +789,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      String ISDPTypes::MLine::toString() const
+      String ISDPTypes::MLine::toString() const noexcept
       {
         String result;
         result.append(mMedia);
@@ -797,7 +807,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      ISDPTypes::CLine::CLine(MLinePtr mline, const char *value) :
+      ISDPTypes::CLine::CLine(MLinePtr mline, const char *value) noexcept(false) :
         MediaLine(mline)
       {
         IHelper::SplitMap split;
@@ -811,7 +821,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      String ISDPTypes::CLine::toString() const
+      String ISDPTypes::CLine::toString() const noexcept
       {
         String result;
         result.append(mNetType.hasData() ? mNetType : String("IN"));
@@ -826,12 +836,12 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark ALine types
-      #pragma mark
+      //
+      // ALine types
+      //
 
       //-----------------------------------------------------------------------
-      ISDPTypes::AGroupLine::AGroupLine(const char *value)
+      ISDPTypes::AGroupLine::AGroupLine(const char *value) noexcept(false)
       {
         IHelper::SplitMap split;
         IHelper::split(String(value), split, " ");
@@ -847,7 +857,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      String ISDPTypes::AGroupLine::toString() const
+      String ISDPTypes::AGroupLine::toString() const noexcept
       {
         if (mSemantic.isEmpty()) return String();
 
@@ -859,7 +869,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      ISDPTypes::AMSIDLine::AMSIDLine(MLinePtr mline, const char *value) :
+      ISDPTypes::AMSIDLine::AMSIDLine(MLinePtr mline, const char *value) noexcept(false) :
         AMediaLine(mline)
       {
         IHelper::SplitMap split;
@@ -875,7 +885,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      String ISDPTypes::AMSIDLine::toString() const
+      String ISDPTypes::AMSIDLine::toString() const noexcept
       {
         String result;
         result.append("msid:");
@@ -888,7 +898,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      ISDPTypes::AICEUFragLine::AICEUFragLine(MLinePtr mline, const char *value) :
+      ISDPTypes::AICEUFragLine::AICEUFragLine(MLinePtr mline, const char *value) noexcept :
         AMediaLine(mline),
         mICEUFrag(value)
       {
@@ -896,7 +906,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      ISDPTypes::AICEPwdLine::AICEPwdLine(MLinePtr mline, const char *value) :
+      ISDPTypes::AICEPwdLine::AICEPwdLine(MLinePtr mline, const char *value) noexcept :
         AMediaLine(mline),
         mICEPwd(value)
       {
@@ -904,7 +914,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      ISDPTypes::AICEOptionsLine::AICEOptionsLine(MLinePtr mline, const char *value) :
+      ISDPTypes::AICEOptionsLine::AICEOptionsLine(MLinePtr mline, const char *value) noexcept(false) :
         AMediaLine(mline)
       {
         IHelper::SplitMap split;
@@ -919,7 +929,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      String ISDPTypes::AICEOptionsLine::toString() const
+      String ISDPTypes::AICEOptionsLine::toString() const noexcept
       {
         String result;
         result.append("ice-options:");
@@ -928,7 +938,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      ISDPTypes::ACandidateLine::ACandidateLine(MLinePtr mline, const char *value) :
+      ISDPTypes::ACandidateLine::ACandidateLine(MLinePtr mline, const char *value) noexcept(false) :
         AMediaLine(mline)
       {
         IHelper::SplitMap split;
@@ -990,7 +1000,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      String ISDPTypes::ACandidateLine::toString() const
+      String ISDPTypes::ACandidateLine::toString() const noexcept
       {
         String result;
         result.append("candidate:");
@@ -1035,7 +1045,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      ISDPTypes::AFingerprintLine::AFingerprintLine(MLinePtr mline, const char *value) :
+      ISDPTypes::AFingerprintLine::AFingerprintLine(MLinePtr mline, const char *value) noexcept(false) :
         AMediaLine(mline)
       {
         IHelper::SplitMap split;
@@ -1049,7 +1059,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      String ISDPTypes::AFingerprintLine::toString() const
+      String ISDPTypes::AFingerprintLine::toString() const noexcept
       {
         String result;
         if (mHashFunc.isEmpty() && mFingerprint.isEmpty()) return result;
@@ -1062,7 +1072,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      ISDPTypes::ACryptoLine::ACryptoLine(MLinePtr mline, const char *value) :
+      ISDPTypes::ACryptoLine::ACryptoLine(MLinePtr mline, const char *value) noexcept(false) :
         AMediaLine(mline)
       {
         IHelper::SplitMap split;
@@ -1102,7 +1112,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      String ISDPTypes::ACryptoLine::toString() const
+      String ISDPTypes::ACryptoLine::toString() const noexcept
       {
         String result;
         result.append("crypto:");
@@ -1141,7 +1151,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      ISDPTypes::ASetupLine::ASetupLine(MLinePtr mline, const char *value) :
+      ISDPTypes::ASetupLine::ASetupLine(MLinePtr mline, const char *value) noexcept :
         AMediaLine(mline),
         mSetup(value)
       {
@@ -1149,7 +1159,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      ISDPTypes::AMIDLine::AMIDLine(MLinePtr mline, const char *value) :
+      ISDPTypes::AMIDLine::AMIDLine(MLinePtr mline, const char *value) noexcept :
         AMediaLine(mline),
         mMID(value)
       {
@@ -1157,7 +1167,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      ISDPTypes::AExtmapLine::AExtmapLine(MLinePtr mline, const char *value) :
+      ISDPTypes::AExtmapLine::AExtmapLine(MLinePtr mline, const char *value) noexcept(false) :
         AMediaLine(mline)
       {
         IHelper::SplitMap split;
@@ -1191,7 +1201,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      String ISDPTypes::AExtmapLine::toString() const
+      String ISDPTypes::AExtmapLine::toString() const noexcept
       {
         String result;
         result.append("extmap:");
@@ -1219,7 +1229,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      ISDPTypes::AMediaDirectionLine::AMediaDirectionLine(MLinePtr mline, const char *value) :
+      ISDPTypes::AMediaDirectionLine::AMediaDirectionLine(MLinePtr mline, const char *value) noexcept(false) :
         AMediaLine(mline)
       {
         String str(value);
@@ -1229,7 +1239,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      ISDPTypes::ARTPMapLine::ARTPMapLine(MLinePtr mline, const char *value) :
+      ISDPTypes::ARTPMapLine::ARTPMapLine(MLinePtr mline, const char *value) noexcept(false) :
         AMediaLine(mline)
       {
         IHelper::SplitMap split;
@@ -1268,7 +1278,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      String ISDPTypes::ARTPMapLine::toString() const
+      String ISDPTypes::ARTPMapLine::toString() const noexcept
       {
         String result;
         result.append("rtpmap:");
@@ -1285,7 +1295,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      ISDPTypes::AFMTPLine::AFMTPLine(MLinePtr mline, ASSRCLinePtr sourceLine, const char *value) :
+      ISDPTypes::AFMTPLine::AFMTPLine(MLinePtr mline, ASSRCLinePtr sourceLine, const char *value) noexcept(false):
         AMediaLine(mline),
         mSourceLine(sourceLine)
       {
@@ -1310,7 +1320,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      String ISDPTypes::AFMTPLine::toString() const
+      String ISDPTypes::AFMTPLine::toString() const noexcept
       {
         String result;
         if (mFormatSpecific.size() < 1) return result;
@@ -1327,7 +1337,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      ISDPTypes::ARTCPLine::ARTCPLine(MLinePtr mline, const char *value) :
+      ISDPTypes::ARTCPLine::ARTCPLine(MLinePtr mline, const char *value) noexcept(false) :
         AMediaLine(mline)
       {
         IHelper::SplitMap split;
@@ -1351,7 +1361,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      String ISDPTypes::ARTCPLine::toString() const
+      String ISDPTypes::ARTCPLine::toString() const noexcept
       {
         String result;
         result.append("rtcp:");
@@ -1368,7 +1378,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      ISDPTypes::ARTCPFBLine::ARTCPFBLine(MLinePtr mline, const char *value) :
+      ISDPTypes::ARTCPFBLine::ARTCPFBLine(MLinePtr mline, const char *value) noexcept(false) :
         AMediaLine(mline)
       {
         IHelper::SplitMap split;
@@ -1396,7 +1406,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      String ISDPTypes::ARTCPFBLine::toString() const
+      String ISDPTypes::ARTCPFBLine::toString() const noexcept
       {
         String result;
         if (mID.isEmpty()) return result;
@@ -1417,7 +1427,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      ISDPTypes::APTimeLine::APTimeLine(MLinePtr mline, const char *value) :
+      ISDPTypes::APTimeLine::APTimeLine(MLinePtr mline, const char *value) noexcept(false) :
         AMediaLine(mline)
       {
         String str(value);
@@ -1429,7 +1439,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      ISDPTypes::AMaxPTimeLine::AMaxPTimeLine(MLinePtr mline, const char *value) :
+      ISDPTypes::AMaxPTimeLine::AMaxPTimeLine(MLinePtr mline, const char *value) noexcept(false) :
         AMediaLine(mline)
       {
         String str(value);
@@ -1441,7 +1451,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      ISDPTypes::ASSRCLine::ASSRCLine(MLinePtr mline, const char *value) :
+      ISDPTypes::ASSRCLine::ASSRCLine(MLinePtr mline, const char *value) noexcept(false) :
         AMediaLine(mline)
       {
         IHelper::SplitMap split;
@@ -1470,7 +1480,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      String ISDPTypes::ASSRCLine::toString() const
+      String ISDPTypes::ASSRCLine::toString() const noexcept
       {
         String result;
         result.append("ssrc:");
@@ -1488,7 +1498,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      ISDPTypes::ASSRCGroupLine::ASSRCGroupLine(MLinePtr mline, const char *value) :
+      ISDPTypes::ASSRCGroupLine::ASSRCGroupLine(MLinePtr mline, const char *value) noexcept(false) :
         AMediaLine(mline)
       {
         IHelper::SplitMap split;
@@ -1515,7 +1525,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      String ISDPTypes::ASSRCGroupLine::toString() const
+      String ISDPTypes::ASSRCGroupLine::toString() const noexcept
       {
         String result;
         if (!mSemantics.hasData()) return result;
@@ -1533,7 +1543,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      ISDPTypes::ARIDLine::ARIDLine(MLinePtr mline, const char *value) :
+      ISDPTypes::ARIDLine::ARIDLine(MLinePtr mline, const char *value) noexcept(false) :
         AMediaLine(mline)
       {
         IHelper::SplitMap split;
@@ -1590,7 +1600,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      String ISDPTypes::ARIDLine::toString() const
+      String ISDPTypes::ARIDLine::toString() const noexcept
       {
         String result;
         if (!mID.hasData()) return result;
@@ -1634,7 +1644,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      ISDPTypes::ASimulcastLine::ASimulcastLine(MLinePtr mline, const char *value) :
+      ISDPTypes::ASimulcastLine::ASimulcastLine(MLinePtr mline, const char *value) noexcept(false) :
         AMediaLine(mline)
       {
         IHelper::SplitMap split;
@@ -1687,7 +1697,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      ISDPTypes::ASCTPPortLine::ASCTPPortLine(MLinePtr mline, const char *value) :
+      ISDPTypes::ASCTPPortLine::ASCTPPortLine(MLinePtr mline, const char *value) noexcept(false) :
         AMediaLine(mline)
       {
         String str(value);
@@ -1699,7 +1709,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      ISDPTypes::AMaxMessageSizeLine::AMaxMessageSizeLine(MLinePtr mline, const char *value) :
+      ISDPTypes::AMaxMessageSizeLine::AMaxMessageSizeLine(MLinePtr mline, const char *value) noexcept(false) :
         AMediaLine(mline)
       {
         String str(value);

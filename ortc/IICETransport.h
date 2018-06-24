@@ -41,19 +41,19 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IICETransportTypes
-  #pragma mark
+  //
+  // IICETransportTypes
+  //
   
   interaction IICETransportTypes : public IICETypes
   {
-    ZS_DECLARE_STRUCT_PTR(CandidatePair)
-    ZS_DECLARE_STRUCT_PTR(Options)
+    ZS_DECLARE_STRUCT_PTR(CandidatePair);
+    ZS_DECLARE_STRUCT_PTR(Options);
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IICETransportTypes::States
-    #pragma mark
+    //
+    // IICETransportTypes::States
+    //
 
     enum States
     {
@@ -70,47 +70,47 @@ namespace ortc
       State_Last    = State_Closed,
     };
 
-    static const char *toString(States state);
-    static States toState(const char *state) throw (InvalidParameters);
+    static const char *toString(States state) noexcept;
+    static States toState(const char *state) noexcept(false); // throws InvalidParameters
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IICETransportTypes::States
-    #pragma mark
+    //
+    // IICETransportTypes::States
+    //
 
     struct CandidatePair
     {
       CandidatePtr mLocal;
       CandidatePtr mRemote;
 
-      CandidatePair() {}
-      CandidatePair(const CandidatePair &op2);
-      CandidatePair(ElementPtr elem);
+      CandidatePair() noexcept {}
+      CandidatePair(const CandidatePair &op2) noexcept;
+      CandidatePair(ElementPtr elem) noexcept;
 
-      ElementPtr createElement(const char *objectName = "candidatePair") const;
+      ElementPtr createElement(const char *objectName = "candidatePair") const noexcept;
 
-      ElementPtr toDebug() const;
-      String hash(bool includePriorities = true) const;
+      ElementPtr toDebug() const noexcept;
+      String hash(bool includePriorities = true) const noexcept;
     };
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IICETransportTypes::Options
-    #pragma mark
+    //
+    // IICETransportTypes::Options
+    //
 
     struct Options
     {
       bool mAggressiveICE {false};
       IICETypes::Roles mRole {IICETypes::Role_Controlled};
 
-      Options() {}
-      Options(const Options &op2) {(*this) = op2;}
-      Options(ElementPtr elem);
+      Options() noexcept {}
+      Options(const Options &op2) noexcept {(*this) = op2;}
+      Options(ElementPtr elem) noexcept;
 
-      ElementPtr createElement(const char *objectName) const;
+      ElementPtr createElement(const char *objectName) const noexcept;
 
-      ElementPtr toDebug() const;
-      String hash() const;
+      ElementPtr toDebug() const noexcept;
+      String hash() const noexcept;
     };
   };
 
@@ -118,70 +118,70 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IICETransport
-  #pragma mark
+  //
+  // IICETransport
+  //
   
   interaction IICETransport : public IICETransportTypes,
                               public IRTCPTransport,
                               public IStatsProvider
   {
-    static ElementPtr toDebug(IICETransportPtr transport);
+    static ElementPtr toDebug(IICETransportPtr transport) noexcept;
 
-    static IICETransportPtr convert(IRTCPTransportPtr object);
+    static IICETransportPtr convert(IRTCPTransportPtr object) noexcept;
 
     static IICETransportPtr create(
                                    IICETransportDelegatePtr delegate,
                                    IICEGathererPtr gatherer = IICEGathererPtr() // option to specify a gatherer
-                                   );
+                                   ) noexcept(false);
 
-    virtual PUID getID() const = 0;
+    virtual PUID getID() const noexcept = 0;
 
-    virtual IICETransportSubscriptionPtr subscribe(IICETransportDelegatePtr delegate) = 0;
+    virtual IICETransportSubscriptionPtr subscribe(IICETransportDelegatePtr delegate) noexcept = 0;
 
-    virtual IICEGathererPtr iceGatherer() const = 0;
+    virtual IICEGathererPtr iceGatherer() const noexcept = 0;
 
-    virtual Roles role() const = 0;
-    virtual Components component() const = 0;
-    virtual States state() const = 0;
+    virtual Roles role() const noexcept = 0;
+    virtual Components component() const noexcept = 0;
+    virtual States state() const noexcept = 0;
 
-    virtual CandidateListPtr getRemoteCandidates() const = 0;
+    virtual CandidateListPtr getRemoteCandidates() const noexcept = 0;
 
-    virtual CandidatePairPtr getSelectedCandidatePair() const = 0;
+    virtual CandidatePairPtr getSelectedCandidatePair() const noexcept = 0;
 
     virtual void start(
                        IICEGathererPtr gatherer,
                        const Parameters &remoteParameters,
                        Optional<Options> options = Optional<Options>()
-                       ) throw (InvalidParameters) = 0;
+                       ) noexcept(false) = 0; // throws InvalidParameters
 
-    virtual void stop() = 0;
+    virtual void stop() noexcept = 0;
 
-    virtual ParametersPtr getRemoteParameters() const = 0;
+    virtual ParametersPtr getRemoteParameters() const noexcept = 0;
 
-    virtual IICETransportPtr createAssociatedTransport(IICETransportDelegatePtr delegate) throw (InvalidStateError) = 0;
+    virtual IICETransportPtr createAssociatedTransport(IICETransportDelegatePtr delegate) noexcept(false) = 0; // throws InvalidStateError
 
-    virtual void addRemoteCandidate(const GatherCandidate &remoteCandidate) throw (InvalidStateError, InvalidParameters) = 0;
-    virtual void setRemoteCandidates(const CandidateList &remoteCandidates) throw (InvalidStateError, InvalidParameters) = 0;
-    virtual void removeRemoteCandidate(const GatherCandidate &remoteCandidate) throw (InvalidStateError, InvalidParameters) = 0;
+    virtual void addRemoteCandidate(const GatherCandidate &remoteCandidate) noexcept(false) = 0; // throws InvalidStateError, InvalidParameters
+    virtual void setRemoteCandidates(const CandidateList &remoteCandidates) noexcept(false) = 0; // throws InvalidStateError, InvalidParameters
+    virtual void removeRemoteCandidate(const GatherCandidate &remoteCandidate) noexcept(false) = 0; // throws InvalidStateError, InvalidParameters
 
     virtual void keepWarm(
                           const CandidatePair &candidatePair,
                           bool keepWarm = true
-                          ) throw (InvalidStateError) = 0;
+                          ) noexcept(false) = 0; // throws InvalidStateError
   };
 
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IICETransportDelegate
-  #pragma mark
+  //
+  // IICETransportDelegate
+  //
 
   interaction IICETransportDelegate
   {
-    ZS_DECLARE_TYPEDEF_PTR(IICETransportTypes::CandidatePair, CandidatePair)
+    ZS_DECLARE_TYPEDEF_PTR(IICETransportTypes::CandidatePair, CandidatePair);
 
     virtual void onICETransportStateChange(
                                            IICETransportPtr transport,
@@ -207,17 +207,17 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IICETransportSubscription
-  #pragma mark
+  //
+  // IICETransportSubscription
+  //
 
   interaction IICETransportSubscription
   {
-    virtual PUID getID() const = 0;
+    virtual PUID getID() const noexcept = 0;
 
-    virtual void cancel() = 0;
+    virtual void cancel() noexcept = 0;
 
-    virtual void background() = 0;
+    virtual void background() noexcept = 0;
   };
 }
 
@@ -225,18 +225,18 @@ ZS_DECLARE_PROXY_BEGIN(ortc::IICETransportDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IICETransportPtr, IICETransportPtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IICETransport::States, States)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IICETransport::CandidatePairPtr, CandidatePairPtr)
-ZS_DECLARE_PROXY_METHOD_2(onICETransportStateChange, IICETransportPtr, States)
-ZS_DECLARE_PROXY_METHOD_2(onICETransportCandidatePairAvailable, IICETransportPtr, CandidatePairPtr)
-ZS_DECLARE_PROXY_METHOD_2(onICETransportCandidatePairGone, IICETransportPtr, CandidatePairPtr)
-ZS_DECLARE_PROXY_METHOD_2(onICETransportCandidatePairChanged, IICETransportPtr, CandidatePairPtr)
+ZS_DECLARE_PROXY_METHOD(onICETransportStateChange, IICETransportPtr, States)
+ZS_DECLARE_PROXY_METHOD(onICETransportCandidatePairAvailable, IICETransportPtr, CandidatePairPtr)
+ZS_DECLARE_PROXY_METHOD(onICETransportCandidatePairGone, IICETransportPtr, CandidatePairPtr)
+ZS_DECLARE_PROXY_METHOD(onICETransportCandidatePairChanged, IICETransportPtr, CandidatePairPtr)
 ZS_DECLARE_PROXY_END()
 
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_BEGIN(ortc::IICETransportDelegate, ortc::IICETransportSubscription)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IICETransportPtr, IICETransportPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IICETransport::States, States)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IICETransport::CandidatePairPtr, CandidatePairPtr)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onICETransportStateChange, IICETransportPtr, States)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onICETransportCandidatePairAvailable, IICETransportPtr, CandidatePairPtr)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onICETransportCandidatePairGone, IICETransportPtr, CandidatePairPtr)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onICETransportCandidatePairChanged, IICETransportPtr, CandidatePairPtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD(onICETransportStateChange, IICETransportPtr, States)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD(onICETransportCandidatePairAvailable, IICETransportPtr, CandidatePairPtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD(onICETransportCandidatePairGone, IICETransportPtr, CandidatePairPtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD(onICETransportCandidatePairChanged, IICETransportPtr, CandidatePairPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()

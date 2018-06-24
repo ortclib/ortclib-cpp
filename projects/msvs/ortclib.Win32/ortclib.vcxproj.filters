@@ -150,16 +150,7 @@
     <ClInclude Include="..\..\..\ortc\internal\ortc_ORTC.h">
       <Filter>ortc\internal</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\ortc\internal\ortc_RTCPPacket.h">
-      <Filter>ortc\internal</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\ortc\internal\ortc_RTPListener.h">
-      <Filter>ortc\internal</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\ortc\internal\ortc_RTPMediaEngine.h">
-      <Filter>ortc\internal</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\ortc\internal\ortc_RTPPacket.h">
       <Filter>ortc\internal</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\ortc\internal\ortc_RTPReceiver.h">
@@ -168,28 +159,10 @@
     <ClInclude Include="..\..\..\ortc\internal\ortc_RTPReceiverChannel.h">
       <Filter>ortc\internal</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\ortc\internal\ortc_RTPReceiverChannelAudio.h">
-      <Filter>ortc\internal</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\ortc\internal\ortc_RTPReceiverChannelMediaBase.h">
-      <Filter>ortc\internal</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\ortc\internal\ortc_RTPReceiverChannelVideo.h">
-      <Filter>ortc\internal</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\ortc\internal\ortc_RTPSender.h">
       <Filter>ortc\internal</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\ortc\internal\ortc_RTPSenderChannel.h">
-      <Filter>ortc\internal</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\ortc\internal\ortc_RTPSenderChannelAudio.h">
-      <Filter>ortc\internal</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\ortc\internal\ortc_RTPSenderChannelMediaBase.h">
-      <Filter>ortc\internal</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\..\ortc\internal\ortc_RTPSenderChannelVideo.h">
       <Filter>ortc\internal</Filter>
     </ClInclude>
     <ClInclude Include="..\..\..\ortc\internal\ortc_RTPTypes.h">
@@ -273,10 +246,103 @@
     <ClInclude Include="..\..\..\ortc\internal\ortc.events.h">
       <Filter>ortc\internal</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\ortc\internal\ortc.events_win_etw.h">
+    <ClInclude Include="..\..\..\ortc\internal\ortc.stats.events_win_etw.h">
       <Filter>ortc\internal</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\..\ortc\internal\ortc.stats.events_win_etw.h">
+    <ClInclude Include="..\..\..\ortc\RTPPacket.h">
+      <Filter>ortc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\RTCPPacket.h">
+      <Filter>ortc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc.events.jman.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc.stats.events.jman.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_IMediaDevice.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_IMediaDeviceCapture.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_IMediaDeviceRender.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_IMediaStreamTrack.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_IMediaStreamTrackChannel.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_IMediaStreamTrackMonitor.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_IMediaStreamTrackSubscriber.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_IRTP.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_IRTPDecoder.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_IRTPEncoder.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_MediaChannelTraceHelper.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_MediaDeviceCaptureAudio.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_MediaDeviceCaptureVideo.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_MediaDeviceRenderAudio.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_MediaEngine.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_MediaStreamTrackChannel.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_MediaStreamTrackMonitor.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_MediaStreamTrackSubscriberMedia.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_MediaStreamTrackSubscriberRTP.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_RTPDecoderAudio.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_RTPDecoderVideo.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_RTPEncoderAudio.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortc_RTPEncoderVideo.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\ortcEvents.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\IMediaElement.h">
+      <Filter>ortc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\IMediaStreamTrackSelector.h">
+      <Filter>ortc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\webrtc_post_include.h">
+      <Filter>ortc\internal</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\..\ortc\internal\webrtc_pre_include.h">
       <Filter>ortc\internal</Filter>
     </ClInclude>
   </ItemGroup>
@@ -379,9 +445,6 @@
     <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPListener.cpp">
       <Filter>ortc\cpp</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPMediaEngine.cpp">
-      <Filter>ortc\cpp</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPPacket.cpp">
       <Filter>ortc\cpp</Filter>
     </ClCompile>
@@ -391,28 +454,10 @@
     <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPReceiverChannel.cpp">
       <Filter>ortc\cpp</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPReceiverChannelAudio.cpp">
-      <Filter>ortc\cpp</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPReceiverChannelMediaBase.cpp">
-      <Filter>ortc\cpp</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPReceiverChannelVideo.cpp">
-      <Filter>ortc\cpp</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPSender.cpp">
       <Filter>ortc\cpp</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPSenderChannel.cpp">
-      <Filter>ortc\cpp</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPSenderChannelAudio.cpp">
-      <Filter>ortc\cpp</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPSenderChannelMediaBase.cpp">
-      <Filter>ortc\cpp</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPSenderChannelVideo.cpp">
       <Filter>ortc\cpp</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPTypes.cpp">
@@ -471,6 +516,45 @@
     </ClCompile>
     <ClCompile Include="..\..\..\ortc\adapter\cpp\ortc_adapter_MediaStream.cpp">
       <Filter>ortc\adapter\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_MediaChannelTraceHelper.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_MediaDevice.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_MediaDeviceCapture.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_MediaDeviceCaptureAudio.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_MediaDeviceCaptureVideo.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_MediaDeviceRenderAudio.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_MediaEngine.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_MediaStreamTrackMonitor.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_RTP.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPDecoderAudio.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPDecoderVideo.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPEncoderAudio.cpp">
+      <Filter>ortc\cpp</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPEncoderVideo.cpp">
+      <Filter>ortc\cpp</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

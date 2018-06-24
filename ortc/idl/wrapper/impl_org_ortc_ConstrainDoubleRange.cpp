@@ -21,12 +21,12 @@ using ::std::set;
 using ::std::map;
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::ConstrainDoubleRange::ConstrainDoubleRange()
+wrapper::impl::org::ortc::ConstrainDoubleRange::ConstrainDoubleRange() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::ConstrainDoubleRangePtr wrapper::org::ortc::ConstrainDoubleRange::wrapper_create()
+wrapper::org::ortc::ConstrainDoubleRangePtr wrapper::org::ortc::ConstrainDoubleRange::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::ConstrainDoubleRange>();
   pThis->thisWeak_ = pThis;
@@ -34,17 +34,17 @@ wrapper::org::ortc::ConstrainDoubleRangePtr wrapper::org::ortc::ConstrainDoubleR
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::ConstrainDoubleRange::~ConstrainDoubleRange()
+wrapper::impl::org::ortc::ConstrainDoubleRange::~ConstrainDoubleRange() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::ConstrainDoubleRange::wrapper_init_org_ortc_ConstrainDoubleRange()
+void wrapper::impl::org::ortc::ConstrainDoubleRange::wrapper_init_org_ortc_ConstrainDoubleRange() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::ConstrainDoubleRange::wrapper_init_org_ortc_ConstrainDoubleRange(wrapper::org::ortc::ConstrainDoubleRangePtr source)
+void wrapper::impl::org::ortc::ConstrainDoubleRange::wrapper_init_org_ortc_ConstrainDoubleRange(wrapper::org::ortc::ConstrainDoubleRangePtr source) noexcept
 {
   if (!source) return;
 
@@ -53,7 +53,7 @@ void wrapper::impl::org::ortc::ConstrainDoubleRange::wrapper_init_org_ortc_Const
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::ConstrainDoubleRange::wrapper_init_org_ortc_ConstrainDoubleRange(wrapper::org::ortc::JsonPtr json)
+void wrapper::impl::org::ortc::ConstrainDoubleRange::wrapper_init_org_ortc_ConstrainDoubleRange(wrapper::org::ortc::JsonPtr json) noexcept
 {
   if (!json) return;
 
@@ -67,27 +67,27 @@ void wrapper::impl::org::ortc::ConstrainDoubleRange::wrapper_init_org_ortc_Const
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::JsonPtr wrapper::impl::org::ortc::ConstrainDoubleRange::toJson()
+wrapper::org::ortc::JsonPtr wrapper::impl::org::ortc::ConstrainDoubleRange::toJson() noexcept
 {
   return Json::toWrapper(toNative(thisWeak_.lock())->createElement("ConstrainDoubleRange"));
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::ortc::ConstrainDoubleRange::hash()
+String wrapper::impl::org::ortc::ConstrainDoubleRange::hash() noexcept
 {
   return toNative(thisWeak_.lock())->hash();
 }
 
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::ConstrainDoubleRangePtr  wrapper::impl::org::ortc::ConstrainDoubleRange::toWrapper(NativeConstrainDoubleRangePtr native)
+wrapper::impl::org::ortc::ConstrainDoubleRangePtr  wrapper::impl::org::ortc::ConstrainDoubleRange::toWrapper(NativeConstrainDoubleRangePtr native) noexcept
 {
   if (!native) return ConstrainDoubleRangePtr();
   return toWrapper(*native);
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::ConstrainDoubleRangePtr  wrapper::impl::org::ortc::ConstrainDoubleRange::toWrapper(const NativeConstrainDoubleRange &native)
+wrapper::impl::org::ortc::ConstrainDoubleRangePtr  wrapper::impl::org::ortc::ConstrainDoubleRange::toWrapper(const NativeConstrainDoubleRange &native) noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::ConstrainDoubleRange>();
   pThis->thisWeak_ = pThis;
@@ -102,7 +102,7 @@ wrapper::impl::org::ortc::ConstrainDoubleRangePtr  wrapper::impl::org::ortc::Con
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::ConstrainDoubleRange::NativeConstrainDoubleRangePtr wrapper::impl::org::ortc::ConstrainDoubleRange::toNative(wrapper::org::ortc::ConstrainDoubleRangePtr wrapper)
+wrapper::impl::org::ortc::ConstrainDoubleRange::NativeConstrainDoubleRangePtr wrapper::impl::org::ortc::ConstrainDoubleRange::toNative(wrapper::org::ortc::ConstrainDoubleRangePtr wrapper) noexcept
 {
   if (!wrapper) return NativeConstrainDoubleRangePtr();
 

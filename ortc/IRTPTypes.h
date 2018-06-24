@@ -42,9 +42,9 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IRTPTypes
-  #pragma mark
+  //
+  // IRTPTypes
+  //
   
   interaction IRTPTypes
   {
@@ -90,9 +90,9 @@ namespace ortc
     ZS_DECLARE_TYPEDEF_PTR(std::list<EncodingID>, EncodingIDList);
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPTypes::DegradationPreference
-    #pragma mark
+    //
+    // IRTPTypes::DegradationPreference
+    //
 
     enum DegradationPreferences {
       DegradationPreference_First,
@@ -104,34 +104,34 @@ namespace ortc
       DegradationPreference_Last                  = DegradationPreference_Balanced,
     };
 
-    static const char *toString(DegradationPreferences preference);
-    static DegradationPreferences toDegredationPreference(const char *preference) throw (InvalidParameters);
+    static const char *toString(DegradationPreferences preference) noexcept;
+    static DegradationPreferences toDegredationPreference(const char *preference) noexcept(false); // throws InvalidParameters
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPTypes::Capabilities
-    #pragma mark
+    //
+    // IRTPTypes::Capabilities
+    //
 
     struct Capabilities {
       CodecCapabilitiesList mCodecs;
       HeaderExtensionsList  mHeaderExtensions;
       FECMechanismList      mFECMechanisms;
 
-      Capabilities() {}
-      Capabilities(const Capabilities &op2) {(*this) = op2;}
-      Capabilities(ElementPtr rootEl);
+      Capabilities() noexcept {}
+      Capabilities(const Capabilities &op2) noexcept {(*this) = op2;}
+      Capabilities(ElementPtr rootEl) noexcept;
 
-      static CapabilitiesPtr create(ElementPtr rootEl) { if (!rootEl) return CapabilitiesPtr(); return make_shared<Capabilities>(rootEl); }
-      ElementPtr createElement(const char *objectName = "capabilities") const;
+      static CapabilitiesPtr create(ElementPtr rootEl) noexcept { if (!rootEl) return CapabilitiesPtr(); return make_shared<Capabilities>(rootEl); }
+      ElementPtr createElement(const char *objectName = "capabilities") const noexcept;
 
-      ElementPtr toDebug() const;
-      String hash() const;
+      ElementPtr toDebug() const noexcept;
+      String hash() const noexcept;
     };
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPTypes::CodecCapability
-    #pragma mark
+    //
+    // IRTPTypes::CodecCapability
+    //
 
     struct CodecCapability {
       String            mName;
@@ -148,24 +148,24 @@ namespace ortc
       USHORT            mMaxSpatialLayers {0};
       bool              mSVCMultiStreamSupport {};
 
-      CodecCapability() {};
-      CodecCapability(const CodecCapability &source);
-      CodecCapability(ElementPtr elem);
-      CodecCapability &operator=(const CodecCapability &op2);
+      CodecCapability() noexcept {};
+      CodecCapability(const CodecCapability &source) noexcept;
+      CodecCapability(ElementPtr elem) noexcept;
+      CodecCapability &operator=(const CodecCapability &op2) noexcept;
 
-      ElementPtr createElement(const char *objectName = "codecCapability") const;
+      ElementPtr createElement(const char *objectName = "codecCapability") const noexcept;
 
-      ElementPtr toDebug() const;
-      String hash() const;
+      ElementPtr toDebug() const noexcept;
+      String hash() const noexcept;
 
     protected:
-      void copyAny(const CodecCapability &source);
+      void copyAny(const CodecCapability &source) noexcept;
     };
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPTypes::OpusCodecCapabilityOptions
-    #pragma mark
+    //
+    // IRTPTypes::OpusCodecCapabilityOptions
+    //
 
     struct OpusCodecCapabilityOptions : public Any
     {
@@ -178,8 +178,8 @@ namespace ortc
 
         Signal_Last = Signal_Voice
       };
-      static const char *toString(Signals signal);
-      static Signals toSignal(const char *signal);
+      static const char *toString(Signals signal) noexcept;
+      static Signals toSignal(const char *signal) noexcept(false);
 
       enum Applications {
         Application_First,
@@ -190,8 +190,8 @@ namespace ortc
 
         Application_Last = Application_LowDelay
       };
-      static const char *toString(Applications application);
-      static Applications toApplication(const char *application);
+      static const char *toString(Applications application) noexcept;
+      static Applications toApplication(const char *application) noexcept(false);
 
       // sender capabilities
       Optional<ULONG> mComplexity;
@@ -200,23 +200,23 @@ namespace ortc
       Optional<ULONG> mPacketLossPerc;
       Optional<bool> mPredictionDisabled;
 
-      OpusCodecCapabilityOptions() {}
-      OpusCodecCapabilityOptions(const OpusCodecCapabilityOptions &op2) {(*this) = op2;}
-      OpusCodecCapabilityOptions(ElementPtr elem);
+      OpusCodecCapabilityOptions() noexcept {}
+      OpusCodecCapabilityOptions(const OpusCodecCapabilityOptions &op2) noexcept {(*this) = op2;}
+      OpusCodecCapabilityOptions(ElementPtr elem) noexcept;
 
-      ElementPtr createElement(const char *objectName = "codecCapability") const;
+      ElementPtr createElement(const char *objectName = "codecCapability") const noexcept;
 
-      static OpusCodecCapabilityOptionsPtr create(const OpusCodecCapabilityOptions &capability);
-      static OpusCodecCapabilityOptionsPtr convert(AnyPtr any);
+      static OpusCodecCapabilityOptionsPtr create(const OpusCodecCapabilityOptions &capability) noexcept;
+      static OpusCodecCapabilityOptionsPtr convert(AnyPtr any) noexcept;
 
-      ElementPtr toDebug() const;
-      String hash() const;
+      ElementPtr toDebug() const noexcept;
+      String hash() const noexcept;
     };
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPTypes::OpusCodecCapabilityParameters
-    #pragma mark
+    //
+    // IRTPTypes::OpusCodecCapabilityParameters
+    //
 
     // https://tools.ietf.org/html/rfc7587#section-6.1
     struct OpusCodecCapabilityParameters : public Any
@@ -233,23 +233,23 @@ namespace ortc
       Optional<ULONG> mSPropMaxCaptureRate;
       Optional<bool> mSPropStereo;
 
-      OpusCodecCapabilityParameters() {}
-      OpusCodecCapabilityParameters(const OpusCodecCapabilityParameters &op2) {(*this) = op2;}
-      OpusCodecCapabilityParameters(ElementPtr elem);
+      OpusCodecCapabilityParameters() noexcept {}
+      OpusCodecCapabilityParameters(const OpusCodecCapabilityParameters &op2) noexcept {(*this) = op2;}
+      OpusCodecCapabilityParameters(ElementPtr elem) noexcept;
 
-      ElementPtr createElement(const char *objectName = "opusCodecCapabilityParameters") const;
+      ElementPtr createElement(const char *objectName = "opusCodecCapabilityParameters") const noexcept;
 
-      static OpusCodecCapabilityParametersPtr create(const OpusCodecCapabilityParameters &capability);
-      static OpusCodecCapabilityParametersPtr convert(AnyPtr any);
+      static OpusCodecCapabilityParametersPtr create(const OpusCodecCapabilityParameters &capability) noexcept;
+      static OpusCodecCapabilityParametersPtr convert(AnyPtr any) noexcept;
 
-      ElementPtr toDebug() const;
-      String hash() const;
+      ElementPtr toDebug() const noexcept;
+      String hash() const noexcept;
     };
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPTypes::VP8CodecCapabilityParameters
-    #pragma mark
+    //
+    // IRTPTypes::VP8CodecCapabilityParameters
+    //
 
     // https://tools.ietf.org/html/rfc7741#section-6.1
     struct VP8CodecCapabilityParameters : public Any
@@ -257,23 +257,23 @@ namespace ortc
       Optional<ULONG> mMaxFR;
       Optional<ULONGLONG> mMaxFS;
 
-      VP8CodecCapabilityParameters() {}
-      VP8CodecCapabilityParameters(const VP8CodecCapabilityParameters &op2) {(*this) = op2;}
-      VP8CodecCapabilityParameters(ElementPtr elem);
+      VP8CodecCapabilityParameters() noexcept {}
+      VP8CodecCapabilityParameters(const VP8CodecCapabilityParameters &op2) noexcept {(*this) = op2;}
+      VP8CodecCapabilityParameters(ElementPtr elem) noexcept;
 
-      ElementPtr createElement(const char *objectName = "vp8CodecCapabilityParameters") const;
+      ElementPtr createElement(const char *objectName = "vp8CodecCapabilityParameters") const noexcept;
 
-      static VP8CodecCapabilityParametersPtr create(const VP8CodecCapabilityParameters &capability);
-      static VP8CodecCapabilityParametersPtr convert(AnyPtr any);
+      static VP8CodecCapabilityParametersPtr create(const VP8CodecCapabilityParameters &capability) noexcept;
+      static VP8CodecCapabilityParametersPtr convert(AnyPtr any) noexcept;
 
-      ElementPtr toDebug() const;
-      String hash() const;
+      ElementPtr toDebug() const noexcept;
+      String hash() const noexcept;
     };
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPTypes::H264CodecCapabilityParameters
-    #pragma mark
+    //
+    // IRTPTypes::H264CodecCapabilityParameters
+    //
 
     // https://tools.ietf.org/html/rfc7742#section-6.2
     struct H264CodecCapabilityParameters : public Any
@@ -290,23 +290,23 @@ namespace ortc
       Optional<ULONGLONG> mMaxDPB {};
       Optional<ULONGLONG> mMaxBR {};
 
-      H264CodecCapabilityParameters() {}
-      H264CodecCapabilityParameters(const H264CodecCapabilityParameters &op2) {(*this) = op2;}
-      H264CodecCapabilityParameters(ElementPtr elem);
+      H264CodecCapabilityParameters() noexcept {}
+      H264CodecCapabilityParameters(const H264CodecCapabilityParameters &op2) noexcept {(*this) = op2;}
+      H264CodecCapabilityParameters(ElementPtr elem) noexcept;
 
-      ElementPtr createElement(const char *objectName = "h264CodecCapabilityParameters") const;
+      ElementPtr createElement(const char *objectName = "h264CodecCapabilityParameters") const noexcept;
 
-      static H264CodecCapabilityParametersPtr create(const H264CodecCapabilityParameters &capability);
-      static H264CodecCapabilityParametersPtr convert(AnyPtr any);
+      static H264CodecCapabilityParametersPtr create(const H264CodecCapabilityParameters &capability) noexcept;
+      static H264CodecCapabilityParametersPtr convert(AnyPtr any) noexcept;
 
-      ElementPtr toDebug() const;
-      String hash() const;
+      ElementPtr toDebug() const noexcept;
+      String hash() const noexcept;
     };
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPTypes::RTXCodecCapabilityParameters
-    #pragma mark
+    //
+    // IRTPTypes::RTXCodecCapabilityParameters
+    //
 
     // https://tools.ietf.org/html/rfc4588#section-8.1
     struct RTXCodecCapabilityParameters : public Any
@@ -314,23 +314,23 @@ namespace ortc
       PayloadType mApt {};
       Milliseconds mRTXTime {};
 
-      static RTXCodecCapabilityParametersPtr create(const RTXCodecCapabilityParameters &params);
-      static RTXCodecCapabilityParametersPtr convert(AnyPtr any);
+      static RTXCodecCapabilityParametersPtr create(const RTXCodecCapabilityParameters &params) noexcept;
+      static RTXCodecCapabilityParametersPtr convert(AnyPtr any) noexcept;
 
-      RTXCodecCapabilityParameters() {}
-      RTXCodecCapabilityParameters(const RTXCodecParameters &op2) {(*this) = op2;}
-      RTXCodecCapabilityParameters(ElementPtr elem);
+      RTXCodecCapabilityParameters() noexcept {}
+      RTXCodecCapabilityParameters(const RTXCodecParameters &op2) noexcept {(*this) = op2;}
+      RTXCodecCapabilityParameters(ElementPtr elem) noexcept;
 
-      ElementPtr createElement(const char *objectName = "rtxCodecCapabilityParameters") const;
+      ElementPtr createElement(const char *objectName = "rtxCodecCapabilityParameters") const noexcept;
 
-      ElementPtr toDebug() const;
-      String hash() const;
+      ElementPtr toDebug() const noexcept;
+      String hash() const noexcept;
     };
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPTypes::FlexFECCodecCapabilityParameters
-    #pragma mark
+    //
+    // IRTPTypes::FlexFECCodecCapabilityParameters
+    //
 
     // https://tools.ietf.org/html/draft-ietf-payload-flexible-fec-scheme-02
     struct FlexFECCodecCapabilityParameters : public Any
@@ -345,9 +345,9 @@ namespace ortc
 
         ToP_Last = ToP_Reserved,
       };
-      static const char *toString(ToPs top);
-      static ToPs toToP(const char *top);
-      static ToPs toToP(ULONG value);
+      static const char *toString(ToPs top) noexcept;
+      static ToPs toToP(const char *top) noexcept;
+      static ToPs toToP(ULONG value) noexcept(false);
 
       Microseconds mRepairWindow {};
 
@@ -355,23 +355,23 @@ namespace ortc
       Optional<ULONG> mD;
       Optional<ToPs> mToP;
 
-      FlexFECCodecCapabilityParameters() {}
-      FlexFECCodecCapabilityParameters(const FlexFECCodecCapabilityParameters &op2) {(*this) = op2;}
-      FlexFECCodecCapabilityParameters(ElementPtr elem);
+      FlexFECCodecCapabilityParameters() noexcept {}
+      FlexFECCodecCapabilityParameters(const FlexFECCodecCapabilityParameters &op2) noexcept {(*this) = op2;}
+      FlexFECCodecCapabilityParameters(ElementPtr elem) noexcept;
 
-      ElementPtr createElement(const char *objectName = "flexFecCodecParameters") const;
+      ElementPtr createElement(const char *objectName = "flexFecCodecParameters") const noexcept;
 
-      static FlexFECCodecCapabilityParametersPtr create(const FlexFECCodecCapabilityParameters &params);
-      static FlexFECCodecCapabilityParametersPtr convert(AnyPtr any);
+      static FlexFECCodecCapabilityParametersPtr create(const FlexFECCodecCapabilityParameters &params) noexcept;
+      static FlexFECCodecCapabilityParametersPtr convert(AnyPtr any) noexcept;
 
-      ElementPtr toDebug() const;
-      String hash() const;
+      ElementPtr toDebug() const noexcept;
+      String hash() const noexcept;
     };
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPTypes::HeaderExtensions
-    #pragma mark
+    //
+    // IRTPTypes::HeaderExtensions
+    //
 
     struct HeaderExtension {
       String mKind;
@@ -379,39 +379,39 @@ namespace ortc
       USHORT mPreferredID {};
       bool   mPreferredEncrypt {false};
 
-      HeaderExtension() {}
-      HeaderExtension(const HeaderExtension &op2) {(*this) = op2;}
-      HeaderExtension(ElementPtr elem);
+      HeaderExtension() noexcept {}
+      HeaderExtension(const HeaderExtension &op2) noexcept {(*this) = op2;}
+      HeaderExtension(ElementPtr elem) noexcept;
 
-      ElementPtr createElement(const char *objectName = "headerExtensions") const;
+      ElementPtr createElement(const char *objectName = "headerExtensions") const noexcept;
 
-      ElementPtr toDebug() const;
-      String hash() const;
+      ElementPtr toDebug() const noexcept;
+      String hash() const noexcept;
     };
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPTypes::RTCPFeedback
-    #pragma mark
+    //
+    // IRTPTypes::RTCPFeedback
+    //
 
     struct RTCPFeedback {
       String mType;
       String mParameter;
 
-      RTCPFeedback() {}
-      RTCPFeedback(const RTCPFeedback &op2) {(*this) = op2;}
-      RTCPFeedback(ElementPtr elem);
+      RTCPFeedback() noexcept {}
+      RTCPFeedback(const RTCPFeedback &op2) noexcept {(*this) = op2;}
+      RTCPFeedback(ElementPtr elem) noexcept;
 
-      ElementPtr createElement(const char *objectName = "rtcpFeedback") const;
+      ElementPtr createElement(const char *objectName = "rtcpFeedback") const noexcept;
 
-      ElementPtr toDebug() const;
-      String hash() const;
+      ElementPtr toDebug() const noexcept;
+      String hash() const noexcept;
     };
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPTypes::RTCPParameters
-    #pragma mark
+    //
+    // IRTPTypes::RTCPParameters
+    //
 
     struct RTCPParameters {
       SSRCType  mSSRC {};
@@ -419,20 +419,20 @@ namespace ortc
       bool      mReducedSize {false};
       bool      mMux {true};
 
-      RTCPParameters() {}
-      RTCPParameters(const RTCPParameters &op2) {(*this) = op2;}
-      RTCPParameters(ElementPtr elem);
+      RTCPParameters() noexcept {}
+      RTCPParameters(const RTCPParameters &op2) noexcept {(*this) = op2;}
+      RTCPParameters(ElementPtr elem) noexcept;
 
-      ElementPtr createElement(const char *objectName = "rtcpParameters") const;
+      ElementPtr createElement(const char *objectName = "rtcpParameters") const noexcept;
 
-      ElementPtr toDebug() const;
-      String hash() const;
+      ElementPtr toDebug() const noexcept;
+      String hash() const noexcept;
     };
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPTypes::Parameters
-    #pragma mark
+    //
+    // IRTPTypes::Parameters
+    //
 
     struct Parameters {
       String                        mMuxID;
@@ -451,26 +451,26 @@ namespace ortc
         bool mRTCP {true};
         bool mDegredationPreference {true};
 
-        HashOptions() {}
+        HashOptions() noexcept {}
       };
 
-      Parameters() {}
-      Parameters(const Parameters &op2);
-      Parameters(ElementPtr rootEl);
+      Parameters() noexcept {}
+      Parameters(const Parameters &op2) noexcept;
+      Parameters(ElementPtr rootEl) noexcept;
 
-      Parameters &operator=(const Parameters &op2);
+      Parameters &operator=(const Parameters &op2) noexcept;
 
-      static ParametersPtr create(ElementPtr rootEl) { if (!rootEl) return ParametersPtr(); return make_shared<Parameters>(rootEl); }
-      ElementPtr createElement(const char *objectName) const;
+      static ParametersPtr create(ElementPtr rootEl) noexcept { if (!rootEl) return ParametersPtr(); return make_shared<Parameters>(rootEl); }
+      ElementPtr createElement(const char *objectName) const noexcept;
 
-      ElementPtr toDebug() const;
-      String hash(const HashOptions &options = HashOptions()) const;
+      ElementPtr toDebug() const noexcept;
+      String hash(const HashOptions &options = HashOptions()) const noexcept;
     };
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPTypes::CodecParameters
-    #pragma mark
+    //
+    // IRTPTypes::CodecParameters
+    //
 
     struct CodecParameters {
       String            mName;
@@ -482,25 +482,25 @@ namespace ortc
       RTCPFeedbackList  mRTCPFeedback;
       AnyPtr            mParameters;  // see OpusCodecParameters, RTXCodecParameters, REDCodecParameters, FlexFECCodecParameters for definitions
 
-      CodecParameters() {}
-      CodecParameters(const CodecParameters &source);
-      CodecParameters(ElementPtr elem);
+      CodecParameters() noexcept {}
+      CodecParameters(const CodecParameters &source) noexcept;
+      CodecParameters(ElementPtr elem) noexcept;
 
-      CodecParameters &operator=(const CodecParameters &op2);
+      CodecParameters &operator=(const CodecParameters &op2) noexcept;
       
-      ElementPtr createElement(const char *objectName) const;
+      ElementPtr createElement(const char *objectName) const noexcept;
 
-      ElementPtr toDebug() const;
-      String hash() const;
+      ElementPtr toDebug() const noexcept;
+      String hash() const noexcept;
 
     protected:
-      void copyAny(const CodecParameters &op2);
+      void copyAny(const CodecParameters &op2) noexcept;
     };
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPTypes::OpusCodecParameters
-    #pragma mark
+    //
+    // IRTPTypes::OpusCodecParameters
+    //
 
     struct OpusCodecParameters : public Any
     {
@@ -525,123 +525,123 @@ namespace ortc
       Optional<ULONG> mSPropMaxCaptureRate;
       Optional<bool> mSPropStereo;
 
-      OpusCodecParameters() {}
-      OpusCodecParameters(const OpusCodecParameters &op2) {(*this) = op2;}
-      OpusCodecParameters(ElementPtr elem);
+      OpusCodecParameters() noexcept {}
+      OpusCodecParameters(const OpusCodecParameters &op2) noexcept {(*this) = op2;}
+      OpusCodecParameters(ElementPtr elem) noexcept;
 
-      ElementPtr createElement(const char *objectName = "opusCodecParameters") const;
+      ElementPtr createElement(const char *objectName = "opusCodecParameters") const noexcept;
 
-      static OpusCodecParametersPtr create(const OpusCodecParameters &capability);
-      static OpusCodecParametersPtr convert(AnyPtr any);
+      static OpusCodecParametersPtr create(const OpusCodecParameters &capability) noexcept;
+      static OpusCodecParametersPtr convert(AnyPtr any) noexcept;
 
-      ElementPtr toDebug() const;
-      String hash() const;
+      ElementPtr toDebug() const noexcept;
+      String hash() const noexcept;
     };
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPTypes::VP8CodecParameters
-    #pragma mark
+    //
+    // IRTPTypes::VP8CodecParameters
+    //
 
     // see VP8CodecCapabilityParameters
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPTypes::H264CodecParameters
-    #pragma mark
+    //
+    // IRTPTypes::H264CodecParameters
+    //
 
     // see H264CodecCapabilityParameters
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPTypes::RTXCodecParameters
-    #pragma mark
+    //
+    // IRTPTypes::RTXCodecParameters
+    //
 
     // see RTXCodecCapabilityParameters
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPTypes::REDCodecParameters
-    #pragma mark
+    //
+    // IRTPTypes::REDCodecParameters
+    //
 
     struct REDCodecParameters : public Any
     {
       PayloadTypeList mPayloadTypes;
 
-      REDCodecParameters() {}
-      REDCodecParameters(const REDCodecParameters &op2) {(*this) = op2;}
-      REDCodecParameters(ElementPtr elem);
+      REDCodecParameters() noexcept {}
+      REDCodecParameters(const REDCodecParameters &op2) noexcept {(*this) = op2;}
+      REDCodecParameters(ElementPtr elem) noexcept;
 
-      ElementPtr createElement(const char *objectName = "redCodecParameters") const;
+      ElementPtr createElement(const char *objectName = "redCodecParameters") const noexcept;
 
-      static REDCodecParametersPtr create(const REDCodecParameters &params);
-      static REDCodecParametersPtr convert(AnyPtr any);
+      static REDCodecParametersPtr create(const REDCodecParameters &params) noexcept;
+      static REDCodecParametersPtr convert(AnyPtr any) noexcept;
 
-      ElementPtr toDebug() const;
-      String hash() const;
+      ElementPtr toDebug() const noexcept;
+      String hash() const noexcept;
     };
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPTypes::HeaderExtensionParameters
-    #pragma mark
+    //
+    // IRTPTypes::HeaderExtensionParameters
+    //
 
     struct HeaderExtensionParameters {
       String  mURI;
       USHORT  mID {};
       bool    mEncrypt {false};
 
-      HeaderExtensionParameters() {}
-      HeaderExtensionParameters(const HeaderExtensionParameters &op2) {(*this) = op2;}
-      HeaderExtensionParameters(ElementPtr elem);
+      HeaderExtensionParameters() noexcept {}
+      HeaderExtensionParameters(const HeaderExtensionParameters &op2) noexcept {(*this) = op2;}
+      HeaderExtensionParameters(ElementPtr elem) noexcept;
 
-      ElementPtr createElement(const char *objectName = "headerExtensionParameters") const;
+      ElementPtr createElement(const char *objectName = "headerExtensionParameters") const noexcept;
 
-      ElementPtr toDebug() const;
-      String hash() const;
+      ElementPtr toDebug() const noexcept;
+      String hash() const noexcept;
     };
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPTypes::FECParameters
-    #pragma mark
+    //
+    // IRTPTypes::FECParameters
+    //
 
     struct FECParameters {
       Optional<SSRCType>  mSSRC;
       String              mMechanism;
 
-      FECParameters() {}
-      FECParameters(const FECParameters &op2) {(*this) = op2;}
-      FECParameters(ElementPtr elem);
+      FECParameters() noexcept {}
+      FECParameters(const FECParameters &op2) noexcept {(*this) = op2;}
+      FECParameters(ElementPtr elem) noexcept;
 
-      ElementPtr createElement(const char *objectName = "fecParameters") const;
+      ElementPtr createElement(const char *objectName = "fecParameters") const noexcept;
 
-      ElementPtr toDebug() const;
-      String hash() const;
+      ElementPtr toDebug() const noexcept;
+      String hash() const noexcept;
     };
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPTypes::RTXParameters
-    #pragma mark
+    //
+    // IRTPTypes::RTXParameters
+    //
 
     struct RTXParameters {
       Optional<SSRCType>    mSSRC;
 
-      RTXParameters() {}
-      RTXParameters(const RTXParameters &op2) {(*this) = op2;}
-      RTXParameters(ElementPtr elem);
+      RTXParameters() noexcept {}
+      RTXParameters(const RTXParameters &op2) noexcept {(*this) = op2;}
+      RTXParameters(ElementPtr elem) noexcept;
 
-      ElementPtr createElement(const char *objectName = "rtxParameters") const;
+      ElementPtr createElement(const char *objectName = "rtxParameters") const noexcept;
 
-      ElementPtr toDebug() const;
-      String hash() const;
+      ElementPtr toDebug() const noexcept;
+      String hash() const noexcept;
     };
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPTypes::PriorityTypes
-    #pragma mark
+    //
+    // IRTPTypes::PriorityTypes
+    //
 
     enum PriorityTypes {
       PriorityType_First,
@@ -654,13 +654,13 @@ namespace ortc
       PriorityType_Last =           PriorityType_High,
     };
 
-    static const char *toString(PriorityTypes type);
-    static PriorityTypes toPriorityType(const char *type);
+    static const char *toString(PriorityTypes type) noexcept;
+    static PriorityTypes toPriorityType(const char *type) noexcept(false);
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPTypes::EncodingParameters
-    #pragma mark
+    //
+    // IRTPTypes::EncodingParameters
+    //
 
     struct EncodingParameters {
       Optional<SSRCType>      mSSRC {};
@@ -676,20 +676,20 @@ namespace ortc
       EncodingID              mEncodingID;
       EncodingIDList          mDependencyEncodingIDs;
 
-      EncodingParameters() {}
-      EncodingParameters(const EncodingParameters &op2) {(*this) = op2;}
-      EncodingParameters(ElementPtr elem);
+      EncodingParameters() noexcept {}
+      EncodingParameters(const EncodingParameters &op2) noexcept {(*this) = op2;}
+      EncodingParameters(ElementPtr elem) noexcept;
 
-      ElementPtr createElement(const char *objectName = "encodingParameters") const;
+      ElementPtr createElement(const char *objectName = "encodingParameters") const noexcept;
 
-      ElementPtr toDebug() const;
-      String hash() const;
+      ElementPtr toDebug() const noexcept;
+      String hash() const noexcept;
     };
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPTypes::CodecKinds
-    #pragma mark
+    //
+    // IRTPTypes::CodecKinds
+    //
 
     enum CodecKinds
     {
@@ -711,13 +711,13 @@ namespace ortc
       CodecKind_Last = CodecKind_FEC,
     };
 
-    static const char *toString(CodecKinds kind);
-    static CodecKinds toCodecKind(const char *kind);
+    static const char *toString(CodecKinds kind) noexcept;
+    static CodecKinds toCodecKind(const char *kind) noexcept;
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPTypes::SupportedCodecs
-    #pragma mark
+    //
+    // IRTPTypes::SupportedCodecs
+    //
 
     enum SupportedCodecs
     {
@@ -753,22 +753,22 @@ namespace ortc
       SupportedCodec_Last = SupportedCodec_TelephoneEvent
     };
 
-    static const char *toString(SupportedCodecs codec);
-    static SupportedCodecs toSupportedCodec(const char *codec);
-    static bool hasCapabilityOptions(SupportedCodecs codec);
-    static bool hasCapabilityParameters(SupportedCodecs codec);
-    static bool hasParameters(SupportedCodecs codec);
-    static bool requiresCapabilityParameters(SupportedCodecs codec);
-    static bool requiresParameters(SupportedCodecs codec);
+    static const char *toString(SupportedCodecs codec) noexcept;
+    static SupportedCodecs toSupportedCodec(const char *codec) noexcept;
+    static bool hasCapabilityOptions(SupportedCodecs codec) noexcept;
+    static bool hasCapabilityParameters(SupportedCodecs codec) noexcept;
+    static bool hasParameters(SupportedCodecs codec) noexcept;
+    static bool requiresCapabilityParameters(SupportedCodecs codec) noexcept;
+    static bool requiresParameters(SupportedCodecs codec) noexcept;
 
-    static CodecKinds getCodecKind(SupportedCodecs codec);
-    static bool isSRSTCodec(SupportedCodecs codec); // Single RTP streams Single Transport
-    static bool isMRSTCodec(SupportedCodecs codec); // Multiple RTP streams Single Transport
+    static CodecKinds getCodecKind(SupportedCodecs codec) noexcept;
+    static bool isSRSTCodec(SupportedCodecs codec) noexcept; // Single RTP streams Single Transport
+    static bool isMRSTCodec(SupportedCodecs codec) noexcept; // Multiple RTP streams Single Transport
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPTypes::SupportedCodecs
-    #pragma mark
+    //
+    // IRTPTypes::SupportedCodecs
+    //
 
     enum ReservedCodecPayloadTypes
     {
@@ -810,20 +810,20 @@ namespace ortc
       ReservedCodecPayloadType_Last = ReservedCodecPayloadType_H263_90000
     };
 
-    static const char *toString(ReservedCodecPayloadTypes reservedCodec);
-    static ReservedCodecPayloadTypes toReservedCodec(PayloadType pt);
-    static ReservedCodecPayloadTypes toReservedCodec(const char *encodingName);
+    static const char *toString(ReservedCodecPayloadTypes reservedCodec) noexcept;
+    static ReservedCodecPayloadTypes toReservedCodec(PayloadType pt) noexcept;
+    static ReservedCodecPayloadTypes toReservedCodec(const char *encodingName) noexcept;
 
-    static ULONG getDefaultClockRate(ReservedCodecPayloadTypes reservedCodec);
-    static Optional<ULONG> getDefaultNumberOfChannels(ReservedCodecPayloadTypes reservedCodec);
+    static ULONG getDefaultClockRate(ReservedCodecPayloadTypes reservedCodec) noexcept;
+    static Optional<ULONG> getDefaultNumberOfChannels(ReservedCodecPayloadTypes reservedCodec) noexcept;
 
-    static CodecKinds getCodecKind(ReservedCodecPayloadTypes reservedCodec);
-    static SupportedCodecs toSupportedCodec(ReservedCodecPayloadTypes reservedCodec);
+    static CodecKinds getCodecKind(ReservedCodecPayloadTypes reservedCodec) noexcept;
+    static SupportedCodecs toSupportedCodec(ReservedCodecPayloadTypes reservedCodec) noexcept;
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPTypes::HeaderExtensionURIs
-    #pragma mark
+    //
+    // IRTPTypes::HeaderExtensionURIs
+    //
 
     enum HeaderExtensionURIs
     {
@@ -858,14 +858,14 @@ namespace ortc
       HeaderExtensionURI_Last = HeaderExtensionURI_TransportSequenceNumber
     };
 
-    static const char *toString(HeaderExtensionURIs extension);         // converts header enum to URN format
-    static HeaderExtensionURIs toHeaderExtensionURI(const char *uri);
-    static String toKind(HeaderExtensionURIs extension);                // returns "audio", "video" or "" for both
+    static const char *toString(HeaderExtensionURIs extension) noexcept;         // converts header enum to URN format
+    static HeaderExtensionURIs toHeaderExtensionURI(const char *uri) noexcept;
+    static String toKind(HeaderExtensionURIs extension) noexcept;                // returns "audio", "video" or "" for both
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPTypes::KnownFECMechanisms
-    #pragma mark
+    //
+    // IRTPTypes::KnownFECMechanisms
+    //
 
     enum KnownFECMechanisms
     {
@@ -880,13 +880,13 @@ namespace ortc
       KnownFECMechanism_Last = KnownFECMechanism_FlexFEC,
     };
 
-    static const char *toString(KnownFECMechanisms mechanism);
-    static KnownFECMechanisms toKnownFECMechanism(const char *mechanism);
+    static const char *toString(KnownFECMechanisms mechanism) noexcept;
+    static KnownFECMechanisms toKnownFECMechanism(const char *mechanism) noexcept;
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPTypes::KnownFeedbackTypes
-    #pragma mark
+    //
+    // IRTPTypes::KnownFeedbackTypes
+    //
 
     enum KnownFeedbackTypes
     {
@@ -913,13 +913,13 @@ namespace ortc
 
     typedef std::set<KnownFeedbackTypes> KnownFeedbackTypesSet;
 
-    static const char *toString(KnownFeedbackTypes type);
-    static KnownFeedbackTypes toKnownFeedbackType(const char *type);
+    static const char *toString(KnownFeedbackTypes type) noexcept;
+    static KnownFeedbackTypes toKnownFeedbackType(const char *type) noexcept;
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPTypes::KnownFeedbackParameters
-    #pragma mark
+    //
+    // IRTPTypes::KnownFeedbackParameters
+    //
 
     enum KnownFeedbackParameters
     {
@@ -946,15 +946,15 @@ namespace ortc
       KnownFeedbackParameter_Last = KnownFeedbackParameter_PAUSE,
     };
 
-    static const char *toString(KnownFeedbackParameters parameter);
-    static KnownFeedbackParameters toKnownFeedbackParameter(const char *parameter);
+    static const char *toString(KnownFeedbackParameters parameter) noexcept;
+    static KnownFeedbackParameters toKnownFeedbackParameter(const char *parameter) noexcept;
 
-    static KnownFeedbackTypesSet getUseableWithFeedbackTypes(KnownFeedbackParameters mechanism);
+    static KnownFeedbackTypesSet getUseableWithFeedbackTypes(KnownFeedbackParameters mechanism) noexcept;
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPTypes::KnownRTCP
-    #pragma mark
+    //
+    // IRTPTypes::KnownRTCP
+    //
 
     enum SupportedRTCPMechanisms
     {
@@ -974,7 +974,7 @@ namespace ortc
       SupportedRTCPMechanism_Last = SupportedRTCPMechanism_PSFB
     };
 
-    static const char *toString(SupportedRTCPMechanisms mechanism);
-    static SupportedRTCPMechanisms toSupportedRTCPMechanism(const char *mechanism);
+    static const char *toString(SupportedRTCPMechanisms mechanism) noexcept;
+    static SupportedRTCPMechanisms toSupportedRTCPMechanism(const char *mechanism) noexcept;
   };
 }

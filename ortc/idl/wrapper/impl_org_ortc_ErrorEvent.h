@@ -18,14 +18,14 @@ namespace wrapper {
           ErrorEventWeakPtr thisWeak_;
           wrapper::org::ortc::ErrorPtr error_;
 
-          ErrorEvent();
-          virtual ~ErrorEvent();
+          ErrorEvent() noexcept;
+          virtual ~ErrorEvent() noexcept;
 
           // properties ErrorEvent
-          virtual wrapper::org::ortc::ErrorPtr get_error() override;
+          wrapper::org::ortc::ErrorPtr get_error() noexcept override;
 
-          static WrapperImplTypePtr toWrapper(::ortc::ErrorAnyPtr error);
-          static WrapperImplTypePtr toWrapper(wrapper::org::ortc::ErrorPtr error);
+          static WrapperImplTypePtr toWrapper(::ortc::ErrorAnyPtr error) noexcept;
+          static WrapperImplTypePtr toWrapper(wrapper::org::ortc::ErrorPtr error) noexcept;
         };
 
       } // ortc

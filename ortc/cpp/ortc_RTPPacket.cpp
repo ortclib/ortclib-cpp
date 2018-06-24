@@ -49,12 +49,6 @@
 #include <sstream>
 
 
-#ifdef _DEBUG
-#define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))
-#else
-#define ASSERT(x)
-#endif //_DEBUG
-
 #define RTP_HEADER_EXTENSION_BIT (0x10)
 
 #define RTP_HEADER_VERSION(buffer) (((buffer[0]) & 0xC0) >> 6)
@@ -89,9 +83,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark (helpers)
-    #pragma mark
+    //
+    // (helpers)
+    //
 
     static const size_t kMinRtpPacketLen = 12;
     static const BYTE kRtpVersion = 2;
@@ -102,7 +96,7 @@ namespace ortc
                                   BYTE headerExtensionAppBits,
                                   size_t headerExtensionPrepaddedSize,
                                   const BYTE *headerExtensionParseStoppedPos
-                                  )
+                                  ) noexcept
     {
       return (NULL != firstExtension) ||
       (0 != headerExtensionAppBits) ||
@@ -118,7 +112,7 @@ namespace ortc
                                        size_t headerExtensionParseStoppedSize,
                                        size_t &outSizeInBytes,
                                        size_t &outTotalHeaderExtensions
-                                       )
+                                       ) noexcept
     {
       typedef RTPPacket::HeaderExtension HeaderExtension;
 
@@ -142,15 +136,15 @@ namespace ortc
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark RTPPacket::HeaderExtension
-  #pragma mark
+  //
+  // RTPPacket::HeaderExtension
+  //
 
   //---------------------------------------------------------------------------
   void RTPPacket::HeaderExtension::trace(
                                          const char *func,
                                          const char *message
-                                         ) const
+                                         ) const noexcept
   {
     ZS_EVENTING_6(x, i, Basic, RTPPacketHeaderExtension, ol, RtpPacket, Info, 
       string, func, func,
@@ -166,12 +160,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark RTPPacket::ClientToMixerExtension
-  #pragma mark
+  //
+  // RTPPacket::ClientToMixerExtension
+  //
 
   //---------------------------------------------------------------------------
-  RTPPacket::ClientToMixerExtension::ClientToMixerExtension(const HeaderExtension &header)
+  RTPPacket::ClientToMixerExtension::ClientToMixerExtension(const HeaderExtension &header) noexcept
   {
     mID = header.mID;
     mDataSizeInBytes = header.mDataSizeInBytes;
@@ -190,7 +184,7 @@ namespace ortc
                                                             BYTE id,
                                                             bool voiceActivity,
                                                             BYTE level
-                                                            )
+                                                            ) noexcept
   {
     mID = id;
     mData = &mLevelBuffer;
@@ -200,13 +194,13 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  bool RTPPacket::ClientToMixerExtension::voiceActivity() const
+  bool RTPPacket::ClientToMixerExtension::voiceActivity() const noexcept
   {
     return RTP_IS_FLAG_SET(mLevelBuffer, 7);
   }
 
   //---------------------------------------------------------------------------
-  BYTE RTPPacket::ClientToMixerExtension::level() const
+  BYTE RTPPacket::ClientToMixerExtension::level() const noexcept
   {
     return RTP_GET_BITS(mLevelBuffer, 0x7F, 0);
   }
@@ -215,7 +209,7 @@ namespace ortc
   void RTPPacket::ClientToMixerExtension::trace(
                                                 const char *func,
                                                 const char *message
-                                                ) const
+                                                ) const noexcept
   {
     ZS_EVENTING_8(x, i, Basic, RTPPacketClientToMixerExtension, ol, RtpPacket, Info,
       string, func, func,
@@ -233,12 +227,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark RTPPacket::MixerToClientExtension
-  #pragma mark
+  //
+  // RTPPacket::MixerToClientExtension
+  //
 
   //---------------------------------------------------------------------------
-  RTPPacket::MixerToClientExtension::MixerToClientExtension(const HeaderExtension &header)
+  RTPPacket::MixerToClientExtension::MixerToClientExtension(const HeaderExtension &header) noexcept
   {
     mID = header.mID;
     mDataSizeInBytes = header.mDataSizeInBytes;
@@ -261,7 +255,7 @@ namespace ortc
                                                             BYTE id,
                                                             BYTE *levels,
                                                             size_t count
-                                                            )
+                                                            ) noexcept
   {
     mID = id;
     mDataSizeInBytes = count * sizeof(BYTE);
@@ -277,22 +271,22 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  size_t RTPPacket::MixerToClientExtension::levelsCount() const
+  size_t RTPPacket::MixerToClientExtension::levelsCount() const noexcept
   {
     return mDataSizeInBytes / sizeof(BYTE);
   }
 
   //---------------------------------------------------------------------------
-  BYTE RTPPacket::MixerToClientExtension::unusedBit(size_t index) const
+  BYTE RTPPacket::MixerToClientExtension::unusedBit(size_t index) const noexcept
   {
-    ASSERT(index < levelsCount())
+    ZS_ASSERT(index < levelsCount());
     return RTP_GET_BITS(mLevelBuffer[index], 0x80, 7);
   }
 
   //---------------------------------------------------------------------------
-  BYTE RTPPacket::MixerToClientExtension::level(size_t index) const
+  BYTE RTPPacket::MixerToClientExtension::level(size_t index) const noexcept
   {
-    ASSERT(index < levelsCount())
+    ZS_ASSERT(index < levelsCount());
     return RTP_GET_BITS(mLevelBuffer[index], 0x7F, 0);
   }
 
@@ -300,7 +294,7 @@ namespace ortc
   void RTPPacket::MixerToClientExtension::trace(
                                                 const char *func,
                                                 const char *message
-                                                ) const
+                                                ) const noexcept
   {
     ZS_EVENTING_7(x, i, Basic, RTPPacketMixerToClientExtension, ol, RtpPacket, Info,
       string, func, func,
@@ -317,14 +311,14 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark RTPPacket::StringHeaderExtension
-  #pragma mark
+  //
+  // RTPPacket::StringHeaderExtension
+  //
 
   //---------------------------------------------------------------------------
-  RTPPacket::StringHeaderExtension::StringHeaderExtension(const HeaderExtension &header)
+  RTPPacket::StringHeaderExtension::StringHeaderExtension(const HeaderExtension &header) noexcept
   {
-    ASSERT(sizeof(char) == sizeof(BYTE))
+    ZS_ASSERT(sizeof(char) == sizeof(BYTE));
 
     mID = header.mID;
     mDataSizeInBytes = header.mDataSizeInBytes;
@@ -346,7 +340,7 @@ namespace ortc
   RTPPacket::StringHeaderExtension::StringHeaderExtension(
                                                           BYTE id,
                                                           const char *mid
-                                                          )
+                                                          ) noexcept
   {
     mID = id;
     mData = &(mStringBuffer[0]);
@@ -360,7 +354,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  const char *RTPPacket::StringHeaderExtension::str() const
+  const char *RTPPacket::StringHeaderExtension::str() const noexcept
   {
     return reinterpret_cast<const char *>(&mStringBuffer[0]);
   }
@@ -369,7 +363,7 @@ namespace ortc
   void RTPPacket::StringHeaderExtension::trace(
                                                const char *func,
                                                const char *message
-                                               ) const
+                                               ) const noexcept
   {
     ZS_EVENTING_7(x, i, Basic, RTPPacketStringHeaderExtension, ol, RtpPacket, Info,
       string, func, func,
@@ -386,14 +380,14 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark RTPPacket::NumberHeaderExtension
-  #pragma mark
+  //
+  // RTPPacket::NumberHeaderExtension
+  //
 
   //---------------------------------------------------------------------------
-  RTPPacket::NumberHeaderExtension::NumberHeaderExtension(const HeaderExtension &header)
+  RTPPacket::NumberHeaderExtension::NumberHeaderExtension(const HeaderExtension &header) noexcept
   {
-    ASSERT(sizeof(char) == sizeof(BYTE))
+    ZS_ASSERT(sizeof(char) == sizeof(BYTE));
 
     mID = header.mID;
     mDataSizeInBytes = header.mDataSizeInBytes;
@@ -416,7 +410,7 @@ namespace ortc
                                                           BYTE id,
                                                           const BYTE *number,
                                                           size_t lengthInBytes
-                                                          )
+                                                          ) noexcept
   {
     mID = id;
     mData = &(mNumberBuffer[0]);
@@ -433,7 +427,7 @@ namespace ortc
   RTPPacket::NumberHeaderExtension::NumberHeaderExtension(
                                                           BYTE id,
                                                           const char *valueInBase10
-                                                          )
+                                                          ) noexcept(false)
   {
     mID = id;
     mData = &(mNumberBuffer[0]);
@@ -459,19 +453,19 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  const BYTE *RTPPacket::NumberHeaderExtension::number() const
+  const BYTE *RTPPacket::NumberHeaderExtension::number() const noexcept
   {
     return &(mNumberBuffer[0]);
   }
 
   //---------------------------------------------------------------------------
-  size_t RTPPacket::NumberHeaderExtension::length() const
+  size_t RTPPacket::NumberHeaderExtension::length() const noexcept
   {
     return mDataSizeInBytes;
   }
 
   //---------------------------------------------------------------------------
-  String RTPPacket::NumberHeaderExtension::str() const
+  String RTPPacket::NumberHeaderExtension::str() const noexcept
   {
     if (mDataSizeInBytes < 1) return String();
 
@@ -488,7 +482,7 @@ namespace ortc
   void RTPPacket::NumberHeaderExtension::trace(
                                                const char *func,
                                                const char *message
-                                               ) const
+                                               ) const noexcept
   {
     ZS_EVENTING_7(x, i, Basic, RTPPacketNumberHeaderExtension, ol, RtpPacket, Info,
       string, func, func,
@@ -505,15 +499,15 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark RTPPacket::MidHeaderExtension
-  #pragma mark
+  //
+  // RTPPacket::MidHeaderExtension
+  //
 
   //---------------------------------------------------------------------------
   void RTPPacket::MidHeaderExtension::trace(
                                             const char *func,
                                             const char *message
-                                            ) const
+                                            ) const noexcept
   {
     ZS_EVENTING_7(x, i, Basic, RTPPacketMidHeaderExtension, ol, RtpPacket, Info,
       string, func, func,
@@ -530,15 +524,15 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark RTPPacket::RidHeaderExtension
-  #pragma mark
+  //
+  // RTPPacket::RidHeaderExtension
+  //
 
   //---------------------------------------------------------------------------
   void RTPPacket::RidHeaderExtension::trace(
                                             const char *func,
                                             const char *message
-                                            ) const
+                                            ) const noexcept
   {
     ZS_EVENTING_7(x, i, Insane, RTPPacketRidHeaderExtension, ol, RtpPacket, Info,
       string, func, func,
@@ -555,12 +549,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark RTPPacket::VideoOrientationHeaderExtension
-  #pragma mark
+  //
+  // RTPPacket::VideoOrientationHeaderExtension
+  //
 
   //---------------------------------------------------------------------------
-  RTPPacket::VideoOrientationHeaderExtension::VideoOrientationHeaderExtension(const HeaderExtension &header)
+  RTPPacket::VideoOrientationHeaderExtension::VideoOrientationHeaderExtension(const HeaderExtension &header) noexcept
   {
     mID = header.mID;
     mDataSizeInBytes = header.mDataSizeInBytes;
@@ -571,7 +565,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  RTPPacket::VideoOrientationHeaderExtension::VideoOrientationHeaderExtension(const VideoOrientation6HeaderExtension &)
+  RTPPacket::VideoOrientationHeaderExtension::VideoOrientationHeaderExtension(const VideoOrientation6HeaderExtension &) noexcept
   {
     mData = &(mEncoded[0]);
     mDataSizeInBytes = sizeof(mEncoded);
@@ -583,7 +577,7 @@ namespace ortc
                                                                               bool frontFacingCamera,
                                                                               bool flip,
                                                                               UINT orientation
-                                                                              )
+                                                                              ) noexcept
   {
     mData = &(mEncoded[0]);
     mDataSizeInBytes = sizeof(mEncoded);
@@ -609,34 +603,34 @@ namespace ortc
                                                                               bool frontFacingCamera, // true = front facing, false = backfacing
                                                                               bool flip, // horizontal left-right flip (mirro)
                                                                               UINT orientation
-                                                                              ) :
+                                                                              ) noexcept :
     VideoOrientationHeaderExtension(Clockwise {}, frontFacingCamera, flip, 360-(orientation%360))
   {
   }
 
   //---------------------------------------------------------------------------
-  bool RTPPacket::VideoOrientationHeaderExtension::frontFacing() const
+  bool RTPPacket::VideoOrientationHeaderExtension::frontFacing() const noexcept
   {
     if (NULL == mData) return false;
     return (0 != RTP_GET_BITS(mData[0], 0x1, 3));
   }
 
   //---------------------------------------------------------------------------
-  bool RTPPacket::VideoOrientationHeaderExtension::backFacing() const
+  bool RTPPacket::VideoOrientationHeaderExtension::backFacing() const noexcept
   {
     if (NULL == mData) return false;
     return (0 == RTP_GET_BITS(mData[0], 0x1, 3));
   }
 
   //---------------------------------------------------------------------------
-  bool RTPPacket::VideoOrientationHeaderExtension::flip() const
+  bool RTPPacket::VideoOrientationHeaderExtension::flip() const noexcept
   {
     if (NULL == mData) return false;
     return (0 == RTP_GET_BITS(mData[0], 0x1, 2));
   }
 
   //---------------------------------------------------------------------------
-  UINT RTPPacket::VideoOrientationHeaderExtension::degreesClockwise() const
+  UINT RTPPacket::VideoOrientationHeaderExtension::degreesClockwise() const noexcept
   {
     if (NULL == mData) return 0;
     UINT degrees = static_cast<UINT>(RTP_GET_BITS(mData[0], 0x3, 0));
@@ -647,7 +641,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  UINT RTPPacket::VideoOrientationHeaderExtension::degreesCounterClockwise() const
+  UINT RTPPacket::VideoOrientationHeaderExtension::degreesCounterClockwise() const noexcept
   {
     return (360-degreesClockwise())%360;
   }
@@ -656,7 +650,7 @@ namespace ortc
   void RTPPacket::VideoOrientationHeaderExtension::trace(
                                                          const char *func,
                                                          const char *message
-                                                         ) const
+                                                         ) const noexcept
   {
     ZS_EVENTING_9(x, i, Basic, RTPPacketVideoOrientationHeaderExtension, ol, RtpPacket, Info,
       string, func, func,
@@ -675,12 +669,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark RTPPacket::VideoOrientation6HeaderExtension
-  #pragma mark
+  //
+  // RTPPacket::VideoOrientation6HeaderExtension
+  //
 
   //---------------------------------------------------------------------------
-  RTPPacket::VideoOrientation6HeaderExtension::VideoOrientation6HeaderExtension(const HeaderExtension &header) :
+  RTPPacket::VideoOrientation6HeaderExtension::VideoOrientation6HeaderExtension(const HeaderExtension &header) noexcept :
     VideoOrientationHeaderExtension(header)
   {
   }
@@ -691,7 +685,7 @@ namespace ortc
                                                                                 bool frontFacingCamera,
                                                                                 bool flip,
                                                                                 UINT orientation
-                                                                                ) :
+                                                                                ) noexcept :
     VideoOrientationHeaderExtension(*this)
   {
     // find closest approximation to the video orientation for the 6 bit allowance
@@ -733,13 +727,13 @@ namespace ortc
                                                                                 bool frontFacingCamera,
                                                                                 bool flip,
                                                                                 UINT orientation
-                                                                                ) :
+                                                                                ) noexcept :
     VideoOrientation6HeaderExtension(Clockwise{}, frontFacingCamera, flip, 360-(orientation % 360))
   {
   }
 
   //---------------------------------------------------------------------------
-  UINT RTPPacket::VideoOrientation6HeaderExtension::degreesClockwise() const
+  UINT RTPPacket::VideoOrientation6HeaderExtension::degreesClockwise() const noexcept
   {
     if (NULL == mData) return 0;
 
@@ -751,7 +745,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  UINT RTPPacket::VideoOrientation6HeaderExtension::degreesCounterClockwise() const
+  UINT RTPPacket::VideoOrientation6HeaderExtension::degreesCounterClockwise() const noexcept
   {
     return (360-degreesClockwise())%360;
   }
@@ -760,21 +754,21 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark RTPPacket (public)
-  #pragma mark
+  //
+  // RTPPacket (public)
+  //
 
   //---------------------------------------------------------------------------
   RTPPacket::RTPPacket(
                        const make_private &,
                        MediaChannelID mediaChannelID
-                       ) :
+                       ) noexcept :
     mMediaChannelID(mediaChannelID)
   {
   }
 
   //---------------------------------------------------------------------------
-  RTPPacket::~RTPPacket()
+  RTPPacket::~RTPPacket() noexcept
   {
     if (mHeaderExtensions) {
       delete [] mHeaderExtensions;
@@ -786,7 +780,7 @@ namespace ortc
   RTPPacketPtr RTPPacket::create(
                                  const RTPPacket &packet,
                                  MediaChannelID mediaChannelID
-                                 )
+                                 ) noexcept
   {
     RTPPacketPtr pThis(make_shared<RTPPacket>(make_private{}, mediaChannelID));
     pThis->generate(packet);
@@ -794,7 +788,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  RTPPacketPtr RTPPacket::create(const CreationParams &params)
+  RTPPacketPtr RTPPacket::create(const CreationParams &params) noexcept
   {
     RTPPacketPtr pThis(make_shared<RTPPacket>(make_private{}, params.mMediaChannelID));
     pThis->generate(params);
@@ -806,19 +800,20 @@ namespace ortc
                                  const BYTE *buffer,
                                  size_t bufferLengthInBytes,
                                  MediaChannelID mediaChannelID
-                                 )
+                                 ) noexcept
   {
-    ORTC_THROW_INVALID_PARAMETERS_IF(!buffer)
-    ORTC_THROW_INVALID_PARAMETERS_IF(0 == bufferLengthInBytes)
+    ZS_ASSERT(buffer);
+    ZS_ASSERT(0 != bufferLengthInBytes);
     return RTPPacket::create(UseServicesHelper::convertToBuffer(buffer, bufferLengthInBytes), mediaChannelID);
   }
 
   //---------------------------------------------------------------------------
   RTPPacketPtr RTPPacket::create(
                                  const SecureByteBlock &buffer,
-                                 MediaChannelID mediaChannelID
-                                 )
+                                 ZS_MAYBE_USED() MediaChannelID mediaChannelID
+                                 ) noexcept
   {
+    ZS_MAYBE_USED(mediaChannelID);
     return RTPPacket::create(buffer.BytePtr(), buffer.SizeInBytes());
   }
 
@@ -826,7 +821,7 @@ namespace ortc
   RTPPacketPtr RTPPacket::create(
                                  SecureByteBlockPtr buffer,
                                  MediaChannelID mediaChannelID
-                                 )
+                                 ) noexcept
   {
     RTPPacketPtr pThis(make_shared<RTPPacket>(make_private{}, mediaChannelID));
     pThis->mBuffer = buffer;
@@ -838,32 +833,32 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  const BYTE *RTPPacket::ptr() const
+  const BYTE *RTPPacket::ptr() const noexcept
   {
     return mBuffer->BytePtr();
   }
 
   //---------------------------------------------------------------------------
-  size_t RTPPacket::size() const
+  size_t RTPPacket::size() const noexcept
   {
     return mBuffer->SizeInBytes();
   }
 
   //---------------------------------------------------------------------------
-  SecureByteBlockPtr RTPPacket::buffer() const
+  SecureByteBlockPtr RTPPacket::buffer() const noexcept
   {
     return mBuffer;
   }
 
   //---------------------------------------------------------------------------
-  DWORD RTPPacket::getCSRC(size_t index) const
+  DWORD RTPPacket::getCSRC(size_t index) const noexcept
   {
-    ASSERT(index < cc())
+    ZS_ASSERT(index < cc());
     return UseRTPUtils::getBE32(&((ptr())[internal::kMinRtpPacketLen + (sizeof(DWORD)*index)]));
   }
 
   //---------------------------------------------------------------------------
-  const BYTE *RTPPacket::payload() const
+  const BYTE *RTPPacket::payload() const noexcept
   {
     if (0 == mPayloadSize) return NULL;
     const BYTE *buffer = ptr();
@@ -871,7 +866,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  RTPPacket::HeaderExtension *RTPPacket::getHeaderExtensionAtIndex(size_t index) const
+  RTPPacket::HeaderExtension *RTPPacket::getHeaderExtensionAtIndex(size_t index) const noexcept
   {
     if (index >= mTotalHeaderExtensions) return NULL;
     return &(mHeaderExtensions[index]);
@@ -881,7 +876,7 @@ namespace ortc
   void RTPPacket::trace(
                         const char *func,
                         const char *message
-                        ) const
+                        ) const noexcept
   {
     ZS_EVENTING_21(x, i, Basic, RTPPacketTrace, ol, RtpPacket, Info,
       string, func, func,
@@ -916,14 +911,14 @@ namespace ortc
   static bool requiresTwoByteHeader(
                                     RTPPacket::HeaderExtension *firstExtension,
                                     BYTE headerExtensionAppBits
-                                    )
+                                    ) noexcept
   {
     typedef RTPPacket::HeaderExtension HeaderExtension;
 
     bool twoByteHeader = (0 != headerExtensionAppBits);
     if (!twoByteHeader) {
       for (HeaderExtension *current = firstExtension; NULL != current; current = current->mNext) {
-        ASSERT(0 != current->mID) // not legal
+        ZS_ASSERT(0 != current->mID); // not legal
 
         if (current->mID > 14) {
           twoByteHeader = true;
@@ -934,7 +929,7 @@ namespace ortc
           break;
         }
         if (current->mDataSizeInBytes > 16) {
-          ASSERT(current->mDataSizeInBytes < 255)
+          ZS_ASSERT(current->mDataSizeInBytes < 255);
           twoByteHeader = true;
           break;
         }
@@ -944,24 +939,24 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  void RTPPacket::changeHeaderExtensions(HeaderExtension *firstExtension)
+  void RTPPacket::changeHeaderExtensions(HeaderExtension *firstExtension) noexcept(false)
   {
     bool twoByteHeader = requiresTwoByteHeader(firstExtension, mHeaderExtensionAppBits);
 
     if (twoByteHeader) {
-      ORTC_THROW_INVALID_STATE_IF(NULL != mHeaderExtensionParseStoppedPos)  // requires a 1 byte header to append this data
+      ORTC_THROW_INVALID_STATE_IF(NULL != mHeaderExtensionParseStoppedPos);  // requires a 1 byte header to append this data
     }
 
     bool requiresExtension = internal::requiredExtension(firstExtension, mHeaderExtensionAppBits, mHeaderExtensionPrepaddedSize, mHeaderExtensionParseStoppedPos);
 
     const BYTE *buffer = ptr();
 
-    ASSERT(NULL != buffer)
+    ZS_ASSERT(NULL != buffer);
 
     size_t existingHeaderExtensionSize = mHeaderExtensionSize;
     size_t postHeaderExtensionSize = mPayloadSize + mPadding;
 
-    ASSERT(size() == (mHeaderSize + existingHeaderExtensionSize + postHeaderExtensionSize))
+    ZS_ASSERT(size() == (mHeaderSize + existingHeaderExtensionSize + postHeaderExtensionSize));
 
     if (!requiresExtension) {
       // going to strip the extension header out entirely
@@ -971,7 +966,7 @@ namespace ortc
         return;
       }
 
-      ASSERT(size() == (mHeaderSize + existingHeaderExtensionSize + postHeaderExtensionSize))
+      ZS_ASSERT(size() == (mHeaderSize + existingHeaderExtensionSize + postHeaderExtensionSize));
 
       size_t newSize = mHeaderSize + postHeaderExtensionSize;
 
@@ -1033,12 +1028,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark RTPPacket (internal)
-  #pragma mark
+  //
+  // RTPPacket (internal)
+  //
 
   //---------------------------------------------------------------------------
-  bool RTPPacket::parse()
+  bool RTPPacket::parse() noexcept
   {
     const BYTE *buffer = mBuffer->BytePtr();
     size_t size = mBuffer->SizeInBytes();
@@ -1304,17 +1299,17 @@ namespace ortc
   void RTPPacket::writeHeaderExtensions(
                                         HeaderExtension *firstExtension,
                                         bool twoByteHeader
-                                        )
+                                        ) noexcept
   {
-    ASSERT((bool)mBuffer)
-    ASSERT(0 != mBuffer->SizeInBytes())
-    ASSERT(0 != mHeaderSize)
-    //ASSERT(mHeaderExtensionAppBits)           // needs to be set (but no way to verify here)
-    //ASSERT(mTotalHeaderExtensions)            // needs to be set (but no way to verify here)
-    //ASSERT(mHeaderExtensionPrepaddedSize)     // needs to be set (but no way to verify here)
-    //ASSSRT(mHeaderExtensionParseStoppedSize)  // needs to be set (but no way to verify here)
-    //ASSERT(mHeaderExtensionParseStoppedPos)   // needs to be set (but no way to verify here)
-    ASSERT(0 != mHeaderExtensionSize)
+    ZS_ASSERT((bool)mBuffer);
+    ZS_ASSERT(0 != mBuffer->SizeInBytes());
+    ZS_ASSERT(0 != mHeaderSize);
+    //ZS_ASSERT(mHeaderExtensionAppBits);           // needs to be set (but no way to verify here)
+    //ZS_ASSERT(mTotalHeaderExtensions);            // needs to be set (but no way to verify here)
+    //ZS_ASSERT(mHeaderExtensionPrepaddedSize);     // needs to be set (but no way to verify here)
+    //ZS_ASSERT(mHeaderExtensionParseStoppedSize);  // needs to be set (but no way to verify here)
+    //ZS_ASSERT(mHeaderExtensionParseStoppedPos);   // needs to be set (but no way to verify here)
+    ZS_ASSERT(0 != mHeaderExtensionSize);
 
 
     BYTE *newBuffer = mBuffer->BytePtr();
@@ -1373,7 +1368,7 @@ namespace ortc
     }
 
     if (0 != mHeaderExtensionParseStoppedSize) {
-      ASSERT(NULL != mHeaderExtensionParseStoppedPos)
+      ZS_ASSERT(NULL != mHeaderExtensionParseStoppedPos);
 
       memcpy(pos, mHeaderExtensionParseStoppedPos, mHeaderExtensionParseStoppedSize);
       mHeaderExtensionParseStoppedPos = pos;
@@ -1381,7 +1376,7 @@ namespace ortc
       mHeaderExtensionParseStoppedPos = NULL;
     }
 
-    ASSERT(index == mTotalHeaderExtensions)
+    ZS_ASSERT(index == mTotalHeaderExtensions);
 
     mTotalHeaderExtensions = index;
     if (NULL != mHeaderExtensions) {
@@ -1392,7 +1387,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  void RTPPacket::generate(const RTPPacket &packet)
+  void RTPPacket::generate(const RTPPacket &packet) noexcept
   {
     CreationParams params;
 
@@ -1429,15 +1424,15 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  void RTPPacket::generate(const CreationParams &params)
+  void RTPPacket::generate(const CreationParams &params) noexcept(false)
   {
-    ASSERT(params.mVersion <= 0x3)
-    ASSERT(params.mPadding <= 0xFF)
-    ASSERT(params.mCC <= 0xF)
-    ASSERT(params.mPT <= 0x7F)
+    ZS_ASSERT(params.mVersion <= 0x3);
+    ZS_ASSERT(params.mPadding <= 0xFF);
+    ZS_ASSERT(params.mCC <= 0xF);
+    ZS_ASSERT(params.mPT <= 0x7F);
 
-    ASSERT(0 == params.mCC ? (NULL == params.mCSRCList) : (NULL != params.mCSRCList))
-    ASSERT(0 == params.mPayloadSize ? (NULL == params.mPayload) : (NULL != params.mPayload))
+    ZS_ASSERT(0 == params.mCC ? (NULL == params.mCSRCList) : (NULL != params.mCSRCList));
+    ZS_ASSERT(0 == params.mPayloadSize ? (NULL == params.mPayload) : (NULL != params.mPayload));
 
     mVersion = params.mVersion & 0x3;
     mPadding = params.mPadding;
@@ -1463,7 +1458,7 @@ namespace ortc
     bool twoByteHeader = requiresTwoByteHeader(params.mFirstHeaderExtension, mHeaderExtensionAppBits);
 
     if (twoByteHeader) {
-      ORTC_THROW_INVALID_STATE_IF(NULL != mHeaderExtensionParseStoppedPos)  // requires a 1 byte header to append this data
+      ORTC_THROW_INVALID_STATE_IF(NULL != mHeaderExtensionParseStoppedPos);  // requires a 1 byte header to append this data
     }
 
     bool requiresExtension = internal::requiredExtension(params.mFirstHeaderExtension, mHeaderExtensionAppBits, mHeaderExtensionPrepaddedSize, mHeaderExtensionParseStoppedPos);

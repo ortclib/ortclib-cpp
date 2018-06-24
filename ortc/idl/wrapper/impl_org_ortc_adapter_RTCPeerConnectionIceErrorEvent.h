@@ -20,17 +20,17 @@ namespace wrapper {
             RTCPeerConnectionIceErrorEventWeakPtr thisWeak_;
             NativeTypePtr native_;
 
-            RTCPeerConnectionIceErrorEvent();
-            virtual ~RTCPeerConnectionIceErrorEvent();
+            RTCPeerConnectionIceErrorEvent() noexcept;
+            virtual ~RTCPeerConnectionIceErrorEvent() noexcept;
 
             // properties RTCPeerConnectionIceErrorEvent
-            virtual wrapper::org::ortc::adapter::RTCIceCandidatePtr get_hostCandidate() override;
-            virtual String get_url() override;
-            virtual Optional< uint16_t > get_errorCode() override;
-            virtual String get_errorText() override;
+            wrapper::org::ortc::adapter::RTCIceCandidatePtr get_hostCandidate() noexcept override;
+            String get_url() noexcept override;
+            Optional< uint16_t > get_errorCode() noexcept override;
+            String get_errorText() noexcept override;
 
-            static WrapperImplTypePtr toWrapper(NativeTypePtr native);
-            static NativeTypePtr toNative(WrapperTypePtr wrapper);
+            static WrapperImplTypePtr toWrapper(NativeTypePtr native) noexcept;
+            static NativeTypePtr toNative(WrapperTypePtr wrapper) noexcept;
           };
 
         } // adapter

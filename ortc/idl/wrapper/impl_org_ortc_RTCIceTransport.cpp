@@ -38,12 +38,12 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCIceTransport::WrapperImplTyp
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCIceTransport::WrapperType, WrapperType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCIceTransport::RTCIceTransport()
+wrapper::impl::org::ortc::RTCIceTransport::RTCIceTransport() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCIceTransportPtr wrapper::org::ortc::RTCIceTransport::wrapper_create()
+wrapper::org::ortc::RTCIceTransportPtr wrapper::org::ortc::RTCIceTransport::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::RTCIceTransport>();
   pThis->thisWeak_ = pThis;
@@ -51,24 +51,24 @@ wrapper::org::ortc::RTCIceTransportPtr wrapper::org::ortc::RTCIceTransport::wrap
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCIceTransport::~RTCIceTransport()
+wrapper::impl::org::ortc::RTCIceTransport::~RTCIceTransport() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > wrapper::impl::org::ortc::RTCIceTransport::getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes)
+shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > wrapper::impl::org::ortc::RTCIceTransport::getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept(false)
 {
   return Helper::getStats(native_, statTypes);
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCIceTransport::wrapper_init_org_ortc_RTCIceTransport()
+void wrapper::impl::org::ortc::RTCIceTransport::wrapper_init_org_ortc_RTCIceTransport() noexcept
 {
   native_ = NativeType::create(thisWeak_.lock());
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCIceTransport::wrapper_init_org_ortc_RTCIceTransport(wrapper::org::ortc::RTCIceGathererPtr gatherer)
+void wrapper::impl::org::ortc::RTCIceTransport::wrapper_init_org_ortc_RTCIceTransport(wrapper::org::ortc::RTCIceGathererPtr gatherer) noexcept(false)
 {
   native_ = NativeType::create(thisWeak_.lock(), RTCIceGatherer::toNative(gatherer));
 }
@@ -77,10 +77,10 @@ void wrapper::impl::org::ortc::RTCIceTransport::wrapper_init_org_ortc_RTCIceTran
 void wrapper::impl::org::ortc::RTCIceTransport::start(
   wrapper::org::ortc::RTCIceGathererPtr gatherer,
   wrapper::org::ortc::RTCIceParametersPtr remoteParameters
-  )
+  ) noexcept(false)
 {
   auto nativeParams = RTCIceParameters::toNative(remoteParameters);
-  ZS_THROW_INVALID_ARGUMENT_IF(!nativeParams);
+  ZS_ASSERT(nativeParams);
 
   native_->start(RTCIceGatherer::toNative(gatherer), *nativeParams);
 }
@@ -90,7 +90,7 @@ void wrapper::impl::org::ortc::RTCIceTransport::start(
   wrapper::org::ortc::RTCIceGathererPtr gatherer,
   wrapper::org::ortc::RTCIceParametersPtr remoteParameters,
   wrapper::org::ortc::RTCIceRole role
-  )
+  ) noexcept(false)
 {
   auto nativeParams = RTCIceParameters::toNative(remoteParameters);
   ZS_THROW_INVALID_ARGUMENT_IF(!nativeParams);
@@ -106,7 +106,7 @@ void wrapper::impl::org::ortc::RTCIceTransport::start(
   wrapper::org::ortc::RTCIceGathererPtr gatherer,
   wrapper::org::ortc::RTCIceParametersPtr remoteParameters,
   wrapper::org::ortc::RTCIceTransportOptionsPtr options
-  )
+  ) noexcept(false)
 {
   auto nativeParams = RTCIceParameters::toNative(remoteParameters);
   ZS_THROW_INVALID_ARGUMENT_IF(!nativeParams);
@@ -121,19 +121,19 @@ void wrapper::impl::org::ortc::RTCIceTransport::start(
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCIceTransport::stop()
+void wrapper::impl::org::ortc::RTCIceTransport::stop() noexcept
 {
   native_->stop();
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCIceTransportPtr wrapper::impl::org::ortc::RTCIceTransport::createAssociatedTransport()
+wrapper::org::ortc::RTCIceTransportPtr wrapper::impl::org::ortc::RTCIceTransport::createAssociatedTransport() noexcept
 {
   return RTCIceTransport::toWrapper(native_->createAssociatedTransport(::ortc::IICETransportDelegatePtr()));
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCIceTransport::addRemoteCandidate(wrapper::org::ortc::RTCIceGathererCandidatePtr remoteCandidate)
+void wrapper::impl::org::ortc::RTCIceTransport::addRemoteCandidate(wrapper::org::ortc::RTCIceGathererCandidatePtr remoteCandidate) noexcept(false)
 {
   auto native = RTCIceGathererCandidate::toNative(remoteCandidate);
   if (!native) return;
@@ -141,7 +141,7 @@ void wrapper::impl::org::ortc::RTCIceTransport::addRemoteCandidate(wrapper::org:
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCIceTransport::setRemoteCandidates(shared_ptr< list< wrapper::org::ortc::RTCIceCandidatePtr > > remoteCandidates)
+void wrapper::impl::org::ortc::RTCIceTransport::setRemoteCandidates(shared_ptr< list< wrapper::org::ortc::RTCIceCandidatePtr > > remoteCandidates) noexcept(false)
 {
   list< ::ortc::IICETypes::Candidate > nativeList;
   if (remoteCandidates) {
@@ -155,7 +155,7 @@ void wrapper::impl::org::ortc::RTCIceTransport::setRemoteCandidates(shared_ptr< 
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCIceTransport::removeRemoteCandidate(wrapper::org::ortc::RTCIceGathererCandidatePtr remoteCandidate)
+void wrapper::impl::org::ortc::RTCIceTransport::removeRemoteCandidate(wrapper::org::ortc::RTCIceGathererCandidatePtr remoteCandidate) noexcept(false)
 {
   auto native = RTCIceGathererCandidate::toNative(remoteCandidate);
   if (!native) return;
@@ -163,7 +163,7 @@ void wrapper::impl::org::ortc::RTCIceTransport::removeRemoteCandidate(wrapper::o
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCIceTransport::keepWarm(wrapper::org::ortc::RTCIceCandidatePairPtr candidatePair)
+void wrapper::impl::org::ortc::RTCIceTransport::keepWarm(wrapper::org::ortc::RTCIceCandidatePairPtr candidatePair) noexcept(false)
 {
   auto native = RTCIceCandidatePair::toNative(candidatePair);
   if (!native) return;
@@ -174,7 +174,7 @@ void wrapper::impl::org::ortc::RTCIceTransport::keepWarm(wrapper::org::ortc::RTC
 void wrapper::impl::org::ortc::RTCIceTransport::keepWarm(
   wrapper::org::ortc::RTCIceCandidatePairPtr candidatePair,
   bool keepWarm
-  )
+  ) noexcept(false)
 {
   auto native = RTCIceCandidatePair::toNative(candidatePair);
   if (!native) return;
@@ -182,37 +182,37 @@ void wrapper::impl::org::ortc::RTCIceTransport::keepWarm(
 }
 
 //------------------------------------------------------------------------------
-uint64_t wrapper::impl::org::ortc::RTCIceTransport::get_objectId()
+uint64_t wrapper::impl::org::ortc::RTCIceTransport::get_objectId() noexcept
 {
   return native_->getID();
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCIceGathererPtr wrapper::impl::org::ortc::RTCIceTransport::get_gatherer()
+wrapper::org::ortc::RTCIceGathererPtr wrapper::impl::org::ortc::RTCIceTransport::get_gatherer() noexcept
 {
   return RTCIceGatherer::toWrapper(native_->iceGatherer());
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCIceRole wrapper::impl::org::ortc::RTCIceTransport::get_role()
+wrapper::org::ortc::RTCIceRole wrapper::impl::org::ortc::RTCIceTransport::get_role() noexcept
 {
   return Helper::toWrapper(native_->role());
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCIceComponent wrapper::impl::org::ortc::RTCIceTransport::get_component()
+wrapper::org::ortc::RTCIceComponent wrapper::impl::org::ortc::RTCIceTransport::get_component() noexcept
 {
   return Helper::toWrapper(native_->component());
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCIceTransportState wrapper::impl::org::ortc::RTCIceTransport::get_state()
+wrapper::org::ortc::RTCIceTransportState wrapper::impl::org::ortc::RTCIceTransport::get_state() noexcept
 {
   return Helper::toWrapper(native_->state());
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< list< wrapper::org::ortc::RTCIceCandidatePtr > > wrapper::impl::org::ortc::RTCIceTransport::get_remoteCandidates()
+shared_ptr< list< wrapper::org::ortc::RTCIceCandidatePtr > > wrapper::impl::org::ortc::RTCIceTransport::get_remoteCandidates() noexcept
 {
   auto result = make_shared< list< wrapper::org::ortc::RTCIceCandidatePtr > >();
   auto native = native_->getRemoteCandidates();
@@ -227,19 +227,19 @@ shared_ptr< list< wrapper::org::ortc::RTCIceCandidatePtr > > wrapper::impl::org:
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCIceCandidatePairPtr wrapper::impl::org::ortc::RTCIceTransport::get_selectedCandidatePair()
+wrapper::org::ortc::RTCIceCandidatePairPtr wrapper::impl::org::ortc::RTCIceTransport::get_selectedCandidatePair() noexcept
 {
   return RTCIceCandidatePair::toWrapper(native_->getSelectedCandidatePair());
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCIceParametersPtr wrapper::impl::org::ortc::RTCIceTransport::get_remoteParameters()
+wrapper::org::ortc::RTCIceParametersPtr wrapper::impl::org::ortc::RTCIceTransport::get_remoteParameters() noexcept
 {
   return RTCIceParameters::toWrapper(native_->getRemoteParameters());
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCIceTransport::wrapper_onObserverCountChanged(size_t count)
+void wrapper::impl::org::ortc::RTCIceTransport::wrapper_onObserverCountChanged(size_t count) noexcept
 {
   subscriptionCount_ = count;
   subscribe();
@@ -249,7 +249,7 @@ void wrapper::impl::org::ortc::RTCIceTransport::wrapper_onObserverCountChanged(s
 void WrapperImplType::onICETransportStateChange(
   IICETransportPtr transport,
   IICETransport::States state
-)
+) noexcept
 {
   onStateChange(RTCIceTransportStateChangeEvent::toWrapper(state));
 }
@@ -258,7 +258,7 @@ void WrapperImplType::onICETransportStateChange(
 void WrapperImplType::onICETransportCandidatePairAvailable(
   IICETransportPtr transport,
   CandidatePairPtr candidatePair
-)
+) noexcept
 {
   onCandidatePairAvailable(RTCIceCandidatePairChangeEvent::toWrapper(candidatePair));
 }
@@ -267,7 +267,7 @@ void WrapperImplType::onICETransportCandidatePairAvailable(
 void WrapperImplType::onICETransportCandidatePairGone(
   IICETransportPtr transport,
   CandidatePairPtr candidatePair
-)
+) noexcept
 {
   onCandidatePairGone(RTCIceCandidatePairChangeEvent::toWrapper(candidatePair));
 }
@@ -276,13 +276,13 @@ void WrapperImplType::onICETransportCandidatePairGone(
 void WrapperImplType::onICETransportCandidatePairChanged(
   IICETransportPtr transport,
   CandidatePairPtr candidatePair
-)
+) noexcept
 {
   onCandidatePairChange(RTCIceCandidatePairChangeEvent::toWrapper(candidatePair));
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr track)
+WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr track) noexcept
 {
   if (!track) return WrapperImplTypePtr();
 
@@ -295,7 +295,7 @@ WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr track)
 }
 
 //------------------------------------------------------------------------------
-NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper)
+NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper) noexcept
 {
   if (!wrapper) return NativeTypePtr();
   auto result = std::dynamic_pointer_cast<WrapperImplType>(wrapper);
@@ -304,7 +304,7 @@ NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper)
 }
 
 //------------------------------------------------------------------------------
-void WrapperImplType::subscribe()
+void WrapperImplType::subscribe() noexcept
 {
   if (defaultSubscription_) return;
   if (!native_) return;

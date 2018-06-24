@@ -46,7 +46,7 @@ struct ifaddrs {
   // We don't need them (yet?).
 };
 
-int getifaddrs(struct ifaddrs** result);
-void freeifaddrs(struct ifaddrs* addrs);
+int getifaddrs(struct ifaddrs** result) noexcept;
+void freeifaddrs(struct ifaddrs* addrs) noexcept;
 
 #endif  // TALK_BASE_IFADDRS_ANDROID_H_

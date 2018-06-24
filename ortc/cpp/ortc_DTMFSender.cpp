@@ -50,13 +50,6 @@
 #include <cryptopp/sha.h>
 
 
-#ifdef _DEBUG
-#define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))
-#else
-#define ASSERT(x)
-#endif //_DEBUG
-
-
 namespace ortc { ZS_DECLARE_SUBSYSTEM(org_ortc_rtp_sender) }
 
 namespace ortc
@@ -72,36 +65,36 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark (helpers)
-    #pragma mark
+    //
+    // (helpers)
+    //
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark DTMFSenderSettingsDefaults
-    #pragma mark
+    //
+    // DTMFSenderSettingsDefaults
+    //
 
     class DTMFSenderSettingsDefaults : public ISettingsApplyDefaultsDelegate
     {
     public:
       //-----------------------------------------------------------------------
-      ~DTMFSenderSettingsDefaults()
+      ~DTMFSenderSettingsDefaults() noexcept
       {
         ISettings::removeDefaults(*this);
       }
 
       //-----------------------------------------------------------------------
-      static DTMFSenderSettingsDefaultsPtr singleton()
+      static DTMFSenderSettingsDefaultsPtr singleton() noexcept
       {
         static SingletonLazySharedPtr<DTMFSenderSettingsDefaults> singleton(create());
         return singleton.singleton();
       }
 
       //-----------------------------------------------------------------------
-      static DTMFSenderSettingsDefaultsPtr create()
+      static DTMFSenderSettingsDefaultsPtr create() noexcept
       {
         auto pThis(make_shared<DTMFSenderSettingsDefaults>());
         ISettings::installDefaults(pThis);
@@ -109,14 +102,14 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      virtual void notifySettingsApplyDefaults() override
+      virtual void notifySettingsApplyDefaults() noexcept override
       {
       }
       
     };
 
     //-------------------------------------------------------------------------
-    void installDTMFSenderSettingsDefaults()
+    void installDTMFSenderSettingsDefaults() noexcept
     {
       DTMFSenderSettingsDefaults::singleton();
     }
@@ -126,12 +119,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IDTMFSenderForRTPSender
-    #pragma mark
+    //
+    // IDTMFSenderForRTPSender
+    //
 
     //-------------------------------------------------------------------------
-    ElementPtr IDTMFSenderForRTPSender::toDebug(ForRTPSenderPtr transport)
+    ElementPtr IDTMFSenderForRTPSender::toDebug(ForRTPSenderPtr transport) noexcept
     {
       if (!transport) return ElementPtr();
       return ZS_DYNAMIC_PTR_CAST(DTMFSender, transport)->toDebug();
@@ -141,9 +134,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark DTMFSender
-    #pragma mark
+    //
+    // DTMFSender
+    //
     
     //-------------------------------------------------------------------------
     DTMFSender::DTMFSender(
@@ -151,7 +144,7 @@ namespace ortc
                            IMessageQueuePtr queue,
                            IDTMFSenderDelegatePtr originalDelegate,
                            IRTPSenderPtr sender
-                           ) :
+                           ) noexcept :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
       mSubscriptions(decltype(mSubscriptions)::create()),
@@ -165,14 +158,14 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void DTMFSender::init()
+    void DTMFSender::init() noexcept
     {
       AutoRecursiveLock lock(*this);
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
 
     //-------------------------------------------------------------------------
-    DTMFSender::~DTMFSender()
+    DTMFSender::~DTMFSender() noexcept
     {
       if (isNoop()) return;
 
@@ -183,13 +176,13 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    DTMFSenderPtr DTMFSender::convert(IDTMFSenderPtr object)
+    DTMFSenderPtr DTMFSender::convert(IDTMFSenderPtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(DTMFSender, object);
     }
 
     //-------------------------------------------------------------------------
-    DTMFSenderPtr DTMFSender::convert(ForRTPSenderPtr object)
+    DTMFSenderPtr DTMFSender::convert(ForRTPSenderPtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(DTMFSender, object);
     }
@@ -199,12 +192,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark DTMFSender => IDTMFSender
-    #pragma mark
+    //
+    // DTMFSender => IDTMFSender
+    //
     
     //-------------------------------------------------------------------------
-    ElementPtr DTMFSender::toDebug(DTMFSenderPtr transport)
+    ElementPtr DTMFSender::toDebug(DTMFSenderPtr transport) noexcept
     {
       if (!transport) return ElementPtr();
       return transport->toDebug();
@@ -214,7 +207,7 @@ namespace ortc
     DTMFSenderPtr DTMFSender::create(
                                      IDTMFSenderDelegatePtr delegate,
                                      IRTPSenderPtr sender
-                                     )
+                                     ) noexcept
     {
       DTMFSenderPtr pThis(make_shared<DTMFSender>(make_private {}, IORTCForInternal::queueORTC(), delegate, sender));
       pThis->mThisWeak = pThis;
@@ -223,7 +216,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    IDTMFSenderSubscriptionPtr DTMFSender::subscribe(IDTMFSenderDelegatePtr originalDelegate)
+    IDTMFSenderSubscriptionPtr DTMFSender::subscribe(IDTMFSenderDelegatePtr originalDelegate) noexcept
     {
       ZS_LOG_DETAIL(log("subscribing to dtmf sender"));
 
@@ -247,7 +240,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool DTMFSender::canInsertDTMF() const
+    bool DTMFSender::canInsertDTMF() const noexcept
     {
       UseRTPSenderPtr sender;
 
@@ -275,10 +268,7 @@ namespace ortc
                                 const char *tones,
                                 Milliseconds duration,
                                 Milliseconds interToneGap
-                                ) throw (
-                                         InvalidStateError,
-                                         InvalidCharacterError
-                                         )
+                                ) noexcept(false)
     {
       UseRTPSenderPtr sender;
 
@@ -302,13 +292,13 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    IRTPSenderPtr DTMFSender::sender() const
+    IRTPSenderPtr DTMFSender::sender() const noexcept
     {
       return RTPSender::convert(mRTPSender.lock());
     }
 
     //-------------------------------------------------------------------------
-    String DTMFSender::toneBuffer() const
+    String DTMFSender::toneBuffer() const noexcept
     {
       UseRTPSenderPtr sender;
 
@@ -332,7 +322,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    Milliseconds DTMFSender::duration() const
+    Milliseconds DTMFSender::duration() const noexcept
     {
       UseRTPSenderPtr sender;
 
@@ -356,7 +346,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    Milliseconds DTMFSender::interToneGap() const
+    Milliseconds DTMFSender::interToneGap() const noexcept
     {
       UseRTPSenderPtr sender;
 
@@ -383,23 +373,23 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark DTMFSender => IDTMFSenderForRTPSender
-    #pragma mark
+    //
+    // DTMFSender => IDTMFSenderForRTPSender
+    //
 
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark DTMFSender => IWakeDelegate
-    #pragma mark
+    //
+    // DTMFSender => IWakeDelegate
+    //
 
     //-------------------------------------------------------------------------
     void DTMFSender::onWake()
     {
-      ZS_LOG_DEBUG(log("wake"))
+      ZS_LOG_DEBUG(log("wake"));
 
       AutoRecursiveLock lock(*this);
       step();
@@ -409,9 +399,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark DTMFSender => IDTMFSenderDelegate
-    #pragma mark
+    //
+    // DTMFSender => IDTMFSenderDelegate
+    //
 
     //-------------------------------------------------------------------------
     void DTMFSender::onDTMFSenderToneChanged(
@@ -431,21 +421,21 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark DTMFSender => IDTMFSenderAsyncDelegate
-    #pragma mark
+    //
+    // DTMFSender => IDTMFSenderAsyncDelegate
+    //
 
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark DTMFSender => (internal)
-    #pragma mark
+    //
+    // DTMFSender => (internal)
+    //
 
     //-------------------------------------------------------------------------
-    Log::Params DTMFSender::log(const char *message) const
+    Log::Params DTMFSender::log(const char *message) const noexcept
     {
       ElementPtr objectEl = Element::create("ortc::DTMFSender");
       IHelper::debugAppend(objectEl, "id", mID);
@@ -453,13 +443,13 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    Log::Params DTMFSender::debug(const char *message) const
+    Log::Params DTMFSender::debug(const char *message) const noexcept
     {
       return Log::Params(message, toDebug());
     }
 
     //-------------------------------------------------------------------------
-    ElementPtr DTMFSender::toDebug() const
+    ElementPtr DTMFSender::toDebug() const noexcept
     {
       AutoRecursiveLock lock(*this);
 
@@ -482,27 +472,27 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool DTMFSender::isShuttingDown() const
+    bool DTMFSender::isShuttingDown() const noexcept
     {
       if (mGracefulShutdownReference) return true;
       return false;
     }
 
     //-------------------------------------------------------------------------
-    bool DTMFSender::isShutdown() const
+    bool DTMFSender::isShutdown() const noexcept
     {
       if (mGracefulShutdownReference) return false;
       return mShutdown;
     }
 
     //-------------------------------------------------------------------------
-    void DTMFSender::step()
+    void DTMFSender::step() noexcept
     {
       ZS_LOG_DEBUG(debug("step"))
 
       if ((isShuttingDown()) ||
           (isShutdown())) {
-        ZS_LOG_DEBUG(debug("step forwarding to cancel"))
+        ZS_LOG_DEBUG(debug("step forwarding to cancel"));
         cancel();
         return;
       }
@@ -526,7 +516,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool DTMFSender::stepSubscribeSender()
+    bool DTMFSender::stepSubscribeSender() noexcept
     {
       if (mRTPSenderSubscription) {
         ZS_LOG_TRACE(log("already subscribed"));
@@ -546,7 +536,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void DTMFSender::cancel()
+    void DTMFSender::cancel() noexcept
     {
       //.......................................................................
       // try to gracefully shutdown
@@ -556,9 +546,7 @@ namespace ortc
       if (!mGracefulShutdownReference) mGracefulShutdownReference = mThisWeak.lock();
 
       if (mGracefulShutdownReference) {
-#define TODO_OBJECT_IS_BEING_KEPT_ALIVE_UNTIL_SCTP_SESSION_IS_SHUTDOWN 1
-#define TODO_OBJECT_IS_BEING_KEPT_ALIVE_UNTIL_SCTP_SESSION_IS_SHUTDOWN 2
-
+#pragma ZS_BUILD_NOTE("TODO", "If anything is required to keep DTMF object gracefully alive during shutdown")
         // grace shutdown process done here
 
         return;
@@ -585,12 +573,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IDTMFSenderFactory
-    #pragma mark
+    //
+    // IDTMFSenderFactory
+    //
 
     //-------------------------------------------------------------------------
-    IDTMFSenderFactory &IDTMFSenderFactory::singleton()
+    IDTMFSenderFactory &IDTMFSenderFactory::singleton() noexcept
     {
       return DTMFSenderFactory::singleton();
     }
@@ -599,7 +587,7 @@ namespace ortc
     DTMFSenderPtr IDTMFSenderFactory::create(
                                              IDTMFSenderDelegatePtr delegate,
                                              IRTPSenderPtr sender
-                                             )
+                                             ) noexcept
     {
       if (this) {}
       return internal::DTMFSender::create(delegate, sender);
@@ -612,12 +600,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IDTMFSenderTypes
-  #pragma mark
+  //
+  // IDTMFSenderTypes
+  //
 
   //---------------------------------------------------------------------------
-  ElementPtr IDTMFSender::toDebug(IDTMFSenderPtr transport)
+  ElementPtr IDTMFSender::toDebug(IDTMFSenderPtr transport) noexcept
   {
     return internal::DTMFSender::toDebug(internal::DTMFSender::convert(transport));
   }
@@ -626,10 +614,9 @@ namespace ortc
   IDTMFSenderPtr IDTMFSender::create(
                                      IDTMFSenderDelegatePtr delegate,
                                      IRTPSenderPtr sender
-                                     )
+                                     ) noexcept
   {
     return internal::IDTMFSenderFactory::singleton().create(delegate, sender);
   }
-
 
 }

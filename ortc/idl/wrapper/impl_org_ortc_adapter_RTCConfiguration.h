@@ -19,16 +19,16 @@ namespace wrapper {
             ZS_DECLARE_TYPEDEF_PTR(wrapper::org::ortc::adapter::RTCConfiguration, WrapperType);
             RTCConfigurationWeakPtr thisWeak_;
 
-            RTCConfiguration();
-            virtual ~RTCConfiguration();
+            RTCConfiguration() noexcept;
+            virtual ~RTCConfiguration() noexcept;
 
             // methods RTCConfiguration
-            virtual void wrapper_init_org_ortc_adapter_RTCConfiguration() override;
-            virtual void wrapper_init_org_ortc_adapter_RTCConfiguration(wrapper::org::ortc::adapter::RTCConfigurationPtr source) override;
+            void wrapper_init_org_ortc_adapter_RTCConfiguration() noexcept override;
+            void wrapper_init_org_ortc_adapter_RTCConfiguration(wrapper::org::ortc::adapter::RTCConfigurationPtr source) noexcept override;
 
-            static WrapperImplTypePtr toWrapper(NativeTypePtr native);
-            static WrapperImplTypePtr toWrapper(const NativeType &native);
-            static NativeTypePtr toNative(WrapperTypePtr wrapper);
+            static WrapperImplTypePtr toWrapper(NativeTypePtr native) noexcept;
+            static WrapperImplTypePtr toWrapper(const NativeType &native) noexcept;
+            static NativeTypePtr toNative(WrapperTypePtr wrapper) noexcept;
           };
 
         } // adapter

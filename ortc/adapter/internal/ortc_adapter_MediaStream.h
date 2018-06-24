@@ -52,23 +52,23 @@ namespace ortc
       {
         ZS_DECLARE_TYPEDEF_PTR(IMediaStreamForPeerConnection, ForPeerConnection);
 
-        static ForPeerConnectionPtr create(const char *id);
+        static ForPeerConnectionPtr create(const char *id) noexcept;
 
-        virtual String id() const = 0;
+        virtual String id() const noexcept = 0;
 
-        virtual size_t size() const = 0;
+        virtual size_t size() const noexcept = 0;
 
-        virtual void notifyAddTrack(IMediaStreamTrackPtr track) = 0;
-        virtual void notifyRemoveTrack(IMediaStreamTrackPtr track) = 0;
+        virtual void notifyAddTrack(IMediaStreamTrackPtr track) noexcept = 0;
+        virtual void notifyRemoveTrack(IMediaStreamTrackPtr track) noexcept = 0;
       };
 
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaStream
-      #pragma mark
+      //
+      // MediaStream
+      //
 
       class MediaStream : public Noop,
                           public MessageQueueAssociator,
@@ -93,103 +93,103 @@ namespace ortc
                     IMediaStreamDelegatePtr delegate,
                     const UseMediaStreamTrackList &tracks,
                     const char *id = NULL
-                    );
+                    ) noexcept;
 
-        ~MediaStream();
+        ~MediaStream() noexcept;
 
-        static MediaStreamPtr convert(IMediaStreamPtr object);
-        static MediaStreamPtr convert(ForPeerConnectionPtr object);
+        static MediaStreamPtr convert(IMediaStreamPtr object) noexcept;
+        static MediaStreamPtr convert(ForPeerConnectionPtr object) noexcept;
 
       protected:
-        MediaStream(Noop) :
+        MediaStream(Noop) noexcept :
           Noop(true),
           MessageQueueAssociator(IMessageQueuePtr()),
           SharedRecursiveLock(SharedRecursiveLock::create())
         {}
 
-        void init();
+        void init() noexcept;
 
         //---------------------------------------------------------------------
         //---------------------------------------------------------------------
         //---------------------------------------------------------------------
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark MediaStream => IMediaStream
-        #pragma mark
+        //
+        // MediaStream => IMediaStream
+        //
 
-        static ElementPtr toDebug(IMediaStreamPtr object);
+        static ElementPtr toDebug(IMediaStreamPtr object) noexcept;
 
         static MediaStreamPtr create(
                                      IMediaStreamDelegatePtr delegate,
                                      IMediaStreamPtr stream
-                                     );
+                                     ) noexcept;
         static MediaStreamPtr create(
                                      IMediaStreamDelegatePtr delegate,
                                      const MediaStreamTrackList &tracks
-                                     );
+                                     ) noexcept;
 
-        virtual PUID getID() const override { return mID; }
+        PUID getID() const noexcept override { return mID; }
 
-        virtual IMediaStreamSubscriptionPtr subscribe(IMediaStreamDelegatePtr delegate) override;
+        IMediaStreamSubscriptionPtr subscribe(IMediaStreamDelegatePtr delegate) noexcept override;
 
-        virtual String id() const override;
-        virtual bool active() const override;
+        String id() const noexcept override;
+        bool active() const noexcept override;
 
-        virtual MediaStreamTrackListPtr getAudioTracks() const override;
-        virtual MediaStreamTrackListPtr getVideoTracks() const override;
-        virtual MediaStreamTrackListPtr getTracks() const override;
-        virtual IMediaStreamTrackPtr getTrackByID(const char *id) const override;
-        virtual size_t size() const override;
+        MediaStreamTrackListPtr getAudioTracks() const noexcept override;
+        MediaStreamTrackListPtr getVideoTracks() const noexcept override;
+        MediaStreamTrackListPtr getTracks() const noexcept override;
+        IMediaStreamTrackPtr getTrackByID(const char *id) const noexcept override;
+        size_t size() const noexcept override;
 
-        virtual void addTrack(IMediaStreamTrackPtr track) override;
-        virtual void removeTrack(IMediaStreamTrackPtr track) override;
+        void addTrack(IMediaStreamTrackPtr track) noexcept override;
+        void removeTrack(IMediaStreamTrackPtr track) noexcept override;
 
-        virtual IMediaStreamPtr clone() const override;
-
-        //---------------------------------------------------------------------
-        //---------------------------------------------------------------------
-        //---------------------------------------------------------------------
-        //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark MediaStream => IStatsProvider
-        #pragma mark
-
-        virtual PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const override;
+        IMediaStreamPtr clone() const noexcept override;
 
         //---------------------------------------------------------------------
         //---------------------------------------------------------------------
         //---------------------------------------------------------------------
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark MediaStream => ForPeerConnection
-        #pragma mark
+        //
+        // MediaStream => IStatsProvider
+        //
 
-        static MediaStreamPtr create(const char *id);
+        virtual PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const noexcept override;
 
-        // (duplicate) virtual String id() const = 0;
+        //---------------------------------------------------------------------
+        //---------------------------------------------------------------------
+        //---------------------------------------------------------------------
+        //---------------------------------------------------------------------
+        //
+        // MediaStream => ForPeerConnection
+        //
 
-        // (duplicate) virtual size_t size() const = 0;
+        static MediaStreamPtr create(const char *id) noexcept;
 
-        virtual void notifyAddTrack(IMediaStreamTrackPtr track) override;
-        virtual void notifyRemoveTrack(IMediaStreamTrackPtr track) override;
+        // (duplicate) virtual String id() const noexcept= 0;
+
+        // (duplicate) virtual size_t size() const noexcept= 0;
+
+        virtual void notifyAddTrack(IMediaStreamTrackPtr track) noexcept override;
+        virtual void notifyRemoveTrack(IMediaStreamTrackPtr track) noexcept override;
 
       protected:
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark MediaStream => (internal)
-        #pragma mark
+        //
+        // MediaStream => (internal)
+        //
 
-        Log::Params log(const char *message) const;
-        Log::Params debug(const char *message) const;
-        virtual ElementPtr toDebug() const;
+        Log::Params log(const char *message) const noexcept;
+        Log::Params debug(const char *message) const noexcept;
+        virtual ElementPtr toDebug() const noexcept;
 
-        bool isShutdown() const { return false; }
+        bool isShutdown() const noexcept { return false; }
 
       protected:
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark MediaStream => (data)
-        #pragma mark
+        //
+        // MediaStream => (data)
+        //
 
         AutoPUID mID;
         String mMSID;
@@ -206,24 +206,24 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark IMediaStreamFactory
-      #pragma mark
+      //
+      // IMediaStreamFactory
+      //
 
       interaction IMediaStreamFactory
       {
-        static IMediaStreamFactory &singleton();
+        static IMediaStreamFactory &singleton() noexcept;
         typedef IMediaStreamTypes::MediaStreamTrackList MediaStreamTrackList;
 
         virtual MediaStreamPtr create(
                                       IMediaStreamDelegatePtr delegate,
                                       IMediaStreamPtr stream
-                                      );
+                                      ) noexcept;
         virtual MediaStreamPtr create(
                                       IMediaStreamDelegatePtr delegate,
                                       const MediaStreamTrackList &tracks
-                                      );
-        virtual MediaStreamPtr create(const char *id);
+                                      ) noexcept;
+        virtual MediaStreamPtr create(const char *id) noexcept;
       };
 
       class MediaStreamFactory : public IFactory<IMediaStreamFactory> {};

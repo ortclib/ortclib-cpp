@@ -55,15 +55,15 @@ namespace ortc
 {
   namespace internal
   {
-    ZS_DECLARE_INTERACTION_PTR(IICETransportForSecureTransport)
-    ZS_DECLARE_INTERACTION_PTR(ICertificateForDTLSTransport)
-    ZS_DECLARE_INTERACTION_PTR(ISRTPTransportForSecureTransport)
-    ZS_DECLARE_INTERACTION_PTR(IRTPListenerForSecureTransport)
+    ZS_DECLARE_INTERACTION_PTR(IICETransportForSecureTransport);
+    ZS_DECLARE_INTERACTION_PTR(ICertificateForDTLSTransport);
+    ZS_DECLARE_INTERACTION_PTR(ISRTPTransportForSecureTransport);
+    ZS_DECLARE_INTERACTION_PTR(IRTPListenerForSecureTransport);;
     ZS_DECLARE_INTERACTION_PTR(IDataTransportForSecureTransport)
 
-    ZS_DECLARE_INTERACTION_PTR(IDTLSTransportForSettings)
+    ZS_DECLARE_INTERACTION_PTR(IDTLSTransportForSettings);
 
-    ZS_DECLARE_INTERACTION_PROXY(IDTLSTransportAsyncDelegate)
+    ZS_DECLARE_INTERACTION_PROXY(IDTLSTransportAsyncDelegate);
 
     typedef struct ssl_st SSL;
     typedef struct ssl_ctx_st SSL_CTX;
@@ -73,26 +73,26 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IDTLSTransportForSettings
-    #pragma mark
+    //
+    // IDTLSTransportForSettings
+    //
 
     interaction IDTLSTransportForSettings
     {
-      ZS_DECLARE_TYPEDEF_PTR(IDTLSTransportForSettings, ForSettings)
+      ZS_DECLARE_TYPEDEF_PTR(IDTLSTransportForSettings, ForSettings);
 
-      static void applyDefaults();
+      static void applyDefaults() noexcept;
 
-      virtual ~IDTLSTransportForSettings() {}
+      virtual ~IDTLSTransportForSettings() noexcept {}
     };
     
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IDTLSTransportAsyncDelegate
-    #pragma mark
+    //
+    // IDTLSTransportAsyncDelegate
+    //
 
     interaction IDTLSTransportAsyncDelegate
     {
@@ -104,9 +104,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark DTLSTransport
-    #pragma mark
+    //
+    // DTLSTransport
+    //
     
     class DTLSTransport : public Noop,
                           public MessageQueueAssociator,
@@ -142,17 +142,17 @@ namespace ortc
 
       typedef IDTLSTransport::States States;
 
-      ZS_DECLARE_TYPEDEF_PTR(IDTLSTransportTypes::CertificateList, CertificateList)
+      ZS_DECLARE_TYPEDEF_PTR(IDTLSTransportTypes::CertificateList, CertificateList);
 
-      ZS_DECLARE_TYPEDEF_PTR(IICETransportForSecureTransport, UseICETransport)
-      ZS_DECLARE_TYPEDEF_PTR(ICertificateForDTLSTransport, UseCertificate)
-      ZS_DECLARE_TYPEDEF_PTR(ISRTPTransportForSecureTransport, UseSRTPTransport)
-      ZS_DECLARE_TYPEDEF_PTR(IRTPListenerForSecureTransport, UseRTPListener)
-      ZS_DECLARE_TYPEDEF_PTR(IDataTransportForSecureTransport, UseDataTransport)
+      ZS_DECLARE_TYPEDEF_PTR(IICETransportForSecureTransport, UseICETransport);
+      ZS_DECLARE_TYPEDEF_PTR(ICertificateForDTLSTransport, UseCertificate);
+      ZS_DECLARE_TYPEDEF_PTR(ISRTPTransportForSecureTransport, UseSRTPTransport);
+      ZS_DECLARE_TYPEDEF_PTR(IRTPListenerForSecureTransport, UseRTPListener);
+      ZS_DECLARE_TYPEDEF_PTR(IDataTransportForSecureTransport, UseDataTransport);
 
-      ZS_DECLARE_TYPEDEF_PTR(std::list<UseCertificatePtr>, UseCertificateList)
+      ZS_DECLARE_TYPEDEF_PTR(std::list<UseCertificatePtr>, UseCertificateList);
 
-      ZS_DECLARE_CLASS_PTR(Adapter)
+      ZS_DECLARE_CLASS_PTR(Adapter);
 
       enum StreamResult { SR_ERROR, SR_SUCCESS, SR_BLOCK, SR_EOS };
 
@@ -168,228 +168,225 @@ namespace ortc
                     IDTLSTransportDelegatePtr delegate,
                     IICETransportPtr iceTransport,
                     const CertificateList &certificates
-                    );
+                    ) noexcept(false); // throws InvalidParameters
 
     protected:
       DTLSTransport(
                     Noop,
                     IMessageQueuePtr queue = IMessageQueuePtr()
-                    ) :
+                    ) noexcept :
         Noop(true),
         MessageQueueAssociator(queue),
         SharedRecursiveLock(SharedRecursiveLock::create())
       {}
 
-      void init();
+      void init() noexcept;
 
     public:
-      virtual ~DTLSTransport();
+      virtual ~DTLSTransport() noexcept;
 
-      static DTLSTransportPtr convert(IDTLSTransportPtr object);
-      static DTLSTransportPtr convert(ForDataTransportPtr object);
-      static DTLSTransportPtr convert(ForRTPSenderPtr object);
-      static DTLSTransportPtr convert(ForRTPReceiverPtr object);
-      static DTLSTransportPtr convert(ForICETransportPtr object);
-      static DTLSTransportPtr convert(ForSRTPPtr object);
-      static DTLSTransportPtr convert(ForRTPListenerPtr object);
+      static DTLSTransportPtr convert(IDTLSTransportPtr object) noexcept;
+      static DTLSTransportPtr convert(ForDataTransportPtr object) noexcept;
+      static DTLSTransportPtr convert(ForRTPSenderPtr object) noexcept;
+      static DTLSTransportPtr convert(ForRTPReceiverPtr object) noexcept;
+      static DTLSTransportPtr convert(ForICETransportPtr object) noexcept;
+      static DTLSTransportPtr convert(ForSRTPPtr object) noexcept;
+      static DTLSTransportPtr convert(ForRTPListenerPtr object) noexcept;
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark DTLSTransport => IStatsProvider
-      #pragma mark
+      //
+      // DTLSTransport => IStatsProvider
+      //
 
-      PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const override;
+      PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const noexcept override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark DTLSTransport => IDTLSTransport
-      #pragma mark
+      //
+      // DTLSTransport => IDTLSTransport
+      //
 
-      static ElementPtr toDebug(DTLSTransportPtr transport);
+      static ElementPtr toDebug(DTLSTransportPtr transport) noexcept;
 
       static DTLSTransportPtr create(
                                      IDTLSTransportDelegatePtr delegate,
                                      IICETransportPtr iceTransport,
                                      const CertificateList &certificate
-                                     );
+                                     ) noexcept;
 
-      static DTLSTransportPtr convert(IRTPTransportPtr rtpTransport);
-      static DTLSTransportPtr convert(IRTCPTransportPtr rtcpTransport);
+      static DTLSTransportPtr convert(IRTPTransportPtr rtpTransport) noexcept;
+      static DTLSTransportPtr convert(IRTCPTransportPtr rtcpTransport) noexcept;
 
-      PUID getID() const override {return mID;}
+      PUID getID() const noexcept override {return mID;}
 
-      IDTLSTransportSubscriptionPtr subscribe(IDTLSTransportDelegatePtr delegate) override;
+      IDTLSTransportSubscriptionPtr subscribe(IDTLSTransportDelegatePtr delegate) noexcept override;
 
-      CertificateListPtr certificates() const override;
-      IICETransportPtr transport() const override;
+      CertificateListPtr certificates() const noexcept override;
+      IICETransportPtr transport() const noexcept override;
 
-      States state() const override;
+      States state() const noexcept override;
 
-      ParametersPtr getLocalParameters() const override;
-      ParametersPtr getRemoteParameters() const override;
+      ParametersPtr getLocalParameters() const noexcept override;
+      ParametersPtr getRemoteParameters() const noexcept override;
 
-      SecureByteBlockListPtr getRemoteCertificates() const override;
+      SecureByteBlockListPtr getRemoteCertificates() const noexcept override;
 
-      virtual void start(const Parameters &remoteParameters) throw (
-                                                                    InvalidStateError,
-                                                                    InvalidParameters
-                                                                    ) override;
+      void start(const Parameters &remoteParameters) noexcept(false) override; // throws InvalidStateError, InvalidParameters
 
-      void stop() override;
+      void stop() noexcept override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark DTLSTransport => ISecureTransport
-      #pragma mark
+      //
+      // DTLSTransport => ISecureTransport
+      //
 
-      // (duplicate) virtual PUID getID() const;
+      // (duplicate) virtual PUID getID() const noexcept = 0;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark DTLSTransport => ISecureTransportForRTPSender
-      #pragma mark
+      //
+      // DTLSTransport => ISecureTransportForRTPSender
+      //
 
-      // (duplicate) virtual PUID getID() const;
+      // (duplicate) virtual PUID getID() const noexcept = 0;
 
-      // (duplicate) virtual ISecureTransportSubscriptionPtr subscribe(ISecureTransportDelegatePtr delegate) = 0;
+      // (duplicate) virtual ISecureTransportSubscriptionPtr subscribe(ISecureTransportDelegatePtr delegate) noexcept = 0;
 
-      // (duplicate) virtual ISecureTransportTypes::States state(ISecureTransportTypes::States ignored = ISecureTransportTypes::States()) const = 0;
+      // (duplicate) virtual ISecureTransportTypes::States state(ISecureTransportTypes::States ignored = ISecureTransportTypes::States()) const noexcept = 0;
 
       virtual bool sendPacket(
                               IICETypes::Components sendOverICETransport,
                               IICETypes::Components packetType,
                               const BYTE *buffer,
                               size_t bufferLengthInBytes
-                              ) override;
+                              ) noexcept override;
 
-      IICETransportPtr getICETransport() const override;
+      IICETransportPtr getICETransport() const noexcept override;
 
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark DTLSTransport => ISecureTransportForRTPReceiver
-      #pragma mark
+      //
+      // DTLSTransport => ISecureTransportForRTPReceiver
+      //
 
-      // (duplicate) virtual PUID getID() const;
+      // (duplicate) virtual PUID getID() const noexcept = 0;
 
-      // (duplicate) virtual ISecureTransportSubscriptionPtr subscribe(ISecureTransportDelegatePtr delegate) = 0;
+      // (duplicate) virtual ISecureTransportSubscriptionPtr subscribe(ISecureTransportDelegatePtr delegate) noexcept = 0;
 
-      // (duplicate) virtual ISecureTransportTypes::States state(ISecureTransportTypes::States ignored = ISecureTransportTypes::States()) const = 0;
+      // (duplicate) virtual ISecureTransportTypes::States state(ISecureTransportTypes::States ignored = ISecureTransportTypes::States()) const noexcept = 0;
 
       // (duplicate) virtual bool sendPacket(
       //                                     IICETypes::Components sendOverICETransport,
       //                                     IICETypes::Components packetType,
       //                                     const BYTE *buffer,
       //                                     size_t bufferLengthInBytes
-      //                                     ) override;
+      //                                     ) noexcept = 0;
 
-      // (duplicate) virtual IICETransportPtr getICETransport() const = 0;
-
-      //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark DTLSTransport => ISecureTransportForICETransport
-      #pragma mark
-
-      // (duplicate) virtual PUID getID() const;
-
-      virtual void notifyAssociateTransportCreated(
-                                                   IICETypes::Components associatedComponent,
-                                                   ICETransportPtr assoicated
-                                                   ) override;
-
-      virtual bool handleReceivedPacket(
-                                        IICETypes::Components viaTransport,
-                                        const BYTE *buffer,
-                                        size_t bufferLengthInBytes
-                                        ) override;
-      virtual void handleReceivedSTUNPacket(
-                                            IICETypes::Components viaComponent,
-                                            STUNPacketPtr packet
-                                            ) override;
+      // (duplicate) virtual IICETransportPtr getICETransport() const noexcept = 0;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark DTLSTransport => ISecureTransportForSRTPTransport
-      #pragma mark
+      //
+      // DTLSTransport => ISecureTransportForICETransport
+      //
 
-      // (duplicate) static ElementPtr toDebug(ForSRTPPtr transport);
+      // (duplicate) virtual PUID getID() const noexcept = 0;
 
-      // (duplicate) virtual PUID getID() const = 0;
+      void notifyAssociateTransportCreated(
+                                           IICETypes::Components associatedComponent,
+                                           ICETransportPtr assoicated
+                                           ) noexcept override;
 
-      virtual bool sendEncryptedPacket(
-                                       IICETypes::Components sendOverICETransport,
-                                       IICETypes::Components packetType,
-                                       const BYTE *buffer,
-                                       size_t bufferLengthInBytes
-                                       ) override;
-
-      virtual bool handleReceivedDecryptedPacket(
-                                                 IICETypes::Components viaTransport,
-                                                 IICETypes::Components packetType,
-                                                 const BYTE *buffer,
-                                                 size_t bufferLengthInBytes
-                                                 ) override;
-
-      //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark DTLSTransport => ISecureTransportForRTPListener
-      #pragma mark
-
-      // (duplicate) static ElementPtr toDebug(ForRTPListenerPtr transport);
-
-      // (duplicate) virtual PUID getID() const = 0;
-
-      RTPListenerPtr getListener() const override;
+      bool handleReceivedPacket(
+                                IICETypes::Components viaTransport,
+                                const BYTE *buffer,
+                                size_t bufferLengthInBytes
+                                ) noexcept override;
+      void handleReceivedSTUNPacket(
+                                    IICETypes::Components viaComponent,
+                                    STUNPacketPtr packet
+                                    ) noexcept override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark DTLSTransport => ISecureTransportForDataTransport
-      #pragma mark
+      //
+      // DTLSTransport => ISecureTransportForSRTPTransport
+      //
 
-      // (duplicate) static ElementPtr toDebug(ForDataTransport transport);
+      // (duplicate) static ElementPtr toDebug(ForSRTPPtr transport) noexcept;
 
-      // (duplicate) virtual PUID getID() const = 0;
+      // (duplicate) virtual PUID getID() const noexcept = 0;
 
-      ISecureTransportSubscriptionPtr subscribe(ISecureTransportDelegatePtr delegate) override;
+      bool sendEncryptedPacket(
+                               IICETypes::Components sendOverICETransport,
+                               IICETypes::Components packetType,
+                               const BYTE *buffer,
+                               size_t bufferLengthInBytes
+                               ) noexcept override;
 
-      ISecureTransportTypes::States state(ISecureTransportTypes::States ignored) const override;
-
-      bool isClientRole() const override;
-
-      UseDataTransportPtr getDataTransport() const override;
-
-      virtual bool sendDataPacket(
-                                  const BYTE *buffer,
-                                  size_t bufferLengthInBytes
-                                  ) override;
+      bool handleReceivedDecryptedPacket(
+                                         IICETypes::Components viaTransport,
+                                         IICETypes::Components packetType,
+                                         const BYTE *buffer,
+                                         size_t bufferLengthInBytes
+                                         ) noexcept override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark DTLSTransport => IWakeDelegate
-      #pragma mark
+      //
+      // DTLSTransport => ISecureTransportForRTPListener
+      //
+
+      // (duplicate) static ElementPtr toDebug(ForRTPListenerPtr transport) noexcept;
+
+      // (duplicate) virtual PUID getID() const noexcept = 0;
+
+      RTPListenerPtr getListener() const noexcept override;
+
+      //-----------------------------------------------------------------------
+      //
+      // DTLSTransport => ISecureTransportForDataTransport
+      //
+
+      // (duplicate) static ElementPtr toDebug(ForDataTransport transport) noexcept;
+
+      // (duplicate) virtual PUID getID() const noexcept = 0;
+
+      ISecureTransportSubscriptionPtr subscribe(ISecureTransportDelegatePtr delegate) noexcept override;
+
+      ISecureTransportTypes::States state(ISecureTransportTypes::States ignored) const noexcept override;
+
+      bool isClientRole() const noexcept override;
+
+      UseDataTransportPtr getDataTransport() const noexcept override;
+
+      bool sendDataPacket(
+                          const BYTE *buffer,
+                          size_t bufferLengthInBytes
+                          ) noexcept override;
+
+      //-----------------------------------------------------------------------
+      //
+      // DTLSTransport => IWakeDelegate
+      //
 
       void onWake() override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark DTLSTransport => ITimerDelegate
-      #pragma mark
+      //
+      // DTLSTransport => ITimerDelegate
+      //
 
       void onTimer(ITimerPtr timer) override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark DTLSTransport => IDTLSTransportAsyncDelegate
-      #pragma mark
+      //
+      // DTLSTransport => IDTLSTransportAsyncDelegate
+      //
 
       void onAdapterSendPacket() override;
       void onDeliverPendingIncomingRTP() override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark DTLSTransport => IICETransportDelegate
-      #pragma mark
+      //
+      // DTLSTransport => IICETransportDelegate
+      //
 
       void onICETransportStateChange(
                                      IICETransportPtr transport,
@@ -411,90 +408,90 @@ namespace ortc
 
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark DTLSTransport => ISRTPTransportDelegate
-      #pragma mark
+      //
+      // DTLSTransport => ISRTPTransportDelegate
+      //
 
-      virtual void onSRTPTransportLifetimeRemaining(
-                                                    ISRTPTransportPtr transport,
-                                                    ULONG leastLifetimeRemainingPercentageForAllKeys,
-                                                    ULONG overallLifetimeRemainingPercentage
-                                                    ) override;
+      void onSRTPTransportLifetimeRemaining(
+                                            ISRTPTransportPtr transport,
+                                            ULONG leastLifetimeRemainingPercentageForAllKeys,
+                                            ULONG overallLifetimeRemainingPercentage
+                                            ) override;
 
     public:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark DTLSTransport => friend BIO_
-      #pragma mark
+      //
+      // DTLSTransport => friend BIO_
+      //
 
       StreamResult bioRead(
                            void* data,
                            size_t data_len,
                            size_t* read,
                            int* error
-                           );
+                           ) noexcept;
 
       StreamResult bioWrite(
                             const void* data,
                             size_t data_len,
                             size_t* written,
                             int* error
-                            );
+                            ) noexcept;
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark DTLSTransport => friend DTLSTransport::Adapter
-      #pragma mark
+      //
+      // DTLSTransport => friend DTLSTransport::Adapter
+      //
 
       void adapterSendPacket(
                              const BYTE *buffer,
                              size_t bufferLengthInBytes
-                             );
+                             ) noexcept;
 
-      size_t adapterReadPacket(BYTE *buffer, size_t bufferLengthInBytes);
+      size_t adapterReadPacket(BYTE *buffer, size_t bufferLengthInBytes) noexcept;
 
-      ITimerPtr adapterCreateTimeout(Milliseconds timeout);
+      ITimerPtr adapterCreateTimeout(Milliseconds timeout) noexcept;
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark DTLSTransport => (internal)
-      #pragma mark
+      //
+      // DTLSTransport => (internal)
+      //
 
-      Log::Params log(const char *message) const;
-      Log::Params debug(const char *message) const;
-      virtual ElementPtr toDebug() const;
+      Log::Params log(const char *message) const noexcept;
+      Log::Params debug(const char *message) const noexcept;
+      virtual ElementPtr toDebug() const noexcept;
 
-      IICETypes::Components component() const;
+      IICETypes::Components component() const noexcept;
 
-      bool isValidated() const {return IDTLSTransportTypes::State_Connected == mCurrentState;}
+      bool isValidated() const noexcept {return IDTLSTransportTypes::State_Connected == mCurrentState;}
 
-      bool isShuttingDown() const;
-      bool isShutdown() const;
+      bool isShuttingDown() const noexcept;
+      bool isShutdown() const noexcept;
 
-      void step();
-      bool stepStartSSL();
-      bool stepValidate();
-      bool stepFixState();
-      bool stepNotifyReady();
+      void step() noexcept;
+      bool stepStartSSL() noexcept;
+      bool stepValidate() noexcept;
+      bool stepFixState() noexcept;
+      bool stepNotifyReady() noexcept;
 
-      void cancel();
+      void cancel() noexcept;
 
-      void setState(IDTLSTransportTypes::States state);
-      void setError(WORD error, const char *reason = NULL);
+      void setState(IDTLSTransportTypes::States state) noexcept;
+      void setError(WORD error, const char *reason = NULL) noexcept;
 
-      void setState(ISecureTransportTypes::States state);
+      void setState(ISecureTransportTypes::States state) noexcept;
 
-      void wakeUpIfNeeded();
+      void wakeUpIfNeeded() noexcept;
 
-      void setupSRTP();
+      void setupSRTP() noexcept;
 
     public:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark DTLSTransport::Adapter
-      #pragma mark
+      //
+      // DTLSTransport::Adapter
+      //
 
       class Adapter
       {
@@ -513,63 +510,63 @@ namespace ortc
         enum { SSE_MSG_TRUNC = 0xff0001 };
         enum Validation {VALIDATION_NA, VALIDATION_PASSED, VALIDATION_FAILED};
 
-        static const char *toString(StreamState state);
-        static const char *toString(SSLRole role);
-        static const char *toString(SSLMode mode);
-        static const char *toString(SSLProtocolVersion version);
-        static const char *toString(Validation validation);
+        static const char *toString(StreamState state) noexcept;
+        static const char *toString(SSLRole role) noexcept;
+        static const char *toString(SSLMode mode) noexcept;
+        static const char *toString(SSLProtocolVersion version) noexcept;
+        static const char *toString(Validation validation) noexcept;
 
       public:
-        Adapter(DTLSTransportPtr outer);
-        ~Adapter();
+        Adapter(DTLSTransportPtr outer) noexcept;
+        ~Adapter() noexcept;
 
-        void setIdentity(UseCertificatePtr identity);
+        void setIdentity(UseCertificatePtr identity) noexcept;
 
         // Default argument is for compatibility
-        SSLRole role() const {return role_;}
-        void setServerRole(SSLRole role = SSL_SERVER);
+        SSLRole role() const noexcept {return role_;}
+        void setServerRole(SSLRole role = SSL_SERVER) noexcept;
 
-        bool getPeerCertificate(X509 **cert) const;
+        bool getPeerCertificate(X509 **cert) const noexcept;
 
         Validation setPeerCertificateDigest(
                                             const String &digest_alg,
                                             const String &digest_value
-                                            );
+                                            ) noexcept;
 
-        int startSSLWithServer(const char *server_name);
-        int startSSLWithPeer();
-        void setMode(SSLMode mode);
-        void setMaxProtocolVersion(SSLProtocolVersion version);
+        int startSSLWithServer(const char *server_name) noexcept;
+        int startSSLWithPeer() noexcept;
+        void setMode(SSLMode mode) noexcept;
+        void setMaxProtocolVersion(SSLProtocolVersion version) noexcept;
 
         StreamResult bioRead(
                              void* data,
                              size_t data_len,
                              size_t* read,
                              int* error
-                             );
+                             ) noexcept;
         StreamResult bioWrite(
                               const void* data,
                               size_t data_len,
                               size_t* written,
                               int* error
-                              );
+                              ) noexcept;
 
         StreamResult read(
                           void* data,
                           size_t data_len,
                           size_t* read,
                           int* error
-                          );
+                          ) noexcept;
         StreamResult write(
                            const void* data,
                            size_t data_len,
                            size_t* written,
                            int* error
-                           );
-        void close();
-        StreamState getState() const;
+                           ) noexcept;
+        void close() noexcept;
+        StreamState getState() const noexcept;
 
-        bool getSslCipher(String * cipher);
+        bool getSslCipher(String * cipher) noexcept;
 
         // Key Extractor interface
         bool exportKeyingMaterial(
@@ -579,35 +576,35 @@ namespace ortc
                                   bool use_context,
                                   BYTE *result,
                                   size_t result_len
-                                  );
+                                  ) noexcept;
 
         // DTLS-SRTP interface
-        bool setDtlsSrtpCiphers(const std::vector<String> &ciphers);
-        bool getDtlsSrtpCipher(String * cipher);
+        bool setDtlsSrtpCiphers(const std::vector<String> &ciphers) noexcept;
+        bool getDtlsSrtpCipher(String * cipher) noexcept;
 
         // Capabilities interfaces
-        static bool haveDtls();
-        static bool haveDtlsSrtp();
-        static bool haveExporter();
-        static String getDefaultSslCipher(SSLProtocolVersion version);
+        static bool haveDtls() noexcept;
+        static bool haveDtlsSrtp() noexcept;
+        static bool haveExporter() noexcept;
+        static String getDefaultSslCipher(SSLProtocolVersion version) noexcept;
 
         // debug helpers
-        ElementPtr toDebug() const;
+        ElementPtr toDebug() const noexcept;
 
         // Override MessageHandler
-        void onTimer(ITimerPtr timer);
+        void onTimer(ITimerPtr timer) noexcept;
 
       protected:
-        void onEvent(int events, int err);
+        void onEvent(int events, int err) noexcept;
 
-        Log::Params log(const char *message) const;
-        void logSSLErrors(const String &prefix);
+        Log::Params log(const char *message) const noexcept;
+        void logSSLErrors(const String &prefix) noexcept;
 
-        void set_client_auth_enabled(bool enabled) { client_auth_enabled_ = enabled; }
-        bool client_auth_enabled() const { return client_auth_enabled_; }
+        void set_client_auth_enabled(bool enabled) noexcept { client_auth_enabled_ = enabled; }
+        bool client_auth_enabled() const noexcept { return client_auth_enabled_; }
 
-        void set_ignore_bad_cert(bool ignore) { ignore_bad_cert_ = ignore; }
-        bool ignore_bad_cert() const { return ignore_bad_cert_; }
+        void set_ignore_bad_cert(bool ignore) noexcept { ignore_bad_cert_ = ignore; }
+        bool ignore_bad_cert() const noexcept { return ignore_bad_cert_; }
 
       private:
         enum SSLState {
@@ -621,7 +618,7 @@ namespace ortc
           SSL_CLOSED      // Clean close
         };
 
-        static const char *toString(SSLState state);
+        static const char *toString(SSLState state) noexcept;
 
         // The following three methods return 0 on success and a negative
         // error code on failure. The error code may be from OpenSSL or -1
@@ -631,11 +628,11 @@ namespace ortc
         // Go from state SSL_NONE to either SSL_CONNECTING or SSL_WAIT,
         // depending on whether the underlying stream is already open or
         // not.
-        int startSSL();
+        int startSSL() noexcept;
         // Prepare SSL library, state is SSL_CONNECTING.
-        int beginSSL();
+        int beginSSL() noexcept;
         // Perform SSL negotiation steps.
-        int continueSSL();
+        int continueSSL() noexcept;
 
         // Error handler helper. signal is given as true for errors in
         // asynchronous contexts (when an error method was not returned
@@ -643,19 +640,19 @@ namespace ortc
         // raised on the stream with the specified error.
         // A 0 error means a graceful close, otherwise there is not really enough
         // context to interpret the error code.
-        void error(const char* context, int err, bool signal);
-        void cleanup();
+        void error(const char* context, int err, bool signal) noexcept;
+        void cleanup() noexcept;
 
         // Flush the input buffers by reading left bytes (for DTLS)
-        void flushInput(unsigned int left);
+        void flushInput(unsigned int left) noexcept;
 
         // SSL library configuration
-        SSL_CTX* setupSSLContext();
+        SSL_CTX* setupSSLContext() noexcept;
         // SSL verification check
         bool sslPostConnectionCheck(
                                     SSL* ssl,
                                     const char *server_name
-                                    );
+                                    ) noexcept;
         // SSL certification verification error handler, called back from
         // the openssl library. Returns an int interpreted as a boolean in
         // the C style: zero means verification failure, non-zero means
@@ -663,7 +660,7 @@ namespace ortc
         static int sslVerifyCallback(
                                      int ok,
                                      X509_STORE_CTX* store
-                                     );
+                                     ) noexcept;
 
       protected:
         AutoPUID mID;
@@ -709,9 +706,9 @@ namespace ortc
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark DTLSTransport => (data)
-      #pragma mark
+      //
+      // DTLSTransport => (data)
+      //
 
       AutoPUID mID;
       DTLSTransportWeakPtr mThisWeak;
@@ -764,21 +761,21 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IDTLSTransportFactory
-    #pragma mark
+    //
+    // IDTLSTransportFactory
+    //
 
     interaction IDTLSTransportFactory
     {
-      ZS_DECLARE_TYPEDEF_PTR(IDTLSTransportTypes::CertificateList, CertificateList)
+      ZS_DECLARE_TYPEDEF_PTR(IDTLSTransportTypes::CertificateList, CertificateList);
 
-      static IDTLSTransportFactory &singleton();
+      static IDTLSTransportFactory &singleton() noexcept;
 
       virtual DTLSTransportPtr create(
                                       IDTLSTransportDelegatePtr delegate,
                                       IICETransportPtr iceTransport,
                                       const CertificateList &certificates
-                                      );
+                                      ) noexcept;
     };
 
     class DTLSTransportFactory : public IFactory<IDTLSTransportFactory> {};
@@ -787,6 +784,6 @@ namespace ortc
 
 ZS_DECLARE_PROXY_BEGIN(ortc::internal::IDTLSTransportAsyncDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(zsLib::PromisePtr, PromisePtr)
-ZS_DECLARE_PROXY_METHOD_0(onAdapterSendPacket)
-ZS_DECLARE_PROXY_METHOD_0(onDeliverPendingIncomingRTP)
+ZS_DECLARE_PROXY_METHOD(onAdapterSendPacket)
+ZS_DECLARE_PROXY_METHOD(onDeliverPendingIncomingRTP)
 ZS_DECLARE_PROXY_END()

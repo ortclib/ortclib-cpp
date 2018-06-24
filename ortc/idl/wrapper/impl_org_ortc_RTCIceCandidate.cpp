@@ -27,12 +27,12 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCIceCandidate::WrapperImplTyp
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCIceCandidate::WrapperType, WrapperType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCIceCandidate::RTCIceCandidate()
+wrapper::impl::org::ortc::RTCIceCandidate::RTCIceCandidate() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCIceCandidatePtr wrapper::org::ortc::RTCIceCandidate::wrapper_create()
+wrapper::org::ortc::RTCIceCandidatePtr wrapper::org::ortc::RTCIceCandidate::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::RTCIceCandidate>();
   pThis->thisWeak_ = pThis;
@@ -40,102 +40,102 @@ wrapper::org::ortc::RTCIceCandidatePtr wrapper::org::ortc::RTCIceCandidate::wrap
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCIceCandidate::~RTCIceCandidate()
+wrapper::impl::org::ortc::RTCIceCandidate::~RTCIceCandidate() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCIceCandidate::wrapper_init_org_ortc_RTCIceCandidate()
+void wrapper::impl::org::ortc::RTCIceCandidate::wrapper_init_org_ortc_RTCIceCandidate() noexcept
 {
   native_ = make_shared< NativeType >();
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::JsonPtr wrapper::impl::org::ortc::RTCIceCandidate::toJson()
+wrapper::org::ortc::JsonPtr wrapper::impl::org::ortc::RTCIceCandidate::toJson() noexcept
 {
   return Json::toWrapper(native_->createElement());
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::ortc::RTCIceCandidate::hash()
+String wrapper::impl::org::ortc::RTCIceCandidate::hash() noexcept
 {
   return native_->hash();
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCIceComponent wrapper::impl::org::ortc::RTCIceCandidate::get_component()
+wrapper::org::ortc::RTCIceComponent wrapper::impl::org::ortc::RTCIceCandidate::get_component() noexcept
 {
   return Helper::toWrapper(native_->mComponent);
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::ortc::RTCIceCandidate::get_interfaceType()
+String wrapper::impl::org::ortc::RTCIceCandidate::get_interfaceType() noexcept
 {
   return native_->mInterfaceType;
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::ortc::RTCIceCandidate::get_foundation()
+String wrapper::impl::org::ortc::RTCIceCandidate::get_foundation() noexcept
 {
   return native_->mFoundation;
 }
 
 //------------------------------------------------------------------------------
-uint32_t wrapper::impl::org::ortc::RTCIceCandidate::get_priority()
+uint32_t wrapper::impl::org::ortc::RTCIceCandidate::get_priority() noexcept
 {
   return native_->mPriority;
 }
 
 //------------------------------------------------------------------------------
-uint32_t wrapper::impl::org::ortc::RTCIceCandidate::get_unfreezePriority()
+uint32_t wrapper::impl::org::ortc::RTCIceCandidate::get_unfreezePriority() noexcept
 {
   return native_->mUnfreezePriority;
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCIceProtocol wrapper::impl::org::ortc::RTCIceCandidate::get_protocol()
+wrapper::org::ortc::RTCIceProtocol wrapper::impl::org::ortc::RTCIceCandidate::get_protocol() noexcept
 {
   return Helper::toWrapper(native_->mProtocol);
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::ortc::RTCIceCandidate::get_ip()
+String wrapper::impl::org::ortc::RTCIceCandidate::get_ip() noexcept
 {
   return native_->mIP;
 }
 
 //------------------------------------------------------------------------------
-uint16_t wrapper::impl::org::ortc::RTCIceCandidate::get_port()
+uint16_t wrapper::impl::org::ortc::RTCIceCandidate::get_port() noexcept
 {
   return native_->mPort;
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCIceCandidateType wrapper::impl::org::ortc::RTCIceCandidate::get_candidateType()
+wrapper::org::ortc::RTCIceCandidateType wrapper::impl::org::ortc::RTCIceCandidate::get_candidateType() noexcept
 {
   return Helper::toWrapper(native_->mCandidateType);
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCIceTcpCandidateType wrapper::impl::org::ortc::RTCIceCandidate::get_tcpType()
+wrapper::org::ortc::RTCIceTcpCandidateType wrapper::impl::org::ortc::RTCIceCandidate::get_tcpType() noexcept
 {
   return Helper::toWrapper(native_->mTCPType);
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::ortc::RTCIceCandidate::get_relatedAddress()
+String wrapper::impl::org::ortc::RTCIceCandidate::get_relatedAddress() noexcept
 {
   return native_->mRelatedAddress;
 }
 
 //------------------------------------------------------------------------------
-uint16_t wrapper::impl::org::ortc::RTCIceCandidate::get_relatedPort()
+uint16_t wrapper::impl::org::ortc::RTCIceCandidate::get_relatedPort() noexcept
 {
   return native_->mRelatedPort;
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr native)
+WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr native) noexcept
 {
   if (!native) return WrapperImplTypePtr();
 
@@ -146,7 +146,7 @@ WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr native)
 }
 
 //------------------------------------------------------------------------------
-NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper)
+NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper) noexcept
 {
   if (!wrapper) return NativeTypePtr();
 
@@ -154,7 +154,7 @@ NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper)
 }
 
 //------------------------------------------------------------------------------
-NativeTypePtr WrapperImplType::toNative(wrapper::org::ortc::RTCIceGathererCandidatePtr wrapper)
+NativeTypePtr WrapperImplType::toNative(wrapper::org::ortc::RTCIceGathererCandidatePtr wrapper) noexcept
 {
   if (!wrapper) return NativeTypePtr();
 

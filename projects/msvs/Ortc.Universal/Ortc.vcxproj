@@ -1,0 +1,586 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup Label="Globals">
+    <CppWinRTEnabled>true</CppWinRTEnabled>
+    <RequiredBundles>$(RequiredBundles);Microsoft.Windows.CppWinRT</RequiredBundles>
+    <MinimalCoreWin>true</MinimalCoreWin>
+    <ProjectGuid>{a1dbab83-90af-4531-a0af-50c21e8fdf30}</ProjectGuid>
+    <ProjectName>Ortc</ProjectName>
+    <RootNamespace>Ortc</RootNamespace>
+    <DefaultLanguage>en-US</DefaultLanguage>
+    <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
+    <AppContainerApplication>true</AppContainerApplication>
+    <ApplicationType>Windows Store</ApplicationType>
+    <ApplicationTypeRevision>10.0</ApplicationTypeRevision>
+    <WindowsTargetPlatformVersion Condition=" '$(WindowsTargetPlatformVersion)' == '' ">10.0.17134.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformMinVersion>10.0.17134.0</WindowsTargetPlatformMinVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|ARM">
+      <Configuration>Debug</Configuration>
+      <Platform>ARM</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|ARM">
+      <Configuration>Release</Configuration>
+      <Platform>ARM</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <PlatformToolset>v141</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+    <GenerateManifest>false</GenerateManifest>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Debug'" Label="Configuration">
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)'=='Release'" Label="Configuration">
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup />
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile>$(IntDir)pch.pch</PrecompiledHeaderOutputFile>
+      <WarningLevel>Level4</WarningLevel>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <AdditionalOptions>%(AdditionalOptions) /permissive- /bigobj /Zc:__cplusplus</AdditionalOptions>
+      <DisableSpecificWarnings>28204;4100</DisableSpecificWarnings>
+      <PreprocessorDefinitions>WINUWP;NOMINMAX;_WINRT_DLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalUsingDirectories>$(WindowsSDK_WindowsMetadata);$(AdditionalUsingDirectories)</AdditionalUsingDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">$(ProjectDir)..\..\..\ortc\idl;$(ProjectDir)..\..\..\..\zsLib;$(ProjectDir)..\..\..\..\zsLib-eventing;$(ProjectDir)..\..\..\..;$(ProjectDir)..\..\..\ortc\idl\wrapper\generated\cppwinrt;$(ProjectDir)..\..\..\ortc\idl\wrapper\override\cppwinrt;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)..\..\..\ortc\idl;$(ProjectDir)..\..\..\..\zsLib;$(ProjectDir)..\..\..\..\zsLib-eventing;$(ProjectDir)..\..\..\..;$(ProjectDir)..\..\..\ortc\idl\wrapper\generated\cppwinrt;$(ProjectDir)..\..\..\ortc\idl\wrapper\override\cppwinrt;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)..\..\..\ortc\idl;$(ProjectDir)..\..\..\..\zsLib;$(ProjectDir)..\..\..\..\zsLib-eventing;$(ProjectDir)..\..\..\..;$(ProjectDir)..\..\..\ortc\idl\wrapper\generated\cppwinrt;$(ProjectDir)..\..\..\ortc\idl\wrapper\override\cppwinrt;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <SubSystem>Console</SubSystem>
+      <GenerateWindowsMetadata>true</GenerateWindowsMetadata>
+      <ModuleDefinitionFile>Ortc.def</ModuleDefinitionFile>
+      <AdditionalLibraryDirectories Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\webrtc\WEBRTC_BUILD\ortc\$(Configuration)\winuwp_$(PlatformTarget)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\webrtc\WEBRTC_BUILD\ortc\$(Configuration)\winuwp_$(PlatformTarget)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\webrtc\WEBRTC_BUILD\ortc\$(Configuration)\winuwp_$(PlatformTarget)</AdditionalLibraryDirectories>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">webrtc.lib;WindowsApp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">webrtc.lib;WindowsApp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Release|x64'">webrtc.lib;WindowsApp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <IgnoreSpecificDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">
+      </IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+      </IgnoreSpecificDefaultLibraries>
+      <IgnoreSpecificDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+      </IgnoreSpecificDefaultLibraries>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">/defaultlib:vccorlib /defaultlib:msvcrt %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">/defaultlib:vccorlib /defaultlib:msvcrt %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/defaultlib:vccorlib /defaultlib:msvcrt %(AdditionalOptions)</AdditionalOptions>
+    </Link>
+    <Midl>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">$(ProjectDir)..\..\..\ortc\idl\wrapper\generated\msidl;$(ProjectDir)..\..\..\ortc\idl\wrapper\override\msidl</AdditionalIncludeDirectories>
+    </Midl>
+    <Midl>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)..\..\..\ortc\idl\wrapper\generated\msidl;$(ProjectDir)..\..\..\ortc\idl\wrapper\override\msidl</AdditionalIncludeDirectories>
+    </Midl>
+    <Midl>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(ProjectDir)..\..\..\ortc\idl\wrapper\generated\msidl;$(ProjectDir)..\..\..\ortc\idl\wrapper\override\msidl</AdditionalIncludeDirectories>
+    </Midl>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)'=='Debug'">
+    <ClCompile>
+      <PreprocessorDefinitions>WINUWP;NOMINMAX;NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">$(ProjectDir)..\..\..\ortc\idl;$(ProjectDir)..\..\..\..\zsLib;$(ProjectDir)..\..\..\..\zsLib-eventing;$(ProjectDir)..\..\..\..;$(ProjectDir)..\..\..\ortc\idl\wrapper\generated\cppwinrt;$(ProjectDir)..\..\..\ortc\idl\wrapper\override\cppwinrt;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)..\..\..\ortc\idl;$(ProjectDir)..\..\..\..\zsLib;$(ProjectDir)..\..\..\..\zsLib-eventing;$(ProjectDir)..\..\..\..;$(ProjectDir)..\..\..\ortc\idl\wrapper\generated\cppwinrt;$(ProjectDir)..\..\..\ortc\idl\wrapper\override\cppwinrt;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)..\..\..\ortc\idl;$(ProjectDir)..\..\..\..\zsLib;$(ProjectDir)..\..\..\..\zsLib-eventing;$(ProjectDir)..\..\..\..;$(ProjectDir)..\..\..\ortc\idl\wrapper\generated\cppwinrt;$(ProjectDir)..\..\..\ortc\idl\wrapper\override\cppwinrt;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\webrtc\WEBRTC_BUILD\ortc\$(Configuration)\winuwp_$(PlatformTarget)</AdditionalLibraryDirectories>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">webrtc.lib;WindowsApp.lib;;%(AdditionalDependencies)</AdditionalDependencies>
+      <IgnoreSpecificDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">
+      </IgnoreSpecificDefaultLibraries>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">/defaultlib:vccorlibd /defaultlib:msvcrtd %(AdditionalOptions)</AdditionalOptions>
+    </Link>
+    <Link>
+      <AdditionalLibraryDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\webrtc\WEBRTC_BUILD\ortc\$(Configuration)\winuwp_$(PlatformTarget)</AdditionalLibraryDirectories>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">webrtc.lib;WindowsApp.lib;;%(AdditionalDependencies)</AdditionalDependencies>
+      <IgnoreSpecificDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+      </IgnoreSpecificDefaultLibraries>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">/defaultlib:vccorlibd /defaultlib:msvcrtd %(AdditionalOptions)</AdditionalOptions>
+    </Link>
+    <Link>
+      <AdditionalLibraryDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\webrtc\WEBRTC_BUILD\ortc\$(Configuration)\winuwp_$(PlatformTarget)</AdditionalLibraryDirectories>
+      <AdditionalDependencies Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">webrtc.lib;WindowsApp.lib;;%(AdditionalDependencies)</AdditionalDependencies>
+      <IgnoreSpecificDefaultLibraries Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+      </IgnoreSpecificDefaultLibraries>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/defaultlib:vccorlibd /defaultlib:msvcrtd %(AdditionalOptions)</AdditionalOptions>
+    </Link>
+    <Midl>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">$(ProjectDir)..\..\..\ortc\idl\wrapper\generated\msidl;$(ProjectDir)..\..\..\ortc\idl\wrapper\override\msidl</AdditionalIncludeDirectories>
+    </Midl>
+    <Midl>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)..\..\..\ortc\idl\wrapper\generated\msidl;$(ProjectDir)..\..\..\ortc\idl\wrapper\override\msidl</AdditionalIncludeDirectories>
+    </Midl>
+    <Midl>
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(ProjectDir)..\..\..\ortc\idl\wrapper\generated\msidl;$(ProjectDir)..\..\..\ortc\idl\wrapper\override\msidl</AdditionalIncludeDirectories>
+    </Midl>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\cppwinrt_Helpers.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Adapter.MediaStream.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Adapter.RTCAnswerOptions.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Adapter.RTCCapabilityOptions.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Adapter.RTCConfiguration.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Adapter.RTCIceCandidate.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Adapter.RTCMediaStreamTrackConfiguration.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Adapter.RTCOfferAnswerOptions.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Adapter.RTCOfferOptions.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Adapter.RTCPeerConnection.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Adapter.RTCPeerConnectionIceErrorEvent.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Adapter.RTCPeerConnectionIceEvent.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Adapter.RTCSessionDescription.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Adapter.RTCSessionDescriptionConnectionData.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Adapter.RTCSessionDescriptionConnectionDataDetails.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Adapter.RTCSessionDescriptionDescription.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Adapter.RTCSessionDescriptionDescriptionDetails.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Adapter.RTCSessionDescriptionMediaLine.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Adapter.RTCSessionDescriptionMediaLineDetails.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Adapter.RTCSessionDescriptionRtpMediaLine.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Adapter.RTCSessionDescriptionRtpSender.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Adapter.RTCSessionDescriptionRtpSenderDetails.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Adapter.RTCSessionDescriptionSctpMediaLine.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Adapter.RTCSessionDescriptionTransport.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Adapter.RTCSessionDescriptionTransportParameters.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Adapter.RTCTrackEvent.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.ConstrainBoolean.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.ConstrainBooleanParameters.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.ConstrainDouble.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.ConstrainDoubleRange.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.ConstrainLong.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.ConstrainLongRange.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.ConstrainString.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.ConstrainStringParameters.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.DoubleRange.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Error.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.ErrorEvent.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.EventQueue.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.EventQueueMaker.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Json.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Logger.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.LongRange.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.MediaControl.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.MediaDeviceInfo.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.MediaDevices.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.MediaSource.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.MediaStreamConstraints.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.MediaStreamTrack.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.MediaTrackCapabilities.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.MediaTrackConstraints.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.MediaTrackConstraintSet.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.MediaTrackSettings.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.MediaTrackSupportedConstraints.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.OrtcLib.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.OverconstrainedError.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.OverconstrainedErrorEvent.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCCertificate.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCCertificateStats.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCCodec.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCDataChannel.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCDataChannelEvent.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCDataChannelParameters.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCDataChannelStateChangeEvent.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCDataChannelStats.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCDataTransport.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCDtlsCertificateBinary.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCDtlsFingerprint.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCDtlsParameters.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCDtlsTransport.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCDtlsTransportStateChangeEvent.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCDtlsTransportStats.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCDtmfSender.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCDtmfToneChangeEvent.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCIceCandidate.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCIceCandidateAttributes.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCIceCandidateComplete.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCIceCandidatePair.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCIceCandidatePairChangeEvent.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCIceCandidatePairStats.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCIceGatherer.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCIceGathererCandidate.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCIceGathererCandidateCompleteEvent.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCIceGathererCandidateEvent.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCIceGathererIceErrorEvent.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCIceGathererStateChangeEvent.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCIceGathererStats.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCIceGatherInterfacePolicy.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCIceGatherOptions.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCIceParameters.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCIceServer.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCIceTransport.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCIceTransportController.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCIceTransportOptions.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCIceTransportStateChangeEvent.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCIceTransportStats.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCIdentity.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCIdentityAssertion.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCIdentityError.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCIdentityResult.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCInboundRtpStreamStats.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCMediaStreamStats.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCMediaStreamTrackStats.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCMessageEvent.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCOutboundRtpStreamStats.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtcpFeedback.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtcpParameters.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtcpTransport.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpCapabilities.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpCodecCapability.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpCodecCapabilityOptions.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpCodecCapabilityParameters.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpCodecParameters.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpCodecParameterSettings.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpContributingSource.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpEncodingParameters.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpFecParameters.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpFlexFecCodecCapabilityParameters.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpFlexFecCodecParameterSettings.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpH264CodecCapabilityParameters.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpH264CodecParameterSettings.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpHeaderExtension.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpHeaderExtensionParameters.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpListener.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpOpusCodecCapabilityOptions.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpOpusCodecCapabilityParameters.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpOpusCodecParameterSettings.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpParameters.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpReceiver.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpRedCodecParameterSettings.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpRtxCodecCapabilityParameters.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpRtxCodecParameterSettings.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpRtxParameters.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpSender.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpStreamStats.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpTransport.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpUnhandledEvent.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpVp8CodecCapabilityParameters.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpVp8CodecParameterSettings.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCSctpCapabilities.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCSctpTransport.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCSctpTransportListener.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCSctpTransportListenerEvent.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCSctpTransportStateChangeEvent.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCSctpTransportStats.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCSrtpSdesCryptoParameters.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCSrtpSdesKeyParameters.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCSrtpSdesParameters.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCSrtpSdesTransport.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCSrtpSdesTransportLifetimeRemainingEvent.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCSrtpTransportStats.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCSsrcConflictEvent.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCStats.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCStatsProvider.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCStatsReport.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCStatsTypeSet.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Settings.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.StringOrStringList.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\types.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\override\cppwinrt\Org.Ortc.EventQueue.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\override\cppwinrt\Org.Ortc.EventQueueMaker.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\override\cppwinrt\Org.Ortc.MediaControl.h" />
+    <ClInclude Include="..\..\..\ortc\idl\wrapper\override\cppwinrt\Org.Ortc.MediaSource.h" />
+    <ClInclude Include="pch.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\cppwinrt_Helpers.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Adapter.MediaStream.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Adapter.RTCAnswerOptions.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Adapter.RTCCapabilityOptions.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Adapter.RTCConfiguration.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Adapter.RTCIceCandidate.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Adapter.RTCMediaStreamTrackConfiguration.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Adapter.RTCOfferAnswerOptions.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Adapter.RTCOfferOptions.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Adapter.RTCPeerConnection.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Adapter.RTCPeerConnectionIceErrorEvent.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Adapter.RTCPeerConnectionIceEvent.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Adapter.RTCSessionDescription.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Adapter.RTCSessionDescriptionConnectionData.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Adapter.RTCSessionDescriptionConnectionDataDetails.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Adapter.RTCSessionDescriptionDescription.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Adapter.RTCSessionDescriptionDescriptionDetails.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Adapter.RTCSessionDescriptionMediaLine.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Adapter.RTCSessionDescriptionMediaLineDetails.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Adapter.RTCSessionDescriptionRtpMediaLine.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Adapter.RTCSessionDescriptionRtpSender.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Adapter.RTCSessionDescriptionRtpSenderDetails.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Adapter.RTCSessionDescriptionSctpMediaLine.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Adapter.RTCSessionDescriptionTransport.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Adapter.RTCSessionDescriptionTransportParameters.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Adapter.RTCTrackEvent.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.ConstrainBoolean.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.ConstrainBooleanParameters.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.ConstrainDouble.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.ConstrainDoubleRange.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.ConstrainLong.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.ConstrainLongRange.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.ConstrainString.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.ConstrainStringParameters.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.DoubleRange.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Error.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.ErrorEvent.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.EventQueue.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.EventQueueMaker.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Json.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Logger.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.LongRange.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.MediaControl.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.MediaDeviceInfo.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.MediaDevices.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.MediaSource.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.MediaStreamConstraints.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.MediaStreamTrack.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.MediaTrackCapabilities.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.MediaTrackConstraints.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.MediaTrackConstraintSet.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.MediaTrackSettings.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.MediaTrackSupportedConstraints.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.OrtcLib.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.OverconstrainedError.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.OverconstrainedErrorEvent.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCCertificate.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCCertificateStats.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCCodec.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCDataChannel.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCDataChannelEvent.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCDataChannelParameters.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCDataChannelStateChangeEvent.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCDataChannelStats.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCDataTransport.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCDtlsCertificateBinary.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCDtlsFingerprint.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCDtlsParameters.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCDtlsTransport.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCDtlsTransportStateChangeEvent.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCDtlsTransportStats.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCDtmfSender.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCDtmfToneChangeEvent.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCIceCandidate.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCIceCandidateAttributes.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCIceCandidateComplete.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCIceCandidatePair.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCIceCandidatePairChangeEvent.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCIceCandidatePairStats.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCIceGatherer.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCIceGathererCandidate.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCIceGathererCandidateCompleteEvent.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCIceGathererCandidateEvent.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCIceGathererIceErrorEvent.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCIceGathererStateChangeEvent.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCIceGathererStats.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCIceGatherInterfacePolicy.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCIceGatherOptions.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCIceParameters.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCIceServer.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCIceTransport.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCIceTransportController.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCIceTransportOptions.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCIceTransportStateChangeEvent.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCIceTransportStats.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCIdentity.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCIdentityAssertion.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCIdentityError.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCIdentityResult.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCInboundRtpStreamStats.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCMediaStreamStats.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCMediaStreamTrackStats.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCMessageEvent.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCOutboundRtpStreamStats.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtcpFeedback.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtcpParameters.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtcpTransport.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpCapabilities.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpCodecCapability.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpCodecCapabilityOptions.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpCodecCapabilityParameters.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpCodecParameters.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpCodecParameterSettings.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpContributingSource.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpEncodingParameters.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpFecParameters.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpFlexFecCodecCapabilityParameters.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpFlexFecCodecParameterSettings.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpH264CodecCapabilityParameters.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpH264CodecParameterSettings.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpHeaderExtension.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpHeaderExtensionParameters.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpListener.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpOpusCodecCapabilityOptions.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpOpusCodecCapabilityParameters.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpOpusCodecParameterSettings.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpParameters.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpReceiver.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpRedCodecParameterSettings.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpRtxCodecCapabilityParameters.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpRtxCodecParameterSettings.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpRtxParameters.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpSender.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpStreamStats.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpTransport.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpUnhandledEvent.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpVp8CodecCapabilityParameters.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCRtpVp8CodecParameterSettings.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCSctpCapabilities.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCSctpTransport.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCSctpTransportListener.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCSctpTransportListenerEvent.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCSctpTransportStateChangeEvent.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCSctpTransportStats.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCSrtpSdesCryptoParameters.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCSrtpSdesKeyParameters.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCSrtpSdesParameters.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCSrtpSdesTransport.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCSrtpSdesTransportLifetimeRemainingEvent.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCSrtpTransportStats.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCSsrcConflictEvent.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCStats.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCStatsProvider.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCStatsReport.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.RTCStatsTypeSet.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.Settings.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\generated\cppwinrt\Org.Ortc.StringOrStringList.cpp" />
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\override\cppwinrt\Org.Ortc.EventQueue.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\override\cppwinrt\Org.Ortc.EventQueueMaker.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\override\cppwinrt\Org.Ortc.MediaControl.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="..\..\..\ortc\idl\wrapper\override\cppwinrt\Org.Ortc.MediaSource.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="pch.cpp">
+      <PrecompiledHeader>Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="Generated Files\module.g.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\ortc\idl\wrapper\generated\msidl\Org.Ortc.EventQueue.idl.template">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="..\..\..\ortc\idl\wrapper\generated\msidl\Org.Ortc.EventQueueMaker.idl.template">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="..\..\..\ortc\idl\wrapper\generated\msidl\Org.Ortc.MediaControl.idl.template">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="..\..\..\ortc\idl\wrapper\generated\msidl\Org.Ortc.MediaSource.idl.template">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|ARM'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </None>
+    <None Include="Ortc.def" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="readme.txt">
+      <DeploymentContent>false</DeploymentContent>
+    </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <Midl Include="..\..\..\ortc\idl\wrapper\generated\msidl\output.idl" />
+    <Midl Include="..\..\..\ortc\idl\wrapper\override\msidl\Org.Ortc.EventQueue.idl" />
+    <Midl Include="..\..\..\ortc\idl\wrapper\override\msidl\Org.Ortc.EventQueueMaker.idl" />
+    <Midl Include="..\..\..\ortc\idl\wrapper\override\msidl\Org.Ortc.MediaControl.idl" />
+    <Midl Include="..\..\..\ortc\idl\wrapper\override\msidl\Org.Ortc.MediaSource.idl" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\..\cryptopp\projects\msvs\cryptopp.Universal\cryptopp.vcxproj">
+      <Project>{cc14ffe5-0018-4d8d-bc2c-c93477ce081c}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\idnkit\projects\msvc\idnkit.Universal\idnkit.vcxproj">
+      <Project>{b236bf5a-561d-4720-babf-f6119adf5793}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\ortclib-services-cpp\projects\msvs\ortclib.services.Universal\ortclib.services.vcxproj">
+      <Project>{cc03fba3-9028-47ad-b931-13b12db368f8}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\udns\projects\msvs\udns.Universal\udns.vcxproj">
+      <Project>{6c13dfe2-3aa7-40b9-919c-5e95e47fc321}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\zsLib\projects\msvs\zsLib.Universal\zsLib.vcxproj">
+      <Project>{55555c53-504f-4237-abc0-b2f59558a0e9}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\ortclib.Universal\ortclib.vcxproj">
+      <Project>{83e6cc72-ebc5-4c0c-b6a6-2d67a3c1e8a9}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\ortclib.wrapper.Universal\ortclib.wrapper.vcxproj">
+      <Project>{f370ffcf-6d70-40a3-853d-a272c4df2014}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

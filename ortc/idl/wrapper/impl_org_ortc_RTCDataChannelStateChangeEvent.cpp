@@ -25,12 +25,12 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCDataChannelStateChangeEvent:
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCDataChannelStateChangeEvent::WrapperType, WrapperType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCDataChannelStateChangeEvent::RTCDataChannelStateChangeEvent()
+wrapper::impl::org::ortc::RTCDataChannelStateChangeEvent::RTCDataChannelStateChangeEvent() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCDataChannelStateChangeEventPtr wrapper::org::ortc::RTCDataChannelStateChangeEvent::wrapper_create()
+wrapper::org::ortc::RTCDataChannelStateChangeEventPtr wrapper::org::ortc::RTCDataChannelStateChangeEvent::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::RTCDataChannelStateChangeEvent>();
   pThis->thisWeak_ = pThis;
@@ -38,18 +38,18 @@ wrapper::org::ortc::RTCDataChannelStateChangeEventPtr wrapper::org::ortc::RTCDat
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCDataChannelStateChangeEvent::~RTCDataChannelStateChangeEvent()
+wrapper::impl::org::ortc::RTCDataChannelStateChangeEvent::~RTCDataChannelStateChangeEvent() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCDataChannelState wrapper::impl::org::ortc::RTCDataChannelStateChangeEvent::get_state()
+wrapper::org::ortc::RTCDataChannelState wrapper::impl::org::ortc::RTCDataChannelStateChangeEvent::get_state() noexcept
 {
   return Helper::toWrapper(native_);
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(NativeType native)
+WrapperImplTypePtr WrapperImplType::toWrapper(NativeType native) noexcept
 {
   if (!native) return WrapperImplTypePtr();
   auto pThis = make_shared<WrapperImplType>();

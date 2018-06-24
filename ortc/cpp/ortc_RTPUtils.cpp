@@ -64,9 +64,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark (helpers)
-    #pragma mark
+    //
+    // (helpers)
+    //
 
     //-------------------------------------------------------------------------
     static const size_t kMinRtpPacketLen = 12;
@@ -82,17 +82,17 @@ namespace ortc
     static const size_t kRtcpPayloadTypeOffset = 1;
 
     //-------------------------------------------------------------------------
-    static void set8(void* memory, size_t offset, BYTE v) {
+    static void set8(void* memory, size_t offset, BYTE v) noexcept {
       static_cast<BYTE*>(memory)[offset] = v;
     }
 
     //-------------------------------------------------------------------------
-    static BYTE get8(const void* memory, size_t offset) {
+    static BYTE get8(const void* memory, size_t offset) noexcept {
       return static_cast<const BYTE*>(memory)[offset];
     }
 
     //-------------------------------------------------------------------------
-    static bool getUint8(const void* data, size_t offset, int* value) {
+    static bool getUint8(const void* data, size_t offset, int* value) noexcept {
       if (!data || !value) {
         return false;
       }
@@ -101,7 +101,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    static bool getUint16(const void* data, size_t offset, int* value) {
+    static bool getUint16(const void* data, size_t offset, int* value) noexcept {
       if (!data || !value) {
         return false;
       }
@@ -110,7 +110,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    static bool getUint32(const void* data, size_t offset, DWORD* value) {
+    static bool getUint32(const void* data, size_t offset, DWORD* value) noexcept {
       if (!data || !value) {
         return false;
       }
@@ -119,7 +119,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    static bool setUint8(void* data, size_t offset, uint8_t value) {
+    static bool setUint8(void* data, size_t offset, uint8_t value) noexcept {
       if (!data) {
         return false;
       }
@@ -128,7 +128,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    static bool setUint16(void* data, size_t offset, uint16_t value) {
+    static bool setUint16(void* data, size_t offset, uint16_t value) noexcept {
       if (!data) {
         return false;
       }
@@ -137,7 +137,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    static bool setUint32(void* data, size_t offset, DWORD value) {
+    static bool setUint32(void* data, size_t offset, DWORD value) noexcept {
       if (!data) {
         return false;
       }
@@ -146,7 +146,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    static bool getRtpFlags(const void* data, size_t len, int* value) {
+    static bool getRtpFlags(const void* data, size_t len, int* value) noexcept {
       if (len < kMinRtpPacketLen) {
         return false;
       }
@@ -154,7 +154,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    static bool getRtpPayloadType(const void* data, size_t len, int* value) {
+    static bool getRtpPayloadType(const void* data, size_t len, int* value) noexcept {
       if (len < kMinRtpPacketLen) {
         return false;
       }
@@ -166,7 +166,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    static bool getRtpSeqNum(const void* data, size_t len, int* value) {
+    static bool getRtpSeqNum(const void* data, size_t len, int* value) noexcept {
       if (len < kMinRtpPacketLen) {
         return false;
       }
@@ -174,7 +174,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    static bool getRtpTimestamp(const void* data, size_t len, DWORD* value) {
+    static bool getRtpTimestamp(const void* data, size_t len, DWORD* value) noexcept {
       if (len < kMinRtpPacketLen) {
         return false;
       }
@@ -182,7 +182,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    static bool getRtpSsrc(const void* data, size_t len, DWORD* value) {
+    static bool getRtpSsrc(const void* data, size_t len, DWORD* value) noexcept {
       if (len < kMinRtpPacketLen) {
         return false;
       }
@@ -190,7 +190,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    static bool getRtpHeaderLen(const void* data, size_t len, size_t* value) {
+    static bool getRtpHeaderLen(const void* data, size_t len, size_t* value) noexcept {
       if (!data || len < kMinRtpPacketLen || !value) return false;
       const BYTE* header = static_cast<const BYTE*>(data);
       // Get base header size + length of CSRCs (not counting extension yet).
@@ -208,7 +208,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    //bool getRtpHeader(const void* data, size_t len, RtpHeader* header) {
+    //bool getRtpHeader(const void* data, size_t len, RtpHeader* header) noexcept {
     //  return (GetRtpPayloadType(data, len, &(header->payload_type)) &&
     //    GetRtpSeqNum(data, len, &(header->seq_num)) &&
     //    GetRtpTimestamp(data, len, &(header->timestamp)) &&
@@ -216,7 +216,7 @@ namespace ortc
     //}
 
     //-------------------------------------------------------------------------
-    static bool getRtcpType(const void* data, size_t len, int* value) {
+    static bool getRtcpType(const void* data, size_t len, int* value) noexcept {
       if (len < kMinRtcpPacketLen) {
         return false;
       }
@@ -227,7 +227,7 @@ namespace ortc
     // This method returns SSRC first of RTCP packet, except if packet is SDES.
     // TODO(mallinath) - Fully implement RFC 5506. This standard doesn't restrict
     // to send non-compound packets only to feedback messages.
-    static bool getRtcpSsrc(const void* data, size_t len, DWORD* value) {
+    static bool getRtcpSsrc(const void* data, size_t len, DWORD* value) noexcept {
       // Packet should be at least of 8 bytes, to get SSRC from a RTCP packet.
       if (!data || len < kMinRtcpPacketLen + 4 || !value) return false;
       int pl_type;
@@ -239,13 +239,14 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    static bool setRtpSsrc(void* data, size_t len, DWORD value) {
+    static bool setRtpSsrc(void* data, ZS_MAYBE_USED() size_t len, DWORD value) noexcept {
+      ZS_MAYBE_USED(len);
       return setUint32(data, kRtpSsrcOffset, value);
     }
 
     //-------------------------------------------------------------------------
     //// Assumes version 2, no padding, no extensions, no csrcs.
-    //bool SetRtpHeader(void* data, size_t len, const RtpHeader& header) {
+    //bool SetRtpHeader(void* data, size_t len, const RtpHeader& header) noexcept {
     //  if (!IsValidRtpPayloadType(header.payload_type) ||
     //    header.seq_num < 0 || header.seq_num > UINT16_MAX) {
     //    return false;
@@ -259,7 +260,7 @@ namespace ortc
     //}
 
     //-------------------------------------------------------------------------
-    static bool IsRtpPacket(const void* data, size_t len) {
+    static bool IsRtpPacket(const void* data, size_t len) noexcept {
       if (len < kMinRtpPacketLen)
         return false;
 
@@ -267,7 +268,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    static bool IsValidRtpPayloadType(int payload_type) {
+    static bool IsValidRtpPayloadType(int payload_type) noexcept {
       return payload_type >= 0 && payload_type <= 127;
     }
 
@@ -275,18 +276,18 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark Helper
-    #pragma mark
+    //
+    // Helper
+    //
 
     //-------------------------------------------------------------------------
-    WORD RTPUtils::getBE16(const void* memory) {
+    WORD RTPUtils::getBE16(const void* memory) noexcept {
       return static_cast<WORD>((get8(memory, 0) << 8) |
                                (get8(memory, 1) << 0));
     }
 
     //-------------------------------------------------------------------------
-    DWORD RTPUtils::getBE32(const void* memory) {
+    DWORD RTPUtils::getBE32(const void* memory) noexcept {
       return (static_cast<DWORD>(get8(memory, 0)) << 24) |
              (static_cast<DWORD>(get8(memory, 1)) << 16) |
              (static_cast<DWORD>(get8(memory, 2)) << 8) |
@@ -294,13 +295,13 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPUtils::setBE16(void* memory, WORD v) {
+    void RTPUtils::setBE16(void* memory, WORD v) noexcept {
       set8(memory, 0, static_cast<BYTE>(v >> 8));
       set8(memory, 1, static_cast<BYTE>(v >> 0));
     }
 
     //-------------------------------------------------------------------------
-    void RTPUtils::setBE32(void* memory, DWORD v) {
+    void RTPUtils::setBE32(void* memory, DWORD v) noexcept {
       set8(memory, 0, static_cast<BYTE>(v >> 24));
       set8(memory, 1, static_cast<BYTE>(v >> 16));
       set8(memory, 2, static_cast<BYTE>(v >> 8));
@@ -308,7 +309,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    int RTPUtils::getRtpPayloadType(const void* data, size_t len)
+    int RTPUtils::getRtpPayloadType(const void* data, size_t len) noexcept
     {
       int value {};
       if (ortc::internal::getRtpPayloadType(data, len, &value)) {
@@ -320,7 +321,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    int RTPUtils::getRtpSeqNum(const void* data, size_t len)
+    int RTPUtils::getRtpSeqNum(const void* data, size_t len) noexcept
     {
       int value{};
       if (ortc::internal::getRtpSeqNum(data, len, &value)) {
@@ -332,7 +333,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    DWORD RTPUtils::getRtpTimestamp(const void* data, size_t len)
+    DWORD RTPUtils::getRtpTimestamp(const void* data, size_t len) noexcept
     {
       DWORD value{};
       if (ortc::internal::getRtpTimestamp(data, len, &value)) {
@@ -344,7 +345,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    DWORD RTPUtils::getRtpSsrc(const void* data, size_t len)
+    DWORD RTPUtils::getRtpSsrc(const void* data, size_t len) noexcept
     {
       DWORD value{};
       if (ortc::internal::getRtpSsrc(data, len, &value)) {
@@ -356,7 +357,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    size_t RTPUtils::getRtpHeaderLen(const void* data, size_t len)
+    size_t RTPUtils::getRtpHeaderLen(const void* data, size_t len) noexcept
     {
       size_t value{};
       if (ortc::internal::getRtpHeaderLen(data, len, &value)) {
@@ -368,7 +369,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    int RTPUtils::getRtcpType(const void* data, size_t len) {
+    int RTPUtils::getRtcpType(const void* data, size_t len) noexcept {
       int value{};
       if (ortc::internal::getRtcpType(data, len, &value)) {
         return value;
@@ -379,7 +380,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    DWORD RTPUtils::getRtcpSsrc(const void* data, size_t len)
+    DWORD RTPUtils::getRtcpSsrc(const void* data, size_t len) noexcept
     {
       DWORD value{};
       if (ortc::internal::getRtcpSsrc(data, len, &value)) {
@@ -391,19 +392,19 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool RTPUtils::setRtpSsrc(void* data, size_t len, DWORD value)
+    bool RTPUtils::setRtpSsrc(void* data, size_t len, DWORD value) noexcept
     {
       return ortc::internal::setRtpSsrc(data, len, value);
     }
 
     //-------------------------------------------------------------------------
-    bool RTPUtils::isRtpPacket(const void* data, size_t len)
+    bool RTPUtils::isRtpPacket(const void* data, size_t len) noexcept
     {
       return ortc::internal::IsRtpPacket(data, len);
     }
 
     //-------------------------------------------------------------------------
-    bool RTPUtils::isRTCPPacketType(const BYTE *data, size_t len)
+    bool RTPUtils::isRTCPPacketType(const BYTE *data, size_t len) noexcept
     {
       if (len < 2) {
         return false;
@@ -413,7 +414,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool RTPUtils::isValidRtpPayloadType(int payload_type)
+    bool RTPUtils::isValidRtpPayloadType(int payload_type) noexcept
     {
       return ortc::internal::IsValidRtpPayloadType(payload_type);
     }
@@ -422,7 +423,7 @@ namespace ortc
     Time RTPUtils::ntpToTime(
                              DWORD ntpMS,
                              DWORD ntpLS
-                             )
+                             ) noexcept
     {
       // 0x3B9ACA00ULL = 1,000,000,000 (microsoeconds)
       // 0xFFFFFFFFULL = 2^32
@@ -460,7 +461,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    Log::Params RTPUtils::slog(const char *message)
+    Log::Params RTPUtils::slog(const char *message) noexcept
     {
       return Log::Params(message, "ortc::RTPUtils");
     }

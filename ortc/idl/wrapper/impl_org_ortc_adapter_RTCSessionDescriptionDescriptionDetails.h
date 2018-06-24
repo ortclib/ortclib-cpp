@@ -19,19 +19,19 @@ namespace wrapper {
             ZS_DECLARE_TYPEDEF_PTR(wrapper::org::ortc::adapter::RTCSessionDescriptionDescriptionDetails, WrapperType);
             RTCSessionDescriptionDescriptionDetailsWeakPtr thisWeak_;
 
-            RTCSessionDescriptionDescriptionDetails();
-            virtual ~RTCSessionDescriptionDescriptionDetails();
+            RTCSessionDescriptionDescriptionDetails() noexcept;
+            virtual ~RTCSessionDescriptionDescriptionDetails() noexcept;
 
             // methods RTCSessionDescriptionDescriptionDetails
-            virtual void wrapper_init_org_ortc_adapter_RTCSessionDescriptionDescriptionDetails() override;
-            virtual void wrapper_init_org_ortc_adapter_RTCSessionDescriptionDescriptionDetails(wrapper::org::ortc::adapter::RTCSessionDescriptionDescriptionDetailsPtr source) override;
-            virtual void wrapper_init_org_ortc_adapter_RTCSessionDescriptionDescriptionDetails(wrapper::org::ortc::JsonPtr json) override;
-            virtual wrapper::org::ortc::JsonPtr toJson() override;
-            virtual String hash() override;
+            void wrapper_init_org_ortc_adapter_RTCSessionDescriptionDescriptionDetails() noexcept override;
+            void wrapper_init_org_ortc_adapter_RTCSessionDescriptionDescriptionDetails(wrapper::org::ortc::adapter::RTCSessionDescriptionDescriptionDetailsPtr source) noexcept override;
+            void wrapper_init_org_ortc_adapter_RTCSessionDescriptionDescriptionDetails(wrapper::org::ortc::JsonPtr json) noexcept override;
+            wrapper::org::ortc::JsonPtr toJson() noexcept override;
+            String hash() noexcept override;
 
-            static WrapperImplTypePtr toWrapper(NativeTypePtr native);
-            static WrapperImplTypePtr toWrapper(const NativeType &native);
-            static NativeTypePtr toNative(WrapperTypePtr wrapper);
+            static WrapperImplTypePtr toWrapper(NativeTypePtr native) noexcept;
+            static WrapperImplTypePtr toWrapper(const NativeType &native) noexcept;
+            static NativeTypePtr toNative(WrapperTypePtr wrapper) noexcept;
           };
 
         } // adapter

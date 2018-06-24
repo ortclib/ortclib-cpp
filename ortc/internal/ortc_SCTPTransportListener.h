@@ -56,52 +56,52 @@ namespace ortc
 {
   namespace internal
   {
-    ZS_DECLARE_CLASS_PTR(SCTPTransportListener)
+    ZS_DECLARE_CLASS_PTR(SCTPTransportListener);
 
-    ZS_DECLARE_INTERACTION_PTR(ISCTPTransportForSCTPTransportListener)
+    ZS_DECLARE_INTERACTION_PTR(ISCTPTransportForSCTPTransportListener);
 
-    ZS_DECLARE_INTERACTION_PTR(ISCTPTransportListenerForSettings)
-    ZS_DECLARE_INTERACTION_PTR(ISCTPTransportListenerForSCTPTransport)
+    ZS_DECLARE_INTERACTION_PTR(ISCTPTransportListenerForSettings);
+    ZS_DECLARE_INTERACTION_PTR(ISCTPTransportListenerForSCTPTransport);
 
-    ZS_DECLARE_INTERACTION_PROXY(ISCTPTransportListenerAsyncDelegate)
+    ZS_DECLARE_INTERACTION_PROXY(ISCTPTransportListenerAsyncDelegate);
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISCTPTransportListenerForSettings
-    #pragma mark
+    //
+    // ISCTPTransportListenerForSettings
+    //
 
     interaction ISCTPTransportListenerForSettings
     {
-      ZS_DECLARE_TYPEDEF_PTR(ISCTPTransportListenerForSettings, ForSettings)
+      ZS_DECLARE_TYPEDEF_PTR(ISCTPTransportListenerForSettings, ForSettings);
 
-      static void applyDefaults();
+      static void applyDefaults() noexcept;
 
-      virtual ~ISCTPTransportListenerForSettings() {}
+      virtual ~ISCTPTransportListenerForSettings() noexcept {}
     };
     
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISCTPTransportListenerForSCTPTransport
-    #pragma mark
+    //
+    // ISCTPTransportListenerForSCTPTransport
+    //
 
     interaction ISCTPTransportListenerForSCTPTransport
     {
-      ZS_DECLARE_TYPEDEF_PTR(ISCTPTransportListenerForSCTPTransport, ForSCTPTransport)
+      ZS_DECLARE_TYPEDEF_PTR(ISCTPTransportListenerForSCTPTransport, ForSCTPTransport);
 
-      ZS_DECLARE_TYPEDEF_PTR(ISCTPTransportForSCTPTransportListener, UseSCTPTransport)
+      ZS_DECLARE_TYPEDEF_PTR(ISCTPTransportForSCTPTransportListener, UseSCTPTransport);
 
-      static ElementPtr toDebug(ForSCTPTransportPtr transport);
+      static ElementPtr toDebug(ForSCTPTransportPtr transport) noexcept;
 
-      virtual PUID getID() const = 0;
+      virtual PUID getID() const noexcept = 0;
 
-      virtual WORD allocateLocalPort() = 0;
-      virtual void deallocateLocalPort(WORD previouslyAllocatedLocalPort) = 0;
+      virtual WORD allocateLocalPort() noexcept = 0;
+      virtual void deallocateLocalPort(WORD previouslyAllocatedLocalPort) noexcept = 0;
 
       virtual void registerNewTransport(
                                         IDTLSTransportPtr dtlsTransport,
@@ -109,32 +109,32 @@ namespace ortc
                                         WORD &ioLocalPort,
                                         bool localPortWasPreallocated,
                                         WORD &ioRemotePort
-                                        ) = 0;
+                                        ) noexcept(false) = 0; // throws InvalidParameters
 
       virtual void announceTransport(
                                      UseSCTPTransportPtr transport,
                                      WORD localPort,
                                      WORD remotePort
-                                     ) = 0;
+                                     ) noexcept = 0;
 
       virtual void notifyShutdown(
                                   UseSCTPTransport &transport,
                                   WORD localPort,
                                   WORD remotePort
-                                  ) = 0;
+                                  ) noexcept = 0;
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISCTPTransportListenerAsyncDelegate
-    #pragma mark
+    //
+    // ISCTPTransportListenerAsyncDelegate
+    //
 
     interaction ISCTPTransportListenerAsyncDelegate
     {
-      virtual ~ISCTPTransportListenerAsyncDelegate() {};
+      virtual ~ISCTPTransportListenerAsyncDelegate() noexcept {};
     };
   }
 }
@@ -150,9 +150,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark SCTPTransportListener
-    #pragma mark
+    //
+    // SCTPTransportListener
+    //
 
     class SCTPTransportListener : public Noop,
                                   public MessageQueueAssociator,
@@ -173,8 +173,8 @@ namespace ortc
       friend interaction ISCTPTransportListenerForSCTPTransport;
       friend interaction IDataTransportForSecureTransport;
 
-      ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForDataTransport, UseSecureTransport)
-      ZS_DECLARE_TYPEDEF_PTR(ISCTPTransportForSCTPTransportListener, UseSCTPTransport)
+      ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForDataTransport, UseSecureTransport);
+      ZS_DECLARE_TYPEDEF_PTR(ISCTPTransportForSCTPTransportListener, UseSCTPTransport);
 
       typedef DWORD LocalRemoteTupleID;
       typedef std::map<LocalRemoteTupleID, UseSCTPTransportPtr> TransportMap;
@@ -194,50 +194,50 @@ namespace ortc
                             const make_private &,
                             IMessageQueuePtr queue,
                             UseSecureTransportPtr secureTransport
-                            );
+                            ) noexcept;
 
-      SCTPTransportListener(Noop) :
+      SCTPTransportListener(Noop) noexcept :
         Noop(true),
         MessageQueueAssociator(IMessageQueuePtr()),
         SharedRecursiveLock(SharedRecursiveLock::create())
       {}
 
     protected:
-      void init();
+      void init() noexcept;
 
     public:
 
-      virtual ~SCTPTransportListener();
+      virtual ~SCTPTransportListener() noexcept;
 
-      static SCTPTransportListenerPtr convert(ForSettingsPtr object);
-      static SCTPTransportListenerPtr convert(ForSCTPTransportPtr object);
-      static SCTPTransportListenerPtr convert(ForSecureTransportPtr object);
+      static SCTPTransportListenerPtr convert(ForSettingsPtr object) noexcept;
+      static SCTPTransportListenerPtr convert(ForSCTPTransportPtr object) noexcept;
+      static SCTPTransportListenerPtr convert(ForSecureTransportPtr object) noexcept;
 
-      static ElementPtr toDebug(SCTPTransportListenerPtr object);
+      static ElementPtr toDebug(SCTPTransportListenerPtr object) noexcept;
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SCTPTransport => ISCTPTransport
-      #pragma mark
+      //
+      // SCTPTransport => ISCTPTransport
+      //
 
-      static CapabilitiesPtr getCapabilities();
+      static CapabilitiesPtr getCapabilities() noexcept;
 
       static ISCTPTransportListenerSubscriptionPtr listen(
                                                           ISCTPTransportListenerDelegatePtr delegate,
                                                           IDTLSTransportPtr transport,
                                                           const Capabilities &remoteCapabilities
-                                                          );
+                                                          ) noexcept(false); // throws InvalidParameters
       
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SCTPTransport => ISCTPTransportListenerForSCTPTransport
-      #pragma mark
+      //
+      // SCTPTransport => ISCTPTransportListenerForSCTPTransport
+      //
 
-      PUID getID() const override {return mID;}
+      PUID getID() const noexcept override {return mID;}
 
-      WORD allocateLocalPort() override;
-      void deallocateLocalPort(WORD previouslyAllocatedLocalPort) override;
+      WORD allocateLocalPort() noexcept override;
+      void deallocateLocalPort(WORD previouslyAllocatedLocalPort) noexcept override;
 
       void registerNewTransport(
                                 IDTLSTransportPtr dtlsTransport,
@@ -245,85 +245,85 @@ namespace ortc
                                 WORD &ioLocalPort,
                                 bool localPortWasPreallocated,
                                 WORD &ioRemotePort
-                                ) override;
+                                ) noexcept(false) override; // throws InvalidParameters
 
       void announceTransport(
                              UseSCTPTransportPtr transport,
                              WORD localPort,
                              WORD remotePort
-                             ) override;
+                             ) noexcept override;
 
       void notifyShutdown(
                           UseSCTPTransport &transport,
                           WORD localPort,
                           WORD remotePort
-                          ) override;
+                          ) noexcept override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SCTPTransport => IDataTransportForSecureTransport
-      #pragma mark
+      //
+      // SCTPTransport => IDataTransportForSecureTransport
+      //
 
       // (duplciate) static ElementPtr toDebug(ForDTLSTransportPtr transport);
 
       // (duplicate) virtual PUID getID() const = 0;
 
-      static ForSecureTransportPtr create(UseSecureTransportPtr transport);
+      static ForSecureTransportPtr create(UseSecureTransportPtr transport) noexcept;
 
       bool handleDataPacket(
                             const BYTE *buffer,
                             size_t bufferLengthInBytes
-                            ) override;
+                            ) noexcept override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SCTPTransportListener => ISCTPTransportListenerAsyncDelegate
-      #pragma mark
+      //
+      // SCTPTransportListener => ISCTPTransportListenerAsyncDelegate
+      //
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SCTPTransportListener => IWakeDelegate
-      #pragma mark
+      //
+      // SCTPTransportListener => IWakeDelegate
+      //
 
       void onWake() override;
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SCTPTransport => (internal)
-      #pragma mark
+      //
+      // SCTPTransport => (internal)
+      //
 
-      Log::Params log(const char *message) const;
-      static Log::Params slog(const char *message);
-      Log::Params debug(const char *message) const;
-      virtual ElementPtr toDebug() const;
+      Log::Params log(const char *message) const noexcept;
+      static Log::Params slog(const char *message) noexcept;
+      Log::Params debug(const char *message) const noexcept;
+      virtual ElementPtr toDebug() const noexcept;
 
-      bool isShuttingDown() const;
-      bool isShutdown() const;
+      bool isShuttingDown() const noexcept;
+      bool isShutdown() const noexcept;
 
-      void step();
-      void cancel();
+      void step() noexcept;
+      void cancel() noexcept;
 
       virtual ISCTPTransportListenerSubscriptionPtr subscribe(
                                                               ISCTPTransportListenerDelegatePtr originalDelegate,
                                                               const Capabilities &remoteCapabilities
-                                                              );
+                                                              ) noexcept;
 
-      WORD allocateLocalPort(WORD remotePort);
+      WORD allocateLocalPort(WORD remotePort) noexcept;
       void allocatePort(
                         AllocatedPortMap &useMap,
                         WORD port
-                        );
+                        ) noexcept;
       void deallocatePort(
                           AllocatedPortMap &useMap,
                           WORD port
-                          );
+                          ) noexcept;
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SCTPTransport => (data)
-      #pragma mark
+      //
+      // SCTPTransport => (data)
+      //
 
       AutoPUID mID;
       SCTPTransportListenerWeakPtr mThisWeak;
@@ -356,28 +356,28 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISCTPTransportListenerFactory
-    #pragma mark
+    //
+    // ISCTPTransportListenerFactory
+    //
 
     interaction ISCTPTransportListenerFactory
     {
-      ZS_DECLARE_TYPEDEF_PTR(ISCTPTransportTypes::Capabilities, Capabilities)
+      ZS_DECLARE_TYPEDEF_PTR(ISCTPTransportTypes::Capabilities, Capabilities);
 
-      ZS_DECLARE_TYPEDEF_PTR(IDataTransportForSecureTransport, ForSecureTransport)
-      ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForDataTransport, UseSecureTransport)
+      ZS_DECLARE_TYPEDEF_PTR(IDataTransportForSecureTransport, ForSecureTransport);
+      ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForDataTransport, UseSecureTransport);
 
-      static ISCTPTransportListenerFactory &singleton();
+      static ISCTPTransportListenerFactory &singleton() noexcept;
 
       virtual ISCTPTransportListenerSubscriptionPtr listen(
                                                            ISCTPTransportListenerDelegatePtr delegate,
                                                            IDTLSTransportPtr transport,
                                                            const Capabilities &remoteCapabilities
-                                                           );
+                                                           ) noexcept;
 
-      virtual ForSecureTransportPtr create(UseSecureTransportPtr transport);
+      virtual ForSecureTransportPtr create(UseSecureTransportPtr transport) noexcept;
 
-      virtual CapabilitiesPtr getCapabilities();
+      virtual CapabilitiesPtr getCapabilities() noexcept;
     };
 
     class SCTPTransportListenerFactory : public IFactory<ISCTPTransportListenerFactory> {};

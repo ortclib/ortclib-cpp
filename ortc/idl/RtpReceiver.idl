@@ -204,7 +204,7 @@ namespace org
       /// GetCapabilities(kind).codecs[j].name, where j goes from 0 to the
       /// number of codecs, and kind takes the value passed in the
       /// RTCRtpReceiver constructor. If no match is found for any value of i,
-      /// throw an InvalidParameters exception. SSRC misusage also results in
+      /// throw an InvalidParameters exception. SSRC mis-usage also results in
       /// an InvalidParameters exception.
       /// </summary>
       zs::Promise receive(RTCRtpParameters parameters) throws (InvalidParameters, InvalidStateError);

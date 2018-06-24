@@ -41,25 +41,25 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IICEGathererTypes
-  #pragma mark
+  //
+  // IICEGathererTypes
+  //
   
   interaction IICEGathererTypes : public IICETypes
   {
-    ZS_DECLARE_STRUCT_PTR(Options)
-    ZS_DECLARE_STRUCT_PTR(Server)
-    ZS_DECLARE_STRUCT_PTR(InterfacePolicy)
-    ZS_DECLARE_STRUCT_PTR(ErrorEvent)
+    ZS_DECLARE_STRUCT_PTR(Options);
+    ZS_DECLARE_STRUCT_PTR(Server);
+    ZS_DECLARE_STRUCT_PTR(InterfacePolicy);
+    ZS_DECLARE_STRUCT_PTR(ErrorEvent);
 
-    ZS_DECLARE_TYPEDEF_PTR(std::list<String>, StringList)
-    ZS_DECLARE_TYPEDEF_PTR(std::list<Server>, ServerList)
-    ZS_DECLARE_TYPEDEF_PTR(std::list<InterfacePolicy>, InterfacePolicyList)
+    ZS_DECLARE_TYPEDEF_PTR(std::list<String>, StringList);
+    ZS_DECLARE_TYPEDEF_PTR(std::list<Server>, ServerList);
+    ZS_DECLARE_TYPEDEF_PTR(std::list<InterfacePolicy>, InterfacePolicyList);
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IICEGathererTypes::States
-    #pragma mark
+    //
+    // IICEGathererTypes::States
+    //
 
     enum States {
       State_First,
@@ -72,13 +72,13 @@ namespace ortc
       State_Last      = State_Closed,
     };
 
-    static const char *toString(States state);
-    static States toState(const char *state) throw (InvalidParameters);
+    static const char *toString(States state) noexcept;
+    static States toState(const char *state) noexcept(false); // throws InvalidParameters
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IICEGathererTypes::FilterPolicies
-    #pragma mark
+    //
+    // IICEGathererTypes::FilterPolicies
+    //
 
     enum FilterPolicies {
       FilterPolicy_None                = 0,
@@ -105,13 +105,13 @@ namespace ortc
       FilterPolicy_NoCandidates        = (0x7FFFFFFF)
     };
 
-    static String toString(FilterPolicies policies);
-    static FilterPolicies toPolicy(const char *filters);
+    static String toString(FilterPolicies policies) noexcept;
+    static FilterPolicies toPolicy(const char *filters) noexcept;
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IICEGathererTypes::CredentialType
-    #pragma mark
+    //
+    // IICEGathererTypes::CredentialType
+    //
 
     enum CredentialTypes {
       CredentialType_First,
@@ -122,33 +122,33 @@ namespace ortc
       CredentialType_Last       = CredentialType_Token,
     };
 
-    static const char *toString(CredentialTypes type);
-    static CredentialTypes toCredentialType(const char *type) throw (InvalidParameters);
+    static const char *toString(CredentialTypes type) noexcept;
+    static CredentialTypes toCredentialType(const char *type) noexcept(false); // throws InvalidParameters
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IICEGathererTypes::Options
-    #pragma mark
+    //
+    // IICEGathererTypes::Options
+    //
 
     struct Options {
       bool                mContinuousGathering {true};
       InterfacePolicyList mInterfacePolicies;
       ServerList          mICEServers;
 
-      Options() {}
-      Options(const Options &op2) {(*this) = op2;}
-      Options(ElementPtr elem);
+      Options() noexcept {}
+      Options(const Options &op2) noexcept {(*this) = op2;}
+      Options(ElementPtr elem) noexcept;
 
-      ElementPtr createElement(const char *objectName) const;
+      ElementPtr createElement(const char *objectName) const noexcept;
 
-      ElementPtr toDebug() const;
-      String hash() const;
+      ElementPtr toDebug() const noexcept;
+      String hash() const noexcept;
     };
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IICEGathererTypes::Server
-    #pragma mark
+    //
+    // IICEGathererTypes::Server
+    //
 
     struct Server {
       StringList      mURLs;
@@ -156,39 +156,39 @@ namespace ortc
       String          mCredential;
       CredentialTypes mCredentialType {CredentialType_Password};
 
-      Server() {}
-      Server(const Server &op2) {(*this) = op2;}
-      Server(ElementPtr elem);
+      Server() noexcept {}
+      Server(const Server &op2) noexcept {(*this) = op2;}
+      Server(ElementPtr elem) noexcept;
 
-      ElementPtr createElement(const char *objectName = "iceServer") const;
+      ElementPtr createElement(const char *objectName = "iceServer") const noexcept;
 
-      ElementPtr toDebug() const;
-      String hash() const;
+      ElementPtr toDebug() const noexcept;
+      String hash() const noexcept;
     };
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IICEGathererTypes::InterfacePolicy
-    #pragma mark
+    //
+    // IICEGathererTypes::InterfacePolicy
+    //
 
     struct InterfacePolicy {
       String          mInterfaceType;
       FilterPolicies  mGatherPolicy {FilterPolicy_None};
 
-      InterfacePolicy() {}
-      InterfacePolicy(const InterfacePolicy &op2) {(*this) = op2;}
-      InterfacePolicy(ElementPtr elem);
+      InterfacePolicy() noexcept {}
+      InterfacePolicy(const InterfacePolicy &op2) noexcept {(*this) = op2;}
+      InterfacePolicy(ElementPtr elem) noexcept;
 
-      ElementPtr createElement(const char *objectName = "interfacePolicy") const;
+      ElementPtr createElement(const char *objectName = "interfacePolicy") const noexcept;
 
-      ElementPtr toDebug() const;
-      String hash() const;
+      ElementPtr toDebug() const noexcept;
+      String hash() const noexcept;
     };
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IICEGathererTypes::ErrorEvent
-    #pragma mark
+    //
+    // IICEGathererTypes::ErrorEvent
+    //
 
     struct ErrorEvent {
       typedef WORD ErrorCode;
@@ -198,14 +198,14 @@ namespace ortc
       ErrorCode       mErrorCode;
       String          mErrorText;
 
-      ErrorEvent() {}
-      ErrorEvent(const ErrorEvent &op2) { (*this) = op2; }
-      ErrorEvent(ElementPtr elem);
+      ErrorEvent() noexcept {}
+      ErrorEvent(const ErrorEvent &op2) noexcept { (*this) = op2; }
+      ErrorEvent(ElementPtr elem) noexcept;
 
-      ElementPtr createElement(const char *objectName = "errorEvent") const;
+      ElementPtr createElement(const char *objectName = "errorEvent") const noexcept;
 
-      ElementPtr toDebug() const;
-      String hash() const;
+      ElementPtr toDebug() const noexcept;
+      String hash() const noexcept;
     };
   };
 
@@ -213,50 +213,50 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IICEGatherer
-  #pragma mark
+  //
+  // IICEGatherer
+  //
   
   interaction IICEGatherer : public IICEGathererTypes,
                              public IStatsProvider
   {
-    static ElementPtr toDebug(IICEGathererPtr gatherer);
+    static ElementPtr toDebug(IICEGathererPtr gatherer) noexcept;
 
     static IICEGathererPtr create(
                                   IICEGathererDelegatePtr delegate,
                                   const Options &options
-                                  );
+                                  ) noexcept;
 
-    virtual PUID getID() const = 0;
+    virtual PUID getID() const noexcept = 0;
 
-    virtual IICEGathererSubscriptionPtr subscribe(IICEGathererDelegatePtr delegate) = 0;
+    virtual IICEGathererSubscriptionPtr subscribe(IICEGathererDelegatePtr delegate) noexcept = 0;
 
-    virtual Components component() const = 0;
-    virtual States state() const = 0;
+    virtual Components component() const noexcept = 0;
+    virtual States state() const noexcept = 0;
 
-    virtual ParametersPtr getLocalParameters() const = 0;
-    virtual CandidateListPtr getLocalCandidates() const = 0;
+    virtual ParametersPtr getLocalParameters() const noexcept = 0;
+    virtual CandidateListPtr getLocalCandidates() const noexcept = 0;
 
-    virtual IICEGathererPtr createAssociatedGatherer(IICEGathererDelegatePtr delegate) throw(InvalidStateError) = 0;
+    virtual IICEGathererPtr createAssociatedGatherer(IICEGathererDelegatePtr delegate) noexcept(false) = 0; // throws InvalidStateError
 
-    virtual void gather(const Optional<Options> &options = Optional<Options>()) = 0;
+    virtual void gather(const Optional<Options> &options = Optional<Options>()) noexcept = 0;
 
-    virtual void close() = 0;
+    virtual void close() noexcept = 0;
   };
 
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IICEGathererDelegate
-  #pragma mark
+  //
+  // IICEGathererDelegate
+  //
 
   interaction IICEGathererDelegate
   {
-    ZS_DECLARE_TYPEDEF_PTR(IICETypes::Candidate, Candidate)
-    ZS_DECLARE_TYPEDEF_PTR(IICETypes::CandidateComplete, CandidateComplete)
-    ZS_DECLARE_TYPEDEF_PTR(IICEGathererTypes::ErrorEvent, ErrorEvent)
+    ZS_DECLARE_TYPEDEF_PTR(IICETypes::Candidate, Candidate);
+    ZS_DECLARE_TYPEDEF_PTR(IICETypes::CandidateComplete, CandidateComplete);
+    ZS_DECLARE_TYPEDEF_PTR(IICEGathererTypes::ErrorEvent, ErrorEvent);
 
     virtual void onICEGathererStateChange(
                                           IICEGathererPtr gatherer,
@@ -288,17 +288,17 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IICEGathererSubscription
-  #pragma mark
+  //
+  // IICEGathererSubscription
+  //
 
   interaction IICEGathererSubscription
   {
-    virtual PUID getID() const = 0;
+    virtual PUID getID() const noexcept = 0;
 
-    virtual void cancel() = 0;
+    virtual void cancel() noexcept = 0;
 
-    virtual void background() = 0;
+    virtual void background() noexcept = 0;
   };
 }
 
@@ -308,11 +308,11 @@ ZS_DECLARE_PROXY_TYPEDEF(ortc::IICEGatherer::States, States)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IICEGathererDelegate::CandidatePtr, CandidatePtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IICEGathererDelegate::CandidateCompletePtr, CandidateCompletePtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IICEGathererTypes::ErrorEventPtr, ErrorEventPtr)
-ZS_DECLARE_PROXY_METHOD_2(onICEGathererStateChange, IICEGathererPtr, States)
-ZS_DECLARE_PROXY_METHOD_2(onICEGathererLocalCandidate, IICEGathererPtr, CandidatePtr)
-ZS_DECLARE_PROXY_METHOD_2(onICEGathererLocalCandidateComplete, IICEGathererPtr, CandidateCompletePtr)
-ZS_DECLARE_PROXY_METHOD_2(onICEGathererLocalCandidateGone, IICEGathererPtr, CandidatePtr)
-ZS_DECLARE_PROXY_METHOD_2(onICEGathererError, IICEGathererPtr, ErrorEventPtr)
+ZS_DECLARE_PROXY_METHOD(onICEGathererStateChange, IICEGathererPtr, States)
+ZS_DECLARE_PROXY_METHOD(onICEGathererLocalCandidate, IICEGathererPtr, CandidatePtr)
+ZS_DECLARE_PROXY_METHOD(onICEGathererLocalCandidateComplete, IICEGathererPtr, CandidateCompletePtr)
+ZS_DECLARE_PROXY_METHOD(onICEGathererLocalCandidateGone, IICEGathererPtr, CandidatePtr)
+ZS_DECLARE_PROXY_METHOD(onICEGathererError, IICEGathererPtr, ErrorEventPtr)
 ZS_DECLARE_PROXY_END()
 
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_BEGIN(ortc::IICEGathererDelegate, ortc::IICEGathererSubscription)
@@ -321,9 +321,9 @@ ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IICEGatherer::States, States)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IICEGathererDelegate::CandidatePtr, CandidatePtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IICEGathererDelegate::CandidateCompletePtr, CandidateCompletePtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IICEGathererTypes::ErrorEventPtr, ErrorEventPtr)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onICEGathererStateChange, IICEGathererPtr, States)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onICEGathererLocalCandidate, IICEGathererPtr, CandidatePtr)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onICEGathererLocalCandidateComplete, IICEGathererPtr, CandidateCompletePtr)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onICEGathererLocalCandidateGone, IICEGathererPtr, CandidatePtr)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onICEGathererError, IICEGathererPtr, ErrorEventPtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD(onICEGathererStateChange, IICEGathererPtr, States)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD(onICEGathererLocalCandidate, IICEGathererPtr, CandidatePtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD(onICEGathererLocalCandidateComplete, IICEGathererPtr, CandidateCompletePtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD(onICEGathererLocalCandidateGone, IICEGathererPtr, CandidatePtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD(onICEGathererError, IICEGathererPtr, ErrorEventPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()

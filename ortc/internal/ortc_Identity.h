@@ -48,9 +48,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark Identity
-    #pragma mark
+    //
+    // Identity
+    //
     
     class Identity : public Noop,
                      public MessageQueueAssociator,
@@ -71,92 +71,92 @@ namespace ortc
                const make_private &,
                IMessageQueuePtr queue,
                IDTLSTransportPtr transport
-               );
+               ) noexcept;
 
     protected:
-      Identity(Noop) :
+      Identity(Noop) noexcept :
         Noop(true),
         MessageQueueAssociator(IMessageQueuePtr()),
         SharedRecursiveLock(SharedRecursiveLock::create())
       {}
 
-      void init();
+      void init() noexcept;
 
     public:
-      virtual ~Identity();
+      virtual ~Identity() noexcept;
 
-      static IdentityPtr convert(IIdentityPtr object);
+      static IdentityPtr convert(IIdentityPtr object) noexcept;
 
     protected:
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark Identity => IIdentity
-      #pragma mark
+      //
+      // Identity => IIdentity
+      //
 
-      static ElementPtr toDebug(IdentityPtr object);
+      static ElementPtr toDebug(IdentityPtr object) noexcept;
 
-      static IdentityPtr create(IDTLSTransportPtr transport);
+      static IdentityPtr create(IDTLSTransportPtr transport) noexcept;
 
-      PUID getID() const override {return mID;}
+      PUID getID() const noexcept override {return mID;}
 
-      AssertionPtr peerIdentity() const override;
+      AssertionPtr peerIdentity() const noexcept override;
 
-      IDTLSTransportPtr transport() const override;
+      IDTLSTransportPtr transport() const noexcept override;
 
       PromiseWithResultPtr getIdentityAssertion(
                                                 const char *provider,
                                                 const char *protoocol = "default",
                                                 const char *username = NULL
-                                                ) throw (InvalidStateError) override;
+                                                ) noexcept(false) override; // throws InvalidStateError
 
-      PromiseWithAssertionPtr setIdentityAssertion(const String &assertion) override;
+      PromiseWithAssertionPtr setIdentityAssertion(const String &assertion) noexcept override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark Identity => IWakeDelegate
-      #pragma mark
+      //
+      // Identity => IWakeDelegate
+      //
 
       void onWake() override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark Identity => ITimerDelegate
-      #pragma mark
+      //
+      // Identity => ITimerDelegate
+      //
 
       void onTimer(ITimerPtr timer) override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark Identity => IIdentityAsyncDelegate
-      #pragma mark
+      //
+      // Identity => IIdentityAsyncDelegate
+      //
 
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark Identity => (internal)
-      #pragma mark
+      //
+      // Identity => (internal)
+      //
 
-      Log::Params log(const char *message) const;
-      static Log::Params slog(const char *message);
-      Log::Params debug(const char *message) const;
-      virtual ElementPtr toDebug() const;
+      Log::Params log(const char *message) const noexcept;
+      static Log::Params slog(const char *message) noexcept;
+      Log::Params debug(const char *message) const noexcept;
+      virtual ElementPtr toDebug() const noexcept;
 
-      bool isShuttingDown() const;
-      bool isShutdown() const;
+      bool isShuttingDown() const noexcept;
+      bool isShutdown() const noexcept;
 
-      void step();
+      void step() noexcept;
 
-      bool stepBogusDoSomething();
+      bool stepBogusDoSomething() noexcept;
 
-      void cancel();
+      void cancel() noexcept;
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark Identity => (data)
-      #pragma mark
+      //
+      // Identity => (data)
+      //
 
       AutoPUID mID;
       IdentityWeakPtr mThisWeak;
@@ -169,15 +169,15 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IIdentityFactory
-    #pragma mark
+    //
+    // IIdentityFactory
+    //
 
     interaction IIdentityFactory
     {
-      static IIdentityFactory &singleton();
+      static IIdentityFactory &singleton() noexcept;
 
-      virtual IdentityPtr create(IDTLSTransportPtr transport);
+      virtual IdentityPtr create(IDTLSTransportPtr transport) noexcept;
     };
 
     class IdentityFactory : public IFactory<IIdentityFactory> {};

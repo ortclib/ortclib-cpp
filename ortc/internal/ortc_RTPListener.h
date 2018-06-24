@@ -56,126 +56,126 @@ namespace ortc
 {
   namespace internal
   {
-    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverForRTPListener)
-    ZS_DECLARE_INTERACTION_PTR(IRTPSenderForRTPListener)
+    ZS_DECLARE_INTERACTION_PTR(IRTPReceiverForRTPListener);
+    ZS_DECLARE_INTERACTION_PTR(IRTPSenderForRTPListener);
 
-    ZS_DECLARE_INTERACTION_PTR(IRTPListenerForSettings)
-    ZS_DECLARE_INTERACTION_PTR(IRTPListenerForSecureTransport)
-    ZS_DECLARE_INTERACTION_PTR(IRTPListenerForRTPReceiver)
-    ZS_DECLARE_INTERACTION_PTR(IRTPListenerForRTPSender)
+    ZS_DECLARE_INTERACTION_PTR(IRTPListenerForSettings);
+    ZS_DECLARE_INTERACTION_PTR(IRTPListenerForSecureTransport);
+    ZS_DECLARE_INTERACTION_PTR(IRTPListenerForRTPReceiver);
+    ZS_DECLARE_INTERACTION_PTR(IRTPListenerForRTPSender);
 
-    ZS_DECLARE_INTERACTION_PROXY(IRTPListenerAsyncDelegate)
+    ZS_DECLARE_INTERACTION_PROXY(IRTPListenerAsyncDelegate);
 
     
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPListenerForSecureTransport
-    #pragma mark
+    //
+    // IRTPListenerForSecureTransport
+    //
 
     interaction IRTPListenerForSecureTransport
     {
-      ZS_DECLARE_TYPEDEF_PTR(IRTPListenerForSecureTransport, ForSecureTransport)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPListenerForSecureTransport, ForSecureTransport);
 
-      static ElementPtr toDebug(ForSecureTransportPtr listener);
+      static ElementPtr toDebug(ForSecureTransportPtr listener) noexcept;
 
-      static RTPListenerPtr create(IRTPTransportPtr transport);
+      static RTPListenerPtr create(IRTPTransportPtr transport) noexcept;
 
-      virtual PUID getID() const = 0;
+      virtual PUID getID() const noexcept = 0;
 
       virtual bool handleRTPPacket(
                                    IICETypes::Components viaComponent,
                                    IICETypes::Components packetType,
                                    const BYTE *buffer,
                                    size_t bufferLengthInBytes
-                                   ) = 0;
+                                   ) noexcept = 0;
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPListenerForRTPReceiver
-    #pragma mark
+    //
+    // IRTPListenerForRTPReceiver
+    //
 
     interaction IRTPListenerForRTPReceiver
     {
-      ZS_DECLARE_TYPEDEF_PTR(IRTPListenerForRTPReceiver, ForRTPReceiver)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPListenerForRTPReceiver, ForRTPReceiver);
 
-      ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverForRTPListener, UseReceiver)
-      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverForRTPListener, UseReceiver);
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters);
       typedef std::list<RTCPPacketPtr> RTCPPacketList;
 
-      static ElementPtr toDebug(ForRTPReceiverPtr listener);
+      static ElementPtr toDebug(ForRTPReceiverPtr listener) noexcept;
 
-      static ForRTPReceiverPtr getListener(IRTPTransportPtr rtpTransport);
+      static ForRTPReceiverPtr getListener(IRTPTransportPtr rtpTransport) noexcept(false);
 
-      virtual PUID getID() const = 0;
+      virtual PUID getID() const noexcept = 0;
 
       virtual void registerReceiver(
                                     Optional<IMediaStreamTrack::Kinds> kind,
                                     UseReceiverPtr inReceiver,
                                     const Parameters &inParams,
                                     RTCPPacketList *outPacketList = NULL
-                                    ) = 0;
+                                    ) noexcept(false) = 0; // throws InvalidParameters
 
-      virtual void unregisterReceiver(UseReceiver &inReceiver) = 0;
+      virtual void unregisterReceiver(UseReceiver &inReceiver) noexcept = 0;
 
-      virtual void getPackets(RTCPPacketList &outPacketList) = 0;
+      virtual void getPackets(RTCPPacketList &outPacketList) noexcept = 0;
 
       virtual void notifyUnhandled(
                                    const String &muxID,
                                    const String &rid,
                                    IRTPTypes::SSRCType ssrc,
                                    IRTPTypes::PayloadType payloadType
-                                   ) = 0;
+                                   ) noexcept = 0;
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPListenerForRTPSender
-    #pragma mark
+    //
+    // IRTPListenerForRTPSender
+    //
 
     interaction IRTPListenerForRTPSender
     {
-      ZS_DECLARE_TYPEDEF_PTR(IRTPListenerForRTPSender, ForRTPSender)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPListenerForRTPSender, ForRTPSender);
 
-      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderForRTPListener, UseSender)
-      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderForRTPListener, UseSender);
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters);
       typedef std::list<RTCPPacketPtr> RTCPPacketList;
 
-      static ElementPtr toDebug(ForRTPSenderPtr listener);
+      static ElementPtr toDebug(ForRTPSenderPtr listener) noexcept;
 
-      static ForRTPSenderPtr getListener(IRTPTransportPtr rtpTransport);
+      static ForRTPSenderPtr getListener(IRTPTransportPtr rtpTransport) noexcept(false);
 
-      virtual PUID getID() const = 0;
+      virtual PUID getID() const noexcept = 0;
 
       virtual void registerSender(
                                   UseSenderPtr inSender,
                                   const Parameters &inParams,
                                   RTCPPacketList &outPacketList
-                                  ) = 0;
+                                  ) noexcept = 0;
 
-      virtual void unregisterSender(UseSender &inSender) = 0;
+      virtual void unregisterSender(UseSender &inSender) noexcept = 0;
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPListenerAsyncDelegate
-    #pragma mark
+    //
+    // IRTPListenerAsyncDelegate
+    //
 
     interaction IRTPListenerAsyncDelegate
     {
-      ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverForRTPListener, UseRTPReceiver)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverForRTPListener, UseRTPReceiver);
 
       virtual void onDeliverPacket(
                                    IICETypes::Components viaComponent,
@@ -188,9 +188,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPListener
-    #pragma mark
+    //
+    // RTPListener
+    //
 
     class RTPListener : public Noop,
                         public MessageQueueAssociator,
@@ -213,17 +213,17 @@ namespace ortc
       friend interaction IRTPListenerForRTPReceiver;
       friend interaction IRTPListenerForRTPSender;
 
-      ZS_DECLARE_STRUCT_PTR(TearAwayData)
-      ZS_DECLARE_STRUCT_PTR(RegisteredHeaderExtension)
-      ZS_DECLARE_STRUCT_PTR(ReceiverInfo)
-      ZS_DECLARE_STRUCT_PTR(SSRCInfo)
-      ZS_DECLARE_STRUCT_PTR(UnhandledEventInfo)
+      ZS_DECLARE_STRUCT_PTR(TearAwayData);
+      ZS_DECLARE_STRUCT_PTR(RegisteredHeaderExtension);
+      ZS_DECLARE_STRUCT_PTR(ReceiverInfo);
+      ZS_DECLARE_STRUCT_PTR(SSRCInfo);
+      ZS_DECLARE_STRUCT_PTR(UnhandledEventInfo);
 
-      ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverForRTPListener, UseRTPReceiver)
-      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderForRTPListener, UseRTPSender)
-      ZS_DECLARE_TYPEDEF_PTR(IRTPTransport, UseRTPTransport)
-      ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForRTPListener, UseSecureTransport)
-      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPReceiverForRTPListener, UseRTPReceiver);
+      ZS_DECLARE_TYPEDEF_PTR(IRTPSenderForRTPListener, UseRTPSender);
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTransport, UseRTPTransport);
+      ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForRTPListener, UseSecureTransport);
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters);
 
       typedef std::list<RTCPPacketPtr> RTCPPacketList;
 
@@ -241,9 +241,9 @@ namespace ortc
       typedef size_t ReferenceCount;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTPListener::RegisteredHeaderExtension
-      #pragma mark
+      //
+      // RTPListener::RegisteredHeaderExtension
+      //
 
       struct RegisteredHeaderExtension
       {
@@ -255,7 +255,7 @@ namespace ortc
 
         ReferenceMap mReferences;
 
-        ElementPtr toDebug() const;
+        ElementPtr toDebug() const noexcept;
       };
 
       typedef std::map<LocalID, RegisteredHeaderExtension> HeaderExtensionMap;
@@ -266,9 +266,9 @@ namespace ortc
       typedef ObjectID SenderID;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTPListener::ReceiverInfo
-      #pragma mark
+      //
+      // RTPListener::ReceiverInfo
+      //
 
       struct ReceiverInfo
       {
@@ -282,21 +282,21 @@ namespace ortc
 
         SSRCMap mRegisteredSSRCs;
 
-        SSRCInfoPtr registerSSRCUsage(SSRCInfoPtr ssrcInfo);
-        void unregisterSSRCUsage(SSRCType ssrc);
+        SSRCInfoPtr registerSSRCUsage(SSRCInfoPtr ssrcInfo) noexcept;
+        void unregisterSSRCUsage(SSRCType ssrc) noexcept;
 
-        ElementPtr toDebug() const;
+        ElementPtr toDebug() const noexcept;
       };
 
       typedef std::map<ReceiverID, ReceiverInfoPtr> ReceiverObjectMap;
       typedef std::map<SenderID, UseSenderWeakPtr> SenderObjectMap;
-      ZS_DECLARE_PTR(ReceiverObjectMap)
-      ZS_DECLARE_PTR(SenderObjectMap)
+      ZS_DECLARE_PTR(ReceiverObjectMap);
+      ZS_DECLARE_PTR(SenderObjectMap);
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTPListener::SSRCInfo
-      #pragma mark
+      //
+      // RTPListener::SSRCInfo
+      //
 
       struct SSRCInfo
       {
@@ -306,17 +306,17 @@ namespace ortc
 
         ReceiverInfoPtr mReceiverInfo;    // can be NULL
 
-        SSRCInfo();
-        ElementPtr toDebug() const;
+        SSRCInfo() noexcept;
+        ElementPtr toDebug() const noexcept;
       };
 
       typedef String MuxID;
       typedef std::map<MuxID, ReceiverInfoPtr> MuxIDMap;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTPListener::UnhandledEventInfo
-      #pragma mark
+      //
+      // RTPListener::UnhandledEventInfo
+      //
 
       struct UnhandledEventInfo
       {
@@ -325,9 +325,9 @@ namespace ortc
         String mMuxID;
         String mRID;
 
-        bool operator<(const UnhandledEventInfo &) const;
+        bool operator<(const UnhandledEventInfo &) const noexcept;
 
-        ElementPtr toDebug() const;
+        ElementPtr toDebug() const noexcept;
       };
 
       typedef std::map<struct UnhandledEventInfo, Time> UnhandledEventMap;
@@ -339,7 +339,7 @@ namespace ortc
         State_ShuttingDown,
         State_Shutdown,
       };
-      static const char *toString(States state);
+      static const char *toString(States state) noexcept;
 
     public:
       RTPListener(
@@ -347,134 +347,134 @@ namespace ortc
                   IMessageQueuePtr queue,
                   IRTPListenerDelegatePtr delegate,
                   UseRTPTransportPtr transport
-                  );
+                  ) noexcept;
 
     protected:
-      RTPListener(Noop, IMessageQueuePtr queue = IMessageQueuePtr()) :
+      RTPListener(Noop, IMessageQueuePtr queue = IMessageQueuePtr()) noexcept :
         Noop(true),
         MessageQueueAssociator(queue),
         SharedRecursiveLock(SharedRecursiveLock::create())
       {}
 
-      void init();
+      void init() noexcept;
 
     public:
-      virtual ~RTPListener();
+      virtual ~RTPListener() noexcept;
 
-      static RTPListenerPtr convert(IRTPListenerPtr object);
-      static RTPListenerPtr convert(ForSecureTransportPtr object);
-      static RTPListenerPtr convert(ForRTPReceiverPtr object);
-      static RTPListenerPtr convert(ForRTPSenderPtr object);
+      static RTPListenerPtr convert(IRTPListenerPtr object) noexcept;
+      static RTPListenerPtr convert(ForSecureTransportPtr object) noexcept;
+      static RTPListenerPtr convert(ForRTPReceiverPtr object) noexcept;
+      static RTPListenerPtr convert(ForRTPSenderPtr object) noexcept;
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTPListener => IRTPListener
-      #pragma mark
+      //
+      // RTPListener => IRTPListener
+      //
 
-      static ElementPtr toDebug(RTPListenerPtr listener);
+      static ElementPtr toDebug(RTPListenerPtr listener) noexcept;
 
       static IRTPListenerPtr create(
                                     IRTPListenerDelegatePtr delegate,
                                     IRTPTransportPtr transport,
                                     Optional<HeaderExtensionParametersList> headerExtensions
-                                    );
+                                    ) noexcept(false);
 
-      PUID getID() const override {return mID;}
+      PUID getID() const noexcept override {return mID;}
 
-      IRTPListenerSubscriptionPtr subscribe(IRTPListenerDelegatePtr delegate) override;
+      IRTPListenerSubscriptionPtr subscribe(IRTPListenerDelegatePtr delegate) noexcept override;
 
-      IRTPTransportPtr transport() const override;
+      IRTPTransportPtr transport() const noexcept override;
 
-      void setHeaderExtensions(const HeaderExtensionParametersList &headerExtensions) override;
-
-      //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTPListener => IStatsProvider
-      #pragma mark
-
-      PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const override;
+      void setHeaderExtensions(const HeaderExtensionParametersList &headerExtensions) noexcept(false) override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTPListener => IRTPListenerForSecureTransport
-      #pragma mark
+      //
+      // RTPListener => IStatsProvider
+      //
 
-      // (duplciate) static ElementPtr toDebug(ForSecureTransportPtr transport);
+      PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const noexcept override;
 
-      // (duplicate) virtual PUID getID() const = 0;
+      //-----------------------------------------------------------------------
+      //
+      // RTPListener => IRTPListenerForSecureTransport
+      //
 
-      static RTPListenerPtr create(IRTPTransportPtr transport);
+      // (duplciate) static ElementPtr toDebug(ForSecureTransportPtr transport) noexcept;
+
+      // (duplicate) virtual PUID getID() const noexcept = 0;
+
+      static RTPListenerPtr create(IRTPTransportPtr transport) noexcept;
 
       bool handleRTPPacket(
                            IICETypes::Components viaComponent,
                            IICETypes::Components packetType,
                            const BYTE *buffer,
                            size_t bufferLengthInBytes
-                           ) override;
+                           ) noexcept override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTPListener => IRTPListenerForRTPReceiver
-      #pragma mark
+      //
+      // RTPListener => IRTPListenerForRTPReceiver
+      //
 
-      // (duplicate) static ElementPtr toDebug(ForRTPReceiverPtr listener);
+      // (duplicate) static ElementPtr toDebug(ForRTPReceiverPtr listener) noexcept;
 
-      // (duplicate) virtual PUID getID() const = 0;
+      // (duplicate) virtual PUID getID() const noexcept = 0;
 
       void registerReceiver(
                             Optional<IMediaStreamTrack::Kinds> kind,
                             UseReceiverPtr inReceiver,
                             const Parameters &inParams,
                             RTCPPacketList *outPacketList = NULL
-                            ) override;
+                            ) noexcept(false) override;
 
-      void unregisterReceiver(UseReceiver &inReceiver) override;
+      void unregisterReceiver(UseReceiver &inReceiver) noexcept override;
 
-      void getPackets(RTCPPacketList &outPacketList) override;
+      void getPackets(RTCPPacketList &outPacketList) noexcept override;
 
       void notifyUnhandled(
                            const String &muxID,
                            const String &rid,
                            IRTPTypes::SSRCType ssrc,
                            IRTPTypes::PayloadType payloadType
-                           ) override;
+                           ) noexcept override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTPListener => IRTPListenerForRTPSender
-      #pragma mark
+      //
+      // RTPListener => IRTPListenerForRTPSender
+      //
 
-      // (duplicate) static ElementPtr toDebug(ForRTPSenderPtr listener);
+      // (duplicate) static ElementPtr toDebug(ForRTPSenderPtr listener) noexcept;
 
-      // (duplicate) virtual PUID getID() const = 0;
+      // (duplicate) virtual PUID getID() const noexcept = 0;
 
       void registerSender(
                           UseSenderPtr inSender,
                           const Parameters &inParams,
                           RTCPPacketList &outPacketList
-                          ) override;
+                          ) noexcept override;
 
-      void unregisterSender(UseSender &inReceiver) override;
+      void unregisterSender(UseSender &inReceiver) noexcept override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTPListener => IWakeDelegate
-      #pragma mark
+      //
+      // RTPListener => IWakeDelegate
+      //
 
       void onWake() override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTPListener => ITimerDelegate
-      #pragma mark
+      //
+      // RTPListener => ITimerDelegate
+      //
 
       void onTimer(ITimerPtr timer) override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTPListener => IRTPListenerAsyncDelegate
-      #pragma mark
+      //
+      // RTPListener => IRTPListenerAsyncDelegate
+      //
 
       void onDeliverPacket(
                            IICETypes::Components viaComponent,
@@ -485,9 +485,9 @@ namespace ortc
     public:
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTPListener::TearAwayData
-      #pragma mark
+      //
+      // RTPListener::TearAwayData
+      //
 
       struct TearAwayData
       {
@@ -497,95 +497,95 @@ namespace ortc
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTPListener => (internal)
-      #pragma mark
+      //
+      // RTPListener => (internal)
+      //
 
-      static Log::Params slog(const char *message);
-      Log::Params log(const char *message) const;
-      Log::Params debug(const char *message) const;
-      virtual ElementPtr toDebug() const;
+      static Log::Params slog(const char *message) noexcept;
+      Log::Params log(const char *message) const noexcept;
+      Log::Params debug(const char *message) const noexcept;
+      virtual ElementPtr toDebug() const noexcept;
 
-      bool isShuttingDown() const;
-      bool isShutdown() const;
+      bool isShuttingDown() const noexcept;
+      bool isShutdown() const noexcept;
 
-      void step();
-      bool stepAttemptDelivery();
+      void step() noexcept;
+      bool stepAttemptDelivery() noexcept;
 
-      void cancel();
+      void cancel() noexcept;
 
-      void setState(States state);
-      void setError(WORD error, const char *reason = NULL);
+      void setState(States state) noexcept;
+      void setError(WORD error, const char *reason = NULL) noexcept;
 
-      void expireRTPPackets();
-      void expireRTCPPackets();
+      void expireRTPPackets() noexcept;
+      void expireRTCPPackets() noexcept;
 
       void registerHeaderExtensionReference(
                                             PUID objectID,
                                             HeaderExtensionURIs extensionURI,
                                             LocalID localID,
                                             bool encrytped
-                                            );
+                                            ) noexcept(false);
 
-      void unregisterAllHeaderExtensionReferences(PUID objectID);
+      void unregisterAllHeaderExtensionReferences(PUID objectID) noexcept;
 
       bool findMapping(
                        const RTPPacket &rtpPacket,
                        ReceiverInfoPtr &outReceiverInfo,
                        String &outMuxID
-                       );
+                       ) noexcept;
 
       bool findMappingUsingMuxID(
                                  const String &muxID,
                                  const RTPPacket &rtpPacket,
                                  ReceiverInfoPtr &outReceiverInfo
-                                 );
+                                 ) noexcept;
 
       bool findMappingUsingSSRCInEncodingParams(
                                                 const String &muxID,
                                                 const RTPPacket &rtpPacket,
                                                 ReceiverInfoPtr &outReceiverInfo
-                                                );
+                                                ) noexcept;
 
       bool findMappingUsingPayloadType(
                                        const String &muxID,
                                        const RTPPacket &rtpPacket,
                                        ReceiverInfoPtr &outReceiverInfo
-                                       );
+                                       ) noexcept;
 
       String extractMuxID(
                           const RTPPacket &rtpPacket,
                           ReceiverInfoPtr &ioReceiverInfo
-                          );
-      String extractRID(const RTPPacket &rtpPacket);
+                          ) noexcept;
+      String extractRID(const RTPPacket &rtpPacket) noexcept;
 
       bool fillMuxIDParameters(
                                const String &muxID,
                                ReceiverInfoPtr &ioReceiverInfo
-                               );
+                               ) noexcept;
 
-      void setReceiverInfo(ReceiverInfoPtr receiverInfo);
+      void setReceiverInfo(ReceiverInfoPtr receiverInfo) noexcept;
 
-      void processByes(const RTCPPacket &rtcpPacket);
-      void processSDESMid(const RTCPPacket &rtcpPacket);
-      void processSenderReports(const RTCPPacket &rtcpPacket);
+      void processByes(const RTCPPacket &rtcpPacket) noexcept;
+      void processSDESMid(const RTCPPacket &rtcpPacket) noexcept;
+      void processSenderReports(const RTCPPacket &rtcpPacket) noexcept;
 
       void handleDeltaChanges(
                               ReceiverInfoPtr replacementInfo,
                               const EncodingParameters &existing,
                               EncodingParameters &ioReplacement
-                              );
+                              ) noexcept;
 
-      void unregisterEncoding(const EncodingParameters &existing);
+      void unregisterEncoding(const EncodingParameters &existing) noexcept;
 
       SSRCInfoPtr setSSRCUsage(
                                SSRCType ssrc,
                                String &ioMuxID,
                                ReceiverInfoPtr &ioReceiverInfo
-                               );
-      void registerSSRCUsage(SSRCInfoPtr ssrcInfo);
+                               ) noexcept;
+      void registerSSRCUsage(SSRCInfoPtr ssrcInfo) noexcept;
 
-      void reattemptDelivery();
+      void reattemptDelivery() noexcept;
 
       void processUnhandled(
                             const String &muxID,
@@ -593,13 +593,13 @@ namespace ortc
                             IRTPTypes::SSRCType ssrc,
                             IRTPTypes::PayloadType payloadType,
                             const Time &tick
-                            );
+                            ) noexcept;
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTPListener => (data)
-      #pragma mark
+      //
+      // RTPListener => (data)
+      //
 
       AutoPUID mID;
       RTPListenerWeakPtr mThisWeak;
@@ -650,23 +650,23 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPListenerFactory
-    #pragma mark
+    //
+    // IRTPListenerFactory
+    //
 
     interaction IRTPListenerFactory
     {
-      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::HeaderExtensionParametersList, HeaderExtensionParametersList)
+      ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::HeaderExtensionParametersList, HeaderExtensionParametersList);
 
-      static IRTPListenerFactory &singleton();
+      static IRTPListenerFactory &singleton() noexcept;
 
       virtual IRTPListenerPtr create(
                                      IRTPListenerDelegatePtr delegate,
                                      IRTPTransportPtr transport,
                                      Optional<HeaderExtensionParametersList> headerExtensions = Optional<HeaderExtensionParametersList>()
-                                     );
+                                     ) noexcept(false);
 
-      virtual RTPListenerPtr create(IRTPTransportPtr transport);
+      virtual RTPListenerPtr create(IRTPTransportPtr transport) noexcept;
     };
 
     class RTPListenerFactory : public IFactory<IRTPListenerFactory> {};
@@ -677,7 +677,7 @@ ZS_DECLARE_PROXY_BEGIN(ortc::internal::IRTPListenerAsyncDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IICETypes::Components, Components)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::IRTPListenerAsyncDelegate::UseRTPReceiverPtr, UseRTPReceiverPtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::RTPPacketPtr, RTPPacketPtr)
-ZS_DECLARE_PROXY_METHOD_3(onDeliverPacket, Components, UseRTPReceiverPtr, RTPPacketPtr)
+ZS_DECLARE_PROXY_METHOD(onDeliverPacket, Components, UseRTPReceiverPtr, RTPPacketPtr)
 ZS_DECLARE_PROXY_END()
 
 
@@ -691,9 +691,9 @@ ZS_DECLARE_TEAR_AWAY_TYPEDEF(ortc::IRTPListenerSubscriptionPtr, IRTPListenerSubs
 ZS_DECLARE_TEAR_AWAY_TYPEDEF(ortc::IRTPListenerDelegatePtr, IRTPListenerDelegatePtr)
 ZS_DECLARE_TEAR_AWAY_TYPEDEF(ortc::IRTPTransportPtr, IRTPTransportPtr)
 ZS_DECLARE_TEAR_AWAY_TYPEDEF(ortc::IRTPTypes::HeaderExtensionParametersList, HeaderExtensionParametersList)
-ZS_DECLARE_TEAR_AWAY_METHOD_CONST_RETURN_1(getStats, PromiseWithStatsReportPtr, const StatsTypeSet &)
-ZS_DECLARE_TEAR_AWAY_METHOD_CONST_RETURN_0(getID, PUID)
-ZS_DECLARE_TEAR_AWAY_METHOD_RETURN_1(subscribe, IRTPListenerSubscriptionPtr, IRTPListenerDelegatePtr)
-ZS_DECLARE_TEAR_AWAY_METHOD_CONST_RETURN_0(transport, IRTPTransportPtr)
-ZS_DECLARE_TEAR_AWAY_METHOD_1(setHeaderExtensions, const HeaderExtensionParametersList &)
+ZS_DECLARE_TEAR_AWAY_METHOD_RETURN_CONST(getStats, PromiseWithStatsReportPtr, const StatsTypeSet &)
+ZS_DECLARE_TEAR_AWAY_METHOD_RETURN_CONST(getID, PUID)
+ZS_DECLARE_TEAR_AWAY_METHOD_RETURN(subscribe, IRTPListenerSubscriptionPtr, IRTPListenerDelegatePtr)
+ZS_DECLARE_TEAR_AWAY_METHOD_RETURN_CONST(transport, IRTPTransportPtr)
+ZS_DECLARE_TEAR_AWAY_METHOD_SYNC_THROWS(setHeaderExtensions, const HeaderExtensionParametersList &)
 ZS_DECLARE_TEAR_AWAY_END()

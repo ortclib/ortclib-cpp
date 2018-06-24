@@ -99,18 +99,18 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark (helpers)
-    #pragma mark
+    //
+    // (helpers)
+    //
 
     //-----------------------------------------------------------------------
-    static Log::Params slog(const char *message)
+    static Log::Params slog(const char *message) noexcept
     {
       return Log::Params(message, "ortc::Certificate");
     }
 
     //-------------------------------------------------------------------------
-    static String toStringAlgorithm(ElementPtr keygenAlgorithm)
+    static String toStringAlgorithm(ElementPtr keygenAlgorithm) noexcept
     {
       if (!keygenAlgorithm) return String();
 
@@ -132,7 +132,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    static const char **getHashAlgorithms()
+    static const char **getHashAlgorithms() noexcept
     {
       static const char *algorithms[] = {
         DIGEST_SHA_256, // put default to use first
@@ -147,7 +147,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    static ElementPtr toAlgorithmElement(const char *inAlgorithmIdentifier)
+    static ElementPtr toAlgorithmElement(const char *inAlgorithmIdentifier) noexcept
     {
       String algorithmIdentifier(inAlgorithmIdentifier);
       if (!algorithmIdentifier.isEmpty()) {
@@ -189,28 +189,28 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark CertificateSettingsDefaults
-    #pragma mark
+    //
+    // CertificateSettingsDefaults
+    //
 
     class CertificateSettingsDefaults : public ISettingsApplyDefaultsDelegate
     {
     public:
       //-----------------------------------------------------------------------
-      ~CertificateSettingsDefaults()
+      ~CertificateSettingsDefaults() noexcept
       {
         ISettings::removeDefaults(*this);
       }
 
       //-----------------------------------------------------------------------
-      static CertificateSettingsDefaultsPtr singleton()
+      static CertificateSettingsDefaultsPtr singleton() noexcept
       {
         static SingletonLazySharedPtr<CertificateSettingsDefaults> singleton(create());
         return singleton.singleton();
       }
 
       //-----------------------------------------------------------------------
-      static CertificateSettingsDefaultsPtr create()
+      static CertificateSettingsDefaultsPtr create() noexcept
       {
         auto pThis(make_shared<CertificateSettingsDefaults>());
         ISettings::installDefaults(pThis);
@@ -218,7 +218,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      virtual void notifySettingsApplyDefaults() override
+      void notifySettingsApplyDefaults() noexcept override
       {
         // which algorithm to use by default
         ISettings::setString(ORTC_SETTING_CERTIFICATE_DEFAULT_KEY_NAME, "RSASSA-PKCS1-v1_5");
@@ -292,7 +292,7 @@ namespace ortc
     };
 
     //-------------------------------------------------------------------------
-    void installCertificateSettingsDefaults()
+    void installCertificateSettingsDefaults() noexcept
     {
       CertificateSettingsDefaults::singleton();
     }
@@ -301,12 +301,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IICETransportForSettings
-    #pragma mark
+    //
+    // IICETransportForSettings
+    //
 
     //-------------------------------------------------------------------------
-    ElementPtr ICertificateForDTLSTransport::toDebug(ForDTLSTransportPtr certificate)
+    ElementPtr ICertificateForDTLSTransport::toDebug(ForDTLSTransportPtr certificate) noexcept
     {
       if (!certificate) return ElementPtr();
       return (ZS_DYNAMIC_PTR_CAST(Certificate, certificate))->toDebug();
@@ -316,15 +316,15 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ICertificateForDTLSTransport
-    #pragma mark
+    //
+    // ICertificateForDTLSTransport
+    //
 
     //-------------------------------------------------------------------------
     SecureByteBlockPtr ICertificateForDTLSTransport::getDigest(
                                                                const String &algorithm,
                                                                CertificateObjectType certificate
-                                                               )
+                                                               ) noexcept
     {
       return Certificate::getDigest(algorithm, certificate);
     }
@@ -333,16 +333,16 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark Certificate
-    #pragma mark
+    //
+    // Certificate
+    //
     
     //-------------------------------------------------------------------------
     Certificate::Certificate(
                              const make_private &,
                              IMessageQueuePtr queue,
                              ElementPtr keygenAlgorithm
-                             ) :
+                             ) noexcept(false) :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
       mKeygenAlgorithm(keygenAlgorithm ? keygenAlgorithm->clone()->toElement() : ElementPtr()),
@@ -462,8 +462,7 @@ namespace ortc
         }
       }
 
-#define TODO_SUPPORT_ELIPTICAL_CURVE 1
-#define TODO_SUPPORT_ELIPTICAL_CURVE 2
+#pragma ZS_BUILD_NOTE("TODO", "Support eliptical curve")
 
       ORTC_THROW_NOT_SUPPORTED_ERROR_IF(0 != mName.compareNoCase("RSASSA-PKCS1-v1_5"))
       ORTC_THROW_NOT_SUPPORTED_ERROR_IF(mNamedCurve.hasData())  // not supported at this time (sorry)
@@ -502,7 +501,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void Certificate::init()
+    void Certificate::init() noexcept
     {
       AutoRecursiveLock lock(*this);
 
@@ -515,7 +514,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    Certificate::~Certificate()
+    Certificate::~Certificate() noexcept
     {
       if (isNoop()) return;
 
@@ -527,13 +526,13 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    CertificatePtr Certificate::convert(ICertificatePtr object)
+    CertificatePtr Certificate::convert(ICertificatePtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(Certificate, object);
     }
 
     //-------------------------------------------------------------------------
-    CertificatePtr Certificate::convert(ForDTLSTransportPtr object)
+    CertificatePtr Certificate::convert(ForDTLSTransportPtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(Certificate, object);
     }
@@ -542,19 +541,19 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark Certificate => ICertificate
-    #pragma mark
+    //
+    // Certificate => ICertificate
+    //
     
     //-------------------------------------------------------------------------
-    ElementPtr Certificate::toDebug(CertificatePtr certificate)
+    ElementPtr Certificate::toDebug(CertificatePtr certificate) noexcept
     {
       if (!certificate) return ElementPtr();
       return certificate->toDebug();
     }
 
     //-------------------------------------------------------------------------
-    ICertificateTypes::PromiseWithCertificatePtr Certificate::generateCertificate(ElementPtr keygenAlgorithm) throw (NotSupportedError)
+    ICertificateTypes::PromiseWithCertificatePtr Certificate::generateCertificate(ElementPtr keygenAlgorithm) noexcept(false)
     {
       CertificatePtr pThis(make_shared<Certificate>(make_private {}, IORTCForInternal::queueCertificateGeneration(), keygenAlgorithm));
       pThis->mThisWeak = pThis;
@@ -567,13 +566,13 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    Time Certificate::expires() const
+    Time Certificate::expires() const noexcept
     {
       return mExpires;
     }
 
     //-------------------------------------------------------------------------
-    ICertificateTypes::FingerprintPtr Certificate::fingerprint() const
+    ICertificateTypes::FingerprintPtr Certificate::fingerprint() const noexcept
     {
       AutoRecursiveLock lock(*this);
 
@@ -631,26 +630,26 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark Certificate => ICertificateForDTLSTransport
-    #pragma mark
+    //
+    // Certificate => ICertificateForDTLSTransport
+    //
 
     //-------------------------------------------------------------------------
-    Certificate::KeyPairType Certificate::getKeyPair() const
+    Certificate::KeyPairType Certificate::getKeyPair() const noexcept
     {
       AutoRecursiveLock lock(*this);
       return mKeyPair;
     }
 
     //-------------------------------------------------------------------------
-    Certificate::CertificateObjectType Certificate::getCertificate() const
+    Certificate::CertificateObjectType Certificate::getCertificate() const noexcept
     {
       AutoRecursiveLock lock(*this);
       return mCertificate;
     }
 
     //-------------------------------------------------------------------------
-    SecureByteBlockPtr Certificate::getDigest(const String &algorithm) const
+    SecureByteBlockPtr Certificate::getDigest(const String &algorithm) const noexcept
     {
       return getDigest(algorithm, mCertificate);
     }
@@ -659,7 +658,7 @@ namespace ortc
     SecureByteBlockPtr Certificate::getDigest(
                                               const String &algorithm,
                                               CertificateObjectType certificate
-                                              )
+                                              ) noexcept
     {
       if (!certificate) return SecureByteBlockPtr();
 
@@ -674,7 +673,7 @@ namespace ortc
 
       X509_digest(certificate, md, digest, &n);
 
-      ZS_THROW_INVALID_ASSUMPTION_IF(n > sizeof(digest))
+      ZS_ASSERT(n <= sizeof(digest));
 
       SecureByteBlockPtr buffer(make_shared<SecureByteBlock>(n));
 
@@ -687,12 +686,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark Certificate => IStatsProvider
-    #pragma mark
+    //
+    // Certificate => IStatsProvider
+    //
 
     //-------------------------------------------------------------------------
-    Certificate::PromiseWithStatsReportPtr Certificate::getStats(const StatsTypeSet &stats) const
+    Certificate::PromiseWithStatsReportPtr Certificate::getStats(const StatsTypeSet &stats) const noexcept
     {
       if (!stats.hasStatType(IStatsReportTypes::StatsType_Certificate)) {
         return PromiseWithStatsReport::createRejected(IORTCForInternal::queueDelegate());
@@ -709,9 +708,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark Certificate => IWakeDelegate
-    #pragma mark
+    //
+    // Certificate => IWakeDelegate
+    //
 
     //-------------------------------------------------------------------------
     void Certificate::onWake()
@@ -799,12 +798,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark Certificate => (internal)
-    #pragma mark
+    //
+    // Certificate => (internal)
+    //
 
     //-------------------------------------------------------------------------
-    Log::Params Certificate::log(const char *message) const
+    Log::Params Certificate::log(const char *message) const noexcept
     {
       ElementPtr objectEl = Element::create("ortc::Certificate");
       IHelper::debugAppend(objectEl, "id", mID);
@@ -812,13 +811,13 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    Log::Params Certificate::debug(const char *message) const
+    Log::Params Certificate::debug(const char *message) const noexcept
     {
       return Log::Params(message, toDebug());
     }
 
     //-------------------------------------------------------------------------
-    ElementPtr Certificate::toDebug() const
+    ElementPtr Certificate::toDebug() const noexcept
     {
       AutoRecursiveLock lock(*this);
 
@@ -845,7 +844,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void Certificate::cancel()
+    void Certificate::cancel() noexcept
     {
       //.......................................................................
       // final cleanup
@@ -869,7 +868,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool Certificate::resolveStatPromises()
+    bool Certificate::resolveStatPromises() noexcept
     {
       PromiseWithStatsReportPtr promise;
 
@@ -877,12 +876,11 @@ namespace ortc
         AutoRecursiveLock lock(*this);
         if (mPendingStats.size() < 1) return false;
 
-        PromiseWithStatsReportPtr promise = mPendingStats.front();
+        promise = mPendingStats.front();
         mPendingStats.pop_front();
       }
 
-#define TODO_DEFINE_STATS 1
-#define TODO_DEFINE_STATS 2
+#pragma ZS_BUILD_NOTE("TODO","Define stats")
 
       // no stats at this time
       promise->reject();
@@ -890,7 +888,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    evp_pkey_st* Certificate::MakeKey()
+    evp_pkey_st* Certificate::MakeKey() noexcept
     {
       ZS_LOG_DEBUG(log("Making key pair"))
       // RSA_generate_key is deprecated. Use _ex version.
@@ -909,7 +907,7 @@ namespace ortc
           ZS_LOG_ERROR(Detail, log("failed to convert to BN") + ZS_PARAM("input", finalInBase10))
           return NULL;
         }
-        ZS_THROW_INVALID_ASSUMPTION_IF(NULL == exponent)
+        ZS_ASSERT(NULL != exponent);
       } else {
        exponent = BN_new();
       }
@@ -934,7 +932,7 @@ namespace ortc
     //-------------------------------------------------------------------------
     // Generate a self-signed certificate, with the public key from the
     // given key pair. Caller is responsible for freeing the returned object.
-    X509* Certificate::MakeCertificate(EVP_PKEY* pkey)
+    X509* Certificate::MakeCertificate(EVP_PKEY* pkey) noexcept
     {
       ZS_LOG_DEBUG(log("Making certificate"))
       X509* x509 = NULL;
@@ -999,12 +997,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark Certificate::Digest
-    #pragma mark
+    //
+    // Certificate::Digest
+    //
 
     //-------------------------------------------------------------------------
-    Certificate::Digest::Digest(const String &algorithm) {
+    Certificate::Digest::Digest(const String &algorithm) noexcept {
       EVP_MD_CTX_init(&ctx_);
       if (GetDigestEVP(algorithm, &md_)) {
         EVP_DigestInit_ex(&ctx_, md_, NULL);
@@ -1014,12 +1012,12 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    Certificate::Digest::~Digest() {
+    Certificate::Digest::~Digest() noexcept {
       EVP_MD_CTX_cleanup(&ctx_);
     }
 
     //-------------------------------------------------------------------------
-    size_t Certificate::Digest::Size() const {
+    size_t Certificate::Digest::Size() const noexcept {
       if (!md_) {
         return 0;
       }
@@ -1027,7 +1025,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void Certificate::Digest::Update(const void* buf, size_t len) {
+    void Certificate::Digest::Update(const void* buf, size_t len) noexcept {
       if (!md_) {
         return;
       }
@@ -1035,14 +1033,14 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    size_t Certificate::Digest::Finish(void* buf, size_t len) {
+    size_t Certificate::Digest::Finish(void* buf, size_t len) noexcept {
       if (!md_ || len < Size()) {
         return 0;
       }
       unsigned int md_len;
       EVP_DigestFinal_ex(&ctx_, static_cast<unsigned char*>(buf), &md_len);
       EVP_DigestInit_ex(&ctx_, md_, NULL);  // prepare for future Update()s
-      ZS_THROW_INVALID_ASSUMPTION_IF(md_len != Size())
+      ZS_ASSERT(md_len == Size());
       return md_len;
     }
 
@@ -1050,7 +1048,7 @@ namespace ortc
     bool Certificate::Digest::GetDigestEVP(
                                            const String &algorithm,
                                            const EVP_MD** mdp
-                                           ) {
+                                           ) noexcept {
       const EVP_MD* md;
       if (algorithm == DIGEST_MD5) {
         md = EVP_md5();
@@ -1069,7 +1067,7 @@ namespace ortc
       }
 
       // Can't happen
-      ZS_THROW_INVALID_ASSUMPTION_IF(EVP_MD_size(md) < 16)
+      ZS_ASSERT(EVP_MD_size(md) >= 16);
       *mdp = md;
       return true;
     }
@@ -1078,9 +1076,10 @@ namespace ortc
     bool Certificate::Digest::GetDigestName(
                                             const EVP_MD* md,
                                             String* algorithm
-                                            ) {
-      ZS_THROW_INVALID_ARGUMENT_IF(NULL == md);
-      ZS_THROW_INVALID_ARGUMENT_IF(NULL == algorithm);
+                                            ) noexcept
+    {
+      ZS_ASSERT(NULL != md);
+      ZS_ASSERT(NULL != algorithm);
 
       int md_type = EVP_MD_type(md);
       if (md_type == NID_md5) {
@@ -1107,7 +1106,7 @@ namespace ortc
     bool Certificate::Digest::GetDigestSize(
                                             const String &algorithm,
                                             size_t* length
-                                            )
+                                            ) noexcept
     {
       const EVP_MD *md;
       if (!GetDigestEVP(algorithm, &md))
@@ -1121,18 +1120,18 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ICertificateFactory
-    #pragma mark
+    //
+    // ICertificateFactory
+    //
 
     //-------------------------------------------------------------------------
-    ICertificateFactory &ICertificateFactory::singleton()
+    ICertificateFactory &ICertificateFactory::singleton() noexcept
     {
       return CertificateFactory::singleton();
     }
 
     //-------------------------------------------------------------------------
-    ICertificateFactory::PromiseWithCertificatePtr ICertificateFactory::generateCertificate(ElementPtr keygenAlgorithm) throw (NotSupportedError)
+    ICertificateFactory::PromiseWithCertificatePtr ICertificateFactory::generateCertificate(ElementPtr keygenAlgorithm) noexcept(false)
     {
       if (this) {}
       return internal::Certificate::generateCertificate(keygenAlgorithm);
@@ -1144,20 +1143,20 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark ICertificateTypes
-  #pragma mark
+  //
+  // ICertificateTypes
+  //
 
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark ICertificateTypes::Fingerprint
-  #pragma mark
+  //
+  // ICertificateTypes::Fingerprint
+  //
 
   //---------------------------------------------------------------------------
-  ICertificateTypes::Fingerprint::Fingerprint(ElementPtr elem)
+  ICertificateTypes::Fingerprint::Fingerprint(ElementPtr elem) noexcept
   {
     if (!elem) return;
 
@@ -1166,7 +1165,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr ICertificateTypes::Fingerprint::createElement(const char *objectName) const
+  ElementPtr ICertificateTypes::Fingerprint::createElement(const char *objectName) const noexcept
   {
     ElementPtr elem = Element::create(objectName);
 
@@ -1178,7 +1177,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr ICertificateTypes::Fingerprint::toDebug() const
+  ElementPtr ICertificateTypes::Fingerprint::toDebug() const noexcept
   {
     ElementPtr resultEl = Element::create("ortc::ICertificateTypes::Fingerprint");
 
@@ -1189,7 +1188,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  String ICertificateTypes::Fingerprint::hash() const
+  String ICertificateTypes::Fingerprint::hash() const noexcept
   {
     auto hasher = IHasher::sha1();
 
@@ -1205,30 +1204,30 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark ICertificate
-  #pragma mark
+  //
+  // ICertificate
+  //
 
   //---------------------------------------------------------------------------
-  ElementPtr ICertificate::toDebug(ICertificatePtr transport)
+  ElementPtr ICertificate::toDebug(ICertificatePtr transport) noexcept
   {
     return internal::Certificate::toDebug(internal::Certificate::convert(transport));
   }
 
   //---------------------------------------------------------------------------
-  ICertificatePtr ICertificate::convert(AnyPtr any)
+  ICertificatePtr ICertificate::convert(AnyPtr any) noexcept
   {
     return ZS_DYNAMIC_PTR_CAST(ICertificate, any);
   }
 
   //---------------------------------------------------------------------------
-  ICertificateTypes::PromiseWithCertificatePtr ICertificate::generateCertificate(ElementPtr algorithm) throw (NotSupportedError)
+  ICertificateTypes::PromiseWithCertificatePtr ICertificate::generateCertificate(ElementPtr algorithm) noexcept(false)
   {
     return internal::ICertificateFactory::singleton().generateCertificate(algorithm);
   }
 
   //---------------------------------------------------------------------------
-  ICertificateTypes::PromiseWithCertificatePtr ICertificate::generateCertificate(const char *algorithmIdentifier) throw (NotSupportedError)
+  ICertificateTypes::PromiseWithCertificatePtr ICertificate::generateCertificate(const char *algorithmIdentifier) noexcept(false)
   {
     ElementPtr algorithmObjectEl = internal::toAlgorithmElement(algorithmIdentifier);
     ORTC_THROW_NOT_SUPPORTED_ERROR_IF(!((bool)algorithmObjectEl))

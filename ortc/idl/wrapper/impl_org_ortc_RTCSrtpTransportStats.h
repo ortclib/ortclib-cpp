@@ -17,26 +17,26 @@ namespace wrapper {
           RTCSrtpTransportStatsWeakPtr thisWeak_;
           NativeStatsPtr native_;
 
-          RTCSrtpTransportStats();
-          virtual ~RTCSrtpTransportStats();
+          RTCSrtpTransportStats() noexcept;
+          virtual ~RTCSrtpTransportStats() noexcept;
 
           // methods RTCStats
-          virtual wrapper::org::ortc::JsonPtr toJson() override;
-          virtual String hash() override;
+          wrapper::org::ortc::JsonPtr toJson() noexcept override;
+          String hash() noexcept override;
 
           // properties RTCStats
-          virtual ::zsLib::Time get_timestamp() override;
-          virtual Optional< wrapper::org::ortc::RTCStatsType > get_statsType() override;
-          virtual String get_statsTypeOther() override;
-          virtual String get_id() override;
+          ::zsLib::Time get_timestamp() noexcept override;
+          Optional< wrapper::org::ortc::RTCStatsType > get_statsType() noexcept override;
+          String get_statsTypeOther() noexcept override;
+          String get_id() noexcept override;
 
           // methods RTCSrtpTransportStats
-          virtual void wrapper_init_org_ortc_RTCSrtpTransportStats() override;
-          virtual void wrapper_init_org_ortc_RTCSrtpTransportStats(wrapper::org::ortc::RTCSrtpTransportStatsPtr source) override;
-          virtual void wrapper_init_org_ortc_RTCSrtpTransportStats(wrapper::org::ortc::JsonPtr json) override;
+          void wrapper_init_org_ortc_RTCSrtpTransportStats() noexcept override;
+          void wrapper_init_org_ortc_RTCSrtpTransportStats(wrapper::org::ortc::RTCSrtpTransportStatsPtr source) noexcept override;
+          void wrapper_init_org_ortc_RTCSrtpTransportStats(wrapper::org::ortc::JsonPtr json) noexcept override;
 
-          static RTCSrtpTransportStatsPtr toWrapper(NativeStatsPtr native);
-          static NativeStatsPtr toNative(wrapper::org::ortc::RTCSrtpTransportStatsPtr wrapper);
+          static RTCSrtpTransportStatsPtr toWrapper(NativeStatsPtr native) noexcept;
+          static NativeStatsPtr toNative(wrapper::org::ortc::RTCSrtpTransportStatsPtr wrapper) noexcept;
         };
 
       } // ortc

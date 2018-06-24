@@ -59,20 +59,20 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark (helpers)
-    #pragma mark
+    //
+    // (helpers)
+    //
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IICETransportControllerForICETransport
-    #pragma mark
+    //
+    // IICETransportControllerForICETransport
+    //
     
     //-------------------------------------------------------------------------
-    ElementPtr IICETransportControllerForICETransport::toDebug(ForICETransportPtr transport)
+    ElementPtr IICETransportControllerForICETransport::toDebug(ForICETransportPtr transport) noexcept
     {
       return ICETransportController::toDebug(ICETransportController::convert(transport));
     }
@@ -81,15 +81,15 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ICETransportController
-    #pragma mark
+    //
+    // ICETransportController
+    //
     
     //-------------------------------------------------------------------------
     ICETransportController::ICETransportController(
                                                    const make_private &,
                                                    IMessageQueuePtr queue
-                                                   ) :
+                                                   ) noexcept :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create())
     {
@@ -99,12 +99,12 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void ICETransportController::init()
+    void ICETransportController::init() noexcept
     {
     }
 
     //-------------------------------------------------------------------------
-    ICETransportController::~ICETransportController()
+    ICETransportController::~ICETransportController() noexcept
     {
       if (isNoop()) return;
 
@@ -115,13 +115,13 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ICETransportControllerPtr ICETransportController::convert(IICETransportControllerPtr object)
+    ICETransportControllerPtr ICETransportController::convert(IICETransportControllerPtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(ICETransportController, object);
     }
 
     //-------------------------------------------------------------------------
-    ICETransportControllerPtr ICETransportController::convert(ForICETransportPtr object)
+    ICETransportControllerPtr ICETransportController::convert(ForICETransportPtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(ICETransportController, object);
     }
@@ -130,34 +130,34 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ICETransportController => IICETransportController
-    #pragma mark
+    //
+    // ICETransportController => IICETransportController
+    //
     
     //-------------------------------------------------------------------------
-    ElementPtr ICETransportController::toDebug(ICETransportControllerPtr transport)
+    ElementPtr ICETransportController::toDebug(ICETransportControllerPtr transport) noexcept
     {
       if (!transport) return ElementPtr();
       return transport->toDebug();
     }
 
     //-------------------------------------------------------------------------
-    ICETransportControllerPtr ICETransportController::create()
+    ICETransportControllerPtr ICETransportController::create() noexcept
     {
       ICETransportControllerPtr pThis(make_shared<ICETransportController>(make_private{}, IORTCForInternal::queueORTC()));
-      pThis->mThisWeak.lock();
+      pThis->mThisWeak = pThis;
       pThis->init();
       return pThis;
     }
 
     //-------------------------------------------------------------------------
-    PUID ICETransportController::getID() const
+    PUID ICETransportController::getID() const noexcept
     {
       return mID;
     }
 
     //-------------------------------------------------------------------------
-    IICETransportController::ICETransportList ICETransportController::getTransports() const
+    IICETransportController::ICETransportList ICETransportController::getTransports() const noexcept
     {
       ICETransportList result;
 
@@ -177,10 +177,7 @@ namespace ortc
     void ICETransportController::addTransport(
                                               IICETransportPtr inTransport,
                                               Optional<size_t> index
-                                              ) throw(
-                                                      InvalidParameters,
-                                                      InvalidStateError
-                                                      )
+                                              ) noexcept(false)
     {
       UseICETransportPtr transport = ICETransport::convert(inTransport);
 
@@ -246,12 +243,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ICETransportController => IStatsProvider
-    #pragma mark
+    //
+    // ICETransportController => IStatsProvider
+    //
 
     //-------------------------------------------------------------------------
-    ICETransportController::PromiseWithStatsReportPtr ICETransportController::getStats(const StatsTypeSet &stats) const
+    ICETransportController::PromiseWithStatsReportPtr ICETransportController::getStats(const StatsTypeSet &stats) const noexcept
     {
       UseStatsReport::PromiseWithStatsReportList promises;
 
@@ -272,12 +269,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ICETransportController => IICETransportControllerForICETransport
-    #pragma mark
+    //
+    // ICETransportController => IICETransportControllerForICETransport
+    //
 
     //-------------------------------------------------------------------------
-    void ICETransportController::notifyDetached(ICETransportPtr inTransport)
+    void ICETransportController::notifyDetached(ICETransportPtr inTransport) noexcept
     {
       UseICETransportPtr transport = inTransport;
 
@@ -291,7 +288,7 @@ namespace ortc
                                                           ICETransportPtr transport,
                                                           const String &localFoundation,
                                                           const String &remoteFoundation
-                                                          )
+                                                          ) noexcept
     {
       PromisePtr promise = Promise::create(IORTCForInternal::queueORTC());
       ITransportControllerAsyncDelegateProxy::create(mThisWeak.lock())->onTransportControllerNotifyWhenUnfrozen(promise, transport, localFoundation, remoteFoundation);
@@ -302,9 +299,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ICETransportController => ITransportControllerAsyncDelegate
-    #pragma mark
+    //
+    // ICETransportController => ITransportControllerAsyncDelegate
+    //
 
     //-------------------------------------------------------------------------
     void ICETransportController::onTransportControllerNotifyWhenUnfrozen(
@@ -399,9 +396,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ICETransportController => IWakeDelegate
-    #pragma mark
+    //
+    // ICETransportController => IWakeDelegate
+    //
 
     //-------------------------------------------------------------------------
     void ICETransportController::onWake()
@@ -417,12 +414,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ICETransportController => (internal)
-    #pragma mark
+    //
+    // ICETransportController => (internal)
+    //
 
     //-------------------------------------------------------------------------
-    Log::Params ICETransportController::log(const char *message) const
+    Log::Params ICETransportController::log(const char *message) const noexcept
     {
       ElementPtr objectEl = Element::create("ortc::ICETransportController");
       IHelper::debugAppend(objectEl, "id", mID);
@@ -430,13 +427,13 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    Log::Params ICETransportController::debug(const char *message) const
+    Log::Params ICETransportController::debug(const char *message) const noexcept
     {
       return Log::Params(message, toDebug());
     }
 
     //-------------------------------------------------------------------------
-    ElementPtr ICETransportController::toDebug() const
+    ElementPtr ICETransportController::toDebug() const noexcept
     {
       ElementPtr resultEl = Element::create("ortc::ICETransportController");
 
@@ -446,14 +443,14 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void ICETransportController::step()
+    void ICETransportController::step() noexcept
     {
       ZS_LOG_DEBUG(debug("step"));
       ZS_EVENTING_1(x, i, Debug, IceTransportControllerStep, ol, IceTransportController, Step, puid, id, mID);
     }
 
     //-------------------------------------------------------------------------
-    void ICETransportController::cancel()
+    void ICETransportController::cancel() noexcept
     {
       ZS_EVENTING_1(x, i, Debug, IceTransportControllerCancel, ol, IceTransportController, Cancel, puid, id, mID);
 
@@ -477,18 +474,18 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IICETransportControllerFactory
-    #pragma mark
+    //
+    // IICETransportControllerFactory
+    //
 
     //-------------------------------------------------------------------------
-    IICETransportControllerFactory &IICETransportControllerFactory::singleton()
+    IICETransportControllerFactory &IICETransportControllerFactory::singleton() noexcept
     {
       return ICETransportControllerFactory::singleton();
     }
 
     //-------------------------------------------------------------------------
-    ICETransportControllerPtr IICETransportControllerFactory::create()
+    ICETransportControllerPtr IICETransportControllerFactory::create() noexcept
     {
       if (this) {}
       return internal::ICETransportController::create();
@@ -500,26 +497,26 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IICETransportControllerTypes
-  #pragma mark
+  //
+  // IICETransportControllerTypes
+  //
 
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IICETransportController
-  #pragma mark
+  //
+  // IICETransportController
+  //
 
   //---------------------------------------------------------------------------
-  ElementPtr IICETransportController::toDebug(IICETransportControllerPtr transport)
+  ElementPtr IICETransportController::toDebug(IICETransportControllerPtr transport) noexcept
   {
     return internal::ICETransportController::toDebug(internal::ICETransportController::convert(transport));
   }
 
   //---------------------------------------------------------------------------
-  IICETransportControllerPtr IICETransportController::create()
+  IICETransportControllerPtr IICETransportController::create() noexcept
   {
     return internal::IICETransportControllerFactory::singleton().create();
   }

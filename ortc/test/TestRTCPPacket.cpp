@@ -30,7 +30,7 @@
  */
 
 
-#include <ortc/internal/ortc_RTCPPacket.h>
+#include <ortc/RTCPPacket.h>
 #include <ortc/internal/ortc_Helper.h>
 
 #include <ortc/services/IHelper.h>
@@ -263,15 +263,15 @@ namespace ortc
       }
 
       ZS_DECLARE_CLASS_PTR(Tester)
-      ZS_DECLARE_USING_PTR(ortc::internal, RTCPPacket)
+      ZS_DECLARE_USING_PTR(ortc, RTCPPacket)
 
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark Tester
-      #pragma mark
+      //
+      // Tester
+      //
 
       class Tester : public SharedRecursiveLock
       {
@@ -374,9 +374,9 @@ namespace ortc
         //---------------------------------------------------------------------
         //---------------------------------------------------------------------
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark Tester => (clean routines)
-        #pragma mark
+        //
+        // Tester => (clean routines)
+        //
 
         //---------------------------------------------------------------------
         static void cleanSenderReceiverCommonReport(SenderReceiverCommonReport *common)
@@ -731,9 +731,9 @@ namespace ortc
         //---------------------------------------------------------------------
         //---------------------------------------------------------------------
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark Tester => (compare routines)
-        #pragma mark
+        //
+        // Tester => (compare routines)
+        //
 
         //---------------------------------------------------------------------
         static void compareReport(Report *report1, Report *report2)
@@ -2118,9 +2118,9 @@ namespace ortc
         //---------------------------------------------------------------------
         //---------------------------------------------------------------------
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark Tester => (sanity routines)
-        #pragma mark
+        //
+        // Tester => (sanity routines)
+        //
         //---------------------------------------------------------------------
         static void checkSanity(const RTCPPacket &packet)
         {
@@ -2332,9 +2332,9 @@ namespace ortc
         //---------------------------------------------------------------------
         //---------------------------------------------------------------------
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark Tester => (create routines)
-        #pragma mark
+        //
+        // Tester => (create routines)
+        //
 
         //---------------------------------------------------------------------
         static void fillReport(Report *common)
@@ -3386,7 +3386,7 @@ namespace ortc
         {
           if (!mGeneratedBuffer) generateBuffer();
           TESTING_CHECK(mGeneratedBuffer)
-          mPacket = RTCPPacket::create(*mGeneratedBuffer, mGeneratedBuffer->SizeInBytes());
+          mPacket = RTCPPacket::create(mGeneratedBuffer->BytePtr(), mGeneratedBuffer->SizeInBytes());
         }
 
         //---------------------------------------------------------------------
@@ -3449,7 +3449,7 @@ static void bogusSleep()
 #define TEST_BASIC_RTCP 0
 
 ZS_DECLARE_USING_PTR(ortc::test::rtcppacket, Tester)
-ZS_DECLARE_USING_PTR(ortc::internal, RTCPPacket)
+ZS_DECLARE_USING_PTR(ortc, RTCPPacket)
 
 static signed gSeeds[] = {2286, 2075, -57479, 1000, 1001, -17, 89, -97, 523, 104297, -1269287, 0};
 

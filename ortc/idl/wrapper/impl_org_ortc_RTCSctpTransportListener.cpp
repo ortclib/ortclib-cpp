@@ -30,12 +30,12 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCSctpTransportListener::Wrapp
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCSctpTransportListener::WrapperType, WrapperType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCSctpTransportListener::RTCSctpTransportListener()
+wrapper::impl::org::ortc::RTCSctpTransportListener::RTCSctpTransportListener() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCSctpTransportListenerPtr wrapper::org::ortc::RTCSctpTransportListener::wrapper_create()
+wrapper::org::ortc::RTCSctpTransportListenerPtr wrapper::org::ortc::RTCSctpTransportListener::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::RTCSctpTransportListener>();
   pThis->thisWeak_ = pThis;
@@ -43,25 +43,25 @@ wrapper::org::ortc::RTCSctpTransportListenerPtr wrapper::org::ortc::RTCSctpTrans
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCSctpTransportListener::~RTCSctpTransportListener()
+wrapper::impl::org::ortc::RTCSctpTransportListener::~RTCSctpTransportListener() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCSctpTransportListener::wrapper_onObserverCountChanged(size_t count)
+void wrapper::impl::org::ortc::RTCSctpTransportListener::wrapper_onObserverCountChanged(size_t count) noexcept
 {
   subscriptionCount_ = count;
   subscribe();
 }
 
 //------------------------------------------------------------------------------
-void WrapperImplType::onSCTPTransport(::ortc::ISCTPTransportPtr transport)
+void WrapperImplType::onSCTPTransport(::ortc::ISCTPTransportPtr transport) noexcept
 {
   onTransport(RTCSctpTransportListenerEvent::toWrapper(transport));
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr track)
+WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr track) noexcept
 {
   if (!track) return WrapperImplTypePtr();
 
@@ -74,7 +74,7 @@ WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr track)
 }
 
 //------------------------------------------------------------------------------
-NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper)
+NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper) noexcept
 {
   if (!wrapper) return NativeTypePtr();
   auto result = std::dynamic_pointer_cast<WrapperImplType>(wrapper);
@@ -83,7 +83,7 @@ NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper)
 }
 
 //------------------------------------------------------------------------------
-void WrapperImplType::subscribe()
+void WrapperImplType::subscribe() noexcept
 {
   // always have a default subscription - thus noop
 #if 0

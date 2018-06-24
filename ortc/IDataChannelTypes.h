@@ -39,18 +39,18 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IDataChannelTypes
-  #pragma mark
+  //
+  // IDataChannelTypes
+  //
   
   interaction IDataChannelTypes
   {
-    ZS_DECLARE_STRUCT_PTR(Parameters)
+    ZS_DECLARE_STRUCT_PTR(Parameters);
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IDataChannelTypes::States
-    #pragma mark
+    //
+    // IDataChannelTypes::States
+    //
 
     enum States {
       State_First,
@@ -63,13 +63,13 @@ namespace ortc
       State_Last          = State_Closed,
     };
 
-    static const char *toString(States state);
-    static Optional<States> toState(const char *state);
+    static const char *toString(States state) noexcept;
+    static Optional<States> toState(const char *state) noexcept;
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IDataChannelTypes::Parameters
-    #pragma mark
+    //
+    // IDataChannelTypes::Parameters
+    //
 
     struct Parameters {
       String            mLabel;
@@ -80,14 +80,14 @@ namespace ortc
       bool              mNegotiated {false};
       Optional<USHORT>  mID;
 
-      Parameters() {}
-      Parameters(const Parameters &op2) {(*this) = op2;}
-      Parameters(ElementPtr elem);
+      Parameters() noexcept {}
+      Parameters(const Parameters &op2) noexcept {(*this) = op2;}
+      Parameters(ElementPtr elem) noexcept;
 
-      ElementPtr createElement(const char *objectName) const;
+      ElementPtr createElement(const char *objectName) const noexcept;
 
-      ElementPtr toDebug() const;
-      String hash() const;
+      ElementPtr toDebug() const noexcept;
+      String hash() const noexcept;
     };
   };
 }

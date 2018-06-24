@@ -39,35 +39,40 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IORTC
-  #pragma mark
+  //
+  // IORTC
+  //
 
   interaction IORTC
   {
     typedef zsLib::Log Log;
 
-    static void setup(IMessageQueuePtr defaultDelegateMessageQueue);
+    static void setup(IMessageQueuePtr defaultDelegateMessageQueue) noexcept;
 #ifdef WINUWP
-    static void setup(Windows::UI::Core::CoreDispatcher ^dispatcher);
+#ifdef __cplusplus_winrt
+    static void setup(Windows::UI::Core::CoreDispatcher ^ dispatcher) noexcept;
+#endif  //__cplusplus_winrt
+#ifdef CPPWINRT_VERSION
+    static void setup(winrt::Windows::UI::Core::CoreDispatcher dispatcher) noexcept;
+#endif //CPPWINRT_VERSION
 #endif //WINUWP
     
-    static Milliseconds ntpServerTime();
-    static void ntpServerTime(const Milliseconds &value);
+    static Milliseconds ntpServerTime() noexcept;
+    static void ntpServerTime(const Milliseconds &value) noexcept;
 
-    static void setDefaultLogLevel(Log::Level level);
-    static void setLogLevel(const char *componenet, Log::Level level);
+    static void setDefaultLogLevel(Log::Level level) noexcept;
+    static void setLogLevel(const char *componenet, Log::Level level) noexcept;
 
-    static void setDefaultEventingLevel(Log::Level level);
-    static void setEventingLevel(const char *componenet, Log::Level level);
+    static void setDefaultEventingLevel(Log::Level level) noexcept;
+    static void setEventingLevel(const char *componenet, Log::Level level) noexcept;
 
-    static void startMediaTracing();
-    static void stopMediaTracing();
-    static bool isMediaTracing();
-    static bool saveMediaTrace(String filename);
-    static bool saveMediaTrace(String host, int port);
-    static bool isMRPInstalled();
+    static void startMediaTracing() noexcept;
+    static void stopMediaTracing() noexcept;
+    static bool isMediaTracing() noexcept;
+    static bool saveMediaTrace(String filename) noexcept;
+    static bool saveMediaTrace(String host, int port) noexcept;
+    static bool isMRPInstalled() noexcept;
 
-    virtual ~IORTC() {} // make polymorphic
+    virtual ~IORTC() noexcept {} // make polymorphic
   };
 }

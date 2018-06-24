@@ -64,12 +64,6 @@
 //libSRTP
 #include "srtp_priv.h"
 
-#ifdef _DEBUG
-#define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))
-#else
-#define ASSERT(x)
-#endif //_DEBUG
-
 namespace ortc { ZS_DECLARE_SUBSYSTEM(org_ortc_srtp) }
 
 #define ORTC_SRTPTRANSPORT_ILLEGAL_MKI_LEGNTH (0xFFFF)
@@ -94,9 +88,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark (helpers)
-    #pragma mark
+    //
+    // (helpers)
+    //
 
 #ifndef SRTP_MASTER_KEY_LEN
 #define SRTP_MASTER_KEY_LEN (30)
@@ -111,7 +105,7 @@ namespace ortc
     static size_t toRemainingPercent(
                                      size_t totalPackets,
                                      size_t maxPackets
-                                     )
+                                     ) noexcept
     {
       if (0 == maxPackets) return 0;
       size_t consumed = (totalPackets * 100) / maxPackets;
@@ -131,28 +125,28 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark SRTPTransportSettingsDefaults
-    #pragma mark
+    //
+    // SRTPTransportSettingsDefaults
+    //
 
     class SRTPTransportSettingsDefaults : public ISettingsApplyDefaultsDelegate
     {
     public:
       //-----------------------------------------------------------------------
-      ~SRTPTransportSettingsDefaults()
+      ~SRTPTransportSettingsDefaults() noexcept
       {
         ISettings::removeDefaults(*this);
       }
 
       //-----------------------------------------------------------------------
-      static SRTPTransportSettingsDefaultsPtr singleton()
+      static SRTPTransportSettingsDefaultsPtr singleton() noexcept
       {
         static SingletonLazySharedPtr<SRTPTransportSettingsDefaults> singleton(create());
         return singleton.singleton();
       }
 
       //-----------------------------------------------------------------------
-      static SRTPTransportSettingsDefaultsPtr create()
+      static SRTPTransportSettingsDefaultsPtr create() noexcept
       {
         auto pThis(make_shared<SRTPTransportSettingsDefaults>());
         ISettings::installDefaults(pThis);
@@ -160,14 +154,14 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      virtual void notifySettingsApplyDefaults() override
+      virtual void notifySettingsApplyDefaults() noexcept override
       {
       }
       
     };
 
     //-------------------------------------------------------------------------
-    void installSRTPTransportSettingsDefaults()
+    void installSRTPTransportSettingsDefaults() noexcept
     {
       SRTPTransportSettingsDefaults::singleton();
     }
@@ -176,12 +170,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISRTPTransportForSecureTransport
-    #pragma mark
+    //
+    // ISRTPTransportForSecureTransport
+    //
 
     //-------------------------------------------------------------------------
-    ISRTPTransportForSecureTransport::ParametersPtr ISRTPTransportForSecureTransport::getLocalParameters()
+    ISRTPTransportForSecureTransport::ParametersPtr ISRTPTransportForSecureTransport::getLocalParameters() noexcept
     {
       ParametersPtr params(make_shared<Parameters>());
 
@@ -217,7 +211,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ElementPtr ISRTPTransportForSecureTransport::toDebug(ForSecureTransportPtr transport)
+    ElementPtr ISRTPTransportForSecureTransport::toDebug(ForSecureTransportPtr transport) noexcept
     {
       if (!transport) return ElementPtr();
       return ZS_DYNAMIC_PTR_CAST(SRTPTransport, transport)->toDebug();
@@ -229,7 +223,7 @@ namespace ortc
                                                                                                      UseSecureTransportPtr transport,
                                                                                                      const CryptoParameters &encryptParameters,
                                                                                                      const CryptoParameters &decryptParameters
-                                                                                                     )
+                                                                                                     ) noexcept
     {
       return internal::ISRTPTransportFactory::singleton().create(delegate, transport, encryptParameters, decryptParameters);
     }
@@ -239,12 +233,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark SRTPTransport
-    #pragma mark
+    //
+    // SRTPTransport
+    //
     
     //-------------------------------------------------------------------------
-    bool SRTPTransport::MKIValueCompare::operator() (const SecureByteBlockPtr &op1, const SecureByteBlockPtr &op2) const
+    bool SRTPTransport::MKIValueCompare::operator() (const SecureByteBlockPtr &op1, const SecureByteBlockPtr &op2) const noexcept
     {
       if (!op1) {
         if (!op2) return false;
@@ -256,7 +250,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    const char *SRTPTransport::toString(Directions state)
+    const char *SRTPTransport::toString(Directions state) noexcept
     {
       switch (state) {
         case Direction_Encrypt:  return "encrypt";
@@ -269,9 +263,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark SRTPInit
-    #pragma mark
+    //
+    // SRTPInit
+    //
 
     class SRTPInit : public ISingletonManagerDelegate
     {
@@ -280,14 +274,14 @@ namespace ortc
 
     public:
       //-----------------------------------------------------------------------
-      SRTPInit(const make_private &)
+      SRTPInit(const make_private &) noexcept
       {
         ZS_LOG_BASIC(log("created"))
       }
 
     protected:
       //-----------------------------------------------------------------------
-      void init()
+      void init() noexcept
       {
         AutoRecursiveLock lock(mLock);
 
@@ -299,7 +293,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      static SRTPInitPtr create()
+      static SRTPInitPtr create() noexcept
       {
         SRTPInitPtr pThis(make_shared<SRTPInit>(make_private{}));
         pThis->mThisWeak = pThis;
@@ -309,7 +303,7 @@ namespace ortc
 
     public:
       //-----------------------------------------------------------------------
-      ~SRTPInit()
+      ~SRTPInit() noexcept
       {
         mThisWeak.reset();
         ZS_LOG_BASIC(log("destroyed"))
@@ -317,7 +311,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      static SRTPInitPtr singleton()
+      static SRTPInitPtr singleton() noexcept
       {
         AutoRecursiveLock lock(*IHelper::getGlobalLock());
         static SingletonLazySharedPtr<SRTPInit> singleton(create());
@@ -334,23 +328,23 @@ namespace ortc
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SRTPInit => ISingletonManagerDelegate
-      #pragma mark
+      //
+      // SRTPInit => ISingletonManagerDelegate
+      //
 
-      virtual void notifySingletonCleanup() override
+      virtual void notifySingletonCleanup() noexcept override
       {
         // ignored
       }
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SRTPInit => (internal)
-      #pragma mark
+      //
+      // SRTPInit => (internal)
+      //
 
       //-----------------------------------------------------------------------
-      Log::Params log(const char *message) const
+      Log::Params log(const char *message) const noexcept
       {
         ElementPtr objectEl = Element::create("ortc::SRTPInit");
         IHelper::debugAppend(objectEl, "id", mID);
@@ -358,19 +352,19 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      static Log::Params slog(const char *message)
+      static Log::Params slog(const char *message) noexcept
       {
         return Log::Params(message, "ortc::SRTPInit");
       }
 
       //-----------------------------------------------------------------------
-      Log::Params debug(const char *message) const
+      Log::Params debug(const char *message) const noexcept
       {
         return Log::Params(message, toDebug());
       }
 
       //-----------------------------------------------------------------------
-      virtual ElementPtr toDebug() const
+      virtual ElementPtr toDebug() const noexcept
       {
         AutoRecursiveLock lock(mLock);
         ElementPtr resultEl = Element::create("ortc::SRTPInit");
@@ -381,7 +375,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void cancel()
+      void cancel() noexcept
       {
         ZS_LOG_DEBUG(log("cancel called"))
 
@@ -397,9 +391,9 @@ namespace ortc
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SRTPInit => (data)
-      #pragma mark
+      //
+      // SRTPInit => (data)
+      //
 
       AutoPUID mID;
       mutable RecursiveLock mLock;
@@ -416,7 +410,7 @@ namespace ortc
                                  UseSecureTransportPtr secureTransport,
                                  const CryptoParameters &encryptParameters,
                                  const CryptoParameters &decryptParameters
-                                 ) throw(InvalidParameters) :
+                                 ) noexcept(false) :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
       mSubscriptions(decltype(mSubscriptions)::create()),
@@ -565,14 +559,14 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void SRTPTransport::init()
+    void SRTPTransport::init() noexcept
     {
       //AutoRecursiveLock lock(*this);
       //IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
 
     //-------------------------------------------------------------------------
-    SRTPTransport::~SRTPTransport()
+    SRTPTransport::~SRTPTransport() noexcept
     {
       if (isNoop()) return;
 
@@ -584,13 +578,13 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    SRTPTransportPtr SRTPTransport::convert(ISRTPTransportPtr object)
+    SRTPTransportPtr SRTPTransport::convert(ISRTPTransportPtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(SRTPTransport, object);
     }
 
     //-------------------------------------------------------------------------
-    SRTPTransportPtr SRTPTransport::convert(ForSecureTransportPtr object)
+    SRTPTransportPtr SRTPTransport::convert(ForSecureTransportPtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(SRTPTransport, object);
     }
@@ -600,20 +594,20 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark SRTPTransport => ISRTPTransport
-    #pragma mark
+    //
+    // SRTPTransport => ISRTPTransport
+    //
     
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark SRTPTransport => ISRTPTransportForSecureTransport
-    #pragma mark
+    //
+    // SRTPTransport => ISRTPTransportForSecureTransport
+    //
     
     //-------------------------------------------------------------------------
-    ElementPtr SRTPTransport::toDebug(SRTPTransportPtr transport)
+    ElementPtr SRTPTransport::toDebug(SRTPTransportPtr transport) noexcept
     {
       if (!transport) return ElementPtr();
       return transport->toDebug();
@@ -625,7 +619,7 @@ namespace ortc
                                            UseSecureTransportPtr transport,
                                            const CryptoParameters &encryptParameters,
                                            const CryptoParameters &decryptParameters
-                                           ) throw(InvalidParameters)
+                                           ) noexcept(false)
     {
       SRTPTransportPtr pThis(make_shared<SRTPTransport>(make_private {}, IORTCForInternal::queueORTC(), delegate, transport, encryptParameters, decryptParameters));
       pThis->mThisWeak = pThis;
@@ -634,7 +628,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ISRTPTransportSubscriptionPtr SRTPTransport::subscribe(ISRTPTransportDelegatePtr originalDelegate)
+    ISRTPTransportSubscriptionPtr SRTPTransport::subscribe(ISRTPTransportDelegatePtr originalDelegate) noexcept
     {
       ZS_LOG_DETAIL(log("subscribing to transport state"))
 
@@ -662,7 +656,7 @@ namespace ortc
                                              IICETypes::Components viaTransport,
                                              const BYTE *buffer,
                                              size_t bufferLengthInBytes
-                                             )
+                                             ) noexcept
     {
       UseSecureTransportPtr transport;
       SecureByteBlockPtr decryptedBuffer;
@@ -736,8 +730,8 @@ namespace ortc
             return false;
           }
 
-          ASSERT(((bool)material.mTempMKIHolder)) // must be present
-          ASSERT(material.mMKILength == material.mTempMKIHolder->SizeInBytes()) // must be identical
+          ZS_ASSERT(((bool)material.mTempMKIHolder)); // must be present
+          ZS_ASSERT(material.mMKILength == material.mTempMKIHolder->SizeInBytes()); // must be identical
 
           memcpy(material.mTempMKIHolder->BytePtr(), packetMKI, material.mTempMKIHolder->SizeInBytes());
 
@@ -766,7 +760,7 @@ namespace ortc
         // NOTE: oldKey and nextKey might be null if there is no older key or
         // next key. However, currentKey must be valid.
 
-        ASSERT(((bool)usedKeys[UsedKey_Current]))
+        ZS_ASSERT(((bool)usedKeys[UsedKey_Current]));
 
         if (!usedKeys[UsedKey_Current]) {
           ZS_LOG_ERROR(Debug, log("no keying material found to decrypt packet") + ZS_PARAM("buffer length in bytes", bufferLengthInBytes))
@@ -774,7 +768,7 @@ namespace ortc
         }
       }
 
-      ASSERT(((bool)transport))
+      ZS_ASSERT(((bool)transport));
 
       if (material.mMKILength > 0) {
         // As part of the decryption process, the MKI value must be stripped from
@@ -840,7 +834,7 @@ namespace ortc
         return false;
       }
 
-      ASSERT(((bool)usedKeys[decryptedWithKey]));
+      ZS_ASSERT(((bool)usedKeys[decryptedWithKey]));
 
       // need to update the usage of the key (depending on which key was acutally used for decrypting)
       {
@@ -862,10 +856,10 @@ namespace ortc
         }
       }
 
-      ASSERT(((bool)decryptedBuffer));
-      ASSERT(out_len > 0);
+      ZS_ASSERT(((bool)decryptedBuffer));
+      ZS_ASSERT(out_len > 0);
 
-      ASSERT(out_len <= SafeInt<decltype(out_len)>(decryptedBuffer->SizeInBytes()));
+      ZS_ASSERT(out_len <= SafeInt<decltype(out_len)>(decryptedBuffer->SizeInBytes()));
 
       ZS_LOG_INSANE(log("forwarding packet to secure transport") + ZS_PARAM("via", IICETypes::toString(viaTransport)) + ZS_PARAM("component", IICETypes::toString(component)) + ZS_PARAM("buffer length in bytes", decryptedBuffer->SizeInBytes()));
 
@@ -887,7 +881,7 @@ namespace ortc
                                    IICETypes::Components packetType,  // is packet RTP or RTCP
                                    const BYTE *buffer,
                                    size_t bufferLengthInBytes
-                                   )
+                                   ) noexcept
     {
       ZS_EVENTING_5(
                     x, i, Trace, SrtpTransportSendOutgoingPacketAndEncrypt, ol, SrtpTransport, Send,
@@ -932,7 +926,7 @@ namespace ortc
 
           keyingMaterial = material.mKeyList.front();
 
-          ASSERT(((bool)keyingMaterial))
+          ZS_ASSERT(((bool)keyingMaterial))
 
           if (keyingMaterial->mTotalPackets[packetType] + 1 > keyingMaterial->mLifetime) {
             ZS_LOG_WARNING(Debug, log("cannot use keying material as it's lifetime is exhausted") + keyingMaterial->toDebug())
@@ -991,10 +985,10 @@ namespace ortc
       }
 
 
-      ASSERT(((bool)transport));
-      ASSERT(((bool)encryptedBuffer));
+      ZS_ASSERT(((bool)transport));
+      ZS_ASSERT(((bool)encryptedBuffer));
 
-      ASSERT(out_len <= SafeInt<decltype(out_len)>(encryptedBuffer->SizeInBytes()));
+      ZS_ASSERT(out_len <= SafeInt<decltype(out_len)>(encryptedBuffer->SizeInBytes()));
 
       // do NOT call this method from within a lock
       ZS_EVENTING_6(
@@ -1013,9 +1007,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark SRTPTransport => IWakeDelegate
-    #pragma mark
+    //
+    // SRTPTransport => IWakeDelegate
+    //
 
     //-------------------------------------------------------------------------
     void SRTPTransport::onWake()
@@ -1029,9 +1023,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark SRTPTransport => ITimerDelegate
-    #pragma mark
+    //
+    // SRTPTransport => ITimerDelegate
+    //
 
     //-------------------------------------------------------------------------
     void SRTPTransport::onTimer(ITimerPtr timer)
@@ -1045,21 +1039,21 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark SRTPTransport => ISRTPTransportAsyncDelegate
-    #pragma mark
+    //
+    // SRTPTransport => ISRTPTransportAsyncDelegate
+    //
 
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark SRTPTransport => (internal)
-    #pragma mark
+    //
+    // SRTPTransport => (internal)
+    //
 
     //-------------------------------------------------------------------------
-    Log::Params SRTPTransport::log(const char *message) const
+    Log::Params SRTPTransport::log(const char *message) const noexcept
     {
       ElementPtr objectEl = Element::create("ortc::SRTPTransport");
       IHelper::debugAppend(objectEl, "id", mID);
@@ -1067,20 +1061,20 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    Log::Params SRTPTransport::slog(const char *message)
+    Log::Params SRTPTransport::slog(const char *message) noexcept
     {
       ElementPtr objectEl = Element::create("ortc::SRTPTransport");
       return Log::Params(message, objectEl);
     }
 
     //-------------------------------------------------------------------------
-    Log::Params SRTPTransport::debug(const char *message) const
+    Log::Params SRTPTransport::debug(const char *message) const noexcept
     {
       return Log::Params(message, toDebug());
     }
 
     //-------------------------------------------------------------------------
-    ElementPtr SRTPTransport::toDebug() const
+    ElementPtr SRTPTransport::toDebug() const noexcept
     {
       AutoRecursiveLock lock(*this);
 
@@ -1108,7 +1102,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void SRTPTransport::cancel()
+    void SRTPTransport::cancel() noexcept
     {
       //.......................................................................
       mSRTPInit.reset();
@@ -1127,7 +1121,7 @@ namespace ortc
                                            Directions direction,
                                            IICETypes::Components component,
                                            KeyingMaterialPtr &keyingMaterial
-                                           )
+                                           ) noexcept
     {
       size_t &totalKeyPackets = (keyingMaterial->mTotalPackets[component]);
       size_t lifetimeKey = (keyingMaterial->mLifetime);
@@ -1162,7 +1156,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    size_t SRTPTransport::parseLifetime(const String &lifetime) throw(InvalidParameters)
+    size_t SRTPTransport::parseLifetime(const String &lifetime) noexcept(false)
     {
       ORTC_THROW_INVALID_PARAMETERS_IF(lifetime.isEmpty())
 
@@ -1205,21 +1199,18 @@ namespace ortc
         )
 #endif //HAVE_TGMATH_H
         ;
-      }
-      catch (...) {
+      } catch (...) {
         ZS_LOG_ERROR(Detail, slog("unable to parse lifetime") + ZS_PARAM("lifetime", lifetime))
         ORTC_THROW_INVALID_PARAMETERS("unable to parse lifetime:" + lifetime)
       }
 
-      ASSERT(false) // should never hit this point
-      return 0;
     }
 
     //-------------------------------------------------------------------------
     SecureByteBlockPtr SRTPTransport::convertIntegerToBigEndianEncodedBuffer(
                                                                              const String &base10Value,
                                                                              size_t maxByteLength
-                                                                             ) throw(InvalidParameters)
+                                                                             ) noexcept(false)
     {
       SecureByteBlockPtr output(make_shared<SecureByteBlock>(maxByteLength));
 
@@ -1246,12 +1237,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark SRTPTransport::KeyingMaterial
-    #pragma mark
+    //
+    // SRTPTransport::KeyingMaterial
+    //
 
     //-------------------------------------------------------------------------
-    ElementPtr SRTPTransport::KeyingMaterial::toDebug() const
+    ElementPtr SRTPTransport::KeyingMaterial::toDebug() const noexcept
     {
       ElementPtr resultEl = Element::create("ortc::SRTPTransport::KeyingMaterial");
 
@@ -1277,7 +1268,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    String SRTPTransport::KeyingMaterial::hash() const
+    String SRTPTransport::KeyingMaterial::hash() const noexcept
     {
       auto hasher = IHasher::sha1();
 
@@ -1302,12 +1293,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark SRTPTransport::DirectionMaterial
-    #pragma mark
+    //
+    // SRTPTransport::DirectionMaterial
+    //
 
     //-------------------------------------------------------------------------
-    ElementPtr SRTPTransport::DirectionMaterial::toDebug() const
+    ElementPtr SRTPTransport::DirectionMaterial::toDebug() const noexcept
     {
       ElementPtr resultEl = Element::create("ortc::SRTPTransport::DirectionMaterial");
 
@@ -1334,7 +1325,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    String SRTPTransport::DirectionMaterial::hash() const
+    String SRTPTransport::DirectionMaterial::hash() const noexcept
     {
       auto hasher = IHasher::sha1();
 
@@ -1367,12 +1358,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISRTPTransportFactory
-    #pragma mark
+    //
+    // ISRTPTransportFactory
+    //
 
     //-------------------------------------------------------------------------
-    ISRTPTransportFactory &ISRTPTransportFactory::singleton()
+    ISRTPTransportFactory &ISRTPTransportFactory::singleton() noexcept
     {
       return SRTPTransportFactory::singleton();
     }
@@ -1383,7 +1374,7 @@ namespace ortc
                                                    UseSecureTransportPtr transport,
                                                    const CryptoParameters &encryptParameters,
                                                    const CryptoParameters &decryptParameters
-                                                   )
+                                                   ) noexcept
     {
       if (this) {}
       return internal::SRTPTransport::create(delegate, transport, encryptParameters, decryptParameters);

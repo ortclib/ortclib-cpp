@@ -30,12 +30,12 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCRtpParameters::WrapperImplTy
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCRtpParameters::WrapperType, WrapperType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCRtpParameters::RTCRtpParameters()
+wrapper::impl::org::ortc::RTCRtpParameters::RTCRtpParameters() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCRtpParametersPtr wrapper::org::ortc::RTCRtpParameters::wrapper_create()
+wrapper::org::ortc::RTCRtpParametersPtr wrapper::org::ortc::RTCRtpParameters::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::RTCRtpParameters>();
   pThis->thisWeak_ = pThis;
@@ -43,17 +43,17 @@ wrapper::org::ortc::RTCRtpParametersPtr wrapper::org::ortc::RTCRtpParameters::wr
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCRtpParameters::~RTCRtpParameters()
+wrapper::impl::org::ortc::RTCRtpParameters::~RTCRtpParameters() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCRtpParameters::wrapper_init_org_ortc_RTCRtpParameters()
+void wrapper::impl::org::ortc::RTCRtpParameters::wrapper_init_org_ortc_RTCRtpParameters() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCRtpParameters::wrapper_init_org_ortc_RTCRtpParameters(wrapper::org::ortc::RTCRtpParametersPtr source)
+void wrapper::impl::org::ortc::RTCRtpParameters::wrapper_init_org_ortc_RTCRtpParameters(wrapper::org::ortc::RTCRtpParametersPtr source) noexcept
 {
   WrapperTypePtr pThis = thisWeak_.lock();
   WrapperTypePtr wrapper = toWrapper(toNative(source));
@@ -62,7 +62,7 @@ void wrapper::impl::org::ortc::RTCRtpParameters::wrapper_init_org_ortc_RTCRtpPar
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCRtpParameters::wrapper_init_org_ortc_RTCRtpParameters(wrapper::org::ortc::JsonPtr json)
+void wrapper::impl::org::ortc::RTCRtpParameters::wrapper_init_org_ortc_RTCRtpParameters(wrapper::org::ortc::JsonPtr json) noexcept
 {
   if (!json) return;
 
@@ -74,26 +74,26 @@ void wrapper::impl::org::ortc::RTCRtpParameters::wrapper_init_org_ortc_RTCRtpPar
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::JsonPtr wrapper::impl::org::ortc::RTCRtpParameters::toJson()
+wrapper::org::ortc::JsonPtr wrapper::impl::org::ortc::RTCRtpParameters::toJson() noexcept
 {
   return Json::toWrapper(toNative(thisWeak_.lock())->createElement("RTCRtpParameters"));
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::ortc::RTCRtpParameters::hash()
+String wrapper::impl::org::ortc::RTCRtpParameters::hash() noexcept
 {
   return toNative(thisWeak_.lock())->hash();
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr native)
+WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr native) noexcept
 {
   if (!native) return WrapperImplTypePtr();
   return toWrapper(*native);
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(const NativeType &native)
+WrapperImplTypePtr WrapperImplType::toWrapper(const NativeType &native) noexcept
 {
   auto pThis = make_shared<WrapperImplType>();
   pThis->thisWeak_ = pThis;
@@ -121,7 +121,7 @@ WrapperImplTypePtr WrapperImplType::toWrapper(const NativeType &native)
 }
 
 //------------------------------------------------------------------------------
-NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper)
+NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper) noexcept
 {
   if (!wrapper) return NativeTypePtr();
 

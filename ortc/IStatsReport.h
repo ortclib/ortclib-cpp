@@ -42,9 +42,9 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IStatsReportTypes
-  #pragma mark
+  //
+  // IStatsReportTypes
+  //
 
   interaction IStatsReportTypes
   {
@@ -78,9 +78,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IStatsReportTypes::StatsType
-    #pragma mark
+    //
+    // IStatsReportTypes::StatsType
+    //
 
     enum StatsTypes
     {
@@ -106,13 +106,13 @@ namespace ortc
       StatsType_Last = StatsType_RemoteCandidate
     };
 
-    static Optional<StatsTypes> toStatsType(const char *type);
-    static const char *toString(StatsTypes type);
-    static const char *toString(const Optional<StatsTypes> &type);
+    static Optional<StatsTypes> toStatsType(const char *type) noexcept;
+    static const char *toString(StatsTypes type) noexcept;
+    static const char *toString(const Optional<StatsTypes> &type) noexcept;
 
     struct StatsTypeSet : public std::set<IStatsReportTypes::StatsTypes>
     {
-      bool hasStatType(StatsTypes stat) const;
+      bool hasStatType(StatsTypes stat) const noexcept;
     };
 
     enum StatsICECandidatePairStates
@@ -129,16 +129,16 @@ namespace ortc
       StatsICECandidatePairState_Last = StatsICECandidatePairState_Cancelled,
     };
 
-    static Optional<StatsICECandidatePairStates> toCandidatePairState(const char *type);
-    static const char *toString(StatsICECandidatePairStates type);
+    static Optional<StatsICECandidatePairStates> toCandidatePairState(const char *type) noexcept;
+    static const char *toString(StatsICECandidatePairStates type) noexcept;
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IStatsReportTypes::Stats
-    #pragma mark
+    //
+    // IStatsReportTypes::Stats
+    //
 
     struct Stats : public Any
     {
@@ -147,37 +147,37 @@ namespace ortc
       String                mStatsTypeOther;
       String                mID;
 
-      Stats();
-      Stats(const Stats &op2);
-      Stats(ElementPtr rootEl);
+      Stats() noexcept;
+      Stats(const Stats &op2) noexcept;
+      Stats(ElementPtr rootEl) noexcept;
 
-      String statsType() const { if (mStatsType.hasValue()) return IStatsReportTypes::toString(mStatsType); return mStatsTypeOther; }
+      String statsType() const noexcept { if (mStatsType.hasValue()) return IStatsReportTypes::toString(mStatsType); return mStatsTypeOther; }
 
-      static StatsPtr create(const Stats &source);
-      static StatsPtr create(ElementPtr rootEl);
+      static StatsPtr create(const Stats &source) noexcept;
+      static StatsPtr create(ElementPtr rootEl) noexcept;
 
-      static StatsPtr convert(AnyPtr any);
+      static StatsPtr convert(AnyPtr any) noexcept;
 
-      virtual ElementPtr createElement(const char *objectName) const;
+      virtual ElementPtr createElement(const char *objectName) const noexcept;
 
-      virtual ElementPtr toDebug() const;
-      virtual String hash() const;
+      virtual ElementPtr toDebug() const noexcept;
+      virtual String hash() const noexcept;
 
-      virtual void eventTrace() const;
+      virtual void eventTrace() const noexcept;
 
-      Stats &operator=(const Stats &op2) = delete;
+      Stats &operator=(const Stats &op2) noexcept = delete;
 
     protected:
-      virtual void eventTrace(double timestamp) const;
+      virtual void eventTrace(double timestamp) const noexcept;
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IStatsReportTypes::RTPStreamStats
-    #pragma mark
+    //
+    // IStatsReportTypes::RTPStreamStats
+    //
 
     struct RTPStreamStats : public Stats
     {
@@ -193,33 +193,35 @@ namespace ortc
       unsigned long       mNACKCount {};
       unsigned long       mSLICount {};
 
-      RTPStreamStats() {}
-      RTPStreamStats(const RTPStreamStats &op2);
-      RTPStreamStats(ElementPtr rootEl);
+      RTPStreamStats() noexcept {}
+      RTPStreamStats(const RTPStreamStats &op2) noexcept;
+      RTPStreamStats(ElementPtr rootEl) noexcept;
 
-      static RTPStreamStatsPtr create(ElementPtr rootEl);
-      static RTPStreamStatsPtr create(const RTPStreamStats &op2) { return std::dynamic_pointer_cast<RTPStreamStats>(Stats::create(op2)); }
+      static RTPStreamStatsPtr create(ElementPtr rootEl) noexcept;
+      static RTPStreamStatsPtr create(const RTPStreamStats &op2) noexcept { return std::dynamic_pointer_cast<RTPStreamStats>(Stats::create(op2)); }
 
-      static RTPStreamStatsPtr convert(AnyPtr any);
+      static RTPStreamStatsPtr convert(AnyPtr any) noexcept;
 
-      virtual ElementPtr createElement(const char *objectName) const override;
+      ElementPtr createElement(const char *objectName) const noexcept override;
 
-      virtual ElementPtr toDebug() const override;
-      virtual String hash() const override;
+      ElementPtr toDebug() const noexcept override;
+      String hash() const noexcept override;
 
-      RTPStreamStats &operator=(const RTPStreamStats &op2) = delete;
+      RTPStreamStats &operator=(const RTPStreamStats &op2) noexcept = delete;
+
+      void eventTrace() const noexcept override { Stats::eventTrace(); }
 
     protected:
-      virtual void eventTrace(double timestamp) const override;
+      void eventTrace(double timestamp) const noexcept override;
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IStatsReportTypes::Codec
-    #pragma mark
+    //
+    // IStatsReportTypes::Codec
+    //
 
     struct Codec : public Stats
     {
@@ -229,33 +231,35 @@ namespace ortc
       Optional<unsigned long>   mChannels {};
       String                    mParameters;
 
-      Codec() { mStatsType = IStatsReportTypes::StatsType_Codec; }
-      Codec(const Codec &op2);
-      Codec(ElementPtr rootEl);
+      Codec() noexcept { mStatsType = IStatsReportTypes::StatsType_Codec; }
+      Codec(const Codec &op2) noexcept;
+      Codec(ElementPtr rootEl) noexcept;
 
-      static CodecPtr create(ElementPtr rootEl);
-      static CodecPtr create(const Codec &op2) { return std::make_shared<Codec>(op2); }
+      static CodecPtr create(ElementPtr rootEl) noexcept;
+      static CodecPtr create(const Codec &op2) noexcept { return std::make_shared<Codec>(op2); }
 
-      static CodecPtr convert(AnyPtr any);
+      static CodecPtr convert(AnyPtr any) noexcept;
 
-      virtual ElementPtr createElement(const char *objectName = "codec") const override;
+      ElementPtr createElement(const char *objectName = "codec") const noexcept override;
 
-      virtual ElementPtr toDebug() const override;
-      virtual String hash() const override;
+      ElementPtr toDebug() const noexcept override;
+      String hash() const noexcept override;
 
-      Codec &operator=(const Codec &op2) = delete;
+      Codec &operator=(const Codec &op2) noexcept = delete;
+
+      void eventTrace() const noexcept override { Stats::eventTrace(); }
 
     protected:
-      virtual void eventTrace(double timestamp) const override;
+      void eventTrace(double timestamp) const noexcept override;
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IStatsReportTypes::InboundRTPStreamStats
-    #pragma mark
+    //
+    // IStatsReportTypes::InboundRTPStreamStats
+    //
 
     struct InboundRTPStreamStats : public RTPStreamStats
     {
@@ -266,33 +270,35 @@ namespace ortc
       double              mFractionLost {};
       Milliseconds        mEndToEndDelay {};
 
-      InboundRTPStreamStats() { mStatsType = IStatsReportTypes::StatsType_InboundRTP; }
-      InboundRTPStreamStats(const InboundRTPStreamStats &op2);
-      InboundRTPStreamStats(ElementPtr rootEl);
+      InboundRTPStreamStats() noexcept { mStatsType = IStatsReportTypes::StatsType_InboundRTP; }
+      InboundRTPStreamStats(const InboundRTPStreamStats &op2) noexcept;
+      InboundRTPStreamStats(ElementPtr rootEl) noexcept;
 
-      static InboundRTPStreamStatsPtr create(ElementPtr rootEl);
-      static InboundRTPStreamStatsPtr create(const InboundRTPStreamStats &op2) { return std::make_shared<InboundRTPStreamStats>(op2); }
+      static InboundRTPStreamStatsPtr create(ElementPtr rootEl) noexcept;
+      static InboundRTPStreamStatsPtr create(const InboundRTPStreamStats &op2) noexcept { return std::make_shared<InboundRTPStreamStats>(op2); }
 
-      static InboundRTPStreamStatsPtr convert(AnyPtr any);
+      static InboundRTPStreamStatsPtr convert(AnyPtr any) noexcept;
 
-      virtual ElementPtr createElement(const char *objectName = "inboundrtp") const override;
+      ElementPtr createElement(const char *objectName = "inboundrtp") const noexcept override;
 
-      virtual ElementPtr toDebug() const override;
-      virtual String hash() const override;
+      ElementPtr toDebug() const noexcept override;
+      String hash() const noexcept override;
 
-      InboundRTPStreamStats &operator=(const InboundRTPStreamStats &op2) = delete;
+      InboundRTPStreamStats &operator=(const InboundRTPStreamStats &op2) noexcept = delete;
+
+      void eventTrace() const noexcept override { Stats::eventTrace(); }
 
     protected:
-      virtual void eventTrace(double timestamp) const override;
+      void eventTrace(double timestamp) const noexcept override;
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IStatsReportTypes::OutboundRTPStreamStats
-    #pragma mark
+    //
+    // IStatsReportTypes::OutboundRTPStreamStats
+    //
 
     struct OutboundRTPStreamStats : public RTPStreamStats
     {
@@ -301,99 +307,105 @@ namespace ortc
       double              mTargetBitrate {};
       double              mRoundTripTime {};
 
-      OutboundRTPStreamStats() { mStatsType = IStatsReportTypes::StatsType_OutboundRTP; }
-      OutboundRTPStreamStats(const OutboundRTPStreamStats &op2);
-      OutboundRTPStreamStats(ElementPtr rootEl);
+      OutboundRTPStreamStats() noexcept { mStatsType = IStatsReportTypes::StatsType_OutboundRTP; }
+      OutboundRTPStreamStats(const OutboundRTPStreamStats &op2) noexcept;
+      OutboundRTPStreamStats(ElementPtr rootEl) noexcept;
 
-      static OutboundRTPStreamStatsPtr create(ElementPtr rootEl);
-      static OutboundRTPStreamStatsPtr create(const OutboundRTPStreamStats &op2) { return std::make_shared<OutboundRTPStreamStats>(op2); }
+      static OutboundRTPStreamStatsPtr create(ElementPtr rootEl) noexcept;
+      static OutboundRTPStreamStatsPtr create(const OutboundRTPStreamStats &op2) noexcept { return std::make_shared<OutboundRTPStreamStats>(op2); }
 
-      static OutboundRTPStreamStatsPtr convert(AnyPtr any);
+      static OutboundRTPStreamStatsPtr convert(AnyPtr any) noexcept;
 
-      virtual ElementPtr createElement(const char *objectName = "outboundrtp") const override;
+      ElementPtr createElement(const char *objectName = "outboundrtp") const noexcept override;
 
-      virtual ElementPtr toDebug() const override;
-      virtual String hash() const override;
+      ElementPtr toDebug() const noexcept override;
+      String hash() const noexcept override;
 
-      OutboundRTPStreamStats &operator=(const OutboundRTPStreamStats &op2) = delete;
+      OutboundRTPStreamStats &operator=(const OutboundRTPStreamStats &op2) noexcept = delete;
+
+      void eventTrace() const noexcept override { Stats::eventTrace(); }
 
     protected:
-      virtual void eventTrace(double timestamp) const override;
+      void eventTrace(double timestamp) const noexcept override;
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IStatsReportTypes::SCTPTransportStats
-    #pragma mark
+    //
+    // IStatsReportTypes::SCTPTransportStats
+    //
 
     struct SCTPTransportStats : public Stats
     {
       unsigned long mDataChannelsOpened {};
       unsigned long mDataChannelsClosed {};
 
-      SCTPTransportStats() { mStatsType = IStatsReportTypes::StatsType_SCTPTransport; }
-      SCTPTransportStats(const SCTPTransportStats &op2);
-      SCTPTransportStats(ElementPtr rootEl);
+      SCTPTransportStats() noexcept { mStatsType = IStatsReportTypes::StatsType_SCTPTransport; }
+      SCTPTransportStats(const SCTPTransportStats &op2) noexcept;
+      SCTPTransportStats(ElementPtr rootEl) noexcept;
 
-      static SCTPTransportStatsPtr create(ElementPtr rootEl);
-      static SCTPTransportStatsPtr create(const SCTPTransportStats &op2) { return std::make_shared<SCTPTransportStats>(op2); }
+      static SCTPTransportStatsPtr create(ElementPtr rootEl) noexcept;
+      static SCTPTransportStatsPtr create(const SCTPTransportStats &op2) noexcept { return std::make_shared<SCTPTransportStats>(op2); }
 
-      static SCTPTransportStatsPtr convert(AnyPtr any);
+      static SCTPTransportStatsPtr convert(AnyPtr any) noexcept;
 
-      virtual ElementPtr createElement(const char *objectName = "sctptransport") const override;
+      ElementPtr createElement(const char *objectName = "sctptransport") const noexcept override;
 
-      virtual ElementPtr toDebug() const override;
-      virtual String hash() const override;
+      ElementPtr toDebug() const noexcept override;
+      String hash() const noexcept override;
 
-      SCTPTransportStats &operator=(const SCTPTransportStats &op2) = delete;
+      SCTPTransportStats &operator=(const SCTPTransportStats &op2) noexcept = delete;
+
+      void eventTrace() const noexcept override { Stats::eventTrace(); }
 
     protected:
-      virtual void eventTrace(double timestamp) const override;
+      void eventTrace(double timestamp) const noexcept override;
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IStatsReportTypes::MediaStreamStats
-    #pragma mark
+    //
+    // IStatsReportTypes::MediaStreamStats
+    //
 
     struct MediaStreamStats : public Stats
     {
       String      mStreamID;
       StringList  mTrackIDs;
 
-      MediaStreamStats() { mStatsType = IStatsReportTypes::StatsType_Stream; }
-      MediaStreamStats(const MediaStreamStats &op2);
-      MediaStreamStats(ElementPtr rootEl);
+      MediaStreamStats() noexcept { mStatsType = IStatsReportTypes::StatsType_Stream; }
+      MediaStreamStats(const MediaStreamStats &op2) noexcept;
+      MediaStreamStats(ElementPtr rootEl) noexcept;
 
-      static MediaStreamStatsPtr create(ElementPtr rootEl);
-      static MediaStreamStatsPtr create(const MediaStreamStats &op2) { return std::make_shared<MediaStreamStats>(op2); }
+      static MediaStreamStatsPtr create(ElementPtr rootEl) noexcept;
+      static MediaStreamStatsPtr create(const MediaStreamStats &op2) noexcept { return std::make_shared<MediaStreamStats>(op2); }
 
-      static MediaStreamStatsPtr convert(AnyPtr any);
+      static MediaStreamStatsPtr convert(AnyPtr any) noexcept;
 
-      virtual ElementPtr createElement(const char *objectName = "stream") const override;
+      ElementPtr createElement(const char *objectName = "stream") const noexcept override;
 
-      virtual ElementPtr toDebug() const override;
-      virtual String hash() const override;
+      ElementPtr toDebug() const noexcept override;
+      String hash() const noexcept override;
 
-      MediaStreamStats &operator=(const MediaStreamStats &op2) = delete;
+      MediaStreamStats &operator=(const MediaStreamStats &op2) noexcept = delete;
 
+      void eventTrace() const noexcept override { Stats::eventTrace(); }
+    
     protected:
-      virtual void eventTrace(double timestamp) const override;
+      void eventTrace(double timestamp) const noexcept override;
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IStatsReportTypes::MediaStreamTrackStats
-    #pragma mark
+    //
+    // IStatsReportTypes::MediaStreamTrackStats
+    //
 
     struct MediaStreamTrackStats : public Stats
     {
@@ -412,33 +424,35 @@ namespace ortc
       double          mEchoReturnLoss {};
       double          mEchoReturnLossEnhancement {};
 
-      MediaStreamTrackStats() { mStatsType = IStatsReportTypes::StatsType_Track; }
-      MediaStreamTrackStats(const MediaStreamTrackStats &op2);
-      MediaStreamTrackStats(ElementPtr rootEl);
+      MediaStreamTrackStats() noexcept { mStatsType = IStatsReportTypes::StatsType_Track; }
+      MediaStreamTrackStats(const MediaStreamTrackStats &op2) noexcept;
+      MediaStreamTrackStats(ElementPtr rootEl) noexcept;
 
-      static MediaStreamTrackStatsPtr create(ElementPtr rootEl);
-      static MediaStreamTrackStatsPtr create(const MediaStreamTrackStats &op2) { return std::make_shared<MediaStreamTrackStats>(op2); }
+      static MediaStreamTrackStatsPtr create(ElementPtr rootEl) noexcept;
+      static MediaStreamTrackStatsPtr create(const MediaStreamTrackStats &op2) noexcept { return std::make_shared<MediaStreamTrackStats>(op2); }
 
-      static MediaStreamTrackStatsPtr convert(AnyPtr any);
+      static MediaStreamTrackStatsPtr convert(AnyPtr any) noexcept;
 
-      virtual ElementPtr createElement(const char *objectName = "track") const override;
+      ElementPtr createElement(const char *objectName = "track") const noexcept override;
 
-      virtual ElementPtr toDebug() const override;
-      virtual String hash() const override;
+      ElementPtr toDebug() const noexcept override;
+      String hash() const noexcept override;
 
-      MediaStreamTrackStats &operator=(const MediaStreamStats &op2) = delete;
+      MediaStreamTrackStats &operator=(const MediaStreamStats &op2) noexcept = delete;
+
+      void eventTrace() const noexcept override { Stats::eventTrace(); }
 
     protected:
-      virtual void eventTrace(double timestamp) const override;
+      void eventTrace(double timestamp) const noexcept override;
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IStatsReportTypes::DataChannelStats
-    #pragma mark
+    //
+    // IStatsReportTypes::DataChannelStats
+    //
 
     struct DataChannelStats : public Stats
     {
@@ -451,33 +465,35 @@ namespace ortc
       unsigned long             mMessagesReceived {};
       unsigned long long        mBytesReceived {};
 
-      DataChannelStats() { mStatsType = IStatsReportTypes::StatsType_DataChannel; }
-      DataChannelStats(const DataChannelStats &op2);
-      DataChannelStats(ElementPtr rootEl);
+      DataChannelStats() noexcept { mStatsType = IStatsReportTypes::StatsType_DataChannel; }
+      DataChannelStats(const DataChannelStats &op2) noexcept;
+      DataChannelStats(ElementPtr rootEl) noexcept;
 
-      static DataChannelStatsPtr create(ElementPtr rootEl);
-      static DataChannelStatsPtr create(const DataChannelStats &op2) { return std::make_shared<DataChannelStats>(op2); }
+      static DataChannelStatsPtr create(ElementPtr rootEl) noexcept;
+      static DataChannelStatsPtr create(const DataChannelStats &op2) noexcept { return std::make_shared<DataChannelStats>(op2); }
 
-      static DataChannelStatsPtr convert(AnyPtr any);
+      static DataChannelStatsPtr convert(AnyPtr any) noexcept;
 
-      virtual ElementPtr createElement(const char *objectName = "datachannel") const override;
+      ElementPtr createElement(const char *objectName = "datachannel") const noexcept override;
 
-      virtual ElementPtr toDebug() const override;
-      virtual String hash() const override;
+      ElementPtr toDebug() const noexcept override;
+      String hash() const noexcept override;
 
-      DataChannelStats &operator=(const DataChannelStats &op2) = delete;
+      DataChannelStats &operator=(const DataChannelStats &op2) noexcept = delete;
+
+      void eventTrace() const noexcept override { Stats::eventTrace(); }
 
     protected:
-      virtual void eventTrace(double timestamp) const override;
+      void eventTrace(double timestamp) const noexcept override;
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IStatsReportTypes::ICEGathererStats
-    #pragma mark
+    //
+    // IStatsReportTypes::ICEGathererStats
+    //
 
     struct ICEGathererStats : public Stats
     {
@@ -485,24 +501,26 @@ namespace ortc
       unsigned long long  mBytesReceived{};
       String              mRTCPGathererStatsID;
 
-      ICEGathererStats() { mStatsType = IStatsReportTypes::StatsType_ICEGatherer; }
-      ICEGathererStats(const ICEGathererStats &op2);
-      ICEGathererStats(ElementPtr rootEl);
+      ICEGathererStats() noexcept { mStatsType = IStatsReportTypes::StatsType_ICEGatherer; }
+      ICEGathererStats(const ICEGathererStats &op2) noexcept;
+      ICEGathererStats(ElementPtr rootEl) noexcept;
 
-      static ICEGathererStatsPtr create(ElementPtr rootEl);
-      static ICEGathererStatsPtr create(const ICEGathererStats &op2) { return std::make_shared<ICEGathererStats>(op2); }
+      static ICEGathererStatsPtr create(ElementPtr rootEl) noexcept;
+      static ICEGathererStatsPtr create(const ICEGathererStats &op2) noexcept { return std::make_shared<ICEGathererStats>(op2); }
 
-      static ICEGathererStatsPtr convert(AnyPtr any);
+      static ICEGathererStatsPtr convert(AnyPtr any) noexcept;
 
-      virtual ElementPtr createElement(const char *objectName = "icegatherer") const override;
+      ElementPtr createElement(const char *objectName = "icegatherer") const noexcept override;
 
-      virtual ElementPtr toDebug() const override;
-      virtual String hash() const override;
+      ElementPtr toDebug() const noexcept override;
+      String hash() const noexcept override;
 
-      ICEGathererStats &operator=(const ICEGathererStats &op2) = delete;
+      ICEGathererStats &operator=(const ICEGathererStats &op2) noexcept = delete;
+
+      void eventTrace() const noexcept override { Stats::eventTrace(); }
 
     protected:
-      virtual void eventTrace(double timestamp) const override;
+      void eventTrace(double timestamp) const noexcept override;
     };
 
 
@@ -510,9 +528,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IStatsReportTypes::ICETransportStats
-    #pragma mark
+    //
+    // IStatsReportTypes::ICETransportStats
+    //
 
     struct ICETransportStats : public Stats
     {
@@ -522,96 +540,102 @@ namespace ortc
       bool                mActiveConnection {};
       String              mSelectedCandidatePairID;
 
-      ICETransportStats() { mStatsType = IStatsReportTypes::StatsType_ICETransport; }
-      ICETransportStats(const ICETransportStats &op2);
-      ICETransportStats(ElementPtr rootEl);
+      ICETransportStats() noexcept { mStatsType = IStatsReportTypes::StatsType_ICETransport; }
+      ICETransportStats(const ICETransportStats &op2) noexcept;
+      ICETransportStats(ElementPtr rootEl) noexcept;
 
-      static ICETransportStatsPtr create(ElementPtr rootEl);
-      static ICETransportStatsPtr create(const ICETransportStats &op2) { return std::make_shared<ICETransportStats>(op2); }
+      static ICETransportStatsPtr create(ElementPtr rootEl) noexcept;
+      static ICETransportStatsPtr create(const ICETransportStats &op2) noexcept { return std::make_shared<ICETransportStats>(op2); }
 
-      static ICETransportStatsPtr convert(AnyPtr any);
+      static ICETransportStatsPtr convert(AnyPtr any) noexcept;
 
-      virtual ElementPtr createElement(const char *objectName = "icetransport") const override;
+      ElementPtr createElement(const char *objectName = "icetransport") const noexcept override;
 
-      virtual ElementPtr toDebug() const override;
-      virtual String hash() const override;
+      ElementPtr toDebug() const noexcept override;
+      String hash() const noexcept override;
 
-      ICETransportStats &operator=(const ICETransportStats &op2) = delete;
+      ICETransportStats &operator=(const ICETransportStats &op2) noexcept = delete;
+
+      void eventTrace() const noexcept override { Stats::eventTrace(); }
 
     protected:
-      virtual void eventTrace(double timestamp) const override;
+      void eventTrace(double timestamp) const noexcept override;
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IStatsReportTypes::DTLSTransportStats
-    #pragma mark
+    //
+    // IStatsReportTypes::DTLSTransportStats
+    //
 
     struct DTLSTransportStats : public Stats
     {
       String mLocalCertificateID;
       String mRemoteCertificateID;
 
-      DTLSTransportStats() { mStatsType = IStatsReportTypes::StatsType_DTLSTransport; }
-      DTLSTransportStats(const DTLSTransportStats &op2);
-      DTLSTransportStats(ElementPtr rootEl);
+      DTLSTransportStats() noexcept { mStatsType = IStatsReportTypes::StatsType_DTLSTransport; }
+      DTLSTransportStats(const DTLSTransportStats &op2) noexcept;
+      DTLSTransportStats(ElementPtr rootEl) noexcept;
 
-      static DTLSTransportStatsPtr create(ElementPtr rootEl);
-      static DTLSTransportStatsPtr create(const DTLSTransportStats &op2) { return std::make_shared<DTLSTransportStats>(op2); }
+      static DTLSTransportStatsPtr create(ElementPtr rootEl) noexcept;
+      static DTLSTransportStatsPtr create(const DTLSTransportStats &op2) noexcept { return std::make_shared<DTLSTransportStats>(op2); }
 
-      static DTLSTransportStatsPtr convert(AnyPtr any);
+      static DTLSTransportStatsPtr convert(AnyPtr any) noexcept;
 
-      virtual ElementPtr createElement(const char *objectName = "dtlstransport") const override;
+      ElementPtr createElement(const char *objectName = "dtlstransport") const noexcept override;
 
-      virtual ElementPtr toDebug() const override;
-      virtual String hash() const override;
+      ElementPtr toDebug() const noexcept override;
+      String hash() const noexcept override;
 
-      DTLSTransportStats &operator=(const DTLSTransportStats &op2) = delete;
+      DTLSTransportStats &operator=(const DTLSTransportStats &op2) noexcept = delete;
+
+      void eventTrace() const noexcept override { Stats::eventTrace(); }
 
     protected:
-      virtual void eventTrace(double timestamp) const override;
+      void eventTrace(double timestamp) const noexcept override;
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IStatsReportTypes::SRTPTransportStats
-    #pragma mark
+    //
+    // IStatsReportTypes::SRTPTransportStats
+    //
 
     struct SRTPTransportStats : public Stats
     {
-      SRTPTransportStats() { mStatsType = IStatsReportTypes::StatsType_SRTPTransport; }
-      SRTPTransportStats(const SRTPTransportStats &op2);
-      SRTPTransportStats(ElementPtr rootEl);
+      SRTPTransportStats() noexcept { mStatsType = IStatsReportTypes::StatsType_SRTPTransport; }
+      SRTPTransportStats(const SRTPTransportStats &op2) noexcept;
+      SRTPTransportStats(ElementPtr rootEl) noexcept;
 
-      static SRTPTransportStatsPtr create(ElementPtr rootEl);
-      static SRTPTransportStatsPtr create(const SRTPTransportStats &op2) { return std::make_shared<SRTPTransportStats>(op2); }
+      static SRTPTransportStatsPtr create(ElementPtr rootEl) noexcept;
+      static SRTPTransportStatsPtr create(const SRTPTransportStats &op2) noexcept { return std::make_shared<SRTPTransportStats>(op2); }
 
-      static SRTPTransportStatsPtr convert(AnyPtr any);
+      static SRTPTransportStatsPtr convert(AnyPtr any) noexcept;
 
-      virtual ElementPtr createElement(const char *objectName = "srtptransport") const override;
+      ElementPtr createElement(const char *objectName = "srtptransport") const noexcept override;
 
-      virtual ElementPtr toDebug() const override;
-      virtual String hash() const override;
+      ElementPtr toDebug() const noexcept override;
+      String hash() const noexcept override;
 
-      SRTPTransportStats &operator=(const SRTPTransportStats &op2) = delete;
+      SRTPTransportStats &operator=(const SRTPTransportStats &op2) noexcept = delete;
+
+      void eventTrace() const noexcept override { Stats::eventTrace(); }
 
     protected:
-      virtual void eventTrace(double timestamp) const override;
+      void eventTrace(double timestamp) const noexcept override;
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IStatsReportTypes::ICECandidateAttributes
-    #pragma mark
+    //
+    // IStatsReportTypes::ICECandidateAttributes
+    //
 
     struct ICECandidateAttributes : public Stats
     {
@@ -623,33 +647,35 @@ namespace ortc
       unsigned long           mPriority {};
       String                  mAddressSourceURL;
 
-      ICECandidateAttributes() { mStatsType = IStatsReportTypes::StatsType_Candidate; }
-      ICECandidateAttributes(const ICECandidateAttributes &op2);
-      ICECandidateAttributes(ElementPtr rootEl);
+      ICECandidateAttributes() noexcept { mStatsType = IStatsReportTypes::StatsType_Candidate; }
+      ICECandidateAttributes(const ICECandidateAttributes &op2) noexcept;
+      ICECandidateAttributes(ElementPtr rootEl) noexcept;
 
-      static ICECandidateAttributesPtr create(ElementPtr rootEl);
-      static ICECandidateAttributesPtr create(const ICECandidateAttributes &op2) { return std::make_shared<ICECandidateAttributes>(op2); }
+      static ICECandidateAttributesPtr create(ElementPtr rootEl) noexcept;
+      static ICECandidateAttributesPtr create(const ICECandidateAttributes &op2) noexcept { return std::make_shared<ICECandidateAttributes>(op2); }
 
-      static ICECandidateAttributesPtr convert(AnyPtr any);
+      static ICECandidateAttributesPtr convert(AnyPtr any) noexcept;
 
-      virtual ElementPtr createElement(const char *objectName = "dtlstransport") const override;
+      ElementPtr createElement(const char *objectName = "dtlstransport") const noexcept override;
 
-      virtual ElementPtr toDebug() const override;
-      virtual String hash() const override;
+      ElementPtr toDebug() const noexcept override;
+      String hash() const noexcept override;
 
-      ICECandidateAttributes &operator=(const ICECandidateAttributes &op2) = delete;
+      ICECandidateAttributes &operator=(const ICECandidateAttributes &op2) noexcept = delete;
+
+      void eventTrace() const noexcept override { Stats::eventTrace(); }
 
     protected:
-      virtual void eventTrace(double timestamp) const override;
+      void eventTrace(double timestamp) const noexcept override;
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IStatsReportTypes::ICECandidatePairStats
-    #pragma mark
+    //
+    // IStatsReportTypes::ICECandidatePairStats
+    //
 
     struct ICECandidatePairStats : public Stats
     {
@@ -667,33 +693,35 @@ namespace ortc
       double                        mAvailableOutgoingBitrate {};
       double                        mAvailableIncomingBitrate {};
 
-      ICECandidatePairStats() { mStatsType = IStatsReportTypes::StatsType_CandidatePair; }
-      ICECandidatePairStats(const ICECandidatePairStats &op2);
-      ICECandidatePairStats(ElementPtr rootEl);
+      ICECandidatePairStats() noexcept { mStatsType = IStatsReportTypes::StatsType_CandidatePair; }
+      ICECandidatePairStats(const ICECandidatePairStats &op2) noexcept;
+      ICECandidatePairStats(ElementPtr rootEl) noexcept;
 
-      static ICECandidatePairStatsPtr create(ElementPtr rootEl);
-      static ICECandidatePairStatsPtr create(const ICECandidatePairStats &op2) { return std::make_shared<ICECandidatePairStats>(op2); }
+      static ICECandidatePairStatsPtr create(ElementPtr rootEl) noexcept;
+      static ICECandidatePairStatsPtr create(const ICECandidatePairStats &op2) noexcept { return std::make_shared<ICECandidatePairStats>(op2); }
 
-      static ICECandidatePairStatsPtr convert(AnyPtr any);
+      static ICECandidatePairStatsPtr convert(AnyPtr any) noexcept;
 
-      virtual ElementPtr createElement(const char *objectName = "candidatepair") const override;
+      ElementPtr createElement(const char *objectName = "candidatepair") const noexcept override;
 
-      virtual ElementPtr toDebug() const override;
-      virtual String hash() const override;
+      ElementPtr toDebug() const noexcept override;
+      String hash() const noexcept override;
 
-      ICECandidatePairStats &operator=(const ICECandidatePairStats &op2) = delete;
+      ICECandidatePairStats &operator=(const ICECandidatePairStats &op2) noexcept = delete;
+
+      void eventTrace() const noexcept override { Stats::eventTrace(); }
 
     protected:
-      virtual void eventTrace(double timestamp) const override;
+      void eventTrace(double timestamp) const noexcept override;
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IStatsReportTypes::CertificateStats
-    #pragma mark
+    //
+    // IStatsReportTypes::CertificateStats
+    //
 
     struct CertificateStats : public Stats
     {
@@ -702,24 +730,26 @@ namespace ortc
       String mBase64Certificate;
       String mIssuerCertificateID;
 
-      CertificateStats() { mStatsType = IStatsReportTypes::StatsType_Certificate; }
-      CertificateStats(const CertificateStats &op2);
-      CertificateStats(ElementPtr rootEl);
+      CertificateStats() noexcept { mStatsType = IStatsReportTypes::StatsType_Certificate; }
+      CertificateStats(const CertificateStats &op2) noexcept;
+      CertificateStats(ElementPtr rootEl) noexcept;
 
-      static CertificateStatsPtr create(ElementPtr rootEl);
-      static CertificateStatsPtr create(const CertificateStats &op2) { return std::make_shared<CertificateStats>(op2); }
+      static CertificateStatsPtr create(ElementPtr rootEl) noexcept;
+      static CertificateStatsPtr create(const CertificateStats &op2) noexcept { return std::make_shared<CertificateStats>(op2); }
 
-      static CertificateStatsPtr convert(AnyPtr any);
+      static CertificateStatsPtr convert(AnyPtr any) noexcept;
 
-      virtual ElementPtr createElement(const char *objectName = "certificate") const override;
+      ElementPtr createElement(const char *objectName = "certificate") const noexcept override;
 
-      virtual ElementPtr toDebug() const override;
-      virtual String hash() const override;
+      ElementPtr toDebug() const noexcept override;
+      String hash() const noexcept override;
 
-      CertificateStats &operator=(const CertificateStats &op2) = delete;
+      CertificateStats &operator=(const CertificateStats &op2) noexcept = delete;
+
+      void eventTrace() const noexcept override { Stats::eventTrace(); }
 
     protected:
-      virtual void eventTrace(double timestamp) const override;
+      void eventTrace(double timestamp) const noexcept override;
     };
 
   };
@@ -728,20 +758,20 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IStatsReport
-  #pragma mark
+  //
+  // IStatsReport
+  //
 
   interaction IStatsReport : public IStatsReportTypes,
                              public Any
   {
-    static ElementPtr toDebug(IStatsReportPtr report);
-    static IStatsReportPtr convert(AnyPtr any);
+    static ElementPtr toDebug(IStatsReportPtr report) noexcept;
+    static IStatsReportPtr convert(AnyPtr any) noexcept;
 
-    virtual PUID getID() const = 0;
+    virtual PUID getID() const noexcept = 0;
 
-    virtual IDListPtr getStatesIDs() const = 0;
-    virtual StatsPtr getStats(const char *id) const = 0;
+    virtual IDListPtr getStatesIDs() const noexcept = 0;
+    virtual StatsPtr getStats(const char *id) const noexcept = 0;
   };
 
 }

@@ -42,9 +42,9 @@ namespace ortc
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IConstraints
-  #pragma mark
+  //
+  // IConstraints
+  //
   
   interaction IConstraints
   {
@@ -66,47 +66,47 @@ namespace ortc
     ZS_DECLARE_TYPEDEF_PTR(std::list<String>, StringList);
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IConstraints::ConstrainBooleanParameters
-    #pragma mark
+    //
+    // IConstraints::ConstrainBooleanParameters
+    //
 
     struct ConstrainBooleanParameters {
       Optional<bool> mExact;
       Optional<bool> mIdeal;
 
-      ConstrainBooleanParameters() {}
-      ConstrainBooleanParameters(const ConstrainBooleanParameters &op2) {(*this) = op2;}
-      ConstrainBooleanParameters(ElementPtr elem);
+      ConstrainBooleanParameters() noexcept {}
+      ConstrainBooleanParameters(const ConstrainBooleanParameters &op2) noexcept {(*this) = op2;}
+      ConstrainBooleanParameters(ElementPtr elem) noexcept;
 
-      ElementPtr createElement(const char *objectName) const;
+      ElementPtr createElement(const char *objectName) const noexcept;
 
-      ElementPtr toDebug() const;
-      String hash() const;
+      ElementPtr toDebug() const noexcept;
+      String hash() const noexcept;
     };
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IConstraints::ConstrainBoolean
-    #pragma mark
+    //
+    // IConstraints::ConstrainBoolean
+    //
 
     struct ConstrainBoolean {
       Optional<bool> mValue;
       Optional<ConstrainBooleanParameters> mParameters;
 
-      ConstrainBoolean() {}
-      ConstrainBoolean(const ConstrainBoolean &op2) {(*this) = op2;}
-      ConstrainBoolean(ElementPtr elem);
+      ConstrainBoolean() noexcept {}
+      ConstrainBoolean(const ConstrainBoolean &op2) noexcept {(*this) = op2;}
+      ConstrainBoolean(ElementPtr elem) noexcept;
 
-      ElementPtr createElement(const char *objectName) const;
+      ElementPtr createElement(const char *objectName) const noexcept;
 
-      ElementPtr toDebug() const;
-      String hash() const;
+      ElementPtr toDebug() const noexcept;
+      String hash() const noexcept;
     };
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IConstraints::ConstrainLongRange
-    #pragma mark
+    //
+    // IConstraints::ConstrainLongRange
+    //
 
     struct ConstrainLongRange {
       Optional<LONG> mMin;
@@ -114,39 +114,39 @@ namespace ortc
       Optional<LONG> mExact;
       Optional<LONG> mIdeal;
 
-      ConstrainLongRange() {}
-      ConstrainLongRange(const ConstrainLongRange &op2) {(*this) = op2;}
-      ConstrainLongRange(ElementPtr elem);
+      ConstrainLongRange() noexcept {}
+      ConstrainLongRange(const ConstrainLongRange &op2) noexcept {(*this) = op2;}
+      ConstrainLongRange(ElementPtr elem) noexcept;
 
-      ElementPtr createElement(const char *objectName) const;
+      ElementPtr createElement(const char *objectName) const noexcept;
 
-      ElementPtr toDebug() const;
-      String hash() const;
+      ElementPtr toDebug() const noexcept;
+      String hash() const noexcept;
     };
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IConstraints::ConstrainLong
-    #pragma mark
+    //
+    // IConstraints::ConstrainLong
+    //
 
     struct ConstrainLong {
       Optional<LONG> mValue;
       Optional<ConstrainLongRange> mRange;
 
-      ConstrainLong() {}
-      ConstrainLong(const ConstrainLong &op2) {(*this) = op2;}
-      ConstrainLong(ElementPtr elem);
+      ConstrainLong() noexcept {}
+      ConstrainLong(const ConstrainLong &op2) noexcept {(*this) = op2;}
+      ConstrainLong(ElementPtr elem) noexcept;
 
-      ElementPtr createElement(const char *objectName) const;
+      ElementPtr createElement(const char *objectName) const noexcept;
 
-      ElementPtr toDebug() const;
-      String hash() const;
+      ElementPtr toDebug() const noexcept;
+      String hash() const noexcept;
     };
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IConstraints::ConstrainDoubleRange
-    #pragma mark
+    //
+    // IConstraints::ConstrainDoubleRange
+    //
 
     struct ConstrainDoubleRange {
       Optional<double> mMin;
@@ -154,107 +154,107 @@ namespace ortc
       Optional<double> mExact;
       Optional<double> mIdeal;
 
-      ConstrainDoubleRange() {}
-      ConstrainDoubleRange(const ConstrainDoubleRange &op2) {(*this) = op2;}
-      ConstrainDoubleRange(ElementPtr elem);
+      ConstrainDoubleRange() noexcept {}
+      ConstrainDoubleRange(const ConstrainDoubleRange &op2) noexcept {(*this) = op2;}
+      ConstrainDoubleRange(ElementPtr elem) noexcept;
 
-      ElementPtr createElement(const char *objectName) const;
+      ElementPtr createElement(const char *objectName) const noexcept;
 
-      ElementPtr toDebug() const;
-      String hash() const;
+      ElementPtr toDebug() const noexcept;
+      String hash() const noexcept;
     };
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IConstraints::ConstrainDouble
-    #pragma mark
+    //
+    // IConstraints::ConstrainDouble
+    //
 
     struct ConstrainDouble {
       Optional<double> mValue;
       Optional<ConstrainDoubleRange> mRange;
 
-      ConstrainDouble() {}
-      ConstrainDouble(const ConstrainDouble &op2) {(*this) = op2;}
-      ConstrainDouble(ElementPtr elem);
+      ConstrainDouble() noexcept {}
+      ConstrainDouble(const ConstrainDouble &op2) noexcept {(*this) = op2;}
+      ConstrainDouble(ElementPtr elem) noexcept;
 
-      ElementPtr createElement(const char *objectName) const;
+      ElementPtr createElement(const char *objectName) const noexcept;
 
-      ElementPtr toDebug() const;
-      String hash() const;
+      ElementPtr toDebug() const noexcept;
+      String hash() const noexcept;
     };
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IConstraints::StringOrStringList
-    #pragma mark
+    //
+    // IConstraints::StringOrStringList
+    //
 
     struct StringOrStringList {
       Optional<String> mValue;
       Optional<StringList> mValues;
 
-      StringOrStringList() {}
-      StringOrStringList(const StringOrStringList &op2) {(*this) = op2;}
+      StringOrStringList() noexcept {}
+      StringOrStringList(const StringOrStringList &op2) noexcept {(*this) = op2;}
       StringOrStringList(
                          ElementPtr elem,
                          const char *objectValueName = "value"
-                         );
+                         ) noexcept;
 
       // {"objectName": {"abc"}}
       // {"objectName": {"objectValueName": ["a","b","c"]}}
       ElementPtr createElement(
                                const char *objectName,
                                const char *objectValueName = "value"
-                               ) const;
+                               ) const noexcept;
 
-      ElementPtr toDebug() const;
-      String hash() const;
+      ElementPtr toDebug() const noexcept;
+      String hash() const noexcept;
     };
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IConstraints::ConstraintStringParameters
-    #pragma mark
+    //
+    // IConstraints::ConstraintStringParameters
+    //
 
     struct ConstrainStringParameters {
       Optional<StringOrStringList> mExact;
       Optional<StringOrStringList> mIdeal;
 
-      ConstrainStringParameters() {}
-      ConstrainStringParameters(const ConstrainStringParameters &op2) {(*this) = op2;}
-      ConstrainStringParameters(ElementPtr elem);
+      ConstrainStringParameters() noexcept {}
+      ConstrainStringParameters(const ConstrainStringParameters &op2) noexcept {(*this) = op2;}
+      ConstrainStringParameters(ElementPtr elem) noexcept;
 
-      ElementPtr createElement(const char *objectName) const;
+      ElementPtr createElement(const char *objectName) const noexcept;
 
-      ElementPtr toDebug() const;
-      String hash() const;
+      ElementPtr toDebug() const noexcept;
+      String hash() const noexcept;
     };
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IConstraints::ConstraintString
-    #pragma mark
+    //
+    // IConstraints::ConstraintString
+    //
 
     struct ConstrainString {
       Optional<StringOrStringList> mValue;
       Optional<ConstrainStringParameters> mParameters;
 
-      ConstrainString() {}
-      ConstrainString(const ConstrainString &op2) {(*this) = op2;}
+      ConstrainString() noexcept {}
+      ConstrainString(const ConstrainString &op2) noexcept {(*this) = op2;}
       ConstrainString(
                       ElementPtr elem,
                       const char *objectValueName = "value"
-                      );
+                      ) noexcept;
 
       ElementPtr createElement(
                                const char *objectName,
                                const char *objectValueName = "value"
-                               ) const;
+                               ) const noexcept;
 
-      ElementPtr toDebug() const;
-      String hash() const;
+      ElementPtr toDebug() const noexcept;
+      String hash() const noexcept;
 
-      void exact(StringList &values) const;
-      void ideal(StringList &values) const;
+      void exact(StringList &values) const noexcept;
+      void ideal(StringList &values) const noexcept;
     };
 
   };

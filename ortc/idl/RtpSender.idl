@@ -179,7 +179,7 @@ namespace org
       /// what is currently being sent. The RTCRtpSender object starts sending
       /// when Send() is called for the first time, and changes the sending
       /// parameters when send() is called again. The RTCRtpSender object
-      /// stops sending when stop() is called. SSRC misusage results in an
+      /// stops sending when stop() is called. SSRC mis-usage results in an
       /// InvalidParameters exception.
       /// </summary>
       zs::Promise send(RTCRtpParameters parameters) throws (InvalidParameters, InvalidStateError);

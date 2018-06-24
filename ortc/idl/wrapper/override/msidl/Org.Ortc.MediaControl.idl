@@ -1,0 +1,39 @@
+import "forwards.idl";
+import "output.idl";
+
+namespace Org
+{
+    namespace Ortc
+    {
+
+
+        /// <summary>
+        /// Interface for controlling the behaviour of media.
+        /// </summary>
+        [version(1.0)]
+        [uuid(56d05370-3095-1aff-ba87-47414cb8a5a3)]
+        interface IMediaControl : IInspectable
+        {
+        };
+
+        /// <summary>
+        /// Interface for controlling the behaviour of media.
+        /// </summary>
+        runtimeclass MediaControl : [default] IMediaControl
+        {
+
+            /// <summary>
+            /// Cast from Org.Ortc.IMediaControl to Org.Ortc.MediaControl
+            /// </summary>
+            static Org.Ortc.MediaControl CastFromIMediaControl(Org.Ortc.IMediaControl source);
+
+            /// <summary>
+            /// Gets or sets the media engine the application orientation has
+            /// changed.
+            /// </summary>
+            static Object DisplayOrientation { get; set; };
+        };
+
+    } // namespace Ortc
+} // namespace Org
+

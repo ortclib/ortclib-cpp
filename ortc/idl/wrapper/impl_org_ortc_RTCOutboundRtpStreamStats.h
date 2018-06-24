@@ -18,45 +18,45 @@ namespace wrapper {
           RTCOutboundRtpStreamStatsWeakPtr thisWeak_;
           NativeStatsPtr native_;
 
-          RTCOutboundRtpStreamStats();
-          virtual ~RTCOutboundRtpStreamStats();
+          RTCOutboundRtpStreamStats() noexcept;
+          virtual ~RTCOutboundRtpStreamStats() noexcept;
 
           // methods RTCStats
-          virtual wrapper::org::ortc::JsonPtr toJson() override;
-          virtual String hash() override;
+          wrapper::org::ortc::JsonPtr toJson() noexcept override;
+          String hash() noexcept override;
 
           // properties RTCStats
-          virtual ::zsLib::Time get_timestamp() override;
-          virtual Optional< wrapper::org::ortc::RTCStatsType > get_statsType() override;
-          virtual String get_statsTypeOther() override;
-          virtual String get_id() override;
+          ::zsLib::Time get_timestamp() noexcept override;
+          Optional< wrapper::org::ortc::RTCStatsType > get_statsType() noexcept override;
+          String get_statsTypeOther() noexcept override;
+          String get_id() noexcept override;
 
           // properties RTCRtpStreamStats
-          virtual Optional< uint32_t > get_ssrc() override;
-          virtual String get_associatedStatId() override;
-          virtual bool get_isRemote() override;
-          virtual String get_mediaType() override;
-          virtual String get_mediaTrackId() override;
-          virtual String get_transportId() override;
-          virtual String get_codecId() override;
-          virtual unsigned long get_firCount() override;
-          virtual unsigned long get_pliCount() override;
-          virtual unsigned long get_nackCount() override;
-          virtual unsigned long get_sliCount() override;
+          Optional< uint32_t > get_ssrc() noexcept override;
+          String get_associatedStatId() noexcept override;
+          bool get_isRemote() noexcept override;
+          String get_mediaType() noexcept override;
+          String get_mediaTrackId() noexcept override;
+          String get_transportId() noexcept override;
+          String get_codecId() noexcept override;
+          unsigned long get_firCount() noexcept override;
+          unsigned long get_pliCount() noexcept override;
+          unsigned long get_nackCount() noexcept override;
+          unsigned long get_sliCount() noexcept override;
 
           // methods RTCOutboundRtpStreamStats
-          virtual void wrapper_init_org_ortc_RTCOutboundRtpStreamStats() override;
-          virtual void wrapper_init_org_ortc_RTCOutboundRtpStreamStats(wrapper::org::ortc::RTCOutboundRtpStreamStatsPtr source) override;
-          virtual void wrapper_init_org_ortc_RTCOutboundRtpStreamStats(wrapper::org::ortc::JsonPtr json) override;
+          void wrapper_init_org_ortc_RTCOutboundRtpStreamStats() noexcept override;
+          void wrapper_init_org_ortc_RTCOutboundRtpStreamStats(wrapper::org::ortc::RTCOutboundRtpStreamStatsPtr source) noexcept override;
+          void wrapper_init_org_ortc_RTCOutboundRtpStreamStats(wrapper::org::ortc::JsonPtr json) noexcept override;
 
           // properties RTCOutboundRtpStreamStats
-          virtual unsigned long get_packetsSent() override;
-          virtual unsigned long long get_bytesSent() override;
-          virtual double get_targetBitrate() override;
-          virtual double get_roundTripTime() override;
+          unsigned long get_packetsSent() noexcept override;
+          unsigned long long get_bytesSent() noexcept override;
+          double get_targetBitrate() noexcept override;
+          double get_roundTripTime() noexcept override;
 
-          static RTCOutboundRtpStreamStatsPtr toWrapper(NativeStatsPtr native);
-          static NativeStatsPtr toNative(wrapper::org::ortc::RTCOutboundRtpStreamStatsPtr wrapper);
+          static RTCOutboundRtpStreamStatsPtr toWrapper(NativeStatsPtr native) noexcept;
+          static NativeStatsPtr toNative(wrapper::org::ortc::RTCOutboundRtpStreamStatsPtr wrapper) noexcept;
         };
 
       } // ortc

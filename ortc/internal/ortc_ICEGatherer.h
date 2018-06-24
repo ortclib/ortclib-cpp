@@ -100,76 +100,76 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IICEGathererForICETransport
-    #pragma mark
+    //
+    // IICEGathererForICETransport
+    //
 
     interaction IICEGathererForICETransport
     {
-      ZS_DECLARE_TYPEDEF_PTR(IICEGathererForICETransport, ForICETransport)
+      ZS_DECLARE_TYPEDEF_PTR(IICEGathererForICETransport, ForICETransport);
 
-      ZS_DECLARE_TYPEDEF_PTR(IICETransportForICEGatherer, UseICETransport)
+      ZS_DECLARE_TYPEDEF_PTR(IICETransportForICEGatherer, UseICETransport);
 
-      ZS_DECLARE_TYPEDEF_PTR(IICETypes::CandidateList, CandidateList)
+      ZS_DECLARE_TYPEDEF_PTR(IICETypes::CandidateList, CandidateList);
       typedef IICEGatherer::States States;
 
-      ZS_DECLARE_TYPEDEF_PTR(ICEGathererRouter::Route, RouterRoute)
+      ZS_DECLARE_TYPEDEF_PTR(ICEGathererRouter::Route, RouterRoute);
 
-      static ElementPtr toDebug(ForICETransportPtr gatherer);
+      static ElementPtr toDebug(ForICETransportPtr gatherer) noexcept;
 
-      virtual PUID getID() const = 0;
+      virtual PUID getID() const noexcept = 0;
 
-      virtual IICETypes::Components component() const = 0;
-      virtual States state() const = 0;
+      virtual IICETypes::Components component() const noexcept = 0;
+      virtual States state() const noexcept = 0;
 
       virtual void installTransport(
                                     ICETransportPtr transport,
                                     const String &remoteUFrag
-                                    ) = 0;
-      virtual void notifyTransportStateChange(ICETransportPtr transport) = 0;
-      virtual void removeTransport(ICETransport &transport) = 0;
+                                    ) noexcept = 0;
+      virtual void notifyTransportStateChange(ICETransportPtr transport) noexcept = 0;
+      virtual void removeTransport(ICETransport &transport) noexcept = 0;
 
-      virtual ForICETransportPtr getRTCPGatherer() const = 0;
+      virtual ForICETransportPtr getRTCPGatherer() const noexcept = 0;
 
-      virtual IICEGathererSubscriptionPtr subscribe(IICEGathererDelegatePtr delegate) = 0;
+      virtual IICEGathererSubscriptionPtr subscribe(IICEGathererDelegatePtr delegate) noexcept = 0;
 
-      virtual bool isContinousGathering() const = 0;
-      virtual String getUsernameFrag() const = 0;
-      virtual String getPassword() const = 0;
+      virtual bool isContinousGathering() const noexcept = 0;
+      virtual String getUsernameFrag() const noexcept = 0;
+      virtual String getPassword() const noexcept = 0;
 
-      virtual CandidateListPtr getLocalCandidates() const = 0;
+      virtual CandidateListPtr getLocalCandidates() const noexcept = 0;
 
-      virtual ICEGathererRouterPtr getGathererRouter() const = 0;
+      virtual ICEGathererRouterPtr getGathererRouter() const noexcept = 0;
 
-      virtual void removeRoute(RouterRoutePtr routerRoute) = 0;
-      virtual void remoteAllRelatedRoutes(ICETransport &transport) = 0;
+      virtual void removeRoute(RouterRoutePtr routerRoute) noexcept = 0;
+      virtual void remoteAllRelatedRoutes(ICETransport &transport) noexcept = 0;
 
       virtual bool sendPacket(
                               UseICETransport &transport,
                               RouterRoutePtr routerRoute,
                               const BYTE *buffer,
                               size_t bufferSizeInBytes
-                              ) = 0;
+                              ) noexcept = 0;
 
-      virtual void notifyLikelyReflexiveActivity(RouterRoutePtr routerRoute) = 0;
+      virtual void notifyLikelyReflexiveActivity(RouterRoutePtr routerRoute) noexcept = 0;
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IGathererAsyncDelegate
-    #pragma mark
+    //
+    // IGathererAsyncDelegate
+    //
 
     interaction IGathererAsyncDelegate
     {
-      ZS_DECLARE_TYPEDEF_PTR(IICETransportForICEGatherer, UseICETransport)
+      ZS_DECLARE_TYPEDEF_PTR(IICETransportForICEGatherer, UseICETransport);
 
       virtual void onNotifyDeliverRouteBufferedPackets(
                                                        UseICETransportPtr transport,
                                                        PUID routerRouteID
-                                                       )  = 0;
+                                                       ) = 0;
       virtual void onResolveStatsPromise(IStatsProvider::PromiseWithStatsReportPtr promise) = 0;
     };
 
@@ -177,9 +177,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ICEGatherer
-    #pragma mark
+    //
+    // ICEGatherer
+    //
 
     class ICEGatherer : public Noop,
                         public MessageQueueAssociator,
@@ -217,8 +217,8 @@ namespace ortc
         InternalState_Shutdown,
       };
 
-      static const char *toString(InternalStates state);
-      static States toState(InternalStates state);
+      static const char *toString(InternalStates state) noexcept;
+      static States toState(InternalStates state) noexcept;
 
       enum InterfaceTypes
       {
@@ -234,8 +234,8 @@ namespace ortc
 
         InterfaceType_Last = InterfaceType_VPN
       };
-      static const char *toString(InterfaceTypes type);
-      static InterfaceTypes toInterfaceType(const char *type);
+      static const char *toString(InterfaceTypes type) noexcept;
+      static InterfaceTypes toInterfaceType(const char *type) noexcept;
 
       enum AddressFamilies
       {
@@ -246,8 +246,8 @@ namespace ortc
 
         AddressFamily_Last = AddressFamily_IPv6
       };
-      static const char *toString(AddressFamilies family);
-      static AddressFamilies toAddressFamily(const char *family);
+      static const char *toString(AddressFamilies family) noexcept;
+      static AddressFamilies toAddressFamily(const char *family) noexcept;
 
       enum PreferenceTypes
       {
@@ -258,17 +258,17 @@ namespace ortc
 
         PreferenceType_Last = PreferenceType_Unfreeze
       };
-      static const char *toString(PreferenceTypes family);
-      static PreferenceTypes toPreferenceType(const char *family);
+      static const char *toString(PreferenceTypes family) noexcept;
+      static PreferenceTypes toPreferenceType(const char *family) noexcept;
 
-      ZS_DECLARE_TYPEDEF_PTR(IICETransportForICEGatherer, UseICETransport)
-      ZS_DECLARE_TYPEDEF_PTR(ortc::services::ISTUNDiscovery, UseSTUNDiscovery)
-      ZS_DECLARE_TYPEDEF_PTR(ortc::services::ITURNSocket, UseTURNSocket)
-      ZS_DECLARE_TYPEDEF_PTR(ortc::services::IBackOffTimer, UseBackOffTimer)
-      ZS_DECLARE_TYPEDEF_PTR(zsLib::Socket, Socket)
-      ZS_DECLARE_TYPEDEF_PTR(IICETypes::Candidate, Candidate)
-      ZS_DECLARE_TYPEDEF_PTR(IICETypes::CandidateList, CandidateList)
-      ZS_DECLARE_TYPEDEF_PTR(ICEGathererRouter::Route, RouterRoute)
+      ZS_DECLARE_TYPEDEF_PTR(IICETransportForICEGatherer, UseICETransport);
+      ZS_DECLARE_TYPEDEF_PTR(ortc::services::ISTUNDiscovery, UseSTUNDiscovery);
+      ZS_DECLARE_TYPEDEF_PTR(ortc::services::ITURNSocket, UseTURNSocket);
+      ZS_DECLARE_TYPEDEF_PTR(ortc::services::IBackOffTimer, UseBackOffTimer);
+      ZS_DECLARE_TYPEDEF_PTR(zsLib::Socket, Socket);
+      ZS_DECLARE_TYPEDEF_PTR(IICETypes::Candidate, Candidate);
+      ZS_DECLARE_TYPEDEF_PTR(IICETypes::CandidateList, CandidateList);
+      ZS_DECLARE_TYPEDEF_PTR(ICEGathererRouter::Route, RouterRoute);
 
       typedef std::list<IPAddress> IPAddressList;
 
@@ -342,62 +342,62 @@ namespace ortc
       ICEGatherer(
                   const make_private &,
                   const ConstructorOptions &options
-                  );
+                  ) noexcept;
 
     protected:
-      ICEGatherer(Noop) :
+      ICEGatherer(Noop) noexcept :
         Noop(true),
         MessageQueueAssociator(IMessageQueuePtr()),
         SharedRecursiveLock(SharedRecursiveLock::create()) {}
 
-      void init();
+      void init() noexcept;
 
     public:
-      virtual ~ICEGatherer();
+      virtual ~ICEGatherer() noexcept;
 
-      static ICEGathererPtr convert(IICEGathererPtr object);
-      static ICEGathererPtr convert(ForICETransportPtr object);
+      static ICEGathererPtr convert(IICEGathererPtr object) noexcept;
+      static ICEGathererPtr convert(ForICETransportPtr object) noexcept;
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark ICEGatherer => IStatsProvider
-      #pragma mark
+      //
+      // ICEGatherer => IStatsProvider
+      //
 
-      PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const override;
+      PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const noexcept override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark ICEGatherer => IICETransport
-      #pragma mark
+      //
+      // ICEGatherer => IICETransport
+      //
 
-      static ElementPtr toDebug(ICEGathererPtr gatherer);
+      static ElementPtr toDebug(ICEGathererPtr gatherer) noexcept;
 
       static ICEGathererPtr create(
                                    IICEGathererDelegatePtr delegate,
                                    const Options &options
-                                   );
+                                   ) noexcept;
 
-      PUID getID() const override {return mID;}
+      PUID getID() const noexcept override {return mID;}
 
-      IICEGathererSubscriptionPtr subscribe(IICEGathererDelegatePtr delegate) override;
+      IICEGathererSubscriptionPtr subscribe(IICEGathererDelegatePtr delegate) noexcept override;
 
-      Components component() const override;
-      States state() const override;
+      Components component() const noexcept override;
+      States state() const noexcept override;
 
-      ParametersPtr getLocalParameters() const override;
-      CandidateListPtr getLocalCandidates() const override;
+      ParametersPtr getLocalParameters() const noexcept override;
+      CandidateListPtr getLocalCandidates() const noexcept override;
 
-      IICEGathererPtr createAssociatedGatherer(IICEGathererDelegatePtr delegate) throw(InvalidStateError) override;
+      IICEGathererPtr createAssociatedGatherer(IICEGathererDelegatePtr delegate) noexcept(false) override; // throws InvalidStateError
 
-      void gather(const Optional<Options> &options = Optional<Options>()) override;
+      void gather(const Optional<Options> &options = Optional<Options>()) noexcept override;
 
-      void close() override;
+      void close() noexcept override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark ICEGatherer => IICEGathererForICETransport
-      #pragma mark
+      //
+      // ICEGatherer => IICEGathererForICETransport
+      //
 
       // (duplicate) virtual PUID getID() const;
 
@@ -407,37 +407,37 @@ namespace ortc
       void installTransport(
                             ICETransportPtr transport,
                             const String &remoteUFrag
-                            ) override;
-      void notifyTransportStateChange(ICETransportPtr transport) override;
-      void removeTransport(ICETransport &transport) override;
+                            ) noexcept override;
+      void notifyTransportStateChange(ICETransportPtr transport) noexcept override;
+      void removeTransport(ICETransport &transport) noexcept override;
 
-      ForICETransportPtr getRTCPGatherer() const override;
+      ForICETransportPtr getRTCPGatherer() const noexcept override;
 
-      // (duplicate) virtual IICEGathererSubscriptionPtr subscribe(IICEGathererDelegatePtr delegate) = 0;
-      // (duplicate) virtual CandidateListPtr getLocalCandidates() const = 0;
+      // (duplicate) virtual IICEGathererSubscriptionPtr subscribe(IICEGathererDelegatePtr delegate) noexcept = 0;
+      // (duplicate) virtual CandidateListPtr getLocalCandidates() const noexcept = 0;
 
-      bool isContinousGathering() const override;
-      String getUsernameFrag() const override {return mUsernameFrag;}
-      String getPassword() const override {return mPassword;}
+      bool isContinousGathering() const noexcept override;
+      String getUsernameFrag() const noexcept override {return mUsernameFrag;}
+      String getPassword() const noexcept override {return mPassword;}
 
-      ICEGathererRouterPtr getGathererRouter() const override;
+      ICEGathererRouterPtr getGathererRouter() const noexcept override;
 
-      void removeRoute(RouterRoutePtr routerRoute) override;
-      void remoteAllRelatedRoutes(ICETransport &transport) override;
+      void removeRoute(RouterRoutePtr routerRoute) noexcept override;
+      void remoteAllRelatedRoutes(ICETransport &transport) noexcept override;
 
       bool sendPacket(
                       UseICETransport &transport,
                       RouterRoutePtr routerRoute,
                       const BYTE *buffer,
                       size_t bufferSizeInBytes
-                      ) override;
+                      ) noexcept override;
 
-      void notifyLikelyReflexiveActivity(RouterRoutePtr routerRoute) override;
+      void notifyLikelyReflexiveActivity(RouterRoutePtr routerRoute) noexcept override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark ICEGatherer => IGathererAsyncDelegate
-      #pragma mark
+      //
+      // ICEGatherer => IGathererAsyncDelegate
+      //
 
       void onNotifyDeliverRouteBufferedPackets(
                                                UseICETransportPtr transport,
@@ -447,39 +447,39 @@ namespace ortc
       void onResolveStatsPromise(IStatsProvider::PromiseWithStatsReportPtr promise) override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark ICEGatherer => IWakeDelegate
-      #pragma mark
+      //
+      // ICEGatherer => IWakeDelegate
+      //
 
       void onWake() override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark ICEGatherer => IDNSDelegate
-      #pragma mark
+      //
+      // ICEGatherer => IDNSDelegate
+      //
 
       void onLookupCompleted(IDNSQueryPtr query) override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark ICEGatherer => ITimerDelegate
-      #pragma mark
+      //
+      // ICEGatherer => ITimerDelegate
+      //
 
       void onTimer(ITimerPtr timer) override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark ICEGatherer => ISocketDelegate
-      #pragma mark
+      //
+      // ICEGatherer => ISocketDelegate
+      //
 
       void onReadReady(SocketPtr socket) override;
       void onWriteReady(SocketPtr socket) override;
       void onException(SocketPtr socket) override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark ICEGatherer => IBackOffDelegate
-      #pragma mark
+      //
+      // ICEGatherer => IBackOffDelegate
+      //
 
       void onBackOffTimerStateChanged(
                                       IBackOffTimerPtr timer,
@@ -487,9 +487,9 @@ namespace ortc
                                       ) override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark ICEGatherer => ISTUNDiscoveryDelegate
-      #pragma mark
+      //
+      // ICEGatherer => ISTUNDiscoveryDelegate
+      //
 
       void onSTUNDiscoverySendPacket(
                                      ISTUNDiscoveryPtr discovery,
@@ -500,9 +500,9 @@ namespace ortc
       void onSTUNDiscoveryCompleted(ISTUNDiscoveryPtr discovery) override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark ICEGatherer => ITURNSocketDelegate
-      #pragma mark
+      //
+      // ICEGatherer => ITURNSocketDelegate
+      //
 
       void onTURNSocketStateChanged(
                                     ITURNSocketPtr socket,
@@ -514,14 +514,14 @@ namespace ortc
                                           IPAddress source,
                                           const BYTE *packet,
                                           size_t packetLengthInBytes
-                                          ) override;
+                                          ) noexcept override;
 
       bool notifyTURNSocketSendPacket(
                                       ITURNSocketPtr socket,
                                       IPAddress destination,
                                       const BYTE *packet,
                                       size_t packetLengthInBytes
-                                      ) override;
+                                      ) noexcept override;
 
       void onTURNSocketWriteReady(ITURNSocketPtr socket) override;
 
@@ -531,9 +531,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark ICEGatherer::SocketDelegate
-      #pragma mark
+      //
+      // ICEGatherer::SocketDelegate
+      //
 
       struct SocketDelegate : public zsLib::MessageQueueAssociator,
                               public zsLib::ISocketDelegate
@@ -546,7 +546,7 @@ namespace ortc
                        const make_private &,
                        IMessageQueuePtr queue,
                        ICEGathererPtr gatherer
-                       ) :
+                       ) noexcept :
           MessageQueueAssociator(queue),
           iceGatherer_(gatherer)
         {
@@ -555,27 +555,27 @@ namespace ortc
         static SocketDelegatePtr create(
                                         IMessageQueuePtr queue,
                                         ICEGathererPtr gatherer
-                                        )
+                                        ) noexcept
         {
           auto pThis(std::make_shared<SocketDelegate>(make_private{}, queue, gatherer));
           return pThis;
         }
 
-        virtual void onReadReady(SocketPtr socket) override
+        void onReadReady(SocketPtr socket) override
         {
           auto outer = iceGatherer_.lock();
           if (!outer) return;
           outer->onReadReady(socket);
         }
 
-        virtual void onWriteReady(SocketPtr socket) override
+        void onWriteReady(SocketPtr socket) override
         {
           auto outer = iceGatherer_.lock();
           if (!outer) return;
           outer->onWriteReady(socket);
         }
 
-        virtual void onException(SocketPtr socket) override
+        void onException(SocketPtr socket) override
         {
           auto outer = iceGatherer_.lock();
           if (!outer) return;
@@ -590,9 +590,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark ICEGatherer::HostIPSorter
-      #pragma mark
+      //
+      // ICEGatherer::HostIPSorter
+      //
 
       class HostIPSorter
       {
@@ -601,9 +601,9 @@ namespace ortc
         typedef ULONG OrderID;
         typedef String InterfaceName;
 
-        ZS_DECLARE_STRUCT_PTR(Data)
-        ZS_DECLARE_STRUCT_PTR(QueryData)
-        ZS_DECLARE_STRUCT_PTR(InterfaceNameMappingInfo)
+        ZS_DECLARE_STRUCT_PTR(Data);
+        ZS_DECLARE_STRUCT_PTR(QueryData);
+        ZS_DECLARE_STRUCT_PTR(InterfaceNameMappingInfo);
 
         //---------------------------------------------------------------------
         struct Data {
@@ -619,7 +619,7 @@ namespace ortc
           ULONG mIndex {};
           bool mIsTemporaryIP {false};
 
-          ElementPtr toDebug() const;
+          ElementPtr toDebug() const noexcept;
         };
 
         //---------------------------------------------------------------------
@@ -637,12 +637,12 @@ namespace ortc
           InterfaceTypes mInterfaceType {InterfaceType_Unknown};
           OrderID mOrderIndex {};
 
-          static InterfaceNameMappingInfo create(ElementPtr el);
+          static InterfaceNameMappingInfo create(ElementPtr el) noexcept;
 
-          ElementPtr createElement(const char *objectName = "interface") const;
-          bool hasData() const;
+          ElementPtr createElement(const char *objectName = "interface") const noexcept;
+          bool hasData() const noexcept;
 
-          ElementPtr toDebug() const;
+          ElementPtr toDebug() const noexcept;
         };
 
         typedef std::list<DataPtr> DataList;
@@ -652,17 +652,17 @@ namespace ortc
 
         typedef std::list<InterfaceNameMappingInfo> InterfaceMappingList;
 
-        static bool compareLocalIPs(const DataPtr &data1, const DataPtr &data2);
+        static bool compareLocalIPs(const DataPtr &data1, const DataPtr &data2) noexcept;
 
         static DataPtr prepare(
                                const IPAddress &ip,
                                const Options &options
-                               );
+                               ) noexcept;
         static DataPtr prepare(
                                const char *hostName,
                                const IPAddress &ip,
                                const Options &options
-                               );
+                               ) noexcept;
 
         static DataPtr prepare(
                                const char *interfaceName,
@@ -670,7 +670,7 @@ namespace ortc
                                const IPAddress &ip,
                                const InterfaceMappingList &prefs,
                                const Options &options
-                               );
+                               ) noexcept;
         static DataPtr prepare(
                                const char *interfaceName,
                                const char *interfaceDescription,
@@ -678,34 +678,34 @@ namespace ortc
                                ULONG metric,
                                const InterfaceMappingList &prefs,
                                const Options &options
-                               );
+                               ) noexcept;
 
         static DataPtr prepare(
                                const char *interfaceName,
                                const IPAddress &ip,
                                const InterfaceMappingList &prefs,
                                const Options &options
-                               );
+                               ) noexcept;
 
         static void fixMapping(
                                Data &ioData,
                                const InterfaceMappingList &prefs
-                               );
+                               ) noexcept;
 
         static void fixPolicy(
                               Data &ioData,
                               const Options &options
-                              );
-        static void sort(DataList &ioDataList);
+                              ) noexcept;
+        static void sort(DataList &ioDataList) noexcept;
       };
 
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark ICEGatherer::ReflexivePort
-      #pragma mark
+      //
+      // ICEGatherer::ReflexivePort
+      //
 
       struct ReflexivePort
       {
@@ -720,16 +720,16 @@ namespace ortc
         Time mLastActivity;
         ITimerPtr mInactivityTimer;
 
-        ElementPtr toDebug() const;
+        ElementPtr toDebug() const noexcept;
       };
 
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark ICEGatherer::RelayPort
-      #pragma mark
+      //
+      // ICEGatherer::RelayPort
+      //
 
       struct RelayPort
       {
@@ -746,16 +746,16 @@ namespace ortc
         Time mLastActivity;
         ITimerPtr mInactivityTimer;
 
-        ElementPtr toDebug() const;
+        ElementPtr toDebug() const noexcept;
       };
 
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark ICEGatherer::HostPort
-      #pragma mark
+      //
+      // ICEGatherer::HostPort
+      //
 
       struct HostPort
       {
@@ -789,16 +789,16 @@ namespace ortc
 
         SocketToTCPPortMap mTCPPorts;
 
-        ElementPtr toDebug() const;
+        ElementPtr toDebug() const noexcept;
       };
 
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark ICEGatherer::TCPPort
-      #pragma mark
+      //
+      // ICEGatherer::TCPPort
+      //
 
       struct TCPPort
       {
@@ -818,16 +818,16 @@ namespace ortc
         TransportID mTransportID {0};
         UseICETransportWeakPtr mTransport;
 
-        ElementPtr toDebug() const;
+        ElementPtr toDebug() const noexcept;
       };
 
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark ICEGatherer::BufferedPacket
-      #pragma mark
+      //
+      // ICEGatherer::BufferedPacket
+      //
 
       struct BufferedPacket
       {
@@ -839,16 +839,16 @@ namespace ortc
 
         SecureByteBlockPtr mBuffer;
 
-        ElementPtr toDebug() const;
+        ElementPtr toDebug() const noexcept;
       };
       
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark ICEGatherer::Route
-      #pragma mark
+      //
+      // ICEGatherer::Route
+      //
 
       struct Route
       {
@@ -871,33 +871,33 @@ namespace ortc
         void trace(
                    const char *function = NULL,
                    const char *message = NULL
-                   ) const;
-        ElementPtr toDebug() const;
+                   ) const noexcept;
+        ElementPtr toDebug() const noexcept;
       };
 
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark ICEGatherer::InstalledTransport
-      #pragma mark
+      //
+      // ICEGatherer::InstalledTransport
+      //
 
       struct InstalledTransport
       {
         TransportID mTransportID {};
         UseICETransportWeakPtr mTransport;
 
-        ElementPtr toDebug() const;
+        ElementPtr toDebug() const noexcept;
       };
 
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark ICEGatherer::Preference
-      #pragma mark
+      //
+      // ICEGatherer::Preference
+      //
 
       struct Preference
       {
@@ -908,90 +908,90 @@ namespace ortc
         DWORD *mInterfaceTypePreferences {NULL};
         DWORD *mAddressFamilyPreferences {NULL};
 
-        Preference();
-        Preference(PreferenceTypes type);
-        ~Preference();
+        Preference() noexcept;
+        Preference(PreferenceTypes type) noexcept;
+        ~Preference() noexcept;
 
         void getSettingsPrefixes(
                                  const char * &outCandidateType,
                                  const char * &outProtocolType,
                                  const char * &outInterfaceType,
                                  const char * &outAddressFamily
-                                 ) const;
-        void load();
-        void save() const;
+                                 ) const noexcept;
+        void load() noexcept;
+        void save() const noexcept;
 
-        Log::Params log(const char *message) const;
-        ElementPtr toDebug() const;
+        Log::Params log(const char *message) const noexcept;
+        ElementPtr toDebug() const noexcept;
       };
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark ICETransport => (internal)
-      #pragma mark
+      //
+      // ICETransport => (internal)
+      //
 
-      Log::Params log(const char *message) const;
-      static Log::Params slog(const char *message);
-      Log::Params debug(const char *message) const;
-      ElementPtr toDebug() const;
+      Log::Params log(const char *message) const noexcept;
+      static Log::Params slog(const char *message) noexcept;
+      Log::Params debug(const char *message) const noexcept;
+      ElementPtr toDebug() const noexcept;
 
-      bool isComplete() const;
-      bool isShuttingDown() const;
-      bool isShutdown() const;
+      bool isComplete() const noexcept;
+      bool isShuttingDown() const noexcept;
+      bool isShutdown() const noexcept;
 
-      void step();
-      bool stepRecheckIPTimer();
-      bool stepCalculateOptionsHash();
-      bool stepResolveHostIPs();
-      bool stepGetHostIPs();
-      void stepGetHostIPs_WinUWP();
-      void stepGetHostIPs_Win32();
-      void stepGetHostIPs_ifaddr();
-      bool stepCalculateHostsHash();
-      bool stepFixHostPorts();
-      bool stepBindHostPorts();
-      bool stepCheckTransportsNeedWarmth();
-      bool stepWarmUpAfterInterfaceBinding();
-      bool stepSetupReflexive();
-      bool stepTearDownReflexive();
-      bool stepSetupRelay();
-      bool stepTearDownRelay();
-      bool stepCleanPendingShutdownTURNSockets();
-      bool stepCheckIfReady();
+      void step() noexcept;
+      bool stepRecheckIPTimer() noexcept;
+      bool stepCalculateOptionsHash() noexcept;
+      bool stepResolveHostIPs() noexcept;
+      bool stepGetHostIPs() noexcept;
+      void stepGetHostIPs_WinUWP() noexcept;
+      void stepGetHostIPs_Win32() noexcept;
+      void stepGetHostIPs_ifaddr() noexcept;
+      bool stepCalculateHostsHash() noexcept;
+      bool stepFixHostPorts() noexcept;
+      bool stepBindHostPorts() noexcept;
+      bool stepCheckTransportsNeedWarmth() noexcept;
+      bool stepWarmUpAfterInterfaceBinding() noexcept;
+      bool stepSetupReflexive() noexcept;
+      bool stepTearDownReflexive() noexcept;
+      bool stepSetupRelay() noexcept;
+      bool stepTearDownRelay() noexcept;
+      bool stepCleanPendingShutdownTURNSockets() noexcept;
+      bool stepCheckIfReady() noexcept;
 
-      void cancel();
+      void cancel() noexcept;
 
-      void setState(InternalStates state);
-      void setError(WORD error, const char *reason = NULL);
+      void setState(InternalStates state) noexcept;
+      void setError(WORD error, const char *reason = NULL) noexcept;
 
-      bool hasSTUNServers();
-      bool hasTURNServers();
+      bool hasSTUNServers() noexcept;
+      bool hasTURNServers() noexcept;
       bool isServerType(
                         const Server &server,
                         const char *urlPrefix
-                        ) const;
+                        ) const noexcept;
 
       StringList createDNSLookupString(
                                        const Server &server,
                                        const char *urlPrefix
-                                       ) const;
+                                       ) const noexcept;
 
-      bool needsHostPort(HostIPSorter::DataPtr hostData);
+      bool needsHostPort(HostIPSorter::DataPtr hostData) noexcept;
 
-      void shutdown(HostPortPtr hostPort);
+      void shutdown(HostPortPtr hostPort) noexcept;
       void shutdown(
                     ReflexivePortPtr reflexivePort,
                     HostPortPtr ownerHostPort
-                    );
+                    ) noexcept;
       void shutdown(
                     RelayPortPtr relayPort,
                     HostPortPtr ownerHostPort
-                    );
+                    ) noexcept;
       void shutdown(
                     TCPPortPtr tcpPort,
                     HostPortPtr ownerHostPort
-                    );
+                    ) noexcept;
 
       void bind(
                 SocketPtr &outSocket,
@@ -999,7 +999,7 @@ namespace ortc
                 bool firstAttempt,
                 IPAddress &ioBindIP,
                 IICETypes::Protocols protocol
-                );
+                ) noexcept;
 
       CandidatePtr createCandidate(
                                    HostIPSorter::DataPtr hostData,
@@ -1007,7 +1007,7 @@ namespace ortc
                                    const IPAddress &boundIP,
                                    IICETypes::Protocols protocol = IICETypes::Protocol_UDP,
                                    IICETypes::TCPCandidateTypes tcpType = IICETypes::TCPCandidateType_Active
-                                   );
+                                   ) noexcept;
       CandidatePtr createCandidate(
                                    HostIPSorter::DataPtr hostData,
                                    IICETypes::CandidateTypes candidateType,
@@ -1015,75 +1015,75 @@ namespace ortc
                                    const IPAddress &relatedIP,
                                    const IPAddress &boundIP,
                                    const Server &server
-                                   );
+                                   ) noexcept;
 
       void addCandidate(
                         const HostIPSorter::Data &hostData,
                         const IPAddress &ip,
                         CandidatePtr candidate
-                        );
-      void removeCandidate(CandidatePtr candidate);
+                        ) noexcept;
+      void removeCandidate(CandidatePtr candidate) noexcept;
 
       bool isFiltered(
                       FilterPolicies policy,
                       const IPAddress &ip,
                       const Candidate &candidate
-                      ) const;
+                      ) const noexcept;
 
       bool read(
                 HostPortPtr hostPort,
                 SocketPtr socket
-                );
+                ) noexcept;
       void read(
                 HostPort &hostPort,
                 TCPPort &tcpPort
-                );
+                ) noexcept;
 
       void write(
                  HostPort &hostPort,
                  SocketPtr socket
-                 );
-      bool writeIfTCPPort(SocketPtr socket);
+                 ) noexcept;
+      bool writeIfTCPPort(SocketPtr socket) noexcept;
 
       void close(
                  HostPortPtr hostPort,
                  SocketPtr socket
-                 );
+                 ) noexcept;
       void close(
                  TCPPortPtr tcpPort,
                  HostPortPtr hostPort
-                 );
+                 ) noexcept;
 
       SecureByteBlockPtr handleIncomingPacket(
                                               CandidatePtr localCandidate,
                                               const IPAddress &remoteIP,
                                               STUNPacketPtr stunPacket
-                                              );
+                                              ) noexcept;
       void handleIncomingPacket(
                                 CandidatePtr localCandidate,
                                 const IPAddress &remoteIP,
                                 const BYTE *buffer,
                                 size_t bufferSizeInBytes
-                                );
+                                ) noexcept;
 
-      CandidatePtr findSentFromLocalCandidate(RouterRoutePtr routerRoute);
+      CandidatePtr findSentFromLocalCandidate(RouterRoutePtr routerRoute) noexcept;
 
       RoutePtr installRoute(
                             RouterRoutePtr routerRoute,
                             UseICETransportPtr transport
-                            );
+                            ) noexcept;
       RoutePtr installRoute(
                             CandidatePtr sentFromLocalCandidate,
                             const IPAddress &remoteIP,
                             UseICETransportPtr transport
-                            );
+                            ) noexcept;
 
-      void fix(STUNPacketPtr stunPacket) const;
+      void fix(STUNPacketPtr stunPacket) const noexcept;
 
       void removeAllRelatedRoutes(
                                   TransportID transportID,
                                   UseICETransportPtr transportIfAvailable
-                                  );
+                                  ) noexcept;
 
       bool sendUDPPacket(
                          SocketPtr socket,
@@ -1091,18 +1091,18 @@ namespace ortc
                          const IPAddress &remoteIP,
                          const BYTE *buffer,
                          size_t bufferSizeInBytes
-                         );
+                         ) noexcept;
 
-      bool shouldKeepWarm() const;
-      bool shouldWarmUpAfterInterfaceBinding() const;
+      bool shouldKeepWarm() const noexcept;
+      bool shouldWarmUpAfterInterfaceBinding() const noexcept;
 
-      void fixSTUNParserOptions(const STUNPacketPtr &packet);
+      void fixSTUNParserOptions(const STUNPacketPtr &packet) noexcept;
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark ICETransport => (data)
-      #pragma mark
+      //
+      // ICETransport => (data)
+      //
 
       ICEGathererWeakPtr mThisWeak;
       AutoPUID mID;
@@ -1209,18 +1209,18 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IICEGathererFactory
-    #pragma mark
+    //
+    // IICEGathererFactory
+    //
 
     interaction IICEGathererFactory
     {
-      static IICEGathererFactory &singleton();
+      static IICEGathererFactory &singleton() noexcept;
 
       virtual ICEGathererPtr create(
                                     IICEGathererDelegatePtr delegate,
                                     const IICEGathererTypes::Options &options
-                                    );
+                                    ) noexcept;
     };
 
     class ICEGathererFactory : public IFactory<IICEGathererFactory> {};
@@ -1230,6 +1230,6 @@ namespace ortc
 ZS_DECLARE_PROXY_BEGIN(ortc::internal::IGathererAsyncDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::IGathererAsyncDelegate::UseICETransportPtr, UseICETransportPtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IStatsProvider::PromiseWithStatsReportPtr, PromiseWithStatsReportPtr)
-ZS_DECLARE_PROXY_METHOD_2(onNotifyDeliverRouteBufferedPackets, UseICETransportPtr, PUID)
-ZS_DECLARE_PROXY_METHOD_1(onResolveStatsPromise, PromiseWithStatsReportPtr)
+ZS_DECLARE_PROXY_METHOD(onNotifyDeliverRouteBufferedPackets, UseICETransportPtr, PUID)
+ZS_DECLARE_PROXY_METHOD(onResolveStatsPromise, PromiseWithStatsReportPtr)
 ZS_DECLARE_PROXY_END()

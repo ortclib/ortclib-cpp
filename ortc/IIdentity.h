@@ -39,25 +39,25 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IIdentityTypes
-  #pragma mark
+  //
+  // IIdentityTypes
+  //
   
   interaction IIdentityTypes
   {
-    ZS_DECLARE_STRUCT_PTR(Assertion)
-    ZS_DECLARE_STRUCT_PTR(Result)
-    ZS_DECLARE_STRUCT_PTR(Error)
+    ZS_DECLARE_STRUCT_PTR(Assertion);
+    ZS_DECLARE_STRUCT_PTR(Result);
+    ZS_DECLARE_STRUCT_PTR(Error);
 
     typedef PromiseWith<Result, Error> PromiseWithResult;
-    ZS_DECLARE_PTR(PromiseWithResult)
+    ZS_DECLARE_PTR(PromiseWithResult);
 
-    ZS_DECLARE_TYPEDEF_PTR(PromiseWith<Assertion>, PromiseWithAssertion)
+    ZS_DECLARE_TYPEDEF_PTR(PromiseWith<Assertion>, PromiseWithAssertion);
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IIdentityTypes::Assertion
-    #pragma mark
+    //
+    // IIdentityTypes::Assertion
+    //
 
     struct Assertion {
       String        mIDP;
@@ -65,27 +65,27 @@ namespace ortc
     };
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IIdentityTypes::Result
-    #pragma mark
+    //
+    // IIdentityTypes::Result
+    //
 
     struct Result : public Any {
       String        mAssertion;
 
-      static ResultPtr convert(AnyPtr any);
+      static ResultPtr convert(AnyPtr any) noexcept;
     };
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IIdentityTypes::Error
-    #pragma mark
+    //
+    // IIdentityTypes::Error
+    //
 
     struct Error : public Any {
       String        mIDP;
       String        mProtocol;
       String        mLoginURL;
 
-      static ErrorPtr convert(AnyPtr any);
+      static ErrorPtr convert(AnyPtr any) noexcept;
     };
   };
 
@@ -93,28 +93,28 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IIdentity
-  #pragma mark
+  //
+  // IIdentity
+  //
   
   interaction IIdentity : public IIdentityTypes
   {
-    static ElementPtr toDebug(IIdentityPtr channel);
+    static ElementPtr toDebug(IIdentityPtr channel) noexcept;
 
-    static IIdentityPtr create(IDTLSTransportPtr transport);
+    static IIdentityPtr create(IDTLSTransportPtr transport) noexcept;
 
-    virtual PUID getID() const = 0;
+    virtual PUID getID() const noexcept = 0;
 
-    virtual AssertionPtr peerIdentity() const = 0;
+    virtual AssertionPtr peerIdentity() const noexcept = 0;
 
-    virtual IDTLSTransportPtr transport() const = 0;
+    virtual IDTLSTransportPtr transport() const noexcept = 0;
 
     virtual PromiseWithResultPtr getIdentityAssertion(
                                                       const char *provider,
                                                       const char *protocol = "default",
                                                       const char *username = NULL
-                                                      ) throw (InvalidStateError) = 0;
+                                                      ) noexcept(false) = 0; // throws InvalidStateError
 
-    virtual PromiseWithAssertionPtr setIdentityAssertion(const String &assertion) = 0;
+    virtual PromiseWithAssertionPtr setIdentityAssertion(const String &assertion) noexcept = 0;
   };
 }

@@ -22,13 +22,13 @@ namespace wrapper {
         } // namespace adapater
 
         //---------------------------------------------------------------------
-        zsLib::IMessageQueuePtr Helper::getGuiQueue()
+        zsLib::IMessageQueuePtr Helper::getGuiQueue() noexcept
         {
           return zsLib::IMessageQueueThread::singletonUsingCurrentGUIThreadsMessageQueue();
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::log::Level Helper::toWrapper(zsLib::Log::Level level)
+        wrapper::org::ortc::log::Level Helper::toWrapper(zsLib::Log::Level level) noexcept
         {
           switch (level)
           {
@@ -39,12 +39,12 @@ namespace wrapper {
             case zsLib::Log::Level::Trace:  return wrapper::org::ortc::log::Level_trace;
             case zsLib::Log::Level::Insane: return wrapper::org::ortc::log::Level_insane;
           }
-          ZS_THROW_INVALID_ARGUMENT("level is unknown");
+          ZS_ASSERT_FAIL("level is unknown");
           return toWrapper(zsLib::Log::Level_First);
         }
 
         //---------------------------------------------------------------------
-        zsLib::Log::Level Helper::toNative(wrapper::org::ortc::log::Level level)
+        zsLib::Log::Level Helper::toNative(wrapper::org::ortc::log::Level level) noexcept
         {
           switch (level)
           {
@@ -55,12 +55,12 @@ namespace wrapper {
             case wrapper::org::ortc::log::Level_trace:  return zsLib::Log::Level::Trace;
             case wrapper::org::ortc::log::Level_insane: return zsLib::Log::Level::Insane;
           }
-          ZS_THROW_INVALID_ARGUMENT("level is unknown");
+          ZS_ASSERT_FAIL("level is unknown");
           return zsLib::Log::Level_First;
         }
 
         //---------------------------------------------------------------------
-        const char *Helper::toNative(wrapper::org::ortc::log::Component component)
+        const char *Helper::toNative(wrapper::org::ortc::log::Component component) noexcept
         {
           const char *componentStr{};
           switch (component) {
@@ -95,48 +95,48 @@ namespace wrapper {
             case wrapper::org::ortc::log::Component_stats:                   componentStr = "org_ortc_stats"; break;
             case wrapper::org::ortc::log::Component_adapter:                 componentStr = "org_ortc_adapter"; break;
           };
-          ZS_THROW_INVALID_ARGUMENT_IF(!componentStr);
+          ZS_ASSERT(componentStr);
           return componentStr;
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::MediaStreamTrackKind Helper::toWrapper(IMediaStreamTrackTypes::Kinds kind)
+        wrapper::org::ortc::MediaStreamTrackKind Helper::toWrapper(IMediaStreamTrackTypes::Kinds kind) noexcept
         {
           switch (kind)
           {
             case IMediaStreamTrackTypes::Kind_Audio: return wrapper::org::ortc::MediaStreamTrackKind::MediaStreamTrackKind_audio;
             case IMediaStreamTrackTypes::Kind_Video: return wrapper::org::ortc::MediaStreamTrackKind::MediaStreamTrackKind_video;
           }
-          ZS_THROW_INVALID_ARGUMENT("kind is unknown");
+          ZS_ASSERT_FAIL("kind is unknown");
           return toWrapper(IMediaStreamTrackTypes::Kind_First);
         }
 
         //---------------------------------------------------------------------
-        ::ortc::IMediaStreamTrackTypes::Kinds Helper::toNative(wrapper::org::ortc::MediaStreamTrackKind kind)
+        ::ortc::IMediaStreamTrackTypes::Kinds Helper::toNative(wrapper::org::ortc::MediaStreamTrackKind kind) noexcept
         {
           switch (kind)
           {
             case wrapper::org::ortc::MediaStreamTrackKind::MediaStreamTrackKind_audio: return IMediaStreamTrackTypes::Kind_Audio;
             case wrapper::org::ortc::MediaStreamTrackKind::MediaStreamTrackKind_video: return IMediaStreamTrackTypes::Kind_Video;
           }
-          ZS_THROW_INVALID_ARGUMENT("kind is unknown");
+          ZS_ASSERT_FAIL("kind is unknown");
           return IMediaStreamTrackTypes::Kind_First;
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::MediaStreamTrackState Helper::toWrapper(IMediaStreamTrackTypes::States state)
+        wrapper::org::ortc::MediaStreamTrackState Helper::toWrapper(IMediaStreamTrackTypes::States state) noexcept
         {
           switch (state)
           {
             case IMediaStreamTrackTypes::State_Live: return wrapper::org::ortc::MediaStreamTrackState::MediaStreamTrackState_live;
             case IMediaStreamTrackTypes::State_Ended: return wrapper::org::ortc::MediaStreamTrackState::MediaStreamTrackState_ended;
           }
-          ZS_THROW_INVALID_ARGUMENT("state is unknown");
+          ZS_ASSERT_FAIL("state is unknown");
           return wrapper::org::ortc::MediaStreamTrackState::MediaStreamTrackState_ended;
         }
 
         //---------------------------------------------------------------------
-        ::ortc::IMediaDevicesTypes::DeviceKinds Helper::toNative(wrapper::org::ortc::MediaDeviceKind kind)
+        ::ortc::IMediaDevicesTypes::DeviceKinds Helper::toNative(wrapper::org::ortc::MediaDeviceKind kind) noexcept
         {
           switch (kind)
           {
@@ -145,12 +145,12 @@ namespace wrapper {
             case wrapper::org::ortc::MediaDeviceKind_videoInput:       return ::ortc::IMediaDevicesTypes::DeviceKind_VideoInput;
           }
 
-          ZS_THROW_INVALID_ARGUMENT("kind is unknown");
+          ZS_ASSERT_FAIL("kind is unknown");
           return ::ortc::IMediaDevicesTypes::DeviceKind_First;
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::MediaDeviceKind Helper::toWrapper(::ortc::IMediaDevicesTypes::DeviceKinds kind)
+        wrapper::org::ortc::MediaDeviceKind Helper::toWrapper(::ortc::IMediaDevicesTypes::DeviceKinds kind) noexcept
         {
           switch (kind)
           {
@@ -158,12 +158,12 @@ namespace wrapper {
             case ::ortc::IMediaDevicesTypes::DeviceKind_AudioOutput:    return wrapper::org::ortc::MediaDeviceKind_audioOutput;
             case ::ortc::IMediaDevicesTypes::DeviceKind_VideoInput:     return wrapper::org::ortc::MediaDeviceKind_videoInput;
           }
-          ZS_THROW_INVALID_ARGUMENT("kind is unknown");
+          ZS_ASSERT_FAIL("kind is unknown");
           return toWrapper(::ortc::IMediaDevicesTypes::DeviceKind_First);
         }
 
         //---------------------------------------------------------------------
-        ::ortc::IStatsReportTypes::StatsTypes Helper::toNative(wrapper::org::ortc::RTCStatsType type)
+        ::ortc::IStatsReportTypes::StatsTypes Helper::toNative(wrapper::org::ortc::RTCStatsType type) noexcept
         {
           switch (type)
           {
@@ -185,12 +185,12 @@ namespace wrapper {
             case wrapper::org::ortc::RTCStatsType_remoteCandidate:  return ::ortc::IStatsReportTypes::StatsType_RemoteCandidate;
           }
 
-          ZS_THROW_INVALID_ARGUMENT("stats type is unknown");
+          ZS_ASSERT_FAIL("stats type is unknown");
           return ::ortc::IStatsReportTypes::StatsType_First;
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::RTCStatsType Helper::toWrapper(::ortc::IStatsReportTypes::StatsTypes type)
+        wrapper::org::ortc::RTCStatsType Helper::toWrapper(::ortc::IStatsReportTypes::StatsTypes type) noexcept
         {
           switch (type)
           {
@@ -211,12 +211,12 @@ namespace wrapper {
             case ::ortc::IStatsReportTypes::StatsType_LocalCandidate:   return wrapper::org::ortc::RTCStatsType_localCandidate;
             case ::ortc::IStatsReportTypes::StatsType_RemoteCandidate:  return wrapper::org::ortc::RTCStatsType_remoteCandidate;
           }
-          ZS_THROW_INVALID_ARGUMENT("stats type is unknown");
+          ZS_ASSERT_FAIL("stats type is unknown");
           return toWrapper(::ortc::IStatsReportTypes::StatsType_First);
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::RTCSctpTransportState Helper::toWrapper(::ortc::ISCTPTransportTypes::States state)
+        wrapper::org::ortc::RTCSctpTransportState Helper::toWrapper(::ortc::ISCTPTransportTypes::States state) noexcept
         {
           switch (state)
           {
@@ -225,12 +225,12 @@ namespace wrapper {
             case ::ortc::ISCTPTransportTypes::State_Connected:      return wrapper::org::ortc::RTCSctpTransportState_connected;
             case ::ortc::ISCTPTransportTypes::State_Closed:         return wrapper::org::ortc::RTCSctpTransportState_closed;
           }
-          ZS_THROW_INVALID_ARGUMENT("state is unknown");
+          ZS_ASSERT_FAIL("state is unknown");
           return toWrapper(::ortc::ISCTPTransportTypes::State_First);
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::RTCDataChannelState Helper::toWrapper(::ortc::IDataChannelTypes::States state)
+        wrapper::org::ortc::RTCDataChannelState Helper::toWrapper(::ortc::IDataChannelTypes::States state) noexcept
         {
           switch (state)
           {
@@ -239,12 +239,12 @@ namespace wrapper {
             case ::ortc::IDataChannelTypes::State_Closing:    return wrapper::org::ortc::RTCDataChannelState_closing;
             case ::ortc::IDataChannelTypes::State_Closed:     return wrapper::org::ortc::RTCDataChannelState_closed;
           }
-          ZS_THROW_INVALID_ARGUMENT("data channel state is unknown");
+          ZS_ASSERT_FAIL("data channel state is unknown");
           return toWrapper(::ortc::IDataChannelTypes::State_First);
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::RTCIceCandidatePairState Helper::toWrapper(::ortc::IStatsReportTypes::StatsICECandidatePairStates state)
+        wrapper::org::ortc::RTCIceCandidatePairState Helper::toWrapper(::ortc::IStatsReportTypes::StatsICECandidatePairStates state) noexcept
         {
           switch (state)
           {
@@ -255,60 +255,60 @@ namespace wrapper {
             case ::ortc::IStatsReportTypes::StatsICECandidatePairState_Succeeded:   return wrapper::org::ortc::RTCIceCandidatePairState_succeeded;
             case ::ortc::IStatsReportTypes::StatsICECandidatePairState_Cancelled:   return wrapper::org::ortc::RTCIceCandidatePairState_failed;
           }
-          ZS_THROW_INVALID_ARGUMENT("ICE candidate pair state is unknown");
+          ZS_ASSERT_FAIL("ICE candidate pair state is unknown");
           return toWrapper(::ortc::IStatsReportTypes::StatsICECandidatePairState_First);
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::adapter::RTCPeerConnectionSignalingMode Helper::toWrapper(::ortc::adapter::IPeerConnectionTypes::SignalingModes mode)
+        wrapper::org::ortc::adapter::RTCPeerConnectionSignalingMode Helper::toWrapper(::ortc::adapter::IPeerConnectionTypes::SignalingModes mode) noexcept
         {
           switch (mode)
           {
             case ::ortc::adapter::IPeerConnectionTypes::SignalingMode_JSON:         return wrapper::org::ortc::adapter::RTCPeerConnectionSignalingMode_json;
             case ::ortc::adapter::IPeerConnectionTypes::SignalingMode_SDP:          return wrapper::org::ortc::adapter::RTCPeerConnectionSignalingMode_sdp;
           }
-          ZS_THROW_INVALID_ARGUMENT("signaling mode is unknown");
+          ZS_ASSERT_FAIL("signaling mode is unknown");
           return toWrapper(::ortc::adapter::IPeerConnectionTypes::SignalingMode_First);
         }
 
         //---------------------------------------------------------------------
-        ::ortc::adapter::IPeerConnectionTypes::SignalingModes Helper::toNative(wrapper::org::ortc::adapter::RTCPeerConnectionSignalingMode mode)
+        ::ortc::adapter::IPeerConnectionTypes::SignalingModes Helper::toNative(wrapper::org::ortc::adapter::RTCPeerConnectionSignalingMode mode) noexcept
         {
           switch (mode)
           {
             case wrapper::org::ortc::adapter::RTCPeerConnectionSignalingMode_json:         return ::ortc::adapter::IPeerConnectionTypes::SignalingMode_JSON;
             case wrapper::org::ortc::adapter::RTCPeerConnectionSignalingMode_sdp:          return ::ortc::adapter::IPeerConnectionTypes::SignalingMode_SDP;
           }
-          ZS_THROW_INVALID_ARGUMENT("signaling mode is unknown");
+          ZS_ASSERT_FAIL("signaling mode is unknown");
           return ::ortc::adapter::IPeerConnectionTypes::SignalingMode_First;
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::adapter::RTCRtcpMuxPolicy Helper::toWrapper(::ortc::adapter::IPeerConnectionTypes::RTCPMuxPolicies policy)
+        wrapper::org::ortc::adapter::RTCRtcpMuxPolicy Helper::toWrapper(::ortc::adapter::IPeerConnectionTypes::RTCPMuxPolicies policy) noexcept
         {
           switch (policy)
           {
             case ::ortc::adapter::IPeerConnectionTypes::RTCPMuxPolicy_Negotiated:       return wrapper::org::ortc::adapter::RTCRtcpMuxPolicy_negotiated;
             case ::ortc::adapter::IPeerConnectionTypes::RTCPMuxPolicy_Require:          return wrapper::org::ortc::adapter::RTCRtcpMuxPolicy_require;
           }
-          ZS_THROW_INVALID_ARGUMENT("mux policy mode is unknown");
+          ZS_ASSERT_FAIL("mux policy mode is unknown");
           return toWrapper(::ortc::adapter::IPeerConnectionTypes::RTCPMuxPolicy_First);
         }
 
         //---------------------------------------------------------------------
-        ::ortc::adapter::IPeerConnectionTypes::RTCPMuxPolicies Helper::toNative(wrapper::org::ortc::adapter::RTCRtcpMuxPolicy policy)
+        ::ortc::adapter::IPeerConnectionTypes::RTCPMuxPolicies Helper::toNative(wrapper::org::ortc::adapter::RTCRtcpMuxPolicy policy) noexcept
         {
           switch (policy)
           {
             case wrapper::org::ortc::adapter::RTCRtcpMuxPolicy_negotiated:       return ::ortc::adapter::IPeerConnectionTypes::RTCPMuxPolicy_Negotiated;
             case wrapper::org::ortc::adapter::RTCRtcpMuxPolicy_require:          return ::ortc::adapter::IPeerConnectionTypes::RTCPMuxPolicy_Require;
           }
-          ZS_THROW_INVALID_ARGUMENT("mux policy is unknown");
+          ZS_ASSERT_FAIL("mux policy is unknown");
           return ::ortc::adapter::IPeerConnectionTypes::RTCPMuxPolicy_First;
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::adapter::RTCBundlePolicy Helper::toWrapper(::ortc::adapter::IPeerConnectionTypes::BundlePolicies policy)
+        wrapper::org::ortc::adapter::RTCBundlePolicy Helper::toWrapper(::ortc::adapter::IPeerConnectionTypes::BundlePolicies policy) noexcept
         {
           switch (policy)
           {
@@ -316,12 +316,12 @@ namespace wrapper {
             case ::ortc::adapter::IPeerConnectionTypes::BundlePolicy_MaxCompat:   return wrapper::org::ortc::adapter::RTCBundlePolicy_maxCompat;
             case ::ortc::adapter::IPeerConnectionTypes::BundlePolicy_MaxBundle:   return wrapper::org::ortc::adapter::RTCBundlePolicy_maxBundle;
           }
-          ZS_THROW_INVALID_ARGUMENT("bundle policy mode is unknown");
+          ZS_ASSERT_FAIL("bundle policy mode is unknown");
           return toWrapper(::ortc::adapter::IPeerConnectionTypes::BundlePolicy_First);
         }
 
         //---------------------------------------------------------------------
-        ::ortc::adapter::IPeerConnectionTypes::BundlePolicies Helper::toNative(wrapper::org::ortc::adapter::RTCBundlePolicy policy)
+        ::ortc::adapter::IPeerConnectionTypes::BundlePolicies Helper::toNative(wrapper::org::ortc::adapter::RTCBundlePolicy policy) noexcept
         {
           switch (policy)
           {
@@ -329,12 +329,12 @@ namespace wrapper {
             case wrapper::org::ortc::adapter::RTCBundlePolicy_maxCompat:      return ::ortc::adapter::IPeerConnectionTypes::BundlePolicy_MaxCompat;
             case wrapper::org::ortc::adapter::RTCBundlePolicy_maxBundle:      return ::ortc::adapter::IPeerConnectionTypes::BundlePolicy_MaxBundle;
           }
-          ZS_THROW_INVALID_ARGUMENT("bundle policy is unknown");
+          ZS_ASSERT_FAIL("bundle policy is unknown");
           return ::ortc::adapter::IPeerConnectionTypes::BundlePolicy_First;
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::adapter::RTCSignalingState Helper::toWrapper(::ortc::adapter::IPeerConnectionTypes::SignalingStates state)
+        wrapper::org::ortc::adapter::RTCSignalingState Helper::toWrapper(::ortc::adapter::IPeerConnectionTypes::SignalingStates state) noexcept
         {
           switch (state)
           {
@@ -345,12 +345,12 @@ namespace wrapper {
             case ::ortc::adapter::IPeerConnectionTypes::SignalingState_HaveRemotePranswer:  return wrapper::org::ortc::adapter::RTCSignalingState_haveRemotePranswer;
             case ::ortc::adapter::IPeerConnectionTypes::SignalingState_Closed:              return wrapper::org::ortc::adapter::RTCSignalingState_closed;
            }
-          ZS_THROW_INVALID_ARGUMENT("state is unknown");
+          ZS_ASSERT_FAIL("state is unknown");
           return toWrapper(::ortc::adapter::IPeerConnectionTypes::SignalingState_First);
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::adapter::RTCIceConnectionState Helper::toPeerConnectionWrapper(::ortc::IICETransportTypes::States state)
+        wrapper::org::ortc::adapter::RTCIceConnectionState Helper::toPeerConnectionWrapper(::ortc::IICETransportTypes::States state) noexcept
         {
          switch (state)
           {
@@ -362,12 +362,12 @@ namespace wrapper {
             case ::ortc::IICETransportTypes::State_Failed:        return wrapper::org::ortc::adapter::RTCIceConnectionState_failed;
             case ::ortc::IICETransportTypes::State_Closed:        return wrapper::org::ortc::adapter::RTCIceConnectionState_closed;
          }
-          ZS_THROW_INVALID_ARGUMENT("state is unknown");
+         ZS_ASSERT_FAIL("state is unknown");
           return toPeerConnectionWrapper(::ortc::IICETransportTypes::State_First);
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::adapter::RTCPeerConnectionState Helper::toWrapper(::ortc::adapter::IPeerConnectionTypes::PeerConnectionStates state)
+        wrapper::org::ortc::adapter::RTCPeerConnectionState Helper::toWrapper(::ortc::adapter::IPeerConnectionTypes::PeerConnectionStates state) noexcept
         {
           switch (state)
           {
@@ -378,48 +378,48 @@ namespace wrapper {
             case ::ortc::adapter::IPeerConnectionTypes::PeerConnectionState_Failed:       return wrapper::org::ortc::adapter::RTCPeerConnectionState_failed;
             case ::ortc::adapter::IPeerConnectionTypes::PeerConnectionState_Closed:       return wrapper::org::ortc::adapter::RTCPeerConnectionState_closed;
           }
-          ZS_THROW_INVALID_ARGUMENT("state is unknown");
+          ZS_ASSERT_FAIL("state is unknown");
           return toWrapper(::ortc::adapter::IPeerConnectionTypes::PeerConnectionState_First);
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::RTCIceGatherFilterPolicy Helper::toWrapper(::ortc::IICEGathererTypes::FilterPolicies policy)
+        wrapper::org::ortc::RTCIceGatherFilterPolicy Helper::toWrapper(::ortc::IICEGathererTypes::FilterPolicies policy) noexcept
         {
           return static_cast<wrapper::org::ortc::RTCIceGatherFilterPolicy>(static_cast<std::underlying_type<::ortc::IICEGathererTypes::FilterPolicies>::type>(policy));
         }
 
         //---------------------------------------------------------------------
-        ::ortc::IICEGathererTypes::FilterPolicies Helper::toNative(wrapper::org::ortc::RTCIceGatherFilterPolicy policy)
+        ::ortc::IICEGathererTypes::FilterPolicies Helper::toNative(wrapper::org::ortc::RTCIceGatherFilterPolicy policy) noexcept
         {
           return static_cast<::ortc::IICEGathererTypes::FilterPolicies>(static_cast<std::underlying_type<wrapper::org::ortc::RTCIceGatherFilterPolicy>::type>(policy));
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::RTCIceCredentialType Helper::toWrapper(::ortc::IICEGathererTypes::CredentialTypes type)
+        wrapper::org::ortc::RTCIceCredentialType Helper::toWrapper(::ortc::IICEGathererTypes::CredentialTypes type) noexcept
         {
           switch (type)
           {
             case ::ortc::IICEGathererTypes::CredentialType_Password:  return wrapper::org::ortc::RTCIceCredentialType_password;
             case ::ortc::IICEGathererTypes::CredentialType_Token:     return wrapper::org::ortc::RTCIceCredentialType_token;
           }
-          ZS_THROW_INVALID_ARGUMENT("credential type is unknown");
+          ZS_ASSERT_FAIL("credential type is unknown");
           return toWrapper(::ortc::IICEGathererTypes::CredentialType_First);
         }
 
         //---------------------------------------------------------------------
-        ::ortc::IICEGathererTypes::CredentialTypes Helper::toNative(wrapper::org::ortc::RTCIceCredentialType type)
+        ::ortc::IICEGathererTypes::CredentialTypes Helper::toNative(wrapper::org::ortc::RTCIceCredentialType type) noexcept
         {
           switch (type)
           {
             case wrapper::org::ortc::RTCIceCredentialType_password:   return ::ortc::IICEGathererTypes::CredentialType_Password;
             case wrapper::org::ortc::RTCIceCredentialType_token:      return ::ortc::IICEGathererTypes::CredentialType_Token;
           }
-          ZS_THROW_INVALID_ARGUMENT("credential type is unknown");
+          ZS_ASSERT_FAIL("credential type is unknown");
           return ::ortc::IICEGathererTypes::CredentialType_First;
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::RTCIceGathererState Helper::toWrapper(::ortc::IICEGathererTypes::States state)
+        wrapper::org::ortc::RTCIceGathererState Helper::toWrapper(::ortc::IICEGathererTypes::States state) noexcept
         {
           switch (state)
           {
@@ -428,12 +428,12 @@ namespace wrapper {
             case ::ortc::IICEGathererTypes::State_Complete:   return wrapper::org::ortc::RTCIceGathererState_complete;
             case ::ortc::IICEGathererTypes::State_Closed:     return wrapper::org::ortc::RTCIceGathererState_closed;
           }
-          ZS_THROW_INVALID_ARGUMENT("state is unknown");
+          ZS_ASSERT_FAIL("state is unknown");
           return toWrapper(::ortc::IICEGathererTypes::State_First);
         }
 
         //---------------------------------------------------------------------
-        ::ortc::IICEGathererTypes::States Helper::toNative(wrapper::org::ortc::RTCIceGathererState state)
+        ::ortc::IICEGathererTypes::States Helper::toNative(wrapper::org::ortc::RTCIceGathererState state) noexcept
         {
           switch (state)
           {
@@ -442,12 +442,12 @@ namespace wrapper {
             case wrapper::org::ortc::RTCIceGathererState_complete:    return ::ortc::IICEGathererTypes::State_Complete;
             case wrapper::org::ortc::RTCIceGathererState_closed:      return ::ortc::IICEGathererTypes::State_Closed;
           }
-          ZS_THROW_INVALID_ARGUMENT("state is unknown");
+          ZS_ASSERT_FAIL("state is unknown");
           return ::ortc::IICEGathererTypes::State_First;
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::RTCIceCandidateType Helper::toWrapper(::ortc::IICETypes::CandidateTypes type)
+        wrapper::org::ortc::RTCIceCandidateType Helper::toWrapper(::ortc::IICETypes::CandidateTypes type) noexcept
         {
           switch (type)
           {
@@ -456,36 +456,36 @@ namespace wrapper {
             case ::ortc::IICETypes::CandidateType_Prflx:    return wrapper::org::ortc::RTCIceCandidateType_prflx;
             case ::ortc::IICETypes::CandidateType_Relay:    return wrapper::org::ortc::RTCIceCandidateType_relay;
           }
-          ZS_THROW_INVALID_ARGUMENT("ice candidate type is unknown");
+          ZS_ASSERT_FAIL("ice candidate type is unknown");
           return toWrapper(::ortc::IICETypes::CandidateType_First);
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::RTCIceComponent Helper::toWrapper(::ortc::IICETypes::Components component)
+        wrapper::org::ortc::RTCIceComponent Helper::toWrapper(::ortc::IICETypes::Components component) noexcept
         {
           switch (component)
           {
             case ::ortc::IICETypes::Component_RTP:    return wrapper::org::ortc::RTCIceComponent_rtp;
             case ::ortc::IICETypes::Component_RTCP:   return wrapper::org::ortc::RTCIceComponent_rtcp;
           }
-          ZS_THROW_INVALID_ARGUMENT("component is unknown");
+          ZS_ASSERT_FAIL("component is unknown");
           return toWrapper(::ortc::IICETypes::Component_First);
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::RTCIceProtocol Helper::toWrapper(::ortc::IICETypes::Protocols protocol)
+        wrapper::org::ortc::RTCIceProtocol Helper::toWrapper(::ortc::IICETypes::Protocols protocol) noexcept
         {
           switch (protocol)
           {
             case ::ortc::IICETypes::Protocol_UDP:  return wrapper::org::ortc::RTCIceProtocol_udp;
             case ::ortc::IICETypes::Protocol_TCP:  return wrapper::org::ortc::RTCIceProtocol_tcp;
            }
-          ZS_THROW_INVALID_ARGUMENT("protocol is unknown");
+          ZS_ASSERT_FAIL("protocol is unknown");
           return toWrapper(::ortc::IICETypes::Protocol_First);
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::RTCIceTcpCandidateType Helper::toWrapper(::ortc::IICETypes::TCPCandidateTypes type)
+        wrapper::org::ortc::RTCIceTcpCandidateType Helper::toWrapper(::ortc::IICETypes::TCPCandidateTypes type) noexcept
         {
           switch (type)
           {
@@ -493,12 +493,12 @@ namespace wrapper {
             case ::ortc::IICETypes::TCPCandidateType_Passive: return wrapper::org::ortc::RTCIceTcpCandidateType_passive;
             case ::ortc::IICETypes::TCPCandidateType_SO:      return wrapper::org::ortc::RTCIceTcpCandidateType_so;
           }
-          ZS_THROW_INVALID_ARGUMENT("tcp candidate type is unknown");
+          ZS_ASSERT_FAIL("tcp candidate type is unknown");
           return toWrapper(::ortc::IICETypes::TCPCandidateType_First);
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::RTCIceTransportState Helper::toWrapper(::ortc::IICETransportTypes::States state)
+        wrapper::org::ortc::RTCIceTransportState Helper::toWrapper(::ortc::IICETransportTypes::States state) noexcept
         {
           switch (state)
           {
@@ -510,12 +510,12 @@ namespace wrapper {
             case ::ortc::IICETransportTypes::State_Failed:        return wrapper::org::ortc::RTCIceTransportState_failed;
             case ::ortc::IICETransportTypes::State_Closed:        return wrapper::org::ortc::RTCIceTransportState_closed;
           }
-          ZS_THROW_INVALID_ARGUMENT("state is unknown");
+          ZS_ASSERT_FAIL("state is unknown");
           return toWrapper(::ortc::IICETransportTypes::State_First);
         }
 
         //---------------------------------------------------------------------
-        ::ortc::IICETransportTypes::States Helper::toNative(wrapper::org::ortc::RTCIceTransportState state)
+        ::ortc::IICETransportTypes::States Helper::toNative(wrapper::org::ortc::RTCIceTransportState state) noexcept
         {
           switch (state)
           {
@@ -527,36 +527,36 @@ namespace wrapper {
             case wrapper::org::ortc::RTCIceTransportState_failed:       return ::ortc::IICETransportTypes::State_Failed;
             case wrapper::org::ortc::RTCIceTransportState_closed:       return ::ortc::IICETransportTypes::State_Closed;
           }
-          ZS_THROW_INVALID_ARGUMENT("state is unknown");
+          ZS_ASSERT_FAIL("state is unknown");
           return ::ortc::IICETransportTypes::State_First;
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::RTCIceRole Helper::toWrapper(::ortc::IICETypes::Roles role)
+        wrapper::org::ortc::RTCIceRole Helper::toWrapper(::ortc::IICETypes::Roles role) noexcept
         {
           switch (role)
           {
             case ::ortc::IICETypes::Role_Controlling:           return wrapper::org::ortc::RTCIceRole_controlling;
             case ::ortc::IICETypes::Role_Controlled:            return wrapper::org::ortc::RTCIceRole_controlled;
           }
-          ZS_THROW_INVALID_ARGUMENT("role is unknown");
+          ZS_ASSERT_FAIL("role is unknown");
           return toWrapper(::ortc::IICETypes::Role_First);
         }
 
         //---------------------------------------------------------------------
-        ::ortc::IICETypes::Roles Helper::toNative(wrapper::org::ortc::RTCIceRole role)
+        ::ortc::IICETypes::Roles Helper::toNative(wrapper::org::ortc::RTCIceRole role) noexcept
         {
           switch (role)
           {
             case wrapper::org::ortc::RTCIceRole_controlling:    return ::ortc::IICETypes::Role_Controlling;
             case wrapper::org::ortc::RTCIceRole_controlled:     return ::ortc::IICETypes::Role_Controlled;
           }
-          ZS_THROW_INVALID_ARGUMENT("state is unknown");
+          ZS_ASSERT_FAIL("state is unknown");
           return ::ortc::IICETypes::Role_First;
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::RTCRtpOpusCodecCapabilityOptionsSignal Helper::toWrapper(::ortc::IRTPTypes::OpusCodecCapabilityOptions::Signals signal)
+        wrapper::org::ortc::RTCRtpOpusCodecCapabilityOptionsSignal Helper::toWrapper(::ortc::IRTPTypes::OpusCodecCapabilityOptions::Signals signal) noexcept
         {
           switch (signal)
           {
@@ -564,12 +564,12 @@ namespace wrapper {
             case ::ortc::IRTPTypes::OpusCodecCapabilityOptions::Signal_Music:  return wrapper::org::ortc::RTCRtpOpusCodecCapabilityOptionsSignal_music;
             case ::ortc::IRTPTypes::OpusCodecCapabilityOptions::Signal_Voice:  return wrapper::org::ortc::RTCRtpOpusCodecCapabilityOptionsSignal_voice;
           }
-          ZS_THROW_INVALID_ARGUMENT("signal type is unknown");
+          ZS_ASSERT_FAIL("signal type is unknown");
           return toWrapper(::ortc::IRTPTypes::OpusCodecCapabilityOptions::Signal_First);
         }
 
         //---------------------------------------------------------------------
-        ::ortc::IRTPTypes::OpusCodecCapabilityOptions::Signals Helper::toNative(wrapper::org::ortc::RTCRtpOpusCodecCapabilityOptionsSignal signal)
+        ::ortc::IRTPTypes::OpusCodecCapabilityOptions::Signals Helper::toNative(wrapper::org::ortc::RTCRtpOpusCodecCapabilityOptionsSignal signal) noexcept
         {
           switch (signal)
           {
@@ -577,12 +577,12 @@ namespace wrapper {
             case wrapper::org::ortc::RTCRtpOpusCodecCapabilityOptionsSignal_music: return ::ortc::IRTPTypes::OpusCodecCapabilityOptions::Signal_Music;
             case wrapper::org::ortc::RTCRtpOpusCodecCapabilityOptionsSignal_voice: return ::ortc::IRTPTypes::OpusCodecCapabilityOptions::Signal_Voice;
           }
-          ZS_THROW_INVALID_ARGUMENT("signal type is unknown");
+          ZS_ASSERT_FAIL("signal type is unknown");
           return ::ortc::IRTPTypes::OpusCodecCapabilityOptions::Signal_First;
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::RTCRtpOpusCodecCapabilityOptionsApplication Helper::toWrapper(::ortc::IRTPTypes::OpusCodecCapabilityOptions::Applications application)
+        wrapper::org::ortc::RTCRtpOpusCodecCapabilityOptionsApplication Helper::toWrapper(::ortc::IRTPTypes::OpusCodecCapabilityOptions::Applications application) noexcept
         {
           switch (application)
           {
@@ -590,12 +590,12 @@ namespace wrapper {
             case ::ortc::IRTPTypes::OpusCodecCapabilityOptions::Application_Audio:      return wrapper::org::ortc::RTCRtpOpusCodecCapabilityOptionsApplication_audio;
             case ::ortc::IRTPTypes::OpusCodecCapabilityOptions::Application_LowDelay:   return wrapper::org::ortc::RTCRtpOpusCodecCapabilityOptionsApplication_lowDelay;
           }
-          ZS_THROW_INVALID_ARGUMENT("application type is unknown");
+          ZS_ASSERT_FAIL("application type is unknown");
           return toWrapper(::ortc::IRTPTypes::OpusCodecCapabilityOptions::Application_First);
         }
 
         //---------------------------------------------------------------------
-        ::ortc::IRTPTypes::OpusCodecCapabilityOptions::Applications Helper::toNative(wrapper::org::ortc::RTCRtpOpusCodecCapabilityOptionsApplication application)
+        ::ortc::IRTPTypes::OpusCodecCapabilityOptions::Applications Helper::toNative(wrapper::org::ortc::RTCRtpOpusCodecCapabilityOptionsApplication application) noexcept
         {
           switch (application)
           {
@@ -603,12 +603,12 @@ namespace wrapper {
             case wrapper::org::ortc::RTCRtpOpusCodecCapabilityOptionsApplication_audio:     return ::ortc::IRTPTypes::OpusCodecCapabilityOptions::Application_Audio;
             case wrapper::org::ortc::RTCRtpOpusCodecCapabilityOptionsApplication_lowDelay:  return ::ortc::IRTPTypes::OpusCodecCapabilityOptions::Application_LowDelay;
           }
-          ZS_THROW_INVALID_ARGUMENT("application type is unknown");
+          ZS_ASSERT_FAIL("application type is unknown");
           return ::ortc::IRTPTypes::OpusCodecCapabilityOptions::Application_First;
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::RTCRtpFlexFecCodecCapabilityParametersToP Helper::toWrapper(::ortc::IRTPTypes::FlexFECCodecCapabilityParameters::ToPs top)
+        wrapper::org::ortc::RTCRtpFlexFecCodecCapabilityParametersToP Helper::toWrapper(::ortc::IRTPTypes::FlexFECCodecCapabilityParameters::ToPs top) noexcept
         {
           switch (top)
           {
@@ -617,12 +617,12 @@ namespace wrapper {
             case ::ortc::IRTPTypes::FlexFECCodecCapabilityParameters::ToP_2DParityFEEC:         return wrapper::org::ortc::RTCRtpFlexFecCodecCapabilityParametersToP_n2DParityFEEC;
             case ::ortc::IRTPTypes::FlexFECCodecCapabilityParameters::ToP_Reserved:             return wrapper::org::ortc::RTCRtpFlexFecCodecCapabilityParametersToP_reserved;
           }
-          ZS_THROW_INVALID_ARGUMENT("ToP is unknown");
+          ZS_ASSERT_FAIL("ToP is unknown");
           return toWrapper(::ortc::IRTPTypes::FlexFECCodecCapabilityParameters::ToP_First);
         }
 
         //---------------------------------------------------------------------
-        ::ortc::IRTPTypes::FlexFECCodecCapabilityParameters::ToPs Helper::toNative(wrapper::org::ortc::RTCRtpFlexFecCodecCapabilityParametersToP top)
+        ::ortc::IRTPTypes::FlexFECCodecCapabilityParameters::ToPs Helper::toNative(wrapper::org::ortc::RTCRtpFlexFecCodecCapabilityParametersToP top) noexcept
         {
           switch (top)
           {
@@ -631,12 +631,12 @@ namespace wrapper {
             case wrapper::org::ortc::RTCRtpFlexFecCodecCapabilityParametersToP_n2DParityFEEC:         return ::ortc::IRTPTypes::FlexFECCodecCapabilityParameters::ToP_2DParityFEEC;
             case wrapper::org::ortc::RTCRtpFlexFecCodecCapabilityParametersToP_reserved:              return ::ortc::IRTPTypes::FlexFECCodecCapabilityParameters::ToP_Reserved;
           }
-          ZS_THROW_INVALID_ARGUMENT("ToP is unknown");
+          ZS_ASSERT_FAIL("ToP is unknown");
           return ::ortc::IRTPTypes::FlexFECCodecCapabilityParameters::ToP_First;
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::RTCRtpDegradationPreference Helper::toWrapper(::ortc::IRTPTypes::DegradationPreferences preference)
+        wrapper::org::ortc::RTCRtpDegradationPreference Helper::toWrapper(::ortc::IRTPTypes::DegradationPreferences preference) noexcept
         {
           switch (preference)
           {
@@ -644,12 +644,12 @@ namespace wrapper {
             case ::ortc::IRTPTypes::DegradationPreference_MaintainResolution:   return wrapper::org::ortc::RTCRtpDegradationPreference_maintainResolution;
             case ::ortc::IRTPTypes::DegradationPreference_Balanced:             return wrapper::org::ortc::RTCRtpDegradationPreference_balanced;
           }
-          ZS_THROW_INVALID_ARGUMENT("preference is unknown");
+          ZS_ASSERT_FAIL("preference is unknown");
           return toWrapper(::ortc::IRTPTypes::DegradationPreference_First);
         }
 
         //---------------------------------------------------------------------
-        ::ortc::IRTPTypes::DegradationPreferences Helper::toNative(wrapper::org::ortc::RTCRtpDegradationPreference preference)
+        ::ortc::IRTPTypes::DegradationPreferences Helper::toNative(wrapper::org::ortc::RTCRtpDegradationPreference preference) noexcept
         {
           switch (preference)
           {
@@ -657,12 +657,12 @@ namespace wrapper {
             case wrapper::org::ortc::RTCRtpDegradationPreference_maintainResolution:    return ::ortc::IRTPTypes::DegradationPreference_MaintainResolution;
             case wrapper::org::ortc::RTCRtpDegradationPreference_balanced:              return ::ortc::IRTPTypes::DegradationPreference_Balanced;
           }
-          ZS_THROW_INVALID_ARGUMENT("preference is unknown");
+          ZS_ASSERT_FAIL("preference is unknown");
           return ::ortc::IRTPTypes::DegradationPreference_First;
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::RTCRtpPriorityType Helper::toWrapper(::ortc::IRTPTypes::PriorityTypes type)
+        wrapper::org::ortc::RTCRtpPriorityType Helper::toWrapper(::ortc::IRTPTypes::PriorityTypes type) noexcept
         {
           switch (type)
           {
@@ -671,12 +671,12 @@ namespace wrapper {
             case ::ortc::IRTPTypes::PriorityType_Medium:      return wrapper::org::ortc::RTCRtpPriorityType_medium;
             case ::ortc::IRTPTypes::PriorityType_High:        return wrapper::org::ortc::RTCRtpPriorityType_high;
           }
-          ZS_THROW_INVALID_ARGUMENT("type is unknown");
+          ZS_ASSERT_FAIL("type is unknown");
           return toWrapper(::ortc::IRTPTypes::PriorityType_First);
         }
 
         //---------------------------------------------------------------------
-        ::ortc::IRTPTypes::PriorityTypes Helper::toNative(wrapper::org::ortc::RTCRtpPriorityType type)
+        ::ortc::IRTPTypes::PriorityTypes Helper::toNative(wrapper::org::ortc::RTCRtpPriorityType type) noexcept
         {
           switch (type)
           {
@@ -685,12 +685,12 @@ namespace wrapper {
             case wrapper::org::ortc::RTCRtpPriorityType_medium:     return ::ortc::IRTPTypes::PriorityType_Medium;
             case wrapper::org::ortc::RTCRtpPriorityType_high:       return ::ortc::IRTPTypes::PriorityType_High;
            }
-          ZS_THROW_INVALID_ARGUMENT("type is unknown");
+          ZS_ASSERT_FAIL("type is unknown");
           return ::ortc::IRTPTypes::PriorityType_First;
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::adapter::RTCSessionDescriptionSignalingType Helper::toWrapper(::ortc::adapter::ISessionDescriptionTypes::SignalingTypes type)
+        wrapper::org::ortc::adapter::RTCSessionDescriptionSignalingType Helper::toWrapper(::ortc::adapter::ISessionDescriptionTypes::SignalingTypes type) noexcept
         {
           switch (type)
           {
@@ -700,12 +700,12 @@ namespace wrapper {
             case ::ortc::adapter::ISessionDescriptionTypes::SignalingType_SDPAnswer:    return wrapper::org::ortc::adapter::RTCSessionDescriptionSignalingType_sdpAnswer;
             case ::ortc::adapter::ISessionDescriptionTypes::SignalingType_SDPRollback:  return wrapper::org::ortc::adapter::RTCSessionDescriptionSignalingType_sdpRollback;
           }
-          ZS_THROW_INVALID_ARGUMENT("type is unknown");
+          ZS_ASSERT_FAIL("type is unknown");
           return toWrapper(::ortc::adapter::ISessionDescriptionTypes::SignalingType_First);
         }
 
         //---------------------------------------------------------------------
-        ::ortc::adapter::ISessionDescriptionTypes::SignalingTypes Helper::toNative(wrapper::org::ortc::adapter::RTCSessionDescriptionSignalingType type)
+        ::ortc::adapter::ISessionDescriptionTypes::SignalingTypes Helper::toNative(wrapper::org::ortc::adapter::RTCSessionDescriptionSignalingType type) noexcept
         {
           switch (type)
           {
@@ -715,12 +715,12 @@ namespace wrapper {
             case wrapper::org::ortc::adapter::RTCSessionDescriptionSignalingType_sdpAnswer:   return ::ortc::adapter::ISessionDescriptionTypes::SignalingType_SDPAnswer;
             case wrapper::org::ortc::adapter::RTCSessionDescriptionSignalingType_sdpRollback: return ::ortc::adapter::ISessionDescriptionTypes::SignalingType_SDPRollback;
           }
-          ZS_THROW_INVALID_ARGUMENT("type is unknown");
+          ZS_ASSERT_FAIL("type is unknown");
           return ::ortc::adapter::ISessionDescriptionTypes::SignalingType_First;
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::RTCDtlsRole Helper::toWrapper(::ortc::IDTLSTransportTypes::Roles role)
+        wrapper::org::ortc::RTCDtlsRole Helper::toWrapper(::ortc::IDTLSTransportTypes::Roles role) noexcept
         {  
           switch (role)
           {
@@ -728,12 +728,12 @@ namespace wrapper {
             case ::ortc::IDTLSTransportTypes::Role_Client:       return wrapper::org::ortc::RTCDtlsRole_client;
             case ::ortc::IDTLSTransportTypes::Role_Server:       return wrapper::org::ortc::RTCDtlsRole_server;
           }
-          ZS_THROW_INVALID_ARGUMENT("role is unknown");
+          ZS_ASSERT_FAIL("role is unknown");
           return toWrapper(::ortc::IDTLSTransportTypes::Role_First);
         }
 
         //---------------------------------------------------------------------
-        ::ortc::IDTLSTransportTypes::Roles Helper::toNative(wrapper::org::ortc::RTCDtlsRole role)
+        ::ortc::IDTLSTransportTypes::Roles Helper::toNative(wrapper::org::ortc::RTCDtlsRole role) noexcept
         {
           switch (role)
           {
@@ -741,12 +741,12 @@ namespace wrapper {
             case wrapper::org::ortc::RTCDtlsRole_client:      return ::ortc::IDTLSTransportTypes::Role_Client;
             case wrapper::org::ortc::RTCDtlsRole_server:      return ::ortc::IDTLSTransportTypes::Role_Server;
           }
-          ZS_THROW_INVALID_ARGUMENT("role is unknown");
+          ZS_ASSERT_FAIL("role is unknown");
           return ::ortc::IDTLSTransportTypes::Role_First;
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::RTCDtlsTransportState Helper::toWrapper(::ortc::IDTLSTransportTypes::States state)
+        wrapper::org::ortc::RTCDtlsTransportState Helper::toWrapper(::ortc::IDTLSTransportTypes::States state) noexcept
         {
           switch (state)
           {
@@ -756,12 +756,12 @@ namespace wrapper {
             case ::ortc::IDTLSTransportTypes::State_Closed:       return wrapper::org::ortc::RTCDtlsTransportState_closed;
             case ::ortc::IDTLSTransportTypes::State_Failed:       return wrapper::org::ortc::RTCDtlsTransportState_failed;
           }
-          ZS_THROW_INVALID_ARGUMENT("state is unknown");
+          ZS_ASSERT_FAIL("state is unknown");
           return toWrapper(::ortc::IDTLSTransportTypes::State_First);
         }
 
         //---------------------------------------------------------------------
-        ::ortc::IDTLSTransportTypes::States Helper::toNative(wrapper::org::ortc::RTCDtlsTransportState state)
+        ::ortc::IDTLSTransportTypes::States Helper::toNative(wrapper::org::ortc::RTCDtlsTransportState state) noexcept
         {
           switch (state)
           {
@@ -771,12 +771,12 @@ namespace wrapper {
             case wrapper::org::ortc::RTCDtlsTransportState_closed:      return ::ortc::IDTLSTransportTypes::State_Closed;
             case wrapper::org::ortc::RTCDtlsTransportState_failed:      return ::ortc::IDTLSTransportTypes::State_Failed;
           }
-          ZS_THROW_INVALID_ARGUMENT("role is unknown");
+          ZS_ASSERT_FAIL("role is unknown");
           return ::ortc::IDTLSTransportTypes::State_First;
         }
 
         //---------------------------------------------------------------------
-        wrapper::org::ortc::adapter::RTCSessionDescriptionMediaDirection Helper::toWrapper(::ortc::adapter::ISessionDescriptionTypes::MediaDirections direction)
+        wrapper::org::ortc::adapter::RTCSessionDescriptionMediaDirection Helper::toWrapper(::ortc::adapter::ISessionDescriptionTypes::MediaDirections direction) noexcept
         {
           switch (direction)
           {
@@ -785,12 +785,12 @@ namespace wrapper {
             case ::ortc::adapter::ISessionDescriptionTypes::MediaDirection_ReceiveOnly:   return wrapper::org::ortc::adapter::RTCSessionDescriptionMediaDirection_receiveOnly;
             case ::ortc::adapter::ISessionDescriptionTypes::MediaDirection_Inactive:      return wrapper::org::ortc::adapter::RTCSessionDescriptionMediaDirection_inactive;
           }
-          ZS_THROW_INVALID_ARGUMENT("direction is unknown");
+          ZS_ASSERT_FAIL("direction is unknown");
           return toWrapper(::ortc::adapter::ISessionDescriptionTypes::MediaDirection_First);
         }
 
         //---------------------------------------------------------------------
-        ::ortc::adapter::ISessionDescriptionTypes::MediaDirections Helper::toNative(wrapper::org::ortc::adapter::RTCSessionDescriptionMediaDirection direction)
+        ::ortc::adapter::ISessionDescriptionTypes::MediaDirections Helper::toNative(wrapper::org::ortc::adapter::RTCSessionDescriptionMediaDirection direction) noexcept
         {
           switch (direction)
           {
@@ -799,12 +799,12 @@ namespace wrapper {
             case wrapper::org::ortc::adapter::RTCSessionDescriptionMediaDirection_receiveOnly:     return ::ortc::adapter::ISessionDescriptionTypes::MediaDirection_ReceiveOnly;
             case wrapper::org::ortc::adapter::RTCSessionDescriptionMediaDirection_inactive:        return ::ortc::adapter::ISessionDescriptionTypes::MediaDirection_Inactive;
           }
-          ZS_THROW_INVALID_ARGUMENT("direction is unknown");
+          ZS_ASSERT_FAIL("direction is unknown");
           return ::ortc::adapter::ISessionDescriptionTypes::MediaDirection_First;
         }
 
         //---------------------------------------------------------------------
-        Helper::WrapperMediaStreamTrackListPtr Helper::toWrapper(MediaStreamTrackListPtr tracks)
+        Helper::WrapperMediaStreamTrackListPtr Helper::toWrapper(MediaStreamTrackListPtr tracks) noexcept
         {
           auto result = make_shared<WrapperMediaStreamTrackList>();
           if (!tracks) return result;
@@ -818,7 +818,7 @@ namespace wrapper {
         }
 
         //---------------------------------------------------------------------
-        Helper::MediaStreamTrackListPtr Helper::toNative(WrapperMediaStreamTrackListPtr tracks)
+        Helper::MediaStreamTrackListPtr Helper::toNative(WrapperMediaStreamTrackListPtr tracks) noexcept
         {
           if (!tracks) return MediaStreamTrackListPtr();
 
@@ -833,7 +833,7 @@ namespace wrapper {
         }
 
         //---------------------------------------------------------------------
-        PromisePtr Helper::toWrapper(PromisePtr promise)
+        PromisePtr Helper::toWrapper(PromisePtr promise) noexcept
         {
           if (!promise) return promise;
 
@@ -855,7 +855,7 @@ namespace wrapper {
         void Helper::reject(
                             PromisePtr nativePromise,
                             PromisePtr wrapperPromise
-                            )
+                            ) noexcept
         {
           {
             auto reason = nativePromise->reason<::ortc::ErrorAny>();
@@ -882,13 +882,13 @@ namespace wrapper {
         }
 
         //---------------------------------------------------------------------
-        Helper::PromiseWithStatsReportPtr Helper::getStats(IStatsProviderPtr native, wrapper::org::ortc::RTCStatsTypeSetPtr statTypes)
+        Helper::PromiseWithStatsReportPtr Helper::getStats(IStatsProviderPtr native, wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept
         {
-          ZS_THROW_INVALID_ARGUMENT_IF(!native);
-          ZS_THROW_INVALID_ARGUMENT_IF(!statTypes);
+          ZS_ASSERT(native);
+          ZS_ASSERT(statTypes);
 
           auto value = wrapper::impl::org::ortc::RTCStatsTypeSet::toNative(statTypes);
-          ZS_THROW_INVALID_ARGUMENT_IF(!value);
+          ZS_ASSERT(value);
 
           auto promise = native->getStats(*value);
           if (!promise) return PromiseWithStatsReportPtr();

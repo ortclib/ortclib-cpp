@@ -70,42 +70,42 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ICertificateForDTLSTransport
-    #pragma mark
+    //
+    // ICertificateForDTLSTransport
+    //
 
     interaction ICertificateForDTLSTransport
     {
       ZS_DECLARE_TYPEDEF_PTR(ICertificateForDTLSTransport, ForDTLSTransport)
       ZS_DECLARE_TYPEDEF_PTR(ICertificateTypes::Fingerprint, Fingerprint)
 
-      static ElementPtr toDebug(ForDTLSTransportPtr certificate);
+      static ElementPtr toDebug(ForDTLSTransportPtr certificate) noexcept;
 
       typedef EVP_PKEY * KeyPairType;
       typedef X509 * CertificateObjectType; // not sure of type to use
 
-      virtual PUID getID() const = 0;
+      virtual PUID getID() const noexcept = 0;
 
-      virtual KeyPairType getKeyPair() const = 0;
-      virtual CertificateObjectType getCertificate() const = 0;
+      virtual KeyPairType getKeyPair() const noexcept = 0;
+      virtual CertificateObjectType getCertificate() const noexcept = 0;
 
-      virtual SecureByteBlockPtr getDigest(const String &algorithm) const = 0;
+      virtual SecureByteBlockPtr getDigest(const String &algorithm) const noexcept = 0;
 
-      virtual FingerprintPtr fingerprint() const = 0;
+      virtual FingerprintPtr fingerprint() const noexcept = 0;
 
       static SecureByteBlockPtr getDigest(
                                           const String &algorithm,
                                           CertificateObjectType certificate
-                                          );
+                                          ) noexcept;
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark Certificate
-    #pragma mark
+    //
+    // Certificate
+    //
     
     class Certificate : public Noop,
                         public MessageQueueAssociator,
@@ -137,129 +137,129 @@ namespace ortc
                   const make_private &,
                   IMessageQueuePtr queue,
                   ElementPtr keygenAlgorithm
-                  );
+                  ) noexcept(false); // throws NotSupportedError
 
     protected:
-      Certificate(Noop) :
+      Certificate(Noop) noexcept(false) :
         Noop(true),
         MessageQueueAssociator(IMessageQueuePtr()),
         SharedRecursiveLock(SharedRecursiveLock::create())
       {}
 
-      void init();
+      void init() noexcept;
 
     public:
-      virtual ~Certificate();
+      virtual ~Certificate() noexcept;
 
-      static CertificatePtr convert(ICertificatePtr object);
-      static CertificatePtr convert(ForDTLSTransportPtr object);
+      static CertificatePtr convert(ICertificatePtr object) noexcept;
+      static CertificatePtr convert(ForDTLSTransportPtr object) noexcept;
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark Certificate => ICertificate
-      #pragma mark
+      //
+      // Certificate => ICertificate
+      //
 
-      static ElementPtr toDebug(CertificatePtr certificate);
+      static ElementPtr toDebug(CertificatePtr certificate) noexcept;
 
-      static PromiseWithCertificatePtr generateCertificate(ElementPtr keygenAlgorithm) throw (NotSupportedError);
+      static PromiseWithCertificatePtr generateCertificate(ElementPtr keygenAlgorithm) noexcept(false); // throws NotSupportedError
 
-      PUID getID() const override {return mID;}
+      PUID getID() const noexcept override {return mID;}
 
-      Time expires() const override;
+      Time expires() const noexcept override;
 
-      FingerprintPtr fingerprint() const override;
+      FingerprintPtr fingerprint() const noexcept override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark Certificate => ICertificateForDTLSTransport
-      #pragma mark
+      //
+      // Certificate => ICertificateForDTLSTransport
+      //
 
       // (duplicate) virtual PUID getID() const;
 
-      KeyPairType getKeyPair() const override;
-      CertificateObjectType getCertificate() const override;
+      KeyPairType getKeyPair() const noexcept override;
+      CertificateObjectType getCertificate() const noexcept override;
 
-      SecureByteBlockPtr getDigest(const String &algorithm) const override;
+      SecureByteBlockPtr getDigest(const String &algorithm) const noexcept override;
 
       // (duplicate) virtual FingerprintPtr fingerprint() const override;
 
       static SecureByteBlockPtr getDigest(
                                           const String &algorithm,
                                           CertificateObjectType certificate
-                                          );
+                                          ) noexcept;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark Certificate => IStatsProvider
-      #pragma mark
+      //
+      // Certificate => IStatsProvider
+      //
 
-      PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const override;
+      PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const noexcept override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark Certificate => IWakeDelegate
-      #pragma mark
+      //
+      // Certificate => IWakeDelegate
+      //
 
       void onWake() override;
 
     public:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark Certificate::PromiseCertificateHolder
-      #pragma mark
+      //
+      // Certificate::PromiseCertificateHolder
+      //
 
       struct PromiseCertificateHolder : public PromiseWithCertificate
       {
-        PromiseCertificateHolder(IMessageQueuePtr queue = IMessageQueuePtr()) :
+        PromiseCertificateHolder(IMessageQueuePtr queue = IMessageQueuePtr()) noexcept :
           PromiseWithCertificate(Promise::make_private{}, queue)
         {}
 
-        ~PromiseCertificateHolder() {}
+        ~PromiseCertificateHolder() noexcept {}
 
-        void setThisWeak(PromisePtr promise) {mThisWeak = promise;}
+        void setThisWeak(PromisePtr promise) noexcept {mThisWeak = promise;}
 
         CertificatePtr mCertificate;
       };
 
     public:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark Certificate::Digest
-      #pragma mark
+      //
+      // Certificate::Digest
+      //
 
       class Digest
       {
       public:
-        Digest(const String &algorithm);
-        ~Digest();
+        Digest(const String &algorithm) noexcept;
+        ~Digest() noexcept;
 
         // Returns the digest output size (e.g. 16 bytes for MD5).
-        size_t Size() const;
+        size_t Size() const noexcept;
 
         // Updates the digest with |len| bytes from |buf|.
-        void Update(const void* buf, size_t len);
+        void Update(const void* buf, size_t len) noexcept;
 
         // Outputs the digest value to |buf| with length |len|.
-        size_t Finish(void* buf, size_t len);
+        size_t Finish(void* buf, size_t len) noexcept;
 
         // Helper function to look up a digest's EVP by name.
         static bool GetDigestEVP(
                                  const String &algorithm,
                                  const EVP_MD** md
-                                 );
+                                 ) noexcept;
 
         // Helper function to look up a digest's name by EVP.
         static bool GetDigestName(
                                   const EVP_MD* md,
                                   String* algorithm
-                                  );
+                                  ) noexcept;
 
         // Helper function to get the length of a digest.
         static bool GetDigestSize(
                                   const String &algorithm,
                                   size_t* len
-                                  );
+                                  ) noexcept;
 
       private:
         EVP_MD_CTX ctx_;
@@ -268,25 +268,25 @@ namespace ortc
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark Certificate => (internal)
-      #pragma mark
+      //
+      // Certificate => (internal)
+      //
 
-      Log::Params log(const char *message) const;
-      Log::Params debug(const char *message) const;
-      virtual ElementPtr toDebug() const;
+      Log::Params log(const char *message) const noexcept;
+      Log::Params debug(const char *message) const noexcept;
+      virtual ElementPtr toDebug() const noexcept;
 
-      void cancel();
-      bool resolveStatPromises();
+      void cancel() noexcept;
+      bool resolveStatPromises() noexcept;
 
-      evp_pkey_st* MakeKey();
-      X509* MakeCertificate(EVP_PKEY* pkey);
+      evp_pkey_st* MakeKey() noexcept;
+      X509* MakeCertificate(EVP_PKEY* pkey) noexcept;
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark Certificate => (data)
-      #pragma mark
+      //
+      // Certificate => (data)
+      //
 
       AutoPUID mID;
       CertificateWeakPtr mThisWeak;
@@ -317,17 +317,17 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ICertificateFactory
-    #pragma mark
+    //
+    // ICertificateFactory
+    //
 
     interaction ICertificateFactory
     {
-      static ICertificateFactory &singleton();
+      static ICertificateFactory &singleton() noexcept;
 
-      ZS_DECLARE_TYPEDEF_PTR(ICertificateTypes::PromiseWithCertificate, PromiseWithCertificate)
+      ZS_DECLARE_TYPEDEF_PTR(ICertificateTypes::PromiseWithCertificate, PromiseWithCertificate);
 
-      virtual PromiseWithCertificatePtr generateCertificate(ElementPtr keygenAlgorithm) throw (NotSupportedError);;
+      virtual PromiseWithCertificatePtr generateCertificate(ElementPtr keygenAlgorithm) noexcept(false); // throws NotSupportedError
     };
 
     class CertificateFactory : public IFactory<ICertificateFactory> {};

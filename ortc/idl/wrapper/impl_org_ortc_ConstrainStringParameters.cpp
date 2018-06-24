@@ -22,12 +22,12 @@ using ::std::set;
 using ::std::map;
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::ConstrainStringParameters::ConstrainStringParameters()
+wrapper::impl::org::ortc::ConstrainStringParameters::ConstrainStringParameters() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::ConstrainStringParametersPtr wrapper::org::ortc::ConstrainStringParameters::wrapper_create()
+wrapper::org::ortc::ConstrainStringParametersPtr wrapper::org::ortc::ConstrainStringParameters::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::ConstrainStringParameters>();
   pThis->thisWeak_ = pThis;
@@ -35,17 +35,17 @@ wrapper::org::ortc::ConstrainStringParametersPtr wrapper::org::ortc::ConstrainSt
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::ConstrainStringParameters::~ConstrainStringParameters()
+wrapper::impl::org::ortc::ConstrainStringParameters::~ConstrainStringParameters() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::ConstrainStringParameters::wrapper_init_org_ortc_ConstrainStringParameters()
+void wrapper::impl::org::ortc::ConstrainStringParameters::wrapper_init_org_ortc_ConstrainStringParameters() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::ConstrainStringParameters::wrapper_init_org_ortc_ConstrainStringParameters(wrapper::org::ortc::ConstrainStringParametersPtr source)
+void wrapper::impl::org::ortc::ConstrainStringParameters::wrapper_init_org_ortc_ConstrainStringParameters(wrapper::org::ortc::ConstrainStringParametersPtr source) noexcept
 {
   if (!source) return;
   wrapper::org::ortc::ConstrainStringParametersPtr pThis = thisWeak_.lock();
@@ -58,7 +58,7 @@ void wrapper::impl::org::ortc::ConstrainStringParameters::wrapper_init_org_ortc_
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::ConstrainStringParameters::wrapper_init_org_ortc_ConstrainStringParameters(wrapper::org::ortc::JsonPtr json)
+void wrapper::impl::org::ortc::ConstrainStringParameters::wrapper_init_org_ortc_ConstrainStringParameters(wrapper::org::ortc::JsonPtr json) noexcept
 {
   if (!json) return;
 
@@ -72,26 +72,26 @@ void wrapper::impl::org::ortc::ConstrainStringParameters::wrapper_init_org_ortc_
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::JsonPtr wrapper::impl::org::ortc::ConstrainStringParameters::toJson()
+wrapper::org::ortc::JsonPtr wrapper::impl::org::ortc::ConstrainStringParameters::toJson() noexcept
 {
   return Json::toWrapper(toNative(thisWeak_.lock())->createElement("ConstrainStringParameters"));
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::ortc::ConstrainStringParameters::hash()
+String wrapper::impl::org::ortc::ConstrainStringParameters::hash() noexcept
 {
   return toNative(thisWeak_.lock())->hash();
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::ConstrainStringParametersPtr wrapper::impl::org::ortc::ConstrainStringParameters::toWrapper(NativeConstrainStringParametersPtr native)
+wrapper::impl::org::ortc::ConstrainStringParametersPtr wrapper::impl::org::ortc::ConstrainStringParameters::toWrapper(NativeConstrainStringParametersPtr native) noexcept
 {
   if (!native) return ConstrainStringParametersPtr();
   return toWrapper(*native);
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::ConstrainStringParametersPtr wrapper::impl::org::ortc::ConstrainStringParameters::toWrapper(const NativeConstrainStringParameters &native)
+wrapper::impl::org::ortc::ConstrainStringParametersPtr wrapper::impl::org::ortc::ConstrainStringParameters::toWrapper(const NativeConstrainStringParameters &native) noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::ConstrainStringParameters>();
   pThis->thisWeak_ = pThis;
@@ -107,7 +107,7 @@ wrapper::impl::org::ortc::ConstrainStringParametersPtr wrapper::impl::org::ortc:
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::ConstrainStringParameters::NativeConstrainStringParametersPtr wrapper::impl::org::ortc::ConstrainStringParameters::toNative(wrapper::org::ortc::ConstrainStringParametersPtr wrapper)
+wrapper::impl::org::ortc::ConstrainStringParameters::NativeConstrainStringParametersPtr wrapper::impl::org::ortc::ConstrainStringParameters::toNative(wrapper::org::ortc::ConstrainStringParametersPtr wrapper) noexcept
 {
   if (!wrapper) return NativeConstrainStringParametersPtr();
 

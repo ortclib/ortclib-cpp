@@ -60,9 +60,12 @@
 //
 //#include <cryptopp/sha.h>
 //
+//#include <ortc/internal/webrtc_pre_include.h>
 //#include <webrtc/base/event_tracer.h>
+//#include <ortc/internal/webrtc_post_include.h>
 
 #ifdef __GNUC__
+#error MOVE THIS TO PROJECT SETTING RATHER THAN PUTTING ON INDIVIDUAL FILES
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-local-typedef"
 #endif //__GNUC__
@@ -80,15 +83,15 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark (helpers)
-    #pragma mark
+    //
+    // (helpers)
+    //
 
     //-------------------------------------------------------------------------
     IMediaStreamTrackTypes::SettingsPtr obtainBestMode(
                                                        const std::list<IMediaStreamTrackTypes::TrackConstraintsPtr> &allConstraints,
                                                        const std::list<IMediaStreamTrackTypes::SettingsPtr> &availableModes
-                                                       )
+                                                       ) noexcept
     {
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::StringList, StringList);
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::TrackConstraintsPtr, UseTrackConstraints);
@@ -106,7 +109,7 @@ namespace ortc
         static bool containsString(
                                    const StringList &strs,
                                    const String &str
-                                   )
+                                   ) noexcept
         {
           for (auto iter = strs.begin(); iter != strs.end(); ++iter) { auto &value = (*iter); if (value == str) return true; }
           return false;
@@ -116,7 +119,7 @@ namespace ortc
         bool innerProcessConstrain(
                                    const IMediaStreamTrackTypes::ConstrainString &constrain,
                                    const Optional<String> &value
-                                   )
+                                   ) noexcept
         {
           StringList exacts;
           StringList ideals;
@@ -138,7 +141,7 @@ namespace ortc
         bool processConstrain(
                               const IMediaStreamTrackTypes::ConstrainString &constrain,
                               const Optional<String> &value
-                              )
+                              ) noexcept
         {
           if (!innerProcessConstrain(constrain, value)) {
             rejected = true;
@@ -151,7 +154,7 @@ namespace ortc
         bool innerProcessConstrain(
                                    const IMediaStreamTrackTypes::ConstrainDouble &constrain,
                                    const Optional<double> &value
-                                   )
+                                   ) noexcept
         {
           if (constrain.mValue.hasValue()) {
             if (!value.hasValue()) return false;
@@ -183,7 +186,7 @@ namespace ortc
         bool processConstrain(
                               const IMediaStreamTrackTypes::ConstrainDouble &constrain,
                               const Optional<double> &value
-                              )
+                              ) noexcept
         {
           if (!innerProcessConstrain(constrain, value)) {
             rejected = true;
@@ -196,7 +199,7 @@ namespace ortc
         bool innerProcessConstrain(
                                    const IMediaStreamTrackTypes::ConstrainLong &constrain,
                                    const Optional<LONG> &value
-                                   )
+                                   ) noexcept
         {
           if (constrain.mValue.hasValue()) {
             if (!value.hasValue()) return false;
@@ -228,7 +231,7 @@ namespace ortc
         bool processConstrain(
                               const IMediaStreamTrackTypes::ConstrainLong &constrain,
                               const Optional<LONG> &value
-                              )
+                              ) noexcept
         {
           if (!innerProcessConstrain(constrain, value)) {
             rejected = true;
@@ -242,7 +245,7 @@ namespace ortc
         bool innerProcessConstrain(
                                    const IMediaStreamTrackTypes::ConstrainBoolean &constrain,
                                    const Optional<bool> &value
-                                   )
+                                   ) noexcept
         {
           if (constrain.mValue.hasValue()) {
             if (!value.hasValue()) return false;
@@ -266,7 +269,7 @@ namespace ortc
         bool processConstrain(
                               const IMediaStreamTrackTypes::ConstrainBoolean &constrain,
                               const Optional<bool> &value
-                              )
+                              ) noexcept
         {
           if (!innerProcessConstrain(constrain, value)) {
             rejected = true;
@@ -275,7 +278,7 @@ namespace ortc
           return true;
         }
         //---------------------------------------------------------------------
-        bool checkConstrainSet(const UseConstraintSet &constrain)
+        bool checkConstrainSet(const UseConstraintSet &constrain) noexcept
         {
           auto &settings = (*settings_);
 
@@ -347,12 +350,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaDevice
-    #pragma mark
+    //
+    // IMediaDevice
+    //
 
     //-------------------------------------------------------------------------
-    const char *IMediaDevice::toString(States state)
+    const char *IMediaDevice::toString(States state) noexcept
     {
       switch (state)
       {

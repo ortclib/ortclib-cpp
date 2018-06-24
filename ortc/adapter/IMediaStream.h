@@ -42,9 +42,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTypes
-    #pragma mark
+    //
+    // IMediaStreamTypes
+    //
 
     interaction IMediaStreamTypes
     {
@@ -56,9 +56,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStream
-    #pragma mark
+    //
+    // IMediaStream
+    //
 
     interface IMediaStream : public IMediaStreamTypes,
                              public IStatsProvider
@@ -66,40 +66,40 @@ namespace ortc
       static IMediaStreamPtr create(
                                     IMediaStreamDelegatePtr delegate,
                                     IMediaStreamPtr stream = IMediaStreamPtr()
-                                    );
+                                    ) noexcept;
       static IMediaStreamPtr create(
                                     IMediaStreamDelegatePtr delegate,
                                     const MediaStreamTrackList &tracks
-                                    );
+                                    ) noexcept;
 
-      static ElementPtr toDebug(IMediaStreamPtr stream);
+      static ElementPtr toDebug(IMediaStreamPtr stream) noexcept;
 
-      virtual PUID getID() const = 0;
+      virtual PUID getID() const noexcept  = 0;
 
-      virtual IMediaStreamSubscriptionPtr subscribe(IMediaStreamDelegatePtr delegate) = 0;
+      virtual IMediaStreamSubscriptionPtr subscribe(IMediaStreamDelegatePtr delegate) noexcept  = 0;
 
-      virtual String id() const = 0;
-      virtual bool active() const = 0;
+      virtual String id() const noexcept = 0;
+      virtual bool active() const noexcept = 0;
 
-      virtual MediaStreamTrackListPtr getAudioTracks() const = 0;
-      virtual MediaStreamTrackListPtr getVideoTracks() const = 0;
-      virtual MediaStreamTrackListPtr getTracks() const = 0;
-      virtual IMediaStreamTrackPtr getTrackByID(const char *id) const = 0;
-      virtual size_t size() const = 0;
+      virtual MediaStreamTrackListPtr getAudioTracks() const noexcept = 0;
+      virtual MediaStreamTrackListPtr getVideoTracks() const noexcept = 0;
+      virtual MediaStreamTrackListPtr getTracks() const noexcept = 0;
+      virtual IMediaStreamTrackPtr getTrackByID(const char *id) const noexcept = 0;
+      virtual size_t size() const noexcept = 0;
 
-      virtual void addTrack(IMediaStreamTrackPtr track) = 0;
-      virtual void removeTrack(IMediaStreamTrackPtr track) = 0;
+      virtual void addTrack(IMediaStreamTrackPtr track) noexcept = 0;
+      virtual void removeTrack(IMediaStreamTrackPtr track) noexcept = 0;
 
-      virtual IMediaStreamPtr clone() const = 0;
+      virtual IMediaStreamPtr clone() const noexcept = 0;
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamDelegate
-    #pragma mark
+    //
+    // IMediaStreamDelegate
+    //
 
     interface IMediaStreamDelegate
     {
@@ -117,17 +117,17 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IPeerConnectionSubscription
-    #pragma mark
+    //
+    // IPeerConnectionSubscription
+    //
 
     interaction IMediaStreamSubscription
     {
-      virtual PUID getID() const = 0;
+      virtual PUID getID() const noexcept = 0;
 
-      virtual void cancel() = 0;
+      virtual void cancel() noexcept = 0;
 
-      virtual void background() = 0;
+      virtual void background() noexcept = 0;
     };
   }
 }
@@ -136,14 +136,14 @@ namespace ortc
 ZS_DECLARE_PROXY_BEGIN(ortc::adapter::IMediaStreamDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::adapter::IMediaStreamPtr, IMediaStreamPtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IMediaStreamTrackPtr, IMediaStreamTrackPtr)
-ZS_DECLARE_PROXY_METHOD_2(onMediaStreamAddTrack, IMediaStreamPtr, IMediaStreamTrackPtr)
-ZS_DECLARE_PROXY_METHOD_2(onMediaStreamRemoveTrack, IMediaStreamPtr, IMediaStreamTrackPtr)
+ZS_DECLARE_PROXY_METHOD(onMediaStreamAddTrack, IMediaStreamPtr, IMediaStreamTrackPtr)
+ZS_DECLARE_PROXY_METHOD(onMediaStreamRemoveTrack, IMediaStreamPtr, IMediaStreamTrackPtr)
 ZS_DECLARE_PROXY_END()
 
 
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_BEGIN(ortc::adapter::IMediaStreamDelegate, ortc::adapter::IMediaStreamSubscription)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::adapter::IMediaStreamPtr, IMediaStreamPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IMediaStreamTrackPtr, IMediaStreamTrackPtr)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onMediaStreamAddTrack, IMediaStreamPtr, IMediaStreamTrackPtr)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onMediaStreamRemoveTrack, IMediaStreamPtr, IMediaStreamTrackPtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD(onMediaStreamAddTrack, IMediaStreamPtr, IMediaStreamTrackPtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD(onMediaStreamRemoveTrack, IMediaStreamPtr, IMediaStreamTrackPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()

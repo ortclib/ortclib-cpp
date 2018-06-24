@@ -19,24 +19,24 @@ namespace wrapper {
             ZS_DECLARE_TYPEDEF_PTR(wrapper::org::ortc::adapter::RTCIceCandidate, WrapperType);
             RTCIceCandidateWeakPtr thisWeak_;
 
-            RTCIceCandidate();
-            virtual ~RTCIceCandidate();
+            RTCIceCandidate() noexcept;
+            virtual ~RTCIceCandidate() noexcept;
 
             // methods RTCIceCandidate
-            virtual void wrapper_init_org_ortc_adapter_RTCIceCandidate() override;
-            virtual void wrapper_init_org_ortc_adapter_RTCIceCandidate(wrapper::org::ortc::adapter::RTCIceCandidatePtr source) override;
-            virtual void wrapper_init_org_ortc_adapter_RTCIceCandidate(wrapper::org::ortc::JsonPtr json) override;
-            virtual String toSdp() override;
-            virtual wrapper::org::ortc::JsonPtr toJson() override;
-            virtual String hash() override;
+            void wrapper_init_org_ortc_adapter_RTCIceCandidate() noexcept override;
+            void wrapper_init_org_ortc_adapter_RTCIceCandidate(wrapper::org::ortc::adapter::RTCIceCandidatePtr source) noexcept override;
+            void wrapper_init_org_ortc_adapter_RTCIceCandidate(wrapper::org::ortc::JsonPtr json) noexcept(false) override;
+            String toSdp() noexcept override;
+            wrapper::org::ortc::JsonPtr toJson() noexcept override;
+            String hash() noexcept override;
 
             // properties RTCIceCandidate
-            virtual String get_sdpMid() override;
-            virtual void set_sdpMid(String value) override;
+            String get_sdpMid() noexcept override;
+            void set_sdpMid(String value) noexcept override;
 
-            static WrapperImplTypePtr toWrapper(NativeTypePtr native);
-            static WrapperImplTypePtr toWrapper(const NativeType &native);
-            static NativeTypePtr toNative(WrapperTypePtr wrapper);
+            static WrapperImplTypePtr toWrapper(NativeTypePtr native) noexcept;
+            static WrapperImplTypePtr toWrapper(const NativeType &native) noexcept;
+            static NativeTypePtr toNative(WrapperTypePtr wrapper) noexcept;
           };
 
         } // adapter

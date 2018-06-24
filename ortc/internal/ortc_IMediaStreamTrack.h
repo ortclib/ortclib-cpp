@@ -62,9 +62,9 @@ namespace ortc
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrack
-    #pragma mark
+    //
+    // IMediaStreamTrack
+    //
   
     interaction IMediaStreamTrack : public ortc::IMediaStreamTrack
     {
@@ -73,16 +73,16 @@ namespace ortc
       virtual IMediaStreamTrackRTPSubscriptionPtr subscribeRTP(
                                                                const Parameters &rtpEncodingParams,
                                                                IMediaStreamTrackRTPDelegatePtr delegate
-                                                               ) = 0;
+                                                               ) noexcept = 0;
     };
 
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrackRTPDelegate
-    #pragma mark
+    //
+    // IMediaStreamTrackRTPDelegate
+    //
 
     interaction IMediaStreamTrackRTPDelegate : public IMediaStreamTrackDelegate
     {
@@ -91,43 +91,43 @@ namespace ortc
       virtual void notifyMediaStreamTrackRTPPacket(
                                                    ImmutableMediaChannelTracePtr trace,
                                                    RTPPacketPtr packet
-                                                   ) = 0;
+                                                   ) noexcept = 0;
       virtual void notifyMediaStreamTrackRTCPPacket(
                                                     ImmutableMediaChannelTracePtr trace,
                                                     RTCPPacketPtr packet
-                                                    ) = 0;
+                                                    ) noexcept = 0;
     };
 
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrackRTPSubscription
-    #pragma mark
+    //
+    // IMediaStreamTrackRTPSubscription
+    //
   
     interaction IMediaStreamTrackRTPSubscription
     {
-      virtual PUID getID() const = 0;
+      virtual PUID getID() const noexcept = 0;
     
-      virtual void cancel() = 0;
+      virtual void cancel() noexcept = 0;
 
-      virtual void background() = 0;
+      virtual void background() noexcept = 0;
     };
 
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrackForMediaStreamTrackChannel
-    #pragma mark
+    //
+    // IMediaStreamTrackForMediaStreamTrackChannel
+    //
   
     interaction IMediaStreamTrackForMediaStreamTrackChannel
     {
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForMediaStreamTrackChannel, ForMediaStreamTrackChannel);
 
-      virtual ~IMediaStreamTrackForMediaStreamTrackChannel() {}
+      virtual ~IMediaStreamTrackForMediaStreamTrackChannel() noexcept {}
     };
 
 
@@ -135,9 +135,9 @@ namespace ortc
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrackForMediaStreamTrackSubscriber
-    #pragma mark
+    //
+    // IMediaStreamTrackForMediaStreamTrackSubscriber
+    //
   
     interaction IMediaStreamTrackForMediaStreamTrackSubscriber
     {
@@ -145,22 +145,22 @@ namespace ortc
 
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackSubscriberForMediaStreamTrack, UseSubscriber);
 
-      virtual void notifySubscriberCancelled(UseSubscriberPtr subscriber) = 0;
+      virtual void notifySubscriberCancelled(UseSubscriberPtr subscriber) noexcept = 0;
     };
 
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrackForMediaStreamTrackSubscriberMedia
-    #pragma mark
+    //
+    // IMediaStreamTrackForMediaStreamTrackSubscriberMedia
+    //
   
     interaction IMediaStreamTrackForMediaStreamTrackSubscriberMedia : public IMediaStreamTrackForMediaStreamTrackSubscriber
     {
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForMediaStreamTrackSubscriberMedia, ForMediaStreamTrackSubscriberMedia);
 
-      virtual ~IMediaStreamTrackForMediaStreamTrackSubscriberMedia() {}
+      virtual ~IMediaStreamTrackForMediaStreamTrackSubscriberMedia() noexcept {}
     };
 
     
@@ -168,15 +168,15 @@ namespace ortc
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrackForMediaStreamTrackSubscriberRTP
-    #pragma mark
+    //
+    // IMediaStreamTrackForMediaStreamTrackSubscriberRTP
+    //
   
     interaction IMediaStreamTrackForMediaStreamTrackSubscriberRTP : public IMediaStreamTrackForMediaStreamTrackSubscriber
     {
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForMediaStreamTrackSubscriberRTP, ForMediaStreamTrackSubscriberRTP);
 
-      virtual ~IMediaStreamTrackForMediaStreamTrackSubscriberRTP() {}
+      virtual ~IMediaStreamTrackForMediaStreamTrackSubscriberRTP() noexcept {}
     };
 
     
@@ -184,9 +184,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrackForMediaDevices
-    #pragma mark
+    //
+    // IMediaStreamTrackForMediaDevices
+    //
 
     interaction IMediaStreamTrackForMediaDevices
     {
@@ -197,9 +197,9 @@ namespace ortc
       static ForMediaDevicesPtr createForMediaDevices(
                                                       IMediaStreamTrackTypes::Kinds kind,
                                                       const TrackConstraints &constraints
-                                                      );
+                                                      ) noexcept;
 
-      virtual PUID getID() const = 0;
+      virtual PUID getID() const noexcept = 0;
     };
 
     
@@ -207,26 +207,26 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrackForMediaStreamTrackSelector
-    #pragma mark
+    //
+    // IMediaStreamTrackForMediaStreamTrackSelector
+    //
 
     interaction IMediaStreamTrackForMediaStreamTrackSelector
     {
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForMediaStreamTrackSelector, ForMediaStreamTrackSelector);
 
-      static ForMediaStreamTrackSelectorPtr createForMediaStreamTrackSelector(IMediaStreamTrackTypes::Kinds kind);
+      static ForMediaStreamTrackSelectorPtr createForMediaStreamTrackSelector(IMediaStreamTrackTypes::Kinds kind) noexcept;
 
-      virtual PUID getID() const = 0;
+      virtual PUID getID() const noexcept = 0;
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrackForRTPReceiver
-    #pragma mark
+    //
+    // IMediaStreamTrackForRTPReceiver
+    //
 
     interaction IMediaStreamTrackForRTPReceiver
     {
@@ -234,18 +234,18 @@ namespace ortc
 
       ZS_DECLARE_TYPEDEF_PTR(IRTPTypes::Parameters, Parameters);
 
-      static ForReceiverPtr createForReceiver(IMediaStreamTrackTypes::Kinds kind);
+      static ForReceiverPtr createForReceiver(IMediaStreamTrackTypes::Kinds kind) noexcept;
 
-      virtual PUID getID() const = 0;
+      virtual PUID getID() const noexcept = 0;
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrackForRTPReceiverChannel
-    #pragma mark
+    //
+    // IMediaStreamTrackForRTPReceiverChannel
+    //
 
     interaction IMediaStreamTrackForRTPReceiverChannel
     {
@@ -253,8 +253,8 @@ namespace ortc
 
       typedef IMediaStreamTrackTypes::Kinds Kinds;
 
-      virtual PUID getID() const = 0;
-      virtual Kinds kind() const = 0;
+      virtual PUID getID() const noexcept = 0;
+      virtual Kinds kind() const noexcept = 0;
     };
 
 
@@ -262,9 +262,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrackForRTPSender
-    #pragma mark
+    //
+    // IMediaStreamTrackForRTPSender
+    //
 
     interaction IMediaStreamTrackForRTPSender
     {
@@ -272,23 +272,23 @@ namespace ortc
 
       typedef IMediaStreamTrackTypes::Kinds Kinds;
 
-      virtual PUID getID() const = 0;
-      virtual Kinds kind() const = 0;
+      virtual PUID getID() const noexcept = 0;
+      virtual Kinds kind() const noexcept = 0;
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrackForRTPSenderChannel
-    #pragma mark
+    //
+    // IMediaStreamTrackForRTPSenderChannel
+    //
 
     interaction IMediaStreamTrackForRTPSenderChannel
     {
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPSenderChannel, ForSenderChannel);
 
-      virtual PUID getID() const = 0;
+      virtual PUID getID() const noexcept = 0;
     };
 
   }
@@ -300,11 +300,11 @@ ZS_DECLARE_PROXY_TYPEDEF(ortc::IMediaStreamTrackTypes::OverconstrainedErrorPtr, 
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IMediaStreamTrackTypes::ImmutableMediaChannelTracePtr, ImmutableMediaChannelTracePtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::RTPPacketPtr, RTPPacketPtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::RTCPPacketPtr, RTCPPacketPtr)
-ZS_DECLARE_PROXY_METHOD_2(onMediaStreamTrackMute, IMediaStreamTrackPtr, bool)
-ZS_DECLARE_PROXY_METHOD_1(onMediaStreamTrackEnded, IMediaStreamTrackPtr)
-ZS_DECLARE_PROXY_METHOD_2(onMediaStreamTrackOverConstrained, IMediaStreamTrackPtr, OverconstrainedErrorPtr)
-ZS_DECLARE_PROXY_METHOD_SYNC_2(notifyMediaStreamTrackRTPPacket, ImmutableMediaChannelTracePtr, RTPPacketPtr)
-ZS_DECLARE_PROXY_METHOD_SYNC_2(notifyMediaStreamTrackRTCPPacket, ImmutableMediaChannelTracePtr, RTCPPacketPtr)
+ZS_DECLARE_PROXY_METHOD(onMediaStreamTrackMute, IMediaStreamTrackPtr, bool)
+ZS_DECLARE_PROXY_METHOD(onMediaStreamTrackEnded, IMediaStreamTrackPtr)
+ZS_DECLARE_PROXY_METHOD(onMediaStreamTrackOverConstrained, IMediaStreamTrackPtr, OverconstrainedErrorPtr)
+ZS_DECLARE_PROXY_METHOD_SYNC(notifyMediaStreamTrackRTPPacket, ImmutableMediaChannelTracePtr, RTPPacketPtr)
+ZS_DECLARE_PROXY_METHOD_SYNC(notifyMediaStreamTrackRTCPPacket, ImmutableMediaChannelTracePtr, RTCPPacketPtr)
 ZS_DECLARE_PROXY_END()
 
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_BEGIN(ortc::internal::IMediaStreamTrackRTPDelegate, ortc::internal::IMediaStreamTrackRTPSubscription)
@@ -313,9 +313,9 @@ ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IMediaStreamTrackTypes::Overconstra
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IMediaStreamTrackTypes::ImmutableMediaChannelTracePtr, ImmutableMediaChannelTracePtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::RTPPacketPtr, RTPPacketPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::RTCPPacketPtr, RTCPPacketPtr)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onMediaStreamTrackMute, IMediaStreamTrackPtr, bool)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_1(onMediaStreamTrackEnded, IMediaStreamTrackPtr)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onMediaStreamTrackOverConstrained, IMediaStreamTrackPtr, OverconstrainedErrorPtr)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_SYNC_2(notifyMediaStreamTrackRTPPacket, ImmutableMediaChannelTracePtr, RTPPacketPtr)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_SYNC_2(notifyMediaStreamTrackRTCPPacket, ImmutableMediaChannelTracePtr, RTCPPacketPtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD(onMediaStreamTrackMute, IMediaStreamTrackPtr, bool)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD(onMediaStreamTrackEnded, IMediaStreamTrackPtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD(onMediaStreamTrackOverConstrained, IMediaStreamTrackPtr, OverconstrainedErrorPtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_SYNC(notifyMediaStreamTrackRTPPacket, ImmutableMediaChannelTracePtr, RTPPacketPtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_SYNC(notifyMediaStreamTrackRTCPPacket, ImmutableMediaChannelTracePtr, RTCPPacketPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()

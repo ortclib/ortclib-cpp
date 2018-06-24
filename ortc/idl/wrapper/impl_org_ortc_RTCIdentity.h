@@ -17,29 +17,29 @@ namespace wrapper {
           RTCIdentityWeakPtr thisWeak_;
           NativeIdentityPtr native_;
 
-          RTCIdentity();
-          virtual ~RTCIdentity();
+          RTCIdentity() noexcept;
+          virtual ~RTCIdentity() noexcept;
 
           // methods RTCIdentity
-          virtual void wrapper_init_org_ortc_RTCIdentity(wrapper::org::ortc::RTCDtlsTransportPtr transport) override;
-          virtual shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCIdentityResultPtr > > getIdentityAssertion(String provider) override;
-          virtual shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCIdentityResultPtr > > getIdentityAssertion(
+          void wrapper_init_org_ortc_RTCIdentity(wrapper::org::ortc::RTCDtlsTransportPtr transport) noexcept override;
+          shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCIdentityResultPtr > > getIdentityAssertion(String provider) noexcept override;
+          shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCIdentityResultPtr > > getIdentityAssertion(
             String provider,
             String protocol
-            ) override;
-          virtual shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCIdentityResultPtr > > getIdentityAssertion(
+            ) noexcept override;
+          shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCIdentityResultPtr > > getIdentityAssertion(
             String provider,
             String protocol,
             String username
-            ) override;
-          virtual shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCIdentityAssertionPtr > > setIdentityAssertion(String assertion) override;
+            ) noexcept override;
+          shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCIdentityAssertionPtr > > setIdentityAssertion(String assertion) noexcept override;
 
           // properties RTCIdentity
-          virtual uint64_t get_objectId() override;
-          virtual wrapper::org::ortc::RTCIdentityAssertionPtr get_peerIdentity() override;
+          uint64_t get_objectId() noexcept override;
+          wrapper::org::ortc::RTCIdentityAssertionPtr get_peerIdentity() noexcept override;
 
-          static RTCIdentityPtr toWrapper(NativeIdentityPtr native);
-          static NativeIdentityPtr toNative(wrapper::org::ortc::RTCIdentityPtr wrapper);
+          static RTCIdentityPtr toWrapper(NativeIdentityPtr native) noexcept;
+          static NativeIdentityPtr toNative(wrapper::org::ortc::RTCIdentityPtr wrapper) noexcept;
         };
 
       } // ortc

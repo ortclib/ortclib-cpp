@@ -22,12 +22,12 @@ using ::std::set;
 using ::std::map;
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCIceServer::RTCIceServer()
+wrapper::impl::org::ortc::RTCIceServer::RTCIceServer() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCIceServerPtr wrapper::org::ortc::RTCIceServer::wrapper_create()
+wrapper::org::ortc::RTCIceServerPtr wrapper::org::ortc::RTCIceServer::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::RTCIceServer>();
   pThis->thisWeak_ = pThis;
@@ -35,17 +35,17 @@ wrapper::org::ortc::RTCIceServerPtr wrapper::org::ortc::RTCIceServer::wrapper_cr
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCIceServer::~RTCIceServer()
+wrapper::impl::org::ortc::RTCIceServer::~RTCIceServer() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCIceServer::wrapper_init_org_ortc_RTCIceServer()
+void wrapper::impl::org::ortc::RTCIceServer::wrapper_init_org_ortc_RTCIceServer() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCIceServer::wrapper_init_org_ortc_RTCIceServer(wrapper::org::ortc::RTCIceServerPtr source)
+void wrapper::impl::org::ortc::RTCIceServer::wrapper_init_org_ortc_RTCIceServer(wrapper::org::ortc::RTCIceServerPtr source) noexcept
 {
   WrapperTypePtr pThis = thisWeak_.lock();
   WrapperTypePtr wrapper = toWrapper(toNative(source));
@@ -54,7 +54,7 @@ void wrapper::impl::org::ortc::RTCIceServer::wrapper_init_org_ortc_RTCIceServer(
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCIceServer::wrapper_init_org_ortc_RTCIceServer(wrapper::org::ortc::JsonPtr json)
+void wrapper::impl::org::ortc::RTCIceServer::wrapper_init_org_ortc_RTCIceServer(wrapper::org::ortc::JsonPtr json) noexcept
 {
   if (!json) return;
 
@@ -66,26 +66,26 @@ void wrapper::impl::org::ortc::RTCIceServer::wrapper_init_org_ortc_RTCIceServer(
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::JsonPtr wrapper::impl::org::ortc::RTCIceServer::toJson()
+wrapper::org::ortc::JsonPtr wrapper::impl::org::ortc::RTCIceServer::toJson() noexcept
 {
   return Json::toWrapper(toNative(thisWeak_.lock())->createElement("RTCIceServer"));
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::ortc::RTCIceServer::hash()
+String wrapper::impl::org::ortc::RTCIceServer::hash() noexcept
 {
   return toNative(thisWeak_.lock())->hash();
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCIceServer::WrapperImplTypePtr wrapper::impl::org::ortc::RTCIceServer::toWrapper(NativeTypePtr native)
+wrapper::impl::org::ortc::RTCIceServer::WrapperImplTypePtr wrapper::impl::org::ortc::RTCIceServer::toWrapper(NativeTypePtr native) noexcept
 {
   if (!native) return WrapperImplTypePtr();
   return toWrapper(*native);
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCIceServer::WrapperImplTypePtr wrapper::impl::org::ortc::RTCIceServer::toWrapper(const NativeType &native)
+wrapper::impl::org::ortc::RTCIceServer::WrapperImplTypePtr wrapper::impl::org::ortc::RTCIceServer::toWrapper(const NativeType &native) noexcept
 {
   auto pThis = make_shared<WrapperImplType>();
   pThis->thisWeak_ = pThis;
@@ -97,7 +97,7 @@ wrapper::impl::org::ortc::RTCIceServer::WrapperImplTypePtr wrapper::impl::org::o
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCIceServer::NativeTypePtr wrapper::impl::org::ortc::RTCIceServer::toNative(WrapperTypePtr wrapper)
+wrapper::impl::org::ortc::RTCIceServer::NativeTypePtr wrapper::impl::org::ortc::RTCIceServer::toNative(WrapperTypePtr wrapper) noexcept
 {
   if (!wrapper) return NativeTypePtr();
 

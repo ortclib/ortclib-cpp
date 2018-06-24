@@ -45,21 +45,22 @@ namespace ortc
 {
   namespace internal
   {
-    ZS_DECLARE_INTERACTION_PTR(IICETransportForSecureTransport)
-    ZS_DECLARE_INTERACTION_PTR(ISRTPTransportForSecureTransport)
-    ZS_DECLARE_INTERACTION_PTR(IRTPListenerForSecureTransport)
+    ZS_DECLARE_INTERACTION_PTR(IICETransportForSecureTransport);
+    ZS_DECLARE_INTERACTION_PTR(ISRTPTransportForSecureTransport);
+    ZS_DECLARE_INTERACTION_PTR(IRTPListenerForSecureTransport);
 
-    ZS_DECLARE_INTERACTION_PTR(ISRTPSDESTransportForSettings)
-    ZS_DECLARE_INTERACTION_PROXY(ISRTPSDESTransportAsyncDelegate)
+    ZS_DECLARE_INTERACTION_PTR(ISRTPSDESTransportForSettings);
+    ZS_DECLARE_INTERACTION_PROXY(ISRTPSDESTransportAsyncDelegate);
 
 
+
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISRTPSDESTransportAsyncDelegate
-    #pragma mark
+    //
+    // ISRTPSDESTransportAsyncDelegate
+    //
 
     interaction ISRTPSDESTransportAsyncDelegate
     {
@@ -71,9 +72,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark SRTPSDESTransport
-    #pragma mark
+    //
+    // SRTPSDESTransport
+    //
     
     class SRTPSDESTransport : public Noop,
                               public MessageQueueAssociator,
@@ -101,9 +102,9 @@ namespace ortc
       friend interaction ISecureTransportForSRTPTransport;
       friend interaction ISecureTransportForRTPListener;
 
-      ZS_DECLARE_TYPEDEF_PTR(IICETransportForSecureTransport, UseICETransport)
-      ZS_DECLARE_TYPEDEF_PTR(ISRTPTransportForSecureTransport, UseSRTPTransport)
-      ZS_DECLARE_TYPEDEF_PTR(IRTPListenerForSecureTransport, UseRTPListener)
+      ZS_DECLARE_TYPEDEF_PTR(IICETransportForSecureTransport, UseICETransport);
+      ZS_DECLARE_TYPEDEF_PTR(ISRTPTransportForSecureTransport, UseSRTPTransport);
+      ZS_DECLARE_TYPEDEF_PTR(IRTPListenerForSecureTransport, UseRTPListener);
 
     public:
       SRTPSDESTransport(
@@ -111,10 +112,10 @@ namespace ortc
                         IMessageQueuePtr queue,
                         ISRTPSDESTransportDelegatePtr delegate,
                         IICETransportPtr iceTransport
-                        );
+                        ) noexcept(false); // throws InvalidParameters
 
     protected:
-      SRTPSDESTransport(Noop) :
+      SRTPSDESTransport(Noop) noexcept :
         Noop(true),
         MessageQueueAssociator(IMessageQueuePtr()),
         SharedRecursiveLock(SharedRecursiveLock::create())
@@ -123,131 +124,131 @@ namespace ortc
       void init(
                 const CryptoParameters &encryptParameters,
                 const CryptoParameters &decryptParameters
-                );
+                ) noexcept;
 
     public:
-      virtual ~SRTPSDESTransport();
+      virtual ~SRTPSDESTransport() noexcept;
 
-      static SRTPSDESTransportPtr convert(ISRTPSDESTransportPtr object);
-      static SRTPSDESTransportPtr convert(ForRTPSenderPtr object);
-      static SRTPSDESTransportPtr convert(ForRTPReceiverPtr object);
-      static SRTPSDESTransportPtr convert(ForICETransportPtr object);
-      static SRTPSDESTransportPtr convert(ForSRTPPtr object);
-      static SRTPSDESTransportPtr convert(ForRTPListenerPtr object);
+      static SRTPSDESTransportPtr convert(ISRTPSDESTransportPtr object) noexcept;
+      static SRTPSDESTransportPtr convert(ForRTPSenderPtr object) noexcept;
+      static SRTPSDESTransportPtr convert(ForRTPReceiverPtr object) noexcept;
+      static SRTPSDESTransportPtr convert(ForICETransportPtr object) noexcept;
+      static SRTPSDESTransportPtr convert(ForSRTPPtr object) noexcept;
+      static SRTPSDESTransportPtr convert(ForRTPListenerPtr object) noexcept;
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SRTPSDESTransport => IStatsProvider
-      #pragma mark
+      //
+      // SRTPSDESTransport => IStatsProvider
+      //
 
-      PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const override;
+      PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const noexcept override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SRTPSDESTransport => ISRTPSDESTransport
-      #pragma mark
+      //
+      // SRTPSDESTransport => ISRTPSDESTransport
+      //
 
-      static ElementPtr toDebug(SRTPSDESTransportPtr transport);
+      static ElementPtr toDebug(SRTPSDESTransportPtr transport) noexcept;
 
       static SRTPSDESTransportPtr create(
                                          ISRTPSDESTransportDelegatePtr delegate,
                                          IICETransportPtr iceTransport,
                                          const CryptoParameters &encryptParameters,
                                          const CryptoParameters &decryptParameters
-                                         );
+                                         ) noexcept(false); // throws InvalidParameters
 
-      static SRTPSDESTransportPtr convert(IRTPTransportPtr rtpTransport);
+      static SRTPSDESTransportPtr convert(IRTPTransportPtr rtpTransport) noexcept;
 
-      PUID getID() const override {return mID;}
+      PUID getID() const noexcept override {return mID;}
 
-      ISRTPSDESTransportSubscriptionPtr subscribe(ISRTPSDESTransportDelegatePtr delegate) override;
+      ISRTPSDESTransportSubscriptionPtr subscribe(ISRTPSDESTransportDelegatePtr delegate) noexcept override;
 
-      IICETransportPtr transport() const override;
-      IICETransportPtr rtcpTransport() const override;
+      IICETransportPtr transport() const noexcept override;
+      IICETransportPtr rtcpTransport() const noexcept override;
 
-      static ParametersPtr getLocalParameters();
+      static ParametersPtr getLocalParameters() noexcept;
 
-      void stop() override;
+      void stop() noexcept override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark DTLSTransport => ISecureTransport
-      #pragma mark
+      //
+      // DTLSTransport => ISecureTransport
+      //
 
       // (duplicate) virtual PUID getID() const;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SRTPSDESTransport => ISecureTransportForRTPSender
-      #pragma mark
+      //
+      // SRTPSDESTransport => ISecureTransportForRTPSender
+      //
 
       // (duplicate) static ElementPtr toDebug(ForRTPSenderPtr transport);
 
       // (duplicate) virtual PUID getID() const;
 
-      ISecureTransportSubscriptionPtr subscribe(ISecureTransportDelegatePtr delegate) override;
+      ISecureTransportSubscriptionPtr subscribe(ISecureTransportDelegatePtr delegate) noexcept override;
 
-      ISecureTransportTypes::States state(ISecureTransportTypes::States ignored) const override;
+      ISecureTransportTypes::States state(ISecureTransportTypes::States ignored) const noexcept override;
 
       virtual bool sendPacket(
                               IICETypes::Components sendOverICETransport,
                               IICETypes::Components packetType,
                               const BYTE *buffer,
                               size_t bufferLengthInBytes
-                              ) override;
+                              ) noexcept override;
 
-      IICETransportPtr getICETransport() const override;
+      IICETransportPtr getICETransport() const noexcept override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SRTPSDESTransport => ISecureTransportForRTPReceiver
-      #pragma mark
+      //
+      // SRTPSDESTransport => ISecureTransportForRTPReceiver
+      //
 
-      // (duplicate) static ElementPtr toDebug(ForRTPSenderPtr transport);
+      // (duplicate) static ElementPtr toDebug(ForRTPSenderPtr transport) noexcept;
 
-      // (duplicate) virtual PUID getID() const;
+      // (duplicate) virtual PUID getID() const noexcept;
 
-      // (duplicate) virtual ISecureTransportSubscriptionPtr subscribe(ISecureTransportDelegatePtr delegate) = 0;
-      // (duplicate) virtual ISecureTransportTypes::States state(ISecureTransportTypes::States ignored = ISecureTransportTypes::States()) const = 0;
+      // (duplicate) virtual ISecureTransportSubscriptionPtr subscribe(ISecureTransportDelegatePtr delegate) noexcept = 0;
+      // (duplicate) virtual ISecureTransportTypes::States state(ISecureTransportTypes::States ignored = ISecureTransportTypes::States()) const noexcept = 0;
 
       // (duplicate) virtual bool sendPacket(
       //                                     IICETypes::Components sendOverICETransport,
       //                                     IICETypes::Components packetType,
       //                                     const BYTE *buffer,
       //                                     size_t bufferLengthInBytes
-      //                                     ) override;
+      //                                     ) noexcept override;
 
-      // (duplicate) virtual IICETransportPtr getICETransport() const override;
+      // (duplicate) virtual IICETransportPtr getICETransport() const noexcept override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SRTPSDESTransport => ISRTPSDESTransportForICETransport
-      #pragma mark
+      //
+      // SRTPSDESTransport => ISRTPSDESTransportForICETransport
+      //
 
-      // (duplicate) static ElementPtr toDebug(ForICETransportPtr transport);
+      // (duplicate) static ElementPtr toDebug(ForICETransportPtr transport) noexcept;
 
-      // (duplicate) virtual PUID getID() const;
+      // (duplicate) virtual PUID getID() const noexcept;
 
       void notifyAssociateTransportCreated(
                                            IICETypes::Components associatedComponent,
                                            ICETransportPtr assoicated
-                                           ) override;
+                                           ) noexcept override;
 
       bool handleReceivedPacket(
                                 IICETypes::Components viaTransport,
                                 const BYTE *buffer,
                                 size_t bufferLengthInBytes
-                                ) override;
+                                ) noexcept override;
       void handleReceivedSTUNPacket(
                                     IICETypes::Components viaComponent,
                                     STUNPacketPtr packet
-                                    ) override;
+                                    ) noexcept override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SRTPSDESTransport => ISecureTransportForSRTPTransport
-      #pragma mark
+      //
+      // SRTPSDESTransport => ISecureTransportForSRTPTransport
+      //
 
       // (duplicate) static ElementPtr toDebug(ForSRTPPtr transport);
 
@@ -258,44 +259,44 @@ namespace ortc
                                IICETypes::Components packetType,
                                const BYTE *buffer,
                                size_t bufferLengthInBytes
-                               ) override;
+                               ) noexcept override;
 
       bool handleReceivedDecryptedPacket(
                                          IICETypes::Components viaTransport,
                                          IICETypes::Components packetType,
                                          const BYTE *buffer,
                                          size_t bufferLengthInBytes
-                                         ) override;
+                                         ) noexcept override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SRTPSDESTransport => ISecureTransportForRTPListener
-      #pragma mark
+      //
+      // SRTPSDESTransport => ISecureTransportForRTPListener
+      //
 
       // (duplicate) static ElementPtr toDebug(ForRTPListenerPtr transport);
 
       // (duplicate) virtual PUID getID() const = 0;
 
-      RTPListenerPtr getListener() const override;
+      RTPListenerPtr getListener() const noexcept override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SRTPSDESTransport => ISRTPSDESTransportForSettings
-      #pragma mark
+      //
+      // SRTPSDESTransport => ISRTPSDESTransportForSettings
+      //
 
-      // (duplicate) static void applyDefaults();
+      // (duplicate) static void applyDefaults() noexcept;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SRTPSDESTransport => ISRTPSDESTransportAsyncDelegate
-      #pragma mark
+      //
+      // SRTPSDESTransport => ISRTPSDESTransportAsyncDelegate
+      //
 
       void onAttachRTCP() override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SRTPSDESTransport => ISRTPTransportDelegate
-      #pragma mark
+      //
+      // SRTPSDESTransport => ISRTPTransportDelegate
+      //
 
       void onSRTPTransportLifetimeRemaining(
                                             ISRTPTransportPtr transport,
@@ -304,9 +305,9 @@ namespace ortc
                                             ) override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SRTPSDESTransport => IICETransportDelegate
-      #pragma mark
+      //
+      // SRTPSDESTransport => IICETransportDelegate
+      //
 
       void onICETransportStateChange(
                                      IICETransportPtr transport,
@@ -329,32 +330,32 @@ namespace ortc
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SRTPSDESTransport => (internal)
-      #pragma mark
+      //
+      // SRTPSDESTransport => (internal)
+      //
 
-      Log::Params log(const char *message) const;
-      Log::Params debug(const char *message) const;
-      ElementPtr toDebug() const;
+      Log::Params log(const char *message) const noexcept;
+      Log::Params debug(const char *message) const noexcept;
+      ElementPtr toDebug() const noexcept;
 
-      bool isShuttingDown() const;
-      bool isShutdown() const;
+      bool isShuttingDown() const noexcept;
+      bool isShutdown() const noexcept;
 
-      void step();
-      void cancel();
+      void step() noexcept;
+      void cancel() noexcept;
 
-      bool stepIceState();
+      bool stepIceState() noexcept;
 
-      void setError(WORD error, const char *reason = NULL);
-      void setState(ISecureTransportTypes::States state);
+      void setError(WORD error, const char *reason = NULL) noexcept;
+      void setState(ISecureTransportTypes::States state) noexcept;
 
-      UseICETransportPtr fixRTCPTransport() const;
+      UseICETransportPtr fixRTCPTransport() const noexcept;
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SRTPSDESTransport => (data)
-      #pragma mark
+      //
+      // SRTPSDESTransport => (data)
+      //
 
       AutoPUID mID;
       SRTPSDESTransportWeakPtr mThisWeak;
@@ -385,25 +386,25 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISRTPSDESTransportFactory
-    #pragma mark
+    //
+    // ISRTPSDESTransportFactory
+    //
 
     interaction ISRTPSDESTransportFactory
     {
       typedef ISRTPSDESTransportTypes::CryptoParameters CryptoParameters;
       typedef ISRTPSDESTransportTypes::ParametersPtr ParametersPtr;
 
-      static ISRTPSDESTransportFactory &singleton();
+      static ISRTPSDESTransportFactory &singleton() noexcept;
 
       virtual SRTPSDESTransportPtr create(
                                           ISRTPSDESTransportDelegatePtr delegate,
                                           IICETransportPtr iceTransport,
                                           const CryptoParameters &encryptParameters,
                                           const CryptoParameters &decryptParameters
-                                          );
+                                          ) noexcept;
 
-      virtual ParametersPtr getLocalParameters();
+      virtual ParametersPtr getLocalParameters() noexcept;
     };
 
     class SRTPSDESTransportFactory : public IFactory<ISRTPSDESTransportFactory> {};
@@ -411,5 +412,5 @@ namespace ortc
 }
 
 ZS_DECLARE_PROXY_BEGIN(ortc::internal::ISRTPSDESTransportAsyncDelegate)
-ZS_DECLARE_PROXY_METHOD_0(onAttachRTCP)
+ZS_DECLARE_PROXY_METHOD(onAttachRTCP)
 ZS_DECLARE_PROXY_END()

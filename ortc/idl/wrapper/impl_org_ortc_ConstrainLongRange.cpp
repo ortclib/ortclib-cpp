@@ -21,12 +21,12 @@ using ::std::set;
 using ::std::map;
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::ConstrainLongRange::ConstrainLongRange()
+wrapper::impl::org::ortc::ConstrainLongRange::ConstrainLongRange() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::ConstrainLongRangePtr wrapper::org::ortc::ConstrainLongRange::wrapper_create()
+wrapper::org::ortc::ConstrainLongRangePtr wrapper::org::ortc::ConstrainLongRange::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::ConstrainLongRange>();
   pThis->thisWeak_ = pThis;
@@ -34,17 +34,17 @@ wrapper::org::ortc::ConstrainLongRangePtr wrapper::org::ortc::ConstrainLongRange
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::ConstrainLongRange::~ConstrainLongRange()
+wrapper::impl::org::ortc::ConstrainLongRange::~ConstrainLongRange() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::ConstrainLongRange::wrapper_init_org_ortc_ConstrainLongRange()
+void wrapper::impl::org::ortc::ConstrainLongRange::wrapper_init_org_ortc_ConstrainLongRange() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::ConstrainLongRange::wrapper_init_org_ortc_ConstrainLongRange(wrapper::org::ortc::ConstrainLongRangePtr source)
+void wrapper::impl::org::ortc::ConstrainLongRange::wrapper_init_org_ortc_ConstrainLongRange(wrapper::org::ortc::ConstrainLongRangePtr source) noexcept
 {
   if (!source) return;
 
@@ -53,7 +53,7 @@ void wrapper::impl::org::ortc::ConstrainLongRange::wrapper_init_org_ortc_Constra
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::ConstrainLongRange::wrapper_init_org_ortc_ConstrainLongRange(wrapper::org::ortc::JsonPtr json)
+void wrapper::impl::org::ortc::ConstrainLongRange::wrapper_init_org_ortc_ConstrainLongRange(wrapper::org::ortc::JsonPtr json) noexcept
 {
   if (!json) return;
 
@@ -67,26 +67,26 @@ void wrapper::impl::org::ortc::ConstrainLongRange::wrapper_init_org_ortc_Constra
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::JsonPtr wrapper::impl::org::ortc::ConstrainLongRange::toJson()
+wrapper::org::ortc::JsonPtr wrapper::impl::org::ortc::ConstrainLongRange::toJson() noexcept
 {
   return Json::toWrapper(toNative(thisWeak_.lock())->createElement("ConstrainLongRange"));
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::ortc::ConstrainLongRange::hash()
+String wrapper::impl::org::ortc::ConstrainLongRange::hash() noexcept
 {
   return toNative(thisWeak_.lock())->hash();
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::ConstrainLongRangePtr  wrapper::impl::org::ortc::ConstrainLongRange::toWrapper(NativeConstrainLongRangePtr native)
+wrapper::impl::org::ortc::ConstrainLongRangePtr  wrapper::impl::org::ortc::ConstrainLongRange::toWrapper(NativeConstrainLongRangePtr native) noexcept
 {
   if (!native) return ConstrainLongRangePtr();
   return toWrapper(*native);
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::ConstrainLongRangePtr  wrapper::impl::org::ortc::ConstrainLongRange::toWrapper(const NativeConstrainLongRange &native)
+wrapper::impl::org::ortc::ConstrainLongRangePtr  wrapper::impl::org::ortc::ConstrainLongRange::toWrapper(const NativeConstrainLongRange &native) noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::ConstrainLongRange>();
   pThis->thisWeak_ = pThis;
@@ -101,7 +101,7 @@ wrapper::impl::org::ortc::ConstrainLongRangePtr  wrapper::impl::org::ortc::Const
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::ConstrainLongRange::NativeConstrainLongRangePtr wrapper::impl::org::ortc::ConstrainLongRange::toNative(wrapper::org::ortc::ConstrainLongRangePtr wrapper)
+wrapper::impl::org::ortc::ConstrainLongRange::NativeConstrainLongRangePtr wrapper::impl::org::ortc::ConstrainLongRange::toNative(wrapper::org::ortc::ConstrainLongRangePtr wrapper) noexcept
 {
   if (!wrapper) return NativeConstrainLongRangePtr();
 

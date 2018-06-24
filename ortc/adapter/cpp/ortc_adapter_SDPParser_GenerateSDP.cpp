@@ -46,9 +46,9 @@
 
 #include <cryptopp/sha.h>
 
-#ifdef _MSC_VER
-#pragma warning(3 : 4062)
-#endif //_MSC_VER
+//#ifdef _MSC_VER
+//#pragma warning(3 : 4062)
+//#endif //_MSC_VER
 
 namespace ortc { namespace adapter { ZS_DECLARE_SUBSYSTEM(org_ortc_adapter) } }
 
@@ -65,25 +65,25 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark Helpers
-      #pragma mark
+      //
+      // Helpers
+      //
 
       //-----------------------------------------------------------------------
-      static Log::Params slog(const char *message)
+      static Log::Params slog(const char *message) noexcept
       {
         return Log::Params(message, "ortc::adapter::SDPParser");
       }
 
       //-----------------------------------------------------------------------
-      static String eol()
+      static String eol() noexcept
       {
         static String result("\r\n");
         return result;
       }
 
       //-----------------------------------------------------------------------
-      static void appendLine(String &ioResult, const char *line)
+      static void appendLine(String &ioResult, const char *line) noexcept
       {
         if (NULL == line) return;
         if ('\0' == *line) return;
@@ -92,7 +92,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      static void appendLine(String &ioResult, const String &line)
+      static void appendLine(String &ioResult, const String &line) noexcept
       {
         if (line.isEmpty()) return;
         ioResult.append(line);
@@ -100,7 +100,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      static void appendLine(String &ioResult, char letter, const char *line)
+      static void appendLine(String &ioResult, char letter, const char *line) noexcept
       {
         if (NULL == line) return;
         if ('\0' == *line) return;
@@ -116,7 +116,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      static void appendLine(String &ioResult, char letter, const String &line)
+      static void appendLine(String &ioResult, char letter, const String &line) noexcept
       {
         if (line.isEmpty()) return;
 
@@ -134,15 +134,15 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SDPParser
-      #pragma mark
+      //
+      // SDPParser
+      //
 
       //-----------------------------------------------------------------------
       void SDPParser::generateSessionLevel(
                                            const SDP &sdp,
                                            String &ioResult
-                                           )
+                                           ) noexcept
       {
         appendLine(ioResult, 'v', "0");
         appendLine(ioResult, 'o', ISDPTypes::OLine::toString(sdp.mOLine));
@@ -179,7 +179,7 @@ namespace ortc
       void SDPParser::generateMediaLevel(
                                          const SDP &sdp,
                                          String &ioResult
-                                         )
+                                         ) noexcept
       {
         for (auto iter = sdp.mMLines.begin(); iter != sdp.mMLines.end(); ++iter) {
           auto mline = *(*iter);
@@ -270,7 +270,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      String SDPParser::generate(const SDP &sdp)
+      String SDPParser::generate(const SDP &sdp) noexcept(false)
       {
         String result;
         result.reserve(2500);

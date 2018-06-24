@@ -23,12 +23,12 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCSrtpSdesTransportLifetimeRem
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCSrtpSdesTransportLifetimeRemainingEvent::WrapperType, WrapperType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCSrtpSdesTransportLifetimeRemainingEvent::RTCSrtpSdesTransportLifetimeRemainingEvent()
+wrapper::impl::org::ortc::RTCSrtpSdesTransportLifetimeRemainingEvent::RTCSrtpSdesTransportLifetimeRemainingEvent() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCSrtpSdesTransportLifetimeRemainingEventPtr wrapper::org::ortc::RTCSrtpSdesTransportLifetimeRemainingEvent::wrapper_create()
+wrapper::org::ortc::RTCSrtpSdesTransportLifetimeRemainingEventPtr wrapper::org::ortc::RTCSrtpSdesTransportLifetimeRemainingEvent::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::RTCSrtpSdesTransportLifetimeRemainingEvent>();
   pThis->thisWeak_ = pThis;
@@ -36,18 +36,18 @@ wrapper::org::ortc::RTCSrtpSdesTransportLifetimeRemainingEventPtr wrapper::org::
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCSrtpSdesTransportLifetimeRemainingEvent::~RTCSrtpSdesTransportLifetimeRemainingEvent()
+wrapper::impl::org::ortc::RTCSrtpSdesTransportLifetimeRemainingEvent::~RTCSrtpSdesTransportLifetimeRemainingEvent() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-unsigned long wrapper::impl::org::ortc::RTCSrtpSdesTransportLifetimeRemainingEvent::get_leastLifetimeRemainingPercentageForAllKeys()
+unsigned long wrapper::impl::org::ortc::RTCSrtpSdesTransportLifetimeRemainingEvent::get_leastLifetimeRemainingPercentageForAllKeys() noexcept
 {
   return leastLifetimeRemainingPercentageForAllKeys_;
 }
 
 //------------------------------------------------------------------------------
-unsigned long wrapper::impl::org::ortc::RTCSrtpSdesTransportLifetimeRemainingEvent::get_overallLifetimeRemainingPercentage()
+unsigned long wrapper::impl::org::ortc::RTCSrtpSdesTransportLifetimeRemainingEvent::get_overallLifetimeRemainingPercentage() noexcept
 {
   return overallLifetimeRemainingPercentage_;
 }
@@ -56,7 +56,7 @@ unsigned long wrapper::impl::org::ortc::RTCSrtpSdesTransportLifetimeRemainingEve
 WrapperImplTypePtr WrapperImplType::toWrapper(
   ULONG leastLifetimeRemainingPercentageForAllKeys,
   ULONG overallLifetimeRemainingPercentage
-)
+) noexcept
 {
   auto pThis = make_shared<WrapperImplType>();
   pThis->thisWeak_ = pThis;

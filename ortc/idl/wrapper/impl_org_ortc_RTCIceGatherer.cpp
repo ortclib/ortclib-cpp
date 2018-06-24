@@ -35,12 +35,12 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCIceGatherer::WrapperImplType
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCIceGatherer::WrapperType, WrapperType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCIceGatherer::RTCIceGatherer()
+wrapper::impl::org::ortc::RTCIceGatherer::RTCIceGatherer() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCIceGathererPtr wrapper::org::ortc::RTCIceGatherer::wrapper_create()
+wrapper::org::ortc::RTCIceGathererPtr wrapper::org::ortc::RTCIceGatherer::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::RTCIceGatherer>();
   pThis->thisWeak_ = pThis;
@@ -48,18 +48,18 @@ wrapper::org::ortc::RTCIceGathererPtr wrapper::org::ortc::RTCIceGatherer::wrappe
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCIceGatherer::~RTCIceGatherer()
+wrapper::impl::org::ortc::RTCIceGatherer::~RTCIceGatherer() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > wrapper::impl::org::ortc::RTCIceGatherer::getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes)
+shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > wrapper::impl::org::ortc::RTCIceGatherer::getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept(false)
 {
   return Helper::getStats(native_, statTypes);
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCIceGatherer::wrapper_init_org_ortc_RTCIceGatherer(wrapper::org::ortc::RTCIceGatherOptionsPtr options)
+void wrapper::impl::org::ortc::RTCIceGatherer::wrapper_init_org_ortc_RTCIceGatherer(wrapper::org::ortc::RTCIceGatherOptionsPtr options) noexcept(false)
 {
   auto native = RTCIceGatherOptions::toNative(options);
   ZS_THROW_INVALID_ARGUMENT_IF(!native);
@@ -68,19 +68,19 @@ void wrapper::impl::org::ortc::RTCIceGatherer::wrapper_init_org_ortc_RTCIceGathe
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCIceGathererPtr wrapper::impl::org::ortc::RTCIceGatherer::createAssociatedGatherer()
+wrapper::org::ortc::RTCIceGathererPtr wrapper::impl::org::ortc::RTCIceGatherer::createAssociatedGatherer() noexcept(false)
 {
   return RTCIceGatherer::toWrapper(native_->createAssociatedGatherer(::ortc::IICEGathererDelegatePtr()));
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCIceGatherer::gather()
+void wrapper::impl::org::ortc::RTCIceGatherer::gather() noexcept
 {
   native_->gather();
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCIceGatherer::gather(wrapper::org::ortc::RTCIceGatherOptionsPtr options)
+void wrapper::impl::org::ortc::RTCIceGatherer::gather(wrapper::org::ortc::RTCIceGatherOptionsPtr options) noexcept
 {
   auto native = RTCIceGatherOptions::toNative(options);
   if (!native) {
@@ -91,37 +91,37 @@ void wrapper::impl::org::ortc::RTCIceGatherer::gather(wrapper::org::ortc::RTCIce
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCIceGatherer::close()
+void wrapper::impl::org::ortc::RTCIceGatherer::close() noexcept
 {
   native_->close();
 }
 
 //------------------------------------------------------------------------------
-uint64_t wrapper::impl::org::ortc::RTCIceGatherer::get_objectId()
+uint64_t wrapper::impl::org::ortc::RTCIceGatherer::get_objectId() noexcept
 {
   return native_->getID();
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCIceComponent wrapper::impl::org::ortc::RTCIceGatherer::get_component()
+wrapper::org::ortc::RTCIceComponent wrapper::impl::org::ortc::RTCIceGatherer::get_component() noexcept
 {
   return Helper::toWrapper(native_->component());
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCIceGathererState wrapper::impl::org::ortc::RTCIceGatherer::get_state()
+wrapper::org::ortc::RTCIceGathererState wrapper::impl::org::ortc::RTCIceGatherer::get_state() noexcept
 {
   return Helper::toWrapper(native_->state());
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCIceParametersPtr wrapper::impl::org::ortc::RTCIceGatherer::get_localParameters()
+wrapper::org::ortc::RTCIceParametersPtr wrapper::impl::org::ortc::RTCIceGatherer::get_localParameters() noexcept
 {
   return RTCIceParameters::toWrapper(native_->getLocalParameters());
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< list< wrapper::org::ortc::RTCIceCandidatePtr > > wrapper::impl::org::ortc::RTCIceGatherer::get_localCandidates()
+shared_ptr< list< wrapper::org::ortc::RTCIceCandidatePtr > > wrapper::impl::org::ortc::RTCIceGatherer::get_localCandidates() noexcept
 {
   auto result = make_shared< list< wrapper::org::ortc::RTCIceCandidatePtr > >();
 
@@ -137,7 +137,7 @@ shared_ptr< list< wrapper::org::ortc::RTCIceCandidatePtr > > wrapper::impl::org:
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCIceGatherer::wrapper_onObserverCountChanged(size_t count)
+void wrapper::impl::org::ortc::RTCIceGatherer::wrapper_onObserverCountChanged(size_t count) noexcept
 {
   subscriptionCount_ = count;
   subscribe();
@@ -156,7 +156,7 @@ void WrapperImplType::onICEGathererStateChange(
 void WrapperImplType::onICEGathererLocalCandidate(
   IICEGathererPtr gatherer,
   CandidatePtr candidate
-) 
+)
 {
   onLocalCandidate(RTCIceGathererCandidateEvent::toWrapper(candidate));
 }
@@ -189,7 +189,7 @@ void WrapperImplType::onICEGathererError(
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr track)
+WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr track) noexcept
 {
   if (!track) return WrapperImplTypePtr();
 
@@ -202,7 +202,7 @@ WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr track)
 }
 
 //------------------------------------------------------------------------------
-NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper)
+NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper) noexcept
 {
   if (!wrapper) return NativeTypePtr();
   auto result = std::dynamic_pointer_cast<WrapperImplType>(wrapper);
@@ -211,7 +211,7 @@ NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper)
 }
 
 //------------------------------------------------------------------------------
-void WrapperImplType::subscribe()
+void WrapperImplType::subscribe() noexcept
 {
   if (defaultSubscription_) return;
   if (!native_) return;

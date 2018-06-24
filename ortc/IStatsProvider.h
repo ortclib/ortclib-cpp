@@ -42,9 +42,9 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IStatsProviderTypes
-  #pragma mark
+  //
+  // IStatsProviderTypes
+  //
   
   interaction IStatsProviderTypes
   {
@@ -56,13 +56,13 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IStatsProvider
-  #pragma mark
+  //
+  // IStatsProvider
+  //
   
   interaction IStatsProvider : public IStatsProviderTypes
   {
-    virtual PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const = 0;
+    virtual PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const noexcept = 0;
   };
 
 }

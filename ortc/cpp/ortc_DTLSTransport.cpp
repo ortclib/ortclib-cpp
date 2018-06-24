@@ -68,12 +68,6 @@
 //#include <webrtc/base/safe_conversions.h>
 //#include <webrtc/base/common.h>
 
-#ifdef _DEBUG
-#define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))
-#else
-#define ASSERT(x)
-#endif //_DEBUG
-
 namespace ortc { ZS_DECLARE_SUBSYSTEM(org_ortc_dtls_transport) }
 
 namespace ortc
@@ -99,9 +93,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark (helpers)
-    #pragma mark
+    //
+    // (helpers)
+    //
 
     const int SRTP_MASTER_KEY_KEY_LEN = 16;
     const int SRTP_MASTER_KEY_SALT_LEN = 14;
@@ -275,9 +269,9 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    static long stream_ctrl(BIO* b, int cmd, long num, void* ptr) {
-      //RTC_UNUSED(num);
-     // RTC_UNUSED(ptr);
+    static long stream_ctrl(BIO* b, int cmd, long num, ZS_MAYBE_USED() void* ptr) {
+      ZS_MAYBE_USED(num);
+      ZS_MAYBE_USED(ptr);
 
       switch (cmd) {
         case BIO_CTRL_RESET:
@@ -305,28 +299,28 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark DTLSTransportSettingsDefaults
-    #pragma mark
+    //
+    // DTLSTransportSettingsDefaults
+    //
 
     class DTLSTransportSettingsDefaults : public ISettingsApplyDefaultsDelegate
     {
     public:
       //-----------------------------------------------------------------------
-      ~DTLSTransportSettingsDefaults()
+      ~DTLSTransportSettingsDefaults() noexcept
       {
         ISettings::removeDefaults(*this);
       }
 
       //-----------------------------------------------------------------------
-      static DTLSTransportSettingsDefaultsPtr singleton()
+      static DTLSTransportSettingsDefaultsPtr singleton() noexcept
       {
         static SingletonLazySharedPtr<DTLSTransportSettingsDefaults> singleton(create());
         return singleton.singleton();
       }
 
       //-----------------------------------------------------------------------
-      static DTLSTransportSettingsDefaultsPtr create()
+      static DTLSTransportSettingsDefaultsPtr create() noexcept
       {
         auto pThis(make_shared<DTLSTransportSettingsDefaults>());
         ISettings::installDefaults(pThis);
@@ -334,7 +328,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      virtual void notifySettingsApplyDefaults() override
+      virtual void notifySettingsApplyDefaults() noexcept override
       {
         ISettings::setUInt(ORTC_SETTING_DTLS_TRANSPORT_MAX_PENDING_DTLS_BUFFER, kMaxDtlsPacketLen * 12);
 
@@ -346,7 +340,7 @@ namespace ortc
     };
 
     //-------------------------------------------------------------------------
-    void installDTLSTransportSettingsDefaults()
+    void installDTLSTransportSettingsDefaults() noexcept
     {
       DTLSTransportSettingsDefaults::singleton();
     }
@@ -356,18 +350,17 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark DTLSTransport => IStatsProvider
-    #pragma mark
+    //
+    // DTLSTransport => IStatsProvider
+    //
 
     //-------------------------------------------------------------------------
-    IStatsProvider::PromiseWithStatsReportPtr DTLSTransport::getStats(const StatsTypeSet &stats) const
+    IStatsProvider::PromiseWithStatsReportPtr DTLSTransport::getStats(const StatsTypeSet &stats) const noexcept
     {
       if (!stats.hasStatType(IStatsReportTypes::StatsType_DTLSTransport)) {
         return PromiseWithStatsReport::createRejected(IORTCForInternal::queueDelegate());
       }
-#define TODO_COMPLETE 1
-#define TODO_COMPLETE 2
+#pragma ZS_BUILD_NOTE("TODO", "DTLS needs stats.")
       return PromiseWithStatsReport::createRejected(IORTCForInternal::queueDelegate());
     }
 
@@ -375,9 +368,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark DTLSTransport
-    #pragma mark
+    //
+    // DTLSTransport
+    //
     
     //-------------------------------------------------------------------------
     DTLSTransport::DTLSTransport(
@@ -386,7 +379,7 @@ namespace ortc
                                  IDTLSTransportDelegatePtr originalDelegate,
                                  IICETransportPtr iceTransport,
                                  const CertificateList &certificates
-                                 ) :
+                                 ) noexcept(false) :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
       mSubscriptions(decltype(mSubscriptions)::create()),
@@ -426,7 +419,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void DTLSTransport::init()
+    void DTLSTransport::init() noexcept
     {
       UseICETransportPtr transport;
 
@@ -441,10 +434,10 @@ namespace ortc
           }
           case IICETypes::Component_RTCP: {
             UseICETransportPtr rtpIceTransport = mICETransport->getRTPTransport();
-            ORTC_THROW_INVALID_STATE_IF(!rtpIceTransport)
+            ZS_ASSERT(rtpIceTransport);
 
             auto useSecureTransport = DTLSTransport::convert(rtpIceTransport->getSecureTransport());
-            ORTC_THROW_INVALID_STATE_IF(!useSecureTransport)
+            ZS_ASSERT(useSecureTransport);
 
             mRTPListener = useSecureTransport->getListener();
             break;
@@ -510,7 +503,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    DTLSTransport::~DTLSTransport()
+    DTLSTransport::~DTLSTransport() noexcept
     {
       if (isNoop()) return;
 
@@ -522,43 +515,43 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    DTLSTransportPtr DTLSTransport::convert(IDTLSTransportPtr object)
+    DTLSTransportPtr DTLSTransport::convert(IDTLSTransportPtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(DTLSTransport, object);
     }
 
     //-------------------------------------------------------------------------
-    DTLSTransportPtr DTLSTransport::convert(ForDataTransportPtr object)
+    DTLSTransportPtr DTLSTransport::convert(ForDataTransportPtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(DTLSTransport, object);
     }
 
     //-------------------------------------------------------------------------
-    DTLSTransportPtr DTLSTransport::convert(ForRTPSenderPtr object)
+    DTLSTransportPtr DTLSTransport::convert(ForRTPSenderPtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(DTLSTransport, object);
     }
 
     //-------------------------------------------------------------------------
-    DTLSTransportPtr DTLSTransport::convert(ForRTPReceiverPtr object)
+    DTLSTransportPtr DTLSTransport::convert(ForRTPReceiverPtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(DTLSTransport, object);
     }
 
     //-------------------------------------------------------------------------
-    DTLSTransportPtr DTLSTransport::convert(ForICETransportPtr object)
+    DTLSTransportPtr DTLSTransport::convert(ForICETransportPtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(DTLSTransport, object);
     }
 
     //-------------------------------------------------------------------------
-    DTLSTransportPtr DTLSTransport::convert(ForSRTPPtr object)
+    DTLSTransportPtr DTLSTransport::convert(ForSRTPPtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(DTLSTransport, object);
     }
 
     //-------------------------------------------------------------------------
-    DTLSTransportPtr DTLSTransport::convert(ForRTPListenerPtr object)
+    DTLSTransportPtr DTLSTransport::convert(ForRTPListenerPtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(DTLSTransport, object);
     }
@@ -567,12 +560,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark DTLSTransport => IDTLSTransport
-    #pragma mark
+    //
+    // DTLSTransport => IDTLSTransport
+    //
     
     //-------------------------------------------------------------------------
-    ElementPtr DTLSTransport::toDebug(DTLSTransportPtr transport)
+    ElementPtr DTLSTransport::toDebug(DTLSTransportPtr transport) noexcept
     {
       if (!transport) return ElementPtr();
       return transport->toDebug();
@@ -583,7 +576,7 @@ namespace ortc
                                            IDTLSTransportDelegatePtr delegate,
                                            IICETransportPtr iceTransport,
                                            const CertificateList &certificates
-                                           )
+                                           ) noexcept
     {
       DTLSTransportPtr pThis(make_shared<DTLSTransport>(make_private {}, IORTCForInternal::queueORTC(), delegate, iceTransport, certificates));
       pThis->mThisWeak = pThis;
@@ -592,7 +585,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    DTLSTransportPtr DTLSTransport::convert(IRTPTransportPtr rtpTransport)
+    DTLSTransportPtr DTLSTransport::convert(IRTPTransportPtr rtpTransport) noexcept
     {
       auto transport = ZS_DYNAMIC_PTR_CAST(DTLSTransport, rtpTransport);
       if (!transport) return transport;
@@ -606,7 +599,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    DTLSTransportPtr DTLSTransport::convert(IRTCPTransportPtr rtcpTransport)
+    DTLSTransportPtr DTLSTransport::convert(IRTCPTransportPtr rtcpTransport) noexcept
     {
       auto transport = ZS_DYNAMIC_PTR_CAST(DTLSTransport, rtcpTransport);
       if (!transport) return transport;
@@ -620,7 +613,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    IDTLSTransportSubscriptionPtr DTLSTransport::subscribe(IDTLSTransportDelegatePtr originalDelegate)
+    IDTLSTransportSubscriptionPtr DTLSTransport::subscribe(IDTLSTransportDelegatePtr originalDelegate) noexcept
     {
       ZS_LOG_DETAIL(log("subscribing to transport state"))
 
@@ -647,7 +640,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    DTLSTransport::CertificateListPtr DTLSTransport::certificates() const
+    DTLSTransport::CertificateListPtr DTLSTransport::certificates() const noexcept
     {
       AutoRecursiveLock lock(*this);
       CertificateListPtr result(make_shared<CertificateList>());
@@ -662,21 +655,21 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    IICETransportPtr DTLSTransport::transport() const
+    IICETransportPtr DTLSTransport::transport() const noexcept
     {
       AutoRecursiveLock lock(*this);
       return ICETransport::convert(mICETransport);
     }
 
     //-------------------------------------------------------------------------
-    IDTLSTransportTypes::States DTLSTransport::state() const
+    IDTLSTransportTypes::States DTLSTransport::state() const noexcept
     {
       AutoRecursiveLock lock(*this);
       return mCurrentState;
     }
 
     //-------------------------------------------------------------------------
-    IDTLSTransportTypes::ParametersPtr DTLSTransport::getLocalParameters() const
+    IDTLSTransportTypes::ParametersPtr DTLSTransport::getLocalParameters() const noexcept
     {
       AutoRecursiveLock lock(*this);
 
@@ -685,7 +678,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    IDTLSTransportTypes::ParametersPtr DTLSTransport::getRemoteParameters() const
+    IDTLSTransportTypes::ParametersPtr DTLSTransport::getRemoteParameters() const noexcept
     {
       AutoRecursiveLock lock(*this);
 
@@ -694,19 +687,15 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    IDTLSTransportTypes::SecureByteBlockListPtr DTLSTransport::getRemoteCertificates() const
+    IDTLSTransportTypes::SecureByteBlockListPtr DTLSTransport::getRemoteCertificates() const noexcept
     {
       AutoRecursiveLock lock(*this);
-#define TODO_COMPLETE_ONCE_ORTC_SPEC_DEFINES_THIS_PROPERLY 1
-#define TODO_COMPLETE_ONCE_ORTC_SPEC_DEFINES_THIS_PROPERLY 2
+#pragma ZS_BUILD_NOTE("TODO", "Complete once ORTC spec defines this properly")
       return SecureByteBlockListPtr();
     }
 
     //-------------------------------------------------------------------------
-    void DTLSTransport::start(const Parameters &remoteParameters) throw (
-                                                                         InvalidStateError,
-                                                                         InvalidParameters
-                                                                         )
+    void DTLSTransport::start(const Parameters &remoteParameters) noexcept(false)
     {
       ZS_EVENTING_3(
                     x, i, Detail, DtlsTransportStart, ol, DtlsTransport, Start,
@@ -719,8 +708,7 @@ namespace ortc
 
       if ((isShuttingDown()) ||
           (isShutdown())) {
-#define WARNING_WHAT_IF_DTLS_ERROR_CAUSED_CLOSE 1
-#define WARNING_WHAT_IF_DTLS_ERROR_CAUSED_CLOSE 2
+#pragma ZS_BUILD_NOTE("CAUTION", "ORTC specification does not clarify what to do if the DTLS transport causes the closure instead of manual programmer closure")
         ORTC_THROW_INVALID_STATE("already shutting down")
       }
 
@@ -733,7 +721,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void DTLSTransport::stop()
+    void DTLSTransport::stop() noexcept
     {
       ZS_EVENTING_1(x, i, Detail, DtlsTransportStop, ol, DtlsTransport, Stop, puid, id, mID);
       ZS_LOG_DEBUG(log("stop called"))
@@ -746,17 +734,17 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark DTLSTransport => ISecureTransport
-    #pragma mark
+    //
+    // DTLSTransport => ISecureTransport
+    //
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark DTLSTransport => ISecureTransportForRTPSender
-    #pragma mark
+    //
+    // DTLSTransport => ISecureTransportForRTPSender
+    //
 
     //-------------------------------------------------------------------------
     bool DTLSTransport::sendPacket(
@@ -764,7 +752,7 @@ namespace ortc
                                    IICETypes::Components packetType,
                                    const BYTE *buffer,
                                    size_t bufferLengthInBytes
-                                   )
+                                   ) noexcept
     {
       ZS_EVENTING_5(
                     x, i, Trace, DtlsTransportSendRtpPacket, ol, DtlsTransport, Send,
@@ -807,7 +795,7 @@ namespace ortc
 
 
     //-------------------------------------------------------------------------
-    IICETransportPtr DTLSTransport::getICETransport() const
+    IICETransportPtr DTLSTransport::getICETransport() const noexcept
     {
       AutoRecursiveLock lock(*this);
       return ICETransport::convert(mICETransport);
@@ -817,16 +805,18 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark DTLSTransport => ISecureTransportForICETransport
-    #pragma mark
+    //
+    // DTLSTransport => ISecureTransportForICETransport
+    //
 
     //-------------------------------------------------------------------------
     void DTLSTransport::notifyAssociateTransportCreated(
-                                                        IICETypes::Components associatedComponent,
-                                                        ICETransportPtr assoicated
-                                                        )
+                                                        ZS_MAYBE_USED() IICETypes::Components associatedComponent,
+                                                        ZS_MAYBE_USED() ICETransportPtr assoicated
+                                                        ) noexcept
     {
+      ZS_MAYBE_USED(associatedComponent);
+      ZS_MAYBE_USED(assoicated);
       // ignored since RTP vs RTCP are treated as independent transports
     }
 
@@ -835,7 +825,7 @@ namespace ortc
                                              IICETypes::Components viaTransport,
                                              const BYTE *buffer,
                                              size_t bufferLengthInBytes
-                                             )
+                                             ) noexcept
     {
       bool isDTLSPacket = isDtlsPacket(buffer, bufferLengthInBytes);
 
@@ -856,7 +846,7 @@ namespace ortc
       PacketQueue decryptedPackets;
       UseSRTPTransportPtr srtpTransport;
 
-      ASSERT(viaTransport == component());  // must be identical
+      ZS_ASSERT(viaTransport == component());  // must be identical
 
       // scope: pre-validation check
       {
@@ -874,7 +864,7 @@ namespace ortc
           }
         }
 
-        ZS_THROW_BAD_STATE_IF(!mAdapter)
+        ZS_ASSERT(mAdapter);
 
         if (isDTLSPacket) {
           // Sanity check we're not passing junk that
@@ -960,8 +950,7 @@ namespace ortc
       // WARNING: Forward packet to data channel or RTP listener outside of object lock
     handle_rtp:
       {
-#define WARNING_HANDLE_SRTP_KEY_LIFETIME_EXHAUSTION 1
-#define WARNING_HANDLE_SRTP_KEY_LIFETIME_EXHAUSTION 2
+#pragma ZS_BUILD_NOTE("CAUTION", "Key exhaustion is possible in SRTP with a very long call but WebRTC does not define how to refresh keys.")
 
         ZS_EVENTING_5(
                       x, i, Trace, DtlsTransportForwardingEncryptedPacketToSrtpTransport, ol, DtlsTransport, Deliver,
@@ -1020,15 +1009,13 @@ namespace ortc
         return returnResult;
       }
 
-      ASSERT(false); // cannot reach this point
-      return false;
     }
 
     //-------------------------------------------------------------------------
     void DTLSTransport::handleReceivedSTUNPacket(
                                                  IICETypes::Components viaComponent,
                                                  STUNPacketPtr packet
-                                                 )
+                                                 ) noexcept
     {
       ZS_EVENTING_2(
                     x, i, Trace, DtlsTransportReceivedStunPacket, ol, DtlsTransport, Receive,
@@ -1051,9 +1038,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark DTLSTransport => ISecureTransportForSRTPTransport
-    #pragma mark
+    //
+    // DTLSTransport => ISecureTransportForSRTPTransport
+    //
 
     //-------------------------------------------------------------------------
     bool DTLSTransport::sendEncryptedPacket(
@@ -1061,7 +1048,7 @@ namespace ortc
                                             IICETypes::Components packetType,
                                             const BYTE *buffer,
                                             size_t bufferLengthInBytes
-                                            )
+                                            ) noexcept
     {
       UseICETransportPtr transport;
 
@@ -1080,7 +1067,7 @@ namespace ortc
           return false;
         }
 
-        ASSERT(sendOverICETransport == transport->component())
+        ZS_ASSERT(sendOverICETransport == transport->component())
       }
 
       ZS_EVENTING_6(
@@ -1102,7 +1089,7 @@ namespace ortc
                                                       IICETypes::Components packetType,
                                                       const BYTE *buffer,
                                                       size_t bufferLengthInBytes
-                                                      )
+                                                      ) noexcept
     {
       {
         AutoRecursiveLock lock(*this);
@@ -1133,12 +1120,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark DTLSTransport => ISecureTransportForSRTPTransport
-    #pragma mark
+    //
+    // DTLSTransport => ISecureTransportForSRTPTransport
+    //
 
     //-------------------------------------------------------------------------
-    RTPListenerPtr DTLSTransport::getListener() const
+    RTPListenerPtr DTLSTransport::getListener() const noexcept
     {
       return RTPListener::convert(mRTPListener);
     }
@@ -1147,12 +1134,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark DTLSTransport => ISecureTransportForDataTransport
-    #pragma mark
+    //
+    // DTLSTransport => ISecureTransportForDataTransport
+    //
 
     //-------------------------------------------------------------------------
-    ISecureTransportSubscriptionPtr DTLSTransport::subscribe(ISecureTransportDelegatePtr originalDelegate)
+    ISecureTransportSubscriptionPtr DTLSTransport::subscribe(ISecureTransportDelegatePtr originalDelegate) noexcept
     {
       ZS_LOG_DETAIL(log("subscribing to secure transport state"))
 
@@ -1178,13 +1165,14 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ISecureTransportTypes::States DTLSTransport::state(ISecureTransportTypes::States ignored) const
+    ISecureTransportTypes::States DTLSTransport::state(ZS_MAYBE_USED() ISecureTransportTypes::States ignored) const noexcept
     {
+      ZS_MAYBE_USED(ignored);
       return mSecureTransportState; // no lock needed
     }
 
     //-------------------------------------------------------------------------
-    bool DTLSTransport::isClientRole() const
+    bool DTLSTransport::isClientRole() const noexcept
     {
       AutoRecursiveLock lock(*this);
 
@@ -1200,7 +1188,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    DTLSTransport::UseDataTransportPtr DTLSTransport::getDataTransport() const
+    DTLSTransport::UseDataTransportPtr DTLSTransport::getDataTransport() const noexcept
     {
       return mDataTransport;
     }
@@ -1209,7 +1197,7 @@ namespace ortc
     bool DTLSTransport::sendDataPacket(
                                        const BYTE *buffer,
                                        size_t bufferLengthInBytes
-                                       )
+                                       ) noexcept
     {
       ZS_EVENTING_3(
                     x, i, Trace, DtlsTransportSendDataPacket, ol, DtlsTransport, Send,
@@ -1238,7 +1226,7 @@ namespace ortc
           return false;
         }
 
-        ZS_THROW_BAD_STATE_IF(!mAdapter)
+        ZS_ASSERT(mAdapter);
 
         size_t written {};
         int error {};
@@ -1280,9 +1268,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark DTLSTransport => IWakeDelegate
-    #pragma mark
+    //
+    // DTLSTransport => IWakeDelegate
+    //
 
     //-------------------------------------------------------------------------
     void DTLSTransport::onWake()
@@ -1297,9 +1285,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark DTLSTransport => ITimerDelegate
-    #pragma mark
+    //
+    // DTLSTransport => ITimerDelegate
+    //
 
     //-------------------------------------------------------------------------
     void DTLSTransport::onTimer(ITimerPtr timer)
@@ -1321,9 +1309,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark DTLSTransport => IDTLSTransportAsyncDelegate
-    #pragma mark
+    //
+    // DTLSTransport => IDTLSTransportAsyncDelegate
+    //
 
     //-------------------------------------------------------------------------
     void DTLSTransport::onAdapterSendPacket()
@@ -1480,9 +1468,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark DTLSTransport => IICETransportDelegate
-    #pragma mark
+    //
+    // DTLSTransport => IICETransportDelegate
+    //
 
     //-------------------------------------------------------------------------
     void DTLSTransport::onICETransportStateChange(
@@ -1533,9 +1521,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark DTLSTransport => IICETransportDelegate
-    #pragma mark
+    //
+    // DTLSTransport => IICETransportDelegate
+    //
 
     //-------------------------------------------------------------------------
     void DTLSTransport::onSRTPTransportLifetimeRemaining(
@@ -1551,17 +1539,16 @@ namespace ortc
                     ulong, leastLifetimeRemainingPercentageForAllKeys, leastLifetimeRemainingPercentageForAllKeys,
                     ulong, overallLifetimeRemainingPercentage, overallLifetimeRemainingPercentage
                     );
-#define TODO_IN_FUTURE_WHEN_PERCENT_REMAINING_GETS_TOO_LOW_AS_A_CLIENT_RENEGOTIATE_A_NEW_SRTP_KEY 1
-#define TODO_IN_FUTURE_WHEN_PERCENT_REMAINING_GETS_TOO_LOW_AS_A_CLIENT_RENEGOTIATE_A_NEW_SRTP_KEY 2
+#pragma ZS_BUILD_NOTE("TODO","When WebRTC defines how to handle SRTP keying running low do something about it.")
     }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark DTLSTransport => friend BIO_
-    #pragma mark
+    //
+    // DTLSTransport => friend BIO_
+    //
 
     //-------------------------------------------------------------------------
     StreamResult DTLSTransport::bioRead(
@@ -1569,7 +1556,7 @@ namespace ortc
                                         size_t data_len,
                                         size_t* read,
                                         int* error
-                                        )
+                                        ) noexcept
     {
       if (NULL != read) *read = 0;
 
@@ -1588,7 +1575,7 @@ namespace ortc
                                          size_t data_len,
                                          size_t* written,
                                          int* error
-                                         )
+                                         ) noexcept
     {
       if (NULL != written) *written = 0;
 
@@ -1605,15 +1592,15 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark DTLSTransport => friend DTLSTransport::Adapter
-    #pragma mark
+    //
+    // DTLSTransport => friend DTLSTransport::Adapter
+    //
 
     //-------------------------------------------------------------------------
     void DTLSTransport::adapterSendPacket(
                                           const BYTE *buffer,
                                           size_t bufferLengthInBytes
-                                          )
+                                          ) noexcept
     {
       ZS_LOG_TRACE(log("adding dtls packet to send to outgoing queue") + ZS_PARAM("buffer length", bufferLengthInBytes))
       mPendingOutgoingDTLS.push(make_shared<SecureByteBlock>(buffer, bufferLengthInBytes));
@@ -1622,7 +1609,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    size_t DTLSTransport::adapterReadPacket(BYTE *buffer, size_t bufferLengthInBytes)
+    size_t DTLSTransport::adapterReadPacket(BYTE *buffer, size_t bufferLengthInBytes) noexcept
     {
       size_t currentSize = SafeInt<CryptoPP::lword>(mPendingIncomingDTLS.CurrentSize());
       if (currentSize < 1) return 0;
@@ -1635,7 +1622,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ITimerPtr DTLSTransport::adapterCreateTimeout(Milliseconds timeout)
+    ITimerPtr DTLSTransport::adapterCreateTimeout(Milliseconds timeout) noexcept
     {
       return ITimer::create(mThisWeak.lock(), zsLib::now() + timeout);
     }
@@ -1644,12 +1631,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark DTLSTransport => (internal)
-    #pragma mark
+    //
+    // DTLSTransport => (internal)
+    //
 
     //-------------------------------------------------------------------------
-    Log::Params DTLSTransport::log(const char *message) const
+    Log::Params DTLSTransport::log(const char *message) const noexcept
     {
       ElementPtr objectEl = Element::create("ortc::DTLSTransport");
       IHelper::debugAppend(objectEl, "id", mID);
@@ -1657,13 +1644,13 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    Log::Params DTLSTransport::debug(const char *message) const
+    Log::Params DTLSTransport::debug(const char *message) const noexcept
     {
       return Log::Params(message, toDebug());
     }
 
     //-------------------------------------------------------------------------
-    ElementPtr DTLSTransport::toDebug() const
+    ElementPtr DTLSTransport::toDebug() const noexcept
     {
       AutoRecursiveLock lock(*this);
 
@@ -1712,19 +1699,19 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    IICETypes::Components DTLSTransport::component() const
+    IICETypes::Components DTLSTransport::component() const noexcept
     {
       return mComponent;
     }
 
     //-------------------------------------------------------------------------
-    bool DTLSTransport::isShuttingDown() const
+    bool DTLSTransport::isShuttingDown() const noexcept
     {
       return (bool)mGracefulShutdownReference;
     }
 
     //-------------------------------------------------------------------------
-    bool DTLSTransport::isShutdown() const
+    bool DTLSTransport::isShutdown() const noexcept
     {
       if (mGracefulShutdownReference) return false;
       return ((IDTLSTransportTypes::State_Closed == mCurrentState) ||
@@ -1732,7 +1719,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void DTLSTransport::step()
+    void DTLSTransport::step() noexcept
     {
       ZS_LOG_DEBUG(debug("step"))
 
@@ -1767,7 +1754,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool DTLSTransport::stepStartSSL()
+    bool DTLSTransport::stepStartSSL() noexcept
     {
       ZS_EVENTING_1(x, i, Debug, DtlsTransportStep, ol, DtlsTransport, Step, puid, id, mID);
 
@@ -1859,7 +1846,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool DTLSTransport::stepValidate()
+    bool DTLSTransport::stepValidate() noexcept
     {
       ZS_EVENTING_1(x, i, Debug, DtlsTransportStep, ol, DtlsTransport, Step, puid, id, mID);
 
@@ -1919,7 +1906,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool DTLSTransport::stepFixState()
+    bool DTLSTransport::stepFixState() noexcept
     {
       ZS_EVENTING_1(x, i, Debug, DtlsTransportStep, ol, DtlsTransport, Step, puid, id, mID);
 
@@ -1962,7 +1949,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool DTLSTransport::stepNotifyReady()
+    bool DTLSTransport::stepNotifyReady() noexcept
     {
       ZS_EVENTING_1(x, i, Debug, DtlsTransportStep, ol, DtlsTransport, Step, puid, id, mID);
 
@@ -1995,7 +1982,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void DTLSTransport::cancel()
+    void DTLSTransport::cancel() noexcept
     {
       ZS_EVENTING_1(x, i, Debug, DtlsTransportCancel, ol, DtlsTransport, Cancel, puid, id, mID);
 
@@ -2007,8 +1994,7 @@ namespace ortc
       setState(ISecureTransport::State_Closed);
 
       if (mGracefulShutdownReference) {
-#define TODO_OBJECT_IS_BEING_KEPT_ALIVE_UNTIL_DTLS_SESSION_IS_SHUTDOWN 1
-#define TODO_OBJECT_IS_BEING_KEPT_ALIVE_UNTIL_DTLS_SESSION_IS_SHUTDOWN 2
+#pragma ZS_BUILD_NOTE("TODO","If anything is needed to shutdown DTLS gracefully then do so here.")
       }
 
       //.......................................................................
@@ -2033,7 +2019,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void DTLSTransport::setState(IDTLSTransportTypes::States state)
+    void DTLSTransport::setState(IDTLSTransportTypes::States state) noexcept
     {
       IDTLSTransportTypes::States currentState = mCurrentState;
 
@@ -2068,7 +2054,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void DTLSTransport::setError(WORD errorCode, const char *inReason)
+    void DTLSTransport::setError(WORD errorCode, const char *inReason) noexcept
     {
       String reason(inReason);
       if (reason.isEmpty()) {
@@ -2094,7 +2080,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void DTLSTransport::setState(ISecureTransportTypes::States state)
+    void DTLSTransport::setState(ISecureTransportTypes::States state) noexcept
     {
       if (state == mSecureTransportState) return;
 
@@ -2114,7 +2100,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void DTLSTransport::wakeUpIfNeeded()
+    void DTLSTransport::wakeUpIfNeeded() noexcept
     {
       switch ((States)mCurrentState) {
         case IDTLSTransportTypes::State_New:        {
@@ -2141,7 +2127,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void DTLSTransport::setupSRTP()
+    void DTLSTransport::setupSRTP() noexcept
     {
       typedef ISRTPSDESTransportTypes::CryptoParameters CryptoParameters;
       typedef ISRTPSDESTransportTypes::Parameters Parameters;
@@ -2153,8 +2139,8 @@ namespace ortc
                                  SRTP_MASTER_KEY_SALT_LEN * 2);
 
       if (!mAdapter->exportKeyingMaterial(kDtlsSrtpExporterLabel, NULL, 0, false, dtlsBuffer.BytePtr(), dtlsBuffer.SizeInBytes())) {
-        ZS_LOG_WARNING(Detail, log("failed to extract DTLS-SRTP keying material"))
-        ASSERT(false)
+        ZS_LOG_WARNING(Detail, log("failed to extract DTLS-SRTP keying material"));
+        ZS_ASSERT_FAIL("failed to extract DTLS-SRTP keying material");
         return;
       }
 
@@ -2233,12 +2219,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IDTLSTransportFactory::Adapter
-    #pragma mark
+    //
+    // IDTLSTransportFactory::Adapter
+    //
 
     //-------------------------------------------------------------------------
-    const char *DTLSTransport::Adapter::toString(StreamState state)
+    const char *DTLSTransport::Adapter::toString(StreamState state) noexcept
     {
       switch (state) {
         case SS_CLOSED:           return "closed";
@@ -2249,7 +2235,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    const char *DTLSTransport::Adapter::toString(SSLRole role)
+    const char *DTLSTransport::Adapter::toString(SSLRole role) noexcept
     {
       switch (role) {
         case SSL_CLIENT:          return "client";
@@ -2259,7 +2245,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    const char *DTLSTransport::Adapter::toString(SSLMode mode)
+    const char *DTLSTransport::Adapter::toString(SSLMode mode) noexcept
     {
       switch (mode) {
         case SSL_MODE_TLS:        return "tls";
@@ -2269,7 +2255,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    const char *DTLSTransport::Adapter::toString(SSLProtocolVersion version)
+    const char *DTLSTransport::Adapter::toString(SSLProtocolVersion version) noexcept
     {
       switch (version) {
         case SSL_PROTOCOL_TLS_10:       return "1.0";
@@ -2280,7 +2266,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    const char *DTLSTransport::Adapter::toString(Validation validation)
+    const char *DTLSTransport::Adapter::toString(Validation validation) noexcept
     {
       switch (validation) {
         case VALIDATION_NA:       return "NA";
@@ -2291,30 +2277,30 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    DTLSTransport::Adapter::Adapter(DTLSTransportPtr outer) :
+    DTLSTransport::Adapter::Adapter(DTLSTransportPtr outer) noexcept :
       mOuter(outer)
     {
     }
 
     //-------------------------------------------------------------------------
-    DTLSTransport::Adapter::~Adapter()
+    DTLSTransport::Adapter::~Adapter() noexcept
     {
       cleanup();
     }
 
     //-------------------------------------------------------------------------
-    void DTLSTransport::Adapter::setIdentity(UseCertificatePtr identity) {
-      ZS_THROW_INVALID_ARGUMENT_IF(!identity)
+    void DTLSTransport::Adapter::setIdentity(UseCertificatePtr identity) noexcept {
+      ZS_ASSERT(identity);
       identity_ = identity;
     }
 
     //-------------------------------------------------------------------------
-    void DTLSTransport::Adapter::setServerRole(SSLRole role) {
+    void DTLSTransport::Adapter::setServerRole(SSLRole role) noexcept {
       role_ = role;
     }
 
     //-------------------------------------------------------------------------
-    bool DTLSTransport::Adapter::getPeerCertificate(X509** cert) const {
+    bool DTLSTransport::Adapter::getPeerCertificate(X509** cert) const noexcept {
       if (!peer_certificate_)
         return false;
 
@@ -2326,10 +2312,10 @@ namespace ortc
     DTLSTransport::Adapter::Validation DTLSTransport::Adapter::setPeerCertificateDigest(
                                                                                         const String &digest_alg,
                                                                                         const String &digest_value
-                                                                                        )
+                                                                                        ) noexcept
     {
-      ASSERT(NULL != peer_certificate_);
-      ASSERT(ssl_server_name_.empty());
+      ZS_ASSERT(NULL != peer_certificate_);
+      ZS_ASSERT(ssl_server_name_.empty());
 
       SecureByteBlockPtr digest = UseCertificate::getDigest(digest_alg, peer_certificate_);
       if (!digest) return VALIDATION_NA;
@@ -2347,7 +2333,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool DTLSTransport::Adapter::getSslCipher(String *cipher)
+    bool DTLSTransport::Adapter::getSslCipher(String *cipher) noexcept
     {
       if (state_ != SSL_CONNECTED)
         return false;
@@ -2375,7 +2361,7 @@ namespace ortc
                                                       bool use_context,
                                                       BYTE *result,
                                                       size_t result_len
-                                                      )
+                                                      ) noexcept
     {
       int i = SSL_export_keying_material(
                                          ssl_,
@@ -2394,7 +2380,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool DTLSTransport::Adapter::setDtlsSrtpCiphers(const std::vector<String> &ciphers)
+    bool DTLSTransport::Adapter::setDtlsSrtpCiphers(const std::vector<String> &ciphers) noexcept
     {
       std::string internal_ciphers;
 
@@ -2427,9 +2413,9 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool DTLSTransport::Adapter::getDtlsSrtpCipher(String *cipher)
+    bool DTLSTransport::Adapter::getDtlsSrtpCipher(String *cipher) noexcept
     {
-      ASSERT(state_ == SSL_CONNECTED);
+      ZS_ASSERT(state_ == SSL_CONNECTED);
       if (state_ != SSL_CONNECTED) return false;
 
       const SRTP_PROTECTION_PROFILE *srtp_profile =
@@ -2446,33 +2432,33 @@ namespace ortc
         }
       }
 
-      ASSERT(false);  // This should never happen
+      ZS_ASSERT_FAIL("DTLS / SRTP cipher not found");  // This should never happen
       return false;
     }
 
     //-------------------------------------------------------------------------
-    int DTLSTransport::Adapter::startSSLWithServer(const char* server_name) {
+    int DTLSTransport::Adapter::startSSLWithServer(const char* server_name) noexcept {
       ssl_server_name_ = String(server_name);
-      ASSERT(ssl_server_name_.hasData());
+      ZS_ASSERT(ssl_server_name_.hasData());
       return startSSL();
     }
 
     //-------------------------------------------------------------------------
-    int DTLSTransport::Adapter::startSSLWithPeer() {
-      ASSERT(ssl_server_name_.empty());
+    int DTLSTransport::Adapter::startSSLWithPeer() noexcept {
+      ZS_ASSERT(ssl_server_name_.empty());
       // It is permitted to specify peer_certificate_ only later.
       return startSSL();
     }
 
     //-------------------------------------------------------------------------
-    void DTLSTransport::Adapter::setMode(SSLMode mode) {
-      ASSERT(state_ == SSL_NONE);
+    void DTLSTransport::Adapter::setMode(SSLMode mode) noexcept {
+      ZS_ASSERT(state_ == SSL_NONE);
       ssl_mode_ = mode;
     }
 
     //-------------------------------------------------------------------------
-    void DTLSTransport::Adapter::setMaxProtocolVersion(SSLProtocolVersion version) {
-      ASSERT(ssl_ctx_ == NULL);
+    void DTLSTransport::Adapter::setMaxProtocolVersion(SSLProtocolVersion version) noexcept {
+      ZS_ASSERT(ssl_ctx_ == NULL);
       ssl_max_version_ = version;
     }
 
@@ -2482,12 +2468,12 @@ namespace ortc
                                                  size_t data_len,
                                                  size_t *read,
                                                  int *error
-                                                 )
+                                                 ) noexcept
     {
       if (read) *read = 0;
       if (error) *error = 0;
 
-      ZS_LOG_TRACE(log("bio read") + ZS_PARAM("data length", data_len))
+      ZS_LOG_TRACE(log("bio read") + ZS_PARAM("data length", data_len));
 
       auto outer = mOuter.lock();
       if (!outer) return SR_ERROR;
@@ -2514,12 +2500,12 @@ namespace ortc
                                                   size_t data_len,
                                                   size_t* written,
                                                   int* error
-                                                  )
+                                                  ) noexcept
     {
       if (written) *written = 0;
       if (error) *error = 0;
 
-      ZS_LOG_TRACE(log("bio write") + ZS_PARAM("data length", data_len))
+      ZS_LOG_TRACE(log("bio write") + ZS_PARAM("data length", data_len));
 
       auto outer = mOuter.lock();
       if (!outer) return SR_ERROR;
@@ -2536,11 +2522,11 @@ namespace ortc
                                                size_t data_len,
                                                size_t *written,
                                                int *error
-                                               )
+                                               ) noexcept
     {
       if (error) *error = 0;
 
-      ZS_LOG_TRACE(log("write") + ZS_PARAM("data length", data_len))
+      ZS_LOG_TRACE(log("write") + ZS_PARAM("data length", data_len));
 
       switch (state_) {
         case SSL_NONE:
@@ -2575,7 +2561,7 @@ namespace ortc
       switch (ssl_error) {
         case SSL_ERROR_NONE:
           ZS_LOG_TRACE(log("ssl write success"))
-          ASSERT(0 < code && static_cast<unsigned>(code) <= data_len);
+          ZS_ASSERT(0 < code && static_cast<unsigned>(code) <= data_len);
           if (written)
             *written = code;
           return SR_SUCCESS;
@@ -2603,9 +2589,9 @@ namespace ortc
                                               size_t data_len,
                                               size_t* read,
                                               int *error
-                                              )
+                                              ) noexcept
     {
-      ZS_LOG_INSANE(log("read") + ZS_PARAM("data length", data_len))
+      ZS_LOG_INSANE(log("read") + ZS_PARAM("data length", data_len));
 
       switch (state_) {
         case SSL_NONE:
@@ -2646,7 +2632,7 @@ namespace ortc
       switch (ssl_error) {
         case SSL_ERROR_NONE:
           ZS_LOG_TRACE(log("ssl read success"))
-          ASSERT(0 < code && static_cast<unsigned>(code) <= data_len);
+          ZS_ASSERT(0 < code && static_cast<unsigned>(code) <= data_len);
           if (read)
             *read = code;
 
@@ -2655,7 +2641,7 @@ namespace ortc
             unsigned int pending = SSL_pending(ssl_);
 
             if (pending) {
-              ZS_LOG_WARNING(Trace, log("short DTLS read (thus flushing)"))
+              ZS_LOG_WARNING(Trace, log("short DTLS read (thus flushing)"));
               flushInput(pending);
               if (error)
                 *error = SSE_MSG_TRUNC;
@@ -2664,17 +2650,17 @@ namespace ortc
           }
           return SR_SUCCESS;
         case SSL_ERROR_WANT_READ:
-          ZS_LOG_TRACE(log("ssl read wants read"))
+          ZS_LOG_TRACE(log("ssl read wants read"));
           return SR_BLOCK;
         case SSL_ERROR_WANT_WRITE:
-          ZS_LOG_TRACE(log("ssl read wants write"))
+          ZS_LOG_TRACE(log("ssl read wants write"));
           ssl_read_needs_write_ = true;
           return SR_BLOCK;
         case SSL_ERROR_ZERO_RETURN:
-          ZS_LOG_TRACE(log("remote side closed"))
+          ZS_LOG_TRACE(log("remote side closed"));
           return SR_EOS;
         default:
-          ZS_LOG_ERROR(Debug, log("error") + ZS_PARAM("code", code))
+          ZS_LOG_ERROR(Debug, log("error") + ZS_PARAM("code", code));
           Adapter::error("SSL_read", (ssl_error ? ssl_error : -1), false);
           if (error)
             *error = ssl_error_code_;
@@ -2684,7 +2670,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void DTLSTransport::Adapter::flushInput(unsigned int left)
+    void DTLSTransport::Adapter::flushInput(unsigned int left) noexcept
     {
       unsigned char buf[2048] {};
 
@@ -2694,28 +2680,28 @@ namespace ortc
         int code = SSL_read(ssl_, buf, toread);
 
         int ssl_error = SSL_get_error(ssl_, code);
-        ASSERT(ssl_error == SSL_ERROR_NONE);
+        ZS_ASSERT(ssl_error == SSL_ERROR_NONE);
 
         if (ssl_error != SSL_ERROR_NONE) {
-          ZS_LOG_ERROR(Debug, log("error") + ZS_PARAM("code", code))
+          ZS_LOG_ERROR(Debug, log("error") + ZS_PARAM("code", code));
           Adapter::error("SSL_read", (ssl_error ? ssl_error : -1), false);
           return;
         }
 
-        ZS_LOG_DEBUG(log("flushed") + ZS_PARAM("bytes", code))
+        ZS_LOG_DEBUG(log("flushed") + ZS_PARAM("bytes", code));
         left -= code;
       }
     }
 
     //-------------------------------------------------------------------------
-    void DTLSTransport::Adapter::close()
+    void DTLSTransport::Adapter::close() noexcept
     {
       cleanup();
-      ASSERT(state_ == SSL_CLOSED || state_ == SSL_ERROR);
+      ZS_ASSERT(state_ == SSL_CLOSED || state_ == SSL_ERROR);
     }
 
     //-------------------------------------------------------------------------
-    DTLSTransport::Adapter::StreamState DTLSTransport::Adapter::getState() const
+    DTLSTransport::Adapter::StreamState DTLSTransport::Adapter::getState() const noexcept
     {
       switch (state_) {
         case SSL_WAIT:
@@ -2731,10 +2717,12 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     void DTLSTransport::Adapter::onEvent(
-                                         int events,
-                                         int err
-                                         )
+                                         ZS_MAYBE_USED() int events,
+                                         ZS_MAYBE_USED() int err
+                                         ) noexcept
     {
+      ZS_MAYBE_USED(events);
+      ZS_MAYBE_USED(err);
 #if 0
       int events_to_signal = 0;
       int signal_error = 0;
@@ -2790,7 +2778,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    const char *DTLSTransport::Adapter::toString(SSLState state)
+    const char *DTLSTransport::Adapter::toString(SSLState state) noexcept
     {
       switch (state) {
         case SSL_NONE:            return "none";
@@ -2804,8 +2792,8 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    int DTLSTransport::Adapter::startSSL() {
-      ASSERT(state_ == SSL_NONE);
+    int DTLSTransport::Adapter::startSSL() noexcept {
+      ZS_ASSERT(state_ == SSL_NONE);
 
       state_ = SSL_CONNECTING;
       if (int err = beginSSL()) {
@@ -2817,7 +2805,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    Log::Params DTLSTransport::Adapter::log(const char *message) const
+    Log::Params DTLSTransport::Adapter::log(const char *message) const noexcept
     {
       ElementPtr objectEl = Element::create("ortc::DTLSTransport::Adapter");
       IHelper::debugAppend(objectEl, "id", mID);
@@ -2827,7 +2815,7 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     // This dumps the SSL error stack to the log.
-    void DTLSTransport::Adapter::logSSLErrors(const String &prefix)
+    void DTLSTransport::Adapter::logSSLErrors(const String &prefix) noexcept
     {
       char error_buf[200] {};
       uint32_t err {};
@@ -2838,16 +2826,16 @@ namespace ortc
       }
     }
     //-------------------------------------------------------------------------
-    int DTLSTransport::Adapter::beginSSL()
+    int DTLSTransport::Adapter::beginSSL() noexcept
     {
-      ASSERT(state_ == SSL_CONNECTING);
+      ZS_ASSERT(state_ == SSL_CONNECTING);
 
       ZS_LOG_DEBUG(log("begin ssl") + ZS_PARAM("server name", (!ssl_server_name_.empty() ? ssl_server_name_ : "with peer")))
 
       BIO *bio = NULL;
 
       // First set up the context
-      ASSERT(ssl_ctx_ == NULL);
+      ZS_ASSERT(ssl_ctx_ == NULL);
 
       ssl_ctx_ = setupSSLContext();
       if (!ssl_ctx_)
@@ -2885,9 +2873,9 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    int DTLSTransport::Adapter::continueSSL() {
-      ZS_LOG_TRACE(log("continue ssl"))
-      ASSERT(state_ == SSL_CONNECTING);
+    int DTLSTransport::Adapter::continueSSL() noexcept {
+      ZS_LOG_TRACE(log("continue ssl"));
+      ZS_ASSERT(state_ == SSL_CONNECTING);
 
       if (mTimer) {
         mTimer->cancel();
@@ -2903,7 +2891,7 @@ namespace ortc
           if (!sslPostConnectionCheck(
                                       ssl_,
                                       ssl_server_name_.c_str())) {
-            ZS_LOG_ERROR(Debug, log("TLS post connection check failure"))
+            ZS_LOG_ERROR(Debug, log("TLS post connection check failure"));
             return -1;
           }
 
@@ -2911,7 +2899,7 @@ namespace ortc
           break;
 
         case SSL_ERROR_WANT_READ: {
-          ZS_LOG_TRACE(log("continue ssl wants read"))
+          ZS_LOG_TRACE(log("continue ssl wants read"));
 
           struct timeval timeout;
           if (DTLSv1_get_timeout(ssl_, &timeout)) {
@@ -2919,7 +2907,7 @@ namespace ortc
 
             auto outer = mOuter.lock();
             if (!outer) {
-              ZS_LOG_WARNING(Debug, log("outer gone"))
+              ZS_LOG_WARNING(Debug, log("outer gone"));
               return -1;
             }
 
@@ -2934,12 +2922,12 @@ namespace ortc
         }
 
         case SSL_ERROR_WANT_WRITE:
-          ZS_LOG_TRACE(log("continue ssl wants write"))
+          ZS_LOG_TRACE(log("continue ssl wants write"));
           break;
 
         case SSL_ERROR_ZERO_RETURN:
         default:
-          ZS_LOG_ERROR(Debug, log("error") + ZS_PARAM("code", code))
+          ZS_LOG_ERROR(Debug, log("error") + ZS_PARAM("code", code));
           return (ssl_error != 0) ? ssl_error : -1;
       }
 
@@ -2951,8 +2939,8 @@ namespace ortc
                                        const char* context,
                                        int err,
                                        bool signal
-                                       ) {
-      ZS_LOG_ERROR(Debug, log("error") + ZS_PARAM("context", context) + ZS_PARAM("error", err) + ZS_PARAM("signal", signal))
+                                       ) noexcept {
+      ZS_LOG_ERROR(Debug, log("error") + ZS_PARAM("context", context) + ZS_PARAM("error", err) + ZS_PARAM("signal", signal));
 
       state_ = SSL_ERROR;
       ssl_error_code_ = err;
@@ -2963,7 +2951,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void DTLSTransport::Adapter::cleanup() {
+    void DTLSTransport::Adapter::cleanup() noexcept {
       ZS_LOG_DEBUG(log("cleanup"))
 
       if (state_ != SSL_ERROR) {
@@ -2974,7 +2962,7 @@ namespace ortc
       if (ssl_) {
         int ret = SSL_shutdown(ssl_);
         if (ret < 0) {
-          ZS_LOG_WARNING(Debug, log("SSL_shutdown failed") + ZS_PARAM("error", SSL_get_error(ssl_, ret)))
+          ZS_LOG_WARNING(Debug, log("SSL_shutdown failed") + ZS_PARAM("error", SSL_get_error(ssl_, ret)));
         }
 
         SSL_free(ssl_);
@@ -3000,22 +2988,22 @@ namespace ortc
 
 
     //-------------------------------------------------------------------------
-    void DTLSTransport::Adapter::onTimer(ITimerPtr timer)
+    void DTLSTransport::Adapter::onTimer(ITimerPtr timer) noexcept
     {
       if (!mTimer) return;
       if (timer != mTimer) {
-        ZS_LOG_WARNING(Trace, log("notified about obselete timer (probably okay)") + ZS_PARAM("timer id", timer->getID()))
+        ZS_LOG_WARNING(Trace, log("notified about obselete timer (probably okay)") + ZS_PARAM("timer id", timer->getID()));
         return;
       }
 
-      ZS_LOG_TRACE(log("dtls timeout"))
+      ZS_LOG_TRACE(log("dtls timeout"));
 
       DTLSv1_handle_timeout(ssl_);
       continueSSL();
     }
 
     //-------------------------------------------------------------------------
-    SSL_CTX* DTLSTransport::Adapter::setupSSLContext()
+    SSL_CTX* DTLSTransport::Adapter::setupSSLContext() noexcept
     {
       SSL_CTX *ctx = NULL;
 
@@ -3042,7 +3030,7 @@ namespace ortc
       if (identity_) {
         if (SSL_CTX_use_certificate(ctx, identity_->getCertificate()) != 1 ||
             SSL_CTX_use_PrivateKey(ctx, identity_->getKeyPair()) != 1) {
-          ZS_LOG_ERROR(Debug, log("configure key and certificate failure"))
+          ZS_LOG_ERROR(Debug, log("configure key and certificate failure"));
 
           logSSLErrors("Configuring key and certificate");
           SSL_CTX_free(ctx);
@@ -3081,8 +3069,9 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    int DTLSTransport::Adapter::sslVerifyCallback(int ok, X509_STORE_CTX* store)
+    int DTLSTransport::Adapter::sslVerifyCallback(ZS_MAYBE_USED() int ok, X509_STORE_CTX* store) noexcept
     {
+      ZS_MAYBE_USED(ok);
       // Get our SSL structure from the store
       SSL* ssl = reinterpret_cast<SSL*>(X509_STORE_CTX_get_ex_data(
                                                                    store,
@@ -3099,11 +3088,11 @@ namespace ortc
       // TODO(jiayl): Verify the chain is a proper chain and report the chain to
       // |stream->peer_certificate_|, like what NSS does.
       if (depth > 0) {
-        ZS_LOG_TRACE(pThis->log("ignored chained certificate at depth") + ZS_PARAM("depth", depth))
+        ZS_LOG_TRACE(pThis->log("ignored chained certificate at depth") + ZS_PARAM("depth", depth));
         return 1;
       }
 
-      ZS_LOG_TRACE(pThis->log("accepted peer certificate (but will verify fully later)"))
+      ZS_LOG_TRACE(pThis->log("accepted peer certificate (but will verify fully later)"));
 
       // Record the peer's certificate.
       pThis->peer_certificate_ = cert;
@@ -3117,10 +3106,11 @@ namespace ortc
     //-------------------------------------------------------------------------
     bool DTLSTransport::Adapter::sslPostConnectionCheck(
                                                         SSL* ssl,
-                                                        const char* server_name
-                                                        )
+                                                        ZS_MAYBE_USED() const char* server_name
+                                                        ) noexcept
     {
-      ASSERT(server_name != NULL);
+      ZS_MAYBE_USED(server_name);
+      ZS_ASSERT(server_name != NULL);
       bool ok;
 #if 0
       if (server_name[0] != '\0') {  // traditional mode
@@ -3134,7 +3124,7 @@ namespace ortc
 #else 
       {
 #endif //0
-        ASSERT(peer_certificate_ != NULL);
+        ZS_ASSERT(peer_certificate_ != NULL);
         // no server name validation
         ok = true;
 #if 0
@@ -3153,24 +3143,24 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool DTLSTransport::Adapter::haveDtls() {
+    bool DTLSTransport::Adapter::haveDtls() noexcept {
       return true;
     }
     
     //-------------------------------------------------------------------------
-    bool DTLSTransport::Adapter::haveDtlsSrtp()
+    bool DTLSTransport::Adapter::haveDtlsSrtp() noexcept
     {
       return true;
     }
     
     //-------------------------------------------------------------------------
-    bool DTLSTransport::Adapter::haveExporter()
+    bool DTLSTransport::Adapter::haveExporter() noexcept
     {
       return true;
     }
     
     //-------------------------------------------------------------------------
-    String DTLSTransport::Adapter::getDefaultSslCipher(SSLProtocolVersion version)
+    String DTLSTransport::Adapter::getDefaultSslCipher(SSLProtocolVersion version) noexcept
     {
       switch (version) {
         case SSL_PROTOCOL_TLS_10:
@@ -3187,7 +3177,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ElementPtr DTLSTransport::Adapter::toDebug() const
+    ElementPtr DTLSTransport::Adapter::toDebug() const noexcept
     {
       ElementPtr resultEl = Element::create("ortc::DTLSTransport::Adapter");
 
@@ -3230,12 +3220,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IDTLSTransportFactory
-    #pragma mark
+    //
+    // IDTLSTransportFactory
+    //
 
     //-------------------------------------------------------------------------
-    IDTLSTransportFactory &IDTLSTransportFactory::singleton()
+    IDTLSTransportFactory &IDTLSTransportFactory::singleton() noexcept
     {
       return DTLSTransportFactory::singleton();
     }
@@ -3245,7 +3235,7 @@ namespace ortc
                                                    IDTLSTransportDelegatePtr delegate,
                                                    IICETransportPtr iceTransport,
                                                    const CertificateList &certificates
-                                                   )
+                                                   ) noexcept
     {
       if (this) {}
       return internal::DTLSTransport::create(delegate, iceTransport, certificates);
@@ -3257,12 +3247,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark (helpers)
-  #pragma mark
+  //
+  // (helpers)
+  //
 
   //-----------------------------------------------------------------------
-  static Log::Params slog(const char *message)
+  static Log::Params slog(const char *message) noexcept
   {
     return Log::Params(message, "ortc::IDTLSTransportTypes");
   }
@@ -3271,12 +3261,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IDTLSTransportTypes::States
-  #pragma mark
+  //
+  // IDTLSTransportTypes::States
+  //
 
   //---------------------------------------------------------------------------
-  const char *IDTLSTransportTypes::toString(States state)
+  const char *IDTLSTransportTypes::toString(States state) noexcept
   {
     switch (state) {
       case State_New:           return "new";
@@ -3290,7 +3280,7 @@ namespace ortc
 
 
   //---------------------------------------------------------------------------
-  IDTLSTransportTypes::States IDTLSTransportTypes::toState(const char *state) throw (InvalidParameters)
+  IDTLSTransportTypes::States IDTLSTransportTypes::toState(const char *state) noexcept(false)
   {
     String str(state);
     for (IDTLSTransportTypes::States index = IDTLSTransportTypes::State_First; index <= IDTLSTransportTypes::State_Last; index = static_cast<IDTLSTransportTypes::States>(static_cast<std::underlying_type<IDTLSTransportTypes::States>::type>(index) + 1)) {
@@ -3305,12 +3295,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IDTLSTransportTypes::Roles
-  #pragma mark
+  //
+  // IDTLSTransportTypes::Roles
+  //
 
   //---------------------------------------------------------------------------
-  const char *IDTLSTransportTypes::toString(Roles state)
+  const char *IDTLSTransportTypes::toString(Roles state) noexcept
   {
     switch (state) {
       case Role_Auto:      return "auto";
@@ -3322,7 +3312,7 @@ namespace ortc
 
 
   //---------------------------------------------------------------------------
-  IDTLSTransportTypes::Roles IDTLSTransportTypes::toRole(const char *role) throw (InvalidParameters)
+  IDTLSTransportTypes::Roles IDTLSTransportTypes::toRole(const char *role) noexcept(false)
   {
     String str(role);
     for (IDTLSTransportTypes::Roles index = IDTLSTransportTypes::Role_First; index <= IDTLSTransportTypes::Role_Last; index = static_cast<IDTLSTransportTypes::Roles>(static_cast<std::underlying_type<IDTLSTransportTypes::Roles>::type>(index) + 1)) {
@@ -3337,12 +3327,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IDTLSTransportTypes::Parameters
-  #pragma mark
+  //
+  // IDTLSTransportTypes::Parameters
+  //
 
   //---------------------------------------------------------------------------
-  IDTLSTransportTypes::Parameters::Parameters(ElementPtr elem)
+  IDTLSTransportTypes::Parameters::Parameters(ElementPtr elem) noexcept
   {
     if (!elem) return;
 
@@ -3373,7 +3363,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IDTLSTransportTypes::Parameters::createElement(const char *objectName) const
+  ElementPtr IDTLSTransportTypes::Parameters::createElement(const char *objectName) const noexcept
   {
     ElementPtr elem = Element::create(objectName);
 
@@ -3397,19 +3387,19 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IDTLSTransportTypes::ParametersPtr IDTLSTransportTypes::Parameters::convert(AnyPtr any)
+  IDTLSTransportTypes::ParametersPtr IDTLSTransportTypes::Parameters::convert(AnyPtr any) noexcept
   {
     return ZS_DYNAMIC_PTR_CAST(Parameters, any);
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IDTLSTransportTypes::Parameters::toDebug() const
+  ElementPtr IDTLSTransportTypes::Parameters::toDebug() const noexcept
   {
     return createElement("ortc::IDTLSTransportTypes::Parameters");
   }
 
   //---------------------------------------------------------------------------
-  String IDTLSTransportTypes::Parameters::hash() const
+  String IDTLSTransportTypes::Parameters::hash() const noexcept
   {
     auto hasher = IHasher::sha1();
 
@@ -3432,24 +3422,24 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IDTLSTransport
-  #pragma mark
+  //
+  // IDTLSTransport
+  //
 
   //---------------------------------------------------------------------------
-  ElementPtr IDTLSTransport::toDebug(IDTLSTransportPtr transport)
+  ElementPtr IDTLSTransport::toDebug(IDTLSTransportPtr transport) noexcept
   {
     return internal::DTLSTransport::toDebug(internal::DTLSTransport::convert(transport));
   }
 
   //---------------------------------------------------------------------------
-  IDTLSTransportPtr IDTLSTransport::convert(IRTPTransportPtr rtpTransport)
+  IDTLSTransportPtr IDTLSTransport::convert(IRTPTransportPtr rtpTransport) noexcept
   {
     return internal::DTLSTransport::convert(rtpTransport);
   }
 
   //---------------------------------------------------------------------------
-  IDTLSTransportPtr IDTLSTransport::convert(IRTCPTransportPtr rtcpTransport)
+  IDTLSTransportPtr IDTLSTransport::convert(IRTCPTransportPtr rtcpTransport) noexcept
   {
     return internal::DTLSTransport::convert(rtcpTransport);
   }
@@ -3458,10 +3448,9 @@ namespace ortc
                                            IDTLSTransportDelegatePtr delegate,
                                            IICETransportPtr iceTransport,
                                            const CertificateList &certificates
-                                           )
+                                           ) noexcept(false)
   {
     return internal::IDTLSTransportFactory::singleton().create(delegate, iceTransport, certificates);
   }
-
 
 }

@@ -709,7 +709,7 @@ namespace org
       void stop();
 
       /// <summary>
-      /// Returns the dictionary of the names of the constrainable propertie
+      /// Returns the dictionary of the names of the constrainable properties
       /// that the object supports.
       MediaTrackCapabilities getCapabilities();
       /// <summary>

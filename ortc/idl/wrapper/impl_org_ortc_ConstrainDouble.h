@@ -17,19 +17,19 @@ namespace wrapper {
 
           ConstrainDoubleWeakPtr thisWeak_;
 
-          ConstrainDouble();
-          virtual ~ConstrainDouble();
+          ConstrainDouble() noexcept;
+          virtual ~ConstrainDouble() noexcept;
 
           // methods ConstrainDouble
-          virtual void wrapper_init_org_ortc_ConstrainDouble() override;
-          virtual void wrapper_init_org_ortc_ConstrainDouble(wrapper::org::ortc::ConstrainDoublePtr source) override;
-          virtual void wrapper_init_org_ortc_ConstrainDouble(wrapper::org::ortc::JsonPtr json) override;
-          virtual wrapper::org::ortc::JsonPtr toJson() override;
-          virtual String hash() override;
+          void wrapper_init_org_ortc_ConstrainDouble() noexcept override;
+          void wrapper_init_org_ortc_ConstrainDouble(wrapper::org::ortc::ConstrainDoublePtr source) noexcept override;
+          void wrapper_init_org_ortc_ConstrainDouble(wrapper::org::ortc::JsonPtr json) noexcept override;
+          wrapper::org::ortc::JsonPtr toJson() noexcept override;
+          String hash() noexcept override;
 
-          static ConstrainDoublePtr toWrapper(NativeConstrainDoublePtr native);
-          static ConstrainDoublePtr toWrapper(const NativeConstrainDouble &native);
-          static NativeConstrainDoublePtr toNative(wrapper::org::ortc::ConstrainDoublePtr wrapper);
+          static ConstrainDoublePtr toWrapper(NativeConstrainDoublePtr native) noexcept;
+          static ConstrainDoublePtr toWrapper(const NativeConstrainDouble &native) noexcept;
+          static NativeConstrainDoublePtr toNative(wrapper::org::ortc::ConstrainDoublePtr wrapper) noexcept;
         };
 
       } // ortc

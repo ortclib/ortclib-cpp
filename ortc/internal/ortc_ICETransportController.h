@@ -42,44 +42,44 @@ namespace ortc
 {
   namespace internal
   {
-    ZS_DECLARE_INTERACTION_PTR(IICETransportControllerForICETransport)
+    ZS_DECLARE_INTERACTION_PTR(IICETransportControllerForICETransport);
 
-    ZS_DECLARE_INTERACTION_PROXY(ITransportControllerAsyncDelegate)
+    ZS_DECLARE_INTERACTION_PROXY(ITransportControllerAsyncDelegate);
 
-    ZS_DECLARE_INTERACTION_PTR(IICETransportForICETransportContoller)
+    ZS_DECLARE_INTERACTION_PTR(IICETransportForICETransportContoller);
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IICETransportControllerForICETransport
-    #pragma mark
+    //
+    // IICETransportControllerForICETransport
+    //
 
     interaction IICETransportControllerForICETransport
     {
-      ZS_DECLARE_TYPEDEF_PTR(IICETransportControllerForICETransport, ForICETransport)
+      ZS_DECLARE_TYPEDEF_PTR(IICETransportControllerForICETransport, ForICETransport);
 
-      static ElementPtr toDebug(ForICETransportPtr controller);
+      static ElementPtr toDebug(ForICETransportPtr controller) noexcept;
 
-      virtual PUID getID() const = 0;
+      virtual PUID getID() const noexcept = 0;
 
       virtual PromisePtr notifyWhenUnfrozen(
                                             ICETransportPtr transport,
                                             const String &localFoundation,
                                             const String &remoteFoundation
-                                            ) = 0;
+                                            ) noexcept = 0;
 
-      virtual void notifyDetached(ICETransportPtr transport) = 0;
+      virtual void notifyDetached(ICETransportPtr transport) noexcept = 0;
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ITransportControllerAsyncDelegate
-    #pragma mark
+    //
+    // ITransportControllerAsyncDelegate
+    //
 
     interaction ITransportControllerAsyncDelegate
     {
@@ -104,9 +104,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ICETransportController
-    #pragma mark
+    //
+    // ICETransportController
+    //
     
     class ICETransportController : public Noop,
                                    public MessageQueueAssociator,
@@ -124,7 +124,7 @@ namespace ortc
       friend interaction IICETransportControllerFactory;
       friend interaction IICETransportControllerForICETransport;
 
-      ZS_DECLARE_TYPEDEF_PTR(IICETransportForICETransportContoller, UseICETransport)
+      ZS_DECLARE_TYPEDEF_PTR(IICETransportForICETransportContoller, UseICETransport);
 
       typedef size_t AttachedOrderID;
       typedef std::pair<AttachedOrderID, UseICETransportPtr> AttachedTransportPair;
@@ -134,70 +134,67 @@ namespace ortc
       ICETransportController(
                              const make_private &,
                              IMessageQueuePtr queue
-                             );
+                             ) noexcept;
 
     protected:
-      ICETransportController(Noop) :
+      ICETransportController(Noop) noexcept :
         Noop(true),
         MessageQueueAssociator(IMessageQueuePtr()),
         SharedRecursiveLock(SharedRecursiveLock::create())
       {}
 
-      void init();
+      void init() noexcept;
 
     public:
-      virtual ~ICETransportController();
+      virtual ~ICETransportController() noexcept;
 
-      static ICETransportControllerPtr convert(IICETransportControllerPtr object);
-      static ICETransportControllerPtr convert(ForICETransportPtr object);
+      static ICETransportControllerPtr convert(IICETransportControllerPtr object) noexcept;
+      static ICETransportControllerPtr convert(ForICETransportPtr object) noexcept;
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark ICETransportController => IICETransportController
-      #pragma mark
+      //
+      // ICETransportController => IICETransportController
+      //
 
-      static ElementPtr toDebug(ICETransportControllerPtr controller);
+      static ElementPtr toDebug(ICETransportControllerPtr controller) noexcept;
 
-      static ICETransportControllerPtr create();
+      static ICETransportControllerPtr create() noexcept;
 
-      PUID getID() const override;
+      PUID getID() const noexcept override;
 
-      ICETransportList getTransports() const override;
+      ICETransportList getTransports() const noexcept override;
       void addTransport(
                         IICETransportPtr transport,
                         Optional<size_t> index = Optional<size_t>()
-                        ) throw(
-                                InvalidParameters,
-                                InvalidStateError
-                                ) override;
+                        ) noexcept(false) override; // throws InvalidParameters, InvalidStateError
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark ICETransportController => IStatsProvider
-      #pragma mark
+      //
+      // ICETransportController => IStatsProvider
+      //
 
-      PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const override;
+      PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const noexcept override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark ICETransportController => IICETransportControllerForICETransport
-      #pragma mark
+      //
+      // ICETransportController => IICETransportControllerForICETransport
+      //
 
-      // (duplicate) virtual PUID getID() const = 0;
+      // (duplicate) virtual PUID getID() const noexcept= 0;
 
       PromisePtr notifyWhenUnfrozen(
                                     ICETransportPtr transport,
                                     const String &localFoundation,
                                     const String &remoteFoundation
-                                    ) override;
+                                    ) noexcept override;
 
-      void notifyDetached(ICETransportPtr transport) override;
+      void notifyDetached(ICETransportPtr transport) noexcept override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark ICETransportController => ITransportControllerAsyncDelegate
-      #pragma mark
+      //
+      // ICETransportController => ITransportControllerAsyncDelegate
+      //
 
       void onTransportControllerNotifyWhenUnfrozen(
                                                    PromisePtr promise,
@@ -212,31 +209,31 @@ namespace ortc
                                                ) override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark ICETransportController => IWakeDelegate
-      #pragma mark
+      //
+      // ICETransportController => IWakeDelegate
+      //
 
       void onWake() override;
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark ICETransportController => (internal)
-      #pragma mark
+      //
+      // ICETransportController => (internal)
+      //
 
-      Log::Params log(const char *message) const;
-      Log::Params debug(const char *message) const;
-      ElementPtr toDebug() const;
+      Log::Params log(const char *message) const noexcept;
+      Log::Params debug(const char *message) const noexcept;
+      ElementPtr toDebug() const noexcept;
 
-      void step();
+      void step() noexcept;
 
-      void cancel();
+      void cancel() noexcept;
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark ICETransportController => (data)
-      #pragma mark
+      //
+      // ICETransportController => (data)
+      //
 
       AutoPUID mID;
       ICETransportControllerWeakPtr mThisWeak;
@@ -250,15 +247,15 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IICETransportControllerFactory
-    #pragma mark
+    //
+    // IICETransportControllerFactory
+    //
 
     interaction IICETransportControllerFactory
     {
-      static IICETransportControllerFactory &singleton();
+      static IICETransportControllerFactory &singleton() noexcept;
 
-      virtual ICETransportControllerPtr create();
+      virtual ICETransportControllerPtr create() noexcept;
     };
 
     class ICETransportControllerFactory : public IFactory<IICETransportControllerFactory> {};
@@ -269,6 +266,6 @@ ZS_DECLARE_PROXY_BEGIN(ortc::internal::ITransportControllerAsyncDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(zsLib::PromisePtr, PromisePtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::ITransportControllerAsyncDelegate::UseICETransportPtr, UseICETransportPtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::ITransportControllerAsyncDelegate::AttachedOrderID, AttachedOrderID)
-ZS_DECLARE_PROXY_METHOD_4(onTransportControllerNotifyWhenUnfrozen, PromisePtr, UseICETransportPtr, const char *, const char *)
-ZS_DECLARE_PROXY_METHOD_2(onTransportControllerNotifyDetached, UseICETransportPtr, AttachedOrderID)
+ZS_DECLARE_PROXY_METHOD(onTransportControllerNotifyWhenUnfrozen, PromisePtr, UseICETransportPtr, const char *, const char *)
+ZS_DECLARE_PROXY_METHOD(onTransportControllerNotifyDetached, UseICETransportPtr, AttachedOrderID)
 ZS_DECLARE_PROXY_END()

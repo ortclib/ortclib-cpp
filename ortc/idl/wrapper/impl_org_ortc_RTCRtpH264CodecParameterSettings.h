@@ -18,22 +18,22 @@ namespace wrapper {
           ZS_DECLARE_TYPEDEF_PTR(wrapper::org::ortc::RTCRtpH264CodecParameterSettings, WrapperType);
           RTCRtpH264CodecParameterSettingsWeakPtr thisWeak_;
 
-          RTCRtpH264CodecParameterSettings();
-          virtual ~RTCRtpH264CodecParameterSettings();
+          RTCRtpH264CodecParameterSettings() noexcept;
+          virtual ~RTCRtpH264CodecParameterSettings() noexcept;
 
           // methods RTCRtpH264CodecCapabilityParameters
-          virtual wrapper::org::ortc::JsonPtr toJson() override;
-          virtual String hash() override;
+          wrapper::org::ortc::JsonPtr toJson() noexcept override;
+          String hash() noexcept override;
 
           // methods RTCRtpH264CodecParameterSettings
-          virtual void wrapper_init_org_ortc_RTCRtpH264CodecParameterSettings() override;
-          virtual void wrapper_init_org_ortc_RTCRtpH264CodecParameterSettings(wrapper::org::ortc::RTCRtpH264CodecParameterSettingsPtr source) override;
-          virtual void wrapper_init_org_ortc_RTCRtpH264CodecParameterSettings(wrapper::org::ortc::JsonPtr json) override;
+          void wrapper_init_org_ortc_RTCRtpH264CodecParameterSettings() noexcept override;
+          void wrapper_init_org_ortc_RTCRtpH264CodecParameterSettings(wrapper::org::ortc::RTCRtpH264CodecParameterSettingsPtr source) noexcept override;
+          void wrapper_init_org_ortc_RTCRtpH264CodecParameterSettings(wrapper::org::ortc::JsonPtr json) noexcept override;
 
-          static WrapperImplTypePtr toWrapper(AnyPtr native);
-          static WrapperImplTypePtr toWrapper(NativeTypePtr native);
-          static WrapperImplTypePtr toWrapper(const NativeType &native);
-          static NativeTypePtr toNative(WrapperTypePtr wrapper);
+          static WrapperImplTypePtr toWrapper(AnyPtr native) noexcept;
+          static WrapperImplTypePtr toWrapper(NativeTypePtr native) noexcept;
+          static WrapperImplTypePtr toWrapper(const NativeType &native) noexcept;
+          static NativeTypePtr toNative(WrapperTypePtr wrapper) noexcept;
         };
 
       } // ortc

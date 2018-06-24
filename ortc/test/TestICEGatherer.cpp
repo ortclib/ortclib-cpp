@@ -356,9 +356,9 @@ void doTestICEGatherer()
       expectations1.mStateGathering = 1;
       expectations1.mStateComplete = 1;
       expectations1.mStateClosed = 1;
-      expectations1.mCandidatesUDPHost = totalHostIPs;
-      expectations1.mCandidatesTCPHostActive = totalHostIPs;
-      expectations1.mCandidatesTCPHostPassive = totalHostIPs;
+      expectations1.mCandidatesUDPHost = static_cast<decltype(expectations1.mCandidatesUDPHost)>(totalHostIPs);
+      expectations1.mCandidatesTCPHostActive = static_cast<decltype(expectations1.mCandidatesTCPHostActive)>(totalHostIPs);
+      expectations1.mCandidatesTCPHostPassive = static_cast<decltype(expectations1.mCandidatesTCPHostPassive)>(totalHostIPs);
       expectations1.mCandidateGone = expectations1.mCandidatesUDPHost + expectations1.mCandidatesTCPHostActive + expectations1.mCandidatesTCPHostPassive;
       expectations1.mCandidateComplete = 1;
 

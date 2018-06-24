@@ -17,18 +17,18 @@ namespace wrapper {
 
           MediaTrackSettingsWeakPtr thisWeak_;
 
-          MediaTrackSettings();
-          virtual ~MediaTrackSettings();
+          MediaTrackSettings() noexcept;
+          virtual ~MediaTrackSettings() noexcept;
 
           // methods MediaTrackSettings
-          virtual void wrapper_init_org_ortc_MediaTrackSettings() override;
-          virtual void wrapper_init_org_ortc_MediaTrackSettings(wrapper::org::ortc::MediaTrackSettingsPtr source) override;
-          virtual void wrapper_init_org_ortc_MediaTrackSettings(wrapper::org::ortc::JsonPtr json) override;
-          virtual wrapper::org::ortc::JsonPtr toJson() override;
-          virtual String hash() override;
+          void wrapper_init_org_ortc_MediaTrackSettings() noexcept override;
+          void wrapper_init_org_ortc_MediaTrackSettings(wrapper::org::ortc::MediaTrackSettingsPtr source) noexcept override;
+          void wrapper_init_org_ortc_MediaTrackSettings(wrapper::org::ortc::JsonPtr json) noexcept override;
+          wrapper::org::ortc::JsonPtr toJson() noexcept override;
+          String hash() noexcept override;
 
-          static MediaTrackSettingsPtr toWrapper(SettingsPtr native);
-          static SettingsPtr toNative(MediaTrackSettingsPtr wrapper);
+          static MediaTrackSettingsPtr toWrapper(SettingsPtr native) noexcept;
+          static SettingsPtr toNative(MediaTrackSettingsPtr wrapper) noexcept;
         };
 
       } // ortc

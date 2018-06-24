@@ -61,7 +61,7 @@ namespace org
       [constructor, altname(RTCIceGatherInterfacePolicyClone)]
       void RTCIceGatherInterfacePolicy(RTCIceGatherInterfacePolicy source);
       /// <summary>
-      /// Constructs a new RTCIceGatherInterfacePolicy object extracing the data from a JSON object.
+      /// Constructs a new RTCIceGatherInterfacePolicy object extracting the data from a JSON object.
       /// </summary>
       [constructor, default, altname(RTCIceGatherInterfacePolicyWithJson)]
       void RTCIceGatherInterfacePolicy(Json json);
@@ -141,7 +141,7 @@ namespace org
       typedef std::list<RTCIceServer> ServerList;
 
       /// <summary>
-      /// Gets or sets the option to specify continous gathering mode.
+      /// Gets or sets the option to specify continuous gathering mode.
       ///
       /// If true, then the RTCIceGatherer will gather all candidates
       /// available "for now" and fire a RTCIceGathererCandidateCompleteEvent.

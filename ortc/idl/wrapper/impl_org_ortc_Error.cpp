@@ -25,12 +25,12 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::Error::WrapperImplType, Wrapper
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::Error::WrapperType, WrapperType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::Error::Error()
+wrapper::impl::org::ortc::Error::Error() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::ErrorPtr wrapper::org::ortc::Error::wrapper_create()
+wrapper::org::ortc::ErrorPtr wrapper::org::ortc::Error::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::Error>();
   pThis->thisWeak_ = pThis;
@@ -38,24 +38,24 @@ wrapper::org::ortc::ErrorPtr wrapper::org::ortc::Error::wrapper_create()
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::Error::~Error()
+wrapper::impl::org::ortc::Error::~Error() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::Error::wrapper_init_org_ortc_Error()
+void wrapper::impl::org::ortc::Error::wrapper_init_org_ortc_Error() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr native)
+WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr native) noexcept
 {
   if (!native) return WrapperImplTypePtr();
   return toWrapper(*native);
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(const NativeType &native)
+WrapperImplTypePtr WrapperImplType::toWrapper(const NativeType &native) noexcept
 {
   auto pThis = make_shared<WrapperImplType>();
   pThis->thisWeak_ = pThis;
@@ -66,7 +66,7 @@ WrapperImplTypePtr WrapperImplType::toWrapper(const NativeType &native)
 }
 
 //------------------------------------------------------------------------------
-NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper)
+NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper) noexcept
 {
   if (!wrapper) return NativeTypePtr();
 

@@ -47,9 +47,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ICEGathererRouter
-    #pragma mark
+    //
+    // ICEGathererRouter
+    //
 
     class ICEGathererRouter : public SharedRecursiveLock,
                               public MessageQueueAssociator,
@@ -59,9 +59,9 @@ namespace ortc
       struct make_private {};
 
     public:
-      ZS_DECLARE_STRUCT_PTR(Route)
+      ZS_DECLARE_STRUCT_PTR(Route);
 
-      ZS_DECLARE_TYPEDEF_PTR(IICETypes::Candidate, Candidate)
+      ZS_DECLARE_TYPEDEF_PTR(IICETypes::Candidate, Candidate);
 
       typedef String LocalCandidateHash;
       typedef std::pair<LocalCandidateHash, IPAddress> CandidateRemoteIPPair;
@@ -71,57 +71,57 @@ namespace ortc
       ICEGathererRouter(
                         const make_private &,
                         IMessageQueuePtr queue
-                        );
+                        ) noexcept;
 
     protected:
-      void init();
+      void init() noexcept;
 
     public:
-      ~ICEGathererRouter();
+      ~ICEGathererRouter() noexcept;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark ICEGathererRouter => (friends)
-      #pragma mark
+      //
+      // ICEGathererRouter => (friends)
+      //
 
-      static ElementPtr toDebug(ICEGathererRouterPtr router);
+      static ElementPtr toDebug(ICEGathererRouterPtr router) noexcept;
 
-      static ICEGathererRouterPtr create();
+      static ICEGathererRouterPtr create() noexcept;
 
-      virtual PUID getID() const {return mID;}
+      virtual PUID getID() const noexcept {return mID;}
 
       virtual RoutePtr findRoute(
                                  CandidatePtr localCandidate,
                                  const IPAddress &remoteIP,
                                  bool createRouteIfNeeded
-                                 );
+                                 ) noexcept;
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark ICEGathererRouter => ITimerDelegate
-      #pragma mark
+      //
+      // ICEGathererRouter => ITimerDelegate
+      //
 
       void onTimer(ITimerPtr timer);
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark ICEGathererRouter => (internal)
-      #pragma mark
+      //
+      // ICEGathererRouter => (internal)
+      //
 
-      Log::Params log(const char *message) const;
-      static Log::Params slog(const char *message);
-      Log::Params debug(const char *message) const;
-      ElementPtr toDebug() const;
+      Log::Params log(const char *message) const noexcept;
+      static Log::Params slog(const char *message) noexcept;
+      Log::Params debug(const char *message) const noexcept;
+      ElementPtr toDebug() const noexcept;
 
-      void cancel();
+      void cancel() noexcept;
 
     public:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark ICEGathererRouter::Route
-      #pragma mark
+      //
+      // ICEGathererRouter::Route
+      //
 
       struct Route
       {
@@ -133,15 +133,15 @@ namespace ortc
         void trace(
                    const char *function = NULL,
                    const char *message = NULL
-                   ) const;
-        ElementPtr toDebug() const;
+                   ) const noexcept;
+        ElementPtr toDebug() const noexcept;
       };
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark ICEGathererRouter (data)
-      #pragma mark
+      //
+      // ICEGathererRouter (data)
+      //
 
       AutoPUID mID;
       ICEGathererRouterWeakPtr mThisWeak;

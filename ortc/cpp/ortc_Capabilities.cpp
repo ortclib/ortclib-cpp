@@ -58,7 +58,7 @@ namespace ortc
   using zsLib::Log;
 
   //-----------------------------------------------------------------------
-  static Log::Params slog(const char *message)
+  static Log::Params slog(const char *message) noexcept
   {
     return Log::Params(message, "ortc::ICapabilities");
   }
@@ -67,15 +67,15 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark ICapabilities::CapabilityBool
-  #pragma mark
+  //
+  // ICapabilities::CapabilityBool
+  //
 
   //---------------------------------------------------------------------------
   ICapabilities::CapabilityBoolean::CapabilityBoolean(
                                                       ElementPtr elem,
                                                       const char *objectName
-                                                      )
+                                                      ) noexcept
   {
     if (!elem) return;
 
@@ -99,7 +99,7 @@ namespace ortc
   ElementPtr ICapabilities::CapabilityBoolean::createElement(
                                                              const char *objectName,
                                                              const char *objectValueName
-                                                          ) const
+                                                          ) const noexcept
   {
     ElementPtr outerEl = Element::create(objectName);
 
@@ -114,7 +114,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr ICapabilities::CapabilityBoolean::toDebug() const
+  ElementPtr ICapabilities::CapabilityBoolean::toDebug() const noexcept
   {
     ElementPtr resultEl = Element::create("ortc::ICapabilities::CapabilityBoolean");
 
@@ -128,7 +128,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  String ICapabilities::CapabilityBoolean::hash() const
+  String ICapabilities::CapabilityBoolean::hash() const noexcept
   {
     auto hasher = IHasher::sha1();
 
@@ -147,13 +147,13 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark ICapabilities::CapabilityLong
-  #pragma mark
+  //
+  // ICapabilities::CapabilityLong
+  //
 
 
   //---------------------------------------------------------------------------
-  ICapabilities::CapabilityLong::CapabilityLong(ElementPtr elem)
+  ICapabilities::CapabilityLong::CapabilityLong(ElementPtr elem) noexcept
   {
     if (!elem) return;
 
@@ -185,7 +185,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr ICapabilities::CapabilityLong::createElement(const char *objectName) const
+  ElementPtr ICapabilities::CapabilityLong::createElement(const char *objectName) const noexcept
   {
     if (mMin == mMax) {
       return IHelper::createElementWithNumber(objectName, string(mMin));
@@ -200,7 +200,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr ICapabilities::CapabilityLong::toDebug() const
+  ElementPtr ICapabilities::CapabilityLong::toDebug() const noexcept
   {
     ElementPtr resultEl = Element::create("ortc::ICapabilities::CapabilityLong");
 
@@ -215,7 +215,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  String ICapabilities::CapabilityLong::hash() const
+  String ICapabilities::CapabilityLong::hash() const noexcept
   {
     auto hasher = IHasher::sha1();
 
@@ -232,12 +232,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark ICapabilities::CapabilityDouble
-  #pragma mark
+  //
+  // ICapabilities::CapabilityDouble
+  //
 
   //---------------------------------------------------------------------------
-  ICapabilities::CapabilityDouble::CapabilityDouble(ElementPtr elem)
+  ICapabilities::CapabilityDouble::CapabilityDouble(ElementPtr elem) noexcept
   {
     if (!elem) return;
 
@@ -269,7 +269,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr ICapabilities::CapabilityDouble::createElement(const char *objectName) const
+  ElementPtr ICapabilities::CapabilityDouble::createElement(const char *objectName) const noexcept
   {
     if (mMin == mMax) {
       return IHelper::createElementWithNumber(objectName, string(mMin));
@@ -283,7 +283,7 @@ namespace ortc
     return outerEl;
   }
   //---------------------------------------------------------------------------
-  ElementPtr ICapabilities::CapabilityDouble::toDebug() const
+  ElementPtr ICapabilities::CapabilityDouble::toDebug() const noexcept
   {
     ElementPtr resultEl = Element::create("ortc::ICapabilities::CapabilityDouble");
 
@@ -298,7 +298,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  String ICapabilities::CapabilityDouble::hash() const
+  String ICapabilities::CapabilityDouble::hash() const noexcept
   {
     auto hasher = IHasher::sha1();
 
@@ -316,16 +316,16 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark ICapabilities::CapabilityString
-  #pragma mark
+  //
+  // ICapabilities::CapabilityString
+  //
 
 
   //---------------------------------------------------------------------------
   ICapabilities::CapabilityString::CapabilityString(
                                                     ElementPtr elem,
                                                     const char *objectName
-                                                    )
+                                                    ) noexcept
   {
     if (!elem) return;
 
@@ -343,7 +343,7 @@ namespace ortc
   ElementPtr ICapabilities::CapabilityString::createElement(
                                                             const char *objectName,
                                                             const char *objectValueName
-                                                            ) const
+                                                            ) const noexcept
   {
     ElementPtr outerEl = Element::create(objectName);
 
@@ -361,7 +361,7 @@ namespace ortc
   
 
   //---------------------------------------------------------------------------
-  ElementPtr ICapabilities::CapabilityString::toDebug() const
+  ElementPtr ICapabilities::CapabilityString::toDebug() const noexcept
   {
     ElementPtr resultEl = Element::create("ortc::ICapabilities::CapabilityString");
 
@@ -375,7 +375,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  String ICapabilities::CapabilityString::hash() const
+  String ICapabilities::CapabilityString::hash() const noexcept
   {
     auto hasher = IHasher::sha1();
 

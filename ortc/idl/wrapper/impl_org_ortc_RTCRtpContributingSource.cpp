@@ -26,12 +26,12 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCRtpContributingSource::Wrapp
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCRtpContributingSource::WrapperType, WrapperType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCRtpContributingSource::RTCRtpContributingSource()
+wrapper::impl::org::ortc::RTCRtpContributingSource::RTCRtpContributingSource() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCRtpContributingSourcePtr wrapper::org::ortc::RTCRtpContributingSource::wrapper_create()
+wrapper::org::ortc::RTCRtpContributingSourcePtr wrapper::org::ortc::RTCRtpContributingSource::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::RTCRtpContributingSource>();
   pThis->thisWeak_ = pThis;
@@ -39,30 +39,30 @@ wrapper::org::ortc::RTCRtpContributingSourcePtr wrapper::org::ortc::RTCRtpContri
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCRtpContributingSource::~RTCRtpContributingSource()
+wrapper::impl::org::ortc::RTCRtpContributingSource::~RTCRtpContributingSource() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCRtpContributingSource::wrapper_init_org_ortc_RTCRtpContributingSource()
+void wrapper::impl::org::ortc::RTCRtpContributingSource::wrapper_init_org_ortc_RTCRtpContributingSource() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::ortc::RTCRtpContributingSource::hash()
+String wrapper::impl::org::ortc::RTCRtpContributingSource::hash() noexcept
 {
   return toNative(thisWeak_.lock())->hash();
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr native)
+WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr native) noexcept
 {
   if (!native) return WrapperImplTypePtr();
   return toWrapper(*native);
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(const NativeType &native)
+WrapperImplTypePtr WrapperImplType::toWrapper(const NativeType &native) noexcept
 {
   auto pThis = make_shared<WrapperImplType>();
   pThis->thisWeak_ = pThis;
@@ -74,7 +74,7 @@ WrapperImplTypePtr WrapperImplType::toWrapper(const NativeType &native)
 }
 
 //------------------------------------------------------------------------------
-NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper)
+NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper) noexcept
 {
   if (!wrapper) return NativeTypePtr();
 

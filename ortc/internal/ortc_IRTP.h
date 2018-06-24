@@ -45,9 +45,9 @@ namespace ortc
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTP
-    #pragma mark
+    //
+    // IRTP
+    //
 
     interaction IRTP
     {
@@ -65,24 +65,24 @@ namespace ortc
         State_Last = State_Shutdown,
       };
 
-      static const char *toString(States state);
-      static States toState(const char *stateStr) throw (InvalidParameters);
+      static const char *toString(States state) noexcept;
+      static States toState(const char *stateStr) noexcept(false); // throws InvalidParameters
 
-      virtual RTPObjectID getID() const = 0;
-      virtual void cancel() = 0;
+      virtual RTPObjectID getID() const noexcept = 0;
+      virtual void cancel() noexcept = 0;
 
-      virtual States getState() const = 0;
+      virtual States getState() const noexcept = 0;
 
-      virtual ~IRTP() {}
+      virtual ~IRTP() noexcept {}
     };
 
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPForMediaEngine
-    #pragma mark
+    //
+    // IRTPForMediaEngine
+    //
 
     interaction IRTPForMediaEngine
     {
@@ -91,14 +91,14 @@ namespace ortc
       typedef IRTP::RTPObjectID RTPObjectID;
       ZS_DECLARE_TYPEDEF_PTR(IRTP::States, States);
 
-      virtual RTPObjectID getID() const = 0;
-      virtual void shutdown() = 0;
+      virtual RTPObjectID getID() const noexcept = 0;
+      virtual void shutdown() noexcept = 0;
 
-      virtual States getState() const = 0;
-      bool isShuttingDown() const { return IRTP::State_ShuttingDown == getState(); }
-      bool isShutdown() const     { return IRTP::State_Shutdown == getState(); }
+      virtual States getState() const noexcept = 0;
+      bool isShuttingDown() const noexcept { return IRTP::State_ShuttingDown == getState(); }
+      bool isShutdown() const noexcept     { return IRTP::State_Shutdown == getState(); }
 
-      virtual ~IRTPForMediaEngine() {}
+      virtual ~IRTPForMediaEngine() noexcept {}
     };
 
   }

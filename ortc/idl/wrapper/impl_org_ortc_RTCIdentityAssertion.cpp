@@ -20,12 +20,12 @@ using ::std::set;
 using ::std::map;
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCIdentityAssertion::RTCIdentityAssertion()
+wrapper::impl::org::ortc::RTCIdentityAssertion::RTCIdentityAssertion() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCIdentityAssertionPtr wrapper::org::ortc::RTCIdentityAssertion::wrapper_create()
+wrapper::org::ortc::RTCIdentityAssertionPtr wrapper::org::ortc::RTCIdentityAssertion::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::RTCIdentityAssertion>();
   pThis->thisWeak_ = pThis;
@@ -33,24 +33,24 @@ wrapper::org::ortc::RTCIdentityAssertionPtr wrapper::org::ortc::RTCIdentityAsser
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCIdentityAssertion::~RTCIdentityAssertion()
+wrapper::impl::org::ortc::RTCIdentityAssertion::~RTCIdentityAssertion() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCIdentityAssertion::wrapper_init_org_ortc_RTCIdentityAssertion()
+void wrapper::impl::org::ortc::RTCIdentityAssertion::wrapper_init_org_ortc_RTCIdentityAssertion() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCIdentityAssertionPtr wrapper::impl::org::ortc::RTCIdentityAssertion::toWrapper(NativeAssertionPtr native)
+wrapper::impl::org::ortc::RTCIdentityAssertionPtr wrapper::impl::org::ortc::RTCIdentityAssertion::toWrapper(NativeAssertionPtr native) noexcept
 {
   if (!native) return RTCIdentityAssertionPtr();
   return toWrapper(*native);
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCIdentityAssertionPtr wrapper::impl::org::ortc::RTCIdentityAssertion::toWrapper(const NativeAssertion &native)
+wrapper::impl::org::ortc::RTCIdentityAssertionPtr wrapper::impl::org::ortc::RTCIdentityAssertion::toWrapper(const NativeAssertion &native) noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::RTCIdentityAssertion>();
   pThis->thisWeak_ = pThis;
@@ -62,7 +62,7 @@ wrapper::impl::org::ortc::RTCIdentityAssertionPtr wrapper::impl::org::ortc::RTCI
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCIdentityAssertion::NativeAssertionPtr wrapper::impl::org::ortc::RTCIdentityAssertion::toNative(wrapper::org::ortc::RTCIdentityAssertionPtr wrapper)
+wrapper::impl::org::ortc::RTCIdentityAssertion::NativeAssertionPtr wrapper::impl::org::ortc::RTCIdentityAssertion::toNative(wrapper::org::ortc::RTCIdentityAssertionPtr wrapper) noexcept
 {
   if (!wrapper) return NativeAssertionPtr();
 

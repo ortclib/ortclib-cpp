@@ -19,14 +19,14 @@ namespace wrapper {
           RTCMessageEventWeakPtr thisWeak_;
           NativeTypePtr native_;
 
-          RTCMessageEvent();
-          virtual ~RTCMessageEvent();
+          RTCMessageEvent() noexcept;
+          virtual ~RTCMessageEvent() noexcept;
 
           // properties RTCMessageEvent
-          virtual SecureByteBlockPtr get_binary() override;
-          virtual String get_text() override;
+          SecureByteBlockPtr get_binary() noexcept override;
+          String get_text() noexcept override;
 
-          static WrapperImplTypePtr toWrapper(NativeTypePtr native);
+          static WrapperImplTypePtr toWrapper(NativeTypePtr native) noexcept;
         };
 
       } // ortc

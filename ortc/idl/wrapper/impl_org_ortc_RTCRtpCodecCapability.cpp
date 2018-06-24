@@ -30,12 +30,12 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCRtpCodecCapability::WrapperI
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCRtpCodecCapability::WrapperType, WrapperType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCRtpCodecCapability::RTCRtpCodecCapability()
+wrapper::impl::org::ortc::RTCRtpCodecCapability::RTCRtpCodecCapability() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCRtpCodecCapabilityPtr wrapper::org::ortc::RTCRtpCodecCapability::wrapper_create()
+wrapper::org::ortc::RTCRtpCodecCapabilityPtr wrapper::org::ortc::RTCRtpCodecCapability::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::RTCRtpCodecCapability>();
   pThis->thisWeak_ = pThis;
@@ -43,17 +43,17 @@ wrapper::org::ortc::RTCRtpCodecCapabilityPtr wrapper::org::ortc::RTCRtpCodecCapa
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCRtpCodecCapability::~RTCRtpCodecCapability()
+wrapper::impl::org::ortc::RTCRtpCodecCapability::~RTCRtpCodecCapability() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCRtpCodecCapability::wrapper_init_org_ortc_RTCRtpCodecCapability()
+void wrapper::impl::org::ortc::RTCRtpCodecCapability::wrapper_init_org_ortc_RTCRtpCodecCapability() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCRtpCodecCapability::wrapper_init_org_ortc_RTCRtpCodecCapability(wrapper::org::ortc::RTCRtpCodecCapabilityPtr source)
+void wrapper::impl::org::ortc::RTCRtpCodecCapability::wrapper_init_org_ortc_RTCRtpCodecCapability(wrapper::org::ortc::RTCRtpCodecCapabilityPtr source) noexcept
 {
   WrapperTypePtr pThis = thisWeak_.lock();
   WrapperTypePtr wrapper = toWrapper(toNative(source));
@@ -62,7 +62,7 @@ void wrapper::impl::org::ortc::RTCRtpCodecCapability::wrapper_init_org_ortc_RTCR
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCRtpCodecCapability::wrapper_init_org_ortc_RTCRtpCodecCapability(wrapper::org::ortc::JsonPtr json)
+void wrapper::impl::org::ortc::RTCRtpCodecCapability::wrapper_init_org_ortc_RTCRtpCodecCapability(wrapper::org::ortc::JsonPtr json) noexcept
 {
   if (!json) return;
 
@@ -74,26 +74,26 @@ void wrapper::impl::org::ortc::RTCRtpCodecCapability::wrapper_init_org_ortc_RTCR
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::JsonPtr wrapper::impl::org::ortc::RTCRtpCodecCapability::toJson()
+wrapper::org::ortc::JsonPtr wrapper::impl::org::ortc::RTCRtpCodecCapability::toJson() noexcept
 {
   return Json::toWrapper(toNative(thisWeak_.lock())->createElement());
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::ortc::RTCRtpCodecCapability::hash()
+String wrapper::impl::org::ortc::RTCRtpCodecCapability::hash() noexcept
 {
   return toNative(thisWeak_.lock())->hash();
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr native)
+WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr native) noexcept
 {
   if (!native) return WrapperImplTypePtr();
   return toWrapper(*native);
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(const NativeType &native)
+WrapperImplTypePtr WrapperImplType::toWrapper(const NativeType &native) noexcept
 {
   auto pThis = make_shared<WrapperImplType>();
   pThis->thisWeak_ = pThis;
@@ -118,7 +118,7 @@ WrapperImplTypePtr WrapperImplType::toWrapper(const NativeType &native)
 }
 
 //------------------------------------------------------------------------------
-NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper)
+NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper) noexcept
 {
   if (!wrapper) return NativeTypePtr();
 

@@ -21,23 +21,23 @@ namespace wrapper {
           RTCIceTransportControllerWeakPtr thisWeak_;
           NativeTypePtr native_;
 
-          RTCIceTransportController();
-          virtual ~RTCIceTransportController();
+          RTCIceTransportController() noexcept;
+          virtual ~RTCIceTransportController() noexcept;
 
           // methods RTCIceTransportController
-          virtual void wrapper_init_org_ortc_RTCIceTransportController() override;
-          virtual void addTransport(wrapper::org::ortc::RTCIceTransportPtr transport) override;
-          virtual void addTransport(
+          void wrapper_init_org_ortc_RTCIceTransportController() noexcept override;
+          void addTransport(wrapper::org::ortc::RTCIceTransportPtr transport) noexcept(false) override;
+          void addTransport(
             wrapper::org::ortc::RTCIceTransportPtr transport,
             uint64_t index
-            ) override;
+            ) noexcept(false) override;
 
           // properties RTCIceTransportController
-          virtual uint64_t get_objectId() override;
-          virtual shared_ptr< list< wrapper::org::ortc::RTCIceTransportPtr > > get_transports() override;
+          uint64_t get_objectId() noexcept override;
+          shared_ptr< list< wrapper::org::ortc::RTCIceTransportPtr > > get_transports() noexcept override;
 
-          static WrapperImplTypePtr toWrapper(NativeTypePtr track);
-          static NativeTypePtr toNative(WrapperTypePtr wrapper);
+          static WrapperImplTypePtr toWrapper(NativeTypePtr track) noexcept;
+          static NativeTypePtr toNative(WrapperTypePtr wrapper) noexcept;
         };
 
       } // ortc

@@ -24,12 +24,12 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCMessageEvent::WrapperImplTyp
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCMessageEvent::WrapperType, WrapperType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCMessageEvent::RTCMessageEvent()
+wrapper::impl::org::ortc::RTCMessageEvent::RTCMessageEvent() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCMessageEventPtr wrapper::org::ortc::RTCMessageEvent::wrapper_create()
+wrapper::org::ortc::RTCMessageEventPtr wrapper::org::ortc::RTCMessageEvent::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::RTCMessageEvent>();
   pThis->thisWeak_ = pThis;
@@ -37,24 +37,24 @@ wrapper::org::ortc::RTCMessageEventPtr wrapper::org::ortc::RTCMessageEvent::wrap
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCMessageEvent::~RTCMessageEvent()
+wrapper::impl::org::ortc::RTCMessageEvent::~RTCMessageEvent() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-SecureByteBlockPtr wrapper::impl::org::ortc::RTCMessageEvent::get_binary()
+SecureByteBlockPtr wrapper::impl::org::ortc::RTCMessageEvent::get_binary() noexcept
 {
   return native_->mBinary;
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::ortc::RTCMessageEvent::get_text()
+String wrapper::impl::org::ortc::RTCMessageEvent::get_text() noexcept
 {
   return native_->mText;
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr native)
+WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr native) noexcept
 {
   if (!native) return WrapperImplTypePtr();
   auto pThis = make_shared<WrapperImplType>();

@@ -65,9 +65,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrackForMediaStream
-    #pragma mark
+    //
+    // IMediaStreamTrackForMediaStream
+    //
 
     interaction IMediaStreamTrackForMediaStream
     {
@@ -75,23 +75,23 @@ namespace ortc
 
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::Kinds, Kinds);
 
-      virtual bool isEnded() const = 0;
+      virtual bool isEnded() const noexcept = 0;
 
-      virtual Kinds kind() const = 0;
-      virtual String id() const = 0;
+      virtual Kinds kind() const noexcept = 0;
+      virtual String id() const noexcept = 0;
       virtual void trace(
                          const char *func = NULL,
                          const char *message = NULL
-                         ) const = 0;
+                         ) const noexcept = 0;
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrackAsyncDelegate
-    #pragma mark
+    //
+    // IMediaStreamTrackAsyncDelegate
+    //
 
     interaction IMediaStreamTrackAsyncDelegate
     {
@@ -109,9 +109,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaStreamTrack
-    #pragma mark
+    //
+    // MediaStreamTrack
+    //
     
     class MediaStreamTrack : public Noop,
                              public MessageQueueAssociator,
@@ -161,8 +161,8 @@ namespace ortc
         MediaStreamTrackType_Last = MediaStreamTrackType_Selector,
       };
 
-      static const char *toString(MediaStreamTrackTypes type);
-      MediaStreamTrackTypes toMediaStreamTrackType(const char *inputStr);
+      static const char *toString(MediaStreamTrackTypes type) noexcept;
+      MediaStreamTrackTypes toMediaStreamTrackType(const char *inputStr) noexcept(false);
 
       ZS_DECLARE_TYPEDEF_PTR(IMediaEngineForMediaStreamTrack, UseMediaEngine);
 
@@ -201,206 +201,206 @@ namespace ortc
       MediaStreamTrack(
                        const make_private &,
                        const MediaStreamTrackArguments &args
-                       );
+                       ) noexcept;
 
     protected:
-      MediaStreamTrack(Noop, IMessageQueuePtr queue = IMessageQueuePtr()) :
+      MediaStreamTrack(Noop, IMessageQueuePtr queue = IMessageQueuePtr()) noexcept :
         Noop(true),
         MessageQueueAssociator(queue),
         SharedRecursiveLock(SharedRecursiveLock::create())
       {}
 
-      void init();
+      void init() noexcept;
 
     public:
-      virtual ~MediaStreamTrack();
+      virtual ~MediaStreamTrack() noexcept;
 
-      static MediaStreamTrackPtr convert(ortc::IMediaStreamTrackPtr object);
-      static MediaStreamTrackPtr convert(internal::IMediaStreamTrackPtr object);
-      static MediaStreamTrackPtr convert(ForMediaStreamPtr object);
-      static MediaStreamTrackPtr convert(ForMediaStreamTrackChannelPtr object);
-      static MediaStreamTrackPtr convert(ForMediaStreamTrackSubscriberPtr object);
-      static MediaStreamTrackPtr convert(ForMediaStreamTrackSubscriberMediaPtr object);
-      static MediaStreamTrackPtr convert(ForMediaStreamTrackSubscriberRTPPtr object);
-      static MediaStreamTrackPtr convert(ForMediaDevicesPtr object);
-      static MediaStreamTrackPtr convert(ForMediaStreamTrackSelectorPtr object);
-      static MediaStreamTrackPtr convert(ForReceiverPtr object);
-      static MediaStreamTrackPtr convert(ForReceiverChannelPtr object);
-      static MediaStreamTrackPtr convert(ForSenderPtr object);
-      static MediaStreamTrackPtr convert(ForSenderChannelPtr object);
+      static MediaStreamTrackPtr convert(ortc::IMediaStreamTrackPtr object) noexcept;
+      static MediaStreamTrackPtr convert(internal::IMediaStreamTrackPtr object) noexcept;
+      static MediaStreamTrackPtr convert(ForMediaStreamPtr object) noexcept;
+      static MediaStreamTrackPtr convert(ForMediaStreamTrackChannelPtr object) noexcept;
+      static MediaStreamTrackPtr convert(ForMediaStreamTrackSubscriberPtr object) noexcept;
+      static MediaStreamTrackPtr convert(ForMediaStreamTrackSubscriberMediaPtr object) noexcept;
+      static MediaStreamTrackPtr convert(ForMediaStreamTrackSubscriberRTPPtr object) noexcept;
+      static MediaStreamTrackPtr convert(ForMediaDevicesPtr object) noexcept;
+      static MediaStreamTrackPtr convert(ForMediaStreamTrackSelectorPtr object) noexcept;
+      static MediaStreamTrackPtr convert(ForReceiverPtr object) noexcept;
+      static MediaStreamTrackPtr convert(ForReceiverChannelPtr object) noexcept;
+      static MediaStreamTrackPtr convert(ForSenderPtr object) noexcept;
+      static MediaStreamTrackPtr convert(ForSenderChannelPtr object) noexcept;
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaStreamTrack => IStatsProvider
-      #pragma mark
+      //
+      // MediaStreamTrack => IStatsProvider
+      //
 
-      PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const override;
+      PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const noexcept override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaStreamTrack => ortc::IMediaStreamTrack
-      #pragma mark
+      //
+      // MediaStreamTrack => ortc::IMediaStreamTrack
+      //
 
-      PUID getID() const override {return id_;}
+      PUID getID() const noexcept override {return id_;}
 
       void trace(
                  const char *func = NULL,
                  const char *message = NULL
-                 ) const override;
+                 ) const noexcept override;
 
-      IMediaStreamTrackSubscriptionPtr subscribe(IMediaStreamTrackDelegatePtr delegate) override;
+      IMediaStreamTrackSubscriptionPtr subscribe(IMediaStreamTrackDelegatePtr delegate) noexcept override;
 
-      Kinds kind() const override;
-      String id() const override;
-      String deviceID() const override;
-      String label() const override;
-      bool enabled() const override;
-      void enabled(bool enabled) override;
-      bool muted() const override;
-      void muted(bool muted) override;
-      bool remote() const override;
-      States readyState() const override;
+      Kinds kind() const noexcept override;
+      String id() const noexcept override;
+      String deviceID() const noexcept override;
+      String label() const noexcept override;
+      bool enabled() const noexcept override;
+      void enabled(bool enabled) noexcept override;
+      bool muted() const noexcept override;
+      void muted(bool muted) noexcept override;
+      bool remote() const noexcept override;
+      States readyState() const noexcept override;
 
-      ortc::IMediaStreamTrackPtr clone() const override;
+      ortc::IMediaStreamTrackPtr clone() const noexcept override;
 
-      void stop() override;
+      void stop() noexcept override;
 
-      CapabilitiesPtr getCapabilities() const override;
-      TrackConstraintsPtr getConstraints() const override;
-      SettingsPtr getSettings() const override;
+      CapabilitiesPtr getCapabilities() const noexcept override;
+      TrackConstraintsPtr getConstraints() const noexcept override;
+      SettingsPtr getSettings() const noexcept override;
 
-      PromisePtr applyConstraints(const TrackConstraints &constraints) override;
+      PromisePtr applyConstraints(const TrackConstraints &constraints) noexcept override;
 
-      IMediaStreamTrackMediaSubscriptionPtr subscribeMedia(IMediaStreamTrackSyncMediaDelegatePtr delegate) override;
+      IMediaStreamTrackMediaSubscriptionPtr subscribeMedia(IMediaStreamTrackSyncMediaDelegatePtr delegate) noexcept override;
 
-      IMediaStreamTrackMediaSubscriptionPtr subscribeMedia(IMediaStreamTrackAsyncMediaDelegatePtr delegate) override;
+      IMediaStreamTrackMediaSubscriptionPtr subscribeMedia(IMediaStreamTrackAsyncMediaDelegatePtr delegate) noexcept override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaStreamTrack => internal::IMediaStreamTrack
-      #pragma mark
+      //
+      // MediaStreamTrack => internal::IMediaStreamTrack
+      //
       
       virtual IMediaStreamTrackRTPSubscriptionPtr subscribeRTP(
                                                                const Parameters &rtpEncodingParams,
                                                                IMediaStreamTrackRTPDelegatePtr delegate
-                                                               ) override;
+                                                               ) noexcept override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaStreamTrack => IMediaStreamTrackForSettings
-      #pragma mark
+      //
+      // MediaStreamTrack => IMediaStreamTrackForSettings
+      //
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaStreamTrack => IMediaStreamTrackForMediaStream
-      #pragma mark
+      //
+      // MediaStreamTrack => IMediaStreamTrackForMediaStream
+      //
 
-      bool isEnded() const override;
-      // (duplicate) virtual Kinds kind() const = 0;
-      // (duplicate) virtual String id() const = 0;
-      // (duplicate) virtual ElementPtr toDebug() const = 0;
-
-      //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaStreamTrack => IMediaStreamTrackForMediaStreamTrackChannel
-      #pragma mark
+      bool isEnded() const noexcept override;
+      // (duplicate) virtual Kinds kind() const noexcept = 0;
+      // (duplicate) virtual String id() const noexcept= 0;
+      // (duplicate) virtual ElementPtr toDebug() const noexcept = 0;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaStreamTrack => IMediaStreamTrackForMediaStreamTrackSubscriber
-      #pragma mark
-
-      void notifySubscriberCancelled(UseSubscriberPtr subscriber) override;
+      //
+      // MediaStreamTrack => IMediaStreamTrackForMediaStreamTrackChannel
+      //
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaStreamTrack => IMediaStreamTrackForMediaStreamTrackSubscriberMedia
-      #pragma mark
+      //
+      // MediaStreamTrack => IMediaStreamTrackForMediaStreamTrackSubscriber
+      //
+
+      void notifySubscriberCancelled(UseSubscriberPtr subscriber) noexcept override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaStreamTrack => IMediaStreamTrackForMediaStreamTrackSubscriberRTP
-      #pragma mark
+      //
+      // MediaStreamTrack => IMediaStreamTrackForMediaStreamTrackSubscriberMedia
+      //
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaStreamTrack => IMediaStreamTrackForMediaDevices
-      #pragma mark
+      //
+      // MediaStreamTrack => IMediaStreamTrackForMediaStreamTrackSubscriberRTP
+      //
+
+      //-----------------------------------------------------------------------
+      //
+      // MediaStreamTrack => IMediaStreamTrackForMediaDevices
+      //
 
       // (duplicate) virtual PUID getID() const = 0;
 
       static ForMediaDevicesPtr createForMediaDevices(
                                                       IMediaStreamTrackTypes::Kinds kind,
                                                       const TrackConstraints &constraints
-                                                      );
+                                                      ) noexcept;
       
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaStreamTrack => IMediaStreamTrackForMediaStreamTrackSelector
-      #pragma mark
+      //
+      // MediaStreamTrack => IMediaStreamTrackForMediaStreamTrackSelector
+      //
 
       // (duplicate) virtual PUID getID() const = 0;
 
-      static ForMediaDevicesPtr createForMediaStreamTrackSelector(IMediaStreamTrackTypes::Kinds kind);
+      static ForMediaDevicesPtr createForMediaStreamTrackSelector(IMediaStreamTrackTypes::Kinds kind) noexcept;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPReceiver
-      #pragma mark
+      //
+      // MediaStreamTrack => IMediaStreamTrackForRTPReceiver
+      //
 
-      static ForReceiverPtr createForReceiver(IMediaStreamTrackTypes::Kinds kind);
+      static ForReceiverPtr createForReceiver(IMediaStreamTrackTypes::Kinds kind) noexcept;
 
-      // (duplicate) virtual PUID getID() const = 0;
-
-      //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPReceiverChannel
-      #pragma mark
-
-      // (duplicate) virtual PUID getID() const = 0;
+      // (duplicate) virtual PUID getID() const noexcept = 0;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPSender
-      #pragma mark
+      //
+      // MediaStreamTrack => IMediaStreamTrackForRTPReceiverChannel
+      //
+
+      // (duplicate) virtual PUID getID() const noexcept = 0;
+
+      //-----------------------------------------------------------------------
+      //
+      // MediaStreamTrack => IMediaStreamTrackForRTPSender
+      //
       
-      // (duplicate) virtual PUID getID() const = 0;
-      // (duplicate) virtual Kinds kind() const = 0;
+      // (duplicate) virtual PUID getID() const noexcept = 0;
+      // (duplicate) virtual Kinds kind() const noexcept = 0;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPSenderChannel
-      #pragma mark
+      //
+      // MediaStreamTrack => IMediaStreamTrackForRTPSenderChannel
+      //
       
-      // (duplicate) virtual PUID getID() const = 0;
-      // (duplicate) virtual Kinds kind() const = 0;
+      // (duplicate) virtual PUID getID() const noexcept = 0;
+      // (duplicate) virtual Kinds kind() const noexcept = 0;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaStreamTrack => IWakeDelegate
-      #pragma mark
+      //
+      // MediaStreamTrack => IWakeDelegate
+      //
 
       void onWake() override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaStreamTrack => ITimerDelegate
-      #pragma mark
+      //
+      // MediaStreamTrack => ITimerDelegate
+      //
 
       void onTimer(ITimerPtr timer) override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaStreamTrack => IPromiseSettledDelegate
-      #pragma mark
+      //
+      // MediaStreamTrack => IPromiseSettledDelegate
+      //
 
       void onPromiseSettled(PromisePtr promise) override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaStreamTrack => IMediaStreamTrackAsyncDelegate
-      #pragma mark
+      //
+      // MediaStreamTrack => IMediaStreamTrackAsyncDelegate
+      //
 
       void onResolveStatsPromise(IStatsProvider::PromiseWithStatsReportPtr promise, IStatsReportTypes::StatsTypeSet stats) override;
 
@@ -411,27 +411,27 @@ namespace ortc
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaStreamTrack => (internal)
-      #pragma mark
+      //
+      // MediaStreamTrack => (internal)
+      //
 
-      bool isShuttingDown() const;
-      bool isShutdown() const;
+      bool isShuttingDown() const noexcept;
+      bool isShutdown() const noexcept;
 
-      void step();
-      bool stepDevicePromise();
-      bool stepSetupDevice();
+      void step() noexcept;
+      bool stepDevicePromise() noexcept;
+      bool stepSetupDevice() noexcept;
 
-      void cancel();
+      void cancel() noexcept;
 
-      void setState(States state);
-      void setError(WORD error, const char *reason = NULL);
+      void setState(States state) noexcept;
+      void setError(WORD error, const char *reason = NULL) noexcept;
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaStreamTrack => (data)
-      #pragma mark
+      //
+      // MediaStreamTrack => (data)
+      //
 
       AutoPUID id_;
       MediaStreamTrackWeakPtr thisWeak_;
@@ -466,9 +466,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrackFactory
-    #pragma mark
+    //
+    // IMediaStreamTrackFactory
+    //
 
     interaction IMediaStreamTrackFactory
     {
@@ -477,14 +477,14 @@ namespace ortc
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForMediaDevices, ForMediaDevices);
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackForRTPReceiver, ForReceiver);
 
-      static IMediaStreamTrackFactory &singleton();
+      static IMediaStreamTrackFactory &singleton() noexcept;
 
       virtual ForMediaDevicesPtr createForMediaDevices(
                                                        IMediaStreamTrackTypes::Kinds kind,
                                                        const TrackConstraints &constraints
-                                                       );
+                                                       ) noexcept;
 
-      virtual ForReceiverPtr createForReceiver(IMediaStreamTrackTypes::Kinds kind);
+      virtual ForReceiverPtr createForReceiver(IMediaStreamTrackTypes::Kinds kind) noexcept;
 
     };
 
@@ -497,6 +497,6 @@ ZS_DECLARE_PROXY_TYPEDEF(ortc::IStatsProvider::PromiseWithStatsReportPtr, Promis
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IStatsReportTypes::StatsTypeSet, StatsTypeSet)
 ZS_DECLARE_PROXY_TYPEDEF(zsLib::PromisePtr, PromisePtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IMediaStreamTrackTypes::TrackConstraintsPtr, TrackConstraintsPtr)
-ZS_DECLARE_PROXY_METHOD_2(onResolveStatsPromise, PromiseWithStatsReportPtr, StatsTypeSet)
-ZS_DECLARE_PROXY_METHOD_2(onApplyConstraints, PromisePtr, TrackConstraintsPtr)
+ZS_DECLARE_PROXY_METHOD(onResolveStatsPromise, PromiseWithStatsReportPtr, StatsTypeSet)
+ZS_DECLARE_PROXY_METHOD(onApplyConstraints, PromisePtr, TrackConstraintsPtr)
 ZS_DECLARE_PROXY_END()

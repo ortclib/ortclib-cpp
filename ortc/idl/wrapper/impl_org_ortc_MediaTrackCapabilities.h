@@ -19,19 +19,19 @@ namespace wrapper {
           
           MediaTrackCapabilitiesWeakPtr thisWeak_;
 
-          MediaTrackCapabilities();
-          virtual ~MediaTrackCapabilities();
+          MediaTrackCapabilities() noexcept;
+          virtual ~MediaTrackCapabilities() noexcept;
 
           // methods MediaTrackCapabilities
-          virtual void wrapper_init_org_ortc_MediaTrackCapabilities() override;
-          virtual void wrapper_init_org_ortc_MediaTrackCapabilities(wrapper::org::ortc::MediaTrackCapabilitiesPtr source) override;
-          virtual void wrapper_init_org_ortc_MediaTrackCapabilities(wrapper::org::ortc::JsonPtr json) override;
-          virtual wrapper::org::ortc::JsonPtr toJson() override;
-          virtual String hash() override;
+          void wrapper_init_org_ortc_MediaTrackCapabilities() noexcept override;
+          void wrapper_init_org_ortc_MediaTrackCapabilities(wrapper::org::ortc::MediaTrackCapabilitiesPtr source) noexcept override;
+          void wrapper_init_org_ortc_MediaTrackCapabilities(wrapper::org::ortc::JsonPtr json) noexcept override;
+          wrapper::org::ortc::JsonPtr toJson() noexcept override;
+          String hash() noexcept override;
 
-          static MediaTrackCapabilitiesPtr toWrapper(NativeCapabilitiesPtr native);
-          static MediaTrackCapabilitiesPtr toWrapper(const NativeCapabilities &native);
-          static NativeCapabilitiesPtr toNative(wrapper::org::ortc::MediaTrackCapabilitiesPtr wrapper);
+          static MediaTrackCapabilitiesPtr toWrapper(NativeCapabilitiesPtr native) noexcept;
+          static MediaTrackCapabilitiesPtr toWrapper(const NativeCapabilities &native) noexcept;
+          static NativeCapabilitiesPtr toNative(wrapper::org::ortc::MediaTrackCapabilitiesPtr wrapper) noexcept;
         };
 
       } // ortc

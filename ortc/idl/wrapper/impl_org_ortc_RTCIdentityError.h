@@ -17,13 +17,13 @@ namespace wrapper {
 
           RTCIdentityErrorWeakPtr thisWeak_;
 
-          RTCIdentityError();
-          virtual ~RTCIdentityError();
-          virtual void wrapper_init_org_ortc_RTCIdentityError() override;
+          RTCIdentityError() noexcept;
+          virtual ~RTCIdentityError() noexcept;
+          void wrapper_init_org_ortc_RTCIdentityError() noexcept override;
 
-          static RTCIdentityErrorPtr toWrapper(NativeErrorPtr native);
-          static RTCIdentityErrorPtr toWrapper(const NativeError &native);
-          static NativeErrorPtr toWrapper(wrapper::org::ortc::RTCIdentityErrorPtr wrapper);
+          static RTCIdentityErrorPtr toWrapper(NativeErrorPtr native) noexcept;
+          static RTCIdentityErrorPtr toWrapper(const NativeError &native) noexcept;
+          static NativeErrorPtr toWrapper(wrapper::org::ortc::RTCIdentityErrorPtr wrapper) noexcept;
         };
 
       } // ortc

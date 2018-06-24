@@ -63,12 +63,12 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark Helpers
-      #pragma mark
+      //
+      // Helpers
+      //
 
       //-----------------------------------------------------------------------
-      static Log::Params slog(const char *message)
+      static Log::Params slog(const char *message) noexcept
       {
         return Log::Params(message, "ortc::adapter::SDPParser");
       }
@@ -77,12 +77,12 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SDPParser
-      #pragma mark
+      //
+      // SDPParser
+      //
 
       //-----------------------------------------------------------------------
-      void SDPParser::parseLines(SDP &sdp)
+      void SDPParser::parseLines(SDP &sdp) noexcept(false)
       {
         char *pos = sdp.mRawBuffer.get();
 
@@ -127,7 +127,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void SDPParser::parseAttributes(SDP &sdp)
+      void SDPParser::parseAttributes(SDP &sdp) noexcept(false)
       {
         for (auto iter = sdp.mLineInfos.begin(); iter != sdp.mLineInfos.end(); ++iter)
         {
@@ -203,7 +203,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void SDPParser::validateAttributeLevels(SDP &sdp)
+      void SDPParser::validateAttributeLevels(SDP &sdp) noexcept(false)
       {
         auto currentLevel = AttributeLevel_Session;
 
@@ -276,7 +276,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void SDPParser::parseLinesDetails(SDP &sdp)
+      void SDPParser::parseLinesDetails(SDP &sdp) noexcept(false)
       {
         MLinePtr currentMLine;
         ASSRCLinePtr currentSourceLine;
@@ -366,7 +366,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void SDPParser::processFlagAttributes(SDP &sdp)
+      void SDPParser::processFlagAttributes(SDP &sdp) noexcept(false)
       {
         for (auto iter_doNotUse = sdp.mLineInfos.begin(); iter_doNotUse != sdp.mLineInfos.end(); )
         {
@@ -458,7 +458,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void SDPParser::processSessionLevelValues(SDP &sdp)
+      void SDPParser::processSessionLevelValues(SDP &sdp) noexcept(false)
       {
         for (auto iter_doNotUse = sdp.mLineInfos.begin(); iter_doNotUse != sdp.mLineInfos.end(); )
         {
@@ -584,7 +584,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void SDPParser::processMediaLevelValues(SDP &sdp)
+      void SDPParser::processMediaLevelValues(SDP &sdp) noexcept(false)
       {
         for (auto iter_doNotUse = sdp.mLineInfos.begin(); iter_doNotUse != sdp.mLineInfos.end(); )
         {
@@ -759,7 +759,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void SDPParser::processSourceLevelValues(SDP &sdp)
+      void SDPParser::processSourceLevelValues(SDP &sdp) noexcept(false)
       {
         for (auto iter_doNotUse = sdp.mLineInfos.begin(); iter_doNotUse != sdp.mLineInfos.end(); )
         {
@@ -847,7 +847,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      ISDPTypes::SDPPtr SDPParser::parse(const char *blob)
+      ISDPTypes::SDPPtr SDPParser::parse(const char *blob) noexcept(false)
       {
         if (!blob) return SDPPtr();
 

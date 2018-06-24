@@ -48,6 +48,7 @@
 
 
 #ifdef __GNUC__
+#error MOVE THIS TO PROJECT SETTING RATHER THAN PUTTING ON INDIVIDUAL FILES
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-local-typedef"
 #endif //__GNUC__
@@ -67,12 +68,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark (helpers)
-    #pragma mark
+    //
+    // (helpers)
+    //
 
     //-------------------------------------------------------------------------
-    static Log::Params secure_slog(const char *message)
+    static Log::Params secure_slog(const char *message) noexcept
     {
       ElementPtr objectEl = Element::create("ortc::ISecureTransport");
       return Log::Params(message, objectEl);
@@ -82,12 +83,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISecureTransportTypes
-    #pragma mark
+    //
+    // ISecureTransportTypes
+    //
     
     //-------------------------------------------------------------------------
-    const char *ISecureTransportTypes::toString(States state)
+    const char *ISecureTransportTypes::toString(States state) noexcept
     {
       switch (state) {
         case State_Pending:       return "Pending";
@@ -102,20 +103,20 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISecureTransport
-    #pragma mark
+    //
+    // ISecureTransport
+    //
     
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISecureTransportForRTPSender
-    #pragma mark
+    //
+    // ISecureTransportForRTPSender
+    //
     
     //-------------------------------------------------------------------------
-    ElementPtr ISecureTransportForRTPSender::toDebug(ForRTPSenderPtr transport)
+    ElementPtr ISecureTransportForRTPSender::toDebug(ForRTPSenderPtr transport) noexcept
     {
       if (!transport) return ElementPtr();
 
@@ -139,9 +140,9 @@ namespace ortc
                                                            IICETypes::Components &outWhenSendingRTCPUseSendOverComponent,
                                                            ForRTPSenderPtr &outRTPSecureTransport,
                                                            ForRTPSenderPtr &outRTCPSecureTransport
-                                                           )
+                                                           ) noexcept(false)
     {
-      ZS_DECLARE_TYPEDEF_PTR(IICETransportForSecureTransport, UseICETransport)
+      ZS_DECLARE_TYPEDEF_PTR(IICETransportForSecureTransport, UseICETransport);
 
       outWhenSendingRTPUseSendOverComponent = IICETypes::Component_RTP;
       outWhenSendingRTCPUseSendOverComponent = IICETypes::Component_RTP;
@@ -218,12 +219,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISecureTransportForRTPReceiver
-    #pragma mark
+    //
+    // ISecureTransportForRTPReceiver
+    //
 
     //-------------------------------------------------------------------------
-    ElementPtr ISecureTransportForRTPReceiver::toDebug(ForRTPReceiverPtr transport)
+    ElementPtr ISecureTransportForRTPReceiver::toDebug(ForRTPReceiverPtr transport) noexcept
     {
       if (!transport) return ElementPtr();
 
@@ -247,9 +248,9 @@ namespace ortc
                                                                IICETypes::Components &outWhenReceivingRTCPUseReceiveOverComponent,
                                                                ForRTPReceiverPtr &outRTPSecureTransport,
                                                                ForRTPReceiverPtr &outRTCPSecureTransport
-                                                               )
+                                                               ) noexcept(false)
     {
-      ZS_DECLARE_TYPEDEF_PTR(IICETransportForSecureTransport, UseICETransport)
+      ZS_DECLARE_TYPEDEF_PTR(IICETransportForSecureTransport, UseICETransport);
 
       outWhenReceivingRTPUseReceiveOverComponent = IICETypes::Component_RTP;
       outWhenReceivingRTCPUseReceiveOverComponent = IICETypes::Component_RTP;
@@ -325,12 +326,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISecureTransportForSRTPTransport
-    #pragma mark
+    //
+    // ISecureTransportForSRTPTransport
+    //
     
     //-------------------------------------------------------------------------
-    ElementPtr ISecureTransportForSRTPTransport::toDebug(ForSRTPPtr transport)
+    ElementPtr ISecureTransportForSRTPTransport::toDebug(ForSRTPPtr transport) noexcept
     {
       if (!transport) return ElementPtr();
 
@@ -350,12 +351,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISecureTransportForICETransport
-    #pragma mark
+    //
+    // ISecureTransportForICETransport
+    //
     
     //-------------------------------------------------------------------------
-    ElementPtr ISecureTransportForICETransport::toDebug(ForICETransportPtr transport)
+    ElementPtr ISecureTransportForICETransport::toDebug(ForICETransportPtr transport) noexcept
     {
       if (!transport) return ElementPtr();
 
@@ -375,12 +376,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISecureTransportForRTPListener
-    #pragma mark
+    //
+    // ISecureTransportForRTPListener
+    //
 
     //-------------------------------------------------------------------------
-    ElementPtr ISecureTransportForRTPListener::toDebug(ForRTPListenerPtr transport)
+    ElementPtr ISecureTransportForRTPListener::toDebug(ForRTPListenerPtr transport) noexcept
     {
       if (!transport) return ElementPtr();
 
@@ -397,7 +398,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ISecureTransportForRTPListener::ForRTPListenerPtr ISecureTransportForRTPListener::convert(IRTPTransportPtr transport)
+    ISecureTransportForRTPListener::ForRTPListenerPtr ISecureTransportForRTPListener::convert(IRTPTransportPtr transport) noexcept
     {
       if (!transport) return ForRTPListenerPtr();
       return ZS_DYNAMIC_PTR_CAST(ForRTPListener, transport);
@@ -407,12 +408,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISecureTransportForSCTPTransport
-    #pragma mark
+    //
+    // ISecureTransportForSCTPTransport
+    //
 
     //-------------------------------------------------------------------------
-    ElementPtr ISecureTransportForDataTransport::toDebug(ForDataTransportPtr transport)
+    ElementPtr ISecureTransportForDataTransport::toDebug(ForDataTransportPtr transport) noexcept
     {
       if (!transport) return ElementPtr();
 
@@ -428,12 +429,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IDataTransportForSecureTransport
-    #pragma mark
+    //
+    // IDataTransportForSecureTransport
+    //
 
     //-------------------------------------------------------------------------
-    ElementPtr IDataTransportForSecureTransport::toDebug(ForSecureTransportPtr transport)
+    ElementPtr IDataTransportForSecureTransport::toDebug(ForSecureTransportPtr transport) noexcept
     {
       if (!transport) return ElementPtr();
 
@@ -446,7 +447,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    IDataTransportForSecureTransport::ForSecureTransportPtr IDataTransportForSecureTransport::create(UseSecureTransportPtr transport)
+    IDataTransportForSecureTransport::ForSecureTransportPtr IDataTransportForSecureTransport::create(UseSecureTransportPtr transport) noexcept
     {
       if (!transport) return ForSecureTransportPtr();
 

@@ -44,9 +44,9 @@
 
 #include <cryptopp/sha.h>
 
-#ifdef _MSC_VER
-#pragma warning(3 : 4062)
-#endif //_MSC_VER
+//#ifdef _MSC_VER
+//#pragma warning(3 : 4062)
+//#endif //_MSC_VER
 
 namespace ortc { namespace adapter { ZS_DECLARE_SUBSYSTEM(org_ortc_adapter) } }
 
@@ -65,12 +65,12 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark Helpers
-      #pragma mark
+      //
+      // Helpers
+      //
 
       //-----------------------------------------------------------------------
-      static Log::Params slog(const char *message)
+      static Log::Params slog(const char *message) noexcept
       {
         return Log::Params(message, "ortc::adapter::ISessionDescriptionTypes");
       }
@@ -79,9 +79,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SessionDescription
-      #pragma mark
+      //
+      // SessionDescription
+      //
 
       //-----------------------------------------------------------------------
       SessionDescription::SessionDescription(
@@ -89,7 +89,7 @@ namespace ortc
                                              SignalingTypes type,
                                              const char *descriptionStr,
                                              const Description *description
-                                             ) :
+                                             ) noexcept :
         SharedRecursiveLock(SharedRecursiveLock::create()),
         mType(type),
         mDescription(description ? make_shared<Description>(*description) : DescriptionPtr()),
@@ -98,12 +98,12 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void SessionDescription::init()
+      void SessionDescription::init() noexcept
       {
       }
 
       //-----------------------------------------------------------------------
-      SessionDescriptionPtr SessionDescription::convert(ISessionDescriptionPtr object)
+      SessionDescriptionPtr SessionDescription::convert(ISessionDescriptionPtr object) noexcept
       {
         return ZS_DYNAMIC_PTR_CAST(SessionDescription, object);
       }
@@ -112,12 +112,12 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SessionDescription => ISessionDescription
-      #pragma mark
+      //
+      // SessionDescription => ISessionDescription
+      //
 
       //-----------------------------------------------------------------------
-      ElementPtr SessionDescription::toDebug(ISessionDescriptionPtr object)
+      ElementPtr SessionDescription::toDebug(ISessionDescriptionPtr object) noexcept
       {
         if (!object) return ElementPtr();
         return convert(object)->toDebug();
@@ -127,7 +127,7 @@ namespace ortc
       SessionDescriptionPtr SessionDescription::create(
                                                        SignalingTypes type,
                                                        const char *description
-                                                       )
+                                                       ) noexcept
       {
         auto pThis(make_shared<SessionDescription>(make_private{}, type, description, nullptr));
         pThis->mThisWeak = pThis;
@@ -139,7 +139,7 @@ namespace ortc
       SessionDescriptionPtr SessionDescription::create(
                                                        SignalingTypes type,
                                                        const Description &description
-                                                       )
+                                                       ) noexcept
       {
         auto pThis(make_shared<SessionDescription>(make_private{}, type, nullptr, &description));
         pThis->mThisWeak = pThis;
@@ -148,13 +148,13 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      ISessionDescriptionTypes::SignalingTypes SessionDescription::type() const
+      ISessionDescriptionTypes::SignalingTypes SessionDescription::type() const noexcept
       {
         return mType;
       }
 
       //-----------------------------------------------------------------------
-      ISessionDescriptionTypes::DescriptionPtr SessionDescription::description() const
+      ISessionDescriptionTypes::DescriptionPtr SessionDescription::description() const noexcept
       {
         AutoRecursiveLock lock(*this);
 
@@ -185,7 +185,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      ISessionDescriptionTypes::SignalingDescription SessionDescription::formattedDescription() const
+      ISessionDescriptionTypes::SignalingDescription SessionDescription::formattedDescription() const noexcept
       {
         AutoRecursiveLock lock(*this);
         if (mFormattedString.isEmpty()) {
@@ -224,12 +224,12 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SessionDescription => (internal)
-      #pragma mark
+      //
+      // SessionDescription => (internal)
+      //
 
       //-----------------------------------------------------------------------
-      ElementPtr SessionDescription::toDebug() const
+      ElementPtr SessionDescription::toDebug() const noexcept
       {
         ElementPtr resultEl = Element::create("ortc::adapter::internal::SessionDescription");
 
@@ -251,12 +251,12 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark IMediaStreamFactory
-      #pragma mark
+      //
+      // IMediaStreamFactory
+      //
 
       //-----------------------------------------------------------------------
-      ISessionDescriptionFactory &ISessionDescriptionFactory::singleton()
+      ISessionDescriptionFactory &ISessionDescriptionFactory::singleton() noexcept
       {
         return SessionDescriptionFactory::singleton();
       }
@@ -265,7 +265,7 @@ namespace ortc
       SessionDescriptionPtr ISessionDescriptionFactory::create(
                                                                SignalingTypes type,
                                                                const char *description
-                                                               )
+                                                               ) noexcept
       {
         if (this) {}
         return internal::SessionDescription::create(type, description);
@@ -275,7 +275,7 @@ namespace ortc
       SessionDescriptionPtr ISessionDescriptionFactory::create(
                                                                SignalingTypes type,
                                                                const Description &description
-                                                               )
+                                                               ) noexcept
       {
         if (this) {}
         return internal::SessionDescription::create(type, description);
@@ -287,12 +287,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISessionDescriptionTypes
-    #pragma mark
+    //
+    // ISessionDescriptionTypes
+    //
 
     //-------------------------------------------------------------------------
-    const char *ISessionDescriptionTypes::toString(SignalingTypes type)
+    const char *ISessionDescriptionTypes::toString(SignalingTypes type) noexcept
     {
       switch (type)
       {
@@ -302,11 +302,12 @@ namespace ortc
         case SignalingType_SDPAnswer:     return "answer";
         case SignalingType_SDPRollback:   return "rollback";
       }
-      ORTC_THROW_NOT_SUPPORTED_ERRROR("unknown signaling type");
+      ZS_ASSERT_FAIL("unknown signaling type");
+      return "unknown";
     }
 
     //-------------------------------------------------------------------------
-    ISessionDescriptionTypes::SignalingTypes ISessionDescriptionTypes::toSignalingType(const char *type)
+    ISessionDescriptionTypes::SignalingTypes ISessionDescriptionTypes::toSignalingType(const char *type) noexcept(false)
     {
       String str(type);
       for (SignalingTypes index = SignalingType_First; index <= SignalingType_Last; index = static_cast<SignalingTypes>(static_cast<std::underlying_type<SignalingTypes>::type>(index) + 1)) {
@@ -317,7 +318,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    const char *ISessionDescriptionTypes::toString(MediaTypes mediaType)
+    const char *ISessionDescriptionTypes::toString(MediaTypes mediaType) noexcept
     {
       switch (mediaType)
       {
@@ -327,11 +328,12 @@ namespace ortc
         case MediaType_Text:        return "text";
         case MediaType_Application: return "application";
       }
-      ORTC_THROW_NOT_SUPPORTED_ERRROR("unknown media type");
+      ZS_ASSERT_FAIL("unknown media type");
+      return "unknown";
     }
 
     //-------------------------------------------------------------------------
-    ISessionDescriptionTypes::MediaTypes ISessionDescriptionTypes::toMediaType(const char *mediaType)
+    ISessionDescriptionTypes::MediaTypes ISessionDescriptionTypes::toMediaType(const char *mediaType) noexcept
     {
       String str(mediaType);
       for (MediaTypes index = MediaType_First; index <= MediaType_Last; index = static_cast<MediaTypes>(static_cast<std::underlying_type<MediaTypes>::type>(index) + 1)) {
@@ -341,7 +343,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    Optional<IMediaStreamTrackTypes::Kinds> ISessionDescriptionTypes::toMediaStreamTrackKind(MediaTypes mediaType)
+    Optional<IMediaStreamTrackTypes::Kinds> ISessionDescriptionTypes::toMediaStreamTrackKind(MediaTypes mediaType) noexcept
     {
       switch (mediaType)
       {
@@ -355,7 +357,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    const char *ISessionDescriptionTypes::toString(MediaDirections mediaDirection)
+    const char *ISessionDescriptionTypes::toString(MediaDirections mediaDirection) noexcept
     {
       switch (mediaDirection)
       {
@@ -364,11 +366,12 @@ namespace ortc
         case MediaDirection_ReceiveOnly:  return "recvonly";
         case MediaDirection_Inactive:     return "inactive";
       }
-      ORTC_THROW_NOT_SUPPORTED_ERRROR("unknown media direction");
+      ZS_ASSERT_FAIL("unknown media direction");
+      return "unknown";
     }
 
     //-------------------------------------------------------------------------
-    ISessionDescriptionTypes::MediaDirections ISessionDescriptionTypes::toMediaDirection(const char *mediaDirection)
+    ISessionDescriptionTypes::MediaDirections ISessionDescriptionTypes::toMediaDirection(const char *mediaDirection) noexcept(false)
     {
       String str(mediaDirection);
       for (MediaDirections index = MediaDirection_First; index <= MediaDirection_Last; index = static_cast<MediaDirections>(static_cast<std::underlying_type<MediaDirections>::type>(index) + 1)) {
@@ -382,26 +385,26 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISessionDescriptionTypes::ConnectionData
-    #pragma mark
+    //
+    // ISessionDescriptionTypes::ConnectionData
+    //
 
     //-------------------------------------------------------------------------
-    ISessionDescriptionTypes::ConnectionData::ConnectionData(const ConnectionData &op2)
+    ISessionDescriptionTypes::ConnectionData::ConnectionData(const ConnectionData &op2) noexcept
     {
       mRTP = (op2.mRTP ? make_shared<Details>(*op2.mRTP) : DetailsPtr());
       mRTCP = (op2.mRTCP ? make_shared<Details>(*op2.mRTCP) : DetailsPtr());
     }
 
     //-------------------------------------------------------------------------
-    ISessionDescriptionTypes::ConnectionData::ConnectionData(ElementPtr rootEl)
+    ISessionDescriptionTypes::ConnectionData::ConnectionData(ElementPtr rootEl) noexcept
     {
       mRTP = Details::create(rootEl->findFirstChildElement("rtp"));
       mRTCP = Details::create(rootEl->findFirstChildElement("rtcp"));
     }
 
     //-------------------------------------------------------------------------
-    ElementPtr ISessionDescriptionTypes::ConnectionData::createElement(const char *objectName) const
+    ElementPtr ISessionDescriptionTypes::ConnectionData::createElement(const char *objectName) const noexcept
     {
       ElementPtr rootEl = Element::create(objectName);
 
@@ -414,13 +417,13 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ElementPtr ISessionDescriptionTypes::ConnectionData::toDebug() const
+    ElementPtr ISessionDescriptionTypes::ConnectionData::toDebug() const noexcept
     {
       return createElement("ortc::adapter::ISessionDescriptionTypes::ConnectionData");
     }
 
     //-------------------------------------------------------------------------
-    String ISessionDescriptionTypes::ConnectionData::hash() const
+    String ISessionDescriptionTypes::ConnectionData::hash() const noexcept
     {
       auto hasher = IHasher::sha1();
 
@@ -438,12 +441,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISessionDescriptionTypes::ConnectionData::Details
-    #pragma mark
+    //
+    // ISessionDescriptionTypes::ConnectionData::Details
+    //
 
     //-------------------------------------------------------------------------
-    ISessionDescriptionTypes::ConnectionData::Details::Details(ElementPtr rootEl)
+    ISessionDescriptionTypes::ConnectionData::Details::Details(ElementPtr rootEl) noexcept
     {
       IHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::ConnectionData::Details", "port", mPort);
       IHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::ConnectionData::Details", "netType", mNetType);
@@ -452,7 +455,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ElementPtr ISessionDescriptionTypes::ConnectionData::Details::createElement(const char *objectName) const
+    ElementPtr ISessionDescriptionTypes::ConnectionData::Details::createElement(const char *objectName) const noexcept
     {
       ElementPtr rootEl = Element::create(objectName);
 
@@ -467,13 +470,13 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ElementPtr ISessionDescriptionTypes::ConnectionData::Details::toDebug() const
+    ElementPtr ISessionDescriptionTypes::ConnectionData::Details::toDebug() const noexcept
     {
       return createElement("ortc::adapter::ISessionDescriptionTypes::ConnectionData::Details");
     }
 
     //-------------------------------------------------------------------------
-    String ISessionDescriptionTypes::ConnectionData::Details::hash() const
+    String ISessionDescriptionTypes::ConnectionData::Details::hash() const noexcept
     {
       auto hasher = IHasher::sha1();
 
@@ -495,12 +498,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISessionDescriptionTypes::Transport
-    #pragma mark
+    //
+    // ISessionDescriptionTypes::Transport
+    //
 
     //-------------------------------------------------------------------------
-    ISessionDescriptionTypes::Transport::Transport(const Transport &op2) :
+    ISessionDescriptionTypes::Transport::Transport(const Transport &op2) noexcept :
       mID(op2.mID)
     {
       mRTP = (op2.mRTP ? make_shared<Parameters>(*op2.mRTP) : ParametersPtr());
@@ -508,8 +511,8 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ISessionDescriptionTypes::Transport::Transport(ElementPtr rootEl)
-    {
+    ISessionDescriptionTypes::Transport::Transport(ElementPtr rootEl) noexcept
+    { 
       IHelper::getElementValue(rootEl, "ortc::adapter::ISessionDescriptionTypes::Transport", "id", mID);
       mRTP = Parameters::create(rootEl->findFirstChildElement("rtp"));
       mRTCP = Parameters::create(rootEl->findFirstChildElement("rtcp"));
@@ -517,7 +520,7 @@ namespace ortc
     }
     
     //-------------------------------------------------------------------------
-    ElementPtr ISessionDescriptionTypes::Transport::createElement(const char *objectName) const
+    ElementPtr ISessionDescriptionTypes::Transport::createElement(const char *objectName) const noexcept
     {
       ElementPtr rootEl = Element::create(objectName);
 
@@ -533,13 +536,13 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ElementPtr ISessionDescriptionTypes::Transport::toDebug() const
+    ElementPtr ISessionDescriptionTypes::Transport::toDebug() const noexcept
     {
       return createElement("ortc::adapter::ISessionDescriptionTypes::Transport");
     }
 
     //-------------------------------------------------------------------------
-    String ISessionDescriptionTypes::Transport::hash() const
+    String ISessionDescriptionTypes::Transport::hash() const noexcept
     {
       auto hasher = IHasher::sha1();
 
@@ -561,12 +564,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISessionDescriptionTypes::Transport::Parameters
-    #pragma mark
+    //
+    // ISessionDescriptionTypes::Transport::Parameters
+    //
 
     //-------------------------------------------------------------------------
-    ISessionDescriptionTypes::Transport::Parameters::Parameters(const Parameters &op2) :
+    ISessionDescriptionTypes::Transport::Parameters::Parameters(const Parameters &op2) noexcept :
       mEndOfCandidates(op2.mEndOfCandidates)
     {
       mICEParameters = (op2.mICEParameters ? make_shared<ICETransportParameters>(*op2.mICEParameters) : ICETransportParametersPtr());
@@ -582,7 +585,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ISessionDescriptionTypes::Transport::Parameters::Parameters(ElementPtr rootEl)
+    ISessionDescriptionTypes::Transport::Parameters::Parameters(ElementPtr rootEl) noexcept
     {
       if (!rootEl) return;
 
@@ -612,7 +615,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ElementPtr ISessionDescriptionTypes::Transport::Parameters::createElement(const char *objectName) const
+    ElementPtr ISessionDescriptionTypes::Transport::Parameters::createElement(const char *objectName) const noexcept
     {
       ElementPtr rootEl = Element::create(objectName);
 
@@ -643,13 +646,13 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ElementPtr ISessionDescriptionTypes::Transport::Parameters::toDebug() const
+    ElementPtr ISessionDescriptionTypes::Transport::Parameters::toDebug() const noexcept
     {
       return createElement("ortc::adapter::ISessionDescriptionTypes::Transport:Parameters");
     }
 
     //-------------------------------------------------------------------------
-    String ISessionDescriptionTypes::Transport::Parameters::hash() const
+    String ISessionDescriptionTypes::Transport::Parameters::hash() const noexcept
     {
       auto hasher = IHasher::sha1();
 
@@ -677,12 +680,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISessionDescriptionTypes::MediaLine
-    #pragma mark
+    //
+    // ISessionDescriptionTypes::MediaLine
+    //
 
     //-------------------------------------------------------------------------
-    ISessionDescriptionTypes::MediaLine::MediaLine(const MediaLine &op2) :
+    ISessionDescriptionTypes::MediaLine::MediaLine(const MediaLine &op2) noexcept :
       mID(op2.mID),
       mTransportID(op2.mTransportID),
       mMediaType(op2.mMediaType)
@@ -691,7 +694,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ISessionDescriptionTypes::MediaLine::MediaLine(ElementPtr rootEl)
+    ISessionDescriptionTypes::MediaLine::MediaLine(ElementPtr rootEl) noexcept
     {
       if (!rootEl) return;
 
@@ -702,7 +705,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ElementPtr ISessionDescriptionTypes::MediaLine::createElement(const char *objectName) const
+    ElementPtr ISessionDescriptionTypes::MediaLine::createElement(const char *objectName) const noexcept
     {
       ElementPtr rootEl = Element::create(objectName);
 
@@ -717,13 +720,13 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ElementPtr ISessionDescriptionTypes::MediaLine::toDebug() const
+    ElementPtr ISessionDescriptionTypes::MediaLine::toDebug() const noexcept
     {
       return createElement("ortc::adapter::ISessionDescriptionTypes::MediaLine");
     }
 
     //-------------------------------------------------------------------------
-    String ISessionDescriptionTypes::MediaLine::hash() const
+    String ISessionDescriptionTypes::MediaLine::hash() const noexcept
     {
       auto hasher = IHasher::sha1();
 
@@ -745,12 +748,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISessionDescriptionTypes::MediaLine::Details
-    #pragma mark
+    //
+    // ISessionDescriptionTypes::MediaLine::Details
+    //
 
     //-------------------------------------------------------------------------
-    ISessionDescriptionTypes::MediaLine::Details::Details(const Details &op2) :
+    ISessionDescriptionTypes::MediaLine::Details::Details(const Details &op2) noexcept :
       mInternalIndex(op2.mInternalIndex),
       mPrivateTransportID(op2.mPrivateTransportID),
       mProtocol(op2.mProtocol),
@@ -760,7 +763,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ISessionDescriptionTypes::MediaLine::Details::Details(ElementPtr rootEl)
+    ISessionDescriptionTypes::MediaLine::Details::Details(ElementPtr rootEl) noexcept
     {
       if (!rootEl) return;
 
@@ -780,7 +783,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ElementPtr ISessionDescriptionTypes::MediaLine::Details::createElement(const char *objectName) const
+    ElementPtr ISessionDescriptionTypes::MediaLine::Details::createElement(const char *objectName) const noexcept
     {
       ElementPtr rootEl = Element::create(objectName);
 
@@ -796,13 +799,13 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ElementPtr ISessionDescriptionTypes::MediaLine::Details::toDebug() const
+    ElementPtr ISessionDescriptionTypes::MediaLine::Details::toDebug() const noexcept
     {
       return createElement("ortc::adapter::ISessionDescriptionTypes::MediaLine::Details");
     }
 
     //-------------------------------------------------------------------------
-    String ISessionDescriptionTypes::MediaLine::Details::hash() const
+    String ISessionDescriptionTypes::MediaLine::Details::hash() const noexcept
     {
       auto hasher = IHasher::sha1();
 
@@ -826,12 +829,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISessionDescriptionTypes::RTPMediaLine
-    #pragma mark
+    //
+    // ISessionDescriptionTypes::RTPMediaLine
+    //
 
     //-------------------------------------------------------------------------
-    ISessionDescriptionTypes::RTPMediaLine::RTPMediaLine(const RTPMediaLine &op2) :
+    ISessionDescriptionTypes::RTPMediaLine::RTPMediaLine(const RTPMediaLine &op2) noexcept :
       MediaLine(op2)
     {
       mSenderCapabilities = (op2.mSenderCapabilities ? make_shared<RTPCapabilities>(*op2.mSenderCapabilities) : RTPCapabilitiesPtr());
@@ -839,7 +842,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ISessionDescriptionTypes::RTPMediaLine::RTPMediaLine(ElementPtr rootEl) :
+    ISessionDescriptionTypes::RTPMediaLine::RTPMediaLine(ElementPtr rootEl) noexcept :
       MediaLine(rootEl)
     {
       mSenderCapabilities = RTPCapabilities::create(rootEl->findFirstChildElement("senderCapabilities"));
@@ -847,7 +850,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ElementPtr ISessionDescriptionTypes::RTPMediaLine::createElement(const char *objectName) const
+    ElementPtr ISessionDescriptionTypes::RTPMediaLine::createElement(const char *objectName) const noexcept
     {
       if (!objectName) objectName = "rtpMediaLine";
 
@@ -862,13 +865,13 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ElementPtr ISessionDescriptionTypes::RTPMediaLine::toDebug() const
+    ElementPtr ISessionDescriptionTypes::RTPMediaLine::toDebug() const noexcept
     {
       return createElement("ortc::adapter::ISessionDescriptionTypes::RTPMediaLine");
     }
 
     //-------------------------------------------------------------------------
-    String ISessionDescriptionTypes::RTPMediaLine::hash() const
+    String ISessionDescriptionTypes::RTPMediaLine::hash() const noexcept
     {
       auto hasher = IHasher::sha1();
 
@@ -888,12 +891,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISessionDescriptionTypes::SCTPMediaLine
-    #pragma mark
+    //
+    // ISessionDescriptionTypes::SCTPMediaLine
+    //
 
     //-------------------------------------------------------------------------
-    ISessionDescriptionTypes::SCTPMediaLine::SCTPMediaLine(const SCTPMediaLine &op2) :
+    ISessionDescriptionTypes::SCTPMediaLine::SCTPMediaLine(const SCTPMediaLine &op2) noexcept :
       MediaLine(op2),
       mPort(op2.mPort)
     {
@@ -901,7 +904,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ISessionDescriptionTypes::SCTPMediaLine::SCTPMediaLine(ElementPtr rootEl) :
+    ISessionDescriptionTypes::SCTPMediaLine::SCTPMediaLine(ElementPtr rootEl) noexcept :
       MediaLine(rootEl)
     {
       if (!rootEl) return;
@@ -911,7 +914,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ElementPtr ISessionDescriptionTypes::SCTPMediaLine::createElement(const char *objectName) const
+    ElementPtr ISessionDescriptionTypes::SCTPMediaLine::createElement(const char *objectName) const noexcept
     {
       if (!objectName) objectName = "sctpMediaLine";
 
@@ -926,13 +929,13 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ElementPtr ISessionDescriptionTypes::SCTPMediaLine::toDebug() const
+    ElementPtr ISessionDescriptionTypes::SCTPMediaLine::toDebug() const noexcept
     {
       return createElement("ortc::adapter::ISessionDescriptionTypes::SCTPMediaLine");
     }
 
     //-------------------------------------------------------------------------
-    String ISessionDescriptionTypes::SCTPMediaLine::hash() const
+    String ISessionDescriptionTypes::SCTPMediaLine::hash() const noexcept
     {
       auto hasher = IHasher::sha1();
 
@@ -952,12 +955,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISessionDescriptionTypes::RTPSender
-    #pragma mark
+    //
+    // ISessionDescriptionTypes::RTPSender
+    //
 
     //-------------------------------------------------------------------------
-    ISessionDescriptionTypes::RTPSender::RTPSender(const RTPSender &op2) :
+    ISessionDescriptionTypes::RTPSender::RTPSender(const RTPSender &op2) noexcept :
       mID(op2.mID),
       mRTPMediaLineID(op2.mRTPMediaLineID),
       mMediaStreamTrackID(op2.mMediaStreamTrackID),
@@ -968,7 +971,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ISessionDescriptionTypes::RTPSender::RTPSender(ElementPtr rootEl)
+    ISessionDescriptionTypes::RTPSender::RTPSender(ElementPtr rootEl) noexcept
     {
       if (!rootEl) return;
 
@@ -995,7 +998,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ElementPtr ISessionDescriptionTypes::RTPSender::createElement(const char *objectName) const
+    ElementPtr ISessionDescriptionTypes::RTPSender::createElement(const char *objectName) const noexcept
     {
       if (!objectName) objectName = "rtpSender";
 
@@ -1029,13 +1032,13 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ElementPtr ISessionDescriptionTypes::RTPSender::toDebug() const
+    ElementPtr ISessionDescriptionTypes::RTPSender::toDebug() const noexcept
     {
       return createElement("ortc::adapter::ISessionDescriptionTypes::RTPSender");
     }
 
     //-------------------------------------------------------------------------
-    String ISessionDescriptionTypes::RTPSender::hash() const
+    String ISessionDescriptionTypes::RTPSender::hash() const noexcept
     {
       auto hasher = IHasher::sha1();
 
@@ -1067,18 +1070,18 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISessionDescriptionTypes::RTPSender::Details
-    #pragma mark
+    //
+    // ISessionDescriptionTypes::RTPSender::Details
+    //
 
     //-------------------------------------------------------------------------
-    ISessionDescriptionTypes::RTPSender::Details::Details(const Details &op2) :
+    ISessionDescriptionTypes::RTPSender::Details::Details(const Details &op2) noexcept :
       mInternalRTPMediaLineIndex(op2.mInternalRTPMediaLineIndex)
     {
     }
 
     //-------------------------------------------------------------------------
-    ISessionDescriptionTypes::RTPSender::Details::Details(ElementPtr rootEl)
+    ISessionDescriptionTypes::RTPSender::Details::Details(ElementPtr rootEl) noexcept
     {
       if (!rootEl) return;
 
@@ -1086,7 +1089,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ElementPtr ISessionDescriptionTypes::RTPSender::Details::createElement(const char *objectName) const
+    ElementPtr ISessionDescriptionTypes::RTPSender::Details::createElement(const char *objectName) const noexcept
     {
       if (!objectName) objectName = "details";
 
@@ -1100,13 +1103,13 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ElementPtr ISessionDescriptionTypes::RTPSender::Details::toDebug() const
+    ElementPtr ISessionDescriptionTypes::RTPSender::Details::toDebug() const noexcept
     {
       return createElement("ortc::adapter::ISessionDescriptionTypes::RTPSender::Details");
     }
 
     //-------------------------------------------------------------------------
-    String ISessionDescriptionTypes::RTPSender::Details::hash() const
+    String ISessionDescriptionTypes::RTPSender::Details::hash() const noexcept
     {
       auto hasher = IHasher::sha1();
 
@@ -1123,12 +1126,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISessionDescriptionTypes::ICECandidate
-    #pragma mark
+    //
+    // ISessionDescriptionTypes::ICECandidate
+    //
 
     //-------------------------------------------------------------------------
-    ISessionDescriptionTypes::ICECandidate::ICECandidate(const ICECandidate &op2) :
+    ISessionDescriptionTypes::ICECandidate::ICECandidate(const ICECandidate &op2) noexcept :
       mMid(op2.mMid),
       mMLineIndex(op2.mMLineIndex)
     {
@@ -1149,7 +1152,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ISessionDescriptionTypes::ICECandidatePtr ISessionDescriptionTypes::ICECandidate::create(ElementPtr rootEl)
+    ISessionDescriptionTypes::ICECandidatePtr ISessionDescriptionTypes::ICECandidate::create(ElementPtr rootEl) noexcept
     {
       if (!rootEl) return ICECandidatePtr();
 
@@ -1181,7 +1184,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ElementPtr ISessionDescriptionTypes::ICECandidate::createElement(const char *objectName) const
+    ElementPtr ISessionDescriptionTypes::ICECandidate::createElement(const char *objectName) const noexcept
     {
       if (!objectName) objectName = "iceCandidate";
 
@@ -1211,13 +1214,13 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ElementPtr ISessionDescriptionTypes::ICECandidate::toDebug() const
+    ElementPtr ISessionDescriptionTypes::ICECandidate::toDebug() const noexcept
     {
       return createElement("ortc::adapter::ISessionDescriptionTypes::ICECandidate");
     }
 
     //-------------------------------------------------------------------------
-    String ISessionDescriptionTypes::ICECandidate::hash() const
+    String ISessionDescriptionTypes::ICECandidate::hash() const noexcept
     {
       auto hasher = IHasher::sha1();
 
@@ -1247,7 +1250,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ISessionDescriptionTypes::ICECandidatePtr ISessionDescriptionTypes::ICECandidate::createFromSDP(const char *value)
+    ISessionDescriptionTypes::ICECandidatePtr ISessionDescriptionTypes::ICECandidate::createFromSDP(const char *value) noexcept
     {
       String str(value);
 
@@ -1258,7 +1261,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    String ISessionDescriptionTypes::ICECandidate::toSDP() const
+    String ISessionDescriptionTypes::ICECandidate::toSDP() const noexcept
     {
       {
         auto candidateComplete = ZS_DYNAMIC_PTR_CAST(IICETypes::CandidateComplete, mCandidate);
@@ -1277,7 +1280,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ElementPtr ISessionDescriptionTypes::ICECandidate::toJSON() const
+    ElementPtr ISessionDescriptionTypes::ICECandidate::toJSON() const noexcept
     {
       return createElement();
     }
@@ -1286,12 +1289,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISessionDescriptionTypes::Description
-    #pragma mark
+    //
+    // ISessionDescriptionTypes::Description
+    //
 
     //-------------------------------------------------------------------------
-    ISessionDescriptionTypes::Description::Description(const Description &op2) :
+    ISessionDescriptionTypes::Description::Description(const Description &op2) noexcept :
       mDetails(op2.mDetails ? make_shared<Details>(*op2.mDetails) : DetailsPtr())
     {
       for (auto iter = op2.mTransports.begin(); iter != op2.mTransports.end(); ++iter)
@@ -1321,7 +1324,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ISessionDescriptionTypes::Description::Description(ElementPtr rootEl)
+    ISessionDescriptionTypes::Description::Description(ElementPtr rootEl) noexcept
     {
       if (!rootEl) return;
 
@@ -1389,7 +1392,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ElementPtr ISessionDescriptionTypes::Description::createElement(const char *objectName) const
+    ElementPtr ISessionDescriptionTypes::Description::createElement(const char *objectName) const noexcept
     {
       if (!objectName) objectName = "session";
 
@@ -1447,13 +1450,13 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ElementPtr ISessionDescriptionTypes::Description::toDebug() const
+    ElementPtr ISessionDescriptionTypes::Description::toDebug() const noexcept
     {
       return createElement("ortc::adapter::ISessionDescriptionTypes::Description");
     }
 
     //-------------------------------------------------------------------------
-    String ISessionDescriptionTypes::Description::hash() const
+    String ISessionDescriptionTypes::Description::hash() const noexcept
     {
       auto hasher = IHasher::sha1();
 
@@ -1503,12 +1506,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISessionDescriptionTypes::Description::Details
-    #pragma mark
+    //
+    // ISessionDescriptionTypes::Description::Details
+    //
 
     //-------------------------------------------------------------------------
-    ISessionDescriptionTypes::Description::Description::Details::Details(const Details &op2) :
+    ISessionDescriptionTypes::Description::Description::Details::Details(const Details &op2) noexcept :
       mUsername(op2.mUsername),
       mSessionID(op2.mSessionID),
       mSessionVersion(op2.mSessionVersion),
@@ -1521,7 +1524,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ISessionDescriptionTypes::Description::Details::Details(ElementPtr rootEl)
+    ISessionDescriptionTypes::Description::Details::Details(ElementPtr rootEl) noexcept
     {
       if (!rootEl) return;
 
@@ -1547,7 +1550,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ElementPtr ISessionDescriptionTypes::Description::Details::createElement(const char *objectName) const
+    ElementPtr ISessionDescriptionTypes::Description::Details::createElement(const char *objectName) const noexcept
     {
       if (!objectName) objectName = "details";
 
@@ -1572,13 +1575,13 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ElementPtr ISessionDescriptionTypes::Description::Details::toDebug() const
+    ElementPtr ISessionDescriptionTypes::Description::Details::toDebug() const noexcept
     {
       return createElement("ortc::adapter::ISessionDescriptionTypes::Description::Details");
     }
 
     //-------------------------------------------------------------------------
-    String ISessionDescriptionTypes::Description::Details::hash() const
+    String ISessionDescriptionTypes::Description::Details::hash() const noexcept
     {
       auto hasher = IHasher::sha1();
 
@@ -1612,15 +1615,15 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISessionDescription
-    #pragma mark
+    //
+    // ISessionDescription
+    //
 
     //-------------------------------------------------------------------------
     ISessionDescriptionPtr ISessionDescription::create(
                                                        SignalingTypes type,
                                                        const char *description
-                                                       )
+                                                       ) noexcept
     {
       return internal::ISessionDescriptionFactory::singleton().create(type, description);
     }
@@ -1629,13 +1632,13 @@ namespace ortc
     ISessionDescriptionPtr ISessionDescription::create(
                                                        SignalingTypes type,
                                                        const Description &description
-                                                       )
+                                                       ) noexcept
     {
       return internal::ISessionDescriptionFactory::singleton().create(type, description);
     }
 
     //-------------------------------------------------------------------------
-    ElementPtr ISessionDescription::toDebug(ISessionDescriptionPtr object)
+    ElementPtr ISessionDescription::toDebug(ISessionDescriptionPtr object) noexcept
     {
       return internal::SessionDescription::toDebug(object);
     }

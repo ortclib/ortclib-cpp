@@ -22,12 +22,12 @@ using ::std::set;
 using ::std::map;
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCIceCandidatePairStats::RTCIceCandidatePairStats()
+wrapper::impl::org::ortc::RTCIceCandidatePairStats::RTCIceCandidatePairStats() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCIceCandidatePairStatsPtr wrapper::org::ortc::RTCIceCandidatePairStats::wrapper_create()
+wrapper::org::ortc::RTCIceCandidatePairStatsPtr wrapper::org::ortc::RTCIceCandidatePairStats::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::RTCIceCandidatePairStats>();
   pThis->thisWeak_ = pThis;
@@ -35,55 +35,55 @@ wrapper::org::ortc::RTCIceCandidatePairStatsPtr wrapper::org::ortc::RTCIceCandid
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCIceCandidatePairStats::~RTCIceCandidatePairStats()
+wrapper::impl::org::ortc::RTCIceCandidatePairStats::~RTCIceCandidatePairStats() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::JsonPtr wrapper::impl::org::ortc::RTCIceCandidatePairStats::toJson()
+wrapper::org::ortc::JsonPtr wrapper::impl::org::ortc::RTCIceCandidatePairStats::toJson() noexcept
 {
   return Json::toWrapper(native_->createElement("RTCIceCandidatePairStats"));
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::ortc::RTCIceCandidatePairStats::hash()
+String wrapper::impl::org::ortc::RTCIceCandidatePairStats::hash() noexcept
 {
   return native_->hash();
 }
 
 //------------------------------------------------------------------------------
-::zsLib::Time wrapper::impl::org::ortc::RTCIceCandidatePairStats::get_timestamp()
+::zsLib::Time wrapper::impl::org::ortc::RTCIceCandidatePairStats::get_timestamp() noexcept
 {
   return native_->mTimestamp;
 }
 
 //------------------------------------------------------------------------------
-Optional< wrapper::org::ortc::RTCStatsType > wrapper::impl::org::ortc::RTCIceCandidatePairStats::get_statsType()
+Optional< wrapper::org::ortc::RTCStatsType > wrapper::impl::org::ortc::RTCIceCandidatePairStats::get_statsType() noexcept
 {
   if (!native_->mStatsType.hasValue()) return Optional< wrapper::org::ortc::RTCStatsType >();
   return Helper::toWrapper(native_->mStatsType.value());
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::ortc::RTCIceCandidatePairStats::get_statsTypeOther()
+String wrapper::impl::org::ortc::RTCIceCandidatePairStats::get_statsTypeOther() noexcept
 {
   return native_->mStatsTypeOther;
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::ortc::RTCIceCandidatePairStats::get_id()
+String wrapper::impl::org::ortc::RTCIceCandidatePairStats::get_id() noexcept
 {
   return native_->mID;
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCIceCandidatePairStats::wrapper_init_org_ortc_RTCIceCandidatePairStats()
+void wrapper::impl::org::ortc::RTCIceCandidatePairStats::wrapper_init_org_ortc_RTCIceCandidatePairStats() noexcept
 {
   native_ = make_shared<NativeStats>();
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCIceCandidatePairStats::wrapper_init_org_ortc_RTCIceCandidatePairStats(wrapper::org::ortc::RTCIceCandidatePairStatsPtr source)
+void wrapper::impl::org::ortc::RTCIceCandidatePairStats::wrapper_init_org_ortc_RTCIceCandidatePairStats(wrapper::org::ortc::RTCIceCandidatePairStatsPtr source) noexcept
 {
   if (!source) {
     wrapper_init_org_ortc_RTCIceCandidatePairStats();
@@ -93,91 +93,91 @@ void wrapper::impl::org::ortc::RTCIceCandidatePairStats::wrapper_init_org_ortc_R
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCIceCandidatePairStats::wrapper_init_org_ortc_RTCIceCandidatePairStats(wrapper::org::ortc::JsonPtr json)
+void wrapper::impl::org::ortc::RTCIceCandidatePairStats::wrapper_init_org_ortc_RTCIceCandidatePairStats(wrapper::org::ortc::JsonPtr json) noexcept
 {
   native_ = NativeStats::create(Json::toNative(json));
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::ortc::RTCIceCandidatePairStats::get_transportId()
+String wrapper::impl::org::ortc::RTCIceCandidatePairStats::get_transportId() noexcept
 {
   return native_->mTransportID;
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::ortc::RTCIceCandidatePairStats::get_localCandidateId()
+String wrapper::impl::org::ortc::RTCIceCandidatePairStats::get_localCandidateId() noexcept
 {
   return native_->mLocalCandidateID;
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::ortc::RTCIceCandidatePairStats::get_remoteCandidateId()
+String wrapper::impl::org::ortc::RTCIceCandidatePairStats::get_remoteCandidateId() noexcept
 {
   return native_->mRemoteCandidateID;
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCIceCandidatePairState wrapper::impl::org::ortc::RTCIceCandidatePairStats::get_state()
+wrapper::org::ortc::RTCIceCandidatePairState wrapper::impl::org::ortc::RTCIceCandidatePairStats::get_state() noexcept
 {
   return Helper::toWrapper(native_->mState);
 }
 
 //------------------------------------------------------------------------------
-unsigned long long wrapper::impl::org::ortc::RTCIceCandidatePairStats::get_priority()
+unsigned long long wrapper::impl::org::ortc::RTCIceCandidatePairStats::get_priority() noexcept
 {
   return native_->mPriority;
 }
 
 //------------------------------------------------------------------------------
-bool wrapper::impl::org::ortc::RTCIceCandidatePairStats::get_nominated()
+bool wrapper::impl::org::ortc::RTCIceCandidatePairStats::get_nominated() noexcept
 {
   return native_->mNominated;
 }
 
 //------------------------------------------------------------------------------
-bool wrapper::impl::org::ortc::RTCIceCandidatePairStats::get_writable()
+bool wrapper::impl::org::ortc::RTCIceCandidatePairStats::get_writable() noexcept
 {
   return native_->mWritable;
 }
 
 //------------------------------------------------------------------------------
-bool wrapper::impl::org::ortc::RTCIceCandidatePairStats::get_readable()
+bool wrapper::impl::org::ortc::RTCIceCandidatePairStats::get_readable() noexcept
 {
   return native_->mReadable;
 }
 
 //------------------------------------------------------------------------------
-unsigned long long wrapper::impl::org::ortc::RTCIceCandidatePairStats::get_bytesSent()
+unsigned long long wrapper::impl::org::ortc::RTCIceCandidatePairStats::get_bytesSent() noexcept
 {
   return native_->mBytesSent;
 }
 
 //------------------------------------------------------------------------------
-unsigned long long wrapper::impl::org::ortc::RTCIceCandidatePairStats::get_bytesReceived()
+unsigned long long wrapper::impl::org::ortc::RTCIceCandidatePairStats::get_bytesReceived() noexcept
 {
   return native_->mBytesReceived;
 }
 
 //------------------------------------------------------------------------------
-double wrapper::impl::org::ortc::RTCIceCandidatePairStats::get_roundTripTime()
+double wrapper::impl::org::ortc::RTCIceCandidatePairStats::get_roundTripTime() noexcept
 {
   return native_->mRoundTripTime;
 }
 
 //------------------------------------------------------------------------------
-double wrapper::impl::org::ortc::RTCIceCandidatePairStats::get_availableOutgoingBitrate()
+double wrapper::impl::org::ortc::RTCIceCandidatePairStats::get_availableOutgoingBitrate() noexcept
 {
   return native_->mAvailableOutgoingBitrate;
 }
 
 //------------------------------------------------------------------------------
-double wrapper::impl::org::ortc::RTCIceCandidatePairStats::get_availableIncomingBitrate()
+double wrapper::impl::org::ortc::RTCIceCandidatePairStats::get_availableIncomingBitrate() noexcept
 {
   return native_->mAvailableIncomingBitrate;
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCIceCandidatePairStatsPtr wrapper::impl::org::ortc::RTCIceCandidatePairStats::toWrapper(NativeStatsPtr native)
+wrapper::impl::org::ortc::RTCIceCandidatePairStatsPtr wrapper::impl::org::ortc::RTCIceCandidatePairStats::toWrapper(NativeStatsPtr native) noexcept
 {
   if (!native) return RTCIceCandidatePairStatsPtr();
 
@@ -188,7 +188,7 @@ wrapper::impl::org::ortc::RTCIceCandidatePairStatsPtr wrapper::impl::org::ortc::
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCIceCandidatePairStats::NativeStatsPtr wrapper::impl::org::ortc::RTCIceCandidatePairStats::toNative(wrapper::org::ortc::RTCIceCandidatePairStatsPtr wrapper)
+wrapper::impl::org::ortc::RTCIceCandidatePairStats::NativeStatsPtr wrapper::impl::org::ortc::RTCIceCandidatePairStats::toNative(wrapper::org::ortc::RTCIceCandidatePairStatsPtr wrapper) noexcept
 {
   if (!wrapper) return NativeStatsPtr();
   return std::dynamic_pointer_cast<RTCIceCandidatePairStats>(wrapper)->native_;

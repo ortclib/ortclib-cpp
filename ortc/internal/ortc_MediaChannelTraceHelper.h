@@ -47,9 +47,9 @@ namespace ortc
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaChannelTraceHelper
-    #pragma mark
+    //
+    // MediaChannelTraceHelper
+    //
 
     class MediaChannelTraceHelper : public SharedRecursiveLock
     {
@@ -68,12 +68,12 @@ namespace ortc
       typedef std::unordered_map<TraceHandle, TraceSourceInfo> TraceSourceInfoMap;
 
     public:
-      MediaChannelTraceHelper(MediaChannelID mediaChannelID);
+      MediaChannelTraceHelper(MediaChannelID mediaChannelID) noexcept;
 
-      ImmutableMediaChannelTracePtr trace(ImmutableMediaChannelTracePtr sourceTrace);
+      ImmutableMediaChannelTracePtr trace(ImmutableMediaChannelTracePtr sourceTrace) noexcept;
 
     protected:
-      void doPurge();
+      void doPurge() noexcept;
 
     protected:
       AutoPUID id_;

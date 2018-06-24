@@ -19,11 +19,11 @@ namespace wrapper {
           ZS_DECLARE_TYPEDEF_PTR(wrapper::org::ortc::OverconstrainedError, WrapperType);
           OverconstrainedErrorWeakPtr thisWeak_;
 
-          OverconstrainedError();
-          virtual ~OverconstrainedError();
-          virtual void wrapper_init_org_ortc_OverconstrainedError() override;
+          OverconstrainedError() noexcept;
+          virtual ~OverconstrainedError() noexcept;
+          void wrapper_init_org_ortc_OverconstrainedError() noexcept override;
 
-          static WrapperImplTypePtr toWrapper(NativeTypePtr native);
+          static WrapperImplTypePtr toWrapper(NativeTypePtr native) noexcept;
         };
 
       } // ortc

@@ -582,7 +582,7 @@ namespace org
     };
 
     /// <summary>
-    /// Canadidate pair state is defined in Section 5.7.4 of [RFC5245].
+    /// Candidate pair state is defined in Section 5.7.4 of [RFC5245].
     /// </summary>
     enum RTCIceCandidatePairState
     {

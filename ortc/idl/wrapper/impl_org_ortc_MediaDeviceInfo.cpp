@@ -26,12 +26,12 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::MediaDeviceInfo::WrapperImplTyp
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::MediaDeviceInfo::WrapperType, WrapperType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::MediaDeviceInfo::MediaDeviceInfo()
+wrapper::impl::org::ortc::MediaDeviceInfo::MediaDeviceInfo() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::MediaDeviceInfoPtr wrapper::org::ortc::MediaDeviceInfo::wrapper_create()
+wrapper::org::ortc::MediaDeviceInfoPtr wrapper::org::ortc::MediaDeviceInfo::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::MediaDeviceInfo>();
   pThis->thisWeak_ = pThis;
@@ -39,17 +39,17 @@ wrapper::org::ortc::MediaDeviceInfoPtr wrapper::org::ortc::MediaDeviceInfo::wrap
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::MediaDeviceInfo::~MediaDeviceInfo()
+wrapper::impl::org::ortc::MediaDeviceInfo::~MediaDeviceInfo() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::MediaDeviceInfo::wrapper_init_org_ortc_MediaDeviceInfo()
+void wrapper::impl::org::ortc::MediaDeviceInfo::wrapper_init_org_ortc_MediaDeviceInfo() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::MediaDeviceInfo::wrapper_init_org_ortc_MediaDeviceInfo(wrapper::org::ortc::MediaDeviceInfoPtr source)
+void wrapper::impl::org::ortc::MediaDeviceInfo::wrapper_init_org_ortc_MediaDeviceInfo(wrapper::org::ortc::MediaDeviceInfoPtr source) noexcept
 {
   WrapperTypePtr pThis = thisWeak_.lock();
   WrapperTypePtr wrapper = toWrapper(toNative(source));
@@ -58,7 +58,7 @@ void wrapper::impl::org::ortc::MediaDeviceInfo::wrapper_init_org_ortc_MediaDevic
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::MediaDeviceInfo::wrapper_init_org_ortc_MediaDeviceInfo(wrapper::org::ortc::JsonPtr json)
+void wrapper::impl::org::ortc::MediaDeviceInfo::wrapper_init_org_ortc_MediaDeviceInfo(wrapper::org::ortc::JsonPtr json) noexcept
 {
   if (!json) return;
 
@@ -70,26 +70,26 @@ void wrapper::impl::org::ortc::MediaDeviceInfo::wrapper_init_org_ortc_MediaDevic
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::JsonPtr wrapper::impl::org::ortc::MediaDeviceInfo::toJson()
+wrapper::org::ortc::JsonPtr wrapper::impl::org::ortc::MediaDeviceInfo::toJson() noexcept
 {
   return Json::toWrapper(toNative(thisWeak_.lock())->createElement());
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::ortc::MediaDeviceInfo::hash()
+String wrapper::impl::org::ortc::MediaDeviceInfo::hash() noexcept
 {
   return toNative(thisWeak_.lock())->hash();
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr native)
+WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr native) noexcept
 {
   if (!native) return WrapperImplTypePtr();
   return toWrapper(*native);
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(const NativeType &native)
+WrapperImplTypePtr WrapperImplType::toWrapper(const NativeType &native) noexcept
 {
   auto pThis = make_shared<WrapperImplType>();
   pThis->thisWeak_ = pThis;
@@ -101,7 +101,7 @@ WrapperImplTypePtr WrapperImplType::toWrapper(const NativeType &native)
 }
 
 //------------------------------------------------------------------------------
-NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper)
+NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper) noexcept
 {
   if (!wrapper) return NativeTypePtr();
 

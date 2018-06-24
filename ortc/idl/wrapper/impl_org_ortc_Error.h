@@ -18,13 +18,13 @@ namespace wrapper {
           ZS_DECLARE_TYPEDEF_PTR(wrapper::org::ortc::Error, WrapperType);
           ErrorWeakPtr thisWeak_;
 
-          Error();
-          virtual ~Error();
-          virtual void wrapper_init_org_ortc_Error() override;
+          Error() noexcept;
+          virtual ~Error() noexcept;
+          void wrapper_init_org_ortc_Error() noexcept override;
 
-          static WrapperImplTypePtr toWrapper(NativeTypePtr native);
-          static WrapperImplTypePtr toWrapper(const NativeType &native);
-          static NativeTypePtr toNative(WrapperTypePtr wrapper);
+          static WrapperImplTypePtr toWrapper(NativeTypePtr native) noexcept;
+          static WrapperImplTypePtr toWrapper(const NativeType &native) noexcept;
+          static NativeTypePtr toNative(WrapperTypePtr wrapper) noexcept;
         };
 
       } // ortc

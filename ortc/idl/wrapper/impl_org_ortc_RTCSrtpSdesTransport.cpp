@@ -34,12 +34,12 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCSrtpSdesTransport::WrapperIm
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCSrtpSdesTransport::WrapperType, WrapperType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCSrtpSdesTransport::RTCSrtpSdesTransport()
+wrapper::impl::org::ortc::RTCSrtpSdesTransport::RTCSrtpSdesTransport() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCSrtpSdesTransportPtr wrapper::org::ortc::RTCSrtpSdesTransport::wrapper_create()
+wrapper::org::ortc::RTCSrtpSdesTransportPtr wrapper::org::ortc::RTCSrtpSdesTransport::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::RTCSrtpSdesTransport>();
   pThis->thisWeak_ = pThis;
@@ -47,12 +47,12 @@ wrapper::org::ortc::RTCSrtpSdesTransportPtr wrapper::org::ortc::RTCSrtpSdesTrans
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCSrtpSdesTransport::~RTCSrtpSdesTransport()
+wrapper::impl::org::ortc::RTCSrtpSdesTransport::~RTCSrtpSdesTransport() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > wrapper::impl::org::ortc::RTCSrtpSdesTransport::getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes)
+shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > wrapper::impl::org::ortc::RTCSrtpSdesTransport::getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept(false)
 {
   return Helper::getStats(native_, statTypes);  
 }
@@ -62,7 +62,7 @@ void wrapper::impl::org::ortc::RTCSrtpSdesTransport::wrapper_init_org_ortc_RTCSr
   wrapper::org::ortc::RTCIceTransportPtr iceTransport,
   wrapper::org::ortc::RTCSrtpSdesCryptoParametersPtr encryptParameters,
   wrapper::org::ortc::RTCSrtpSdesCryptoParametersPtr decryptParameters
-  )
+  ) noexcept(false)
 {
   auto nativeEnc = RTCSrtpSdesCryptoParameters::toNative(encryptParameters);
   auto nativeDec = RTCSrtpSdesCryptoParameters::toNative(decryptParameters);
@@ -73,37 +73,37 @@ void wrapper::impl::org::ortc::RTCSrtpSdesTransport::wrapper_init_org_ortc_RTCSr
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCSrtpSdesParametersPtr wrapper::org::ortc::RTCSrtpSdesTransport::getLocalParameters()
+wrapper::org::ortc::RTCSrtpSdesParametersPtr wrapper::org::ortc::RTCSrtpSdesTransport::getLocalParameters() noexcept
 {
   return wrapper::impl::org::ortc::RTCSrtpSdesParameters::toWrapper(NativeType::getLocalParameters());
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCSrtpSdesTransport::stop()
+void wrapper::impl::org::ortc::RTCSrtpSdesTransport::stop() noexcept
 {
   native_->stop();
 }
 
 //------------------------------------------------------------------------------
-uint64_t wrapper::impl::org::ortc::RTCSrtpSdesTransport::get_objectId()
+uint64_t wrapper::impl::org::ortc::RTCSrtpSdesTransport::get_objectId() noexcept
 {
   return native_->getID();
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCIceTransportPtr wrapper::impl::org::ortc::RTCSrtpSdesTransport::get_transport()
+wrapper::org::ortc::RTCIceTransportPtr wrapper::impl::org::ortc::RTCSrtpSdesTransport::get_transport() noexcept
 {
   return RTCIceTransport::toWrapper(native_->transport());
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCIceTransportPtr wrapper::impl::org::ortc::RTCSrtpSdesTransport::get_rtcpTransport()
+wrapper::org::ortc::RTCIceTransportPtr wrapper::impl::org::ortc::RTCSrtpSdesTransport::get_rtcpTransport() noexcept
 {
   return RTCIceTransport::toWrapper(native_->rtcpTransport());
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCSrtpSdesTransport::wrapper_onObserverCountChanged(size_t count)
+void wrapper::impl::org::ortc::RTCSrtpSdesTransport::wrapper_onObserverCountChanged(size_t count) noexcept
 {
   subscriptionCount_ = count;
   subscribe();
@@ -114,7 +114,7 @@ void WrapperImplType::onSRTPSDESTransportLifetimeRemaining(
   ISRTPSDESTransportPtr transport,
   ULONG leastLifetimeRemainingPercentageForAllKeys,
   ULONG overallLifetimeRemainingPercentage
-)
+) noexcept
 {
   onLifetimeRemaining(RTCSrtpSdesTransportLifetimeRemainingEvent::toWrapper(leastLifetimeRemainingPercentageForAllKeys, overallLifetimeRemainingPercentage));
 }
@@ -123,13 +123,13 @@ void WrapperImplType::onSRTPSDESTransportLifetimeRemaining(
 void WrapperImplType::onSRTPSDESTransportError(
   ISRTPSDESTransportPtr transport,
   ::ortc::ErrorAnyPtr error
-)
+) noexcept
 {
   onError(ErrorEvent::toWrapper(error));
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr track)
+WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr track) noexcept
 {
   if (!track) return WrapperImplTypePtr();
 
@@ -142,7 +142,7 @@ WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr track)
 }
 
 //------------------------------------------------------------------------------
-NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper)
+NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper) noexcept
 {
   if (!wrapper) return NativeTypePtr();
   auto result = std::dynamic_pointer_cast<WrapperImplType>(wrapper);
@@ -151,7 +151,7 @@ NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper)
 }
 
 //------------------------------------------------------------------------------
-void WrapperImplType::subscribe()
+void WrapperImplType::subscribe() noexcept
 {
   if (defaultSubscription_) return;
   if (!native_) return;

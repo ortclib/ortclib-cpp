@@ -26,12 +26,12 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCIceGathererIceErrorEvent::Wr
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCIceGathererIceErrorEvent::WrapperType, WrapperType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCIceGathererIceErrorEvent::RTCIceGathererIceErrorEvent()
+wrapper::impl::org::ortc::RTCIceGathererIceErrorEvent::RTCIceGathererIceErrorEvent() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCIceGathererIceErrorEventPtr wrapper::org::ortc::RTCIceGathererIceErrorEvent::wrapper_create()
+wrapper::org::ortc::RTCIceGathererIceErrorEventPtr wrapper::org::ortc::RTCIceGathererIceErrorEvent::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::RTCIceGathererIceErrorEvent>();
   pThis->thisWeak_ = pThis;
@@ -39,36 +39,36 @@ wrapper::org::ortc::RTCIceGathererIceErrorEventPtr wrapper::org::ortc::RTCIceGat
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCIceGathererIceErrorEvent::~RTCIceGathererIceErrorEvent()
+wrapper::impl::org::ortc::RTCIceGathererIceErrorEvent::~RTCIceGathererIceErrorEvent() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCIceCandidatePtr wrapper::impl::org::ortc::RTCIceGathererIceErrorEvent::get_hostCandidate()
+wrapper::org::ortc::RTCIceCandidatePtr wrapper::impl::org::ortc::RTCIceGathererIceErrorEvent::get_hostCandidate() noexcept
 {
   return RTCIceCandidate::toWrapper(native_->mHostCandidate);
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::ortc::RTCIceGathererIceErrorEvent::get_url()
+String wrapper::impl::org::ortc::RTCIceGathererIceErrorEvent::get_url() noexcept
 {
   return native_->mURL;
 }
 
 //------------------------------------------------------------------------------
-uint16_t wrapper::impl::org::ortc::RTCIceGathererIceErrorEvent::get_errorCode()
+uint16_t wrapper::impl::org::ortc::RTCIceGathererIceErrorEvent::get_errorCode() noexcept
 {
   return native_->mErrorCode;
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::ortc::RTCIceGathererIceErrorEvent::get_errorText()
+String wrapper::impl::org::ortc::RTCIceGathererIceErrorEvent::get_errorText() noexcept
 {
   return native_->mErrorText;
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr native)
+WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr native) noexcept
 {
   auto pThis = make_shared<WrapperImplType>();
   pThis->thisWeak_ = pThis;

@@ -24,12 +24,12 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::ErrorEvent::WrapperImplType, Wr
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::ErrorEvent::WrapperType, WrapperType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::ErrorEvent::ErrorEvent()
+wrapper::impl::org::ortc::ErrorEvent::ErrorEvent() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::ErrorEventPtr wrapper::org::ortc::ErrorEvent::wrapper_create()
+wrapper::org::ortc::ErrorEventPtr wrapper::org::ortc::ErrorEvent::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::ErrorEvent>();
   pThis->thisWeak_ = pThis;
@@ -37,18 +37,18 @@ wrapper::org::ortc::ErrorEventPtr wrapper::org::ortc::ErrorEvent::wrapper_create
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::ErrorEvent::~ErrorEvent()
+wrapper::impl::org::ortc::ErrorEvent::~ErrorEvent() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::ErrorPtr wrapper::impl::org::ortc::ErrorEvent::get_error()
+wrapper::org::ortc::ErrorPtr wrapper::impl::org::ortc::ErrorEvent::get_error() noexcept
 {
   return error_;
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(::ortc::ErrorAnyPtr error)
+WrapperImplTypePtr WrapperImplType::toWrapper(::ortc::ErrorAnyPtr error) noexcept
 {
   if (!error) return WrapperImplTypePtr();
 
@@ -59,7 +59,7 @@ WrapperImplTypePtr WrapperImplType::toWrapper(::ortc::ErrorAnyPtr error)
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(wrapper::org::ortc::ErrorPtr error)
+WrapperImplTypePtr WrapperImplType::toWrapper(wrapper::org::ortc::ErrorPtr error) noexcept
 {
   if (!error) return WrapperImplTypePtr();
 

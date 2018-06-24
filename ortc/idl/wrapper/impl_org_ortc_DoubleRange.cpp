@@ -21,12 +21,12 @@ using ::std::set;
 using ::std::map;
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::DoubleRange::DoubleRange()
+wrapper::impl::org::ortc::DoubleRange::DoubleRange() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::DoubleRangePtr wrapper::org::ortc::DoubleRange::wrapper_create()
+wrapper::org::ortc::DoubleRangePtr wrapper::org::ortc::DoubleRange::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::DoubleRange>();
   pThis->thisWeak_ = pThis;
@@ -34,33 +34,33 @@ wrapper::org::ortc::DoubleRangePtr wrapper::org::ortc::DoubleRange::wrapper_crea
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::DoubleRange::~DoubleRange()
+wrapper::impl::org::ortc::DoubleRange::~DoubleRange() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::DoubleRange::wrapper_init_org_ortc_DoubleRange()
+void wrapper::impl::org::ortc::DoubleRange::wrapper_init_org_ortc_DoubleRange() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::DoubleRange::wrapper_init_org_ortc_DoubleRange(double value)
+void wrapper::impl::org::ortc::DoubleRange::wrapper_init_org_ortc_DoubleRange(double value) noexcept
 {
   min = max = value;
 }
 
 //------------------------------------------------------------------------------
 void wrapper::impl::org::ortc::DoubleRange::wrapper_init_org_ortc_DoubleRange(
-  double min,
-  double max
-  )
+  double inMin,
+  double inMax
+  ) noexcept
 {
-  this->min = min;
-  this->max = max;
+  this->min = inMin;
+  this->max = inMax;
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::DoubleRange::wrapper_init_org_ortc_DoubleRange(wrapper::org::ortc::JsonPtr json)
+void wrapper::impl::org::ortc::DoubleRange::wrapper_init_org_ortc_DoubleRange(wrapper::org::ortc::JsonPtr json) noexcept
 {
   if (!json) return;
 
@@ -74,27 +74,27 @@ void wrapper::impl::org::ortc::DoubleRange::wrapper_init_org_ortc_DoubleRange(wr
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::JsonPtr wrapper::impl::org::ortc::DoubleRange::toJson()
+wrapper::org::ortc::JsonPtr wrapper::impl::org::ortc::DoubleRange::toJson() noexcept
 {
   return Json::toWrapper(toNative(thisWeak_.lock())->createElement("DoubleRange"));
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::ortc::DoubleRange::hash()
+String wrapper::impl::org::ortc::DoubleRange::hash() noexcept
 {
   return toNative(thisWeak_.lock())->hash();
 }
 
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::DoubleRangePtr wrapper::impl::org::ortc::DoubleRange::toWrapper(NativeCapabilityDoublePtr native)
+wrapper::impl::org::ortc::DoubleRangePtr wrapper::impl::org::ortc::DoubleRange::toWrapper(NativeCapabilityDoublePtr native) noexcept
 {
   if (!native) return DoubleRangePtr();
   return toWrapper(*native);
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::DoubleRangePtr wrapper::impl::org::ortc::DoubleRange::toWrapper(const NativeCapabilityDouble &native)
+wrapper::impl::org::ortc::DoubleRangePtr wrapper::impl::org::ortc::DoubleRange::toWrapper(const NativeCapabilityDouble &native) noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::DoubleRange>();
   pThis->thisWeak_ = pThis;
@@ -106,7 +106,7 @@ wrapper::impl::org::ortc::DoubleRangePtr wrapper::impl::org::ortc::DoubleRange::
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::DoubleRange::NativeCapabilityDoublePtr wrapper::impl::org::ortc::DoubleRange::toNative(wrapper::org::ortc::DoubleRangePtr wrapper)
+wrapper::impl::org::ortc::DoubleRange::NativeCapabilityDoublePtr wrapper::impl::org::ortc::DoubleRange::toNative(wrapper::org::ortc::DoubleRangePtr wrapper) noexcept
 {
   if (!wrapper) return NativeCapabilityDoublePtr();
 

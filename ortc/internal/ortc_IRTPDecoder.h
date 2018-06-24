@@ -51,9 +51,9 @@ namespace ortc
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPDecoder
-    #pragma mark
+    //
+    // IRTPDecoder
+    //
 
     interaction IRTPDecoder : public IRTP
     {
@@ -62,22 +62,22 @@ namespace ortc
       virtual void notifyRTPPacket(
                                    ImmutableMediaChannelTracePtr trace,
                                    RTPPacketPtr packet
-                                   ) = 0;
+                                   ) noexcept = 0;
       virtual void notifyRTCPPacket(
                                     ImmutableMediaChannelTracePtr trace,
                                     RTCPPacketPtr packet
-                                    ) = 0;
+                                    ) noexcept = 0;
 
-      virtual ~IRTPDecoder() {}
+      virtual ~IRTPDecoder() noexcept {}
     };
 
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPDecoderAudio
-    #pragma mark
+    //
+    // IRTPDecoderAudio
+    //
 
     interaction IRTPDecoderAudio : public IRTPDecoder
     {
@@ -87,18 +87,18 @@ namespace ortc
       static PromiseWithRTPDecoderAudioPtr create(
                                                   const Parameters &parameters,
                                                   IRTPDecoderDelegatePtr delegate
-                                                  );
+                                                  ) noexcept;
 
-      virtual ~IRTPDecoderAudio() {}
+      virtual ~IRTPDecoderAudio() noexcept {}
     };
 
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPDecoderVideo
-    #pragma mark
+    //
+    // IRTPDecoderVideo
+    //
 
     interaction IRTPDecoderVideo : public IRTPDecoder
     {
@@ -108,18 +108,18 @@ namespace ortc
       static PromiseWithRTPDecoderVideoPtr create(
                                                   const Parameters &parameters,
                                                   IRTPDecoderDelegatePtr delegate
-                                                  );
+                                                  ) noexcept;
     
-      virtual ~IRTPDecoderVideo() {}
+      virtual ~IRTPDecoderVideo() noexcept {}
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPDecoderDelegate
-    #pragma mark
+    //
+    // IRTPDecoderDelegate
+    //
 
     interaction IRTPDecoderDelegate
     {
@@ -131,11 +131,11 @@ namespace ortc
       virtual void notifyRTPDecoderAudioFrame(
                                               ImmutableMediaChannelTracePtr trace,
                                               AudioFramePtr frame
-                                              ) = 0;
+                                              ) noexcept = 0;
       virtual void notifyRTPDecoderVideoFrame(
                                               ImmutableMediaChannelTracePtr trace,
                                               VideoFramePtr frame
-                                              ) = 0;
+                                              ) noexcept = 0;
 
       virtual void onRTPDecoderStateChanged(
                                             IRTPDecoderPtr decoder,
@@ -147,41 +147,41 @@ namespace ortc
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPDecoderSubscription
-    #pragma mark
+    //
+    // IRTPDecoderSubscription
+    //
 
     interaction IRTPDecoderSubscription
     {
-      virtual PUID getID() const = 0;
+      virtual PUID getID() const noexcept = 0;
 
-      virtual void cancel() = 0;
+      virtual void cancel() noexcept = 0;
 
-      virtual void background() = 0;
+      virtual void background() noexcept = 0;
     };
 
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPDecoderForMediaEngine
-    #pragma mark
+    //
+    // IRTPDecoderForMediaEngine
+    //
 
     interaction IRTPDecoderForMediaEngine : public IRTPForMediaEngine
     {
       ZS_DECLARE_TYPEDEF_PTR(IRTPDecoderForMediaEngine, ForMediaEngine);
 
-      virtual ~IRTPDecoderForMediaEngine() {}
+      virtual ~IRTPDecoderForMediaEngine() noexcept {}
     };
 
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPDecoderAudioForMediaEngine
-    #pragma mark
+    //
+    // IRTPDecoderAudioForMediaEngine
+    //
 
     interaction IRTPDecoderAudioForMediaEngine : public IRTPDecoderForMediaEngine
     {
@@ -197,18 +197,18 @@ namespace ortc
                                       UseMediaEnginePtr mediaEngine,
                                       ParametersPtr parameters,
                                       IRTPDecoderDelegatePtr delegate
-                                      );
+                                      ) noexcept;
 
-      virtual ~IRTPDecoderAudioForMediaEngine() {}
+      virtual ~IRTPDecoderAudioForMediaEngine() noexcept {}
     };
 
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPDecoderVideoForMediaEngine
-    #pragma mark
+    //
+    // IRTPDecoderVideoForMediaEngine
+    //
 
     interaction IRTPDecoderVideoForMediaEngine : public IRTPDecoderForMediaEngine
     {
@@ -224,9 +224,9 @@ namespace ortc
                                       UseMediaEnginePtr mediaEngine,
                                       ParametersPtr parameters,
                                       IRTPDecoderDelegatePtr delegate
-                                      );
+                                      ) noexcept;
 
-      virtual ~IRTPDecoderVideoForMediaEngine() {}
+      virtual ~IRTPDecoderVideoForMediaEngine() noexcept {}
     };
 
     
@@ -234,9 +234,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPDecoderAsyncDelegate
-    #pragma mark
+    //
+    // IRTPDecoderAsyncDelegate
+    //
 
     interaction IRTPDecoderAysncDelegate
     {
@@ -260,9 +260,9 @@ ZS_DECLARE_PROXY_TYPEDEF(ortc::IMediaStreamTrackTypes::VideoFramePtr, VideoFrame
 ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::IRTPDecoderPtr, IRTPDecoderPtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IMediaStreamTrackTypes::ImmutableMediaChannelTracePtr, ImmutableMediaChannelTracePtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::IRTP::States, States)
-ZS_DECLARE_PROXY_METHOD_SYNC_2(notifyRTPDecoderAudioFrame, ImmutableMediaChannelTracePtr, AudioFramePtr)
-ZS_DECLARE_PROXY_METHOD_SYNC_2(notifyRTPDecoderVideoFrame, ImmutableMediaChannelTracePtr, VideoFramePtr)
-ZS_DECLARE_PROXY_METHOD_2(onRTPDecoderStateChanged, IRTPDecoderPtr, States)
+ZS_DECLARE_PROXY_METHOD_SYNC(notifyRTPDecoderAudioFrame, ImmutableMediaChannelTracePtr, AudioFramePtr)
+ZS_DECLARE_PROXY_METHOD_SYNC(notifyRTPDecoderVideoFrame, ImmutableMediaChannelTracePtr, VideoFramePtr)
+ZS_DECLARE_PROXY_METHOD(onRTPDecoderStateChanged, IRTPDecoderPtr, States)
 ZS_DECLARE_PROXY_END()
 
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_BEGIN(ortc::internal::IRTPDecoderDelegate, ortc::internal::IRTPDecoderSubscription)
@@ -271,9 +271,9 @@ ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IMediaStreamTrackTypes::VideoFrameP
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::internal::IRTPDecoderPtr, IRTPDecoderPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IMediaStreamTrackTypes::ImmutableMediaChannelTracePtr, ImmutableMediaChannelTracePtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::internal::IRTP::States, States)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_SYNC_2(notifyRTPDecoderAudioFrame, ImmutableMediaChannelTracePtr, AudioFramePtr)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_SYNC_2(notifyRTPDecoderVideoFrame, ImmutableMediaChannelTracePtr, VideoFramePtr)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onRTPDecoderStateChanged, IRTPDecoderPtr, States)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_SYNC(notifyRTPDecoderAudioFrame, ImmutableMediaChannelTracePtr, AudioFramePtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_SYNC(notifyRTPDecoderVideoFrame, ImmutableMediaChannelTracePtr, VideoFramePtr)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD(onRTPDecoderStateChanged, IRTPDecoderPtr, States)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()
 
 
@@ -281,6 +281,6 @@ ZS_DECLARE_PROXY_BEGIN(ortc::internal::IRTPDecoderAysncDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::RTPPacketPtr, RTPPacketPtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::RTCPPacketPtr, RTCPPacketPtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IMediaStreamTrackTypes::ImmutableMediaChannelTracePtr, ImmutableMediaChannelTracePtr)
-ZS_DECLARE_PROXY_METHOD_2(onRTPDecoderRTPPacket, ImmutableMediaChannelTracePtr, RTPPacketPtr)
-ZS_DECLARE_PROXY_METHOD_2(onRTPDecoderRTCPPacket, ImmutableMediaChannelTracePtr, RTCPPacketPtr)
+ZS_DECLARE_PROXY_METHOD(onRTPDecoderRTPPacket, ImmutableMediaChannelTracePtr, RTPPacketPtr)
+ZS_DECLARE_PROXY_METHOD(onRTPDecoderRTCPPacket, ImmutableMediaChannelTracePtr, RTCPPacketPtr)
 ZS_DECLARE_PROXY_END()

@@ -17,19 +17,19 @@ namespace wrapper {
 
           ConstrainBooleanWeakPtr thisWeak_;
 
-          ConstrainBoolean();
-          virtual ~ConstrainBoolean();
+          ConstrainBoolean() noexcept;
+          virtual ~ConstrainBoolean() noexcept;
 
           // methods ConstrainBoolean
-          virtual void wrapper_init_org_ortc_ConstrainBoolean() override;
-          virtual void wrapper_init_org_ortc_ConstrainBoolean(wrapper::org::ortc::ConstrainBooleanPtr source) override;
-          virtual void wrapper_init_org_ortc_ConstrainBoolean(wrapper::org::ortc::JsonPtr json) override;
-          virtual wrapper::org::ortc::JsonPtr toJson() override;
-          virtual String hash() override;
+          void wrapper_init_org_ortc_ConstrainBoolean() noexcept override;
+          void wrapper_init_org_ortc_ConstrainBoolean(wrapper::org::ortc::ConstrainBooleanPtr source) noexcept override;
+          void wrapper_init_org_ortc_ConstrainBoolean(wrapper::org::ortc::JsonPtr json) noexcept override;
+          wrapper::org::ortc::JsonPtr toJson() noexcept override;
+          String hash() noexcept override;
 
-          static ConstrainBooleanPtr toWrapper(NativeConstrainBooleanPtr native);
-          static ConstrainBooleanPtr toWrapper(const NativeConstrainBoolean &native);
-          static NativeConstrainBooleanPtr toNative(wrapper::org::ortc::ConstrainBooleanPtr wrapper);
+          static ConstrainBooleanPtr toWrapper(NativeConstrainBooleanPtr native) noexcept;
+          static ConstrainBooleanPtr toWrapper(const NativeConstrainBoolean &native) noexcept;
+          static NativeConstrainBooleanPtr toNative(wrapper::org::ortc::ConstrainBooleanPtr wrapper) noexcept;
         };
 
       } // ortc

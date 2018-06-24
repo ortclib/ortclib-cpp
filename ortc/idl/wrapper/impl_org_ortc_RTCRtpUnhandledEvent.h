@@ -23,22 +23,22 @@ namespace wrapper {
           String mid_;
           String rid_;
 
-          RTCRtpUnhandledEvent();
-          virtual ~RTCRtpUnhandledEvent();
-          virtual void wrapper_init_org_ortc_RTCRtpUnhandledEvent() override;
+          RTCRtpUnhandledEvent() noexcept;
+          virtual ~RTCRtpUnhandledEvent() noexcept;
+          void wrapper_init_org_ortc_RTCRtpUnhandledEvent() noexcept override;
 
           // properties RTCRtpUnhandledEvent
-          virtual uint32_t get_ssrc() override;
-          virtual uint8_t get_payloadType() override;
-          virtual String get_muxId() override;
-          virtual String get_rid() override;
+          uint32_t get_ssrc() noexcept override;
+          uint8_t get_payloadType() noexcept override;
+          String get_muxId() noexcept override;
+          String get_rid() noexcept override;
 
           static WrapperImplTypePtr toWrapper(
             SSRCType ssrc,
             PayloadType payloadType,
             const String &mid,
             const String &rid
-          );
+          ) noexcept;
         };
 
       } // ortc

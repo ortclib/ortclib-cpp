@@ -111,7 +111,7 @@ namespace ortc
           calculateInterfaces_Win32();
           calculateInterfaces_WinUWP();
 
-          UseSettings::setUInt("tester/total-host-ips", mTotalHostIPs);
+          UseSettings::setUInt("tester/total-host-ips", static_cast<ULONG>(mTotalHostIPs));
         }
 
         //---------------------------------------------------------------------
@@ -396,8 +396,8 @@ namespace ortc
 
               {
                 AutoRecursiveLock lock(mLock);
-                auto found = mFoundIPs.find(ip.string());
-                if (found == mFoundIPs.end()) {
+                auto found2 = mFoundIPs.find(ip.string());
+                if (found2 == mFoundIPs.end()) {
                   mFoundIPs[ip.string()] = true;
                 }
               }
@@ -424,7 +424,7 @@ namespace ortc
               ZS_LOG_WARNING(Detail, log("exception caught") + ZS_PARAM("error", String(ex->Message->Data())))
               return;
             }
-            HostNameType debugtype = hostname2->Type;
+            //HostNameType debugtype = hostname2->Type;
 
             ++mExpecting;
 
@@ -440,11 +440,11 @@ namespace ortc
                 // Check if any previous task threw an exception.
                 IVectorView<EndpointPair ^> ^response = previousTask.get();
 
-                bool isSRV = false;
+                //bool isSRV = false;
 
                 if (nullptr != response) {
                   for (size_t index = 0; index != response->Size; ++index) {
-                    EndpointPair ^pair = response->GetAt(index);
+                    EndpointPair ^pair = response->GetAt(static_cast<unsigned int>(index));
                     if (!pair) {
                       ZS_LOG_WARNING(Detail, slog(id, "endpoint pair is null"))
                       continue;
@@ -474,9 +474,9 @@ namespace ortc
                       service = String(pair->RemoteServiceName->Data());
                     }
 
-                    HostNameType type = pair->RemoteHostName->Type;
-                    bool isIPv4 = (HostNameType::Ipv4 == type);
-                    bool isIPv6 = (HostNameType::Ipv6 == type);
+                    //HostNameType type = pair->RemoteHostName->Type;
+                    //bool isIPv4 = (HostNameType::Ipv4 == type);
+                    //bool isIPv6 = (HostNameType::Ipv6 == type);
 
                     IPAddress ip;
 

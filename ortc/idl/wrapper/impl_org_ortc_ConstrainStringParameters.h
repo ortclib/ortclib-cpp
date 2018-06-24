@@ -17,19 +17,19 @@ namespace wrapper {
 
           ConstrainStringParametersWeakPtr thisWeak_;
 
-          ConstrainStringParameters();
-          virtual ~ConstrainStringParameters();
+          ConstrainStringParameters() noexcept;
+          virtual ~ConstrainStringParameters() noexcept;
 
           // methods ConstrainStringParameters
-          virtual void wrapper_init_org_ortc_ConstrainStringParameters() override;
-          virtual void wrapper_init_org_ortc_ConstrainStringParameters(wrapper::org::ortc::ConstrainStringParametersPtr source) override;
-          virtual void wrapper_init_org_ortc_ConstrainStringParameters(wrapper::org::ortc::JsonPtr json) override;
-          virtual wrapper::org::ortc::JsonPtr toJson() override;
-          virtual String hash() override;
+          void wrapper_init_org_ortc_ConstrainStringParameters() noexcept override;
+          void wrapper_init_org_ortc_ConstrainStringParameters(wrapper::org::ortc::ConstrainStringParametersPtr source) noexcept override;
+          void wrapper_init_org_ortc_ConstrainStringParameters(wrapper::org::ortc::JsonPtr json) noexcept override;
+          wrapper::org::ortc::JsonPtr toJson() noexcept override;
+          String hash() noexcept override;
 
-          static ConstrainStringParametersPtr toWrapper(NativeConstrainStringParametersPtr native);
-          static ConstrainStringParametersPtr toWrapper(const NativeConstrainStringParameters &native);
-          static NativeConstrainStringParametersPtr toNative(wrapper::org::ortc::ConstrainStringParametersPtr wrapper);
+          static ConstrainStringParametersPtr toWrapper(NativeConstrainStringParametersPtr native) noexcept;
+          static ConstrainStringParametersPtr toWrapper(const NativeConstrainStringParameters &native) noexcept;
+          static NativeConstrainStringParametersPtr toNative(wrapper::org::ortc::ConstrainStringParametersPtr wrapper) noexcept;
         };
 
       } // ortc

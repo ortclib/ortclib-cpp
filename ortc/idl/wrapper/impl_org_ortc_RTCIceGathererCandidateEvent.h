@@ -19,17 +19,17 @@ namespace wrapper {
           wrapper::org::ortc::RTCIceCandidatePtr candidate_;
           String url_;
 
-          RTCIceGathererCandidateEvent();
-          virtual ~RTCIceGathererCandidateEvent();
+          RTCIceGathererCandidateEvent() noexcept;
+          virtual ~RTCIceGathererCandidateEvent() noexcept;
 
           // properties RTCIceGathererCandidateEvent
-          virtual wrapper::org::ortc::RTCIceCandidatePtr get_candidate() override;
-          virtual String get_url() override;
+          wrapper::org::ortc::RTCIceCandidatePtr get_candidate() noexcept override;
+          String get_url() noexcept override;
 
           static WrapperImplTypePtr toWrapper(
             ::ortc::IICEGathererTypes::CandidatePtr candidate,
             const String &url = String()
-          );
+          ) noexcept;
         };
 
       } // ortc

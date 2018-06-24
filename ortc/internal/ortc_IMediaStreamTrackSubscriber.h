@@ -45,9 +45,9 @@ namespace ortc
 
     
     //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrackSubscriberForMediaStreamTrack
-    #pragma mark
+    //
+    // IMediaStreamTrackSubscriberForMediaStreamTrack
+    //
 
     interaction IMediaStreamTrackSubscriberForMediaStreamTrack
     {
@@ -58,24 +58,24 @@ namespace ortc
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::ImmutableMediaChannelTrace, ImmutableMediaChannelTrace);
       ZS_DECLARE_TYPEDEF_PTR(IMediaStreamTrackTypes::OverconstrainedError, OverconstrainedError);
 
-      virtual PUID getID() const = 0;
+      virtual PUID getID() const noexcept = 0;
 
-      virtual void shutdown() = 0;
+      virtual void shutdown() noexcept = 0;
 
-      virtual void notifyTrackMute(bool isMuted) = 0;
-      virtual void notifyTrackEnded() = 0;
-      virtual void notifyOverConstrained(OverconstrainedErrorPtr error) = 0;
+      virtual void notifyTrackMute(bool isMuted) noexcept = 0;
+      virtual void notifyTrackEnded() noexcept = 0;
+      virtual void notifyOverConstrained(OverconstrainedErrorPtr error) noexcept = 0;
 
       virtual void notifyChannel(
                                  UseMediaChannelBasePtr mediaChannel,
                                  ImmutableMediaChannelTracePtr trace
-                                 ) = 0;
+                                 ) noexcept = 0;
     };
 
     //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrackSubscriberMediaForMediaStreamTrack
-    #pragma mark
+    //
+    // IMediaStreamTrackSubscriberMediaForMediaStreamTrack
+    //
 
     interaction IMediaStreamTrackSubscriberMediaForMediaStreamTrack : public IMediaStreamTrackSubscriberForMediaStreamTrack
     {
@@ -85,15 +85,15 @@ namespace ortc
                                            IMediaStreamTrackMediaSubscriptionPtr &outSubscription,
                                            IMediaStreamTrackSyncMediaDelegatePtr syncDelegate,
                                            IMediaStreamTrackAsyncMediaDelegatePtr asyncDelegate
-                                           );
+                                           ) noexcept;
 
-      virtual ~IMediaStreamTrackSubscriberMediaForMediaStreamTrack();
+      virtual ~IMediaStreamTrackSubscriberMediaForMediaStreamTrack() noexcept;
     };
 
     //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrackSubscriberRTPForMediaStreamTrack
-    #pragma mark
+    //
+    // IMediaStreamTrackSubscriberRTPForMediaStreamTrack
+    //
 
     interaction IMediaStreamTrackSubscriberRTPForMediaStreamTrack : public IMediaStreamTrackSubscriberForMediaStreamTrack
     {
@@ -102,16 +102,16 @@ namespace ortc
       static ForMediaStreamTrackPtr create(
                                            IMediaStreamTrackMediaSubscriptionPtr &outSubscription,
                                            IMediaStreamTrackRTPDelegatePtr delegate
-                                           );
+                                           ) noexcept;
 
-      virtual ~IMediaStreamTrackSubscriberRTPForMediaStreamTrack();
+      virtual ~IMediaStreamTrackSubscriberRTPForMediaStreamTrack() noexcept;
     };
 
     
     //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrackSubscriberForMediaStreamTrackChannel
-    #pragma mark
+    //
+    // IMediaStreamTrackSubscriberForMediaStreamTrackChannel
+    //
 
     interaction IMediaStreamTrackSubscriberForMediaStreamTrackChannel
     {
@@ -120,9 +120,9 @@ namespace ortc
     };
 
     //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrackSubscriberMediaForMediaStreamTrackChannel
-    #pragma mark
+    //
+    // IMediaStreamTrackSubscriberMediaForMediaStreamTrackChannel
+    //
 
     interaction IMediaStreamTrackSubscriberMediaForMediaStreamTrackChannel
     {
@@ -130,9 +130,9 @@ namespace ortc
     };
 
     //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrackSubscriberRTPForMediaStreamTrackChannel
-    #pragma mark
+    //
+    // IMediaStreamTrackSubscriberRTPForMediaStreamTrackChannel
+    //
 
     interaction IMediaStreamTrackSubscriberRTPForMediaStreamTrackChannel
     {

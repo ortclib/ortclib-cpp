@@ -21,12 +21,12 @@ using ::std::set;
 using ::std::map;
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::MediaSource::MediaSource()
+wrapper::impl::org::ortc::MediaSource::MediaSource() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::MediaSourcePtr wrapper::org::ortc::MediaSource::wrapper_create()
+wrapper::org::ortc::MediaSourcePtr wrapper::org::ortc::MediaSource::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::MediaSource>();
   pThis->thisWeak_ = pThis;
@@ -34,31 +34,31 @@ wrapper::org::ortc::MediaSourcePtr wrapper::org::ortc::MediaSource::wrapper_crea
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::MediaSource::~MediaSource()
+wrapper::impl::org::ortc::MediaSource::~MediaSource() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::MediaSource::wrapper_init_org_ortc_MediaSource()
+void wrapper::impl::org::ortc::MediaSource::wrapper_init_org_ortc_MediaSource() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-AnyPtr wrapper::impl::org::ortc::MediaSource::get_source()
+AnyPtr wrapper::impl::org::ortc::MediaSource::get_source() noexcept
 {
   zsLib::AutoLock lock(lock_);
   return source_;
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::MediaSource::set_source(AnyPtr value)
+void wrapper::impl::org::ortc::MediaSource::set_source(AnyPtr value) noexcept
 {
   zsLib::AutoLock lock(lock_);
   source_ = value;
 }
 
 //------------------------------------------------------------------------------
-AnyPtr wrapper::impl::org::ortc::MediaSource::get_track()
+AnyPtr wrapper::impl::org::ortc::MediaSource::get_track() noexcept
 {
   auto holder = make_shared < AnyHolder< ::ortc::IMediaStreamTrackPtr > > ();
   holder->value_ = MediaStreamTrack::toNative(track_);
@@ -66,7 +66,7 @@ AnyPtr wrapper::impl::org::ortc::MediaSource::get_track()
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::MediaSourcePtr wrapper::impl::org::ortc::MediaSource::createWithTrack(MediaStreamTrackPtr track)
+wrapper::impl::org::ortc::MediaSourcePtr wrapper::impl::org::ortc::MediaSource::createWithTrack(MediaStreamTrackPtr track) noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::MediaSource>();
   pThis->thisWeak_ = pThis;

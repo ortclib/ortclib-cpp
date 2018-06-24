@@ -42,9 +42,9 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IMediaDevices
-  #pragma mark
+  //
+  // IMediaDevices
+  //
   
   interaction IMediaDevicesTypes : public IMediaStreamTrackTypes
   {
@@ -77,12 +77,12 @@ namespace ortc
       DeviceKind_Last = DeviceKind_VideoInput,
     };
 
-    static const char *toString(DeviceKinds kind);
-    static DeviceKinds toDeviceKind(const char *deviceKindStr);
-    static Kinds toKind(DeviceKinds kind);
+    static const char *toString(DeviceKinds kind) noexcept;
+    static DeviceKinds toDeviceKind(const char *deviceKindStr) noexcept(false); // throws InvalidParameters
+    static Kinds toKind(DeviceKinds kind) noexcept;
 
-    static bool isAudio(DeviceKinds kind);
-    static bool isVideo(DeviceKinds kind);
+    static bool isAudio(DeviceKinds kind) noexcept;
+    static bool isVideo(DeviceKinds kind) noexcept;
 
     struct SupportedConstraints
     {
@@ -100,20 +100,20 @@ namespace ortc
       bool mDeviceID {false};
       bool mGroupID {false};
 
-      SupportedConstraints() {}
-      SupportedConstraints(const SupportedConstraints &op2) {(*this) = op2;}
-      SupportedConstraints(ElementPtr elem);
+      SupportedConstraints() noexcept {}
+      SupportedConstraints(const SupportedConstraints &op2) noexcept {(*this) = op2;}
+      SupportedConstraints(ElementPtr elem) noexcept;
 
-      ElementPtr createElement(const char *objectName) const;
+      ElementPtr createElement(const char *objectName) const noexcept;
 
-      ElementPtr toDebug() const;
-      String hash() const;
+      ElementPtr toDebug() const noexcept;
+      String hash() const noexcept;
     };
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaDevices::Device
-    #pragma mark
+    //
+    // IMediaDevices::Device
+    //
 
     struct Device
     {
@@ -125,48 +125,48 @@ namespace ortc
 
       SupportedConstraints mSupportedConstraints;
 
-      Device() {}
-      Device(const Device &op2) {(*this) = op2;}
-      Device(ElementPtr elem);
+      Device() noexcept {}
+      Device(const Device &op2) noexcept {(*this) = op2;}
+      Device(ElementPtr elem) noexcept;
 
-      ElementPtr createElement(const char *objectName = "device") const;
+      ElementPtr createElement(const char *objectName = "device") const noexcept;
 
-      ElementPtr toDebug() const;
-      String hash() const;
+      ElementPtr toDebug() const noexcept;
+      String hash() const noexcept;
     };
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaDevices::MediaStreamTrackList
-    #pragma mark
+    //
+    // IMediaDevices::MediaStreamTrackList
+    //
 
     struct MediaStreamTrackList : public std::list<IMediaStreamTrackPtr>,
                                   public Any
     {
-      static MediaStreamTrackListPtr convert(AnyPtr any);
+      static MediaStreamTrackListPtr convert(AnyPtr any) noexcept;
 
-      ElementPtr toDebug() const;
-      String hash() const;
+      ElementPtr toDebug() const noexcept;
+      String hash() const noexcept;
     };
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaDevices::DeviceList
-    #pragma mark
+    //
+    // IMediaDevices::DeviceList
+    //
 
     struct DeviceList : public std::list<Device>,
                         public Any
     {
-      static DeviceListPtr convert(AnyPtr any);
+      static DeviceListPtr convert(AnyPtr any) noexcept;
 
-      DeviceList() {}
-      DeviceList(const DeviceList &op2) {(*this) = op2;}
-      DeviceList(ElementPtr elem);
+      DeviceList() noexcept {}
+      DeviceList(const DeviceList &op2) noexcept {(*this) = op2;}
+      DeviceList(ElementPtr elem) noexcept;
 
-      ElementPtr createElement(const char *objectName = "devices") const;
+      ElementPtr createElement(const char *objectName = "devices") const noexcept;
 
-      ElementPtr toDebug() const;
-      String hash() const;
+      ElementPtr toDebug() const noexcept;
+      String hash() const noexcept;
     };
   };
 
@@ -174,33 +174,33 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IMediaDevices
-  #pragma mark
+  //
+  // IMediaDevices
+  //
   
   interaction IMediaDevices : public IMediaDevicesTypes
   {
-    static ElementPtr toDebug();
+    static ElementPtr toDebug() noexcept;
 
-    static SupportedConstraintsPtr getSupportedConstraints();
+    static SupportedConstraintsPtr getSupportedConstraints() noexcept;
 
-    static PromiseWithDeviceListPtr enumerateDevices();
-    static PromiseWithSettingsListPtr enumerateDefaultModes(const char *deviceID);
+    static PromiseWithDeviceListPtr enumerateDevices() noexcept;
+    static PromiseWithSettingsListPtr enumerateDefaultModes(const char *deviceID) noexcept;
 
-    static PromiseWithMediaStreamTrackListPtr getUserMedia(const Constraints &constraints = Constraints());
+    static PromiseWithMediaStreamTrackListPtr getUserMedia(const Constraints &constraints = Constraints()) noexcept;
 
-    static IMediaDevicesSubscriptionPtr subscribe(IMediaDevicesDelegatePtr delegate);
+    static IMediaDevicesSubscriptionPtr subscribe(IMediaDevicesDelegatePtr delegate) noexcept;
 
-    virtual ~IMediaDevices() {} // make polymorphic
+    virtual ~IMediaDevices() noexcept {} // make polymorphic
   };
 
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IMediaDevicesDelegate
-  #pragma mark
+  //
+  // IMediaDevicesDelegate
+  //
 
   interaction IMediaDevicesDelegate
   {
@@ -211,25 +211,25 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IMediaDevicesSubscription
-  #pragma mark
+  //
+  // IMediaDevicesSubscription
+  //
 
   interaction IMediaDevicesSubscription
   {
-    virtual PUID getID() const = 0;
+    virtual PUID getID() const noexcept = 0;
 
-    virtual void cancel() = 0;
+    virtual void cancel() noexcept = 0;
 
-    virtual void background() = 0;
+    virtual void background() noexcept = 0;
   };
 }
 
 
 ZS_DECLARE_PROXY_BEGIN(ortc::IMediaDevicesDelegate)
-ZS_DECLARE_PROXY_METHOD_0(onMediaDevicesChanged)
+ZS_DECLARE_PROXY_METHOD(onMediaDevicesChanged)
 ZS_DECLARE_PROXY_END()
 
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_BEGIN(ortc::IMediaDevicesDelegate, ortc::IMediaDevicesSubscription)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_0(onMediaDevicesChanged)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD(onMediaDevicesChanged)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()

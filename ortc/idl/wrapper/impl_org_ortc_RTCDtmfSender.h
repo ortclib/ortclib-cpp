@@ -26,41 +26,41 @@ namespace wrapper {
           bool defaultSubscription_{ true };
           NativeTypeSubscriptionPtr subscription_;
 
-          RTCDtmfSender();
-          virtual ~RTCDtmfSender();
+          RTCDtmfSender() noexcept;
+          virtual ~RTCDtmfSender() noexcept;
 
           // methods RTCDtmfSender
-          virtual void wrapper_init_org_ortc_RTCDtmfSender(wrapper::org::ortc::RTCRtpSenderPtr sender) override;
-          virtual bool canInsertDtmf() override;
-          virtual void insertDtmf(String tones) override;
-          virtual void insertDtmf(
+          void wrapper_init_org_ortc_RTCDtmfSender(wrapper::org::ortc::RTCRtpSenderPtr sender) noexcept(false) override;
+          bool canInsertDtmf() noexcept override;
+          void insertDtmf(String tones) noexcept(false) override;
+          void insertDtmf(
             String tones,
             ::zsLib::Milliseconds duration
-            ) override;
-          virtual void insertDtmf(
+            ) noexcept(false) override;
+          void insertDtmf(
             String tones,
             ::zsLib::Milliseconds duration,
             ::zsLib::Milliseconds interToneGap
-            ) override;
+            ) noexcept(false) override;
 
           // properties RTCDtmfSender
-          virtual uint64_t get_objectId() override;
-          virtual wrapper::org::ortc::RTCRtpSenderPtr get_sender() override;
-          virtual String get_toneBuffer() override;
-          virtual ::zsLib::Milliseconds get_duration() override;
-          virtual ::zsLib::Milliseconds get_interToneGap() override;
+          uint64_t get_objectId() noexcept override;
+          wrapper::org::ortc::RTCRtpSenderPtr get_sender() noexcept override;
+          String get_toneBuffer() noexcept override;
+          ::zsLib::Milliseconds get_duration() noexcept override;
+          ::zsLib::Milliseconds get_interToneGap() noexcept override;
 
-          virtual void wrapper_onObserverCountChanged(size_t count) override;
+          virtual void wrapper_onObserverCountChanged(size_t count) noexcept override;
 
           virtual void onDTMFSenderToneChanged(
             IDTMFSenderPtr sender,
             String tone
-          ) override;
+          ) noexcept override;
 
-          static WrapperImplTypePtr toWrapper(NativeTypePtr track);
-          static NativeTypePtr toNative(WrapperTypePtr wrapper);
+          static WrapperImplTypePtr toWrapper(NativeTypePtr track) noexcept;
+          static NativeTypePtr toNative(WrapperTypePtr wrapper) noexcept;
 
-          void subscribe();
+          void subscribe() noexcept;
         };
 
       } // ortc

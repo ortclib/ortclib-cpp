@@ -31,12 +31,12 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::adapter::RTCIceCandidate::Wrapp
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::adapter::RTCIceCandidate::WrapperType, WrapperType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::adapter::RTCIceCandidate::RTCIceCandidate()
+wrapper::impl::org::ortc::adapter::RTCIceCandidate::RTCIceCandidate() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::adapter::RTCIceCandidatePtr wrapper::org::ortc::adapter::RTCIceCandidate::wrapper_create()
+wrapper::org::ortc::adapter::RTCIceCandidatePtr wrapper::org::ortc::adapter::RTCIceCandidate::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::adapter::RTCIceCandidate>();
   pThis->thisWeak_ = pThis;
@@ -44,17 +44,17 @@ wrapper::org::ortc::adapter::RTCIceCandidatePtr wrapper::org::ortc::adapter::RTC
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::adapter::RTCIceCandidate::~RTCIceCandidate()
+wrapper::impl::org::ortc::adapter::RTCIceCandidate::~RTCIceCandidate() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::adapter::RTCIceCandidate::wrapper_init_org_ortc_adapter_RTCIceCandidate()
+void wrapper::impl::org::ortc::adapter::RTCIceCandidate::wrapper_init_org_ortc_adapter_RTCIceCandidate() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::adapter::RTCIceCandidate::wrapper_init_org_ortc_adapter_RTCIceCandidate(wrapper::org::ortc::adapter::RTCIceCandidatePtr source)
+void wrapper::impl::org::ortc::adapter::RTCIceCandidate::wrapper_init_org_ortc_adapter_RTCIceCandidate(wrapper::org::ortc::adapter::RTCIceCandidatePtr source) noexcept
 {
   WrapperTypePtr pThis = thisWeak_.lock();
   WrapperTypePtr wrapper = toWrapper(toNative(source));
@@ -63,7 +63,7 @@ void wrapper::impl::org::ortc::adapter::RTCIceCandidate::wrapper_init_org_ortc_a
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::adapter::RTCIceCandidate::wrapper_init_org_ortc_adapter_RTCIceCandidate(wrapper::org::ortc::JsonPtr json)
+void wrapper::impl::org::ortc::adapter::RTCIceCandidate::wrapper_init_org_ortc_adapter_RTCIceCandidate(wrapper::org::ortc::JsonPtr json) noexcept(false)
 {
   if (!json) return;
 
@@ -77,7 +77,7 @@ void wrapper::impl::org::ortc::adapter::RTCIceCandidate::wrapper_init_org_ortc_a
 wrapper::org::ortc::adapter::RTCIceCandidatePtr wrapper::org::ortc::adapter::RTCIceCandidate::fromSdpStringWithMLineIndex(
   String sdp,
   uint64_t mlineIndex
-  )
+  ) noexcept(false)
 {
   auto native = NativeType::createFromSDP(sdp);
   native->mMLineIndex = SafeInt<decltype(native->mMLineIndex)::UseType>(mlineIndex);
@@ -89,7 +89,7 @@ wrapper::org::ortc::adapter::RTCIceCandidatePtr wrapper::org::ortc::adapter::RTC
 wrapper::org::ortc::adapter::RTCIceCandidatePtr wrapper::org::ortc::adapter::RTCIceCandidate::fromSdpStringWithMid(
   String sdp,
   String mid
-  )
+  ) noexcept(false)
 {
   auto native = NativeType::createFromSDP(sdp);
   native->mMid = mid;
@@ -98,44 +98,44 @@ wrapper::org::ortc::adapter::RTCIceCandidatePtr wrapper::org::ortc::adapter::RTC
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::ortc::adapter::RTCIceCandidate::toSdp()
+String wrapper::impl::org::ortc::adapter::RTCIceCandidate::toSdp() noexcept
 {
   return toNative(thisWeak_.lock())->toSDP();
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::JsonPtr wrapper::impl::org::ortc::adapter::RTCIceCandidate::toJson()
+wrapper::org::ortc::JsonPtr wrapper::impl::org::ortc::adapter::RTCIceCandidate::toJson() noexcept
 {
   return Json::toWrapper(toNative(thisWeak_.lock())->toJSON());
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::ortc::adapter::RTCIceCandidate::hash()
+String wrapper::impl::org::ortc::adapter::RTCIceCandidate::hash() noexcept
 {
   return toNative(thisWeak_.lock())->hash();
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::ortc::adapter::RTCIceCandidate::get_sdpMid()
+String wrapper::impl::org::ortc::adapter::RTCIceCandidate::get_sdpMid() noexcept
 {
   return mid;
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::adapter::RTCIceCandidate::set_sdpMid(String value)
+void wrapper::impl::org::ortc::adapter::RTCIceCandidate::set_sdpMid(String value) noexcept
 {
   mid = value;
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr native)
+WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr native) noexcept
 {
   if (!native) return WrapperImplTypePtr();
   return toWrapper(*native);
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(const NativeType &native)
+WrapperImplTypePtr WrapperImplType::toWrapper(const NativeType &native) noexcept
 {
   auto pThis = make_shared<WrapperImplType>();
   pThis->thisWeak_ = pThis;
@@ -159,7 +159,7 @@ WrapperImplTypePtr WrapperImplType::toWrapper(const NativeType &native)
 }
 
 //------------------------------------------------------------------------------
-NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper)
+NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper) noexcept
 {
   if (!wrapper) return NativeTypePtr();
 

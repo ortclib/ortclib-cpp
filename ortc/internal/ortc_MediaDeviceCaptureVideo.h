@@ -51,18 +51,18 @@ namespace ortc
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
     //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaDeviceCaptureVideo (helpers)
-    #pragma mark
+    //
+    // MediaDeviceCaptureVideo (helpers)
+    //
 
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaDeviceCaptureVideo
-    #pragma mark
+    //
+    // MediaDeviceCaptureVideo
+    //
     
     class MediaDeviceCaptureVideo : public Any,
                                     public Noop,
@@ -117,126 +117,126 @@ namespace ortc
                               IMessageQueuePtr queue,
                               UseMediaEnginePtr mediaEngine,
                               const String &deviceID
-                              );
+                              ) noexcept;
 
     protected:
-      MediaDeviceCaptureVideo(Noop, IMessageQueuePtr queue = IMessageQueuePtr()) :
+      MediaDeviceCaptureVideo(Noop, IMessageQueuePtr queue = IMessageQueuePtr()) noexcept :
         Noop(true),
         MessageQueueAssociator(queue),
         SharedRecursiveLock(SharedRecursiveLock::create())
       {}
 
-      void init();
+      void init() noexcept;
 
     public:
-      virtual ~MediaDeviceCaptureVideo();
+      virtual ~MediaDeviceCaptureVideo() noexcept;
 
       static MediaDeviceCaptureVideoPtr create(
                                                UseMediaEnginePtr mediaEngine,
                                                const String &deviceID
-                                               );
+                                               ) noexcept;
 
-      static MediaDeviceCaptureVideoPtr convert(ForMediaEnginePtr object);
+      static MediaDeviceCaptureVideoPtr convert(ForMediaEnginePtr object) noexcept;
 
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaDeviceCaptureVideo => (for Media)
-      #pragma mark
+      //
+      // MediaDeviceCaptureVideo => (for Media)
+      //
 
-      void notifyMediaStateChanged();
+      void notifyMediaStateChanged() noexcept;
       void notifyMediaFailure(
                               MediaPtr media,
                               WORD errorCode,
                               const char *reason
-                              );
+                              ) noexcept;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaDeviceCaptureVideo => (for MediaSubscribers)
-      #pragma mark
+      //
+      // MediaDeviceCaptureVideo => (for MediaSubscribers)
+      //
 
-      PUID getID() const { return id_; }
-      void notifySusbcriberGone();
+      PUID getID() const noexcept { return id_; }
+      void notifySusbcriberGone() noexcept;
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaDeviceCaptureVideo => IMediaDeviceForMediaEngine
-      #pragma mark
+      //
+      // MediaDeviceCaptureVideo => IMediaDeviceForMediaEngine
+      //
 
-      bool isDeviceIdle() override;
-      void shutdown() override;
+      bool isDeviceIdle() noexcept override;
+      void shutdown() noexcept override;
 
-      States getState() const override;
+      States getState() const noexcept override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaDeviceCaptureVideo => IMediaDeviceCaptureForMediaEngine
-      #pragma mark
+      //
+      // MediaDeviceCaptureVideo => IMediaDeviceCaptureForMediaEngine
+      //
 
       virtual void mediaDeviceCaptureSubscribe(
                                                MediaDeviceCapturePromisePtr promise,
                                                MediaDeviceObjectID repaceExistingDeviceObjectID,
                                                TrackConstraintsPtr constraints,
                                                IMediaDeviceCaptureDelegatePtr delegate
-                                               ) override;
+                                               ) noexcept override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaDeviceCaptureVideo => IMediaDeviceCaptureVideoForMediaEngine
-      #pragma mark
+      //
+      // MediaDeviceCaptureVideo => IMediaDeviceCaptureVideoForMediaEngine
+      //
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaDeviceCaptureVideo => IWakeDelegate
-      #pragma mark
+      //
+      // MediaDeviceCaptureVideo => IWakeDelegate
+      //
 
       void onWake() override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaDeviceCaptureVideo => IPromiseSettledDelegate
-      #pragma mark
+      //
+      // MediaDeviceCaptureVideo => IPromiseSettledDelegate
+      //
 
       void onPromiseSettled(PromisePtr promise) override;
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaDeviceCaptureVideo => (internal)
-      #pragma mark
+      //
+      // MediaDeviceCaptureVideo => (internal)
+      //
 
-      bool isPending() const { return IMediaDevice::State_Pending == currentState_; }
-      bool isReady() const { return IMediaDevice::State_Active == currentState_; }
-      bool isReinitializing() const { return IMediaDevice::State_Reinitializing == currentState_; }
-      bool isShuttingDown() const { return IMediaDevice::State_ShuttingDown == currentState_; }
-      bool isShutdown() const { return IMediaDevice::State_Shutdown == currentState_; }
+      bool isPending() const noexcept { return IMediaDevice::State_Pending == currentState_; }
+      bool isReady() const noexcept { return IMediaDevice::State_Active == currentState_; }
+      bool isReinitializing() const noexcept { return IMediaDevice::State_Reinitializing == currentState_; }
+      bool isShuttingDown() const noexcept { return IMediaDevice::State_ShuttingDown == currentState_; }
+      bool isShutdown() const noexcept { return IMediaDevice::State_Shutdown == currentState_; }
 
-      void cancel();
+      void cancel() noexcept;
 
-      bool stepShutdownPendingRequests();
-      bool stepShutdownSubscribers();
-      bool stepShutdownMedia();
+      bool stepShutdownPendingRequests() noexcept;
+      bool stepShutdownSubscribers() noexcept;
+      bool stepShutdownMedia() noexcept;
 
-      void step();
-      bool stepMediaReinitializationShutdown();
-      bool stepDiscoverModes();
-      bool stepFigureOutMode();
-      bool stepWaitForMediaDevice();
+      void step() noexcept;
+      bool stepMediaReinitializationShutdown() noexcept;
+      bool stepDiscoverModes() noexcept;
+      bool stepFigureOutMode() noexcept;
+      bool stepWaitForMediaDevice() noexcept;
 
-      void setState(States state);
-      void setError(PromisePtr promise);
-      void setError(WORD error, const char *inReason);
+      void setState(States state) noexcept;
+      void setError(PromisePtr promise) noexcept;
+      void setError(WORD error, const char *inReason) noexcept;
 
     public:
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaDeviceCaptureVideo::Media
-      #pragma mark
+      //
+      // MediaDeviceCaptureVideo::Media
+      //
 
       class Media : public MessageQueueAssociator,
                     public SharedRecursiveLock,
@@ -253,7 +253,7 @@ namespace ortc
           MediaState_Shutdown,
         };
 
-        static const char *toString(MediaStates state);
+        static const char *toString(MediaStates state) noexcept;
 
       public:
         ZS_DECLARE_TYPEDEF_PTR(MediaDeviceCaptureVideo, UseOuter);
@@ -265,63 +265,63 @@ namespace ortc
               UseOuterPtr outer,
               const String &deviceID,
               UseSettingsPtr settings
-              );
+              ) noexcept;
 
       protected:
-        void init();
+        void init() noexcept;
 
       public:
-        virtual ~Media();
+        virtual ~Media() noexcept;
 
         static MediaPtr create(
                                IMessageQueuePtr queue,
                                UseOuterPtr outer,
                                const String &deviceID,
                                UseSettingsPtr settings
-                               );
+                               ) noexcept;
 
       public:
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark MediaDeviceCaptureVideo::Media => (for MediaDeviceCaptureVideo)
-        #pragma mark
+        //
+        // MediaDeviceCaptureVideo::Media => (for MediaDeviceCaptureVideo)
+        //
 
-        MediaChannelID getID() const { return id_; }
+        MediaChannelID getID() const noexcept { return id_; }
 
-        void shutdown();
-        bool isReady() const;
-        bool isShuttingDown() const;
-        bool isShutdown() const;
+        void shutdown() noexcept;
+        bool isReady() const noexcept;
+        bool isShuttingDown() const noexcept;
+        bool isShutdown() const noexcept;
 
-        void notifySubscribersChanged(MediaSubscriberMapPtr subscribers);
+        void notifySubscribersChanged(MediaSubscriberMapPtr subscribers) noexcept;
 
         //-----------------------------------------------------------------------
-        #pragma mark
-        #pragma mark MediaDeviceCaptureVideo::Media => IWakeDelegate
-        #pragma mark
+        //
+        // MediaDeviceCaptureVideo::Media => IWakeDelegate
+        //
 
         void onWake() override;
 
       protected:
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark MediaDeviceCaptureVideo::Media => (internal)
-        #pragma mark
+        //
+        // MediaDeviceCaptureVideo::Media => (internal)
+        //
 
-        void cancel();
-        void step();
+        void cancel() noexcept;
+        void step() noexcept;
 
-        void setState(MediaStates state);
-        void setError(PromisePtr promise);
-        void setError(WORD errorCode, const char *inReason);
+        void setState(MediaStates state) noexcept;
+        void setError(PromisePtr promise) noexcept;
+        void setError(WORD errorCode, const char *inReason) noexcept;
 
-        void internalNotifySubscribersOfFrame(VideoFramePtr frame);
+        void internalNotifySubscribersOfFrame(VideoFramePtr frame) noexcept;
 
       public:
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark MediaDeviceCaptureVideo::Media => (data)
-        #pragma mark
+        //
+        // MediaDeviceCaptureVideo::Media => (data)
+        //
 
         AutoPUID id_;
         MediaWeakPtr thisWeak_;
@@ -343,9 +343,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaDeviceCaptureVideo::MediaSubscriber
-      #pragma mark
+      //
+      // MediaDeviceCaptureVideo::MediaSubscriber
+      //
 
       class MediaSubscriber : public MessageQueueAssociator,
                               public SharedRecursiveLock,
@@ -364,75 +364,75 @@ namespace ortc
                         UseOuterPtr outer,
                         TrackConstraintsPtr constraints,
                         IMediaDeviceCaptureDelegatePtr delegate
-                        );
+                        ) noexcept;
 
       protected:
-        void init();
+        void init() noexcept;
 
       public:
-        virtual ~MediaSubscriber();
+        virtual ~MediaSubscriber() noexcept;
 
         static MediaSubscriberPtr create(
                                          IMessageQueuePtr queue,
                                          UseOuterPtr outer,
                                          TrackConstraintsPtr constraints,
                                          IMediaDeviceCaptureDelegatePtr delegate
-                                         );
+                                         ) noexcept;
 
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark MediaDeviceCaptureVideo::MediaSubscriber => (for MediaDeviceCaptureVideo)
-        #pragma mark
+        //
+        // MediaDeviceCaptureVideo::MediaSubscriber => (for MediaDeviceCaptureVideo)
+        //
 
-        MediaDeviceObjectID getID() const override { return id_; }
-        void shutdown();
-        bool isShutdown() const;
-        void notifyStateChanged(States state);
-        TrackConstraintsPtr getConstraints() const { return constraints_; }
+        MediaDeviceObjectID getID() const noexcept override { return id_; }
+        void shutdown() noexcept;
+        bool isShutdown() const noexcept;
+        void notifyStateChanged(States state) noexcept;
+        TrackConstraintsPtr getConstraints() const  noexcept { return constraints_; }
 
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark MediaDeviceCaptureVideo::MediaSubscriber => (for Media)
-        #pragma mark
+        //
+        // MediaDeviceCaptureVideo::MediaSubscriber => (for Media)
+        //
 
         void notifyFrame(
                          ImmutableMediaChannelTracePtr trace,
                          VideoFramePtr frame
-                         );
+                         ) noexcept;
 
       protected:
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark MediaDeviceCaptureVideo::MediaSubscriber => IMediaDevice
-        #pragma mark
+        //
+        // MediaDeviceCaptureVideo::MediaSubscriber => IMediaDevice
+        //
 
         // (duplicate) virtual MediaDeviceObjectID getID() const override { return id_; }
-        void cancel() override;
+        void cancel() noexcept override;
 
-        States getState() const override;
-
-        //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark MediaDeviceCaptureVideo::MediaSubscriber => IMediaDeviceCapture
-        #pragma mark
+        States getState() const noexcept override;
 
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark MediaDeviceCaptureVideo::MediaSubscriber => IMediaDeviceCaptureVideo
-        #pragma mark
+        //
+        // MediaDeviceCaptureVideo::MediaSubscriber => IMediaDeviceCapture
+        //
 
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark MediaDeviceCaptureVideo::MediaSubscriber => (internal)
-        #pragma mark
+        //
+        // MediaDeviceCaptureVideo::MediaSubscriber => IMediaDeviceCaptureVideo
+        //
 
-        void setState(States state);
+        //---------------------------------------------------------------------
+        //
+        // MediaDeviceCaptureVideo::MediaSubscriber => (internal)
+        //
+
+        void setState(States state) noexcept;
 
       protected:
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark MediaDeviceCaptureVideo::MediaSubscriber => (data)
-        #pragma mark
+        //
+        // MediaDeviceCaptureVideo::MediaSubscriber => (data)
+        //
 
         AutoPUID id_;
         MediaSubscriberWeakPtr thisWeak_;
@@ -450,9 +450,9 @@ namespace ortc
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaDeviceCaptureVideo => (data)
-      #pragma mark
+      //
+      // MediaDeviceCaptureVideo => (data)
+      //
 
       AutoPUID id_;
       MediaDeviceCaptureVideoWeakPtr thisWeak_;
@@ -481,20 +481,20 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaDeviceCaptureVideoFactory
-    #pragma mark
+    //
+    // IMediaDeviceCaptureVideoFactory
+    //
 
     interaction IMediaDeviceCaptureVideoFactory
     {
-      static IMediaDeviceCaptureVideoFactory &singleton();
+      static IMediaDeviceCaptureVideoFactory &singleton() noexcept;
 
       ZS_DECLARE_TYPEDEF_PTR(IMediaEngineForMediaDeviceCaptureVideo, UseMediaEngine);
 
       virtual MediaDeviceCaptureVideoPtr create(
                                                 UseMediaEnginePtr mediaEngine,
                                                 const String &deviceID
-                                                );
+                                                ) noexcept;
     };
 
     class MediaDeviceCaptureVideoFactory : public IFactory<IMediaDeviceCaptureVideoFactory> {};

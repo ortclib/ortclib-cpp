@@ -17,30 +17,30 @@ namespace wrapper {
           RTCDtlsTransportStatsWeakPtr thisWeak_;
           NativeStatsPtr native_;
 
-          RTCDtlsTransportStats();
-          virtual ~RTCDtlsTransportStats();
+          RTCDtlsTransportStats() noexcept;
+          virtual ~RTCDtlsTransportStats() noexcept;
 
           // methods RTCStats
-          virtual wrapper::org::ortc::JsonPtr toJson() override;
-          virtual String hash() override;
+          wrapper::org::ortc::JsonPtr toJson() noexcept override;
+          String hash() noexcept override;
 
           // properties RTCStats
-          virtual ::zsLib::Time get_timestamp() override;
-          virtual Optional< wrapper::org::ortc::RTCStatsType > get_statsType() override;
-          virtual String get_statsTypeOther() override;
-          virtual String get_id() override;
+          ::zsLib::Time get_timestamp() noexcept override;
+          Optional< wrapper::org::ortc::RTCStatsType > get_statsType() noexcept override;
+          String get_statsTypeOther() noexcept override;
+          String get_id() noexcept override;
 
           // methods RTCDtlsTransportStats
-          virtual void wrapper_init_org_ortc_RTCDtlsTransportStats() override;
-          virtual void wrapper_init_org_ortc_RTCDtlsTransportStats(wrapper::org::ortc::RTCDtlsTransportStatsPtr source) override;
-          virtual void wrapper_init_org_ortc_RTCDtlsTransportStats(wrapper::org::ortc::JsonPtr json) override;
+          void wrapper_init_org_ortc_RTCDtlsTransportStats() noexcept override;
+          void wrapper_init_org_ortc_RTCDtlsTransportStats(wrapper::org::ortc::RTCDtlsTransportStatsPtr source) noexcept override;
+          void wrapper_init_org_ortc_RTCDtlsTransportStats(wrapper::org::ortc::JsonPtr json) noexcept override;
 
           // properties RTCDtlsTransportStats
-          virtual String get_localCertificateId() override;
-          virtual String get_remoteCertificateId() override;
+          String get_localCertificateId() noexcept override;
+          String get_remoteCertificateId() noexcept override;
 
-          static RTCDtlsTransportStatsPtr toWrapper(NativeStatsPtr native);
-          static NativeStatsPtr toNative(wrapper::org::ortc::RTCDtlsTransportStatsPtr wrapper);
+          static RTCDtlsTransportStatsPtr toWrapper(NativeStatsPtr native) noexcept;
+          static NativeStatsPtr toNative(wrapper::org::ortc::RTCDtlsTransportStatsPtr wrapper) noexcept;
         };
 
       } // ortc

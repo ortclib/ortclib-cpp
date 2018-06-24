@@ -27,12 +27,12 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::adapter::RTCSessionDescriptionC
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::adapter::RTCSessionDescriptionConnectionData::WrapperType, WrapperType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::adapter::RTCSessionDescriptionConnectionData::RTCSessionDescriptionConnectionData()
+wrapper::impl::org::ortc::adapter::RTCSessionDescriptionConnectionData::RTCSessionDescriptionConnectionData() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::adapter::RTCSessionDescriptionConnectionDataPtr wrapper::org::ortc::adapter::RTCSessionDescriptionConnectionData::wrapper_create()
+wrapper::org::ortc::adapter::RTCSessionDescriptionConnectionDataPtr wrapper::org::ortc::adapter::RTCSessionDescriptionConnectionData::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::adapter::RTCSessionDescriptionConnectionData>();
   pThis->thisWeak_ = pThis;
@@ -40,17 +40,17 @@ wrapper::org::ortc::adapter::RTCSessionDescriptionConnectionDataPtr wrapper::org
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::adapter::RTCSessionDescriptionConnectionData::~RTCSessionDescriptionConnectionData()
+wrapper::impl::org::ortc::adapter::RTCSessionDescriptionConnectionData::~RTCSessionDescriptionConnectionData() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::adapter::RTCSessionDescriptionConnectionData::wrapper_init_org_ortc_adapter_RTCSessionDescriptionConnectionData()
+void wrapper::impl::org::ortc::adapter::RTCSessionDescriptionConnectionData::wrapper_init_org_ortc_adapter_RTCSessionDescriptionConnectionData() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::adapter::RTCSessionDescriptionConnectionData::wrapper_init_org_ortc_adapter_RTCSessionDescriptionConnectionData(wrapper::org::ortc::adapter::RTCSessionDescriptionConnectionDataPtr source)
+void wrapper::impl::org::ortc::adapter::RTCSessionDescriptionConnectionData::wrapper_init_org_ortc_adapter_RTCSessionDescriptionConnectionData(wrapper::org::ortc::adapter::RTCSessionDescriptionConnectionDataPtr source) noexcept
 {
   WrapperTypePtr pThis = thisWeak_.lock();
   WrapperTypePtr wrapper = toWrapper(toNative(source));
@@ -59,7 +59,7 @@ void wrapper::impl::org::ortc::adapter::RTCSessionDescriptionConnectionData::wra
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::adapter::RTCSessionDescriptionConnectionData::wrapper_init_org_ortc_adapter_RTCSessionDescriptionConnectionData(wrapper::org::ortc::JsonPtr json)
+void wrapper::impl::org::ortc::adapter::RTCSessionDescriptionConnectionData::wrapper_init_org_ortc_adapter_RTCSessionDescriptionConnectionData(wrapper::org::ortc::JsonPtr json) noexcept
 {
   if (!json) return;
 
@@ -71,26 +71,26 @@ void wrapper::impl::org::ortc::adapter::RTCSessionDescriptionConnectionData::wra
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::JsonPtr wrapper::impl::org::ortc::adapter::RTCSessionDescriptionConnectionData::toJson()
+wrapper::org::ortc::JsonPtr wrapper::impl::org::ortc::adapter::RTCSessionDescriptionConnectionData::toJson() noexcept
 {
   return Json::toWrapper(toNative(thisWeak_.lock())->createElement());
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::ortc::adapter::RTCSessionDescriptionConnectionData::hash()
+String wrapper::impl::org::ortc::adapter::RTCSessionDescriptionConnectionData::hash() noexcept
 {
   return toNative(thisWeak_.lock())->hash();
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr native)
+WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr native) noexcept
 {
   if (!native) return WrapperImplTypePtr();
   return toWrapper(*native);
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(const NativeType &native)
+WrapperImplTypePtr WrapperImplType::toWrapper(const NativeType &native) noexcept
 {
   auto pThis = make_shared<WrapperImplType>();
   pThis->thisWeak_ = pThis;
@@ -100,7 +100,7 @@ WrapperImplTypePtr WrapperImplType::toWrapper(const NativeType &native)
 }
 
 //------------------------------------------------------------------------------
-NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper)
+NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper) noexcept
 {
   if (!wrapper) return NativeTypePtr();
 

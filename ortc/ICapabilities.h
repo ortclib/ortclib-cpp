@@ -41,117 +41,117 @@ namespace ortc
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
   //-------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark ICapabilities
-  #pragma mark
+  //
+  // ICapabilities
+  //
   
   interaction ICapabilities
   {
-    ZS_DECLARE_STRUCT_PTR(CapabilityBoolean)
-    ZS_DECLARE_STRUCT_PTR(CapabilityLong)
-    ZS_DECLARE_STRUCT_PTR(CapabilityDouble)
-    ZS_DECLARE_STRUCT_PTR(CapabilityString)
+    ZS_DECLARE_STRUCT_PTR(CapabilityBoolean);
+    ZS_DECLARE_STRUCT_PTR(CapabilityLong);
+    ZS_DECLARE_STRUCT_PTR(CapabilityDouble);
+    ZS_DECLARE_STRUCT_PTR(CapabilityString);
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ICapabilities::CapabilityBoolean
-    #pragma mark
+    //
+    // ICapabilities::CapabilityBoolean
+    //
 
     struct CapabilityBoolean : public std::set<bool> {
 
-      CapabilityBoolean() {}
-      CapabilityBoolean(const CapabilityBoolean &op2) {*this = op2;}
+      CapabilityBoolean() noexcept {}
+      CapabilityBoolean(const CapabilityBoolean &op2) noexcept {*this = op2;}
       CapabilityBoolean(
                         ElementPtr elem,
                         const char *objectName = "bool"
-                        );
+                        ) noexcept;
 
       // {"objectName": {"objectValueName": [true,false]}}
       ElementPtr createElement(
                                const char *objectName,
                                const char *objectValueName = "bool"
-                               ) const;
+                               ) const noexcept;
 
-      ElementPtr toDebug() const;
-      String hash() const;
+      ElementPtr toDebug() const noexcept;
+      String hash() const noexcept;
     };
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ICapabilities::CapabilityLong
-    #pragma mark
+    //
+    // ICapabilities::CapabilityLong
+    //
 
     struct CapabilityLong {
       LONG mMin {};
       LONG mMax {};
 
-      CapabilityLong() {}
-      CapabilityLong(LONG value) :          mMin(value), mMax(value) {}
+      CapabilityLong() noexcept {}
+      CapabilityLong(LONG value) noexcept :          mMin(value), mMax(value) {}
       CapabilityLong(
                      LONG min,
                      LONG max
-                     ) :                    mMin(min), mMax(max) {}
-      CapabilityLong(const CapabilityLong &op2) {*this = op2;}
+                     ) noexcept :                    mMin(min), mMax(max) {}
+      CapabilityLong(const CapabilityLong &op2) noexcept {*this = op2;}
 
       // {"objectName": {"min": 0, "max": 0}}
-      CapabilityLong(ElementPtr elem);
+      CapabilityLong(ElementPtr elem) noexcept;
 
       // {"objectName": {"min": 0, "max": 0}}
-      ElementPtr createElement(const char *objectName) const;
+      ElementPtr createElement(const char *objectName) const noexcept;
 
-      ElementPtr toDebug() const;
-      String hash() const;
+      ElementPtr toDebug() const noexcept;
+      String hash() const noexcept;
     };
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ICapabilities::CapabilityDouble
-    #pragma mark
+    //
+    // ICapabilities::CapabilityDouble
+    //
 
     struct CapabilityDouble {
       double mMin {};
       double mMax {};
 
-      CapabilityDouble() {}
-      CapabilityDouble(double value) :      mMin(value), mMax(value) {}
+      CapabilityDouble() noexcept {}
+      CapabilityDouble(double value) noexcept :      mMin(value), mMax(value) {}
       CapabilityDouble(
                        double min,
                        double max
-                       ) :                  mMin(min), mMax(max) {}
-      CapabilityDouble(const CapabilityDouble &op2) {*this = op2;}
+                       ) noexcept :                  mMin(min), mMax(max) {}
+      CapabilityDouble(const CapabilityDouble &op2) noexcept {*this = op2;}
 
       // {"objectName": {"min": 0.0, "max": 0.0}}
-      CapabilityDouble(ElementPtr elem);
+      CapabilityDouble(ElementPtr elem) noexcept;
 
       // {"objectName": {"min": 0, "max": 0}}
-      ElementPtr createElement(const char *objectName) const;
+      ElementPtr createElement(const char *objectName) const noexcept;
 
-      ElementPtr toDebug() const;
-      String hash() const;
+      ElementPtr toDebug() const noexcept;
+      String hash() const noexcept;
     };
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ICapabilities::CapabilityString
-    #pragma mark
+    //
+    // ICapabilities::CapabilityString
+    //
 
     struct CapabilityString : public std::set<String> {
 
-      CapabilityString() {}
-      CapabilityString(const CapabilityString &op2) {*this = op2;}
+      CapabilityString() noexcept {}
+      CapabilityString(const CapabilityString &op2) noexcept {*this = op2;}
       CapabilityString(
                        ElementPtr elem,
                        const char *objectName = "string"
-                       );
+                       ) noexcept;
 
       // {"objectName": {"objectValueName": ["a","b","c"]}}
       ElementPtr createElement(
                                const char *objectName,
                                const char *objectValueName = "string"
-                               ) const;
+                               ) const noexcept;
 
-      ElementPtr toDebug() const;
-      String hash() const;
+      ElementPtr toDebug() const noexcept;
+      String hash() const noexcept;
     };
   };
 }

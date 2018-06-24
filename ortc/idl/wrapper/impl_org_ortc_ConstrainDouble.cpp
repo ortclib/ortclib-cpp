@@ -22,12 +22,12 @@ using ::std::set;
 using ::std::map;
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::ConstrainDouble::ConstrainDouble()
+wrapper::impl::org::ortc::ConstrainDouble::ConstrainDouble() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::ConstrainDoublePtr wrapper::org::ortc::ConstrainDouble::wrapper_create()
+wrapper::org::ortc::ConstrainDoublePtr wrapper::org::ortc::ConstrainDouble::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::ConstrainDouble>();
   pThis->thisWeak_ = pThis;
@@ -35,17 +35,17 @@ wrapper::org::ortc::ConstrainDoublePtr wrapper::org::ortc::ConstrainDouble::wrap
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::ConstrainDouble::~ConstrainDouble()
+wrapper::impl::org::ortc::ConstrainDouble::~ConstrainDouble() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::ConstrainDouble::wrapper_init_org_ortc_ConstrainDouble()
+void wrapper::impl::org::ortc::ConstrainDouble::wrapper_init_org_ortc_ConstrainDouble() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::ConstrainDouble::wrapper_init_org_ortc_ConstrainDouble(wrapper::org::ortc::ConstrainDoublePtr source)
+void wrapper::impl::org::ortc::ConstrainDouble::wrapper_init_org_ortc_ConstrainDouble(wrapper::org::ortc::ConstrainDoublePtr source) noexcept
 {
   if (!source) return;
 
@@ -54,7 +54,7 @@ void wrapper::impl::org::ortc::ConstrainDouble::wrapper_init_org_ortc_ConstrainD
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::ConstrainDouble::wrapper_init_org_ortc_ConstrainDouble(wrapper::org::ortc::JsonPtr json)
+void wrapper::impl::org::ortc::ConstrainDouble::wrapper_init_org_ortc_ConstrainDouble(wrapper::org::ortc::JsonPtr json) noexcept
 {
   if (!json) return;
 
@@ -68,27 +68,27 @@ void wrapper::impl::org::ortc::ConstrainDouble::wrapper_init_org_ortc_ConstrainD
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::JsonPtr wrapper::impl::org::ortc::ConstrainDouble::toJson()
+wrapper::org::ortc::JsonPtr wrapper::impl::org::ortc::ConstrainDouble::toJson() noexcept
 {
   return Json::toWrapper(toNative(thisWeak_.lock())->createElement("ConstrainDouble"));
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::ortc::ConstrainDouble::hash()
+String wrapper::impl::org::ortc::ConstrainDouble::hash() noexcept
 {
   return toNative(thisWeak_.lock())->hash();
 }
 
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::ConstrainDoublePtr wrapper::impl::org::ortc::ConstrainDouble::toWrapper(NativeConstrainDoublePtr native)
+wrapper::impl::org::ortc::ConstrainDoublePtr wrapper::impl::org::ortc::ConstrainDouble::toWrapper(NativeConstrainDoublePtr native) noexcept
 {
   if (!native) return ConstrainDoublePtr();
   return toWrapper(*native);
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::ConstrainDoublePtr wrapper::impl::org::ortc::ConstrainDouble::toWrapper(const NativeConstrainDouble &native)
+wrapper::impl::org::ortc::ConstrainDoublePtr wrapper::impl::org::ortc::ConstrainDouble::toWrapper(const NativeConstrainDouble &native) noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::ConstrainDouble>();
   pThis->thisWeak_ = pThis;
@@ -103,7 +103,7 @@ wrapper::impl::org::ortc::ConstrainDoublePtr wrapper::impl::org::ortc::Constrain
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::ConstrainDouble::NativeConstrainDoublePtr wrapper::impl::org::ortc::ConstrainDouble::toNative(wrapper::org::ortc::ConstrainDoublePtr wrapper)
+wrapper::impl::org::ortc::ConstrainDouble::NativeConstrainDoublePtr wrapper::impl::org::ortc::ConstrainDouble::toNative(wrapper::org::ortc::ConstrainDoublePtr wrapper) noexcept
 {
   if (!wrapper) return NativeConstrainDoublePtr();
 

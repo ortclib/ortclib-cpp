@@ -60,10 +60,13 @@
 //
 //#include <cryptopp/sha.h>
 //
+//#include <ortc/internal/webrtc_pre_include.h>
 //#include <webrtc/base/event_tracer.h>
+//#include <ortc/internal/webrtc_post_include.h>
 
 
 #ifdef __GNUC__
+#error MOVE THIS TO PROJECT SETTING RATHER THAN PUTTING ON INDIVIDUAL FILES
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wunused-local-typedef"
 #endif //__GNUC__
@@ -81,18 +84,18 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark (helpers)
-    #pragma mark
+    //
+    // (helpers)
+    //
 
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaDeviceCapture
-    #pragma mark
+    //
+    // IMediaDeviceCapture
+    //
 
     //-------------------------------------------------------------------------
     IMediaDeviceCapture::MediaDeviceCapturePromisePtr IMediaDeviceCapture::create(
@@ -100,7 +103,7 @@ namespace ortc
                                                                                   Kinds kind,
                                                                                   const TrackConstraints &constraints,
                                                                                   IMediaDeviceCaptureDelegatePtr delegate
-                                                                                  )
+                                                                                  ) noexcept
     {
       ZS_DECLARE_TYPEDEF_PTR(IMediaEngineForMediaDeviceCapture, UseEngine);
       return UseEngine::createMediaDeviceCapture(repaceExistingDeviceObjectID, kind, constraints, delegate);

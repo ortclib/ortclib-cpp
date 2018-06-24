@@ -66,6 +66,7 @@
 #include <float.h>
 #include <math.h>
 
+#include <ortc/internal/webrtc_pre_include.h>
 #include <rtc_base/timeutils.h>
 #include <call/rtc_event_log.h>
 #include <voice_engine/include/voe_codec.h>
@@ -79,13 +80,9 @@
 #ifdef WINRT
 #include <third_party/h264_winrt/h264_winrt_factory.h>
 #endif
+#include <ortc/internal/webrtc_post_include.h>
 #endif //0
 
-#ifdef _DEBUG
-#define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))
-#else
-#define ASSERT(x)
-#endif //_DEBUG
 
 namespace ortc { ZS_DECLARE_SUBSYSTEM(org_ortc_media_engine) }
 
@@ -103,28 +100,28 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaDeviceCaptureAudioSettingsDefaults
-    #pragma mark
+    //
+    // MediaDeviceCaptureAudioSettingsDefaults
+    //
 
     class MediaDeviceCaptureAudioSettingsDefaults : public ISettingsApplyDefaultsDelegate
     {
     public:
       //-----------------------------------------------------------------------
-      ~MediaDeviceCaptureAudioSettingsDefaults()
+      ~MediaDeviceCaptureAudioSettingsDefaults() noexcept
       {
         ISettings::removeDefaults(*this);
       }
 
       //-----------------------------------------------------------------------
-      static MediaDeviceCaptureAudioSettingsDefaultsPtr singleton()
+      static MediaDeviceCaptureAudioSettingsDefaultsPtr singleton() noexcept
       {
         static SingletonLazySharedPtr<MediaDeviceCaptureAudioSettingsDefaults> singleton(create());
         return singleton.singleton();
       }
 
       //-----------------------------------------------------------------------
-      static MediaDeviceCaptureAudioSettingsDefaultsPtr create()
+      static MediaDeviceCaptureAudioSettingsDefaultsPtr create() noexcept
       {
         auto pThis(make_shared<MediaDeviceCaptureAudioSettingsDefaults>());
         ISettings::installDefaults(pThis);
@@ -132,14 +129,14 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      virtual void notifySettingsApplyDefaults() override
+      virtual void notifySettingsApplyDefaults() noexcept override
       {
       }
       
     };
 
     //-------------------------------------------------------------------------
-    void installMediaDeviceCaptureAudioSettingsDefaults()
+    void installMediaDeviceCaptureAudioSettingsDefaults() noexcept
     {
       MediaDeviceCaptureAudioSettingsDefaults::singleton();
     }
@@ -148,15 +145,15 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaDeviceCaptureAudioForMediaEngine
-    #pragma mark
+    //
+    // IMediaDeviceCaptureAudioForMediaEngine
+    //
 
     //-------------------------------------------------------------------------
     IMediaDeviceCaptureAudioForMediaEngine::ForMediaEnginePtr IMediaDeviceCaptureAudioForMediaEngine::create(
                                                                                                              UseMediaEnginePtr mediaEngine,
                                                                                                              const String &deviceID
-                                                                                                             )
+                                                                                                             ) noexcept
     {
       return internal::IMediaDeviceCaptureAudioFactory::singleton().create(mediaEngine, deviceID);
     }
@@ -165,9 +162,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaEngine
-    #pragma mark
+    //
+    // MediaEngine
+    //
     
     //-------------------------------------------------------------------------
     MediaDeviceCaptureAudio::MediaDeviceCaptureAudio(
@@ -175,7 +172,7 @@ namespace ortc
                                                      IMessageQueuePtr queue,
                                                      UseMediaEnginePtr mediaEngine,
                                                      const String &deviceID
-                                                     ) :
+                                                     ) noexcept :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
       mediaEngine_(mediaEngine),
@@ -186,14 +183,14 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void MediaDeviceCaptureAudio::init()
+    void MediaDeviceCaptureAudio::init() noexcept
     {
       AutoRecursiveLock lock(*this);
       IWakeDelegateProxy::create(thisWeak_.lock())->onWake();
     }
 
     //-------------------------------------------------------------------------
-    MediaDeviceCaptureAudio::~MediaDeviceCaptureAudio()
+    MediaDeviceCaptureAudio::~MediaDeviceCaptureAudio() noexcept
     {
       if (isNoop()) return;
 
@@ -207,7 +204,7 @@ namespace ortc
     MediaDeviceCaptureAudioPtr MediaDeviceCaptureAudio::create(
                                                                UseMediaEnginePtr mediaEngine,
                                                                const String &deviceID
-                                                               )
+                                                               ) noexcept
     {
       auto pThis(make_shared<MediaDeviceCaptureAudio>(make_private{}, IORTCForInternal::queueMediaDevices(), mediaEngine, deviceID));
       pThis->thisWeak_ = pThis;
@@ -216,7 +213,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    MediaDeviceCaptureAudioPtr MediaDeviceCaptureAudio::convert(ForMediaEnginePtr object)
+    MediaDeviceCaptureAudioPtr MediaDeviceCaptureAudio::convert(ForMediaEnginePtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(MediaDeviceCaptureAudio, object);
     }
@@ -226,12 +223,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaDeviceCaptureAudio => (for Media)
-    #pragma mark
+    //
+    // MediaDeviceCaptureAudio => (for Media)
+    //
 
     //-------------------------------------------------------------------------
-    void MediaDeviceCaptureAudio::notifyMediaStateChanged()
+    void MediaDeviceCaptureAudio::notifyMediaStateChanged() noexcept
     {
       ZS_EVENTING_1(x, i, Debug, MediaDeviceCaptureAudioNotifyMediaStateChanged, ol, MediaEngine, Event, puid, id, id_);
       IWakeDelegateProxy::create(thisWeak_.lock())->onWake();
@@ -242,7 +239,7 @@ namespace ortc
                                                      MediaPtr media,
                                                      WORD errorCode,
                                                      const char *inReason
-                                                     )
+                                                     ) noexcept
     {
       ZS_EVENTING_2(x, e, Debug, MediaDeviceCaptureAudioNotifyMediaFailure, ol, MediaEngine, Event, puid, id, id_, puid, mediaId, media->getID());
 
@@ -262,12 +259,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaDeviceCaptureAudio => (for MediaSubscribers)
-    #pragma mark
+    //
+    // MediaDeviceCaptureAudio => (for MediaSubscribers)
+    //
 
     //-------------------------------------------------------------------------
-    void MediaDeviceCaptureAudio::notifySusbcriberGone()
+    void MediaDeviceCaptureAudio::notifySusbcriberGone() noexcept
     {
       ZS_EVENTING_1(x, i, Debug, MediaDeviceCaptureAudioNotifySubscriberGone, ol, MediaEngine, Event, puid, id, id_);
 
@@ -279,12 +276,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaDeviceCaptureAudio => IMediaDeviceForMediaEngine
-    #pragma mark
+    //
+    // MediaDeviceCaptureAudio => IMediaDeviceForMediaEngine
+    //
 
     //-------------------------------------------------------------------------
-    bool MediaDeviceCaptureAudio::isDeviceIdle()
+    bool MediaDeviceCaptureAudio::isDeviceIdle() noexcept
     {
       AutoRecursiveLock lock(*this);
 
@@ -297,7 +294,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void MediaDeviceCaptureAudio::shutdown()
+    void MediaDeviceCaptureAudio::shutdown() noexcept
     {
       ZS_EVENTING_1(x, i, Detail, MediaDeviceCaptureAudioShutdown, ol, MediaEngine, Close, puid, id, id_);
 
@@ -306,7 +303,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    MediaDeviceCaptureAudio::States MediaDeviceCaptureAudio::getState() const
+    MediaDeviceCaptureAudio::States MediaDeviceCaptureAudio::getState() const noexcept
     {
       AutoRecursiveLock lock(*this);
       return currentState_;
@@ -316,9 +313,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaDeviceCaptureAudio => IMediaDeviceCaptureForMediaEngine
-    #pragma mark
+    //
+    // MediaDeviceCaptureAudio => IMediaDeviceCaptureForMediaEngine
+    //
 
     //-------------------------------------------------------------------------
     void MediaDeviceCaptureAudio::mediaDeviceCaptureSubscribe(
@@ -326,7 +323,7 @@ namespace ortc
                                                               MediaDeviceObjectID repaceExistingDeviceObjectID,
                                                               TrackConstraintsPtr constraints,
                                                               IMediaDeviceCaptureDelegatePtr delegate
-                                                              )
+                                                              ) noexcept
     {    
       auto pThis = thisWeak_.lock();
 
@@ -347,17 +344,17 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaDeviceCaptureAudio => IMediaDeviceCaptureAudioForMediaEngine
-    #pragma mark
+    //
+    // MediaDeviceCaptureAudio => IMediaDeviceCaptureAudioForMediaEngine
+    //
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaDeviceCaptureAudio => IWakeDelegate
-    #pragma mark
+    //
+    // MediaDeviceCaptureAudio => IWakeDelegate
+    //
 
     //-------------------------------------------------------------------------
     void MediaDeviceCaptureAudio::onWake()
@@ -372,9 +369,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaDeviceCaptureAudio => IPromiseSettledDelegate
-    #pragma mark
+    //
+    // MediaDeviceCaptureAudio => IPromiseSettledDelegate
+    //
 
     //-------------------------------------------------------------------------
     void MediaDeviceCaptureAudio::onPromiseSettled(PromisePtr promise)
@@ -400,12 +397,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaDeviceCaptureAudio => (internal)
-    #pragma mark
+    //
+    // MediaDeviceCaptureAudio => (internal)
+    //
 
     //-------------------------------------------------------------------------
-    void MediaDeviceCaptureAudio::cancel()
+    void MediaDeviceCaptureAudio::cancel() noexcept
     {
       //.......................................................................
       // try to gracefully shutdown
@@ -450,7 +447,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool MediaDeviceCaptureAudio::stepShutdownPendingRequests()
+    bool MediaDeviceCaptureAudio::stepShutdownPendingRequests() noexcept
     {
       ZS_EVENTING_2(x, i, Debug, MediaDeviceCaptureAudioShutdownStepMessage, ol, MediaEngine, Step, puid, id, id_, string, message, "pending requests");
 
@@ -469,7 +466,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool MediaDeviceCaptureAudio::stepShutdownSubscribers()
+    bool MediaDeviceCaptureAudio::stepShutdownSubscribers() noexcept
     {
       if (subscribers_->size() < 1) return true;
 
@@ -496,7 +493,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool MediaDeviceCaptureAudio::stepShutdownMedia()
+    bool MediaDeviceCaptureAudio::stepShutdownMedia() noexcept
     {
       ZS_EVENTING_2(x, i, Debug, MediaDeviceCaptureAudioShutdownStepMessage, ol, MediaEngine, Step, puid, id, id_, string, message, "media");
 
@@ -511,7 +508,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void MediaDeviceCaptureAudio::step()
+    void MediaDeviceCaptureAudio::step() noexcept
     {
       ZS_EVENTING_1(x, i, Trace, MediaDeviceCaptureAudioStep, ol, MediaEngine, Step, puid, id, id_);
 
@@ -551,7 +548,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool MediaDeviceCaptureAudio::stepMediaReinitializationShutdown()
+    bool MediaDeviceCaptureAudio::stepMediaReinitializationShutdown() noexcept
     {
       if (!media_) goto no_media_to_shutdown;
 
@@ -574,7 +571,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool MediaDeviceCaptureAudio::stepDiscoverModes()
+    bool MediaDeviceCaptureAudio::stepDiscoverModes() noexcept
     {
       if (!deviceModesPromise_) {
         deviceModesPromise_ = IMediaDevices::enumerateDefaultModes(deviceID_);
@@ -621,7 +618,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool MediaDeviceCaptureAudio::stepFigureOutMode()
+    bool MediaDeviceCaptureAudio::stepFigureOutMode() noexcept
     {
       {
         if (recheckMode_) goto mode_needed;
@@ -716,7 +713,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool MediaDeviceCaptureAudio::stepWaitForMediaDevice()
+    bool MediaDeviceCaptureAudio::stepWaitForMediaDevice() noexcept
     {
       if (media_->isShutdown()) {
         media_.reset();
@@ -741,7 +738,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void MediaDeviceCaptureAudio::setState(States state)
+    void MediaDeviceCaptureAudio::setState(States state) noexcept
     {
       if (state == currentState_) return;
 
@@ -761,7 +758,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void MediaDeviceCaptureAudio::setError(PromisePtr promise)
+    void MediaDeviceCaptureAudio::setError(PromisePtr promise) noexcept
     {
       if (!promise) return;
 
@@ -772,7 +769,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void MediaDeviceCaptureAudio::setError(WORD errorCode, const char *inReason)
+    void MediaDeviceCaptureAudio::setError(WORD errorCode, const char *inReason) noexcept
     {
       String reason(inReason);
       if (reason.isEmpty()) {
@@ -794,12 +791,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaDeviceCaptureAudio::Media
-    #pragma mark
+    //
+    // MediaDeviceCaptureAudio::Media
+    //
 
     //-------------------------------------------------------------------------
-    const char *MediaDeviceCaptureAudio::Media::toString(MediaStates state)
+    const char *MediaDeviceCaptureAudio::Media::toString(MediaStates state) noexcept
     {
       switch (state)
       {
@@ -818,7 +815,7 @@ namespace ortc
                                           UseOuterPtr outer,
                                           const String &deviceID,
                                           UseSettingsPtr settings
-                                          ) :
+                                          ) noexcept :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
       outer_(outer),
@@ -833,13 +830,13 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void MediaDeviceCaptureAudio::Media::init()
+    void MediaDeviceCaptureAudio::Media::init() noexcept
     {
       IWakeDelegateProxy::create(thisWeak_.lock())->onWake();
     }
 
     //-------------------------------------------------------------------------
-    MediaDeviceCaptureAudio::Media::~Media()
+    MediaDeviceCaptureAudio::Media::~Media() noexcept
     {
       ZS_EVENTING_2(x, i, Detail, MediaDeviceCaptureAudioMediaDestroy, ol, MediaEngine, Stop, puid, id, id_, string, deviceID, deviceID_);
 
@@ -853,7 +850,7 @@ namespace ortc
                                                                              UseOuterPtr outer,
                                                                              const String &deviceID,
                                                                              UseSettingsPtr settings
-                                                                             )
+                                                                             ) noexcept
     {
       auto pThis(make_shared<Media>(make_private{}, queue, outer, deviceID, settings));
       pThis->thisWeak_ = pThis;
@@ -865,12 +862,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaDeviceCaptureAudio::Media => (for MediaDeviceCaptureAudio)
-    #pragma mark
+    //
+    // MediaDeviceCaptureAudio::Media => (for MediaDeviceCaptureAudio)
+    //
 
     //-------------------------------------------------------------------------
-    void MediaDeviceCaptureAudio::Media::shutdown()
+    void MediaDeviceCaptureAudio::Media::shutdown() noexcept
     {
       ZS_EVENTING_1(x, i, Detail, MediaDeviceCaptureAudioMediaShutdown, ol, MediaEngine, Close, puid, id, id_);
 
@@ -882,37 +879,37 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool MediaDeviceCaptureAudio::Media::isReady() const
+    bool MediaDeviceCaptureAudio::Media::isReady() const noexcept
     {
       AutoRecursiveLock lock(*this);
       return MediaState_Ready == currentState_;
     }
 
     //-------------------------------------------------------------------------
-    bool MediaDeviceCaptureAudio::Media::isShuttingDown() const
+    bool MediaDeviceCaptureAudio::Media::isShuttingDown() const noexcept
     {
       AutoRecursiveLock lock(*this);
       return MediaState_ShuttingDown == currentState_;
     }
 
     //-------------------------------------------------------------------------
-    bool MediaDeviceCaptureAudio::Media::isShutdown() const
+    bool MediaDeviceCaptureAudio::Media::isShutdown() const noexcept
     {
       AutoRecursiveLock lock(*this);
       return MediaState_Shutdown == currentState_;
     }
 
     //-------------------------------------------------------------------------
-    void MediaDeviceCaptureAudio::Media::notifySubscribersChanged(MediaSubscriberMapPtr subscribers)
+    void MediaDeviceCaptureAudio::Media::notifySubscribersChanged(MediaSubscriberMapPtr subscribers) noexcept
     {
       AutoRecursiveLock lock(*this);
       subscribers_ = subscribers;
     }
 
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaDeviceCaptureAudio::Media => IWakeDelegate
-    #pragma mark
+    //
+    // MediaDeviceCaptureAudio::Media => IWakeDelegate
+    //
 
     //-------------------------------------------------------------------------
     void MediaDeviceCaptureAudio::Media::onWake()
@@ -927,12 +924,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaDeviceCaptureAudio::Media => (internal)
-    #pragma mark
+    //
+    // MediaDeviceCaptureAudio::Media => (internal)
+    //
 
     //-------------------------------------------------------------------------
-    void MediaDeviceCaptureAudio::Media::cancel()
+    void MediaDeviceCaptureAudio::Media::cancel() noexcept
     {
       ZS_EVENTING_1(x, i, Detail, MediaDeviceCaptureAudioMediaCancel, ol, MediaEngine, Cancel, puid, id, id_);
 
@@ -943,14 +940,12 @@ namespace ortc
       if (!gracefulShutdownReference_) gracefulShutdownReference_ = thisWeak_.lock();
 
       if (gracefulShutdownReference_) {
-#define TODO 1
-#define TODO 2
+#pragma ZS_BUILD_NOTE("NEEDED?","Add graceful shutdown if needed")
       }
 
       setState(MediaState_Shutdown);
 
-#define TODO 1
-#define TODO 2
+#pragma ZS_BUILD_NOTE("NEEDED?","Hard shutdown of media capture audio")
 
       auto outer = outer_.lock();
       if (outer) {
@@ -962,12 +957,11 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void MediaDeviceCaptureAudio::Media::step()
+    void MediaDeviceCaptureAudio::Media::step() noexcept
     {
       ZS_EVENTING_1(x, i, Trace, MediaDeviceCaptureAudioMediaStep, ol, MediaEngine, Step, puid, id, id_);
 
-#define TODO 1
-#define TODO 2
+#pragma ZS_BUILD_NOTE("TODO","Implement media capture step")
       if ((isShuttingDown()) ||
           (isShutdown())) {
         ZS_EVENTING_1(x, i, Trace, MediaDeviceCaptureAudioMediaStepForwardCancel, ol, MediaEngine, Step, puid, id, id_);
@@ -986,7 +980,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void MediaDeviceCaptureAudio::Media::setState(MediaStates state)
+    void MediaDeviceCaptureAudio::Media::setState(MediaStates state) noexcept
     {
       if (state == currentState_) return;
 
@@ -1003,7 +997,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void MediaDeviceCaptureAudio::Media::setError(PromisePtr promise)
+    void MediaDeviceCaptureAudio::Media::setError(PromisePtr promise) noexcept
     {
       if (!promise) return;
 
@@ -1014,7 +1008,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void MediaDeviceCaptureAudio::Media::setError(WORD errorCode, const char *inReason)
+    void MediaDeviceCaptureAudio::Media::setError(WORD errorCode, const char *inReason) noexcept
     {
       String reason(inReason);
       if (reason.isEmpty()) {
@@ -1041,7 +1035,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void MediaDeviceCaptureAudio::Media::internalNotifySubscribersOfFrame(AudioFramePtr frame)
+    void MediaDeviceCaptureAudio::Media::internalNotifySubscribersOfFrame(AudioFramePtr frame) noexcept
     {
       MediaSubscriberMapPtr subscribers;
 
@@ -1065,9 +1059,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaDeviceCaptureAudio::MediaSubscriber
-    #pragma mark
+    //
+    // MediaDeviceCaptureAudio::MediaSubscriber
+    //
 
     //-------------------------------------------------------------------------
     MediaDeviceCaptureAudio::MediaSubscriber::MediaSubscriber(
@@ -1076,7 +1070,7 @@ namespace ortc
                                                               UseOuterPtr outer,
                                                               TrackConstraintsPtr constraints,
                                                               IMediaDeviceCaptureDelegatePtr delegate
-                                                              ) :
+                                                              ) noexcept :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
       outer_(outer),
@@ -1089,12 +1083,12 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void MediaDeviceCaptureAudio::MediaSubscriber::init()
+    void MediaDeviceCaptureAudio::MediaSubscriber::init() noexcept
     {
     }
 
     //-------------------------------------------------------------------------
-    MediaDeviceCaptureAudio::MediaSubscriber::~MediaSubscriber()
+    MediaDeviceCaptureAudio::MediaSubscriber::~MediaSubscriber() noexcept
     {
       ZS_EVENTING_1(x, i, Detail, MediaDeviceCaptureAudioMediaSubscriberDestroy, ol, MediaEngine, Stop, puid, id, id_);
 
@@ -1107,7 +1101,7 @@ namespace ortc
                                                                                                  UseOuterPtr outer,
                                                                                                  TrackConstraintsPtr constraints,
                                                                                                  IMediaDeviceCaptureDelegatePtr delegate
-                                                                                                 )
+                                                                                                 ) noexcept
     {
       auto pThis(make_shared<MediaSubscriber>(make_private{}, queue, outer, constraints, delegate));
       pThis->thisWeak_ = pThis;
@@ -1119,12 +1113,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaDeviceCaptureAudio::MediaSubscriber => (for MediaDeviceCaptureAudio)
-    #pragma mark
+    //
+    // MediaDeviceCaptureAudio::MediaSubscriber => (for MediaDeviceCaptureAudio)
+    //
 
     //-------------------------------------------------------------------------
-    void MediaDeviceCaptureAudio::MediaSubscriber::shutdown()
+    void MediaDeviceCaptureAudio::MediaSubscriber::shutdown() noexcept
     {
       ZS_EVENTING_1(x, i, Detail, MediaDeviceCaptureAudioMediaSubscriberShutdown, ol, MediaEngine, Close, puid, id, id_);
 
@@ -1134,13 +1128,13 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool MediaDeviceCaptureAudio::MediaSubscriber::isShutdown() const
+    bool MediaDeviceCaptureAudio::MediaSubscriber::isShutdown() const noexcept
     {
       return IMediaDevice::State_Shutdown == getState();
     }
 
     //-------------------------------------------------------------------------
-    void MediaDeviceCaptureAudio::MediaSubscriber::notifyStateChanged(States state)
+    void MediaDeviceCaptureAudio::MediaSubscriber::notifyStateChanged(States state) noexcept
     {
       auto pThis = thisWeak_.lock();
 
@@ -1154,15 +1148,15 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaDeviceCaptureAudio::MediaSubscriber => (for Media)
-    #pragma mark
+    //
+    // MediaDeviceCaptureAudio::MediaSubscriber => (for Media)
+    //
 
     //-------------------------------------------------------------------------
     void MediaDeviceCaptureAudio::MediaSubscriber::notifyFrame(
                                                                ImmutableMediaChannelTracePtr trace,
                                                                AudioFramePtr frame
-                                                               )
+                                                               ) noexcept
     {
       IMediaDeviceCaptureDelegatePtr delegate;
 
@@ -1179,12 +1173,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaDeviceCaptureAudio::MediaSubscriber => IMediaDevice
-    #pragma mark
+    //
+    // MediaDeviceCaptureAudio::MediaSubscriber => IMediaDevice
+    //
 
     //-------------------------------------------------------------------------
-    void MediaDeviceCaptureAudio::MediaSubscriber::cancel()
+    void MediaDeviceCaptureAudio::MediaSubscriber::cancel() noexcept
     {
       AutoRecursiveLock lock(*this);
 
@@ -1203,33 +1197,33 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    IMediaDevice::States MediaDeviceCaptureAudio::MediaSubscriber::getState() const
+    IMediaDevice::States MediaDeviceCaptureAudio::MediaSubscriber::getState() const noexcept
     {
       AutoRecursiveLock lock(*this);
       return lastReportedState_;
     }
 
     //---------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaDeviceCaptureAudio::MediaSubscriber => IMediaDeviceCapture
-    #pragma mark
+    //
+    // MediaDeviceCaptureAudio::MediaSubscriber => IMediaDeviceCapture
+    //
 
     //---------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaDeviceCaptureAudio::MediaSubscriber => IMediaDeviceCaptureAudio
-    #pragma mark
+    //
+    // MediaDeviceCaptureAudio::MediaSubscriber => IMediaDeviceCaptureAudio
+    //
 
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaDeviceCaptureAudio::MediaSubscriber => (internal)
-    #pragma mark
+    //
+    // MediaDeviceCaptureAudio::MediaSubscriber => (internal)
+    //
 
     //-------------------------------------------------------------------------
-    void MediaDeviceCaptureAudio::MediaSubscriber::setState(States state)
+    void MediaDeviceCaptureAudio::MediaSubscriber::setState(States state) noexcept
     {
       if (state == lastReportedState_) return;
       if (IMediaDevice::State_Shutdown == lastReportedState_) return;
@@ -1254,12 +1248,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaDeviceCaptureAudioFactory
-    #pragma mark
+    //
+    // IMediaDeviceCaptureAudioFactory
+    //
 
     //-------------------------------------------------------------------------
-    IMediaDeviceCaptureAudioFactory &IMediaDeviceCaptureAudioFactory::singleton()
+    IMediaDeviceCaptureAudioFactory &IMediaDeviceCaptureAudioFactory::singleton() noexcept
     {
       return MediaDeviceCaptureAudioFactory::singleton();
     }
@@ -1268,7 +1262,7 @@ namespace ortc
     MediaDeviceCaptureAudioPtr IMediaDeviceCaptureAudioFactory::create(
                                                                        UseMediaEnginePtr mediaEngine,
                                                                        const String &deviceID
-                                                                       )
+                                                                       ) noexcept
     {
       if (this) {}
       return internal::MediaDeviceCaptureAudio::create(mediaEngine, deviceID);

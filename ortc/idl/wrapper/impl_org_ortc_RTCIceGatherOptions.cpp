@@ -23,12 +23,12 @@ using ::std::set;
 using ::std::map;
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCIceGatherOptions::RTCIceGatherOptions()
+wrapper::impl::org::ortc::RTCIceGatherOptions::RTCIceGatherOptions() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCIceGatherOptionsPtr wrapper::org::ortc::RTCIceGatherOptions::wrapper_create()
+wrapper::org::ortc::RTCIceGatherOptionsPtr wrapper::org::ortc::RTCIceGatherOptions::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::RTCIceGatherOptions>();
   pThis->thisWeak_ = pThis;
@@ -36,17 +36,17 @@ wrapper::org::ortc::RTCIceGatherOptionsPtr wrapper::org::ortc::RTCIceGatherOptio
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCIceGatherOptions::~RTCIceGatherOptions()
+wrapper::impl::org::ortc::RTCIceGatherOptions::~RTCIceGatherOptions() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCIceGatherOptions::wrapper_init_org_ortc_RTCIceGatherOptions()
+void wrapper::impl::org::ortc::RTCIceGatherOptions::wrapper_init_org_ortc_RTCIceGatherOptions() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCIceGatherOptions::wrapper_init_org_ortc_RTCIceGatherOptions(wrapper::org::ortc::RTCIceGatherOptionsPtr source)
+void wrapper::impl::org::ortc::RTCIceGatherOptions::wrapper_init_org_ortc_RTCIceGatherOptions(wrapper::org::ortc::RTCIceGatherOptionsPtr source) noexcept
 {
   WrapperTypePtr pThis = thisWeak_.lock();
   WrapperTypePtr wrapper = toWrapper(toNative(source));
@@ -55,7 +55,7 @@ void wrapper::impl::org::ortc::RTCIceGatherOptions::wrapper_init_org_ortc_RTCIce
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCIceGatherOptions::wrapper_init_org_ortc_RTCIceGatherOptions(wrapper::org::ortc::JsonPtr json)
+void wrapper::impl::org::ortc::RTCIceGatherOptions::wrapper_init_org_ortc_RTCIceGatherOptions(wrapper::org::ortc::JsonPtr json) noexcept
 {
   if (!json) return;
 
@@ -67,26 +67,26 @@ void wrapper::impl::org::ortc::RTCIceGatherOptions::wrapper_init_org_ortc_RTCIce
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::JsonPtr wrapper::impl::org::ortc::RTCIceGatherOptions::toJson()
+wrapper::org::ortc::JsonPtr wrapper::impl::org::ortc::RTCIceGatherOptions::toJson() noexcept
 {
   return Json::toWrapper(toNative(thisWeak_.lock())->createElement("RTCIceGatherOptions"));
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::ortc::RTCIceGatherOptions::hash()
+String wrapper::impl::org::ortc::RTCIceGatherOptions::hash() noexcept
 {
   return toNative(thisWeak_.lock())->hash();
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCIceGatherOptions::WrapperImplTypePtr wrapper::impl::org::ortc::RTCIceGatherOptions::toWrapper(NativeTypePtr native)
+wrapper::impl::org::ortc::RTCIceGatherOptions::WrapperImplTypePtr wrapper::impl::org::ortc::RTCIceGatherOptions::toWrapper(NativeTypePtr native) noexcept
 {
   if (!native) return WrapperImplTypePtr();
   return toWrapper(*native);
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCIceGatherOptions::WrapperImplTypePtr wrapper::impl::org::ortc::RTCIceGatherOptions::toWrapper(const NativeType &native)
+wrapper::impl::org::ortc::RTCIceGatherOptions::WrapperImplTypePtr wrapper::impl::org::ortc::RTCIceGatherOptions::toWrapper(const NativeType &native) noexcept
 {
   auto pThis = make_shared<WrapperImplType>();
   pThis->thisWeak_ = pThis;
@@ -103,7 +103,7 @@ wrapper::impl::org::ortc::RTCIceGatherOptions::WrapperImplTypePtr wrapper::impl:
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCIceGatherOptions::NativeTypePtr wrapper::impl::org::ortc::RTCIceGatherOptions::toNative(WrapperTypePtr wrapper)
+wrapper::impl::org::ortc::RTCIceGatherOptions::NativeTypePtr wrapper::impl::org::ortc::RTCIceGatherOptions::toNative(WrapperTypePtr wrapper) noexcept
 {
   if (!wrapper) return NativeTypePtr();
 

@@ -34,12 +34,12 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::MediaStreamTrack::WrapperImplTy
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::MediaStreamTrack::WrapperType, WrapperType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::MediaStreamTrack::MediaStreamTrack()
+wrapper::impl::org::ortc::MediaStreamTrack::MediaStreamTrack() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::MediaStreamTrackPtr wrapper::org::ortc::MediaStreamTrack::wrapper_create()
+wrapper::org::ortc::MediaStreamTrackPtr wrapper::org::ortc::MediaStreamTrack::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::MediaStreamTrack>();
   pThis->thisWeak_ = pThis;
@@ -47,116 +47,115 @@ wrapper::org::ortc::MediaStreamTrackPtr wrapper::org::ortc::MediaStreamTrack::wr
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::MediaStreamTrack::~MediaStreamTrack()
+wrapper::impl::org::ortc::MediaStreamTrack::~MediaStreamTrack() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::MediaStreamTrackPtr wrapper::impl::org::ortc::MediaStreamTrack::clone()
+wrapper::org::ortc::MediaStreamTrackPtr wrapper::impl::org::ortc::MediaStreamTrack::clone() noexcept
 {
   return toWrapper(native_->clone());
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::MediaStreamTrack::stop()
+void wrapper::impl::org::ortc::MediaStreamTrack::stop() noexcept
 {
   return native_->stop();
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::MediaTrackCapabilitiesPtr wrapper::impl::org::ortc::MediaStreamTrack::getCapabilities()
+wrapper::org::ortc::MediaTrackCapabilitiesPtr wrapper::impl::org::ortc::MediaStreamTrack::getCapabilities() noexcept
 {
   return MediaTrackCapabilities::toWrapper(native_->getCapabilities());
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::MediaTrackConstraintsPtr wrapper::impl::org::ortc::MediaStreamTrack::getConstraints()
+wrapper::org::ortc::MediaTrackConstraintsPtr wrapper::impl::org::ortc::MediaStreamTrack::getConstraints() noexcept
 {
   return MediaTrackConstraints::toWrapper(native_->getConstraints());
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::MediaTrackSettingsPtr wrapper::impl::org::ortc::MediaStreamTrack::getSettings()
+wrapper::org::ortc::MediaTrackSettingsPtr wrapper::impl::org::ortc::MediaStreamTrack::getSettings() noexcept
 {
   return MediaTrackSettings::toWrapper(native_->getSettings());
 }
 
 //------------------------------------------------------------------------------
-PromisePtr wrapper::impl::org::ortc::MediaStreamTrack::applyConstraints(wrapper::org::ortc::MediaTrackConstraintsPtr constraints)
+PromisePtr wrapper::impl::org::ortc::MediaStreamTrack::applyConstraints(wrapper::org::ortc::MediaTrackConstraintsPtr constraints) noexcept(false)
 {
   ZS_THROW_INVALID_ARGUMENT_IF(!constraints);
-
   return Helper::toWrapper(native_->applyConstraints(*MediaTrackConstraints::toNative(constraints)));
 }
 
 //------------------------------------------------------------------------------
-uint64_t wrapper::impl::org::ortc::MediaStreamTrack::get_objectId()
+uint64_t wrapper::impl::org::ortc::MediaStreamTrack::get_objectId() noexcept
 {
   return native_->getID();
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::MediaStreamTrackKind wrapper::impl::org::ortc::MediaStreamTrack::get_kind()
+wrapper::org::ortc::MediaStreamTrackKind wrapper::impl::org::ortc::MediaStreamTrack::get_kind() noexcept
 {
   return Helper::toWrapper(native_->kind());
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::ortc::MediaStreamTrack::get_id()
+String wrapper::impl::org::ortc::MediaStreamTrack::get_id() noexcept
 {
   return native_->id();
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::ortc::MediaStreamTrack::get_deviceId()
+String wrapper::impl::org::ortc::MediaStreamTrack::get_deviceId() noexcept
 {
   return native_->deviceID();
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::ortc::MediaStreamTrack::get_label()
+String wrapper::impl::org::ortc::MediaStreamTrack::get_label() noexcept
 {
   return native_->label();
 }
 
 //------------------------------------------------------------------------------
-bool wrapper::impl::org::ortc::MediaStreamTrack::get_enabled()
+bool wrapper::impl::org::ortc::MediaStreamTrack::get_enabled() noexcept
 {
   return native_->enabled();
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::MediaStreamTrack::set_enabled(bool value)
+void wrapper::impl::org::ortc::MediaStreamTrack::set_enabled(bool value) noexcept
 {
   native_->enabled(value);
 }
 
 //------------------------------------------------------------------------------
-bool wrapper::impl::org::ortc::MediaStreamTrack::get_muted()
+bool wrapper::impl::org::ortc::MediaStreamTrack::get_muted() noexcept
 {
   return native_->muted();
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::MediaStreamTrack::set_muted(bool value)
+void wrapper::impl::org::ortc::MediaStreamTrack::set_muted(bool value) noexcept
 {
   native_->muted(value);
 }
 
 //------------------------------------------------------------------------------
-bool wrapper::impl::org::ortc::MediaStreamTrack::get_remote()
+bool wrapper::impl::org::ortc::MediaStreamTrack::get_remote() noexcept
 {
   return native_->remote();
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::MediaStreamTrackState wrapper::impl::org::ortc::MediaStreamTrack::get_readyState()
+wrapper::org::ortc::MediaStreamTrackState wrapper::impl::org::ortc::MediaStreamTrack::get_readyState() noexcept
 {
   return Helper::toWrapper(native_->readyState());
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::MediaSourcePtr wrapper::impl::org::ortc::MediaStreamTrack::get_source()
+wrapper::org::ortc::MediaSourcePtr wrapper::impl::org::ortc::MediaStreamTrack::get_source() noexcept
 {
   zsLib::AutoLock lock(lock_);
   if (mediaSource_) return mediaSource_;
@@ -166,7 +165,7 @@ wrapper::org::ortc::MediaSourcePtr wrapper::impl::org::ortc::MediaStreamTrack::g
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::MediaStreamTrack::wrapper_onObserverCountChanged(size_t count)
+void wrapper::impl::org::ortc::MediaStreamTrack::wrapper_onObserverCountChanged(size_t count) noexcept
 {
   subscriptionCount_ = count;
   subscribe();
@@ -176,7 +175,7 @@ void wrapper::impl::org::ortc::MediaStreamTrack::wrapper_onObserverCountChanged(
 void wrapper::impl::org::ortc::MediaStreamTrack::onMediaStreamTrackMute(
                                                                         IMediaStreamTrackPtr track,
                                                                         bool isMuted
-                                                                        )
+                                                                        ) noexcept
 {
   if (isMuted) {
     onMute();
@@ -186,7 +185,7 @@ void wrapper::impl::org::ortc::MediaStreamTrack::onMediaStreamTrackMute(
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::MediaStreamTrack::onMediaStreamTrackEnded(IMediaStreamTrackPtr track)
+void wrapper::impl::org::ortc::MediaStreamTrack::onMediaStreamTrackEnded(IMediaStreamTrackPtr track) noexcept
 {
   onEnded();
 }
@@ -195,13 +194,13 @@ void wrapper::impl::org::ortc::MediaStreamTrack::onMediaStreamTrackEnded(IMediaS
 void wrapper::impl::org::ortc::MediaStreamTrack::onMediaStreamTrackOverConstrained(
                                                                                    IMediaStreamTrackPtr track,
                                                                                    OverconstrainedErrorPtr error
-                                                                                   )
+                                                                                   ) noexcept
 {
   onOverConstrained(OverconstrainedErrorEvent::toWrapper(wrapper::impl::org::ortc::OverconstrainedError::toWrapper(error)));
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr track)
+WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr track) noexcept
 {
   if (!track) return WrapperImplTypePtr();
 
@@ -214,7 +213,7 @@ WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr track)
 }
 
 //------------------------------------------------------------------------------
-NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper)
+NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper) noexcept
 {
   if (!wrapper) return NativeTypePtr();
   auto result = std::dynamic_pointer_cast<WrapperImplType>(wrapper);
@@ -223,7 +222,7 @@ NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper)
 }
 
 //------------------------------------------------------------------------------
-void WrapperImplType::subscribe()
+void WrapperImplType::subscribe() noexcept
 {
   if (defaultSubscription_) return;
   if (!native_) return;

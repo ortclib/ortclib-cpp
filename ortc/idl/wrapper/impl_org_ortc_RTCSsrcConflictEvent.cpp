@@ -24,12 +24,12 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCSsrcConflictEvent::WrapperIm
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCSsrcConflictEvent::WrapperType, WrapperType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCSsrcConflictEvent::RTCSsrcConflictEvent()
+wrapper::impl::org::ortc::RTCSsrcConflictEvent::RTCSsrcConflictEvent() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCSsrcConflictEventPtr wrapper::org::ortc::RTCSsrcConflictEvent::wrapper_create()
+wrapper::org::ortc::RTCSsrcConflictEventPtr wrapper::org::ortc::RTCSsrcConflictEvent::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::RTCSsrcConflictEvent>();
   pThis->thisWeak_ = pThis;
@@ -37,18 +37,18 @@ wrapper::org::ortc::RTCSsrcConflictEventPtr wrapper::org::ortc::RTCSsrcConflictE
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCSsrcConflictEvent::~RTCSsrcConflictEvent()
+wrapper::impl::org::ortc::RTCSsrcConflictEvent::~RTCSsrcConflictEvent() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-uint32_t wrapper::impl::org::ortc::RTCSsrcConflictEvent::get_ssrc()
+uint32_t wrapper::impl::org::ortc::RTCSsrcConflictEvent::get_ssrc() noexcept
 {
   return native_;
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(NativeType native)
+WrapperImplTypePtr WrapperImplType::toWrapper(NativeType native) noexcept
 {
   if (!native) return WrapperImplTypePtr();
   auto pThis = make_shared<WrapperImplType>();

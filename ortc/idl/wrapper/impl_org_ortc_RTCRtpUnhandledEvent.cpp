@@ -23,12 +23,12 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCRtpUnhandledEvent::WrapperIm
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCRtpUnhandledEvent::WrapperType, WrapperType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCRtpUnhandledEvent::RTCRtpUnhandledEvent()
+wrapper::impl::org::ortc::RTCRtpUnhandledEvent::RTCRtpUnhandledEvent() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCRtpUnhandledEventPtr wrapper::org::ortc::RTCRtpUnhandledEvent::wrapper_create()
+wrapper::org::ortc::RTCRtpUnhandledEventPtr wrapper::org::ortc::RTCRtpUnhandledEvent::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::RTCRtpUnhandledEvent>();
   pThis->thisWeak_ = pThis;
@@ -36,35 +36,35 @@ wrapper::org::ortc::RTCRtpUnhandledEventPtr wrapper::org::ortc::RTCRtpUnhandledE
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCRtpUnhandledEvent::~RTCRtpUnhandledEvent()
+wrapper::impl::org::ortc::RTCRtpUnhandledEvent::~RTCRtpUnhandledEvent() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCRtpUnhandledEvent::wrapper_init_org_ortc_RTCRtpUnhandledEvent()
+void wrapper::impl::org::ortc::RTCRtpUnhandledEvent::wrapper_init_org_ortc_RTCRtpUnhandledEvent() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-uint32_t wrapper::impl::org::ortc::RTCRtpUnhandledEvent::get_ssrc()
+uint32_t wrapper::impl::org::ortc::RTCRtpUnhandledEvent::get_ssrc() noexcept
 {
   return ssrc_;
 }
 
 //------------------------------------------------------------------------------
-uint8_t wrapper::impl::org::ortc::RTCRtpUnhandledEvent::get_payloadType()
+uint8_t wrapper::impl::org::ortc::RTCRtpUnhandledEvent::get_payloadType() noexcept
 {
   return payloadType_;
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::ortc::RTCRtpUnhandledEvent::get_muxId()
+String wrapper::impl::org::ortc::RTCRtpUnhandledEvent::get_muxId() noexcept
 {
   return mid_;
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::ortc::RTCRtpUnhandledEvent::get_rid()
+String wrapper::impl::org::ortc::RTCRtpUnhandledEvent::get_rid() noexcept
 {
   return rid_;
 }
@@ -75,7 +75,7 @@ WrapperImplTypePtr WrapperImplType::toWrapper(
   PayloadType payloadType,
   const String &mid,
   const String &rid
-)
+) noexcept
 {
   auto pThis = make_shared<WrapperImplType>();
   pThis->thisWeak_ = pThis;

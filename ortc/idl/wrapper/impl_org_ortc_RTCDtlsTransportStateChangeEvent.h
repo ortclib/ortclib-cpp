@@ -17,13 +17,13 @@ namespace wrapper {
           RTCDtlsTransportStateChangeEventWeakPtr thisWeak_;
           wrapper::org::ortc::RTCDtlsTransportState state_ {wrapper::org::ortc::RTCDtlsTransportState_new};
 
-          RTCDtlsTransportStateChangeEvent();
-          virtual ~RTCDtlsTransportStateChangeEvent();
+          RTCDtlsTransportStateChangeEvent() noexcept;
+          virtual ~RTCDtlsTransportStateChangeEvent() noexcept;
 
           // properties RTCDtlsTransportStateChangeEvent
-          virtual wrapper::org::ortc::RTCDtlsTransportState get_state() override;
+          wrapper::org::ortc::RTCDtlsTransportState get_state() noexcept override;
 
-          static WrapperImplTypePtr toWrapper(wrapper::org::ortc::RTCDtlsTransportState state);
+          static WrapperImplTypePtr toWrapper(wrapper::org::ortc::RTCDtlsTransportState state) noexcept;
         };
 
       } // ortc

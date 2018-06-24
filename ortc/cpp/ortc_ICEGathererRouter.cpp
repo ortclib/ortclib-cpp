@@ -46,41 +46,41 @@ namespace ortc
 {
   namespace internal
   {
-    ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHelper, UseServicesHelper)
+    ZS_DECLARE_TYPEDEF_PTR(ortc::services::IHelper, UseServicesHelper);
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IICEGathererRouter
-    #pragma mark
+    //
+    // IICEGathererRouter
+    //
 
     //-------------------------------------------------------------------------
     ICEGathererRouter::ICEGathererRouter(
                                          const make_private &,
                                          IMessageQueuePtr queue
-                                         ) :
+                                         ) noexcept :
       SharedRecursiveLock(SharedRecursiveLock::create()),
       MessageQueueAssociator(queue)
     {
       //IceGathererRouterCreate(__func__, mID);
       ZS_EVENTING_1(x, i, Detail, IceGathererRouterCreate, ol, IceGathererRouter, Start, puid, id, mID);
-      ZS_LOG_BASIC(log("created"))
+      ZS_LOG_BASIC(log("created"));
     }
 
     //-------------------------------------------------------------------------
-    void ICEGathererRouter::init()
+    void ICEGathererRouter::init() noexcept
     {
       AutoRecursiveLock lock(*this);
       mTimer = ITimer::create(mThisWeak.lock(), Seconds(30));
     }
 
     //-------------------------------------------------------------------------
-    ICEGathererRouter::~ICEGathererRouter()
+    ICEGathererRouter::~ICEGathererRouter() noexcept
     {
       mThisWeak.reset();
-      ZS_LOG_BASIC(log("destroyed"))
+      ZS_LOG_BASIC(log("destroyed"));
       cancel();
       //IceGathererRouterDestroy(__func__, mID);
       ZS_EVENTING_1(x, i, Detail, IceGathererRouterDestroy, ol, IceGathererRouter, Stop, puid, id, mID);
@@ -90,19 +90,19 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IICEGathererRouter => (friends)
-    #pragma mark
+    //
+    // IICEGathererRouter => (friends)
+    //
 
     //-------------------------------------------------------------------------
-    ElementPtr ICEGathererRouter::toDebug(ICEGathererRouterPtr router)
+    ElementPtr ICEGathererRouter::toDebug(ICEGathererRouterPtr router) noexcept
     {
       if (!router) return ElementPtr();
       return router->toDebug();
     }
 
     //-------------------------------------------------------------------------
-    ICEGathererRouterPtr ICEGathererRouter::create()
+    ICEGathererRouterPtr ICEGathererRouter::create() noexcept
     {
       ICEGathererRouterPtr pThis(make_shared<ICEGathererRouter>(make_private {}, IORTCForInternal::queueORTC()));
       pThis->mThisWeak = pThis;
@@ -115,7 +115,7 @@ namespace ortc
                                                              CandidatePtr localCandidate,
                                                              const IPAddress &remoteIP,
                                                              bool createRouteIfNeeded
-                                                             )
+                                                             ) noexcept
     {
       AutoRecursiveLock lock(*this);
 
@@ -140,7 +140,7 @@ namespace ortc
                         );
 
           ZS_EVENTING_TRACE_OBJECT(Insane, *route, "found route");
-          ZS_LOG_TRACE(log("route found") + route->toDebug() + ZS_PARAM("create route", createRouteIfNeeded))
+          ZS_LOG_TRACE(log("route found") + route->toDebug() + ZS_PARAM("create route", createRouteIfNeeded));
           return route;
         }
 
@@ -155,7 +155,7 @@ namespace ortc
                       string, remoteIp, remoteIP.string()
                       );
 
-        ZS_LOG_WARNING(Debug, log("route was previously found but is now gone") + (localCandidate ? localCandidate->toDebug() : ElementPtr()) + ZS_PARAM("remote ip", remoteIP.string()) + ZS_PARAM("create route", createRouteIfNeeded))
+        ZS_LOG_WARNING(Debug, log("route was previously found but is now gone") + (localCandidate ? localCandidate->toDebug() : ElementPtr()) + ZS_PARAM("remote ip", remoteIP.string()) + ZS_PARAM("create route", createRouteIfNeeded));
         mRoutes.erase(found);
       }
 
@@ -171,7 +171,7 @@ namespace ortc
                       string, remoteIp, remoteIP.string()
                       );
 
-        ZS_LOG_WARNING(Trace, log("route does not exist") + (localCandidate ? localCandidate->toDebug() : ElementPtr()) + ZS_PARAM("remote ip", remoteIP.string()))
+        ZS_LOG_WARNING(Trace, log("route does not exist") + (localCandidate ? localCandidate->toDebug() : ElementPtr()) + ZS_PARAM("remote ip", remoteIP.string()));
         return RoutePtr();
       }
 
@@ -193,7 +193,7 @@ namespace ortc
 
       mRoutes[search] = route;
 
-      ZS_LOG_DEBUG(log("route created") + route->toDebug())
+      ZS_LOG_DEBUG(log("route created") + route->toDebug());
 
       return route;
     }
@@ -202,9 +202,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IICEGathererRouter => (friends)
-    #pragma mark
+    //
+    // IICEGathererRouter => (friends)
+    //
 
     //-------------------------------------------------------------------------
     void ICEGathererRouter::onTimer(ITimerPtr timer)
@@ -257,12 +257,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IICEGathererRouter => (internals)
-    #pragma mark
+    //
+    // IICEGathererRouter => (internals)
+    //
 
     //-------------------------------------------------------------------------
-    Log::Params ICEGathererRouter::log(const char *message) const
+    Log::Params ICEGathererRouter::log(const char *message) const noexcept
     {
       ElementPtr objectEl = Element::create("ortc::ICEGathererRouter");
       UseServicesHelper::debugAppend(objectEl, "id", mID);
@@ -270,20 +270,20 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    Log::Params ICEGathererRouter::slog(const char *message)
+    Log::Params ICEGathererRouter::slog(const char *message) noexcept
     {
       ElementPtr objectEl = Element::create("ortc::ICEGathererRouter");
       return Log::Params(message, objectEl);
     }
 
     //-------------------------------------------------------------------------
-    Log::Params ICEGathererRouter::debug(const char *message) const
+    Log::Params ICEGathererRouter::debug(const char *message) const noexcept
     {
       return Log::Params(message, toDebug());
     }
 
     //-------------------------------------------------------------------------
-    ElementPtr ICEGathererRouter::toDebug() const
+    ElementPtr ICEGathererRouter::toDebug() const noexcept
     {
       AutoRecursiveLock lock(*this);
 
@@ -299,7 +299,7 @@ namespace ortc
     }
     
     //-------------------------------------------------------------------------
-    void ICEGathererRouter::cancel()
+    void ICEGathererRouter::cancel() noexcept
     {
       //IceGathererRouterCancel(__func__, mID);
       ZS_EVENTING_1(x, i, Trace, IceGathererRouterCancel, ol, IceGathererRouter, Cancel, puid, id, mID);
@@ -316,15 +316,15 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IICEGathererRouter::Route
-    #pragma mark
+    //
+    // IICEGathererRouter::Route
+    //
 
     //-------------------------------------------------------------------------
     void ICEGathererRouter::Route::trace(
                                          const char *function,
                                          const char *message
-                                         ) const
+                                         ) const noexcept
     {
       if (mLocalCandidate) {
         ZS_EVENTING_15(
@@ -368,7 +368,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ElementPtr ICEGathererRouter::Route::toDebug() const
+    ElementPtr ICEGathererRouter::Route::toDebug() const noexcept
     {
       ElementPtr objectEl = Element::create("ortc::ICEGathererRouter::Route");
       UseServicesHelper::debugAppend(objectEl, "id", mID);

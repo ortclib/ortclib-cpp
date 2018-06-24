@@ -18,15 +18,15 @@ namespace wrapper {
           RTCDtlsCertificateBinaryWeakPtr thisWeak_;
           SecureByteBlockPtr native_;
 
-          RTCDtlsCertificateBinary();
-          virtual ~RTCDtlsCertificateBinary();
+          RTCDtlsCertificateBinary() noexcept;
+          virtual ~RTCDtlsCertificateBinary() noexcept;
 
           // properties RTCDtlsCertificateBinary
-          virtual SecureByteBlockPtr get_certificate() override;
+          SecureByteBlockPtr get_certificate() noexcept override;
 
-          static WrapperImplTypePtr toWrapper(NativeTypePtr native);
-          static WrapperImplTypePtr toWrapper(const NativeType &native);
-          static NativeTypePtr toNative(WrapperTypePtr wrapper);
+          static WrapperImplTypePtr toWrapper(NativeTypePtr native) noexcept;
+          static WrapperImplTypePtr toWrapper(const NativeType &native) noexcept;
+          static NativeTypePtr toNative(WrapperTypePtr wrapper) noexcept;
         };
 
       } // ortc

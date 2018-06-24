@@ -19,19 +19,19 @@ namespace wrapper {
             ZS_DECLARE_TYPEDEF_PTR(wrapper::org::ortc::adapter::RTCSessionDescriptionConnectionDataDetails, WrapperType);
             RTCSessionDescriptionConnectionDataDetailsWeakPtr thisWeak_;
 
-            RTCSessionDescriptionConnectionDataDetails();
-            virtual ~RTCSessionDescriptionConnectionDataDetails();
+            RTCSessionDescriptionConnectionDataDetails() noexcept;
+            virtual ~RTCSessionDescriptionConnectionDataDetails() noexcept;
 
             // methods RTCSessionDescriptionConnectionDataDetails
-            virtual void wrapper_init_org_ortc_adapter_RTCSessionDescriptionConnectionDataDetails() override;
-            virtual void wrapper_init_org_ortc_adapter_RTCSessionDescriptionConnectionDataDetails(wrapper::org::ortc::adapter::RTCSessionDescriptionConnectionDataDetailsPtr source) override;
-            virtual void wrapper_init_org_ortc_adapter_RTCSessionDescriptionConnectionDataDetails(wrapper::org::ortc::JsonPtr json) override;
-            virtual wrapper::org::ortc::JsonPtr toJson() override;
-            virtual String hash() override;
+            void wrapper_init_org_ortc_adapter_RTCSessionDescriptionConnectionDataDetails() noexcept override;
+            void wrapper_init_org_ortc_adapter_RTCSessionDescriptionConnectionDataDetails(wrapper::org::ortc::adapter::RTCSessionDescriptionConnectionDataDetailsPtr source) noexcept override;
+            void wrapper_init_org_ortc_adapter_RTCSessionDescriptionConnectionDataDetails(wrapper::org::ortc::JsonPtr json) noexcept override;
+            wrapper::org::ortc::JsonPtr toJson() noexcept override;
+            String hash() noexcept override;
 
-            static WrapperImplTypePtr toWrapper(NativeTypePtr native);
-            static WrapperImplTypePtr toWrapper(const NativeType &native);
-            static NativeTypePtr toNative(WrapperTypePtr wrapper);
+            static WrapperImplTypePtr toWrapper(NativeTypePtr native) noexcept;
+            static WrapperImplTypePtr toWrapper(const NativeType &native) noexcept;
+            static NativeTypePtr toNative(WrapperTypePtr wrapper) noexcept;
           };
 
         } // adapter

@@ -54,13 +54,6 @@
 #include <cryptopp/sha.h>
 
 
-#ifdef _DEBUG
-#define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))
-#else
-#define ASSERT(x)
-#endif //_DEBUG
-
-
 namespace ortc { ZS_DECLARE_SUBSYSTEM(org_ortc_sctp_data_channel) }
 
 namespace ortc
@@ -85,9 +78,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark (helpers)
-    #pragma mark
+    //
+    // (helpers)
+    //
 
     //-------------------------------------------------------------------------
     // http://tools.ietf.org/html/draft-ietf-rtcweb-data-protocol-09#section-8.2.1
@@ -164,28 +157,28 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark DataChannelSettingsDefaults
-    #pragma mark
+    //
+    // DataChannelSettingsDefaults
+    //
 
     class DataChannelSettingsDefaults : public ISettingsApplyDefaultsDelegate
     {
     public:
       //-----------------------------------------------------------------------
-      ~DataChannelSettingsDefaults()
+      ~DataChannelSettingsDefaults() noexcept
       {
         ISettings::removeDefaults(*this);
       }
 
       //-----------------------------------------------------------------------
-      static DataChannelSettingsDefaultsPtr singleton()
+      static DataChannelSettingsDefaultsPtr singleton() noexcept
       {
         static SingletonLazySharedPtr<DataChannelSettingsDefaults> singleton(create());
         return singleton.singleton();
       }
 
       //-----------------------------------------------------------------------
-      static DataChannelSettingsDefaultsPtr create()
+      static DataChannelSettingsDefaultsPtr create() noexcept
       {
         auto pThis(make_shared<DataChannelSettingsDefaults>());
         ISettings::installDefaults(pThis);
@@ -193,14 +186,14 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      virtual void notifySettingsApplyDefaults() override
+      virtual void notifySettingsApplyDefaults() noexcept override
       {
       }
       
     };
 
     //-------------------------------------------------------------------------
-    void installDataChannelSettingsDefaults()
+    void installDataChannelSettingsDefaults() noexcept
     {
       DataChannelSettingsDefaults::singleton();
     }
@@ -209,9 +202,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark DataChannelHelper
-    #pragma mark
+    //
+    // DataChannelHelper
+    //
 
     struct DataChannelHelper
     {
@@ -219,7 +212,7 @@ namespace ortc
       static ControlMessageTypes getControlMessageType(
                                                        const BYTE *buffer,
                                                        size_t bufferLengthInBytes
-                                                       )
+                                                       ) noexcept
       {
         if (bufferLengthInBytes < 1) return ControlMessageType_Unknown;
         BYTE type = 0;
@@ -238,12 +231,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IDataChannelForSCTPTransport
-    #pragma mark
+    //
+    // IDataChannelForSCTPTransport
+    //
 
     //-------------------------------------------------------------------------
-    ElementPtr IDataChannelForSCTPTransport::toDebug(ForDataTransportPtr transport)
+    ElementPtr IDataChannelForSCTPTransport::toDebug(ForDataTransportPtr transport) noexcept
     {
       if (!transport) return ElementPtr();
       return ZS_DYNAMIC_PTR_CAST(DataChannel, transport)->toDebug();
@@ -253,7 +246,7 @@ namespace ortc
     IDataChannelForSCTPTransport::ForDataTransportPtr IDataChannelForSCTPTransport::create(
                                                                                            UseDataTransportPtr transport,
                                                                                            WORD sessionID
-                                                                                           )
+                                                                                           ) noexcept
     {
       return IDataChannelFactory::singleton().create(transport, sessionID);
     }
@@ -262,9 +255,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark DataChannel
-    #pragma mark
+    //
+    // DataChannel
+    //
 
     //-------------------------------------------------------------------------
     DataChannel::DataChannel(
@@ -274,7 +267,7 @@ namespace ortc
                              UseDataTransportPtr transport,
                              ParametersPtr params,
                              WORD sessionID
-                             ) :
+                             ) noexcept :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
       mSubscriptions(decltype(mSubscriptions)::create()),
@@ -301,7 +294,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void DataChannel::init()
+    void DataChannel::init() noexcept
     {
       AutoRecursiveLock lock(*this);
       auto transport = mDataTransport.lock();
@@ -312,7 +305,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    DataChannel::~DataChannel()
+    DataChannel::~DataChannel() noexcept
     {
       if (isNoop()) return;
 
@@ -325,14 +318,14 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    DataChannelPtr DataChannel::convert(IDataChannelPtr object)
+    DataChannelPtr DataChannel::convert(IDataChannelPtr object) noexcept
     {
       IDataChannelPtr original = IDataChannelTearAway::original(object);
       return ZS_DYNAMIC_PTR_CAST(DataChannel, original);
     }
 
     //-------------------------------------------------------------------------
-    DataChannelPtr DataChannel::convert(ForDataTransportPtr object)
+    DataChannelPtr DataChannel::convert(ForDataTransportPtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(DataChannel, object);
     }
@@ -342,12 +335,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark DataChannel => IDataChannel
-    #pragma mark
+    //
+    // DataChannel => IDataChannel
+    //
     
     //-------------------------------------------------------------------------
-    ElementPtr DataChannel::toDebug(DataChannelPtr transport)
+    ElementPtr DataChannel::toDebug(DataChannelPtr transport) noexcept
     {
       if (!transport) return ElementPtr();
       return transport->toDebug();
@@ -358,7 +351,7 @@ namespace ortc
                                        IDataChannelDelegatePtr delegate,
                                        IDataTransportPtr transport,
                                        const Parameters &params
-                                       )
+                                       ) noexcept(false)
     {
       ORTC_THROW_INVALID_PARAMETERS_IF(!transport);
 
@@ -388,7 +381,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    IDataChannelSubscriptionPtr DataChannel::subscribe(IDataChannelDelegatePtr originalDelegate)
+    IDataChannelSubscriptionPtr DataChannel::subscribe(IDataChannelDelegatePtr originalDelegate) noexcept
     {
       ZS_LOG_DETAIL(log("subscribing to transport state"))
 
@@ -429,13 +422,13 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    IDataTransportPtr DataChannel::transport() const
+    IDataTransportPtr DataChannel::transport() const noexcept
     {
       return SCTPTransport::convert(mDataTransport.lock());
     }
 
     //-------------------------------------------------------------------------
-    IDataChannelTypes::ParametersPtr DataChannel::parameters() const
+    IDataChannelTypes::ParametersPtr DataChannel::parameters() const noexcept
     {
       AutoRecursiveLock lock(*this);
       auto params = make_shared<Parameters>();
@@ -444,28 +437,28 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    IDataChannelTypes::States DataChannel::readyState() const
+    IDataChannelTypes::States DataChannel::readyState() const noexcept
     {
       AutoRecursiveLock lock(*this);
       return mCurrentState;
     }
 
     //-------------------------------------------------------------------------
-    size_t DataChannel::bufferedAmount() const
+    size_t DataChannel::bufferedAmount() const noexcept
     {
       AutoRecursiveLock lock(*this);
       return mOutgoingBufferFillSize;
     }
 
     //-------------------------------------------------------------------------
-    size_t DataChannel::bufferedAmountLowThreshold() const
+    size_t DataChannel::bufferedAmountLowThreshold() const noexcept
     {
       AutoRecursiveLock lock(*this);
       return mBufferedAmountLowThreshold;
     }
 
     //-------------------------------------------------------------------------
-    void DataChannel::bufferedAmountLowThreshold(size_t value)
+    void DataChannel::bufferedAmountLowThreshold(size_t value) noexcept
     {
       AutoRecursiveLock lock(*this);
 
@@ -486,21 +479,21 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    String DataChannel::binaryType() const
+    String DataChannel::binaryType() const noexcept
     {
       AutoRecursiveLock lock(*this);
       return mBinaryType;
     }
 
     //-------------------------------------------------------------------------
-    void DataChannel::binaryType(const char *str)
+    void DataChannel::binaryType(const char *str) noexcept
     {
       AutoRecursiveLock lock(*this);
       mBinaryType = String(str);
     }
 
     //-------------------------------------------------------------------------
-    void DataChannel::close()
+    void DataChannel::close() noexcept
     {
       ZS_EVENTING_1(x, i, Trace, DataChannelClose, ol, DataChannel, Close, puid, id, mID);
 
@@ -510,7 +503,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void DataChannel::send(const String &data)
+    void DataChannel::send(const String &data) noexcept
     {
       ZS_EVENTING_2(x, i, Trace, DataChannelSendString, ol, DataChannel, Send, puid, id, mID, string, data, data);
 
@@ -523,7 +516,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void DataChannel::send(const SecureByteBlock &data)
+    void DataChannel::send(const SecureByteBlock &data) noexcept
     {
       ZS_EVENTING_3(
                     x, i, Trace, DataChannelSendBinary, ol, DataChannel, Send,
@@ -540,7 +533,7 @@ namespace ortc
     void DataChannel::send(
                            const BYTE *buffer,
                            size_t bufferSizeInBytes
-                           )
+                           ) noexcept(false)
     {
       ZS_EVENTING_3(
                     x, i, Trace, DataChannelSendBinary, ol, DataChannel, Send,
@@ -558,19 +551,18 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark DataChannel => IDataChannelForSCTPTransport
-    #pragma mark
+    //
+    // DataChannel => IDataChannelForSCTPTransport
+    //
 
     //-------------------------------------------------------------------------
-    DataChannel::PromiseWithStatsReportPtr DataChannel::getStats(const StatsTypeSet &stats) const
+    DataChannel::PromiseWithStatsReportPtr DataChannel::getStats(const StatsTypeSet &stats) const noexcept
     {
       if (!stats.hasStatType(IStatsReportTypes::StatsType_DataChannel)) {
         return PromiseWithStatsReport::createRejected(IORTCForInternal::queueDelegate());
       }
 
-#define TODO 1
-#define TODO 2
+#pragma ZS_BUILD_NOTE("TODO", "Add data channel stats.")
       return PromiseWithStatsReport::createRejected(IORTCForInternal::queueDelegate());
     }
 
@@ -578,15 +570,15 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark DataChannel => IDataChannelForSCTPTransport
-    #pragma mark
+    //
+    // DataChannel => IDataChannelForSCTPTransport
+    //
 
     //-------------------------------------------------------------------------
     DataChannel::ForDataTransportPtr DataChannel::create(
                                                          UseDataTransportPtr transport,
                                                          WORD sessionID
-                                                         )
+                                                         ) noexcept
     {
       DataChannelPtr pThis(make_shared<DataChannel>(make_private {}, IORTCForInternal::queueORTC(), IDataChannelDelegatePtr(), transport, ParametersPtr(), sessionID));
       pThis->mThisWeak = pThis;
@@ -595,7 +587,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool DataChannel::handleSCTPPacket(SCTPPacketIncomingPtr packet)
+    bool DataChannel::handleSCTPPacket(SCTPPacketIncomingPtr packet) noexcept
     {
       ZS_EVENTING_8(
                     x, i, Trace, DataChannelSCTPTransportReceivedIncomingPacket, ol, DataChannel, Receive,
@@ -683,7 +675,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void DataChannel::requestShutdown()
+    void DataChannel::requestShutdown() noexcept
     {
       ZS_EVENTING_1(x, i, Trace, DataChannelSCTPTransportRequestShutdown, ol, DataChannel, Close, puid, id, mID);
       ZS_LOG_TRACE(log("request shutdown"));
@@ -691,7 +683,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void DataChannel::notifyClosed()
+    void DataChannel::notifyClosed() noexcept
     {
       ZS_EVENTING_1(x, i, Trace, DataChannelSCTPTransportInternalNotifyClosed, ol, DataChannel, InternalEvent, puid, id, mID);
 
@@ -699,7 +691,8 @@ namespace ortc
       IDataChannelAsyncDelegateProxy::create(mThisWeak.lock())->onNotifiedClosed();
     }
 
-    void DataChannel::notifyRemapFailure()
+    //-------------------------------------------------------------------------
+    void DataChannel::notifyRemapFailure() noexcept
     {
       ZS_EVENTING_1(x, i, Trace, DataChannelSCTPTransportInternalNotifyRemapFailure, ol, DataChannel, InternalEvent, puid, id, mID);
 
@@ -711,9 +704,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark DataChannel => ISCTPTransportForDataChannelDelegate
-    #pragma mark
+    //
+    // DataChannel => ISCTPTransportForDataChannelDelegate
+    //
 
     //-------------------------------------------------------------------------
     void DataChannel::onSCTPTransportStateChanged()
@@ -729,9 +722,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark DataChannel => IDataChannelAsyncDelegate
-    #pragma mark
+    //
+    // DataChannel => IDataChannelAsyncDelegate
+    //
 
     //-------------------------------------------------------------------------
     void DataChannel::onRequestShutdown()
@@ -770,9 +763,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark DataChannel => IWakeDelegate
-    #pragma mark
+    //
+    // DataChannel => IWakeDelegate
+    //
 
     //-------------------------------------------------------------------------
     void DataChannel::onWake()
@@ -787,9 +780,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark DataChannel => IPromiseSettledDelegate
-    #pragma mark
+    //
+    // DataChannel => IPromiseSettledDelegate
+    //
 
     //-------------------------------------------------------------------------
     void DataChannel::onPromiseSettled(PromisePtr promise)
@@ -803,7 +796,7 @@ namespace ortc
       if (mSendReady) {
         if (mSendReady->isRejected()) {
           RejectReasonPtr reason = mSendReady->reason<RejectReason>();
-          ZS_THROW_INVALID_ASSUMPTION_IF(!reason);
+          ZS_ASSERT(reason);
 
           ZS_EVENTING_3(
                         x, e, Trace, DataChannelSCTPTransportSendReadyFailure, ol, DataChannel, InternalEvent,
@@ -829,21 +822,21 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark DataChannel => IDataChannelAsyncDelegate
-    #pragma mark
+    //
+    // DataChannel => IDataChannelAsyncDelegate
+    //
 
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark DataChannel => (internal)
-    #pragma mark
+    //
+    // DataChannel => (internal)
+    //
 
     //-------------------------------------------------------------------------
-    Log::Params DataChannel::log(const char *message) const
+    Log::Params DataChannel::log(const char *message) const noexcept
     {
       ElementPtr objectEl = Element::create("ortc::DataChannel");
       IHelper::debugAppend(objectEl, "id", mID);
@@ -851,13 +844,13 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    Log::Params DataChannel::debug(const char *message) const
+    Log::Params DataChannel::debug(const char *message) const noexcept
     {
       return Log::Params(message, toDebug());
     }
 
     //-------------------------------------------------------------------------
-    ElementPtr DataChannel::toDebug() const
+    ElementPtr DataChannel::toDebug() const noexcept
     {
       AutoRecursiveLock lock(*this);
 
@@ -901,25 +894,25 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool DataChannel::isOpen() const
+    bool DataChannel::isOpen() const noexcept
     {
       return State_Open == mCurrentState;
     }
 
     //-------------------------------------------------------------------------
-    bool DataChannel::isShuttingDown() const
+    bool DataChannel::isShuttingDown() const noexcept
     {
       return State_Closing == mCurrentState;
     }
 
     //-------------------------------------------------------------------------
-    bool DataChannel::isShutdown() const
+    bool DataChannel::isShutdown() const noexcept
     {
       return State_Closed == mCurrentState;
     }
 
     //-------------------------------------------------------------------------
-    void DataChannel::step()
+    void DataChannel::step() noexcept
     {
       ZS_LOG_DEBUG(debug("step"))
 
@@ -957,7 +950,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool DataChannel::stepSCTPTransport()
+    bool DataChannel::stepSCTPTransport() noexcept
     {
       ZS_EVENTING_1(x, i, Debug, DataChannelStep, ol, DataChannel, Step, puid, id, mID);
 
@@ -985,7 +978,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool DataChannel::stepIssueConnect()
+    bool DataChannel::stepIssueConnect() noexcept
     {
       ZS_EVENTING_1(x, i, Debug, DataChannelStep, ol, DataChannel, Step, puid, id, mID);
 
@@ -1015,7 +1008,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool DataChannel::stepWaitConnectAck()
+    bool DataChannel::stepWaitConnectAck() noexcept
     {
       ZS_EVENTING_1(x, i, Debug, DataChannelStep, ol, DataChannel, Step, puid, id, mID);
 
@@ -1041,7 +1034,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool DataChannel::stepOpen()
+    bool DataChannel::stepOpen() noexcept
     {
       ZS_EVENTING_1(x, i, Debug, DataChannelStep, ol, DataChannel, Step, puid, id, mID);
 
@@ -1050,7 +1043,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool DataChannel::stepSendData(bool onlyControlPackets)
+    bool DataChannel::stepSendData(bool onlyControlPackets) noexcept
     {
       ZS_EVENTING_1(x, i, Debug, DataChannelStep, ol, DataChannel, Step, puid, id, mID);
 
@@ -1092,7 +1085,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool DataChannel::stepDeliveryIncomingPacket()
+    bool DataChannel::stepDeliveryIncomingPacket() noexcept
     {
       ZS_EVENTING_1(x, i, Debug, DataChannelStep, ol, DataChannel, Step, puid, id, mID);
 
@@ -1122,7 +1115,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void DataChannel::cancel()
+    void DataChannel::cancel() noexcept
     {
       ZS_EVENTING_1(x, i, Debug, DataChannelCancel, ol, DataChannel, Cancel, puid, id, mID);
 
@@ -1175,7 +1168,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void DataChannel::setState(States state)
+    void DataChannel::setState(States state) noexcept
     {
       if (state == mCurrentState) return;
 
@@ -1191,7 +1184,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void DataChannel::setError(WORD errorCode, const char *inReason)
+    void DataChannel::setError(WORD errorCode, const char *inReason) noexcept
     {
       String reason(inReason);
       if (reason.isEmpty()) {
@@ -1229,7 +1222,7 @@ namespace ortc
                            SCTPPayloadProtocolIdentifier ppid,
                            const BYTE *buffer,
                            size_t bufferSizeInBytes
-                           )
+                           ) noexcept
     {
       if ((isShuttingDown()) &&
           (isShutdown())) {
@@ -1287,9 +1280,9 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void DataChannel::sendControlOpen()
+    void DataChannel::sendControlOpen() noexcept
     {
-      ORTC_THROW_INVALID_STATE_IF(!mParameters)
+      ZS_ASSERT(mParameters);
 
       OpenPacket openPacket;
 
@@ -1365,7 +1358,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void DataChannel::sendControlAck()
+    void DataChannel::sendControlAck() noexcept
     {
       AckPacket ackPacket;
 
@@ -1396,13 +1389,13 @@ namespace ortc
     bool DataChannel::deliverOutgoing(
                                       SCTPPacketOutgoingPtr packet,
                                       bool fixPacket
-                                      )
+                                      ) noexcept
     {
       ZS_LOG_TRACE(log("delivering data") + packet->toDebug())
 
       packet->mSessionID = mSessionID;
       if (fixPacket) {
-        ORTC_THROW_INVALID_STATE_IF(!mParameters)
+        ZS_ASSERT(mParameters);
         packet->mOrdered = mParameters->mOrdered;
         packet->mMaxPacketLifetime = mParameters->mMaxPacketLifetime;
         packet->mMaxRetransmits = mParameters->mMaxRetransmits;
@@ -1437,7 +1430,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool DataChannel::handleOpenPacket(SecureByteBlock &buffer)
+    bool DataChannel::handleOpenPacket(SecureByteBlock &buffer) noexcept
     {
       OpenPacket openPacket;
 
@@ -1546,8 +1539,9 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool DataChannel::handleAckPacket(SecureByteBlock &buffer)
+    bool DataChannel::handleAckPacket(ZS_MAYBE_USED() SecureByteBlock &buffer) noexcept
     {
+      ZS_MAYBE_USED(buffer);
       ZS_EVENTING_2(
                     x, i, Debug, DataChannelReceivedControlAck, ol, DataChannel, Receive,
                     puid, id, mID,
@@ -1571,7 +1565,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void DataChannel::forwardDataPacketAsEvent(const SCTPPacketIncoming &packet)
+    void DataChannel::forwardDataPacketAsEvent(const SCTPPacketIncoming &packet) noexcept
     {
       ZS_DECLARE_TYPEDEF_PTR(IDataChannelDelegate::MessageEventData, MessageEventData)
 
@@ -1632,7 +1626,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void DataChannel::outgoingPacketAdded(SCTPPacketOutgoingPtr packet)
+    void DataChannel::outgoingPacketAdded(SCTPPacketOutgoingPtr packet) noexcept
     {
       if (!packet) return;
       if (!packet->mBuffer) return;
@@ -1662,7 +1656,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void DataChannel::outgoingPacketRemoved(SCTPPacketOutgoingPtr packet)
+    void DataChannel::outgoingPacketRemoved(SCTPPacketOutgoingPtr packet) noexcept
     {
       if (!packet) return;
       if (!packet->mBuffer) return;
@@ -1707,12 +1701,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IDataChannelFactory
-    #pragma mark
+    //
+    // IDataChannelFactory
+    //
 
     //-------------------------------------------------------------------------
-    IDataChannelFactory &IDataChannelFactory::singleton()
+    IDataChannelFactory &IDataChannelFactory::singleton() noexcept
     {
       return DataChannelFactory::singleton();
     }
@@ -1722,7 +1716,7 @@ namespace ortc
                                                IDataChannelDelegatePtr delegate,
                                                IDataTransportPtr transport,
                                                const Parameters &params
-                                               )
+                                               ) noexcept(false)
     {
       if (this) {}
       return internal::DataChannel::create(delegate, transport, params);
@@ -1732,7 +1726,7 @@ namespace ortc
     IDataChannelFactory::ForDataTransportPtr IDataChannelFactory::create(
                                                                          UseDataTransportPtr transport,
                                                                          WORD sessionID
-                                                                         )
+                                                                         ) noexcept
     {
       if (this) {}
       return internal::DataChannel::create(transport, sessionID);
@@ -1745,20 +1739,20 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark (helpers)
-  #pragma mark
+  //
+  // (helpers)
+  //
 
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IDataChannelTypes
-  #pragma mark
+  //
+  // IDataChannelTypes
+  //
 
   //---------------------------------------------------------------------------
-  const char *IDataChannelTypes::toString(States state)
+  const char *IDataChannelTypes::toString(States state) noexcept
   {
     switch (state) {
       case IDataChannelTypes::State_Connecting: return "connecting";
@@ -1767,12 +1761,12 @@ namespace ortc
       case IDataChannelTypes::State_Closed:     return "closed";
     }
 
-    ASSERT(false)
+    ZS_ASSERT_FAIL("unknown data channel state.");
     return "UNDEFINED";
   }
 
   //---------------------------------------------------------------------------
-  Optional<IDataChannelTypes::States> IDataChannelTypes::toState(const char *state)
+  Optional<IDataChannelTypes::States> IDataChannelTypes::toState(const char *state) noexcept
   {
     String str(state);
 
@@ -1787,12 +1781,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IDataChannelTypes::Parameters
-  #pragma mark
+  //
+  // IDataChannelTypes::Parameters
+  //
 
   //---------------------------------------------------------------------------
-  IDataChannelTypes::Parameters::Parameters(ElementPtr elem)
+  IDataChannelTypes::Parameters::Parameters(ElementPtr elem) noexcept
   {
     if (!elem) return;
 
@@ -1806,7 +1800,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IDataChannelTypes::Parameters::createElement(const char *objectName) const
+  ElementPtr IDataChannelTypes::Parameters::createElement(const char *objectName) const noexcept
   {
     ElementPtr elem = Element::create(objectName);
 
@@ -1824,13 +1818,13 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IDataChannelTypes::Parameters::toDebug() const
+  ElementPtr IDataChannelTypes::Parameters::toDebug() const noexcept
   {
     return createElement("ortc::IDataChannelTypes::Parameters");
   }
 
   //---------------------------------------------------------------------------
-  String IDataChannelTypes::Parameters::hash() const
+  String IDataChannelTypes::Parameters::hash() const noexcept
   {
     auto hasher = IHasher::sha1();
 
@@ -1856,12 +1850,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IDataChannelTypes
-  #pragma mark
+  //
+  // IDataChannelTypes
+  //
 
   //---------------------------------------------------------------------------
-  ElementPtr IDataChannel::toDebug(IDataChannelPtr transport)
+  ElementPtr IDataChannel::toDebug(IDataChannelPtr transport) noexcept
   {
     return internal::DataChannel::toDebug(internal::DataChannel::convert(transport));
   }
@@ -1871,7 +1865,7 @@ namespace ortc
                                        IDataChannelDelegatePtr delegate,
                                        IDataTransportPtr transport,
                                        const Parameters &params
-                                       ) throw (InvalidParameters, InvalidStateError)
+                                       ) noexcept(false)
   {
     return internal::IDataChannelFactory::singleton().create(delegate, transport, params);
   }

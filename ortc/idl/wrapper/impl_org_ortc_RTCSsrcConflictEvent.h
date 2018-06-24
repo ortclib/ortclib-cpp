@@ -19,13 +19,13 @@ namespace wrapper {
           RTCSsrcConflictEventWeakPtr thisWeak_;
           NativeType native_;
 
-          RTCSsrcConflictEvent();
-          virtual ~RTCSsrcConflictEvent();
+          RTCSsrcConflictEvent() noexcept;
+          virtual ~RTCSsrcConflictEvent() noexcept;
 
           // properties RTCSsrcConflictEvent
-          virtual uint32_t get_ssrc() override;
+          uint32_t get_ssrc() noexcept override;
 
-          static WrapperImplTypePtr toWrapper(NativeType native);
+          static WrapperImplTypePtr toWrapper(NativeType native) noexcept;
         };
 
       } // ortc

@@ -28,12 +28,12 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCIceTransportController::Wrap
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCIceTransportController::WrapperType, WrapperType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCIceTransportController::RTCIceTransportController()
+wrapper::impl::org::ortc::RTCIceTransportController::RTCIceTransportController() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCIceTransportControllerPtr wrapper::org::ortc::RTCIceTransportController::wrapper_create()
+wrapper::org::ortc::RTCIceTransportControllerPtr wrapper::org::ortc::RTCIceTransportController::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::RTCIceTransportController>();
   pThis->thisWeak_ = pThis;
@@ -41,18 +41,18 @@ wrapper::org::ortc::RTCIceTransportControllerPtr wrapper::org::ortc::RTCIceTrans
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCIceTransportController::~RTCIceTransportController()
+wrapper::impl::org::ortc::RTCIceTransportController::~RTCIceTransportController() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCIceTransportController::wrapper_init_org_ortc_RTCIceTransportController()
+void wrapper::impl::org::ortc::RTCIceTransportController::wrapper_init_org_ortc_RTCIceTransportController() noexcept
 {
   native_ = NativeType::create();
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCIceTransportController::addTransport(wrapper::org::ortc::RTCIceTransportPtr transport)
+void wrapper::impl::org::ortc::RTCIceTransportController::addTransport(wrapper::org::ortc::RTCIceTransportPtr transport) noexcept(false)
 {
   return native_->addTransport(RTCIceTransport::toNative(transport));
 }
@@ -61,20 +61,20 @@ void wrapper::impl::org::ortc::RTCIceTransportController::addTransport(wrapper::
 void wrapper::impl::org::ortc::RTCIceTransportController::addTransport(
   wrapper::org::ortc::RTCIceTransportPtr transport,
   uint64_t index
-  )
+  ) noexcept(false)
 {
   size_t native = SafeInt<size_t>(index);
   return native_->addTransport(RTCIceTransport::toNative(transport), native);
 }
 
 //------------------------------------------------------------------------------
-uint64_t wrapper::impl::org::ortc::RTCIceTransportController::get_objectId()
+uint64_t wrapper::impl::org::ortc::RTCIceTransportController::get_objectId() noexcept
 {
   return native_->getID();
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< list< wrapper::org::ortc::RTCIceTransportPtr > > wrapper::impl::org::ortc::RTCIceTransportController::get_transports()
+shared_ptr< list< wrapper::org::ortc::RTCIceTransportPtr > > wrapper::impl::org::ortc::RTCIceTransportController::get_transports() noexcept
 {
   auto result = make_shared< list< wrapper::org::ortc::RTCIceTransportPtr > >();
   auto native = native_->getTransports();
@@ -87,7 +87,7 @@ shared_ptr< list< wrapper::org::ortc::RTCIceTransportPtr > > wrapper::impl::org:
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr track)
+WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr track) noexcept
 {
   if (!track) return WrapperImplTypePtr();
 
@@ -98,7 +98,7 @@ WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr track)
 }
 
 //------------------------------------------------------------------------------
-NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper)
+NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper) noexcept
 {
   if (!wrapper) return NativeTypePtr();
   auto result = std::dynamic_pointer_cast<WrapperImplType>(wrapper);

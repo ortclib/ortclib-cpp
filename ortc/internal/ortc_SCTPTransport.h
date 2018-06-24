@@ -54,32 +54,32 @@ namespace ortc
 {
   namespace internal
   {
-    ZS_DECLARE_CLASS_PTR(SCTPInit)
-    ZS_DECLARE_CLASS_PTR(SCTPTransport)
+    ZS_DECLARE_CLASS_PTR(SCTPInit);
+    ZS_DECLARE_CLASS_PTR(SCTPTransport);
 
-    ZS_DECLARE_STRUCT_PTR(SCTPPacketIncoming)
-    ZS_DECLARE_STRUCT_PTR(SCTPPacketOutgoing)
+    ZS_DECLARE_STRUCT_PTR(SCTPPacketIncoming);
+    ZS_DECLARE_STRUCT_PTR(SCTPPacketOutgoing);
 
-    ZS_DECLARE_INTERACTION_PTR(ISCTPTransportForSettings)
-    ZS_DECLARE_INTERACTION_PTR(ISCTPTransportForDataChannel)
-    ZS_DECLARE_INTERACTION_PTR(ISCTPTransportForSCTPTransportListener)
-    ZS_DECLARE_INTERACTION_PTR(IDataChannelForSCTPTransport)
-    ZS_DECLARE_INTERACTION_PTR(ISCTPTransportListenerForSCTPTransport)
+    ZS_DECLARE_INTERACTION_PTR(ISCTPTransportForSettings);
+    ZS_DECLARE_INTERACTION_PTR(ISCTPTransportForDataChannel);
+    ZS_DECLARE_INTERACTION_PTR(ISCTPTransportForSCTPTransportListener);
+    ZS_DECLARE_INTERACTION_PTR(IDataChannelForSCTPTransport);
+    ZS_DECLARE_INTERACTION_PTR(ISCTPTransportListenerForSCTPTransport);
 
-    ZS_DECLARE_INTERACTION_PTR(IICETransportForDataTransport)
+    ZS_DECLARE_INTERACTION_PTR(IICETransportForDataTransport);
 
-    ZS_DECLARE_INTERACTION_PROXY(ISCTPTransportAsyncDelegate)
-    ZS_DECLARE_INTERACTION_PROXY(ISCTPTransportForDataChannelDelegate)
+    ZS_DECLARE_INTERACTION_PROXY(ISCTPTransportAsyncDelegate);
+    ZS_DECLARE_INTERACTION_PROXY(ISCTPTransportForDataChannelDelegate);
     
-    ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(ISCTPTransportForDataChannelSubscription, ISCTPTransportForDataChannelDelegate)
+    ZS_DECLARE_INTERACTION_PROXY_SUBSCRIPTION(ISCTPTransportForDataChannelSubscription, ISCTPTransportForDataChannelDelegate);
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark PayloadProtocolIdentifier
-    #pragma mark
+    //
+    // PayloadProtocolIdentifier
+    //
 
     enum SCTPPayloadProtocolIdentifier
     {
@@ -96,15 +96,15 @@ namespace ortc
       SCTP_PPID_STRING_PARTIAL = 54,
       SCTP_PPID_STRING_LAST = 51,
     };
-    const char *toString(SCTPPayloadProtocolIdentifier state);
+    const char *toString(SCTPPayloadProtocolIdentifier state) noexcept;
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark SCTPPacketIncoming
-    #pragma mark
+    //
+    // SCTPPacketIncoming
+    //
 
     struct SCTPPacketIncoming
     {
@@ -116,16 +116,16 @@ namespace ortc
       int mFlags {};
       SecureByteBlockPtr mBuffer;
 
-      ElementPtr toDebug() const;
+      ElementPtr toDebug() const noexcept;
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark SCTPPacketOutgoing
-    #pragma mark
+    //
+    // SCTPPacketOutgoing
+    //
 
     struct SCTPPacketOutgoing
     {
@@ -137,94 +137,94 @@ namespace ortc
       Optional<DWORD>     mMaxRetransmits;
       SecureByteBlockPtr  mBuffer;
 
-      ElementPtr toDebug() const;
+      ElementPtr toDebug() const noexcept;
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISCTPTransportForSettings
-    #pragma mark
+    //
+    // ISCTPTransportForSettings
+    //
 
     interaction ISCTPTransportForSettings
     {
       ZS_DECLARE_TYPEDEF_PTR(ISCTPTransportForSettings, ForSettings)
 
-      static void applyDefaults();
+      static void applyDefaults() noexcept;
 
-      virtual ~ISCTPTransportForSettings() {}
+      virtual ~ISCTPTransportForSettings() noexcept {}
     };
     
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISCTPTransportForDataChannel
-    #pragma mark
+    //
+    // ISCTPTransportForDataChannel
+    //
 
     interaction ISCTPTransportForDataChannel
     {
-      ZS_DECLARE_STRUCT_PTR(RejectReason)
+      ZS_DECLARE_STRUCT_PTR(RejectReason);
 
-      ZS_DECLARE_TYPEDEF_PTR(ISCTPTransportForDataChannel, ForDataChannel)
+      ZS_DECLARE_TYPEDEF_PTR(ISCTPTransportForDataChannel, ForDataChannel);
 
-      ZS_DECLARE_TYPEDEF_PTR(IDataChannelForSCTPTransport, UseDataChannel)
+      ZS_DECLARE_TYPEDEF_PTR(IDataChannelForSCTPTransport, UseDataChannel);
 
-      ZS_DECLARE_TYPEDEF_PTR(IDataChannelTypes::Parameters, Parameters)
+      ZS_DECLARE_TYPEDEF_PTR(IDataChannelTypes::Parameters, Parameters);
 
-      static ElementPtr toDebug(ForDataChannelPtr transport);
+      static ElementPtr toDebug(ForDataChannelPtr transport) noexcept;
 
       struct RejectReason : public Any
       {
-        RejectReason(WORD error, const char *reason) : mError(error), mErrorReason(reason) {}
-        static RejectReasonPtr create(WORD error, const char *reason) {return make_shared<RejectReason>(error, reason);}
+        RejectReason(WORD error, const char *reason) noexcept : mError(error), mErrorReason(reason) {}
+        static RejectReasonPtr create(WORD error, const char *reason) noexcept {return make_shared<RejectReason>(error, reason);}
         WORD mError {};
         String mErrorReason;
       };
 
-      virtual PUID getRealID() const = 0;
+      virtual PUID getRealID() const noexcept = 0;
 
       virtual void registerNewDataChannel(
                                           UseDataChannelPtr &ioDataChannel,
                                           WORD &ioSessionID
-                                          ) = 0;
+                                          ) noexcept(false) = 0;
 
-      virtual ISCTPTransportForDataChannelSubscriptionPtr subscribe(ISCTPTransportForDataChannelDelegatePtr delegate) = 0;
+      virtual ISCTPTransportForDataChannelSubscriptionPtr subscribe(ISCTPTransportForDataChannelDelegatePtr delegate) noexcept = 0;
 
-      virtual bool isShuttingDown() const = 0;
-      virtual bool isShutdown() const = 0;
-      virtual bool isReady() const = 0;
+      virtual bool isShuttingDown() const noexcept = 0;
+      virtual bool isShutdown() const noexcept = 0;
+      virtual bool isReady() const noexcept = 0;
 
       virtual void announceIncoming(
                                     UseDataChannelPtr dataChannel,
                                     ParametersPtr params
-                                    ) = 0;
+                                    ) noexcept = 0;
 
-      virtual PromisePtr sendDataNow(SCTPPacketOutgoingPtr packet) = 0;
+      virtual PromisePtr sendDataNow(SCTPPacketOutgoingPtr packet) noexcept = 0;
 
       virtual void requestShutdown(
                                    UseDataChannelPtr dataChannel,
                                    WORD sessionID
-                                   ) = 0;
+                                   ) noexcept = 0;
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISCTPTransportForSCTPTransportListener
-    #pragma mark
+    //
+    // ISCTPTransportForSCTPTransportListener
+    //
 
     interaction ISCTPTransportForSCTPTransportListener
     {
-      ZS_DECLARE_TYPEDEF_PTR(ISCTPTransportForSCTPTransportListener, ForListener)
+      ZS_DECLARE_TYPEDEF_PTR(ISCTPTransportForSCTPTransportListener, ForListener);
 
-      ZS_DECLARE_TYPEDEF_PTR(ISCTPTransportListenerForSCTPTransport, UseListener)
-      ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForDataTransport, UseSecureTransport)
+      ZS_DECLARE_TYPEDEF_PTR(ISCTPTransportListenerForSCTPTransport, UseListener);
+      ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForDataTransport, UseSecureTransport);
 
       ZS_DECLARE_TYPEDEF_PTR(ISCTPTransportTypes::Capabilities, Capabilities);
 
@@ -232,33 +232,33 @@ namespace ortc
                                    UseListenerPtr listener,
                                    UseSecureTransportPtr secureTransport,
                                    WORD localPort
-                                   );
+                                   ) noexcept;
 
-      virtual PUID getRealID() const = 0;
+      virtual PUID getRealID() const noexcept = 0;
 
       virtual void startFromListener(
                                      const Capabilities &remoteCapabilities,
                                      WORD remotePort
-                                     ) throw (InvalidStateError, InvalidParameters) = 0;
+                                     ) noexcept(false) = 0; // throws InvalidStateError, InvalidParameters
 
       virtual bool handleDataPacket(
                                     const BYTE *buffer,
                                     size_t bufferLengthInBytes
-                                    ) = 0;
+                                    ) noexcept = 0;
 
-      virtual void notifyShutdown() = 0;
+      virtual void notifyShutdown() noexcept = 0;
 
-      virtual bool isShuttingDown() const = 0;
-      virtual bool isShutdown() const = 0;
+      virtual bool isShuttingDown() const noexcept = 0;
+      virtual bool isShutdown() const noexcept = 0;
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISCTPTransportAsyncDelegate
-    #pragma mark
+    //
+    // ISCTPTransportAsyncDelegate
+    //
 
     interaction ISCTPTransportAsyncDelegate
     {
@@ -270,9 +270,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISCTPTransportForDataChannelDelegate
-    #pragma mark
+    //
+    // ISCTPTransportForDataChannelDelegate
+    //
 
     interaction ISCTPTransportForDataChannelDelegate
     {
@@ -283,33 +283,33 @@ namespace ortc
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISCTPTransportForDataChannelSubscription
-    #pragma mark
+    //
+    // ISCTPTransportForDataChannelSubscription
+    //
     
     interaction ISCTPTransportForDataChannelSubscription
     {
-      virtual PUID getID() const = 0;
+      virtual PUID getID() const noexcept = 0;
       
-      virtual void cancel() = 0;
+      virtual void cancel() noexcept = 0;
       
-      virtual void background() = 0;
+      virtual void background() noexcept = 0;
     };
   }
 }
 
 ZS_DECLARE_PROXY_BEGIN(ortc::internal::ISCTPTransportAsyncDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::SCTPPacketIncomingPtr, SCTPPacketIncomingPtr)
-ZS_DECLARE_PROXY_METHOD_1(onIncomingPacket, SCTPPacketIncomingPtr)
-ZS_DECLARE_PROXY_METHOD_0(onNotifiedToShutdown)
+ZS_DECLARE_PROXY_METHOD(onIncomingPacket, SCTPPacketIncomingPtr)
+ZS_DECLARE_PROXY_METHOD(onNotifiedToShutdown)
 ZS_DECLARE_PROXY_END()
 
 ZS_DECLARE_PROXY_BEGIN(ortc::internal::ISCTPTransportForDataChannelDelegate)
-ZS_DECLARE_PROXY_METHOD_0(onSCTPTransportStateChanged)
+ZS_DECLARE_PROXY_METHOD(onSCTPTransportStateChanged)
 ZS_DECLARE_PROXY_END()
 
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_BEGIN(ortc::internal::ISCTPTransportForDataChannelDelegate, ortc::internal::ISCTPTransportForDataChannelSubscription)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_0(onSCTPTransportStateChanged)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD(onSCTPTransportStateChanged)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()
 
 namespace ortc
@@ -320,9 +320,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark SCTPTransport
-    #pragma mark
+    //
+    // SCTPTransport
+    //
     
     class SCTPTransport : public Noop,
                           public MessageQueueAssociator,
@@ -386,8 +386,8 @@ namespace ortc
 
         InternalState_Last                  = InternalState_Shutdown,
       };
-      static const char *toString(InternalStates state);
-      ISCTPTransportTypes::States toState(InternalStates state);
+      static const char *toString(InternalStates state) noexcept;
+      ISCTPTransportTypes::States toState(InternalStates state) noexcept;
 
     public:
       SCTPTransport(
@@ -398,104 +398,104 @@ namespace ortc
                     UseSecureTransportPtr secureTransport,
                     WORD localPort = 0,
                     WORD remotePort = 0
-                    );
+                    ) noexcept;
 
-      SCTPTransport(Noop) :
+      SCTPTransport(Noop) noexcept :
         Noop(true),
         MessageQueueAssociator(IMessageQueuePtr()),
         SharedRecursiveLock(SharedRecursiveLock::create())
       {}
 
     protected:
-      void init();
+      void init() noexcept;
 
     public:
-      virtual ~SCTPTransport();
+      virtual ~SCTPTransport() noexcept;
 
-      static SCTPTransportPtr convert(ISCTPTransportPtr object);
-      static SCTPTransportPtr convert(IDataTransportPtr object);
-      static SCTPTransportPtr convert(ForSettingsPtr object);
-      static SCTPTransportPtr convert(ForDataChannelPtr object);
-      static SCTPTransportPtr convert(ForListenerPtr object);
+      static SCTPTransportPtr convert(ISCTPTransportPtr object) noexcept;
+      static SCTPTransportPtr convert(IDataTransportPtr object) noexcept;
+      static SCTPTransportPtr convert(ForSettingsPtr object) noexcept;
+      static SCTPTransportPtr convert(ForDataChannelPtr object) noexcept;
+      static SCTPTransportPtr convert(ForListenerPtr object) noexcept;
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SCTPTransport => IStatsProvider
-      #pragma mark
+      //
+      // SCTPTransport => IStatsProvider
+      //
 
-      PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const override;
+      PromiseWithStatsReportPtr getStats(const StatsTypeSet &stats = StatsTypeSet()) const noexcept override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SCTPTransport => ISCTPTransport
-      #pragma mark
+      //
+      // SCTPTransport => ISCTPTransport
+      //
 
-      static ElementPtr toDebug(SCTPTransportPtr transport);
+      static ElementPtr toDebug(SCTPTransportPtr transport) noexcept;
 
       static ISCTPTransportPtr create(
                                       ISCTPTransportDelegatePtr delegate,
                                       IDTLSTransportPtr transport,
                                       WORD localPort = 0
-                                      ) throw (InvalidParameters, InvalidStateError);
+                                      ) noexcept(false); // throws InvalidParameters, InvalidStateError
 
-      PUID getID() const override;
+      PUID getID() const noexcept override;
 
-      IDTLSTransportPtr transport() const override;
-      ISCTPTransportTypes::States state() const override;
+      IDTLSTransportPtr transport() const noexcept override;
+      ISCTPTransportTypes::States state() const noexcept override;
 
-      WORD port() const override;
+      WORD port() const noexcept override;
 
-      WORD localPort() const override;
-      Optional<WORD> remotePort() const override;
+      WORD localPort() const noexcept override;
+      Optional<WORD> remotePort() const noexcept override;
 
-      PromiseWithSocketOptionsPtr getOptions(const SocketOptions &inWhichOptions) override;
-      PromisePtr setOptions(const SocketOptions &inOptions) override;
+      PromiseWithSocketOptionsPtr getOptions(const SocketOptions &inWhichOptions) noexcept override;
+      PromisePtr setOptions(const SocketOptions &inOptions) noexcept override;
 
-      virtual void start(
-                         const Capabilities &remoteCapabilities,
-                         WORD remotePort
-                         ) throw (InvalidStateError, InvalidParameters) override;
-      void stop() override;
+      void start(
+                 const Capabilities &remoteCapabilities,
+                 WORD remotePort
+                 ) noexcept(false) override; // throws InvalidStateError, InvalidParameters
+      void stop() noexcept override;
 
-      ISCTPTransportSubscriptionPtr subscribe(ISCTPTransportDelegatePtr delegate) override;
+      ISCTPTransportSubscriptionPtr subscribe(ISCTPTransportDelegatePtr delegate) noexcept override;
 
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SCTPTransport => ISCTPTransportForDataChannel
-      #pragma mark
+      //
+      // SCTPTransport => ISCTPTransportForDataChannel
+      //
 
       // (duplciate) static ElementPtr toDebug(ForDataChannelPtr transport);
 
       void registerNewDataChannel(
                                   UseDataChannelPtr &ioDataChannel,
                                   WORD &ioSessionID
-                                  ) override;
+                                  ) noexcept(false) override; // throws InvalidParameters
 
-      PUID getRealID() const override { return mID; }
-      ISCTPTransportForDataChannelSubscriptionPtr subscribe(ISCTPTransportForDataChannelDelegatePtr delegate) override;
+      PUID getRealID() const noexcept override { return mID; }
+      ISCTPTransportForDataChannelSubscriptionPtr subscribe(ISCTPTransportForDataChannelDelegatePtr delegate) noexcept override;
 
-      // (duplicate) virtual bool isShuttingDown() const override;
-      // (duplicate) virtual bool isShutdown() const override;
-      bool isReady() const override;
+      // (duplicate) virtual bool isShuttingDown() const noexcept override;
+      // (duplicate) virtual bool isShutdown() const noexcept override;
+      bool isReady() const noexcept override;
 
       void announceIncoming(
                             UseDataChannelPtr dataChannel,
                             ParametersPtr params
-                            ) override;
+                            ) noexcept override;
 
-      PromisePtr sendDataNow(SCTPPacketOutgoingPtr packet) override;
+      PromisePtr sendDataNow(SCTPPacketOutgoingPtr packet) noexcept override;
 
       void requestShutdown(
                            UseDataChannelPtr dataChannel,
                            WORD sessionID
-                           ) override;
+                           ) noexcept override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SCTPTransport => ISCTPTransportForSCTPTransportListener
-      #pragma mark
+      //
+      // SCTPTransport => ISCTPTransportForSCTPTransportListener
+      //
 
       // (duplicate) virtual PUID getID() const = 0;
 
@@ -503,81 +503,81 @@ namespace ortc
                                    UseListenerPtr listener,
                                    UseSecureTransportPtr secureTransport,
                                    WORD localPort
-                                   );
+                                   ) noexcept;
 
       void startFromListener(
                              const Capabilities &remoteCapabilities,
                              WORD remotePort
-                             ) throw (InvalidStateError, InvalidParameters) override;
+                             ) noexcept(false) override; // throws InvalidStateError, InvalidParameters
 
       bool handleDataPacket(
                             const BYTE *buffer,
                             size_t bufferLengthInBytes
-                            ) override;
+                            ) noexcept override;
 
-      void notifyShutdown() override;
+      void notifyShutdown() noexcept override;
 
-      // (duplicate) virtual bool isShuttingDown() const = 0;
-      // (duplicate) virtual bool isShutdown() const = 0;
+      // (duplicate) virtual bool isShuttingDown() const noexcept = 0;
+      // (duplicate) virtual bool isShutdown() const noexcept = 0;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SCTPTransport => friend SCTPInit
-      #pragma mark
+      //
+      // SCTPTransport => friend SCTPInit
+      //
 
       bool notifySendSCTPPacket(
                                 const BYTE *buffer,
                                 size_t bufferLengthInBytes
-                                );
+                                ) noexcept;
       
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SCTPTransport => ISCTPTransportDelegate
-      #pragma mark
+      //
+      // SCTPTransport => ISCTPTransportDelegate
+      //
 
-      virtual void onSCTPTransportStateChange(
-                                              ISCTPTransportPtr transport,
-                                              ISCTPTransportTypes::States state
-                                              ) override;
-      virtual void onSCTPTransportDataChannel(
-                                              ISCTPTransportPtr transport,
-                                              IDataChannelPtr channel
-                                              ) override;
+      void onSCTPTransportStateChange(
+                                      ISCTPTransportPtr transport,
+                                      ISCTPTransportTypes::States state
+                                      ) override;
+      void onSCTPTransportDataChannel(
+                                      ISCTPTransportPtr transport,
+                                      IDataChannelPtr channel
+                                      ) override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SCTPTransport => IWakeDelegate
-      #pragma mark
+      //
+      // SCTPTransport => IWakeDelegate
+      //
 
       void onWake() override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SCTPTransport => ITimerDelegate
-      #pragma mark
+      //
+      // SCTPTransport => ITimerDelegate
+      //
 
       void onTimer(ITimerPtr timer) override;
 
       
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SCTPTransport => ISCTPTransportAsyncDelegate
-      #pragma mark
+      //
+      // SCTPTransport => ISCTPTransportAsyncDelegate
+      //
 
       void onIncomingPacket(SCTPPacketIncomingPtr packet) override;
       void onNotifiedToShutdown() override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SCTPTransport => (friend SCTPInit)
-      #pragma mark
+      //
+      // SCTPTransport => (friend SCTPInit)
+      //
 
-      virtual IMessageQueuePtr getDeliveryQueue() const { return mDeliveryQueue; }
+      virtual IMessageQueuePtr getDeliveryQueue() const noexcept { return mDeliveryQueue; }
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SCTPTransport => ISecureTransportDelegate
-      #pragma mark
+      //
+      // SCTPTransport => ISecureTransportDelegate
+      //
 
       void onSecureTransportStateChanged(
                                          ISecureTransportPtr transport,
@@ -585,55 +585,55 @@ namespace ortc
                                          ) override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SCTPTransport => (internal)
-      #pragma mark
+      //
+      // SCTPTransport => (internal)
+      //
 
-      Log::Params log(const char *message) const;
-      static Log::Params slog(const char *message);
-      Log::Params debug(const char *message) const;
-      virtual ElementPtr toDebug() const;
+      Log::Params log(const char *message) const noexcept;
+      static Log::Params slog(const char *message) noexcept;
+      Log::Params debug(const char *message) const noexcept;
+      virtual ElementPtr toDebug() const noexcept;
 
-      bool isShuttingDown() const override;
-      bool isShutdown() const override;
+      bool isShuttingDown() const noexcept override;
+      bool isShutdown() const noexcept override;
 
-      void step();
-      bool stepStartCalled();
-      bool stepSecureTransport();
-      bool stepOpen();
-      bool stepDeliverIncomingPackets();
-      bool stepConnected();
-      bool stepResetStream();
+      void step() noexcept;
+      bool stepStartCalled() noexcept;
+      bool stepSecureTransport() noexcept;
+      bool stepOpen() noexcept;
+      bool stepDeliverIncomingPackets() noexcept;
+      bool stepConnected() noexcept;
+      bool stepResetStream() noexcept;
 
-      void cancel();
+      void cancel() noexcept;
 
-      void setState(InternalStates state);
-      void setError(WORD error, const char *reason = NULL);
+      void setState(InternalStates state) noexcept;
+      void setError(WORD error, const char *reason = NULL) noexcept;
 
-      bool openConnectSCTPSocket();
-      bool openSCTPSocket();
-      bool prepareSocket(struct socket *sock);
+      bool openConnectSCTPSocket() noexcept;
+      bool openSCTPSocket() noexcept;
+      bool prepareSocket(struct socket *sock) noexcept;
 
-      bool isSessionAvailable(WORD sessionID);
+      bool isSessionAvailable(WORD sessionID) noexcept;
       bool attemptSend(
                        const SCTPPacketOutgoing &inPacket,
                        bool &outWouldBlock
-                       );
-      void notifyWriteReady();
+                       ) noexcept;
+      void notifyWriteReady() noexcept;
 
-      void handleNotificationPacket(const sctp_notification &notification);
-      void handleNotificationAssocChange(const sctp_assoc_change &change);
-      void handleStreamResetEvent(const sctp_stream_reset_event &event);
+      void handleNotificationPacket(const sctp_notification &notification) noexcept;
+      void handleNotificationAssocChange(const sctp_assoc_change &change) noexcept;
+      void handleStreamResetEvent(const sctp_stream_reset_event &event) noexcept;
 
-      virtual bool internalGetOptions(SocketOptions &ioOptions) const;
-      virtual bool internalSetOptions(const SocketOptions &inOptions);
+      virtual bool internalGetOptions(SocketOptions &ioOptions) const noexcept;
+      virtual bool internalSetOptions(const SocketOptions &inOptions) noexcept;
 
     public:
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SCTPTransport::TearAwayData
-      #pragma mark
+      //
+      // SCTPTransport::TearAwayData
+      //
 
       struct TearAwayData
       {
@@ -642,9 +642,9 @@ namespace ortc
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SCTPTransport => (data)
-      #pragma mark
+      //
+      // SCTPTransport => (data)
+      //
 
       AutoPUID mID;
       mutable std::atomic<bool> mObtainedID {};
@@ -723,31 +723,31 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISCTPTransportFactory
-    #pragma mark
+    //
+    // ISCTPTransportFactory
+    //
 
     interaction ISCTPTransportFactory
     {
       typedef ISCTPTransportTypes::CapabilitiesPtr CapabilitiesPtr;
 
-      ZS_DECLARE_TYPEDEF_PTR(ISCTPTransportForSCTPTransportListener, ForListener)
-      ZS_DECLARE_TYPEDEF_PTR(ISCTPTransportListenerForSCTPTransport, UseListener)
-      ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForDataTransport, UseSecureTransport)
+      ZS_DECLARE_TYPEDEF_PTR(ISCTPTransportForSCTPTransportListener, ForListener);
+      ZS_DECLARE_TYPEDEF_PTR(ISCTPTransportListenerForSCTPTransport, UseListener);
+      ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForDataTransport, UseSecureTransport);
 
-      static ISCTPTransportFactory &singleton();
+      static ISCTPTransportFactory &singleton() noexcept;
 
       virtual ForListenerPtr create(
                                     UseListenerPtr listener,
                                     UseSecureTransportPtr secureTransport,
                                     WORD localPort
-                                    );
+                                    ) noexcept;
 
       virtual ISCTPTransportPtr create(
                                        ISCTPTransportDelegatePtr delegate,
                                        IDTLSTransportPtr transport,
                                        WORD localPort = 0
-                                       );
+                                       ) noexcept;
     };
 
     class SCTPTransportFactory : public IFactory<ISCTPTransportFactory> {};
@@ -763,24 +763,24 @@ ZS_DECLARE_TEAR_AWAY_TYPEDEF(ortc::ISCTPTransportDelegatePtr, ISCTPTransportDele
 ZS_DECLARE_TEAR_AWAY_TYPEDEF(ortc::ISCTPTransportTypes::Capabilities, Capabilities)
 ZS_DECLARE_TEAR_AWAY_TYPEDEF(ortc::IDTLSTransportPtr, IDTLSTransportPtr)
 ZS_DECLARE_TEAR_AWAY_TYPEDEF(ortc::ISCTPTransportTypes::States, States)
-ZS_DECLARE_TEAR_AWAY_METHOD_CONST_RETURN_1(getStats, PromiseWithStatsReportPtr, const StatsTypeSet &)
-ZS_DECLARE_TEAR_AWAY_METHOD_CONST_RETURN_0(getID, PUID)
-ZS_DECLARE_TEAR_AWAY_METHOD_CONST_RETURN_0(transport, IDTLSTransportPtr)
-ZS_DECLARE_TEAR_AWAY_METHOD_CONST_RETURN_0(state, States)
-ZS_DECLARE_TEAR_AWAY_METHOD_CONST_RETURN_0(port, WORD)
-ZS_DECLARE_TEAR_AWAY_METHOD_CONST_RETURN_0(localPort, WORD)
-ZS_DECLARE_TEAR_AWAY_METHOD_CONST_RETURN_0(remotePort, Optional<WORD>)
-  PromiseWithSocketOptionsPtr getOptions(const SocketOptions &inWhichOptions) override
+ZS_DECLARE_TEAR_AWAY_METHOD_RETURN_CONST(getStats, PromiseWithStatsReportPtr, const StatsTypeSet &)
+ZS_DECLARE_TEAR_AWAY_METHOD_RETURN_CONST(getID, PUID)
+ZS_DECLARE_TEAR_AWAY_METHOD_RETURN_CONST(transport, IDTLSTransportPtr)
+ZS_DECLARE_TEAR_AWAY_METHOD_RETURN_CONST(state, States)
+ZS_DECLARE_TEAR_AWAY_METHOD_RETURN_CONST(port, WORD)
+ZS_DECLARE_TEAR_AWAY_METHOD_RETURN_CONST(localPort, WORD)
+ZS_DECLARE_TEAR_AWAY_METHOD_RETURN_CONST(remotePort, Optional<WORD>)
+  PromiseWithSocketOptionsPtr getOptions(const SocketOptions &inWhichOptions) noexcept override
   {
     return getDelegate()->getOptions(inWhichOptions);
   }
-  PromisePtr setOptions(const SocketOptions &inOptions) override
+  PromisePtr setOptions(const SocketOptions &inOptions) noexcept override
   {
     return getDelegate()->setOptions(inOptions);
   }
-  void start(const Capabilities & v1, WORD v2) throw (ortc::InvalidStateError, ortc::InvalidParameters) override {
+  void start(const Capabilities & v1, WORD v2) noexcept(false) override { // throws ortc::InvalidStateError, ortc::InvalidParameters
     getDelegate()->start(v1, v2);
   }
-ZS_DECLARE_TEAR_AWAY_METHOD_0(stop)
-ZS_DECLARE_TEAR_AWAY_METHOD_RETURN_1(subscribe, ISCTPTransportSubscriptionPtr, ISCTPTransportDelegatePtr)
+ZS_DECLARE_TEAR_AWAY_METHOD_SYNC(stop)
+ZS_DECLARE_TEAR_AWAY_METHOD_RETURN(subscribe, ISCTPTransportSubscriptionPtr, ISCTPTransportDelegatePtr)
 ZS_DECLARE_TEAR_AWAY_END()

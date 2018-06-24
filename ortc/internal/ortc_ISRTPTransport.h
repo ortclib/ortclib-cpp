@@ -48,9 +48,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISRTPTransportTypes
-    #pragma mark
+    //
+    // ISRTPTransportTypes
+    //
     
     interaction ISRTPTransportTypes
     {
@@ -60,22 +60,22 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISRTPTransport
-    #pragma mark
+    //
+    // ISRTPTransport
+    //
 
     interaction ISRTPTransport : public ISRTPTransportTypes
     {
-      virtual PUID getID() const = 0;
+      virtual PUID getID() const noexcept = 0;
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISRTPTransportDelegate
-    #pragma mark
+    //
+    // ISRTPTransportDelegate
+    //
 
     interaction ISRTPTransportDelegate
     {
@@ -90,27 +90,27 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISRTPTransportSubscription
-    #pragma mark
+    //
+    // ISRTPTransportSubscription
+    //
 
     interaction ISRTPTransportSubscription
     {
-      virtual PUID getID() const = 0;
+      virtual PUID getID() const noexcept = 0;
 
-      virtual void cancel() = 0;
+      virtual void cancel() noexcept = 0;
 
-      virtual void background() = 0;
+      virtual void background() noexcept = 0;
     };
   }
 }
 
 ZS_DECLARE_PROXY_BEGIN(ortc::internal::ISRTPTransportDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::ISRTPTransportPtr, ISRTPTransportPtr)
-ZS_DECLARE_PROXY_METHOD_3(onSRTPTransportLifetimeRemaining, ISRTPTransportPtr, ULONG, ULONG)
+ZS_DECLARE_PROXY_METHOD(onSRTPTransportLifetimeRemaining, ISRTPTransportPtr, ULONG, ULONG)
 ZS_DECLARE_PROXY_END()
 
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_BEGIN(ortc::internal::ISRTPTransportDelegate, ortc::internal::ISRTPTransportSubscription)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::internal::ISRTPTransportPtr, ISRTPTransportPtr)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_3(onSRTPTransportLifetimeRemaining, ISRTPTransportPtr, ULONG, ULONG)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD(onSRTPTransportLifetimeRemaining, ISRTPTransportPtr, ULONG, ULONG)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()

@@ -27,12 +27,12 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::adapter::RTCTrackEvent::Wrapper
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::adapter::RTCTrackEvent::WrapperType, WrapperType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::adapter::RTCTrackEvent::RTCTrackEvent()
+wrapper::impl::org::ortc::adapter::RTCTrackEvent::RTCTrackEvent() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::adapter::RTCTrackEventPtr wrapper::org::ortc::adapter::RTCTrackEvent::wrapper_create()
+wrapper::org::ortc::adapter::RTCTrackEventPtr wrapper::org::ortc::adapter::RTCTrackEvent::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::adapter::RTCTrackEvent>();
   pThis->thisWeak_ = pThis;
@@ -40,24 +40,24 @@ wrapper::org::ortc::adapter::RTCTrackEventPtr wrapper::org::ortc::adapter::RTCTr
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::adapter::RTCTrackEvent::~RTCTrackEvent()
+wrapper::impl::org::ortc::adapter::RTCTrackEvent::~RTCTrackEvent() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCRtpReceiverPtr wrapper::impl::org::ortc::adapter::RTCTrackEvent::get_receiver()
+wrapper::org::ortc::RTCRtpReceiverPtr wrapper::impl::org::ortc::adapter::RTCTrackEvent::get_receiver() noexcept
 {
   return wrapper::impl::org::ortc::RTCRtpReceiver::toWrapper(native_->mReceiver);
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::MediaStreamTrackPtr wrapper::impl::org::ortc::adapter::RTCTrackEvent::get_track()
+wrapper::org::ortc::MediaStreamTrackPtr wrapper::impl::org::ortc::adapter::RTCTrackEvent::get_track() noexcept
 {
   return wrapper::impl::org::ortc::MediaStreamTrack::toWrapper(native_->mTrack);
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< list< wrapper::org::ortc::adapter::MediaStreamPtr > > wrapper::impl::org::ortc::adapter::RTCTrackEvent::get_mediaStreams()
+shared_ptr< list< wrapper::org::ortc::adapter::MediaStreamPtr > > wrapper::impl::org::ortc::adapter::RTCTrackEvent::get_mediaStreams() noexcept
 {
   auto result = make_shared< list< wrapper::org::ortc::adapter::MediaStreamPtr > >();
   for (auto iter = native_->mMediaStreams.begin(); iter != native_->mMediaStreams.end(); ++iter) {
@@ -69,7 +69,7 @@ shared_ptr< list< wrapper::org::ortc::adapter::MediaStreamPtr > > wrapper::impl:
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr native)
+WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr native) noexcept
 {
   if (!native) return WrapperImplTypePtr();
   auto pThis = make_shared<WrapperImplType>();
@@ -79,7 +79,7 @@ WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr native)
 }
 
 //------------------------------------------------------------------------------
-NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper)
+NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper) noexcept
 {
   if (!wrapper) return NativeTypePtr();
 

@@ -19,23 +19,23 @@ namespace wrapper {
           RTCIceCandidateCompleteWeakPtr thisWeak_;
           NativeTypePtr native_;
 
-          RTCIceCandidateComplete();
-          virtual ~RTCIceCandidateComplete();
+          RTCIceCandidateComplete() noexcept;
+          virtual ~RTCIceCandidateComplete() noexcept;
 
           // methods RTCIceGathererCandidate
-          virtual wrapper::org::ortc::JsonPtr toJson() override;
-          virtual String hash() override;
+          wrapper::org::ortc::JsonPtr toJson() noexcept override;
+          String hash() noexcept override;
 
           // properties RTCIceGathererCandidate
-          virtual wrapper::org::ortc::RTCIceComponent get_component() override;
-          virtual void wrapper_init_org_ortc_RTCIceCandidateComplete() override;
+          wrapper::org::ortc::RTCIceComponent get_component() noexcept override;
+          void wrapper_init_org_ortc_RTCIceCandidateComplete() noexcept override;
 
           // properties RTCIceCandidateComplete
-          virtual bool get_complete() override;
+          bool get_complete() noexcept override;
 
-          static WrapperImplTypePtr toWrapper(NativeTypePtr native);
-          static NativeTypePtr toNative(WrapperTypePtr wrapper);
-          static NativeTypePtr toNative(wrapper::org::ortc::RTCIceGathererCandidatePtr wrapper);
+          static WrapperImplTypePtr toWrapper(NativeTypePtr native) noexcept;
+          static NativeTypePtr toNative(WrapperTypePtr wrapper) noexcept;
+          static NativeTypePtr toNative(wrapper::org::ortc::RTCIceGathererCandidatePtr wrapper) noexcept;
         };
 
       } // ortc

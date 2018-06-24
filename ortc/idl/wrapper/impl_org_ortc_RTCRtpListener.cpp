@@ -31,12 +31,12 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCRtpListener::WrapperImplType
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCRtpListener::WrapperType, WrapperType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCRtpListener::RTCRtpListener()
+wrapper::impl::org::ortc::RTCRtpListener::RTCRtpListener() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCRtpListenerPtr wrapper::org::ortc::RTCRtpListener::wrapper_create()
+wrapper::org::ortc::RTCRtpListenerPtr wrapper::org::ortc::RTCRtpListener::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::RTCRtpListener>();
   pThis->thisWeak_ = pThis;
@@ -44,18 +44,18 @@ wrapper::org::ortc::RTCRtpListenerPtr wrapper::org::ortc::RTCRtpListener::wrappe
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCRtpListener::~RTCRtpListener()
+wrapper::impl::org::ortc::RTCRtpListener::~RTCRtpListener() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > wrapper::impl::org::ortc::RTCRtpListener::getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes)
+shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > wrapper::impl::org::ortc::RTCRtpListener::getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept(false)
 {
   return Helper::getStats(native_, statTypes);
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCRtpListener::wrapper_init_org_ortc_RTCRtpListener(wrapper::org::ortc::RTCRtpTransportPtr transport)
+void wrapper::impl::org::ortc::RTCRtpListener::wrapper_init_org_ortc_RTCRtpListener(wrapper::org::ortc::RTCRtpTransportPtr transport) noexcept
 {
   native_ = NativeType::create(thisWeak_.lock(), RTCRtpTransport::toNative(transport));
 }
@@ -64,7 +64,7 @@ void wrapper::impl::org::ortc::RTCRtpListener::wrapper_init_org_ortc_RTCRtpListe
 void wrapper::impl::org::ortc::RTCRtpListener::wrapper_init_org_ortc_RTCRtpListener(
   wrapper::org::ortc::RTCRtpTransportPtr transport,
   shared_ptr< list< wrapper::org::ortc::RTCRtpHeaderExtensionParametersPtr > > headerExtensions
-  )
+  ) noexcept(false)
 {
   ::ortc::IRTPTypes::HeaderExtensionParametersList nativeList;
   if (headerExtensions) {
@@ -78,7 +78,7 @@ void wrapper::impl::org::ortc::RTCRtpListener::wrapper_init_org_ortc_RTCRtpListe
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCRtpListener::setHeaderExtensions(shared_ptr< list< wrapper::org::ortc::RTCRtpHeaderExtensionParametersPtr > > headerExtensions)
+void wrapper::impl::org::ortc::RTCRtpListener::setHeaderExtensions(shared_ptr< list< wrapper::org::ortc::RTCRtpHeaderExtensionParametersPtr > > headerExtensions) noexcept(false)
 {
   ::ortc::IRTPTypes::HeaderExtensionParametersList nativeList;
   if (headerExtensions) {
@@ -92,19 +92,19 @@ void wrapper::impl::org::ortc::RTCRtpListener::setHeaderExtensions(shared_ptr< l
 }
 
 //------------------------------------------------------------------------------
-uint64_t wrapper::impl::org::ortc::RTCRtpListener::get_objectId()
+uint64_t wrapper::impl::org::ortc::RTCRtpListener::get_objectId() noexcept
 {
   return native_->getID();
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCRtpTransportPtr wrapper::impl::org::ortc::RTCRtpListener::get_transport()
+wrapper::org::ortc::RTCRtpTransportPtr wrapper::impl::org::ortc::RTCRtpListener::get_transport() noexcept
 {
   return RTCRtpTransport::toWrapper(native_->transport());
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCRtpListener::wrapper_onObserverCountChanged(size_t count)
+void wrapper::impl::org::ortc::RTCRtpListener::wrapper_onObserverCountChanged(size_t count) noexcept
 {
   subscriptionCount_ = count;
   subscribe();
@@ -117,13 +117,13 @@ void WrapperImplType::onRTPListenerUnhandledRTP(
   PayloadType payloadType,
   const char *mid,
   const char *rid
-)
+) noexcept
 {
   onUnhandled(RTCRtpUnhandledEvent::toWrapper(ssrc, payloadType, mid, rid));
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr track)
+WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr track) noexcept
 {
   if (!track) return WrapperImplTypePtr();
 
@@ -136,7 +136,7 @@ WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr track)
 }
 
 //------------------------------------------------------------------------------
-NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper)
+NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper) noexcept
 {
   if (!wrapper) return NativeTypePtr();
   auto result = std::dynamic_pointer_cast<WrapperImplType>(wrapper);
@@ -145,7 +145,7 @@ NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper)
 }
 
 //------------------------------------------------------------------------------
-void WrapperImplType::subscribe()
+void WrapperImplType::subscribe() noexcept
 {
   if (defaultSubscription_) return;
   if (!native_) return;

@@ -18,13 +18,13 @@ namespace wrapper {
           RTCIceCandidatePairChangeEventWeakPtr thisWeak_;
           ::ortc::IICETransportTypes::CandidatePairPtr candidatePair_;
 
-          RTCIceCandidatePairChangeEvent();
-          virtual ~RTCIceCandidatePairChangeEvent();
+          RTCIceCandidatePairChangeEvent() noexcept;
+          virtual ~RTCIceCandidatePairChangeEvent() noexcept;
 
           // properties RTCIceCandidatePairChangeEvent
-          virtual wrapper::org::ortc::RTCIceCandidatePairPtr get_candidatePair() override;
+          wrapper::org::ortc::RTCIceCandidatePairPtr get_candidatePair() noexcept override;
 
-          static WrapperImplTypePtr toWrapper(::ortc::IICETransportTypes::CandidatePairPtr candidatePair);
+          static WrapperImplTypePtr toWrapper(::ortc::IICETransportTypes::CandidatePairPtr candidatePair) noexcept;
         };
 
       } // ortc

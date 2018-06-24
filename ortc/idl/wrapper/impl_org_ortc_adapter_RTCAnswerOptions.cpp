@@ -20,12 +20,12 @@ using ::std::set;
 using ::std::map;
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::adapter::RTCAnswerOptions::RTCAnswerOptions()
+wrapper::impl::org::ortc::adapter::RTCAnswerOptions::RTCAnswerOptions() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::adapter::RTCAnswerOptionsPtr wrapper::org::ortc::adapter::RTCAnswerOptions::wrapper_create()
+wrapper::org::ortc::adapter::RTCAnswerOptionsPtr wrapper::org::ortc::adapter::RTCAnswerOptions::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::adapter::RTCAnswerOptions>();
   pThis->thisWeak_ = pThis;
@@ -33,24 +33,24 @@ wrapper::org::ortc::adapter::RTCAnswerOptionsPtr wrapper::org::ortc::adapter::RT
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::adapter::RTCAnswerOptions::~RTCAnswerOptions()
+wrapper::impl::org::ortc::adapter::RTCAnswerOptions::~RTCAnswerOptions() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::adapter::RTCAnswerOptions::wrapper_init_org_ortc_adapter_RTCAnswerOptions()
+void wrapper::impl::org::ortc::adapter::RTCAnswerOptions::wrapper_init_org_ortc_adapter_RTCAnswerOptions() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::adapter::RTCAnswerOptions::WrapperImplTypePtr wrapper::impl::org::ortc::adapter::RTCAnswerOptions::toWrapper(NativeTypePtr native)
+wrapper::impl::org::ortc::adapter::RTCAnswerOptions::WrapperImplTypePtr wrapper::impl::org::ortc::adapter::RTCAnswerOptions::toWrapper(NativeTypePtr native) noexcept
 {
   if (!native) return WrapperImplTypePtr();
   return toWrapper(*native);
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::adapter::RTCAnswerOptions::WrapperImplTypePtr wrapper::impl::org::ortc::adapter::RTCAnswerOptions::toWrapper(const NativeType &native)
+wrapper::impl::org::ortc::adapter::RTCAnswerOptions::WrapperImplTypePtr wrapper::impl::org::ortc::adapter::RTCAnswerOptions::toWrapper(const NativeType &native) noexcept
 {
   auto pThis = make_shared<WrapperImplType>();
   pThis->thisWeak_ = pThis;
@@ -59,7 +59,7 @@ wrapper::impl::org::ortc::adapter::RTCAnswerOptions::WrapperImplTypePtr wrapper:
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::adapter::RTCAnswerOptions::NativeTypePtr wrapper::impl::org::ortc::adapter::RTCAnswerOptions::toNative(WrapperTypePtr wrapper)
+wrapper::impl::org::ortc::adapter::RTCAnswerOptions::NativeTypePtr wrapper::impl::org::ortc::adapter::RTCAnswerOptions::toNative(WrapperTypePtr wrapper) noexcept
 {
   if (!wrapper) return NativeTypePtr();
   auto result = make_shared < NativeType >();

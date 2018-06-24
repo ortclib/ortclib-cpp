@@ -19,24 +19,24 @@ namespace wrapper {
           RTCIceCandidatePairWeakPtr thisWeak_;
           NativeTypePtr native_;
 
-          RTCIceCandidatePair();
-          virtual ~RTCIceCandidatePair();
+          RTCIceCandidatePair() noexcept;
+          virtual ~RTCIceCandidatePair() noexcept;
 
           // methods RTCIceCandidatePair
-          virtual void wrapper_init_org_ortc_RTCIceCandidatePair() override;
-          virtual void wrapper_init_org_ortc_RTCIceCandidatePair(wrapper::org::ortc::RTCIceCandidatePairPtr source) override;
-          virtual void wrapper_init_org_ortc_RTCIceCandidatePair(wrapper::org::ortc::JsonPtr json) override;
-          virtual wrapper::org::ortc::JsonPtr toJson() override;
-          virtual String hash() override;
+          void wrapper_init_org_ortc_RTCIceCandidatePair() noexcept override;
+          void wrapper_init_org_ortc_RTCIceCandidatePair(wrapper::org::ortc::RTCIceCandidatePairPtr source) noexcept override;
+          void wrapper_init_org_ortc_RTCIceCandidatePair(wrapper::org::ortc::JsonPtr json) noexcept override;
+          wrapper::org::ortc::JsonPtr toJson() noexcept override;
+          String hash() noexcept override;
 
           // properties RTCIceCandidatePair
-          virtual wrapper::org::ortc::RTCIceCandidatePtr get_local() override;
-          virtual void set_local(wrapper::org::ortc::RTCIceCandidatePtr value) override;
-          virtual wrapper::org::ortc::RTCIceCandidatePtr get_remote() override;
-          virtual void set_remote(wrapper::org::ortc::RTCIceCandidatePtr value) override;
+          wrapper::org::ortc::RTCIceCandidatePtr get_local() noexcept override;
+          void set_local(wrapper::org::ortc::RTCIceCandidatePtr value) noexcept override;
+          wrapper::org::ortc::RTCIceCandidatePtr get_remote() noexcept override;
+          void set_remote(wrapper::org::ortc::RTCIceCandidatePtr value) noexcept override;
 
-          static WrapperImplTypePtr toWrapper(NativeTypePtr native);
-          static NativeTypePtr toNative(WrapperTypePtr wrapper);
+          static WrapperImplTypePtr toWrapper(NativeTypePtr native) noexcept;
+          static NativeTypePtr toNative(WrapperTypePtr wrapper) noexcept;
         };
 
       } // ortc

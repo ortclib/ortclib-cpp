@@ -26,27 +26,27 @@ namespace wrapper {
           bool defaultSubscription_{ true };
           NativeTypeSubscriptionPtr subscription_;
 
-          RTCIceGatherer();
-          virtual ~RTCIceGatherer();
+          RTCIceGatherer() noexcept;
+          virtual ~RTCIceGatherer() noexcept;
 
           // methods RTCStatsProvider
-          virtual shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) override;
+          shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept(false) override;
 
           // methods RTCIceGatherer
-          virtual void wrapper_init_org_ortc_RTCIceGatherer(wrapper::org::ortc::RTCIceGatherOptionsPtr options) override;
-          virtual wrapper::org::ortc::RTCIceGathererPtr createAssociatedGatherer() override;
-          virtual void gather() override;
-          virtual void gather(wrapper::org::ortc::RTCIceGatherOptionsPtr options) override;
-          virtual void close() override;
+          void wrapper_init_org_ortc_RTCIceGatherer(wrapper::org::ortc::RTCIceGatherOptionsPtr options) noexcept(false) override;
+          wrapper::org::ortc::RTCIceGathererPtr createAssociatedGatherer() noexcept(false) override;
+          void gather() noexcept override;
+          void gather(wrapper::org::ortc::RTCIceGatherOptionsPtr options) noexcept override;
+          void close() noexcept override;
 
           // properties RTCIceGatherer
-          virtual uint64_t get_objectId() override;
-          virtual wrapper::org::ortc::RTCIceComponent get_component() override;
-          virtual wrapper::org::ortc::RTCIceGathererState get_state() override;
-          virtual wrapper::org::ortc::RTCIceParametersPtr get_localParameters() override;
-          virtual shared_ptr< list< wrapper::org::ortc::RTCIceCandidatePtr > > get_localCandidates() override;
+          uint64_t get_objectId() noexcept override;
+          wrapper::org::ortc::RTCIceComponent get_component() noexcept override;
+          wrapper::org::ortc::RTCIceGathererState get_state() noexcept override;
+          wrapper::org::ortc::RTCIceParametersPtr get_localParameters() noexcept override;
+          shared_ptr< list< wrapper::org::ortc::RTCIceCandidatePtr > > get_localCandidates() noexcept override;
 
-          virtual void wrapper_onObserverCountChanged(size_t count) override;
+          virtual void wrapper_onObserverCountChanged(size_t count) noexcept override;
 
           virtual void onICEGathererStateChange(
             IICEGathererPtr gatherer,
@@ -73,10 +73,10 @@ namespace wrapper {
             ErrorEventPtr errorEvent
           ) override;
 
-          static WrapperImplTypePtr toWrapper(NativeTypePtr track);
-          static NativeTypePtr toNative(WrapperTypePtr wrapper);
+          static WrapperImplTypePtr toWrapper(NativeTypePtr track) noexcept;
+          static NativeTypePtr toNative(WrapperTypePtr wrapper) noexcept;
 
-          void subscribe();
+          void subscribe() noexcept;
         };
 
       } // ortc

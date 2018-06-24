@@ -21,12 +21,12 @@ using ::std::set;
 using ::std::map;
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::OverconstrainedErrorEvent::OverconstrainedErrorEvent()
+wrapper::impl::org::ortc::OverconstrainedErrorEvent::OverconstrainedErrorEvent() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::OverconstrainedErrorEventPtr wrapper::org::ortc::OverconstrainedErrorEvent::wrapper_create()
+wrapper::org::ortc::OverconstrainedErrorEventPtr wrapper::org::ortc::OverconstrainedErrorEvent::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::OverconstrainedErrorEvent>();
   pThis->thisWeak_ = pThis;
@@ -34,22 +34,22 @@ wrapper::org::ortc::OverconstrainedErrorEventPtr wrapper::org::ortc::Overconstra
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::OverconstrainedErrorEvent::~OverconstrainedErrorEvent()
+wrapper::impl::org::ortc::OverconstrainedErrorEvent::~OverconstrainedErrorEvent() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::OverconstrainedErrorEvent::wrapper_init_org_ortc_OverconstrainedErrorEvent()
+void wrapper::impl::org::ortc::OverconstrainedErrorEvent::wrapper_init_org_ortc_OverconstrainedErrorEvent() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::OverconstrainedErrorPtr wrapper::impl::org::ortc::OverconstrainedErrorEvent::get_error()
+wrapper::org::ortc::OverconstrainedErrorPtr wrapper::impl::org::ortc::OverconstrainedErrorEvent::get_error() noexcept
 {
   return error_;
 }
 
-wrapper::impl::org::ortc::OverconstrainedErrorEventPtr wrapper::impl::org::ortc::OverconstrainedErrorEvent::toWrapper(OverconstrainedErrorPtr error)
+wrapper::impl::org::ortc::OverconstrainedErrorEventPtr wrapper::impl::org::ortc::OverconstrainedErrorEvent::toWrapper(OverconstrainedErrorPtr error) noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::OverconstrainedErrorEvent>();
   pThis->thisWeak_ = pThis;

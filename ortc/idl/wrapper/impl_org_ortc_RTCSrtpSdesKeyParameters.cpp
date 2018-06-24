@@ -26,12 +26,12 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCSrtpSdesKeyParameters::Wrapp
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCSrtpSdesKeyParameters::WrapperType, WrapperType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCSrtpSdesKeyParameters::RTCSrtpSdesKeyParameters()
+wrapper::impl::org::ortc::RTCSrtpSdesKeyParameters::RTCSrtpSdesKeyParameters() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCSrtpSdesKeyParametersPtr wrapper::org::ortc::RTCSrtpSdesKeyParameters::wrapper_create()
+wrapper::org::ortc::RTCSrtpSdesKeyParametersPtr wrapper::org::ortc::RTCSrtpSdesKeyParameters::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::RTCSrtpSdesKeyParameters>();
   pThis->thisWeak_ = pThis;
@@ -39,17 +39,17 @@ wrapper::org::ortc::RTCSrtpSdesKeyParametersPtr wrapper::org::ortc::RTCSrtpSdesK
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCSrtpSdesKeyParameters::~RTCSrtpSdesKeyParameters()
+wrapper::impl::org::ortc::RTCSrtpSdesKeyParameters::~RTCSrtpSdesKeyParameters() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCSrtpSdesKeyParameters::wrapper_init_org_ortc_RTCSrtpSdesKeyParameters()
+void wrapper::impl::org::ortc::RTCSrtpSdesKeyParameters::wrapper_init_org_ortc_RTCSrtpSdesKeyParameters() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCSrtpSdesKeyParameters::wrapper_init_org_ortc_RTCSrtpSdesKeyParameters(wrapper::org::ortc::RTCSrtpSdesKeyParametersPtr source)
+void wrapper::impl::org::ortc::RTCSrtpSdesKeyParameters::wrapper_init_org_ortc_RTCSrtpSdesKeyParameters(wrapper::org::ortc::RTCSrtpSdesKeyParametersPtr source) noexcept
 {
   WrapperTypePtr pThis = thisWeak_.lock();
   WrapperTypePtr wrapper = toWrapper(toNative(source));
@@ -58,7 +58,7 @@ void wrapper::impl::org::ortc::RTCSrtpSdesKeyParameters::wrapper_init_org_ortc_R
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCSrtpSdesKeyParameters::wrapper_init_org_ortc_RTCSrtpSdesKeyParameters(wrapper::org::ortc::JsonPtr json)
+void wrapper::impl::org::ortc::RTCSrtpSdesKeyParameters::wrapper_init_org_ortc_RTCSrtpSdesKeyParameters(wrapper::org::ortc::JsonPtr json) noexcept
 {
   if (!json) return;
 
@@ -70,26 +70,26 @@ void wrapper::impl::org::ortc::RTCSrtpSdesKeyParameters::wrapper_init_org_ortc_R
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::JsonPtr wrapper::impl::org::ortc::RTCSrtpSdesKeyParameters::toJson()
+wrapper::org::ortc::JsonPtr wrapper::impl::org::ortc::RTCSrtpSdesKeyParameters::toJson() noexcept
 {
   return Json::toWrapper(toNative(thisWeak_.lock())->createElement("RTCSrtpSdesKeyParameters"));
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::ortc::RTCSrtpSdesKeyParameters::hash()
+String wrapper::impl::org::ortc::RTCSrtpSdesKeyParameters::hash() noexcept
 {
   return toNative(thisWeak_.lock())->hash();
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr native)
+WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr native) noexcept
 {
   if (!native) return WrapperImplTypePtr();
   return toWrapper(*native);
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(const NativeType &native)
+WrapperImplTypePtr WrapperImplType::toWrapper(const NativeType &native) noexcept
 {
   auto pThis = make_shared<WrapperImplType>();
   pThis->thisWeak_ = pThis;
@@ -102,7 +102,7 @@ WrapperImplTypePtr WrapperImplType::toWrapper(const NativeType &native)
 }
 
 //------------------------------------------------------------------------------
-NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper)
+NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper) noexcept
 {
   if (!wrapper) return NativeTypePtr();
 

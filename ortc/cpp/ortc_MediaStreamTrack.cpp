@@ -59,11 +59,6 @@
 #include <float.h>
 #include <math.h>
 
-#ifdef _DEBUG
-#define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))
-#else
-#define ASSERT(x)
-#endif //_DEBUG
 
 
 namespace ortc { ZS_DECLARE_SUBSYSTEM(org_ortc_media_stream_track) }
@@ -89,37 +84,37 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark (helpers)
-    #pragma mark
+    //
+    // (helpers)
+    //
 
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaStreamTrackSettingsDefaults
-    #pragma mark
+    //
+    // MediaStreamTrackSettingsDefaults
+    //
 
     class MediaStreamTrackSettingsDefaults : public ISettingsApplyDefaultsDelegate
     {
     public:
       //-----------------------------------------------------------------------
-      ~MediaStreamTrackSettingsDefaults()
+      ~MediaStreamTrackSettingsDefaults() noexcept
       {
         ISettings::removeDefaults(*this);
       }
 
       //-----------------------------------------------------------------------
-      static MediaStreamTrackSettingsDefaultsPtr singleton()
+      static MediaStreamTrackSettingsDefaultsPtr singleton() noexcept
       {
         static SingletonLazySharedPtr<MediaStreamTrackSettingsDefaults> singleton(create());
         return singleton.singleton();
       }
 
       //-----------------------------------------------------------------------
-      static MediaStreamTrackSettingsDefaultsPtr create()
+      static MediaStreamTrackSettingsDefaultsPtr create() noexcept
       {
         auto pThis(make_shared<MediaStreamTrackSettingsDefaults>());
         ISettings::installDefaults(pThis);
@@ -127,7 +122,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      virtual void notifySettingsApplyDefaults() override
+      virtual void notifySettingsApplyDefaults() noexcept override
       {
         //      ISettings::setUInt(ORTC_SETTING_MEDIA_STREAM_TRACK_, 0);
       }
@@ -135,7 +130,7 @@ namespace ortc
     };
 
     //-------------------------------------------------------------------------
-    void installMediaStreamTrackSettingsDefaults()
+    void installMediaStreamTrackSettingsDefaults() noexcept
     {
       MediaStreamTrackSettingsDefaults::singleton();
     }
@@ -144,28 +139,28 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrack
-    #pragma mark
+    //
+    // IMediaStreamTrack
+    //
   
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrackForMediaStreamTrackChannel
-    #pragma mark
+    //
+    // IMediaStreamTrackForMediaStreamTrackChannel
+    //
   
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrackForRTPReceiver
-    #pragma mark
+    //
+    // IMediaStreamTrackForRTPReceiver
+    //
 
     //-------------------------------------------------------------------------
-    IMediaStreamTrackForRTPReceiver::ForReceiverPtr IMediaStreamTrackForRTPReceiver::createForReceiver(IMediaStreamTrackTypes::Kinds kind)
+    IMediaStreamTrackForRTPReceiver::ForReceiverPtr IMediaStreamTrackForRTPReceiver::createForReceiver(IMediaStreamTrackTypes::Kinds kind) noexcept
     {
       return IMediaStreamTrackFactory::singleton().createForReceiver(kind);
     }
@@ -174,45 +169,45 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrackForRTPReceiverChannel
-    #pragma mark
+    //
+    // IMediaStreamTrackForRTPReceiverChannel
+    //
   
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrackForRTPSender
-    #pragma mark
+    //
+    // IMediaStreamTrackForRTPSender
+    //
   
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrackForRTPSenderChannel
-    #pragma mark
+    //
+    // IMediaStreamTrackForRTPSenderChannel
+    //
   
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrackForMediaStream
-    #pragma mark
+    //
+    // IMediaStreamTrackForMediaStream
+    //
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaStreamTrack
-    #pragma mark
+    //
+    // MediaStreamTrack
+    //
 
 
     //-------------------------------------------------------------------------
-    const char *MediaStreamTrack::toString(MediaStreamTrackTypes type)
+    const char *MediaStreamTrack::toString(MediaStreamTrackTypes type) noexcept
     {
       switch (type) {
         case MediaStreamTrackType_Capture:   return "capture";
@@ -223,7 +218,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    MediaStreamTrack::MediaStreamTrackTypes MediaStreamTrack::toMediaStreamTrackType(const char *inputStr)
+    MediaStreamTrack::MediaStreamTrackTypes MediaStreamTrack::toMediaStreamTrackType(const char *inputStr) noexcept(false)
     {
       String str(inputStr);
       for (MediaStreamTrack::MediaStreamTrackTypes index = MediaStreamTrack::MediaStreamTrackType_First; index <= MediaStreamTrack::MediaStreamTrackType_Last; index = static_cast<MediaStreamTrack::MediaStreamTrackTypes>(static_cast<std::underlying_type<MediaStreamTrack::MediaStreamTrackTypes>::type>(index) + 1)) {
@@ -237,7 +232,7 @@ namespace ortc
     MediaStreamTrack::MediaStreamTrack(
                                        const make_private &,
                                        const MediaStreamTrackArguments &args
-                                       ) :
+                                       ) noexcept :
       MessageQueueAssociator(args.queue_),
       SharedRecursiveLock(SharedRecursiveLock::create()),
       subscriptions_(decltype(subscriptions_)::create()),
@@ -255,7 +250,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void MediaStreamTrack::init()
+    void MediaStreamTrack::init() noexcept
     {
       AutoRecursiveLock lock(*this);
 
@@ -268,7 +263,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    MediaStreamTrack::~MediaStreamTrack()
+    MediaStreamTrack::~MediaStreamTrack() noexcept
     {
       if (isNoop()) return;
 
@@ -280,74 +275,74 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    MediaStreamTrackPtr MediaStreamTrack::convert(ortc::IMediaStreamTrackPtr object)
+    MediaStreamTrackPtr MediaStreamTrack::convert(ortc::IMediaStreamTrackPtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(MediaStreamTrack, object);
     }
 
 
     //-------------------------------------------------------------------------
-    MediaStreamTrackPtr MediaStreamTrack::convert(internal::IMediaStreamTrackPtr object)
+    MediaStreamTrackPtr MediaStreamTrack::convert(internal::IMediaStreamTrackPtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(MediaStreamTrack, object);
     }
 
     //-------------------------------------------------------------------------
-    MediaStreamTrackPtr MediaStreamTrack::convert(ForMediaStreamPtr object)
+    MediaStreamTrackPtr MediaStreamTrack::convert(ForMediaStreamPtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(MediaStreamTrack, object);
     }
 
     //-------------------------------------------------------------------------
-    MediaStreamTrackPtr MediaStreamTrack::convert(ForMediaStreamTrackChannelPtr object)
+    MediaStreamTrackPtr MediaStreamTrack::convert(ForMediaStreamTrackChannelPtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(MediaStreamTrack, object);
     }
 
     //-------------------------------------------------------------------------
-    MediaStreamTrackPtr MediaStreamTrack::convert(ForMediaStreamTrackSubscriberPtr object)
+    MediaStreamTrackPtr MediaStreamTrack::convert(ForMediaStreamTrackSubscriberPtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(MediaStreamTrack, object);
     }
 
     //-------------------------------------------------------------------------
-    MediaStreamTrackPtr MediaStreamTrack::convert(ForMediaStreamTrackSubscriberMediaPtr object)
+    MediaStreamTrackPtr MediaStreamTrack::convert(ForMediaStreamTrackSubscriberMediaPtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(MediaStreamTrack, object);
     }
 
     //-------------------------------------------------------------------------
-    MediaStreamTrackPtr MediaStreamTrack::convert(ForMediaStreamTrackSubscriberRTPPtr object)
+    MediaStreamTrackPtr MediaStreamTrack::convert(ForMediaStreamTrackSubscriberRTPPtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(MediaStreamTrack, object);
     }
 
     //-------------------------------------------------------------------------
-    MediaStreamTrackPtr MediaStreamTrack::convert(ForMediaDevicesPtr object)
+    MediaStreamTrackPtr MediaStreamTrack::convert(ForMediaDevicesPtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(MediaStreamTrack, object);
     }
 
     //-------------------------------------------------------------------------
-    MediaStreamTrackPtr MediaStreamTrack::convert(ForReceiverPtr object)
+    MediaStreamTrackPtr MediaStreamTrack::convert(ForReceiverPtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(MediaStreamTrack, object);
     }
 
     //-------------------------------------------------------------------------
-    MediaStreamTrackPtr MediaStreamTrack::convert(ForReceiverChannelPtr object)
+    MediaStreamTrackPtr MediaStreamTrack::convert(ForReceiverChannelPtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(MediaStreamTrack, object);
     }
 
     //-------------------------------------------------------------------------
-    MediaStreamTrackPtr MediaStreamTrack::convert(ForSenderPtr object)
+    MediaStreamTrackPtr MediaStreamTrack::convert(ForSenderPtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(MediaStreamTrack, object);
     }
 
     //-------------------------------------------------------------------------
-    MediaStreamTrackPtr MediaStreamTrack::convert(ForSenderChannelPtr object)
+    MediaStreamTrackPtr MediaStreamTrack::convert(ForSenderChannelPtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(MediaStreamTrack, object);
     }
@@ -357,12 +352,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaStreamTrack => IMediaStreamTrack
-    #pragma mark
+    //
+    // MediaStreamTrack => IMediaStreamTrack
+    //
     
     //-------------------------------------------------------------------------
-    IStatsProvider::PromiseWithStatsReportPtr MediaStreamTrack::getStats(const StatsTypeSet &stats) const
+    IStatsProvider::PromiseWithStatsReportPtr MediaStreamTrack::getStats(const StatsTypeSet &stats) const noexcept
     {
       if (!stats.hasStatType(IStatsReportTypes::StatsType_Track)) {
         return PromiseWithStatsReport::createRejected(IORTCForInternal::queueDelegate());
@@ -385,15 +380,15 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaStreamTrack => IMediaStreamTrack
-    #pragma mark
+    //
+    // MediaStreamTrack => IMediaStreamTrack
+    //
     
     //-------------------------------------------------------------------------
     void MediaStreamTrack::trace(
                                  const char *func,
                                  const char *message
-                                 ) const
+                                 ) const noexcept
     {
       ZS_EVENTING_17(x, i, Basic, MediaStreamTrackTrace, ol, MediaEngine, Info,
         puid, id, id_,
@@ -417,7 +412,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    IMediaStreamTrackSubscriptionPtr MediaStreamTrack::subscribe(IMediaStreamTrackDelegatePtr originalDelegate)
+    IMediaStreamTrackSubscriptionPtr MediaStreamTrack::subscribe(IMediaStreamTrackDelegatePtr originalDelegate) noexcept
     {
       ZS_EVENTING_1(x, i, Detail, MediaStreamTrackSubscribe, ol, MediaEngine, Info, puid, id, id_);
 
@@ -431,8 +426,7 @@ namespace ortc
       if (delegate) {
         auto pThis = thisWeak_.lock();
 
-#define TODO_DO_WE_NEED_TO_TELL_ABOUT_ANY_MISSED_EVENTS 1
-#define TODO_DO_WE_NEED_TO_TELL_ABOUT_ANY_MISSED_EVENTS 2
+#pragma ZS_BUILD_NOTE("TODO","media stream track notify about missed events")
         if (isShutdown()) {
           delegate->onMediaStreamTrackEnded(pThis);
         }
@@ -446,19 +440,19 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    IMediaStreamTrackTypes::Kinds MediaStreamTrack::kind() const
+    IMediaStreamTrackTypes::Kinds MediaStreamTrack::kind() const noexcept
     {
       return kind_;
     }
 
     //-------------------------------------------------------------------------
-    String MediaStreamTrack::id() const
+    String MediaStreamTrack::id() const noexcept
     {
       return trackId_;
     }
 
     //-------------------------------------------------------------------------
-    String MediaStreamTrack::deviceID() const
+    String MediaStreamTrack::deviceID() const noexcept
     {
       AutoRecursiveLock lock(*this);
 
@@ -467,90 +461,88 @@ namespace ortc
 
 
     //-------------------------------------------------------------------------
-    String MediaStreamTrack::label() const
+    String MediaStreamTrack::label() const noexcept
     {
       return label_;
     }
 
     //-------------------------------------------------------------------------
-    bool MediaStreamTrack::enabled() const
+    bool MediaStreamTrack::enabled() const noexcept
     {
       AutoRecursiveLock lock(*this);
       return enabled_;
     }
 
     //-------------------------------------------------------------------------
-    void MediaStreamTrack::enabled(bool enabled)
+    void MediaStreamTrack::enabled(bool enabled) noexcept
     {
       AutoRecursiveLock lock(*this);
       enabled_ = enabled;
     }
 
     //-------------------------------------------------------------------------
-    bool MediaStreamTrack::muted() const
+    bool MediaStreamTrack::muted() const noexcept
     {
       AutoRecursiveLock lock(*this);
       return muted_;
     }
 
     //-------------------------------------------------------------------------
-    void MediaStreamTrack::muted(bool muted)
+    void MediaStreamTrack::muted(bool muted) noexcept
     {
       AutoRecursiveLock lock(*this);
       muted_ = muted;
     }
 
     //-------------------------------------------------------------------------
-    bool MediaStreamTrack::remote() const
+    bool MediaStreamTrack::remote() const noexcept
     {
       return type_ == MediaStreamTrackType_Receiver;
     }
 
     //-------------------------------------------------------------------------
-    IMediaStreamTrackTypes::States MediaStreamTrack::readyState() const
+    IMediaStreamTrackTypes::States MediaStreamTrack::readyState() const noexcept
     {
       AutoRecursiveLock lock(*this);
       return currentState_;
     }
 
     //-------------------------------------------------------------------------
-    ortc::IMediaStreamTrackPtr MediaStreamTrack::clone() const
+    ortc::IMediaStreamTrackPtr MediaStreamTrack::clone() const noexcept
     {
-#define TODO 1
-#define TODO 2
+#pragma ZS_BUILD_NOTE("TODO","media stream track implement clone")
       return IMediaStreamTrackPtr();
     }
 
     //-------------------------------------------------------------------------
-    void MediaStreamTrack::stop()
+    void MediaStreamTrack::stop() noexcept
     {
       AutoRecursiveLock lock(*this);
-#define TODO 1
-#define TODO 2
+#pragma ZS_BUILD_NOTE("TODO","media stream track implement stop")
     }
 
     //-------------------------------------------------------------------------
-    IMediaStreamTrackTypes::CapabilitiesPtr MediaStreamTrack::getCapabilities() const
+    IMediaStreamTrackTypes::CapabilitiesPtr MediaStreamTrack::getCapabilities() const noexcept
     {
       return capabilities_;
     }
 
     //-------------------------------------------------------------------------
-    IMediaStreamTrackTypes::TrackConstraintsPtr MediaStreamTrack::getConstraints() const
+    IMediaStreamTrackTypes::TrackConstraintsPtr MediaStreamTrack::getConstraints() const noexcept
     {
       AutoRecursiveLock lock(*this);
       return constraints_;
     }
 
     //-------------------------------------------------------------------------
-    IMediaStreamTrackTypes::SettingsPtr MediaStreamTrack::getSettings() const
+    IMediaStreamTrackTypes::SettingsPtr MediaStreamTrack::getSettings() const noexcept
     {
       AutoRecursiveLock lock(*this);
       return settings_;
     }
 
     //-------------------------------------------------------------------------
-    PromisePtr MediaStreamTrack::applyConstraints(const TrackConstraints &inConstraints)
+    PromisePtr MediaStreamTrack::applyConstraints(const TrackConstraints &inConstraints) noexcept
     {
       PromisePtr promise = Promise::createRejected(IORTCForInternal::queueDelegate());
 
@@ -562,13 +554,13 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    IMediaStreamTrackMediaSubscriptionPtr MediaStreamTrack::subscribeMedia(IMediaStreamTrackSyncMediaDelegatePtr delegate)
+    IMediaStreamTrackMediaSubscriptionPtr MediaStreamTrack::subscribeMedia(IMediaStreamTrackSyncMediaDelegatePtr delegate) noexcept
     {
       return IMediaStreamTrackMediaSubscriptionPtr();
     }
 
     //-------------------------------------------------------------------------
-    IMediaStreamTrackMediaSubscriptionPtr MediaStreamTrack::subscribeMedia(IMediaStreamTrackAsyncMediaDelegatePtr delegate)
+    IMediaStreamTrackMediaSubscriptionPtr MediaStreamTrack::subscribeMedia(IMediaStreamTrackAsyncMediaDelegatePtr delegate) noexcept
     {
       return IMediaStreamTrackMediaSubscriptionPtr();
     }
@@ -578,17 +570,20 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaStreamTrack => internal::IMediaStreamTrack
-    #pragma mark
+    //
+    // MediaStreamTrack => internal::IMediaStreamTrack
+    //
 
 
     //-------------------------------------------------------------------------
     IMediaStreamTrackRTPSubscriptionPtr MediaStreamTrack::subscribeRTP(
-                                                                       const Parameters &rtpEncodingParams,
-                                                                       IMediaStreamTrackRTPDelegatePtr delegate
-                                                                       )
+                                                                       ZS_MAYBE_USED() const Parameters &rtpEncodingParams,
+                                                                       ZS_MAYBE_USED() IMediaStreamTrackRTPDelegatePtr delegate
+                                                                       ) noexcept
     {
+      ZS_MAYBE_USED(rtpEncodingParams);
+      ZS_MAYBE_USED(delegate);
+#pragma ZS_BUILD_NOTE("TODO","remove ZS_MAYBE_USED when implemented")
       return IMediaStreamTrackRTPSubscriptionPtr();
     }
 
@@ -597,20 +592,20 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaStreamTrack => IMediaStreamTrackForSettings
-    #pragma mark
+    //
+    // MediaStreamTrack => IMediaStreamTrackForSettings
+    //
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaStreamTrack => IMediaStreamTrackForMediaStream
-    #pragma mark
+    //
+    // MediaStreamTrack => IMediaStreamTrackForMediaStream
+    //
 
     //-------------------------------------------------------------------------
-    bool MediaStreamTrack::isEnded() const
+    bool MediaStreamTrack::isEnded() const noexcept
     {
       AutoRecursiveLock lock(*this);
       return isShutdown();
@@ -620,21 +615,21 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaStreamTrack => IMediaStreamTrackForMediaStreamTrackChannel
-    #pragma mark
+    //
+    // MediaStreamTrack => IMediaStreamTrackForMediaStreamTrackChannel
+    //
 
     
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaStreamTrack => IMediaStreamTrackForMediaStreamTrackSubscriber
-    #pragma mark
+    //
+    // MediaStreamTrack => IMediaStreamTrackForMediaStreamTrackSubscriber
+    //
     
     //-------------------------------------------------------------------------
-    void MediaStreamTrack::notifySubscriberCancelled(UseSubscriberPtr subscriber)
+    void MediaStreamTrack::notifySubscriberCancelled(UseSubscriberPtr subscriber) noexcept
     {
     }
 
@@ -642,33 +637,33 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaStreamTrack => IMediaStreamTrackForMediaStreamTrackSubscriberMedia
-    #pragma mark
+    //
+    // MediaStreamTrack => IMediaStreamTrackForMediaStreamTrackSubscriberMedia
+    //
     
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaStreamTrack => IMediaStreamTrackForMediaStreamTrackSubscriberRTP
-    #pragma mark
+    //
+    // MediaStreamTrack => IMediaStreamTrackForMediaStreamTrackSubscriberRTP
+    //
 
     
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaStreamTrack => IMediaStreamTrackForMediaDevices
-    #pragma mark
+    //
+    // MediaStreamTrack => IMediaStreamTrackForMediaDevices
+    //
 
 
     //-------------------------------------------------------------------------
     MediaStreamTrack::ForMediaDevicesPtr MediaStreamTrack::createForMediaDevices(
                                                                                  IMediaStreamTrackTypes::Kinds kind,
                                                                                  const TrackConstraints &constraints
-                                                                                 )
+                                                                                 ) noexcept
     {
       MediaStreamTrackArguments args;
       args.queue_ = IORTCForInternal::queueORTC();
@@ -686,13 +681,15 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaStreamTrack => IMediaStreamTrackForMediaStreamTrackSelector
-    #pragma mark
+    //
+    // MediaStreamTrack => IMediaStreamTrackForMediaStreamTrackSelector
+    //
 
     //-------------------------------------------------------------------------
-    MediaStreamTrack::ForMediaDevicesPtr MediaStreamTrack::createForMediaStreamTrackSelector(IMediaStreamTrackTypes::Kinds kind)
+    MediaStreamTrack::ForMediaDevicesPtr MediaStreamTrack::createForMediaStreamTrackSelector(ZS_MAYBE_USED() IMediaStreamTrackTypes::Kinds kind) noexcept
     {
+      ZS_MAYBE_USED(kind);
+#pragma ZS_BUILD_NOTE("TODO","Remove ZS_MAYBE_USED once implemented")
       return ForMediaDevicesPtr();
     }
 
@@ -700,12 +697,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPReceiver
-    #pragma mark
+    //
+    // MediaStreamTrack => IMediaStreamTrackForRTPReceiver
+    //
 
     //-------------------------------------------------------------------------
-    MediaStreamTrack::ForReceiverPtr MediaStreamTrack::createForReceiver(IMediaStreamTrackTypes::Kinds kind)
+    MediaStreamTrack::ForReceiverPtr MediaStreamTrack::createForReceiver(IMediaStreamTrackTypes::Kinds kind) noexcept
     {
       MediaStreamTrackArguments args;
       args.queue_ = IORTCForInternal::queueORTC();
@@ -722,33 +719,33 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPReceiverChannel
-    #pragma mark
+    //
+    // MediaStreamTrack => IMediaStreamTrackForRTPReceiverChannel
+    //
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPSender
-    #pragma mark
+    //
+    // MediaStreamTrack => IMediaStreamTrackForRTPSender
+    //
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaStreamTrack => IMediaStreamTrackForRTPSenderChannel
-    #pragma mark
+    //
+    // MediaStreamTrack => IMediaStreamTrackForRTPSenderChannel
+    //
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaStreamTrack => IWakeDelegate
-    #pragma mark
+    //
+    // MediaStreamTrack => IWakeDelegate
+    //
 
     //-------------------------------------------------------------------------
     void MediaStreamTrack::onWake()
@@ -763,9 +760,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaStreamTrack => ITimerDelegate
-    #pragma mark
+    //
+    // MediaStreamTrack => ITimerDelegate
+    //
 
     //-------------------------------------------------------------------------
     void MediaStreamTrack::onTimer(ITimerPtr timer)
@@ -784,9 +781,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaStreamTrack => IPromiseSettledDelegate
-    #pragma mark
+    //
+    // MediaStreamTrack => IPromiseSettledDelegate
+    //
 
     //-------------------------------------------------------------------------
     void MediaStreamTrack::onPromiseSettled(PromisePtr promise)
@@ -804,9 +801,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaStreamTrack => IMediaStreamTrackAsyncDelegate
-    #pragma mark
+    //
+    // MediaStreamTrack => IMediaStreamTrackAsyncDelegate
+    //
 
     //-------------------------------------------------------------------------
     void MediaStreamTrack::onResolveStatsPromise(IStatsProvider::PromiseWithStatsReportPtr promise, IStatsReportTypes::StatsTypeSet stats)
@@ -827,26 +824,26 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaStreamTrack => (internal)
-    #pragma mark
+    //
+    // MediaStreamTrack => (internal)
+    //
 
     //-------------------------------------------------------------------------
-    bool MediaStreamTrack::isShuttingDown() const
+    bool MediaStreamTrack::isShuttingDown() const noexcept
     {
       if (gracefulShutdownReference_) return true;
       return State_Ended == currentState_;
     }
 
     //-------------------------------------------------------------------------
-    bool MediaStreamTrack::isShutdown() const
+    bool MediaStreamTrack::isShutdown() const noexcept
     {
       if (gracefulShutdownReference_) return false;
       return State_Ended == currentState_;
     }
 
     //-------------------------------------------------------------------------
-    void MediaStreamTrack::step()
+    void MediaStreamTrack::step() noexcept
     {
       ZS_EVENTING_1(x, i, Debug, MediaStreamTrackStep, ol, MediaEngine, Step, puid, id, id_);
 
@@ -877,19 +874,19 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool MediaStreamTrack::stepDevicePromise()
+    bool MediaStreamTrack::stepDevicePromise() noexcept
     {
       return true;
     }
 
     //-------------------------------------------------------------------------
-    bool MediaStreamTrack::stepSetupDevice()
+    bool MediaStreamTrack::stepSetupDevice() noexcept
     {
       return true;
     }
 
     //-------------------------------------------------------------------------
-    void MediaStreamTrack::cancel()
+    void MediaStreamTrack::cancel() noexcept
     {
       //.......................................................................
       // try to gracefully shutdown
@@ -915,7 +912,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void MediaStreamTrack::setState(States state)
+    void MediaStreamTrack::setState(States state) noexcept
     {
       if (state == currentState_) return;
 
@@ -934,7 +931,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void MediaStreamTrack::setError(WORD errorCode, const char *inReason)
+    void MediaStreamTrack::setError(WORD errorCode, const char *inReason) noexcept
     {
       String reason(inReason);
       if (reason.isEmpty()) {
@@ -964,12 +961,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrackFactory
-    #pragma mark
+    //
+    // IMediaStreamTrackFactory
+    //
 
     //-------------------------------------------------------------------------
-    IMediaStreamTrackFactory &IMediaStreamTrackFactory::singleton()
+    IMediaStreamTrackFactory &IMediaStreamTrackFactory::singleton() noexcept
     {
       return MediaStreamTrackFactory::singleton();
     }
@@ -978,14 +975,14 @@ namespace ortc
     IMediaStreamTrackFactory::ForMediaDevicesPtr IMediaStreamTrackFactory::createForMediaDevices(
                                                                                                  IMediaStreamTrackTypes::Kinds kind,
                                                                                                  const TrackConstraints &constraints
-                                                                                                 )
+                                                                                                 ) noexcept
     {      
       if (this) {}
       return internal::MediaStreamTrack::createForMediaDevices(kind, constraints);
     }
 
     //-------------------------------------------------------------------------
-    IMediaStreamTrackFactory::ForReceiverPtr IMediaStreamTrackFactory::createForReceiver(IMediaStreamTrackTypes::Kinds kind)
+    IMediaStreamTrackFactory::ForReceiverPtr IMediaStreamTrackFactory::createForReceiver(IMediaStreamTrackTypes::Kinds kind) noexcept
     {
       if (this) {}
       return internal::MediaStreamTrack::createForReceiver(kind);
@@ -997,12 +994,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark (helpers)
-  #pragma mark
+  //
+  // (helpers)
+  //
 
   //-----------------------------------------------------------------------
-  static Log::Params slog(const char *message)
+  static Log::Params slog(const char *message) noexcept
   {
     return Log::Params(message, "ortc::IMediaStreamTrackTypes");
   }
@@ -1011,12 +1008,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IMediaStreamTrackTypes
-  #pragma mark
+  //
+  // IMediaStreamTrackTypes
+  //
 
   //---------------------------------------------------------------------------
-  const char *IMediaStreamTrackTypes::toString(Kinds kind)
+  const char *IMediaStreamTrackTypes::toString(Kinds kind) noexcept
   {
     switch (kind) {
       case Kind_Audio:   return "audio";
@@ -1026,7 +1023,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IMediaStreamTrackTypes::Kinds IMediaStreamTrackTypes::toKind(const char *inputStr)
+  IMediaStreamTrackTypes::Kinds IMediaStreamTrackTypes::toKind(const char *inputStr) noexcept(false)
   {
     String str(inputStr);
     for (IMediaStreamTrackTypes::Kinds index = IMediaStreamTrackTypes::Kind_First; index <= IMediaStreamTrackTypes::Kind_Last; index = static_cast<IMediaStreamTrackTypes::Kinds>(static_cast<std::underlying_type<IMediaStreamTrackTypes::Kinds>::type>(index) + 1)) {
@@ -1037,7 +1034,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  const char *IMediaStreamTrackTypes::toString(States state)
+  const char *IMediaStreamTrackTypes::toString(States state) noexcept
   {
     switch (state) {
       case State_Live:    return "live";
@@ -1047,7 +1044,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IMediaStreamTrackTypes::States IMediaStreamTrackTypes::toState(const char *inputStr)
+  IMediaStreamTrackTypes::States IMediaStreamTrackTypes::toState(const char *inputStr) noexcept(false)
   {
     String str(inputStr);
     for (IMediaStreamTrackTypes::States index = IMediaStreamTrackTypes::State_First; index <= IMediaStreamTrackTypes::State_Last; index = static_cast<IMediaStreamTrackTypes::States>(static_cast<std::underlying_type<IMediaStreamTrackTypes::States>::type>(index) + 1)) {
@@ -1061,12 +1058,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IMediaStreamTrackTypes::Capabilities
-  #pragma mark
+  //
+  // IMediaStreamTrackTypes::Capabilities
+  //
 
   //---------------------------------------------------------------------------
-  IMediaStreamTrackTypes::Capabilities::Capabilities(ElementPtr elem)
+  IMediaStreamTrackTypes::Capabilities::Capabilities(ElementPtr elem) noexcept
   {
     if (!elem) return;
 
@@ -1148,7 +1145,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IMediaStreamTrackTypes::Capabilities::createElement(const char *objectName) const
+  ElementPtr IMediaStreamTrackTypes::Capabilities::createElement(const char *objectName) const noexcept
   {
     ElementPtr elem = Element::create(objectName);
 
@@ -1198,32 +1195,32 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IMediaStreamTrackTypes::CapabilitiesPtr IMediaStreamTrackTypes::Capabilities::create()
+  IMediaStreamTrackTypes::CapabilitiesPtr IMediaStreamTrackTypes::Capabilities::create() noexcept
   {
     return make_shared<Capabilities>();
   }
 
   //---------------------------------------------------------------------------
-  IMediaStreamTrackTypes::CapabilitiesPtr IMediaStreamTrackTypes::Capabilities::create(const CapabilitiesPtr &value)
+  IMediaStreamTrackTypes::CapabilitiesPtr IMediaStreamTrackTypes::Capabilities::create(const CapabilitiesPtr &value) noexcept
   {
     if (!value) return create();
     return create(*value);
   }
 
   //---------------------------------------------------------------------------
-  IMediaStreamTrackTypes::CapabilitiesPtr IMediaStreamTrackTypes::Capabilities::create(const Capabilities &value)
+  IMediaStreamTrackTypes::CapabilitiesPtr IMediaStreamTrackTypes::Capabilities::create(const Capabilities &value) noexcept
   {
     return make_shared<Capabilities>(value);
   }
   
   //---------------------------------------------------------------------------
-  IMediaStreamTrackTypes::CapabilitiesPtr IMediaStreamTrackTypes::Capabilities::convert(AnyPtr any)
+  IMediaStreamTrackTypes::CapabilitiesPtr IMediaStreamTrackTypes::Capabilities::convert(AnyPtr any) noexcept
   {
     return ZS_DYNAMIC_PTR_CAST(Capabilities, any);
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IMediaStreamTrackTypes::Capabilities::toDebug() const
+  ElementPtr IMediaStreamTrackTypes::Capabilities::toDebug() const noexcept
   {
     ElementPtr resultEl = Element::create("ortc::IMediaStreamTrackTypes::Capabilities");
 
@@ -1245,7 +1242,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  String IMediaStreamTrackTypes::Capabilities::hash() const
+  String IMediaStreamTrackTypes::Capabilities::hash() const noexcept
   {
     auto hasher = IHasher::sha1();
 
@@ -1283,12 +1280,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IMediaStreamTrackTypes::Settings
-  #pragma mark
+  //
+  // IMediaStreamTrackTypes::Settings
+  //
 
   //---------------------------------------------------------------------------
-  IMediaStreamTrackTypes::Settings::Settings(ElementPtr elem)
+  IMediaStreamTrackTypes::Settings::Settings(ElementPtr elem) noexcept
   {
     if (!elem) return;
 
@@ -1310,7 +1307,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IMediaStreamTrackTypes::Settings::createElement(const char *objectName) const
+  ElementPtr IMediaStreamTrackTypes::Settings::createElement(const char *objectName) const noexcept
   {
     ElementPtr elem = Element::create(objectName);
 
@@ -1336,32 +1333,32 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IMediaStreamTrackTypes::SettingsPtr IMediaStreamTrackTypes::Settings::create()
+  IMediaStreamTrackTypes::SettingsPtr IMediaStreamTrackTypes::Settings::create() noexcept
   {
     return make_shared<Settings>();
   }
 
   //---------------------------------------------------------------------------
-  IMediaStreamTrackTypes::SettingsPtr IMediaStreamTrackTypes::Settings::create(const SettingsPtr &value)
+  IMediaStreamTrackTypes::SettingsPtr IMediaStreamTrackTypes::Settings::create(const SettingsPtr &value) noexcept
   {
     if (!value) return create();
     return create(*value);
   }
 
   //---------------------------------------------------------------------------
-  IMediaStreamTrackTypes::SettingsPtr IMediaStreamTrackTypes::Settings::create(const Settings &value)
+  IMediaStreamTrackTypes::SettingsPtr IMediaStreamTrackTypes::Settings::create(const Settings &value) noexcept
   {
     return make_shared<Settings>(value);
   }
   
   //---------------------------------------------------------------------------
-  IMediaStreamTrackTypes::SettingsPtr IMediaStreamTrackTypes::Settings::convert(AnyPtr any)
+  IMediaStreamTrackTypes::SettingsPtr IMediaStreamTrackTypes::Settings::convert(AnyPtr any) noexcept
   {
     return ZS_DYNAMIC_PTR_CAST(Settings, any);
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IMediaStreamTrackTypes::Settings::toDebug() const
+  ElementPtr IMediaStreamTrackTypes::Settings::toDebug() const noexcept
   {
     ElementPtr resultEl = Element::create("ortc::IMediaStreamTrackTypes::Settings");
 
@@ -1385,7 +1382,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  String IMediaStreamTrackTypes::Settings::hash() const
+  String IMediaStreamTrackTypes::Settings::hash() const noexcept
   {
     auto hasher = IHasher::sha1();
 
@@ -1428,12 +1425,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IMediaStreamTrackTypes::ConstraintSet
-  #pragma mark
+  //
+  // IMediaStreamTrackTypes::ConstraintSet
+  //
 
   //---------------------------------------------------------------------------
-  IMediaStreamTrackTypes::ConstraintSet::ConstraintSet(ElementPtr elem)
+  IMediaStreamTrackTypes::ConstraintSet::ConstraintSet(ElementPtr elem) noexcept
   {
     if (!elem) return;
 
@@ -1530,7 +1527,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IMediaStreamTrackTypes::ConstraintSet::createElement(const char *objectName) const
+  ElementPtr IMediaStreamTrackTypes::ConstraintSet::createElement(const char *objectName) const noexcept
   {
     ElementPtr elem = Element::create(objectName);
 
@@ -1556,26 +1553,26 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IMediaStreamTrackTypes::ConstraintSetPtr IMediaStreamTrackTypes::ConstraintSet::create()
+  IMediaStreamTrackTypes::ConstraintSetPtr IMediaStreamTrackTypes::ConstraintSet::create() noexcept
   {
     return make_shared<ConstraintSet>();
   }
 
   //---------------------------------------------------------------------------
-  IMediaStreamTrackTypes::ConstraintSetPtr IMediaStreamTrackTypes::ConstraintSet::create(const ConstraintSetPtr &value)
+  IMediaStreamTrackTypes::ConstraintSetPtr IMediaStreamTrackTypes::ConstraintSet::create(const ConstraintSetPtr &value) noexcept
   {
     if (!value) return create();
     return create(*value);
   }
 
   //---------------------------------------------------------------------------
-  IMediaStreamTrackTypes:: ConstraintSetPtr IMediaStreamTrackTypes::ConstraintSet::create(const ConstraintSet &value)
+  IMediaStreamTrackTypes:: ConstraintSetPtr IMediaStreamTrackTypes::ConstraintSet::create(const ConstraintSet &value) noexcept
   {
     return make_shared<ConstraintSet>(value);
   }
   
   //---------------------------------------------------------------------------
-  ElementPtr IMediaStreamTrackTypes::ConstraintSet::toDebug() const
+  ElementPtr IMediaStreamTrackTypes::ConstraintSet::toDebug() const noexcept
   {
     ElementPtr resultEl = Element::create("ortc::IMediaStreamTrackTypes::ConstraintSet");
 
@@ -1597,7 +1594,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  String IMediaStreamTrackTypes::ConstraintSet::hash() const
+  String IMediaStreamTrackTypes::ConstraintSet::hash() const noexcept
   {
     auto hasher = IHasher::sha1();
 
@@ -1636,12 +1633,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IMediaStreamTrackTypes::ConstraintSet
-  #pragma mark
+  //
+  // IMediaStreamTrackTypes::ConstraintSet
+  //
 
   //---------------------------------------------------------------------------
-  IMediaStreamTrackTypes::TrackConstraints::TrackConstraints(ElementPtr elem)
+  IMediaStreamTrackTypes::TrackConstraints::TrackConstraints(ElementPtr elem) noexcept
   {
     if (!elem) return;
 
@@ -1661,7 +1658,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IMediaStreamTrackTypes::TrackConstraints::createElement(const char *objectName) const
+  ElementPtr IMediaStreamTrackTypes::TrackConstraints::createElement(const char *objectName) const noexcept
   {
     ElementPtr elem = Element::create(objectName);
 
@@ -1683,20 +1680,20 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IMediaStreamTrackTypes::TrackConstraintsPtr IMediaStreamTrackTypes::TrackConstraints::create()
+  IMediaStreamTrackTypes::TrackConstraintsPtr IMediaStreamTrackTypes::TrackConstraints::create() noexcept
   {
     return make_shared<TrackConstraints>();
   }
 
   //---------------------------------------------------------------------------
-  IMediaStreamTrackTypes::TrackConstraintsPtr IMediaStreamTrackTypes::TrackConstraints::create(const TrackConstraintsPtr &value)
+  IMediaStreamTrackTypes::TrackConstraintsPtr IMediaStreamTrackTypes::TrackConstraints::create(const TrackConstraintsPtr &value) noexcept
   {
     if (!value) return create();
     return create(*value);
   }
 
   //---------------------------------------------------------------------------
-  IMediaStreamTrackTypes::TrackConstraintsPtr IMediaStreamTrackTypes::TrackConstraints::create(const TrackConstraints &value)
+  IMediaStreamTrackTypes::TrackConstraintsPtr IMediaStreamTrackTypes::TrackConstraints::create(const TrackConstraints &value) noexcept
   {
     auto result = make_shared<TrackConstraints>();
 
@@ -1709,7 +1706,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IMediaStreamTrackTypes::TrackConstraints::toDebug() const
+  ElementPtr IMediaStreamTrackTypes::TrackConstraints::toDebug() const noexcept
   {
     ElementPtr resultEl = Element::create("ortc::IMediaStreamTrackTypes::TrackConstraints");
 
@@ -1727,7 +1724,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  String IMediaStreamTrackTypes::TrackConstraints::hash() const
+  String IMediaStreamTrackTypes::TrackConstraints::hash() const noexcept
   {
     auto hasher = IHasher::sha1();
 
@@ -1746,12 +1743,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IMediaStreamTrackTypes::ConstraintSet
-  #pragma mark
+  //
+  // IMediaStreamTrackTypes::ConstraintSet
+  //
 
   //---------------------------------------------------------------------------
-  IMediaStreamTrackTypes::Constraints::Constraints(ElementPtr elem)
+  IMediaStreamTrackTypes::Constraints::Constraints(ElementPtr elem) noexcept
   {
     if (!elem) return;
 
@@ -1770,7 +1767,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IMediaStreamTrackTypes::Constraints::createElement(const char *objectName) const
+  ElementPtr IMediaStreamTrackTypes::Constraints::createElement(const char *objectName) const noexcept
   {
     ElementPtr elem = Element::create(objectName);
 
@@ -1787,20 +1784,20 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  IMediaStreamTrackTypes::ConstraintsPtr IMediaStreamTrackTypes::Constraints::create()
+  IMediaStreamTrackTypes::ConstraintsPtr IMediaStreamTrackTypes::Constraints::create() noexcept
   {
     return make_shared<Constraints>();
   }
 
   //---------------------------------------------------------------------------
-  IMediaStreamTrackTypes::ConstraintsPtr IMediaStreamTrackTypes::Constraints::create(const ConstraintsPtr &value)
+  IMediaStreamTrackTypes::ConstraintsPtr IMediaStreamTrackTypes::Constraints::create(const ConstraintsPtr &value) noexcept
   {
     if (!value) return create();
     return create(*value);
   }
 
   //---------------------------------------------------------------------------
-  IMediaStreamTrackTypes::ConstraintsPtr IMediaStreamTrackTypes::Constraints::create(const Constraints &value)
+  IMediaStreamTrackTypes::ConstraintsPtr IMediaStreamTrackTypes::Constraints::create(const Constraints &value) noexcept
   {
     auto result = make_shared<Constraints>();
     result->mVideo = value.mVideo ? TrackConstraints::create(value.mVideo) : TrackConstraintsPtr();
@@ -1809,7 +1806,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  ElementPtr IMediaStreamTrackTypes::Constraints::toDebug() const
+  ElementPtr IMediaStreamTrackTypes::Constraints::toDebug() const noexcept
   {
     ElementPtr resultEl = Element::create("ortc::IMediaStreamTrackTypes::Constraints");
 
@@ -1820,7 +1817,7 @@ namespace ortc
   }
 
   //---------------------------------------------------------------------------
-  String IMediaStreamTrackTypes::Constraints::hash() const
+  String IMediaStreamTrackTypes::Constraints::hash() const noexcept
   {
     auto hasher = IHasher::sha1();
 
@@ -1838,12 +1835,12 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IMediaStreamTrack
-  #pragma mark
+  //
+  // IMediaStreamTrack
+  //
 
   //---------------------------------------------------------------------------
-  IMediaStreamTrackPtr IMediaStreamTrack::convert(AnyPtr any)
+  IMediaStreamTrackPtr IMediaStreamTrack::convert(AnyPtr any) noexcept
   {
     return ZS_DYNAMIC_PTR_CAST(IMediaStreamTrack, any);
   }

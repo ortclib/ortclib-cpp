@@ -70,7 +70,7 @@ namespace org
       /// </summary>
       Json toJson();
       /// <summary>
-      /// Get a hash value of the contrainable boolean parameters.
+      /// Get a hash value of the constrainable boolean parameters.
       /// </summary>
       string hash();
     };
@@ -82,7 +82,7 @@ namespace org
     struct ConstrainBoolean
     {
       /// <summary>
-      /// Gets or sets the exact boolean value requried. Use this value must
+      /// Gets or sets the exact boolean value required. Use this value must
       /// be mutually exclusively set from Parameters.
       /// </summary>
       [optional]
@@ -114,7 +114,7 @@ namespace org
       /// </summary>
       Json toJson();
       /// <summary>
-      /// Get a hash value of the contrainable boolean value.
+      /// Get a hash value of the constrainable boolean value.
       /// </summary>
       string hash();
     };
@@ -178,7 +178,7 @@ namespace org
     [dictionary]
     struct ConstrainLong {
       /// <summary>
-      /// Gets or sets the exact integer value requried. This value must be
+      /// Gets or sets the exact integer value required. This value must be
       /// mutually exclusively set from Range.
       /// </summary>
       [optional]
@@ -210,7 +210,7 @@ namespace org
       /// </summary>
       Json toJson();
       /// <summary>
-      /// Get a hash value of the contrainable long value.
+      /// Get a hash value of the constrainable long value.
       /// </summary>
       string hash();
     };
@@ -263,7 +263,7 @@ namespace org
       /// </summary>
       Json toJson();
       /// <summary>
-      /// Get a hash value of the contrainable real range.
+      /// Get a hash value of the constrainable real range.
       /// </summary>
       string hash();
     };
@@ -274,7 +274,7 @@ namespace org
     [dictionary]
     struct ConstrainDouble {
       /// <summary>
-      /// Gets or sets the exact real value requried. This value must be
+      /// Gets or sets the exact real value required. This value must be
       /// mutually exclusively set from Range.
       /// </summary>
       [optional]
@@ -403,7 +403,7 @@ namespace org
     [dictionary]
     struct ConstrainString {
       /// <summary>
-      /// Gets or sets the exact string value(s) requried. This value must be
+      /// Gets or sets the exact string value(s) required. This value must be
       /// mutually exclusively set from Parameters.
       /// </summary>
       [optional]

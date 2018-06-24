@@ -34,7 +34,7 @@ namespace org
   namespace ortc
   {
     /// <summary>
-    /// The minimum and maximum legal values for an interger value.
+    /// The minimum and maximum legal values for an integer value.
     /// </summary>
     [dictionary]
     struct LongRange
@@ -64,7 +64,7 @@ namespace org
       /// Constructs a minimum and maximum legal range given an integer minimum and maximum value.
       /// </summary>
       [constructor, default, altname(LongRangeWithLimits)]
-      void LongRange(long min, long max);
+      void LongRange(long minimum, long maximum);
 
       /// <summary>
       /// Constructs a minimum and maximum legal range given a JSON object.
@@ -113,7 +113,7 @@ namespace org
       /// Constructs a minimum and maximum legal range given a real minimum and maximum value.
       /// </summary>
       [constructor, default, altname(DoubleRangeWithLimits)]
-      void DoubleRange(double min, double max);
+      void DoubleRange(double minimum, double maximum);
 
       /// <summary>
       /// Constructs a minimum and maximum legal range given a JSON object.

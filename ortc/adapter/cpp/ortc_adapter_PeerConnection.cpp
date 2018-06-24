@@ -74,12 +74,12 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark PeerConnection::TransportInfo::Details
-      #pragma mark
+      //
+      // PeerConnection::TransportInfo::Details
+      //
 
       //-----------------------------------------------------------------------
-      ElementPtr PeerConnection::TransportInfo::Details::toDebug() const
+      ElementPtr PeerConnection::TransportInfo::Details::toDebug() const noexcept
       {
         ElementPtr resultEl = Element::create("ortc::adapter::PeerConnection::TransportInfo::Details");
 
@@ -96,12 +96,12 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark PeerConnection::TransportInfo
-      #pragma mark
+      //
+      // PeerConnection::TransportInfo
+      //
 
       //-----------------------------------------------------------------------
-      ElementPtr PeerConnection::TransportInfo::toDebug() const
+      ElementPtr PeerConnection::TransportInfo::toDebug() const noexcept
       {
         ElementPtr resultEl = Element::create("ortc::adapter::PeerConnection::TransportInfo");
 
@@ -125,12 +125,12 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark PeerConnection::MediaLineInfo
-      #pragma mark
+      //
+      // PeerConnection::MediaLineInfo
+      //
 
       //-----------------------------------------------------------------------
-      ElementPtr PeerConnection::MediaLineInfo::toDebug() const
+      ElementPtr PeerConnection::MediaLineInfo::toDebug() const noexcept
       {
         ElementPtr resultEl = Element::create("ortc::adapter::PeerConnection::MediaLineInfo");
 
@@ -147,12 +147,12 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark PeerConnection::RTPMediaLineInfo
-      #pragma mark
+      //
+      // PeerConnection::RTPMediaLineInfo
+      //
 
       //-----------------------------------------------------------------------
-      ElementPtr PeerConnection::RTPMediaLineInfo::toDebug() const
+      ElementPtr PeerConnection::RTPMediaLineInfo::toDebug() const noexcept
       {
         ElementPtr resultEl = MediaLineInfo::toDebug();
         resultEl->setValue("ortc::adapter::PeerConnection::RTPMediaLineInfo");
@@ -171,12 +171,12 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark PeerConnection::SCTPMediaLineInfo
-      #pragma mark
+      //
+      // PeerConnection::SCTPMediaLineInfo
+      //
 
       //-----------------------------------------------------------------------
-      ElementPtr PeerConnection::SCTPMediaLineInfo::toDebug() const
+      ElementPtr PeerConnection::SCTPMediaLineInfo::toDebug() const noexcept
       {
         ElementPtr resultEl = MediaLineInfo::toDebug();
         resultEl->setValue("ortc::adapter::PeerConnection::SCTPMediaLineInfo");
@@ -191,12 +191,12 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark PeerConnection::SenderInfo
-      #pragma mark
+      //
+      // PeerConnection::SenderInfo
+      //
 
       //-----------------------------------------------------------------------
-      ElementPtr PeerConnection::SenderInfo::toDebug() const
+      ElementPtr PeerConnection::SenderInfo::toDebug() const noexcept
       {
         ElementPtr resultEl = Element::create("ortc::adapter::PeerConnection::SenderInfo");
 
@@ -215,12 +215,12 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark PeerConnection::SenderInfo
-      #pragma mark
+      //
+      // PeerConnection::SenderInfo
+      //
 
       //-----------------------------------------------------------------------
-      ElementPtr PeerConnection::ReceiverInfo::toDebug() const
+      ElementPtr PeerConnection::ReceiverInfo::toDebug() const noexcept
       {
         ElementPtr resultEl = Element::create("ortc::adapter::PeerConnection::ReceiverInfo");
 
@@ -238,12 +238,12 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark PeerConnection::PendingMethod
-      #pragma mark
+      //
+      // PeerConnection::PendingMethod
+      //
 
       //-----------------------------------------------------------------------
-      ElementPtr PeerConnection::PendingMethod::toDebug() const
+      ElementPtr PeerConnection::PendingMethod::toDebug() const noexcept
       {
         ElementPtr resultEl = Element::create("ortc::adapter::PeerConnection::PendingMethod");
 
@@ -270,12 +270,12 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark PeerConnection::PendingAddTrack
-      #pragma mark
+      //
+      // PeerConnection::PendingAddTrack
+      //
 
       //-----------------------------------------------------------------------
-      ElementPtr PeerConnection::PendingAddTrack::toDebug() const
+      ElementPtr PeerConnection::PendingAddTrack::toDebug() const noexcept
       {
         ElementPtr resultEl = Element::create("ortc::adapter::PeerConnection::PendingAddTrack");
 
@@ -293,12 +293,12 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark PeerConnection::PendingAddDataChannel
-      #pragma mark
+      //
+      // PeerConnection::PendingAddDataChannel
+      //
 
       //-----------------------------------------------------------------------
-      ElementPtr PeerConnection::PendingAddDataChannel::toDebug() const
+      ElementPtr PeerConnection::PendingAddDataChannel::toDebug() const noexcept
       {
         ElementPtr resultEl = Element::create("ortc::adapter::PeerConnection::PendingAddDataChannel");
 
@@ -312,9 +312,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark PeerConnection
-      #pragma mark
+      //
+      // PeerConnection
+      //
 
       //-----------------------------------------------------------------------
       PeerConnection::PeerConnection(
@@ -322,7 +322,7 @@ namespace ortc
                                      IMessageQueuePtr queue,
                                      IPeerConnectionDelegatePtr delegate,
                                      const Optional<Configuration> &configuration
-                                     ) :
+                                     ) noexcept :
         MessageQueueAssociator(queue),
         SharedRecursiveLock(SharedRecursiveLock::create())
       {
@@ -336,7 +336,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      PeerConnection::~PeerConnection()
+      PeerConnection::~PeerConnection() noexcept
       {
         mThisWeak.reset();
         ZS_LOG_DEBUG(log("destroyed"));
@@ -344,7 +344,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void PeerConnection::init()
+      void PeerConnection::init() noexcept
       {
         AutoRecursiveLock lock(*this);
 
@@ -356,7 +356,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      const char *PeerConnection::toString(InternalStates state)
+      const char *PeerConnection::toString(InternalStates state) noexcept
       {
         switch (state)
         {
@@ -369,7 +369,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      const char *PeerConnection::toString(NegotiationStates state)
+      const char *PeerConnection::toString(NegotiationStates state) noexcept
       {
         switch (state)
         {
@@ -383,7 +383,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      const char *PeerConnection::toString(PendingMethods method)
+      const char *PeerConnection::toString(PendingMethods method) noexcept
       {
         switch (method)
         {
@@ -397,7 +397,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      PeerConnectionPtr PeerConnection::convert(IPeerConnectionPtr object)
+      PeerConnectionPtr PeerConnection::convert(IPeerConnectionPtr object) noexcept
       {
         return ZS_DYNAMIC_PTR_CAST(PeerConnection, object);
       }
@@ -406,15 +406,15 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark PeerConnection => IPeerConnection
-      #pragma mark
+      //
+      // PeerConnection => IPeerConnection
+      //
 
       //-----------------------------------------------------------------------
       PeerConnectionPtr PeerConnection::create(
                                                IPeerConnectionDelegatePtr delegate,
                                                const Optional<Configuration> &configuration
-                                               )
+                                               ) noexcept
       {
         auto pThis = make_shared<PeerConnection>(make_private{}, UseORTC::queueORTC(), delegate, configuration);
         pThis->mThisWeak = pThis;
@@ -423,7 +423,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      IPeerConnectionSubscriptionPtr PeerConnection::subscribe(IPeerConnectionDelegatePtr originalDelegate)
+      IPeerConnectionSubscriptionPtr PeerConnection::subscribe(IPeerConnectionDelegatePtr originalDelegate) noexcept
       {
         ZS_LOG_DETAIL(log("subscribing to peer connection"));
 
@@ -436,9 +436,7 @@ namespace ortc
 
         if (delegate) {
           auto pThis = mThisWeak.lock();
-
-#define TODO_DO_WE_NEED_TO_TELL_ABOUT_ANY_MISSED_EVENTS 1
-#define TODO_DO_WE_NEED_TO_TELL_ABOUT_ANY_MISSED_EVENTS 2
+#pragma ZS_BUILD_NOTE("TODO","Fire any missed events")
 
           if (SignalingState_First != mLastSignalingState) {
             delegate->onPeerConnectionSignalingStateChange(pThis, mLastSignalingState);
@@ -466,7 +464,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      IPeerConnectionTypes::PromiseWithDescriptionPtr PeerConnection::createOffer(const Optional<OfferOptions> &configuration)
+      IPeerConnectionTypes::PromiseWithDescriptionPtr PeerConnection::createOffer(const Optional<OfferOptions> &configuration) noexcept
       {
         AutoRecursiveLock lock(*this);
 
@@ -505,7 +503,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      IPeerConnectionTypes::PromiseWithDescriptionPtr PeerConnection::createAnswer(const Optional<AnswerOptions> &configuration)
+      IPeerConnectionTypes::PromiseWithDescriptionPtr PeerConnection::createAnswer(const Optional<AnswerOptions> &configuration) noexcept
       {
         AutoRecursiveLock lock(*this);
 
@@ -544,7 +542,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      IPeerConnectionTypes::PromiseWithDescriptionPtr PeerConnection::createCapabilities(const Optional<CapabilityOptions> &configuration)
+      IPeerConnectionTypes::PromiseWithDescriptionPtr PeerConnection::createCapabilities(const Optional<CapabilityOptions> &configuration) noexcept
       {
         AutoRecursiveLock lock(*this);
 
@@ -569,7 +567,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      PromisePtr PeerConnection::setLocalDescription(ISessionDescriptionPtr description)
+      PromisePtr PeerConnection::setLocalDescription(ISessionDescriptionPtr description) noexcept
       {
         AutoRecursiveLock lock(*this);
 
@@ -619,7 +617,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      ISessionDescriptionPtr PeerConnection::localDescription() const
+      ISessionDescriptionPtr PeerConnection::localDescription() const noexcept
       {
         AutoRecursiveLock lock(*this);
         if (mPendingLocalDescription) return mPendingLocalDescription;
@@ -627,23 +625,23 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      ISessionDescriptionPtr PeerConnection::currentDescription() const
+      ISessionDescriptionPtr PeerConnection::currentDescription() const noexcept
       {
         AutoRecursiveLock lock(*this);
         return mLocalDescription;
       }
 
       //-----------------------------------------------------------------------
-      ISessionDescriptionPtr PeerConnection::pendingDescription() const
+      ISessionDescriptionPtr PeerConnection::pendingDescription() const noexcept
       {
         AutoRecursiveLock lock(*this);
         return mPendingRemoteDescription;
       }
 
       //-----------------------------------------------------------------------
-      PromisePtr PeerConnection::setRemoteDescription(ISessionDescriptionPtr description)
+      PromisePtr PeerConnection::setRemoteDescription(ISessionDescriptionPtr description) noexcept
       {
-        ORTC_THROW_INVALID_PARAMETERS_IF(!description);
+        ZS_ASSERT(description);
 
         AutoRecursiveLock lock(*this);
 
@@ -693,7 +691,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      ISessionDescriptionPtr PeerConnection::remoteDescription() const
+      ISessionDescriptionPtr PeerConnection::remoteDescription() const noexcept
       {
         AutoRecursiveLock lock(*this);
         if (mPendingRemoteDescription) return mPendingRemoteDescription;
@@ -701,21 +699,21 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      ISessionDescriptionPtr PeerConnection::currentRemoteDescription() const
+      ISessionDescriptionPtr PeerConnection::currentRemoteDescription() const noexcept
       {
         AutoRecursiveLock lock(*this);
         return mRemoteDescription;
       }
 
       //-----------------------------------------------------------------------
-      ISessionDescriptionPtr PeerConnection::pendingRemoteDescription() const
+      ISessionDescriptionPtr PeerConnection::pendingRemoteDescription() const noexcept
       {
         AutoRecursiveLock lock(*this);
         return mPendingRemoteDescription;
       }
 
       //-----------------------------------------------------------------------
-      void PeerConnection::addICECandidate(const ICECandidate &candidate)
+      void PeerConnection::addICECandidate(const ICECandidate &candidate) noexcept
       {
         AutoRecursiveLock lock(*this);
         if (isStopped()) {
@@ -728,54 +726,54 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      IPeerConnectionTypes::SignalingStates PeerConnection::signalingState() const
+      IPeerConnectionTypes::SignalingStates PeerConnection::signalingState() const noexcept
       {
         AutoRecursiveLock lock(*this);
         return mLastSignalingState;
       }
 
       //-----------------------------------------------------------------------
-      IPeerConnectionTypes::ICEGatheringStates PeerConnection::iceGatheringState() const
+      IPeerConnectionTypes::ICEGatheringStates PeerConnection::iceGatheringState() const noexcept
       {
         AutoRecursiveLock lock(*this);
         return mLastICEGatheringStates;
       }
 
       //-----------------------------------------------------------------------
-      IPeerConnectionTypes::ICEConnectionStates PeerConnection::iceConnectionState() const
+      IPeerConnectionTypes::ICEConnectionStates PeerConnection::iceConnectionState() const noexcept
       {
         AutoRecursiveLock lock(*this);
         return mLastICEConnectionState;
       }
 
       //-----------------------------------------------------------------------
-      IPeerConnectionTypes::PeerConnectionStates PeerConnection::connectionState() const
+      IPeerConnectionTypes::PeerConnectionStates PeerConnection::connectionState() const noexcept
       {
         AutoRecursiveLock lock(*this);
         return mLastPeerConnectionState;
       }
 
       //-----------------------------------------------------------------------
-      bool PeerConnection::canTrickleCandidates() const
+      bool PeerConnection::canTrickleCandidates() const noexcept
       {
         return true;
       }
 
       //-----------------------------------------------------------------------
-      IPeerConnectionTypes::ServerListPtr PeerConnection::getDefaultIceServers()
+      IPeerConnectionTypes::ServerListPtr PeerConnection::getDefaultIceServers() noexcept
       {
         return make_shared<ServerList>();
       }
 
       //-----------------------------------------------------------------------
-      IPeerConnectionTypes::ConfigurationPtr PeerConnection::getConfiguration() const
+      IPeerConnectionTypes::ConfigurationPtr PeerConnection::getConfiguration() const noexcept
       {
         AutoRecursiveLock lock(*this);
         return make_shared<Configuration>(mConfiguration);
       }
 
       //-----------------------------------------------------------------------
-      void PeerConnection::setConfiguration(const Configuration &configuration)
+      void PeerConnection::setConfiguration(const Configuration &configuration) noexcept
       {
         AutoRecursiveLock lock(*this);
 
@@ -785,13 +783,11 @@ namespace ortc
         if (mConfiguration.mCertificates.size() < 1) {
           mConfiguration.mCertificates = oldConfiguration.mCertificates;
         }
-
-#define TODO_SET_CONFIGURATION 1
-#define TODO_SET_CONFIGURATION 2
+#pragma ZS_BUILD_NOTE("TODO","set configuration")
       }
 
       //-----------------------------------------------------------------------
-      void PeerConnection::close()
+      void PeerConnection::close() noexcept
       {
         ZS_LOG_DEBUG(log("close called"));
 
@@ -800,7 +796,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      IPeerConnectionTypes::SenderListPtr PeerConnection::getSenders() const
+      IPeerConnectionTypes::SenderListPtr PeerConnection::getSenders() const noexcept
       {
         auto result = make_shared<SenderList>();
 
@@ -826,7 +822,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      IPeerConnectionTypes::ReceiverListPtr PeerConnection::getReceivers() const
+      IPeerConnectionTypes::ReceiverListPtr PeerConnection::getReceivers() const noexcept
       {
         auto result = make_shared<ReceiverList>();
 
@@ -855,7 +851,7 @@ namespace ortc
       IPeerConnectionTypes::PromiseWithSenderPtr PeerConnection::addTrack(
                                                                           IMediaStreamTrackPtr track,
                                                                           const MediaStreamTrackConfiguration &inConfiguration
-                                                                          )
+                                                                          ) noexcept
       {
         MediaStreamList mediaStreams;
         return addTrack(track, mediaStreams, inConfiguration);
@@ -866,9 +862,9 @@ namespace ortc
                                                                           IMediaStreamTrackPtr track,
                                                                           const MediaStreamList &mediaStreams,
                                                                           const MediaStreamTrackConfiguration &inConfiguration
-                                                                          )
+                                                                          ) noexcept
       {
-        ORTC_THROW_INVALID_PARAMETERS_IF(!track);
+        ZS_ASSERT(track);
 
         auto configuration = make_shared<MediaStreamTrackConfiguration>(inConfiguration);
 
@@ -903,9 +899,9 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void PeerConnection::removeTrack(IRTPSenderPtr sender)
+      void PeerConnection::removeTrack(IRTPSenderPtr sender) noexcept
       {
-        ORTC_THROW_INVALID_PARAMETERS_IF(!sender);
+        ZS_ASSERT(sender);
 
         AutoRecursiveLock lock(*this);
         if (isStopped()) {
@@ -920,7 +916,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      IPeerConnectionTypes::PromiseWithDataChannelPtr PeerConnection::createDataChannel(const IDataChannelTypes::Parameters &inParameters)
+      IPeerConnectionTypes::PromiseWithDataChannelPtr PeerConnection::createDataChannel(const IDataChannelTypes::Parameters &inParameters) noexcept
       {
         auto parameters = make_shared<IDataChannelTypes::Parameters>(inParameters);
 
@@ -949,12 +945,12 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark PeerConnection => IStatsProvider
-      #pragma mark
+      //
+      // PeerConnection => IStatsProvider
+      //
 
       //-----------------------------------------------------------------------
-      PeerConnection::PromiseWithStatsReportPtr PeerConnection::getStats(const StatsTypeSet &stats) const
+      PeerConnection::PromiseWithStatsReportPtr PeerConnection::getStats(const StatsTypeSet &stats) const noexcept
       {
         auto promise = PromiseWithStatsReport::create(UseORTC::queueDelegate());
 
@@ -967,9 +963,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark PeerConnection => IPeerConnectionAsyncDelegate
-      #pragma mark
+      //
+      // PeerConnection => IPeerConnectionAsyncDelegate
+      //
 
       //-----------------------------------------------------------------------
       void PeerConnection::onProvideStats(PromiseWithStatsReportPtr promise, StatsTypeSet stats)
@@ -1101,9 +1097,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark PeerConnection => IICEGathererDelegate
-      #pragma mark
+      //
+      // PeerConnection => IICEGathererDelegate
+      //
 
       //-----------------------------------------------------------------------
       void PeerConnection::onICEGathererStateChange(
@@ -1240,9 +1236,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark PeerConnection => IICETransportDelegate
-      #pragma mark
+      //
+      // PeerConnection => IICETransportDelegate
+      //
 
       //-----------------------------------------------------------------------
       void PeerConnection::onICETransportStateChange(
@@ -1284,9 +1280,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark PeerConnection => IDTLSTransportDelegate
-      #pragma mark
+      //
+      // PeerConnection => IDTLSTransportDelegate
+      //
 
       //-----------------------------------------------------------------------
       void PeerConnection::onDTLSTransportStateChange(
@@ -1313,15 +1309,15 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark PeerConnection => ISRTPSDESTransportDelegate
-      #pragma mark
+      //
+      // PeerConnection => ISRTPSDESTransportDelegate
+      //
 
       //-----------------------------------------------------------------------
       void PeerConnection::onSRTPSDESTransportLifetimeRemaining(
                                                                 ISRTPSDESTransportPtr transport,
-                                                                ULONG leastLifetimeRemainingPercentageForAllKeys,
-                                                                ULONG overallLifetimeRemainingPercentage
+                                                                ULONG /* leastLifetimeRemainingPercentageForAllKeys */,
+                                                                ULONG /* overallLifetimeRemainingPercentage */
                                                                 )
       {
         // ignored
@@ -1340,9 +1336,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark PeerConnection => IRTPListenerDelegate
-      #pragma mark
+      //
+      // PeerConnection => IRTPListenerDelegate
+      //
 
       //-----------------------------------------------------------------------
       void PeerConnection::onRTPListenerUnhandledRTP(
@@ -1361,9 +1357,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark PeerConnection => IRTPSenderDelegate
-      #pragma mark
+      //
+      // PeerConnection => IRTPSenderDelegate
+      //
 
       //-----------------------------------------------------------------------
       void PeerConnection::onRTPSenderSSRCConflict(
@@ -1378,9 +1374,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark PeerConnection => ISCTPTransportDelegate
-      #pragma mark
+      //
+      // PeerConnection => ISCTPTransportDelegate
+      //
 
       //-----------------------------------------------------------------------
       void PeerConnection::onSCTPTransportStateChange(
@@ -1425,9 +1421,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark PeerConnection => ISCTPTransportListenerDelegate
-      #pragma mark
+      //
+      // PeerConnection => ISCTPTransportListenerDelegate
+      //
 
       //-----------------------------------------------------------------------
       void PeerConnection::onSCTPTransport(ISCTPTransportPtr transport)
@@ -1439,9 +1435,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark PeerConnection => IDataChannelDelegate
-      #pragma mark
+      //
+      // PeerConnection => IDataChannelDelegate
+      //
 
       //-----------------------------------------------------------------------
       void PeerConnection::onDataChannelStateChange(
@@ -1496,9 +1492,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark PeerConnection => ISCTPTransportListenerDelegate
-      #pragma mark
+      //
+      // PeerConnection => ISCTPTransportListenerDelegate
+      //
 
       //-----------------------------------------------------------------------
       void PeerConnection::onWake()
@@ -1515,9 +1511,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark PeerConnection => IPromiseSettledDelegate
-      #pragma mark
+      //
+      // PeerConnection => IPromiseSettledDelegate
+      //
 
       //-----------------------------------------------------------------------
       void PeerConnection::onPromiseSettled(PromisePtr promise)
@@ -1557,12 +1553,12 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark PeerConnection => (internal)
-      #pragma mark
+      //
+      // PeerConnection => (internal)
+      //
 
       //-----------------------------------------------------------------------
-      Log::Params PeerConnection::log(const char *message) const
+      Log::Params PeerConnection::log(const char *message) const noexcept
       {
         ElementPtr objectEl = Element::create("ortc::adapter::PeerConnection");
         UseServicesHelper::debugAppend(objectEl, "id", mID);
@@ -1570,13 +1566,13 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      Log::Params PeerConnection::debug(const char *message) const
+      Log::Params PeerConnection::debug(const char *message) const noexcept
       {
         return Log::Params(message, toDebug());
       }
 
       //-----------------------------------------------------------------------
-      ElementPtr PeerConnection::toDebug() const
+      ElementPtr PeerConnection::toDebug() const noexcept
       {
         AutoRecursiveLock lock(*this);
 
@@ -1634,7 +1630,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void PeerConnection::wake()
+      void PeerConnection::wake() noexcept
       {
         if (mWakeCalled) return;
         mWakeCalled = true;
@@ -1642,7 +1638,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void PeerConnection::notifyNegotiationNeeded()
+      void PeerConnection::notifyNegotiationNeeded() noexcept
       {
         if (isStopped()) return;
 
@@ -1652,7 +1648,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void PeerConnection::cancel()
+      void PeerConnection::cancel() noexcept
       {
         if (isShutdown()) {
           ZS_LOG_TRACE(log("already shutdown"));
@@ -1752,15 +1748,13 @@ namespace ortc
 
         setState(InternalState_Shutdown);
 
-
-#define TODO_CANCEL 1
-#define TODO_CANCEL 2
+#pragma ZS_BUILD_NOTE("TODO","cancel")
 
         mGracefulShutdownReference.reset();
       }
 
       //-----------------------------------------------------------------------
-      void PeerConnection::setError(WORD errorCode, const char *errorReason)
+      void PeerConnection::setError(WORD errorCode, const char *errorReason) noexcept
       {
         String errorReasonStr(errorReason);
         if (isStopped()) {
@@ -1783,7 +1777,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void PeerConnection::step()
+      void PeerConnection::step() noexcept
       {
         if (isStopped()) {
           ZS_LOG_DEBUG(log("step calling cancel"));
@@ -1817,7 +1811,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      bool PeerConnection::stepCertificates()
+      bool PeerConnection::stepCertificates() noexcept
       {
         ZS_LOG_TRACE(log("step - certificates"));
 
@@ -1862,7 +1856,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      bool PeerConnection::stepProcessRemote()
+      bool PeerConnection::stepProcessRemote() noexcept
       {
         ZS_LOG_TRACE(log("step - process remote"));
 
@@ -1916,7 +1910,7 @@ namespace ortc
               }
               case ISessionDescriptionTypes::SignalingType_SDPRollback:
               {
-                ZS_THROW_NOT_IMPLEMENTED("rollback not implemented at this time");
+                ZS_ASSERT_FAIL("rollback not implemented at this time");
               }
             }
             break;
@@ -1938,7 +1932,7 @@ namespace ortc
               }
               case ISessionDescriptionTypes::SignalingType_SDPRollback:
               {
-                ZS_THROW_NOT_IMPLEMENTED("rollback not implemented at this time");
+                ZS_ASSERT_FAIL("rollback not implemented at this time");
               }
             }
             break;
@@ -1970,7 +1964,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      bool PeerConnection::stepProcessRemoteTransport(ISessionDescriptionTypes::DescriptionPtr description)
+      bool PeerConnection::stepProcessRemoteTransport(ISessionDescriptionTypes::DescriptionPtr description) noexcept
       {
         for (auto iter = description->mTransports.begin(); iter != description->mTransports.end(); ++iter) {
           auto &transport = *(*iter);
@@ -2039,7 +2033,7 @@ namespace ortc
               }
             }
 
-            ZS_THROW_INVALID_ASSUMPTION_IF(!transportInfo);
+            ZS_ASSERT(transportInfo);
 
             if (NegotiationState_Rejected == transportInfo->mNegotiationState) {
               ZS_LOG_WARNING(Debug, log("transport was already rejected") + transportInfo->toDebug());
@@ -2212,8 +2206,8 @@ namespace ortc
                 if ((hasRTPSRTP) &&
                     (mConfiguration.mNegotiateSRTPSDES)) {
                   if (!(transportInfo->mRTP.mSRTPSDESTransport)) {
-                    ZS_THROW_INVALID_ASSUMPTION_IF(!transportInfo->mRTP.mSRTPSDESParameters);
-                    ZS_THROW_INVALID_ASSUMPTION_IF(transportInfo->mRTP.mSRTPSDESParameters->mCryptoParams.size() < 1);
+                    ZS_ASSERT(transportInfo->mRTP.mSRTPSDESParameters);
+                    ZS_ASSERT(transportInfo->mRTP.mSRTPSDESParameters->mCryptoParams.size() > 0);
 
                     auto &encodeCryptoParams = *(transportInfo->mRTP.mSRTPSDESParameters->mCryptoParams.begin());
                     auto &decodeCryptoParams = *(transport.mRTP->mSRTPSDESParameters->mCryptoParams.begin());
@@ -2287,7 +2281,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      bool PeerConnection::stepProcessRemoteRTPMediaLines(ISessionDescriptionTypes::DescriptionPtr description)
+      bool PeerConnection::stepProcessRemoteRTPMediaLines(ISessionDescriptionTypes::DescriptionPtr description) noexcept
       {
         for (auto iter = description->mRTPMediaLines.begin(); iter != description->mRTPMediaLines.end(); ++iter)
         {
@@ -2408,7 +2402,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      bool PeerConnection::stepProcessRemoteRTPSenders(ISessionDescriptionTypes::DescriptionPtr description)
+      bool PeerConnection::stepProcessRemoteRTPSenders(ISessionDescriptionTypes::DescriptionPtr description) noexcept
       {
         for (auto iter = description->mRTPSenders.begin(); iter != description->mRTPSenders.end(); ++iter) {
           auto &sender = *(*iter);
@@ -2624,7 +2618,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      bool PeerConnection::stepProcessRemoteSCTPTransport(ISessionDescriptionTypes::DescriptionPtr description)
+      bool PeerConnection::stepProcessRemoteSCTPTransport(ISessionDescriptionTypes::DescriptionPtr description) noexcept
       {
         for (auto iter = description->mSCTPMediaLines.begin(); iter != description->mSCTPMediaLines.end(); ++iter)
         {
@@ -2753,7 +2747,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      bool PeerConnection::stepProcessLocal()
+      bool PeerConnection::stepProcessLocal() noexcept
       {
         ZS_LOG_TRACE(log("step - process local"));
 
@@ -2807,7 +2801,7 @@ namespace ortc
               }
               case ISessionDescriptionTypes::SignalingType_SDPRollback:
               {
-                ZS_THROW_NOT_IMPLEMENTED("rollback not implemented at this time");
+                ZS_ASSERT_FAIL("rollback not implemented at this time");
               }
             }
             break;
@@ -2829,7 +2823,7 @@ namespace ortc
               }
               case ISessionDescriptionTypes::SignalingType_SDPRollback:
               {
-                ZS_THROW_NOT_IMPLEMENTED("rollback not implemented at this time");
+                ZS_ASSERT_FAIL("rollback not implemented at this time");
               }
             }
             break;
@@ -2861,7 +2855,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      bool PeerConnection::stepProcessLocalTransport(ISessionDescriptionTypes::DescriptionPtr description)
+      bool PeerConnection::stepProcessLocalTransport(ISessionDescriptionTypes::DescriptionPtr description) noexcept
       {
         for (auto iter = description->mTransports.begin(); iter != description->mTransports.end(); ++iter) {
           auto &transport = *(*iter);
@@ -2882,7 +2876,7 @@ namespace ortc
               goto reject_transport;
             }
 
-            ZS_THROW_INVALID_ASSUMPTION_IF(!transportInfo);
+            ZS_ASSERT(transportInfo);
 
             if (NegotiationState_Rejected == transportInfo->mNegotiationState) {
               ZS_LOG_WARNING(Debug, log("transport was already rejected") + transportInfo->toDebug());
@@ -2944,7 +2938,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      bool PeerConnection::stepProcessLocalRTPMediaLines(ISessionDescriptionTypes::DescriptionPtr description)
+      bool PeerConnection::stepProcessLocalRTPMediaLines(ISessionDescriptionTypes::DescriptionPtr description) noexcept
       {
         for (auto iter = description->mRTPMediaLines.begin(); iter != description->mRTPMediaLines.end(); ++iter)
         {
@@ -3008,7 +3002,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      bool PeerConnection::stepProcessLocalRTPSenders(ISessionDescriptionTypes::DescriptionPtr description)
+      bool PeerConnection::stepProcessLocalRTPSenders(ISessionDescriptionTypes::DescriptionPtr description) noexcept
       {
         for (auto iter = description->mRTPSenders.begin(); iter != description->mRTPSenders.end(); ++iter) {
           auto &sender = *(*iter);
@@ -3151,7 +3145,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      bool PeerConnection::stepProcessLocalSCTPTransport(ISessionDescriptionTypes::DescriptionPtr description)
+      bool PeerConnection::stepProcessLocalSCTPTransport(ISessionDescriptionTypes::DescriptionPtr description) noexcept
       {
         for (auto iter = description->mSCTPMediaLines.begin(); iter != description->mSCTPMediaLines.end(); ++iter)
         {
@@ -3208,7 +3202,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      bool PeerConnection::stepAddTracks()
+      bool PeerConnection::stepAddTracks() noexcept
       {
         typedef std::set<TransportID> TransportIDSet;
 
@@ -3254,11 +3248,11 @@ namespace ortc
                     break;
                   }
                   case UseAdapterHelper::IDPreference_Remote: {
-                    ZS_THROW_INVALID_ASSUMPTION_IF(!mediaLine.mRemoteReceiverCapabilities);
+                    ZS_ASSERT(mediaLine.mRemoteReceiverCapabilities);
 
                     // filter to the remote capabilities and ensure it's compatible
                     auto senderUnion = UseAdapterHelper::createUnion(*(pending->mConfiguration->mCapabilities), (*(mediaLine.mRemoteReceiverCapabilities)), UseAdapterHelper::IDPreference_Remote);
-                    ZS_THROW_INVALID_ASSUMPTION_IF(!senderUnion);
+                    ZS_ASSERT(senderUnion);
 
                     if (!UseAdapterHelper::isCompatible(*(mediaLine.mRemoteReceiverCapabilities), *senderUnion)) goto not_compatible;
                     if (!UseAdapterHelper::hasSupportedMediaCodec(*senderUnion)) goto not_compatible;
@@ -3275,11 +3269,11 @@ namespace ortc
                     break;
                   }
                   case UseAdapterHelper::IDPreference_Remote: {
-                    ZS_THROW_INVALID_ASSUMPTION_IF(!mediaLine.mRemoteReceiverCapabilities);
+                    ZS_ASSERT(mediaLine.mRemoteReceiverCapabilities);
 
                     // filter to the remote capabilities and ensure it's compatible
                     auto filteredParameters = UseAdapterHelper::filterParameters(*(pending->mConfiguration->mParameters), (*(mediaLine.mRemoteReceiverCapabilities)));
-                    ZS_THROW_INVALID_ASSUMPTION_IF(!filteredParameters);
+                    ZS_ASSERT(filteredParameters);
 
                     if (!UseAdapterHelper::isCompatible(*(mediaLine.mRemoteReceiverCapabilities), *filteredParameters)) goto not_compatible;
                     if (!UseAdapterHelper::hasSupportedMediaCodec(*filteredParameters)) goto not_compatible;
@@ -3344,7 +3338,7 @@ namespace ortc
         found_compatible:
           {
             auto first = compatibleTransports.begin();
-            ZS_THROW_INVALID_ASSUMPTION_IF(first == compatibleTransports.end());
+            ZS_ASSERT(first != compatibleTransports.end());
 
             auto bundledTransportID = (*first);
             auto mediaLine = make_shared<RTPMediaLineInfo>();
@@ -3401,7 +3395,7 @@ namespace ortc
               }
             }
 
-            ZS_THROW_INVALID_ASSUMPTION_IF(!mediaLine);
+            ZS_ASSERT(mediaLine);
 
             // With SDP, the sender and the media line must share the same ID,
             // but JSON signaling uses a unique ID for the sender.
@@ -3446,7 +3440,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      bool PeerConnection::stepAddSCTPTransport()
+      bool PeerConnection::stepAddSCTPTransport() noexcept
       {
         if (mPendingAddDataChannels.size() < 1) {
           ZS_LOG_TRACE(log("step - add sctp transport - no pending data channels"));
@@ -3517,7 +3511,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      bool PeerConnection::stepCreateOfferOrAnswer()
+      bool PeerConnection::stepCreateOfferOrAnswer() noexcept
       {
         ZS_LOG_TRACE(log("step - create offer"));
 
@@ -3625,8 +3619,7 @@ namespace ortc
               mediaLine->mDetails->mConnectionData->mRTP->mNetType = mediaLine->mDetails->mConnectionData->mRTCP->mNetType = "IN";
               mediaLine->mDetails->mConnectionData->mRTP->mAddrType = mediaLine->mDetails->mConnectionData->mRTCP->mAddrType = "IP4";
               mediaLine->mDetails->mConnectionData->mRTP->mConnectionAddress = mediaLine->mDetails->mConnectionData->mRTCP->mConnectionAddress = "0.0.0.0";
-#define TODO_FILL_WITH_CANDIDATE_INFO_LATER 1
-#define TODO_FILL_WITH_CANDIDATE_INFO_LATER 2
+#pragma ZS_BUILD_NOTE("TODO","fill with candidates later")
             }
           }
           mediaLine->mSenderCapabilities = make_shared<ISessionDescriptionTypes::RTPCapabilities>(*mediaInfo->mLocalSenderCapabilities);
@@ -3656,8 +3649,7 @@ namespace ortc
               mediaLine->mDetails->mConnectionData->mRTP->mNetType = mediaLine->mDetails->mConnectionData->mRTCP->mNetType = "IN";
               mediaLine->mDetails->mConnectionData->mRTP->mAddrType = mediaLine->mDetails->mConnectionData->mRTCP->mAddrType = "IP4";
               mediaLine->mDetails->mConnectionData->mRTP->mConnectionAddress = mediaLine->mDetails->mConnectionData->mRTCP->mConnectionAddress = "0.0.0.0";
-#define TODO_FILL_WITH_CANDIDATE_INFO_LATER 1
-#define TODO_FILL_WITH_CANDIDATE_INFO_LATER 2
+#pragma ZS_BUILD_NOTE("TODO","fill with candidate info later")
             }
           }
           mediaLine->mCapabilities = ISCTPTransport::getCapabilities();
@@ -3699,7 +3691,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      bool PeerConnection::stepProcessPendingRemoteCandidates()
+      bool PeerConnection::stepProcessPendingRemoteCandidates() noexcept
       {
         ZS_LOG_TRACE(log("step - process pending remote candidates"));
 
@@ -3753,7 +3745,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      bool PeerConnection::stepFinalizeSenders()
+      bool PeerConnection::stepFinalizeSenders() noexcept
       {
         ZS_LOG_TRACE("step - finalize senders");
 
@@ -3790,8 +3782,8 @@ namespace ortc
               continue;
             }
 
-            ZS_THROW_INVALID_ASSUMPTION_IF(!mediaLine->mLocalSenderCapabilities);
-            ZS_THROW_INVALID_ASSUMPTION_IF(!mediaLine->mRemoteReceiverCapabilities);
+            ZS_ASSERT(mediaLine->mLocalSenderCapabilities);
+            ZS_ASSERT(mediaLine->mRemoteReceiverCapabilities);
 
             auto capsUnion = UseAdapterHelper::createUnion(*mediaLine->mLocalSenderCapabilities, *mediaLine->mRemoteReceiverCapabilities, mediaLine->mIDPreference);
             if (!senderInfo->mParameters) {
@@ -3864,7 +3856,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      bool PeerConnection::stepFinalizeDataChannels()
+      bool PeerConnection::stepFinalizeDataChannels() noexcept
       {
         SCTPMediaLineInfoPtr mediaLine;
         bool rejectAll = false;
@@ -3945,7 +3937,7 @@ namespace ortc
       static void figureOutState(
                                  Optional<IICEGathererTypes::States> &ioState,
                                  IICEGathererPtr gatherer
-                                 )
+                                 ) noexcept
       {
         if (!gatherer) return;
 
@@ -3974,7 +3966,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      bool PeerConnection::stepFixGathererState()
+      bool PeerConnection::stepFixGathererState() noexcept
       {
         ZS_LOG_TRACE("step - fix gatherer state");
 
@@ -4002,7 +3994,7 @@ namespace ortc
       static void figureOutState(
                                  size_t *stateArray,
                                  IICETransportPtr transport
-                                 )
+                                 ) noexcept
       {
         if (!transport) return;
 
@@ -4014,7 +4006,7 @@ namespace ortc
       static void figureOutState(
                                  size_t *stateArray,
                                  IDTLSTransportPtr transport
-                                 )
+                                 ) noexcept
       {
         if (!transport) return;
 
@@ -4026,7 +4018,7 @@ namespace ortc
       static void figureOutState(
                                  size_t *stateArray,
                                  ISRTPSDESTransportPtr transport
-                                 )
+                                 ) noexcept
       {
         if (!transport) return;
 
@@ -4035,7 +4027,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      bool PeerConnection::stepFixTransportState()
+      bool PeerConnection::stepFixTransportState() noexcept
       {
         ZS_LOG_TRACE("step - fix gatherer state");
 
@@ -4196,7 +4188,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void PeerConnection::setState(InternalStates state)
+      void PeerConnection::setState(InternalStates state) noexcept
       {
         if (state == mState) return;
 
@@ -4206,7 +4198,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void PeerConnection::setState(SignalingStates state)
+      void PeerConnection::setState(SignalingStates state) noexcept
       {
         if (state == mLastSignalingState) return;
 
@@ -4221,7 +4213,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void PeerConnection::setState(ICEGatheringStates state)
+      void PeerConnection::setState(ICEGatheringStates state) noexcept
       {
         if (state == mLastICEGatheringStates) return;
 
@@ -4236,7 +4228,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void PeerConnection::setState(ICEConnectionStates state)
+      void PeerConnection::setState(ICEConnectionStates state) noexcept
       {
         if (state == mLastICEConnectionState) return;
 
@@ -4251,7 +4243,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void PeerConnection::setState(PeerConnectionStates state)
+      void PeerConnection::setState(PeerConnectionStates state) noexcept
       {
         if (state == mLastPeerConnectionState) return;
 
@@ -4269,7 +4261,7 @@ namespace ortc
       void PeerConnection::addCandidateToTransport(
                                                    TransportInfo &transport,
                                                    ICECandidatePtr candidate
-                                                   )
+                                                   ) noexcept
       {
         {
           if (!candidate->mCandidate) {
@@ -4296,7 +4288,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      PeerConnection::TransportInfoPtr PeerConnection::getTransportFromPool(const char *useID)
+      PeerConnection::TransportInfoPtr PeerConnection::getTransportFromPool(const char *useID) noexcept
       {
         String useIDStr(useID);
 
@@ -4315,7 +4307,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void PeerConnection::addToTransportPool()
+      void PeerConnection::addToTransportPool() noexcept
       {
         TransportInfoPtr info(make_shared<TransportInfo>());
 
@@ -4337,7 +4329,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      String PeerConnection::registerNewID(size_t length)
+      String PeerConnection::registerNewID(size_t length) noexcept
       {
         size_t tries = 0;
 
@@ -4362,7 +4354,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      String PeerConnection::registerIDUsage(const char *idStr)
+      String PeerConnection::registerIDUsage(const char *idStr) noexcept
       {
         String str(idStr);
 
@@ -4378,7 +4370,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void PeerConnection::unregisterID(const char *idStr)
+      void PeerConnection::unregisterID(const char *idStr) noexcept
       {
         String str(idStr);
 
@@ -4395,7 +4387,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      WORD PeerConnection::registerNewLocalPort()
+      WORD PeerConnection::registerNewLocalPort() noexcept
       {
         auto capabilities = ISCTPTransport::getCapabilities();
         WORD startingPort = capabilities->mMinPort;
@@ -4422,7 +4414,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void PeerConnection::flushLocalPending(ISessionDescriptionPtr description)
+      void PeerConnection::flushLocalPending(ISessionDescriptionPtr description) noexcept
       {
         if (!mPendingLocalDescription) return;
         if (!description) return;
@@ -4432,7 +4424,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void PeerConnection::flushRemotePending(ISessionDescriptionPtr description)
+      void PeerConnection::flushRemotePending(ISessionDescriptionPtr description) noexcept
       {
         if (!mPendingRemoteDescription) return;
         if (!description) return;
@@ -4442,7 +4434,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void PeerConnection::close(TransportInfo &transportInfo)
+      void PeerConnection::close(TransportInfo &transportInfo) noexcept
       {
         close(transportInfo.mRTCP);
         close(transportInfo.mRTP);
@@ -4451,7 +4443,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void PeerConnection::close(TransportInfo::Details &details)
+      void PeerConnection::close(TransportInfo::Details &details) noexcept
       {
         if (details.mSRTPSDESTransport) {
           details.mSRTPSDESTransport->stop();
@@ -4472,14 +4464,14 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void PeerConnection::close(RTPMediaLineInfo &mediaLineInfo)
+      void PeerConnection::close(RTPMediaLineInfo &mediaLineInfo) noexcept
       {
         mediaLineInfo.mNegotiationState = NegotiationState_Rejected;
         unregisterID(mediaLineInfo.mID);
       }
 
       //-----------------------------------------------------------------------
-      void PeerConnection::close(SCTPMediaLineInfo &mediaLineInfo)
+      void PeerConnection::close(SCTPMediaLineInfo &mediaLineInfo) noexcept
       {
         for (auto iter_doNotUse = mediaLineInfo.mDataChannels.begin(); iter_doNotUse != mediaLineInfo.mDataChannels.end(); )
         {
@@ -4508,7 +4500,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void PeerConnection::close(SenderInfo &senderInfo)
+      void PeerConnection::close(SenderInfo &senderInfo) noexcept
       {
         clearSSRCs(senderInfo);
 
@@ -4538,7 +4530,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void PeerConnection::close(ReceiverInfo &receiverInfo)
+      void PeerConnection::close(ReceiverInfo &receiverInfo) noexcept
       {
         if (receiverInfo.mReceiver) {
           for (auto iter = receiverInfo.mMediaStreams.begin(); iter != receiverInfo.mMediaStreams.end(); ++iter) {
@@ -4561,7 +4553,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void PeerConnection::close(PendingMethod &pending)
+      void PeerConnection::close(PendingMethod &pending) noexcept
       {
         if (pending.mPromise) {
           pending.mPromise->reject(ErrorAny::create(UseHTTP::HTTPStatusCode_Gone, "connection is closing"));
@@ -4570,7 +4562,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void PeerConnection::close(PendingAddTrack &pending)
+      void PeerConnection::close(PendingAddTrack &pending) noexcept
       {
         if (pending.mPromise) {
           pending.mPromise->reject(ErrorAny::create(UseHTTP::HTTPStatusCode_Gone, "connection is closing"));
@@ -4579,7 +4571,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void PeerConnection::close(PendingAddDataChannel &pending)
+      void PeerConnection::close(PendingAddDataChannel &pending) noexcept
       {
         if (pending.mPromise) {
           pending.mPromise->reject(ErrorAny::create(UseHTTP::HTTPStatusCode_Gone, "connection is closing"));
@@ -4588,7 +4580,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void PeerConnection::insertSSRCs(SenderInfo &senderInfo)
+      void PeerConnection::insertSSRCs(SenderInfo &senderInfo) noexcept
       {
         if (!senderInfo.mParameters) return;
 
@@ -4610,7 +4602,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void PeerConnection::clearSSRCs(SenderInfo &senderInfo)
+      void PeerConnection::clearSSRCs(SenderInfo &senderInfo) noexcept
       {
         if (!senderInfo.mParameters) return;
 
@@ -4625,7 +4617,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void PeerConnection::clearSSRC(SSRCType ssrc)
+      void PeerConnection::clearSSRC(SSRCType ssrc) noexcept
       {
         {
           auto found = mAudioSenderSSRCs.find(ssrc);
@@ -4642,7 +4634,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void PeerConnection::fillRTCPSSRC(IRTPTypes::Parameters &receiverParameters)
+      void PeerConnection::fillRTCPSSRC(IRTPTypes::Parameters &receiverParameters) noexcept
       {
         auto kind = UseRTPTypesHelper::getCodecsKind(receiverParameters);
         if (!kind.hasValue()) return;
@@ -4673,7 +4665,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void PeerConnection::purgeNonReferencedAndEmptyStreams()
+      void PeerConnection::purgeNonReferencedAndEmptyStreams() noexcept
       {
         for (auto iter_doNotUse = mMediaStreams.begin(); iter_doNotUse != mMediaStreams.end(); ) {
           auto current = iter_doNotUse;
@@ -4682,14 +4674,14 @@ namespace ortc
           auto &stream = (*current).second;
           if (stream->size() > 0) continue;
 
-          if (!stream.unique()) continue;
+          if (stream.use_count() > 1) continue;
 
           mMediaStreams.erase(current);
         }
       }
 
       //-----------------------------------------------------------------------
-      Optional<size_t> PeerConnection::getNextHighestMLineIndex() const
+      Optional<size_t> PeerConnection::getNextHighestMLineIndex() const noexcept
       {
         Optional<size_t> result;
 
@@ -4730,7 +4722,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      void PeerConnection::moveAddedTracksToPending()
+      void PeerConnection::moveAddedTracksToPending() noexcept
       {
         for (auto iter = mAddedPendingAddTracks.begin(); iter != mAddedPendingAddTracks.end(); ++iter) {
           auto &pending = (*iter);
@@ -4743,7 +4735,7 @@ namespace ortc
       void PeerConnection::processStats(
                                         PromiseWithStatsReportPtr collectionPromise,
                                         PromiseWithStatsReportPtr resolvePromise
-                                        )
+                                        ) noexcept
       {
         IStatsReportPtr report;
 
@@ -4776,7 +4768,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      IPeerConnectionTypes::MediaStreamListPtr PeerConnection::convertToList(const UseMediaStreamMap &useStreams)
+      IPeerConnectionTypes::MediaStreamListPtr PeerConnection::convertToList(const UseMediaStreamMap &useStreams) noexcept
       {
         auto result = make_shared<MediaStreamList>();
         for (auto iter = useStreams.begin(); iter != useStreams.end(); ++iter) {
@@ -4788,7 +4780,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      PeerConnection::UseMediaStreamMapPtr PeerConnection::convertToMap(const MediaStreamList &mediaStreams)
+      PeerConnection::UseMediaStreamMapPtr PeerConnection::convertToMap(const MediaStreamList &mediaStreams) noexcept
       {
         auto result = make_shared<UseMediaStreamMap>();
         for (auto iter = mediaStreams.begin(); iter != mediaStreams.end(); ++iter) {
@@ -4800,7 +4792,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      IPeerConnectionTypes::MediaStreamSetPtr PeerConnection::convertToSet(const UseMediaStreamMap &useStreams)
+      IPeerConnectionTypes::MediaStreamSetPtr PeerConnection::convertToSet(const UseMediaStreamMap &useStreams) noexcept
       {
         auto result = make_shared<MediaStreamSet>();
 
@@ -4814,7 +4806,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      ISessionDescriptionTypes::ICECandidateListPtr PeerConnection::convertCandidateList(IICETypes::CandidateList &source)
+      ISessionDescriptionTypes::ICECandidateListPtr PeerConnection::convertCandidateList(IICETypes::CandidateList &source) noexcept
       {
         auto result = make_shared<ISessionDescriptionTypes::ICECandidateList>();
 
@@ -4831,7 +4823,7 @@ namespace ortc
                                           const MediaStreamSet &newSet,
                                           MediaStreamSet &outAdded,
                                           MediaStreamSet &outRemoved
-                                          )
+                                          ) noexcept
       
       {
         outAdded.clear();
@@ -4855,7 +4847,7 @@ namespace ortc
       IDTLSTransportTypes::ParametersPtr PeerConnection::getDTLSParameters(
                                                                            const TransportInfo &transportInfo,
                                                                            IICETypes::Components component
-                                                                           )
+                                                                           ) noexcept
       {
         // scope: get parameters from active dtls transport
         {
@@ -4895,12 +4887,12 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark IPeerConnectionFactory
-      #pragma mark
+      //
+      // IPeerConnectionFactory
+      //
 
       //-------------------------------------------------------------------------
-      IPeerConnectionFactory &IPeerConnectionFactory::singleton()
+      IPeerConnectionFactory &IPeerConnectionFactory::singleton() noexcept
       {
         return PeerConnectionFactory::singleton();
       }
@@ -4909,14 +4901,14 @@ namespace ortc
       PeerConnectionPtr IPeerConnectionFactory::create(
                                                        IPeerConnectionDelegatePtr delegate,
                                                        const Optional<Configuration> &configuration
-                                                       )
+                                                       ) noexcept
       {
         if (this) {}
         return internal::PeerConnection::create(delegate, configuration);
       }
 
       //-------------------------------------------------------------------------
-      IPeerConnectionTypes::ServerListPtr IPeerConnectionFactory::getDefaultIceServers()
+      IPeerConnectionTypes::ServerListPtr IPeerConnectionFactory::getDefaultIceServers() noexcept
       {
         if (this) {}
         return internal::PeerConnection::getDefaultIceServers();
@@ -4929,12 +4921,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IPeerConnectionTypes
-    #pragma mark
+    //
+    // IPeerConnectionTypes
+    //
 
     //-------------------------------------------------------------------------
-    const char *IPeerConnectionTypes::toString(BundlePolicies policy)
+    const char *IPeerConnectionTypes::toString(BundlePolicies policy) noexcept
     {
       switch (policy)
       {
@@ -4946,7 +4938,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    const char *IPeerConnectionTypes::toString(RTCPMuxPolicies policy)
+    const char *IPeerConnectionTypes::toString(RTCPMuxPolicies policy) noexcept
     {
       switch (policy)
       {
@@ -4957,7 +4949,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    const char *IPeerConnectionTypes::toString(SignalingModes mode)
+    const char *IPeerConnectionTypes::toString(SignalingModes mode) noexcept
     {
       switch (mode)
       {
@@ -4968,21 +4960,21 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    IPeerConnectionTypes::SignalingModes IPeerConnectionTypes::toSignalingMode(const char *mode)
+    IPeerConnectionTypes::SignalingModes IPeerConnectionTypes::toSignalingMode(const char *mode) noexcept(false)
     {
       String str(mode);
       for (SignalingModes index = SignalingMode_First; index <= SignalingMode_Last; index = static_cast<SignalingModes>(static_cast<std::underlying_type<SignalingModes>::type>(index) + 1)) {
         if (0 == str.compareNoCase(toString(index))) return index;
       }
 
-      ORTC_THROW_INVALID_PARAMETERS("Invalid parameter value: " + str)
+      ORTC_THROW_INVALID_PARAMETERS("Invalid parameter value: " + str);
     }
 
     //-------------------------------------------------------------------------
     bool IPeerConnectionTypes::isCompatible(
                                             SignalingModes mode,
                                             ISessionDescriptionTypes::SignalingTypes signalingType
-                                            )
+                                            ) noexcept
     {
       switch (signalingType)
       {
@@ -4996,7 +4988,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    const char *IPeerConnectionTypes::toString(SignalingStates state)
+    const char *IPeerConnectionTypes::toString(SignalingStates state) noexcept
     {
       switch (state)
       {
@@ -5011,7 +5003,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    const char *IPeerConnectionTypes::toString(PeerConnectionStates state)
+    const char *IPeerConnectionTypes::toString(PeerConnectionStates state) noexcept
     {
       switch (state)
       {
@@ -5029,12 +5021,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IPeerConnectionTypes::Configuration
-    #pragma mark
+    //
+    // IPeerConnectionTypes::Configuration
+    //
 
     //-------------------------------------------------------------------------
-    IPeerConnection::Configuration::Configuration(const Configuration &op2) :
+    IPeerConnection::Configuration::Configuration(const Configuration &op2) noexcept :
       mGatherOptions(op2.mGatherOptions ? make_shared<IICEGathererTypes::Options>(*op2.mGatherOptions) : IICEGathererTypes::OptionsPtr()),
       mSignalingMode(op2.mSignalingMode),
       mBundlePolicy(op2.mBundlePolicy),
@@ -5045,7 +5037,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ElementPtr IPeerConnection::Configuration::toDebug() const
+    ElementPtr IPeerConnection::Configuration::toDebug() const noexcept
     {
       ElementPtr resultEl = Element::create("ortc::adapter::IPeerConnectionTypes::Configuration");
 
@@ -5065,12 +5057,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IPeerConnectionTypes::OfferAnswerOptions
-    #pragma mark
+    //
+    // IPeerConnectionTypes::OfferAnswerOptions
+    //
 
     //-------------------------------------------------------------------------
-    ElementPtr IPeerConnection::OfferAnswerOptions::toDebug() const
+    ElementPtr IPeerConnection::OfferAnswerOptions::toDebug() const noexcept
     {
       ElementPtr resultEl = Element::create("ortc::adapter::IPeerConnectionTypes::OfferAnswerOptions");
       UseServicesHelper::debugAppend(resultEl, "voice activity detection", mVoiceActivityDetection);
@@ -5082,12 +5074,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IPeerConnectionTypes::OfferOptions
-    #pragma mark
+    //
+    // IPeerConnectionTypes::OfferOptions
+    //
 
     //-------------------------------------------------------------------------
-    ElementPtr IPeerConnectionTypes::OfferOptions::toDebug() const
+    ElementPtr IPeerConnectionTypes::OfferOptions::toDebug() const noexcept
     {
       auto resultEl = OfferAnswerOptions::toDebug();
       resultEl->setValue("ortc::adapter::IPeerConnectionTypes::OfferAnswerOptions");
@@ -5099,12 +5091,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IPeerConnectionTypes::OfferOptions
-    #pragma mark
+    //
+    // IPeerConnectionTypes::OfferOptions
+    //
 
     //-------------------------------------------------------------------------
-    ElementPtr IPeerConnectionTypes::AnswerOptions::toDebug() const
+    ElementPtr IPeerConnectionTypes::AnswerOptions::toDebug() const noexcept
     {
       auto resultEl = OfferAnswerOptions::toDebug();
       resultEl->setValue("ortc::adapter::IPeerConnectionTypes::AnswerOptions");
@@ -5115,12 +5107,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IPeerConnectionTypes::CapabilityOptions
-    #pragma mark
+    //
+    // IPeerConnectionTypes::CapabilityOptions
+    //
 
     //-------------------------------------------------------------------------
-    ElementPtr IPeerConnectionTypes::CapabilityOptions::toDebug() const
+    ElementPtr IPeerConnectionTypes::CapabilityOptions::toDebug() const noexcept
     {
       auto resultEl = OfferAnswerOptions::toDebug();
       resultEl->setValue("ortc::adapter::IPeerConnectionTypes::CapabilityOptions");
@@ -5131,20 +5123,20 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IPeerConnectionTypes::MediaStreamTrackConfiguration
-    #pragma mark
+    //
+    // IPeerConnectionTypes::MediaStreamTrackConfiguration
+    //
 
 
     //-------------------------------------------------------------------------
-    IPeerConnectionTypes::MediaStreamTrackConfiguration::MediaStreamTrackConfiguration(const MediaStreamTrackConfiguration &op2) :
+    IPeerConnectionTypes::MediaStreamTrackConfiguration::MediaStreamTrackConfiguration(const MediaStreamTrackConfiguration &op2) noexcept :
       mCapabilities(op2.mCapabilities ? make_shared<IRTPTypes::Capabilities>(*op2.mCapabilities) : IRTPTypes::CapabilitiesPtr()),
       mParameters(op2.mParameters ? make_shared<IRTPTypes::Parameters>(*op2.mParameters) : IRTPTypes::ParametersPtr())
     {
     }
 
     //-------------------------------------------------------------------------
-    ElementPtr IPeerConnectionTypes::MediaStreamTrackConfiguration::toDebug() const
+    ElementPtr IPeerConnectionTypes::MediaStreamTrackConfiguration::toDebug() const noexcept
     {
       ElementPtr resultEl = Element::create("ortc::adapter::IPeerConnectionTypes::MediaStreamTrackConfiguration");
       UseServicesHelper::debugAppend(resultEl, mCapabilities ? mCapabilities->toDebug() : ElementPtr());
@@ -5153,7 +5145,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    IPeerConnectionTypes::MediaStreamTrackConfiguration &IPeerConnectionTypes::MediaStreamTrackConfiguration::operator=(const MediaStreamTrackConfiguration &op2)
+    IPeerConnectionTypes::MediaStreamTrackConfiguration &IPeerConnectionTypes::MediaStreamTrackConfiguration::operator=(const MediaStreamTrackConfiguration &op2) noexcept
     {
       mCapabilities = op2.mCapabilities ? make_shared<IRTPTypes::Capabilities>(*op2.mCapabilities) : IRTPTypes::CapabilitiesPtr();
       mParameters = op2.mParameters ? make_shared<IRTPTypes::Parameters>(*op2.mParameters) : IRTPTypes::ParametersPtr();
@@ -5164,12 +5156,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IPeerConnectionTypes::ICECandidateErrorEvent
-    #pragma mark
+    //
+    // IPeerConnectionTypes::ICECandidateErrorEvent
+    //
 
     //-------------------------------------------------------------------------
-    ElementPtr IPeerConnectionTypes::ICECandidateErrorEvent::toDebug() const
+    ElementPtr IPeerConnectionTypes::ICECandidateErrorEvent::toDebug() const noexcept
     {
       ElementPtr resultEl = Element::create("ortc::adapter::IPeerConnectionTypes::ICECandidateErrorEvent");
       UseServicesHelper::debugAppend(resultEl, "mid", mMid);
@@ -5181,7 +5173,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    ElementPtr IPeerConnectionTypes::MediaStreamTrackEvent::toDebug() const
+    ElementPtr IPeerConnectionTypes::MediaStreamTrackEvent::toDebug() const noexcept
     {
       ElementPtr resultEl = Element::create("ortc::adapter::IPeerConnectionTypes::MediaStreamTrackEvent");
       UseServicesHelper::debugAppend(resultEl, "receiver id", mReceiver ? mReceiver->getID() : 0);
@@ -5204,21 +5196,21 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark PeerConnection
-    #pragma mark
+    //
+    // PeerConnection
+    //
 
     //-------------------------------------------------------------------------
     IPeerConnectionPtr IPeerConnection::create(
                                                IPeerConnectionDelegatePtr delegate,
                                                const Optional<Configuration> &configuration
-                                               )
+                                               ) noexcept
     {
       return internal::IPeerConnectionFactory::singleton().create(delegate, configuration);
     }
 
     //-------------------------------------------------------------------------
-    IPeerConnection::ServerListPtr IPeerConnection::getDefaultIceServers()
+    IPeerConnection::ServerListPtr IPeerConnection::getDefaultIceServers() noexcept
     {
       return internal::IPeerConnectionFactory::singleton().getDefaultIceServers();
     }

@@ -27,42 +27,42 @@ namespace wrapper {
           bool defaultSubscription_{ true };
           NativeTypeSubscriptionPtr subscription_;
 
-          RTCSrtpSdesTransport();
-          virtual ~RTCSrtpSdesTransport();
+          RTCSrtpSdesTransport() noexcept;
+          virtual ~RTCSrtpSdesTransport() noexcept;
 
           // methods RTCStatsProvider
-          virtual shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) override;
+          shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept(false) override;
 
           // methods RTCSrtpSdesTransport
-          virtual void wrapper_init_org_ortc_RTCSrtpSdesTransport(
+          void wrapper_init_org_ortc_RTCSrtpSdesTransport(
             wrapper::org::ortc::RTCIceTransportPtr iceTransport,
             wrapper::org::ortc::RTCSrtpSdesCryptoParametersPtr encryptParameters,
             wrapper::org::ortc::RTCSrtpSdesCryptoParametersPtr decryptParameters
-            ) override;
-          virtual void stop() override;
+            ) noexcept(false) override;
+          void stop() noexcept override;
 
           // properties RTCSrtpSdesTransport
-          virtual uint64_t get_objectId() override;
-          virtual wrapper::org::ortc::RTCIceTransportPtr get_transport() override;
-          virtual wrapper::org::ortc::RTCIceTransportPtr get_rtcpTransport() override;
+          uint64_t get_objectId() noexcept override;
+          wrapper::org::ortc::RTCIceTransportPtr get_transport() noexcept override;
+          wrapper::org::ortc::RTCIceTransportPtr get_rtcpTransport() noexcept override;
 
-          virtual void wrapper_onObserverCountChanged(size_t count) override;
+          virtual void wrapper_onObserverCountChanged(size_t count) noexcept override;
 
           virtual void onSRTPSDESTransportLifetimeRemaining(
             ISRTPSDESTransportPtr transport,
             ULONG leastLifetimeRemainingPercentageForAllKeys,
             ULONG overallLifetimeRemainingPercentage
-          ) override;
+          ) noexcept override;
 
           virtual void onSRTPSDESTransportError(
             ISRTPSDESTransportPtr transport,
             ::ortc::ErrorAnyPtr error
-          ) override;
+          ) noexcept override;
 
-          static WrapperImplTypePtr toWrapper(NativeTypePtr track);
-          static NativeTypePtr toNative(WrapperTypePtr wrapper);
+          static WrapperImplTypePtr toWrapper(NativeTypePtr track) noexcept;
+          static NativeTypePtr toNative(WrapperTypePtr wrapper) noexcept;
 
-          void subscribe();
+          void subscribe() noexcept;
         };
 
       } // ortc

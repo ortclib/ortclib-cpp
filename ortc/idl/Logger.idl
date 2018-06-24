@@ -79,7 +79,7 @@ namespace org
         /// </summary>
         all,
         /// <summary>
-        /// The low level socket, aynchronous eventing, and OS abstraction
+        /// The low level socket, asynchronous eventing, and OS abstraction
         /// library.
         /// </summary>
         zslib,
@@ -276,12 +276,12 @@ namespace org
       bool isOutgoingTelnetLoggerConnected();
 
       /// <summary>
-      /// Uninstall the logger outputing to standard out.
+      /// Uninstall the logger outputting to standard out.
       /// </summary>
       [static]
       void uninstallStdOutLogger();
       /// <summary>
-      /// Uninstall the logger outputing to a file.
+      /// Uninstall the logger outputting to a file.
       /// </summary>
       [static]
       void uninstallFileLogger();
@@ -302,7 +302,7 @@ namespace org
       void uninstallDebuggerLogger();
 
       /// <summary>
-      /// Set the default eventing level for all componenets.
+      /// Set the default eventing level for all components.
       /// </summary>
       [static, default]
       void setDefaultEventingLevel(log::Component component, log::Level level);

@@ -92,9 +92,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark IFakeSecureTransportAsyncDelegate
-      #pragma mark
+      //
+      // IFakeSecureTransportAsyncDelegate
+      //
 
       interaction IFakeSecureTransportAsyncDelegate
       {
@@ -112,7 +112,7 @@ namespace ortc
 ZS_DECLARE_PROXY_BEGIN(ortc::test::srtp::IFakeSecureTransportAsyncDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::services::SecureByteBlockPtr, SecureByteBlockPtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IICETypes::Components, Components)
-ZS_DECLARE_PROXY_METHOD_3(onPacketFromLinkedFakedTransport, Components, Components, SecureByteBlockPtr)
+ZS_DECLARE_PROXY_METHOD(onPacketFromLinkedFakedTransport, Components, Components, SecureByteBlockPtr)
 ZS_DECLARE_PROXY_END()
 
 namespace ortc
@@ -129,9 +129,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //---------------------------------------------------------------------
       //---------------------------------------------------------------------
-      #pragma mark
-      #pragma mark ISRTPTester
-      #pragma mark
+      //
+      // ISRTPTester
+      //
 
       interaction ISRTPTester
       {
@@ -149,9 +149,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeSecureTransport
-      #pragma mark
+      //
+      // FakeSecureTransport
+      //
 
       //-----------------------------------------------------------------------
       class FakeSecureTransport : public ortc::internal::DTLSTransport,
@@ -248,12 +248,12 @@ namespace ortc
 
       protected:
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark FakeSecureTransport => IICETransport
-        #pragma mark
+        //
+        // FakeSecureTransport => IICETransport
+        //
 
         //---------------------------------------------------------------------
-        virtual ElementPtr toDebug() const override
+        virtual ElementPtr toDebug() const noexcept override
         {
           AutoRecursiveLock lock(*this);
 
@@ -272,20 +272,20 @@ namespace ortc
         }
 
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark FakeSecureTransport => ISecureTransportForSRTPTransport
-        #pragma mark
+        //
+        // FakeSecureTransport => ISecureTransportForSRTPTransport
+        //
 
         //---------------------------------------------------------------------
-        virtual PUID getID() const override {return DTLSTransport::getID();}
+        PUID getID() const noexcept override {return DTLSTransport::getID();}
 
         //---------------------------------------------------------------------
-        virtual bool sendEncryptedPacket(
-                                         IICETypes::Components sendOverICETransport,
-                                         IICETypes::Components packetType,
-                                         const BYTE *buffer,
-                                         size_t bufferLengthInBytes
-                                         ) override
+        bool sendEncryptedPacket(
+                                 IICETypes::Components sendOverICETransport,
+                                 IICETypes::Components packetType,
+                                 const BYTE *buffer,
+                                 size_t bufferLengthInBytes
+                                 ) noexcept override
         {
           FakeSecureTransportPtr transport;
 
@@ -308,12 +308,12 @@ namespace ortc
         }
 
         //---------------------------------------------------------------------
-        virtual bool handleReceivedDecryptedPacket(
-                                                   IICETypes::Components viaTransport,
-                                                   IICETypes::Components packetType,
-                                                   const BYTE *buffer,
-                                                   size_t bufferLengthInBytes
-                                                   ) override
+        bool handleReceivedDecryptedPacket(
+                                           IICETypes::Components viaTransport,
+                                           IICETypes::Components packetType,
+                                           const BYTE *buffer,
+                                           size_t bufferLengthInBytes
+                                           ) noexcept override
         {
           ZS_LOG_DEBUG(log("handling decrypted packet from SRTP") + ZS_PARAM("via", IICETypes::toString(viaTransport)) + ZS_PARAM("packet type", IICETypes::toString(packetType)) + ZS_PARAM("buffer", (PTRNUMBER)(buffer)) + ZS_PARAM("buffer size", bufferLengthInBytes))
 
@@ -335,9 +335,9 @@ namespace ortc
 
 
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark FakeSecureTransport => ISRTPTransportDelegate
-        #pragma mark
+        //
+        // FakeSecureTransport => ISRTPTransportDelegate
+        //
 
         virtual void onSRTPTransportLifetimeRemaining(
                                                       ISRTPTransportPtr transport,
@@ -349,9 +349,9 @@ namespace ortc
         }
 
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark FakeSecureTransport => IFakeSecureTransportAsyncDelegate
-        #pragma mark
+        //
+        // FakeSecureTransport => IFakeSecureTransportAsyncDelegate
+        //
 
         //---------------------------------------------------------------------
         virtual void onPacketFromLinkedFakedTransport(
@@ -381,9 +381,9 @@ namespace ortc
 
       protected:
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark FakeSecureTransport => (internal)
-        #pragma mark
+        //
+        // FakeSecureTransport => (internal)
+        //
 
         //---------------------------------------------------------------------
         Log::Params log(const char *message) const
@@ -395,9 +395,9 @@ namespace ortc
 
       protected:
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark FakeSecureTransport => (data)
-        #pragma mark
+        //
+        // FakeSecureTransport => (data)
+        //
 
         FakeSecureTransportWeakPtr mThisWeak;
 
@@ -412,9 +412,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SRTPTester
-      #pragma mark
+      //
+      // SRTPTester
+      //
 
       //-----------------------------------------------------------------------
       class SRTPTester : public SharedRecursiveLock,
@@ -547,9 +547,9 @@ namespace ortc
 
       protected:
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark ISRTPTester
-        #pragma mark
+        //
+        // ISRTPTester
+        //
 
         //---------------------------------------------------------------------
         virtual PUID getID() const override {return mID;}
@@ -587,9 +587,9 @@ namespace ortc
         //---------------------------------------------------------------------
         //---------------------------------------------------------------------
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark SRTPTester => (internal)
-        #pragma mark
+        //
+        // SRTPTester => (internal)
+        //
 
         //---------------------------------------------------------------------
         Log::Params log(const char *message) const
@@ -611,9 +611,9 @@ namespace ortc
         //---------------------------------------------------------------------
         //---------------------------------------------------------------------
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark SRTPTester => (data)
-        #pragma mark
+        //
+        // SRTPTester => (data)
+        //
 
         AutoPUID mID;
         SRTPTesterWeakPtr mThisWeak;
@@ -1097,7 +1097,7 @@ void doTestSRTP()
                 memcpy(rtp_packet, kPcmuFrame, rtp_len);
                 // In order to be able to run this test function multiple times we can not
                 // use the same sequence number twice. Increase the sequence number by one.
-                SetBE16(reinterpret_cast<BYTE*>(rtp_packet)+2, i);
+                SetBE16(reinterpret_cast<BYTE*>(rtp_packet)+2, static_cast<WORD>(i));
                 //memcpy(original_rtp_packet, rtp_packet, rtp_len);
 
                 SecureByteBlockPtr buffer(std::make_shared<SecureByteBlock>(172));  // allocate a buffer of 40 bytes

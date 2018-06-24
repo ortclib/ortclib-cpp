@@ -16,13 +16,13 @@ namespace wrapper {
           ZS_DECLARE_TYPEDEF_PTR(::ortc::IIdentityTypes::Assertion, NativeAssertion);
           RTCIdentityAssertionWeakPtr thisWeak_;
 
-          RTCIdentityAssertion();
-          virtual ~RTCIdentityAssertion();
-          virtual void wrapper_init_org_ortc_RTCIdentityAssertion() override;
+          RTCIdentityAssertion() noexcept;
+          virtual ~RTCIdentityAssertion() noexcept;
+          void wrapper_init_org_ortc_RTCIdentityAssertion() noexcept override;
 
-          static RTCIdentityAssertionPtr toWrapper(NativeAssertionPtr native);
-          static RTCIdentityAssertionPtr toWrapper(const NativeAssertion &native);
-          static NativeAssertionPtr toNative(wrapper::org::ortc::RTCIdentityAssertionPtr wrapper);
+          static RTCIdentityAssertionPtr toWrapper(NativeAssertionPtr native) noexcept;
+          static RTCIdentityAssertionPtr toWrapper(const NativeAssertion &native) noexcept;
+          static NativeAssertionPtr toNative(wrapper::org::ortc::RTCIdentityAssertionPtr wrapper) noexcept;
         };
 
       } // ortc

@@ -50,11 +50,6 @@
 #include <cryptopp/sha.h>
 
 
-#ifdef _DEBUG
-#define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))
-#else
-#define ASSERT(x)
-#endif //_DEBUG
 
 
 namespace ortc { ZS_DECLARE_SUBSYSTEM(org_ortc_sctp_data_channel) }
@@ -76,37 +71,37 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark (helpers)
-    #pragma mark
+    //
+    // (helpers)
+    //
 
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark SCTPTransportListenerSettingsDefaults
-    #pragma mark
+    //
+    // SCTPTransportListenerSettingsDefaults
+    //
 
     class SCTPTransportListenerSettingsDefaults : public ISettingsApplyDefaultsDelegate
     {
     public:
       //-----------------------------------------------------------------------
-      ~SCTPTransportListenerSettingsDefaults()
+      ~SCTPTransportListenerSettingsDefaults() noexcept
       {
         ISettings::removeDefaults(*this);
       }
 
       //-----------------------------------------------------------------------
-      static SCTPTransportListenerSettingsDefaultsPtr singleton()
+      static SCTPTransportListenerSettingsDefaultsPtr singleton() noexcept
       {
         static SingletonLazySharedPtr<SCTPTransportListenerSettingsDefaults> singleton(create());
         return singleton.singleton();
       }
 
       //-----------------------------------------------------------------------
-      static SCTPTransportListenerSettingsDefaultsPtr create()
+      static SCTPTransportListenerSettingsDefaultsPtr create() noexcept
       {
         auto pThis(make_shared<SCTPTransportListenerSettingsDefaults>());
         ISettings::installDefaults(pThis);
@@ -114,7 +109,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      virtual void notifySettingsApplyDefaults() override
+      virtual void notifySettingsApplyDefaults() noexcept override
       {
         //https://tools.ietf.org/html/draft-ietf-rtcweb-data-channel-13#section-6.6
         ISettings::setUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE, 16 * 1024);
@@ -129,7 +124,7 @@ namespace ortc
     };
 
     //-------------------------------------------------------------------------
-    void installSCTPTransportListenerSettingsDefaults()
+    void installSCTPTransportListenerSettingsDefaults() noexcept
     {
       SCTPTransportListenerSettingsDefaults::singleton();
     }
@@ -138,9 +133,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark SCTPHelper
-    #pragma mark
+    //
+    // SCTPHelper
+    //
 
     struct SCTPListenerHelper
     {
@@ -154,7 +149,7 @@ namespace ortc
       static DWORD createTuple(
                                WORD localPort,
                                WORD remotePort
-                               )
+                               ) noexcept
       {
         DWORD result {};
 
@@ -172,7 +167,7 @@ namespace ortc
                              DWORD localRemoteTupleID,
                              WORD &outLocalPort,
                              WORD &outRemotePort
-                             )
+                             ) noexcept
       {
         WORD *pLocal = &(((WORD *)(&localRemoteTupleID))[0]);
         WORD *pRemote = &(((WORD *)(&localRemoteTupleID))[1]);
@@ -188,7 +183,7 @@ namespace ortc
                                        Directions direction,
                                        WORD *outLocalPort = NULL,
                                        WORD *outRemotePort = NULL
-                                       )
+                                       ) noexcept
       {
         if (outLocalPort) *outLocalPort = 0;
         if (outRemotePort) *outRemotePort = 0;
@@ -240,7 +235,7 @@ namespace ortc
       }
 
       //-------------------------------------------------------------------------
-      static Log::Params slog(const char *message)
+      static Log::Params slog(const char *message) noexcept
       {
         ElementPtr objectEl = Element::create("ortc::SCTPListenerHelper");
         return Log::Params(message, objectEl);
@@ -251,12 +246,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISCTPTransportListenerForSCTPTransport
-    #pragma mark
+    //
+    // ISCTPTransportListenerForSCTPTransport
+    //
 
     //-------------------------------------------------------------------------
-    ElementPtr ISCTPTransportListenerForSCTPTransport::toDebug(ForSCTPTransportPtr transport)
+    ElementPtr ISCTPTransportListenerForSCTPTransport::toDebug(ForSCTPTransportPtr transport) noexcept
     {
       if (!transport) return ElementPtr();
       return ZS_DYNAMIC_PTR_CAST(SCTPTransportListener, transport)->toDebug();
@@ -266,16 +261,16 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark SCTPTransport
-    #pragma mark
+    //
+    // SCTPTransport
+    //
     
     //-------------------------------------------------------------------------
     SCTPTransportListener::SCTPTransportListener(
                                                  const make_private &,
                                                  IMessageQueuePtr queue,
                                                  UseSecureTransportPtr secureTransport
-                                                 ) :
+                                                 ) noexcept :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
       mSubscriptions(decltype(mSubscriptions)::create()),
@@ -285,7 +280,7 @@ namespace ortc
       mMinAllocationPort(SafeInt<decltype(mMinAllocationPort)>(ISettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_LISTENER_MIN_PORT))),
       mMaxAllocationPort(SafeInt<decltype(mMaxAllocationPort)>(ISettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_LISTENER_MAX_PORT)))
     {
-      ORTC_THROW_INVALID_PARAMETERS_IF(!secureTransport);
+      ZS_ASSERT(secureTransport);
 
       ZS_EVENTING_5(
                     x, i, Detail, SctpTransportListenerCreate, ol, SctpTransportListener, Start,
@@ -300,14 +295,14 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void SCTPTransportListener::init()
+    void SCTPTransportListener::init() noexcept
     {
       AutoRecursiveLock lock(*this);
       IWakeDelegateProxy::create(mThisWeak.lock())->onWake();
     }
 
     //-------------------------------------------------------------------------
-    SCTPTransportListener::~SCTPTransportListener()
+    SCTPTransportListener::~SCTPTransportListener() noexcept
     {
       if (isNoop()) return;
 
@@ -319,19 +314,19 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    SCTPTransportListenerPtr SCTPTransportListener::convert(ForSettingsPtr object)
+    SCTPTransportListenerPtr SCTPTransportListener::convert(ForSettingsPtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(SCTPTransportListener, object);
     }
 
     //-------------------------------------------------------------------------
-    SCTPTransportListenerPtr SCTPTransportListener::convert(ForSCTPTransportPtr object)
+    SCTPTransportListenerPtr SCTPTransportListener::convert(ForSCTPTransportPtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(SCTPTransportListener, object);
     }
 
     //-------------------------------------------------------------------------
-    SCTPTransportListenerPtr SCTPTransportListener::convert(ForSecureTransportPtr object)
+    SCTPTransportListenerPtr SCTPTransportListener::convert(ForSecureTransportPtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(SCTPTransportListener, object);
     }
@@ -341,19 +336,19 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark SCTPTransport => ISCTPTransport
-    #pragma mark
+    //
+    // SCTPTransport => ISCTPTransport
+    //
     
     //-------------------------------------------------------------------------
-    ElementPtr SCTPTransportListener::toDebug(SCTPTransportListenerPtr object)
+    ElementPtr SCTPTransportListener::toDebug(SCTPTransportListenerPtr object) noexcept
     {
       if (!object) return ElementPtr();
       return object->toDebug();
     }
 
     //-------------------------------------------------------------------------
-    SCTPTransportListener::CapabilitiesPtr SCTPTransportListener::getCapabilities()
+    SCTPTransportListener::CapabilitiesPtr SCTPTransportListener::getCapabilities() noexcept
     {
       CapabilitiesPtr result(make_shared<Capabilities>());
       result->mMaxMessageSize = ISettings::getUInt(ORTC_SETTING_SCTP_TRANSPORT_MAX_MESSAGE_SIZE);
@@ -369,15 +364,15 @@ namespace ortc
                                                                         ISCTPTransportListenerDelegatePtr delegate,
                                                                         IDTLSTransportPtr transport,
                                                                         const Capabilities &remoteCapabilities
-                                                                        )
+                                                                        ) noexcept(false)
     {
-      ORTC_THROW_INVALID_PARAMETERS_IF(!transport)
+      ORTC_THROW_INVALID_PARAMETERS_IF(!transport);
 
       UseSecureTransportPtr secureTransport = DTLSTransport::convert(transport);
-      ORTC_THROW_INVALID_PARAMETERS_IF(!secureTransport)
+      ORTC_THROW_INVALID_PARAMETERS_IF(!secureTransport);
 
       ForSecureTransportPtr dataTransport = secureTransport->getDataTransport();
-      ORTC_THROW_INVALID_STATE_IF(!dataTransport)
+      ORTC_THROW_INVALID_STATE_IF(!dataTransport);
 
       auto listener = SCTPTransportListener::convert(dataTransport);
       ORTC_THROW_INVALID_STATE_IF(!listener);
@@ -399,12 +394,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark SCTPTransport => ISCTPTransportListenerForSCTPTransport
-    #pragma mark
+    //
+    // SCTPTransport => ISCTPTransportListenerForSCTPTransport
+    //
 
     //-------------------------------------------------------------------------
-    WORD SCTPTransportListener::allocateLocalPort()
+    WORD SCTPTransportListener::allocateLocalPort() noexcept
     {
       AutoRecursiveLock lock(*this);
 
@@ -418,7 +413,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void SCTPTransportListener::deallocateLocalPort(WORD previouslyAllocatedLocalPort)
+    void SCTPTransportListener::deallocateLocalPort(WORD previouslyAllocatedLocalPort) noexcept
     {
       if (0 == previouslyAllocatedLocalPort) return;
       deallocatePort(mAllocatedLocalPorts, previouslyAllocatedLocalPort);
@@ -431,7 +426,7 @@ namespace ortc
                                                      WORD &ioLocalPort,
                                                      bool localPortWasPreallocated,
                                                      WORD &ioRemotePort
-                                                     )
+                                                     ) noexcept(false)
     {
       ORTC_THROW_INVALID_PARAMETERS_IF(!dtlsTransport);
       ORTC_THROW_INVALID_PARAMETERS_IF(!ioTransport);
@@ -552,7 +547,7 @@ namespace ortc
                                                   UseSCTPTransportPtr transport,
                                                   WORD localPort,
                                                   WORD remotePort
-                                                  )
+                                                  ) noexcept
     {
       AutoRecursiveLock lock(*this);
 
@@ -588,7 +583,7 @@ namespace ortc
                                                UseSCTPTransport &transport,
                                                WORD localPort,
                                                WORD remotePort
-                                               )
+                                               ) noexcept
     {
       ZS_EVENTING_4(
                     x, i, Detail, SctpTransportListenerSctpTransportShutdownEvent, ol, SctpTransportListener, InternalEvent,
@@ -638,12 +633,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark SCTPTransport => ISCTPTransportForSecureTransport
-    #pragma mark
+    //
+    // SCTPTransport => ISCTPTransportForSecureTransport
+    //
 
     //-------------------------------------------------------------------------
-    SCTPTransportListener::ForSecureTransportPtr SCTPTransportListener::create(UseSecureTransportPtr transport)
+    SCTPTransportListener::ForSecureTransportPtr SCTPTransportListener::create(UseSecureTransportPtr transport) noexcept
     {
       SCTPTransportListenerPtr pThis(make_shared<SCTPTransportListener>(make_private {}, IORTCForInternal::queueORTC(), transport));
       pThis->mThisWeak = pThis;
@@ -655,7 +650,7 @@ namespace ortc
     bool SCTPTransportListener::handleDataPacket(
                                                  const BYTE *buffer,
                                                  size_t bufferLengthInBytes
-                                                 )
+                                                 ) noexcept
     {
       ZS_EVENTING_3(
                     x, i, Trace, SctpTransportListenerReceivedIncomingDataPacket, ol, SctpTransportListener, Receive,
@@ -724,17 +719,17 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark SCTPTransport => ISCTPTransportListenerAsyncDelegate
-    #pragma mark
+    //
+    // SCTPTransport => ISCTPTransportListenerAsyncDelegate
+    //
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark SCTPTransport => IWakeDelegate
-    #pragma mark
+    //
+    // SCTPTransport => IWakeDelegate
+    //
 
     //-------------------------------------------------------------------------
     void SCTPTransportListener::onWake()
@@ -748,12 +743,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark SCTPTransport => (internal)
-    #pragma mark
+    //
+    // SCTPTransport => (internal)
+    //
 
     //-------------------------------------------------------------------------
-    Log::Params SCTPTransportListener::log(const char *message) const
+    Log::Params SCTPTransportListener::log(const char *message) const noexcept
     {
       ElementPtr objectEl = Element::create("ortc::SCTPTransportListener");
       IHelper::debugAppend(objectEl, "id", mID);
@@ -761,20 +756,20 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    Log::Params SCTPTransportListener::slog(const char *message)
+    Log::Params SCTPTransportListener::slog(const char *message) noexcept
     {
       ElementPtr objectEl = Element::create("ortc::SCTPTransportListener");
       return Log::Params(message, objectEl);
     }
 
     //-------------------------------------------------------------------------
-    Log::Params SCTPTransportListener::debug(const char *message) const
+    Log::Params SCTPTransportListener::debug(const char *message) const noexcept
     {
       return Log::Params(message, toDebug());
     }
 
     //-------------------------------------------------------------------------
-    ElementPtr SCTPTransportListener::toDebug() const
+    ElementPtr SCTPTransportListener::toDebug() const noexcept
     {
       AutoRecursiveLock lock(*this);
 
@@ -811,20 +806,20 @@ namespace ortc
     }
     
     //-------------------------------------------------------------------------
-    bool SCTPTransportListener::isShuttingDown() const
+    bool SCTPTransportListener::isShuttingDown() const noexcept
     {
       return (bool)mGracefulShutdownReference;
     }
 
     //-------------------------------------------------------------------------
-    bool SCTPTransportListener::isShutdown() const
+    bool SCTPTransportListener::isShutdown() const noexcept
     {
       if (mGracefulShutdownReference) return false;
       return mShutdown;
     }
 
     //-------------------------------------------------------------------------
-    void SCTPTransportListener::step()
+    void SCTPTransportListener::step() noexcept
     {
       ZS_LOG_DEBUG(debug("step"))
 
@@ -857,7 +852,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void SCTPTransportListener::cancel()
+    void SCTPTransportListener::cancel() noexcept
     {
       ZS_EVENTING_1(x, i, Debug, SctpTransportListenerCancel, ol, SctpTransportListener, Cancel, puid, id, mID);
 
@@ -942,7 +937,7 @@ namespace ortc
     ISCTPTransportListenerSubscriptionPtr SCTPTransportListener::subscribe(
                                                                            ISCTPTransportListenerDelegatePtr originalDelegate,
                                                                            const Capabilities &remoteCapabilities
-                                                                           )
+                                                                           ) noexcept
     {
       ZS_LOG_DETAIL(log("subscribing to transport listener"))
 
@@ -981,7 +976,7 @@ namespace ortc
     }
     
     //-------------------------------------------------------------------------
-    WORD SCTPTransportListener::allocateLocalPort(WORD remotePort)
+    WORD SCTPTransportListener::allocateLocalPort(WORD remotePort) noexcept
     {
       WORD maxSearching = mMaxAllocationPort - mMinAllocationPort;
 
@@ -1023,7 +1018,7 @@ namespace ortc
     void SCTPTransportListener::allocatePort(
                                              AllocatedPortMap &useMap,
                                              WORD port
-                                             )
+                                             ) noexcept
     {
       auto found = useMap.find(port);
       if (found == useMap.end()) {
@@ -1039,7 +1034,7 @@ namespace ortc
     void SCTPTransportListener::deallocatePort(
                                                AllocatedPortMap &useMap,
                                                WORD port
-                                               )
+                                               ) noexcept
     {
       auto found = useMap.find(port);
       if (found == useMap.end()) {
@@ -1058,12 +1053,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISCTPTransportFactory
-    #pragma mark
+    //
+    // ISCTPTransportFactory
+    //
 
     //-------------------------------------------------------------------------
-    ISCTPTransportListenerFactory &ISCTPTransportListenerFactory::singleton()
+    ISCTPTransportListenerFactory &ISCTPTransportListenerFactory::singleton() noexcept
     {
       return SCTPTransportListenerFactory::singleton();
     }
@@ -1073,21 +1068,21 @@ namespace ortc
                                                                                 ISCTPTransportListenerDelegatePtr delegate,
                                                                                 IDTLSTransportPtr transport,
                                                                                 const Capabilities &remoteCapabilities
-                                                                                )
+                                                                                ) noexcept
     {
       if (this) {}
       return internal::SCTPTransportListener::listen(delegate, transport, remoteCapabilities);
     }
 
     //-------------------------------------------------------------------------
-    ISCTPTransportListenerFactory::ForSecureTransportPtr ISCTPTransportListenerFactory::create(UseSecureTransportPtr transport)
+    ISCTPTransportListenerFactory::ForSecureTransportPtr ISCTPTransportListenerFactory::create(UseSecureTransportPtr transport) noexcept
     {
       if (this) {}
       return internal::SCTPTransportListener::create(transport);
     }
 
     //-------------------------------------------------------------------------
-    ISCTPTransportFactory::CapabilitiesPtr ISCTPTransportListenerFactory::getCapabilities()
+    ISCTPTransportFactory::CapabilitiesPtr ISCTPTransportListenerFactory::getCapabilities() noexcept
     {
       if (this) {}
       return SCTPTransportListener::getCapabilities();

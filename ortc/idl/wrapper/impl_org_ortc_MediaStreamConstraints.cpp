@@ -26,12 +26,12 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::MediaStreamConstraints::Wrapper
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::MediaStreamConstraints::WrapperType, WrapperType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::MediaStreamConstraints::MediaStreamConstraints()
+wrapper::impl::org::ortc::MediaStreamConstraints::MediaStreamConstraints() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::MediaStreamConstraintsPtr wrapper::org::ortc::MediaStreamConstraints::wrapper_create()
+wrapper::org::ortc::MediaStreamConstraintsPtr wrapper::org::ortc::MediaStreamConstraints::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::MediaStreamConstraints>();
   pThis->thisWeak_ = pThis;
@@ -39,17 +39,17 @@ wrapper::org::ortc::MediaStreamConstraintsPtr wrapper::org::ortc::MediaStreamCon
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::MediaStreamConstraints::~MediaStreamConstraints()
+wrapper::impl::org::ortc::MediaStreamConstraints::~MediaStreamConstraints() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::MediaStreamConstraints::wrapper_init_org_ortc_MediaStreamConstraints()
+void wrapper::impl::org::ortc::MediaStreamConstraints::wrapper_init_org_ortc_MediaStreamConstraints() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::MediaStreamConstraints::wrapper_init_org_ortc_MediaStreamConstraints(wrapper::org::ortc::MediaStreamConstraintsPtr source)
+void wrapper::impl::org::ortc::MediaStreamConstraints::wrapper_init_org_ortc_MediaStreamConstraints(wrapper::org::ortc::MediaStreamConstraintsPtr source) noexcept
 {
   WrapperTypePtr pThis = thisWeak_.lock();
   WrapperTypePtr wrapper = toWrapper(toNative(source));
@@ -58,7 +58,7 @@ void wrapper::impl::org::ortc::MediaStreamConstraints::wrapper_init_org_ortc_Med
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::MediaStreamConstraints::wrapper_init_org_ortc_MediaStreamConstraints(wrapper::org::ortc::JsonPtr json)
+void wrapper::impl::org::ortc::MediaStreamConstraints::wrapper_init_org_ortc_MediaStreamConstraints(wrapper::org::ortc::JsonPtr json) noexcept
 {
   if (!json) return;
 
@@ -70,26 +70,26 @@ void wrapper::impl::org::ortc::MediaStreamConstraints::wrapper_init_org_ortc_Med
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::JsonPtr wrapper::impl::org::ortc::MediaStreamConstraints::toJson()
+wrapper::org::ortc::JsonPtr wrapper::impl::org::ortc::MediaStreamConstraints::toJson() noexcept
 {
   return Json::toWrapper(toNative(thisWeak_.lock())->createElement());
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::ortc::MediaStreamConstraints::hash()
+String wrapper::impl::org::ortc::MediaStreamConstraints::hash() noexcept
 {
   return toNative(thisWeak_.lock())->hash();
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr native)
+WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr native) noexcept
 {
   if (!native) return WrapperImplTypePtr();
   return toWrapper(*native);
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(const NativeType &native)
+WrapperImplTypePtr WrapperImplType::toWrapper(const NativeType &native) noexcept
 {
   auto pThis = make_shared<WrapperImplType>();
   pThis->thisWeak_ = pThis;
@@ -103,7 +103,7 @@ WrapperImplTypePtr WrapperImplType::toWrapper(const NativeType &native)
 }
 
 //------------------------------------------------------------------------------
-NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper)
+NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper) noexcept
 {
   if (!wrapper) return NativeTypePtr();
 

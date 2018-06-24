@@ -24,12 +24,12 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCDtmfToneChangeEvent::Wrapper
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCDtmfToneChangeEvent::WrapperType, WrapperType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCDtmfToneChangeEvent::RTCDtmfToneChangeEvent()
+wrapper::impl::org::ortc::RTCDtmfToneChangeEvent::RTCDtmfToneChangeEvent() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCDtmfToneChangeEventPtr wrapper::org::ortc::RTCDtmfToneChangeEvent::wrapper_create()
+wrapper::org::ortc::RTCDtmfToneChangeEventPtr wrapper::org::ortc::RTCDtmfToneChangeEvent::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::RTCDtmfToneChangeEvent>();
   pThis->thisWeak_ = pThis;
@@ -37,18 +37,18 @@ wrapper::org::ortc::RTCDtmfToneChangeEventPtr wrapper::org::ortc::RTCDtmfToneCha
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCDtmfToneChangeEvent::~RTCDtmfToneChangeEvent()
+wrapper::impl::org::ortc::RTCDtmfToneChangeEvent::~RTCDtmfToneChangeEvent() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::ortc::RTCDtmfToneChangeEvent::get_tone()
+String wrapper::impl::org::ortc::RTCDtmfToneChangeEvent::get_tone() noexcept
 {
   return native_;
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(NativeType native)
+WrapperImplTypePtr WrapperImplType::toWrapper(NativeType native) noexcept
 {
   if (!native) return WrapperImplTypePtr();
   auto pThis = make_shared<WrapperImplType>();

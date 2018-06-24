@@ -73,9 +73,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeICETransport
-      #pragma mark
+      //
+      // FakeICETransport
+      //
 
       //-----------------------------------------------------------------------
       FakeICETransport::FakeICETransport(
@@ -149,12 +149,12 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeICETransport => IICETransport
-      #pragma mark
+      //
+      // FakeICETransport => IICETransport
+      //
 
       //-----------------------------------------------------------------------
-      ElementPtr FakeICETransport::toDebug() const
+      ElementPtr FakeICETransport::toDebug() const noexcept
       {
         AutoRecursiveLock lock(*this);
 
@@ -179,18 +179,18 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeICETransport => IICETransportForDataTransport
-      #pragma mark
+      //
+      // FakeICETransport => IICETransportForDataTransport
+      //
 
       //-----------------------------------------------------------------------
-      PUID FakeICETransport::getID() const
+      PUID FakeICETransport::getID() const noexcept
       {
         return ICETransport::getID();
       }
 
       //-----------------------------------------------------------------------
-      IICETransportSubscriptionPtr FakeICETransport::subscribe(IICETransportDelegatePtr originalDelegate)
+      IICETransportSubscriptionPtr FakeICETransport::subscribe(IICETransportDelegatePtr originalDelegate) noexcept
       {
         ZS_LOG_DETAIL(log("subscribing to transport state"))
 
@@ -217,7 +217,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      IICETransport::States FakeICETransport::state() const
+      IICETransport::States FakeICETransport::state() const noexcept
       {
         AutoRecursiveLock lock(*this);
         return mCurrentState;
@@ -227,9 +227,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeICETransport => friend FakeSecureTransport
-      #pragma mark
+      //
+      // FakeICETransport => friend FakeSecureTransport
+      //
 
       //-----------------------------------------------------------------------
       void FakeICETransport::attachSecure(FakeSecureTransportPtr transport)
@@ -253,7 +253,7 @@ namespace ortc
       bool FakeICETransport::sendPacket(
                                         const BYTE *buffer,
                                         size_t bufferSizeInBytes
-                                        )
+                                        ) noexcept
       {
         FakeICETransportPtr transport;
 
@@ -303,9 +303,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeICETransport => IFakeICETransportAsyncDelegate
-      #pragma mark
+      //
+      // FakeICETransport => IFakeICETransportAsyncDelegate
+      //
 
       //-----------------------------------------------------------------------
       void FakeICETransport::onPacketFromLinkedFakedTransport(SecureByteBlockPtr buffer)
@@ -355,9 +355,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeICETransport => ITimerDelegate
-      #pragma mark
+      //
+      // FakeICETransport => ITimerDelegate
+      //
 
       //-----------------------------------------------------------------------
       void FakeICETransport::onTimer(ITimerPtr timer)
@@ -421,17 +421,17 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeICETransport => friend FakeSecureTransport
-      #pragma mark
+      //
+      // FakeICETransport => friend FakeSecureTransport
+      //
 
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeICETransport => (internal)
-      #pragma mark
+      //
+      // FakeICETransport => (internal)
+      //
 
       //-----------------------------------------------------------------------
       void FakeICETransport::setState(IICETransportTypes::States state)
@@ -466,9 +466,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeSecureTransport
-      #pragma mark
+      //
+      // FakeSecureTransport
+      //
 
       //-----------------------------------------------------------------------
       FakeSecureTransport::FakeSecureTransport(
@@ -532,12 +532,12 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeSecureTransport => IICETransport
-      #pragma mark
+      //
+      // FakeSecureTransport => IICETransport
+      //
 
       //-----------------------------------------------------------------------
-      ElementPtr FakeSecureTransport::toDebug() const
+      ElementPtr FakeSecureTransport::toDebug() const noexcept
       {
         AutoRecursiveLock lock(*this);
 
@@ -564,18 +564,18 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeSecureTransport => IICETransportForDataTransport
-      #pragma mark
+      //
+      // FakeSecureTransport => IICETransportForDataTransport
+      //
 
       //-----------------------------------------------------------------------
-      PUID FakeSecureTransport::getID() const
+      PUID FakeSecureTransport::getID() const noexcept
       {
         return DTLSTransport::getID();
       }
 
       //-----------------------------------------------------------------------
-      IDTLSTransportSubscriptionPtr FakeSecureTransport::subscribe(IDTLSTransportDelegatePtr originalDelegate)
+      IDTLSTransportSubscriptionPtr FakeSecureTransport::subscribe(IDTLSTransportDelegatePtr originalDelegate) noexcept
       {
         ZS_LOG_DETAIL(log("subscribing to transport state"))
 
@@ -602,7 +602,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      IDTLSTransport::States FakeSecureTransport::state() const
+      IDTLSTransport::States FakeSecureTransport::state() const noexcept
       {
         AutoRecursiveLock lock(*this);
         return mCurrentState;
@@ -612,12 +612,12 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeSecureTransport => ISecureTransportForDataTransport
-      #pragma mark
+      //
+      // FakeSecureTransport => ISecureTransportForDataTransport
+      //
 
       //-----------------------------------------------------------------------
-      FakeSecureTransport::ISecureTransportSubscriptionPtr FakeSecureTransport::subscribe(ISecureTransportDelegatePtr originalDelegate)
+      FakeSecureTransport::ISecureTransportSubscriptionPtr FakeSecureTransport::subscribe(ISecureTransportDelegatePtr originalDelegate) noexcept
       {
         ZS_LOG_DETAIL(log("subscribing to secure transport state"))
 
@@ -643,26 +643,26 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      ISecureTransportTypes::States FakeSecureTransport::state(ISecureTransportTypes::States ignored) const
+      ISecureTransportTypes::States FakeSecureTransport::state(ISecureTransportTypes::States ignored) const noexcept
       {
         return mSecureTransportState;
       }
 
       //-----------------------------------------------------------------------
-      bool FakeSecureTransport::isClientRole() const
+      bool FakeSecureTransport::isClientRole() const noexcept
       {
         AutoRecursiveLock lock(*this);
         return mClientRole;
       }
 
       //-----------------------------------------------------------------------
-      IICETransportPtr FakeSecureTransport::getICETransport() const
+      IICETransportPtr FakeSecureTransport::getICETransport() const noexcept
       {
         return mICETransport;
       }
 
       //-----------------------------------------------------------------------
-      FakeSecureTransport::UseDataTransportPtr FakeSecureTransport::getDataTransport() const
+      FakeSecureTransport::UseDataTransportPtr FakeSecureTransport::getDataTransport() const noexcept
       {
         return mDataTransport;
       }
@@ -671,7 +671,7 @@ namespace ortc
       bool FakeSecureTransport::sendDataPacket(
                                                const BYTE *buffer,
                                                size_t bufferLengthInBytes
-                                               )
+                                               ) noexcept
       {
         FakeICETransportPtr iceTransport;
 
@@ -692,24 +692,24 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeSecureTransport => IFakeSecureTransportAsyncDelegate
-      #pragma mark
+      //
+      // FakeSecureTransport => IFakeSecureTransportAsyncDelegate
+      //
 
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeICETransport => friend FakeICETransport
-      #pragma mark
+      //
+      // FakeICETransport => friend FakeICETransport
+      //
 
       //-----------------------------------------------------------------------
       bool FakeSecureTransport::handleReceivedPacket(
                                                      IICETypes::Components component,
                                                      const BYTE *buffer,
                                                      size_t bufferSizeInBytes
-                                                     )
+                                                     ) noexcept
       {
         UseDataTransportPtr dataTransport;
 
@@ -736,9 +736,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeICETransport => friend IICETransportDelegate
-      #pragma mark
+      //
+      // FakeICETransport => friend IICETransportDelegate
+      //
 
       //-----------------------------------------------------------------------
       void FakeSecureTransport::onICETransportStateChange(
@@ -788,9 +788,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeSecureTransport => (internal)
-      #pragma mark
+      //
+      // FakeSecureTransport => (internal)
+      //
 
       //-----------------------------------------------------------------------
       void FakeSecureTransport::setState(IDTLSTransportTypes::States state)
@@ -903,9 +903,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SCTPTester
-      #pragma mark
+      //
+      // SCTPTester
+      //
 
       //-----------------------------------------------------------------------
       bool SCTPTester::Expectations::operator==(const Expectations &op2) const
@@ -1171,9 +1171,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SCTPTester::ISCTPTransportDelegate
-      #pragma mark
+      //
+      // SCTPTester::ISCTPTransportDelegate
+      //
 
       //-----------------------------------------------------------------------
       void SCTPTester::onSCTPTransportDataChannel(
@@ -1217,9 +1217,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SCTPTester::ISCTPTransportListenerDelegate
-      #pragma mark
+      //
+      // SCTPTester::ISCTPTransportListenerDelegate
+      //
 
       //-----------------------------------------------------------------------
       void SCTPTester::onSCTPTransport(ISCTPTransportPtr transport)
@@ -1242,9 +1242,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SCTPTester::IDataChannelDelegate
-      #pragma mark
+      //
+      // SCTPTester::IDataChannelDelegate
+      //
 
       //-----------------------------------------------------------------------
       void SCTPTester::onDataChannelStateChange(
@@ -1290,8 +1290,7 @@ namespace ortc
       void SCTPTester::onDataChannelBufferedAmountLow(IDataChannelPtr channel)
       {
         ZS_LOG_BASIC(log("data channel buffer low event") + ZS_PARAM("channel id", channel->getID()))
-#define TODO_TEST_TO_VERIFY_BUFFER_LOW_EVENT 1
-#define TODO_TEST_TO_VERIFY_BUFFER_LOW_EVENT 2
+#pragma ZS_BUILD_NOTE("TODO","test to verify buffer low event")
       }
 
       //-----------------------------------------------------------------------
@@ -1342,9 +1341,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SCTPTester => (internal)
-      #pragma mark
+      //
+      // SCTPTester => (internal)
+      //
 
       //-----------------------------------------------------------------------
       Log::Params SCTPTester::log(const char *message) const

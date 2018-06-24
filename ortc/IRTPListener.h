@@ -41,9 +41,9 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IRTPListenerTypes
-  #pragma mark
+  //
+  // IRTPListenerTypes
+  //
   
   interaction IRTPListenerTypes : public IRTPTypes
   {
@@ -53,26 +53,26 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IRTPListener
-  #pragma mark
+  //
+  // IRTPListener
+  //
   
   interaction IRTPListener : public IRTPListenerTypes,
                              public IStatsProvider
   {
-    static ElementPtr toDebug(IRTPListenerPtr listener);
+    static ElementPtr toDebug(IRTPListenerPtr listener) noexcept;
 
     static IRTPListenerPtr create(
                                   IRTPListenerDelegatePtr delegate,
                                   IRTPTransportPtr transport,
                                   Optional<HeaderExtensionParametersList> headerExtensions = Optional<HeaderExtensionParametersList>()
-                                  );
+                                  ) noexcept(false);
 
-    virtual PUID getID() const = 0;
+    virtual PUID getID() const noexcept = 0;
 
-    virtual IRTPListenerSubscriptionPtr subscribe(IRTPListenerDelegatePtr delegate) = 0;
+    virtual IRTPListenerSubscriptionPtr subscribe(IRTPListenerDelegatePtr delegate) noexcept = 0;
 
-    virtual IRTPTransportPtr transport() const = 0;
+    virtual IRTPTransportPtr transport() const noexcept = 0;
 
     //-------------------------------------------------------------------------
     // PURPOSE: (re-)set a mapping between a local indentifiers present in the
@@ -81,16 +81,16 @@ namespace ortc
     // THROWS:  InvalidParameters - if any RTPReceiver has already mapped this
     //                              local identifier mapped to an another
     //                              header URI definition
-    virtual void setHeaderExtensions(const HeaderExtensionParametersList &headerExtensions) = 0;
+    virtual void setHeaderExtensions(const HeaderExtensionParametersList &headerExtensions) noexcept(false) = 0;
   };
 
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IRTPListenerDelegate
-  #pragma mark
+  //
+  // IRTPListenerDelegate
+  //
 
   interaction IRTPListenerDelegate
   {
@@ -110,17 +110,17 @@ namespace ortc
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
   //---------------------------------------------------------------------------
-  #pragma mark
-  #pragma mark IRTPListenerSubscription
-  #pragma mark
+  //
+  // IRTPListenerSubscription
+  //
 
   interaction IRTPListenerSubscription
   {
-    virtual PUID getID() const = 0;
+    virtual PUID getID() const noexcept = 0;
 
-    virtual void cancel() = 0;
+    virtual void cancel() noexcept = 0;
 
-    virtual void background() = 0;
+    virtual void background() noexcept = 0;
   };
 }
 
@@ -128,12 +128,12 @@ ZS_DECLARE_PROXY_BEGIN(ortc::IRTPListenerDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IRTPListenerPtr, IRTPListenerPtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IRTPListenerDelegate::SSRCType, SSRCType)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::IRTPListenerDelegate::PayloadType, PayloadType)
-ZS_DECLARE_PROXY_METHOD_5(onRTPListenerUnhandledRTP, IRTPListenerPtr, SSRCType, PayloadType, const char *, const char *)
+ZS_DECLARE_PROXY_METHOD(onRTPListenerUnhandledRTP, IRTPListenerPtr, SSRCType, PayloadType, const char *, const char *)
 ZS_DECLARE_PROXY_END()
 
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_BEGIN(ortc::IRTPListenerDelegate, ortc::IRTPListenerSubscription)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IRTPListenerPtr, IRTPListenerPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IRTPListenerDelegate::SSRCType, SSRCType)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::IRTPListenerDelegate::PayloadType, PayloadType)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_5(onRTPListenerUnhandledRTP, IRTPListenerPtr, SSRCType, PayloadType, const char *, const char *)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD(onRTPListenerUnhandledRTP, IRTPListenerPtr, SSRCType, PayloadType, const char *, const char *)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()

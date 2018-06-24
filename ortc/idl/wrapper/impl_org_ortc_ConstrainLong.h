@@ -17,19 +17,19 @@ namespace wrapper {
 
           ConstrainLongWeakPtr thisWeak_;
 
-          ConstrainLong();
-          virtual ~ConstrainLong();
+          ConstrainLong() noexcept;
+          virtual ~ConstrainLong() noexcept;
 
           // methods ConstrainLong
-          virtual void wrapper_init_org_ortc_ConstrainLong() override;
-          virtual void wrapper_init_org_ortc_ConstrainLong(wrapper::org::ortc::ConstrainLongPtr source) override;
-          virtual void wrapper_init_org_ortc_ConstrainLong(wrapper::org::ortc::JsonPtr json) override;
-          virtual wrapper::org::ortc::JsonPtr toJson() override;
-          virtual String hash() override;
+          void wrapper_init_org_ortc_ConstrainLong() noexcept override;
+          void wrapper_init_org_ortc_ConstrainLong(wrapper::org::ortc::ConstrainLongPtr source) noexcept override;
+          void wrapper_init_org_ortc_ConstrainLong(wrapper::org::ortc::JsonPtr json) noexcept override;
+          wrapper::org::ortc::JsonPtr toJson() noexcept override;
+          String hash() noexcept override;
 
-          static ConstrainLongPtr toWrapper(NativeConstrainLongPtr native);
-          static ConstrainLongPtr toWrapper(const NativeConstrainLong &native);
-          static NativeConstrainLongPtr toNative(wrapper::org::ortc::ConstrainLongPtr wrapper);
+          static ConstrainLongPtr toWrapper(NativeConstrainLongPtr native) noexcept;
+          static ConstrainLongPtr toWrapper(const NativeConstrainLong &native) noexcept;
+          static NativeConstrainLongPtr toNative(wrapper::org::ortc::ConstrainLongPtr wrapper) noexcept;
         };
 
       } // ortc

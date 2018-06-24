@@ -47,15 +47,19 @@
     <ClInclude Include="..\..\..\ortc\IICETypes.h" />
     <ClInclude Include="..\..\..\ortc\IIdentity.h" />
     <ClInclude Include="..\..\..\ortc\IMediaDevices.h" />
+    <ClInclude Include="..\..\..\ortc\IMediaElement.h" />
     <ClInclude Include="..\..\..\ortc\IMediaStreamTrack.h" />
+    <ClInclude Include="..\..\..\ortc\IMediaStreamTrackSelector.h" />
     <ClInclude Include="..\..\..\ortc\internal\ifaddrs-android.h" />
     <ClInclude Include="..\..\..\ortc\internal\ortc.events.h" />
+    <ClInclude Include="..\..\..\ortc\internal\ortc.events.jman.h" />
     <ClInclude Include="..\..\..\ortc\internal\ortc.events_win.h" />
-    <ClInclude Include="..\..\..\ortc\internal\ortc.events_win_etw.h" />
     <ClInclude Include="..\..\..\ortc\internal\ortc.h" />
     <ClInclude Include="..\..\..\ortc\internal\ortc.stats.events.h" />
+    <ClInclude Include="..\..\..\ortc\internal\ortc.stats.events.jman.h" />
     <ClInclude Include="..\..\..\ortc\internal\ortc.stats.events_win.h" />
     <ClInclude Include="..\..\..\ortc\internal\ortc.stats.events_win_etw.h" />
+    <ClInclude Include="..\..\..\ortc\internal\ortcEvents.h" />
     <ClInclude Include="..\..\..\ortc\internal\ortc_Certificate.h" />
     <ClInclude Include="..\..\..\ortc\internal\ortc_DataChannel.h" />
     <ClInclude Include="..\..\..\ortc\internal\ortc_DTLSTransport.h" />
@@ -66,25 +70,39 @@
     <ClInclude Include="..\..\..\ortc\internal\ortc_ICETransport.h" />
     <ClInclude Include="..\..\..\ortc\internal\ortc_ICETransportController.h" />
     <ClInclude Include="..\..\..\ortc\internal\ortc_Identity.h" />
+    <ClInclude Include="..\..\..\ortc\internal\ortc_IMediaDevice.h" />
+    <ClInclude Include="..\..\..\ortc\internal\ortc_IMediaDeviceCapture.h" />
+    <ClInclude Include="..\..\..\ortc\internal\ortc_IMediaDeviceRender.h" />
+    <ClInclude Include="..\..\..\ortc\internal\ortc_IMediaStreamTrack.h" />
+    <ClInclude Include="..\..\..\ortc\internal\ortc_IMediaStreamTrackChannel.h" />
+    <ClInclude Include="..\..\..\ortc\internal\ortc_IMediaStreamTrackMonitor.h" />
+    <ClInclude Include="..\..\..\ortc\internal\ortc_IMediaStreamTrackSubscriber.h" />
+    <ClInclude Include="..\..\..\ortc\internal\ortc_IRTP.h" />
+    <ClInclude Include="..\..\..\ortc\internal\ortc_IRTPDecoder.h" />
+    <ClInclude Include="..\..\..\ortc\internal\ortc_IRTPEncoder.h" />
     <ClInclude Include="..\..\..\ortc\internal\ortc_ISecureTransport.h" />
     <ClInclude Include="..\..\..\ortc\internal\ortc_ISRTPTransport.h" />
+    <ClInclude Include="..\..\..\ortc\internal\ortc_MediaChannelTraceHelper.h" />
+    <ClInclude Include="..\..\..\ortc\internal\ortc_MediaDeviceCaptureAudio.h" />
+    <ClInclude Include="..\..\..\ortc\internal\ortc_MediaDeviceCaptureVideo.h" />
+    <ClInclude Include="..\..\..\ortc\internal\ortc_MediaDeviceRenderAudio.h" />
     <ClInclude Include="..\..\..\ortc\internal\ortc_MediaDevices.h" />
+    <ClInclude Include="..\..\..\ortc\internal\ortc_MediaEngine.h" />
     <ClInclude Include="..\..\..\ortc\internal\ortc_MediaStreamTrack.h" />
+    <ClInclude Include="..\..\..\ortc\internal\ortc_MediaStreamTrackChannel.h" />
+    <ClInclude Include="..\..\..\ortc\internal\ortc_MediaStreamTrackMonitor.h" />
+    <ClInclude Include="..\..\..\ortc\internal\ortc_MediaStreamTrackSubscriberMedia.h" />
+    <ClInclude Include="..\..\..\ortc\internal\ortc_MediaStreamTrackSubscriberRTP.h" />
     <ClInclude Include="..\..\..\ortc\internal\ortc_ORTC.h" />
-    <ClInclude Include="..\..\..\ortc\internal\ortc_RTCPPacket.h" />
+    <ClInclude Include="..\..\..\ortc\internal\ortc_RTPDecoderAudio.h" />
+    <ClInclude Include="..\..\..\ortc\internal\ortc_RTPDecoderVideo.h" />
+    <ClInclude Include="..\..\..\ortc\internal\ortc_RTPEncoderAudio.h" />
+    <ClInclude Include="..\..\..\ortc\internal\ortc_RTPEncoderVideo.h" />
     <ClInclude Include="..\..\..\ortc\internal\ortc_RTPListener.h" />
-    <ClInclude Include="..\..\..\ortc\internal\ortc_RTPMediaEngine.h" />
-    <ClInclude Include="..\..\..\ortc\internal\ortc_RTPPacket.h" />
     <ClInclude Include="..\..\..\ortc\internal\ortc_RTPReceiver.h" />
     <ClInclude Include="..\..\..\ortc\internal\ortc_RTPReceiverChannel.h" />
-    <ClInclude Include="..\..\..\ortc\internal\ortc_RTPReceiverChannelAudio.h" />
-    <ClInclude Include="..\..\..\ortc\internal\ortc_RTPReceiverChannelMediaBase.h" />
-    <ClInclude Include="..\..\..\ortc\internal\ortc_RTPReceiverChannelVideo.h" />
     <ClInclude Include="..\..\..\ortc\internal\ortc_RTPSender.h" />
     <ClInclude Include="..\..\..\ortc\internal\ortc_RTPSenderChannel.h" />
-    <ClInclude Include="..\..\..\ortc\internal\ortc_RTPSenderChannelAudio.h" />
-    <ClInclude Include="..\..\..\ortc\internal\ortc_RTPSenderChannelMediaBase.h" />
-    <ClInclude Include="..\..\..\ortc\internal\ortc_RTPSenderChannelVideo.h" />
     <ClInclude Include="..\..\..\ortc\internal\ortc_RTPTypes.h" />
     <ClInclude Include="..\..\..\ortc\internal\ortc_RTPUtils.h" />
     <ClInclude Include="..\..\..\ortc\internal\ortc_SCTPTransport.h" />
@@ -94,6 +112,8 @@
     <ClInclude Include="..\..\..\ortc\internal\ortc_StatsReport.h" />
     <ClInclude Include="..\..\..\ortc\internal\platform.h" />
     <ClInclude Include="..\..\..\ortc\internal\types.h" />
+    <ClInclude Include="..\..\..\ortc\internal\webrtc_post_include.h" />
+    <ClInclude Include="..\..\..\ortc\internal\webrtc_pre_include.h" />
     <ClInclude Include="..\..\..\ortc\IORTC.h" />
     <ClInclude Include="..\..\..\ortc\IRTPListener.h" />
     <ClInclude Include="..\..\..\ortc\IRTPReceiver.h" />
@@ -104,6 +124,8 @@
     <ClInclude Include="..\..\..\ortc\IStatsProvider.h" />
     <ClInclude Include="..\..\..\ortc\IStatsReport.h" />
     <ClInclude Include="..\..\..\ortc\ortc.h" />
+    <ClInclude Include="..\..\..\ortc\RTCPPacket.h" />
+    <ClInclude Include="..\..\..\ortc\RTPPacket.h" />
     <ClInclude Include="..\..\..\ortc\types.h" />
   </ItemGroup>
   <ItemGroup>
@@ -147,23 +169,29 @@
     <ClCompile Include="..\..\..\ortc\cpp\ortc_ICETypes.cpp" />
     <ClCompile Include="..\..\..\ortc\cpp\ortc_Identity.cpp" />
     <ClCompile Include="..\..\..\ortc\cpp\ortc_ISecureTransport.cpp" />
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_MediaChannelTraceHelper.cpp" />
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_MediaDevice.cpp" />
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_MediaDeviceCapture.cpp" />
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_MediaDeviceCaptureAudio.cpp" />
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_MediaDeviceCaptureVideo.cpp" />
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_MediaDeviceRenderAudio.cpp" />
     <ClCompile Include="..\..\..\ortc\cpp\ortc_MediaDevices.cpp" />
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_MediaEngine.cpp" />
     <ClCompile Include="..\..\..\ortc\cpp\ortc_MediaStreamTrack.cpp" />
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_MediaStreamTrackMonitor.cpp" />
     <ClCompile Include="..\..\..\ortc\cpp\ortc_ORTC.cpp" />
     <ClCompile Include="..\..\..\ortc\cpp\ortc_RTCPPacket.cpp" />
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_RTP.cpp" />
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPDecoderAudio.cpp" />
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPDecoderVideo.cpp" />
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPEncoderAudio.cpp" />
+    <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPEncoderVideo.cpp" />
     <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPListener.cpp" />
-    <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPMediaEngine.cpp" />
     <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPPacket.cpp" />
     <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPReceiver.cpp" />
     <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPReceiverChannel.cpp" />
-    <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPReceiverChannelAudio.cpp" />
-    <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPReceiverChannelMediaBase.cpp" />
-    <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPReceiverChannelVideo.cpp" />
     <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPSender.cpp" />
     <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPSenderChannel.cpp" />
-    <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPSenderChannelAudio.cpp" />
-    <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPSenderChannelMediaBase.cpp" />
-    <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPSenderChannelVideo.cpp" />
     <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPTypes.cpp" />
     <ClCompile Include="..\..\..\ortc\cpp\ortc_RTPUtils.cpp" />
     <ClCompile Include="..\..\..\ortc\cpp\ortc_SCTPTransport.cpp" />
@@ -177,7 +205,7 @@
     <ProjectGuid>{0CAD64D3-2E39-49AF-961F-F57F6B1AE786}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>ortclib</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.17134.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -245,12 +273,15 @@
     <ClCompile>
       <PrecompiledHeader>
       </PrecompiledHeader>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..;$(ProjectDir)..\..\..\..\zsLib;$(ProjectDir)..\..\..\..\zsLib-eventing;$(ProjectDir)..\..\..\..\ortclib-services-cpp;$(ProjectDir)..\..\..\..;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\webrtc;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\boringssl\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\usrsctp\usrsctplib;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\srtp\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\srtp\crypto\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;USE_ETW;USE_OPENSSL=1;NOMINMAX;WEBRTC_WIN;WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE;_UNICODE;UNICODE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <DisableSpecificWarnings>4068;4290</DisableSpecificWarnings>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..;$(ProjectDir)..\..\..\..\zsLib;$(ProjectDir)..\..\..\..\zsLib-eventing;$(ProjectDir)..\..\..\..\ortclib-services-cpp;$(ProjectDir)..\..\..\..;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\webrtc;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\boringssl\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\usrsctp\usrsctplib;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\crypto\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4505</DisableSpecificWarnings>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <AdditionalOptions>/bigobj /Zc:__cplusplus @compiler.resp %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -260,12 +291,15 @@
     <ClCompile>
       <PrecompiledHeader>
       </PrecompiledHeader>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..;$(ProjectDir)..\..\..\..\zsLib;$(ProjectDir)..\..\..\..\zsLib-eventing;$(ProjectDir)..\..\..\..\ortclib-services-cpp;$(ProjectDir)..\..\..\..;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\webrtc;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\boringssl\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\usrsctp\usrsctplib;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\srtp\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\srtp\crypto\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>_DEBUG;_LIB;USE_ETW;USE_OPENSSL=1;NOMINMAX;WEBRTC_WIN;WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE;_UNICODE;UNICODE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <DisableSpecificWarnings>4068;4290</DisableSpecificWarnings>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..;$(ProjectDir)..\..\..\..\zsLib;$(ProjectDir)..\..\..\..\zsLib-eventing;$(ProjectDir)..\..\..\..\ortclib-services-cpp;$(ProjectDir)..\..\..\..;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\webrtc;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\boringssl\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\usrsctp\usrsctplib;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\crypto\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4505</DisableSpecificWarnings>
       <SDLCheck>true</SDLCheck>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <AdditionalOptions>/bigobj /Zc:__cplusplus @compiler.resp %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -273,16 +307,19 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <PrecompiledHeader>
       </PrecompiledHeader>
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..;$(ProjectDir)..\..\..\..\zsLib;$(ProjectDir)..\..\..\..\zsLib-eventing;$(ProjectDir)..\..\..\..\ortclib-services-cpp;$(ProjectDir)..\..\..\..;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\webrtc;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\boringssl\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\usrsctp\usrsctplib;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\srtp\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\srtp\crypto\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;USE_ETW;USE_OPENSSL=1;NOMINMAX;WEBRTC_WIN;WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE;_UNICODE;UNICODE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <DisableSpecificWarnings>4068;4290</DisableSpecificWarnings>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..;$(ProjectDir)..\..\..\..\zsLib;$(ProjectDir)..\..\..\..\zsLib-eventing;$(ProjectDir)..\..\..\..\ortclib-services-cpp;$(ProjectDir)..\..\..\..;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\webrtc;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\boringssl\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\usrsctp\usrsctplib;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\crypto\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4505</DisableSpecificWarnings>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <AdditionalOptions>/bigobj /Zc:__cplusplus @compiler.resp %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -292,16 +329,19 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <PrecompiledHeader>
       </PrecompiledHeader>
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..;$(ProjectDir)..\..\..\..\zsLib;$(ProjectDir)..\..\..\..\zsLib-eventing;$(ProjectDir)..\..\..\..\ortclib-services-cpp;$(ProjectDir)..\..\..\..;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\webrtc;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\boringssl\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\usrsctp\usrsctplib;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\srtp\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\srtp\crypto\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>NDEBUG;_LIB;USE_ETW;USE_OPENSSL=1;NOMINMAX;WEBRTC_WIN;WEBRTC_INCLUDE_INTERNAL_AUDIO_DEVICE;_UNICODE;UNICODE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <DisableSpecificWarnings>4068;4290</DisableSpecificWarnings>
+      <AdditionalIncludeDirectories>$(ProjectDir)..\..\..;$(ProjectDir)..\..\..\..\zsLib;$(ProjectDir)..\..\..\..\zsLib-eventing;$(ProjectDir)..\..\..\..\ortclib-services-cpp;$(ProjectDir)..\..\..\..;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\webrtc;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\boringssl\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\usrsctp\usrsctplib;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\crypto\include;$(ProjectDir)..\..\..\..\..\..\webrtc\xplatform\libsrtp\config;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <DisableSpecificWarnings>4505</DisableSpecificWarnings>
       <SDLCheck>true</SDLCheck>
+      <TreatWarningAsError>true</TreatWarningAsError>
+      <AdditionalOptions>/bigobj /Zc:__cplusplus @compiler.resp %(AdditionalOptions)</AdditionalOptions>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

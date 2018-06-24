@@ -34,12 +34,12 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCDtlsTransport::WrapperImplTy
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::RTCDtlsTransport::WrapperType, WrapperType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCDtlsTransport::RTCDtlsTransport()
+wrapper::impl::org::ortc::RTCDtlsTransport::RTCDtlsTransport() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCDtlsTransportPtr wrapper::org::ortc::RTCDtlsTransport::wrapper_create()
+wrapper::org::ortc::RTCDtlsTransportPtr wrapper::org::ortc::RTCDtlsTransport::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::RTCDtlsTransport>();
   pThis->thisWeak_ = pThis;
@@ -47,12 +47,12 @@ wrapper::org::ortc::RTCDtlsTransportPtr wrapper::org::ortc::RTCDtlsTransport::wr
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCDtlsTransport::~RTCDtlsTransport()
+wrapper::impl::org::ortc::RTCDtlsTransport::~RTCDtlsTransport() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > wrapper::impl::org::ortc::RTCDtlsTransport::getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes)
+shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > wrapper::impl::org::ortc::RTCDtlsTransport::getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept(false)
 {
   return Helper::getStats(native_, statTypes);
 }
@@ -61,7 +61,7 @@ shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > wrap
 void wrapper::impl::org::ortc::RTCDtlsTransport::wrapper_init_org_ortc_RTCDtlsTransport(
   wrapper::org::ortc::RTCIceTransportPtr iceTransport,
   shared_ptr< list< wrapper::org::ortc::RTCCertificatePtr > > certificates
-  )
+  ) noexcept(false)
 {
   ZS_THROW_INVALID_ARGUMENT_IF(!iceTransport);
 
@@ -78,13 +78,13 @@ void wrapper::impl::org::ortc::RTCDtlsTransport::wrapper_init_org_ortc_RTCDtlsTr
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCDtlsParametersPtr wrapper::impl::org::ortc::RTCDtlsTransport::remoteParameters()
+wrapper::org::ortc::RTCDtlsParametersPtr wrapper::impl::org::ortc::RTCDtlsTransport::remoteParameters() noexcept
 {
   return RTCDtlsParameters::toWrapper(native_->getRemoteParameters());
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< list< wrapper::org::ortc::RTCDtlsCertificateBinaryPtr > > wrapper::impl::org::ortc::RTCDtlsTransport::getRemoteCertificates()
+shared_ptr< list< wrapper::org::ortc::RTCDtlsCertificateBinaryPtr > > wrapper::impl::org::ortc::RTCDtlsTransport::getRemoteCertificates() noexcept
 {
   auto result = make_shared< list< wrapper::org::ortc::RTCDtlsCertificateBinaryPtr > >();
   auto native = native_->getRemoteCertificates();
@@ -99,7 +99,7 @@ shared_ptr< list< wrapper::org::ortc::RTCDtlsCertificateBinaryPtr > > wrapper::i
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCDtlsTransport::start(wrapper::org::ortc::RTCDtlsParametersPtr remoteParameters)
+void wrapper::impl::org::ortc::RTCDtlsTransport::start(wrapper::org::ortc::RTCDtlsParametersPtr remoteParameters) noexcept(false)
 {
   ZS_THROW_INVALID_ARGUMENT_IF(!remoteParameters);
   auto native = RTCDtlsParameters::toNative(remoteParameters);
@@ -108,19 +108,19 @@ void wrapper::impl::org::ortc::RTCDtlsTransport::start(wrapper::org::ortc::RTCDt
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCDtlsTransport::stop()
+void wrapper::impl::org::ortc::RTCDtlsTransport::stop() noexcept
 {
   native_->stop();
 }
 
 //------------------------------------------------------------------------------
-uint64_t wrapper::impl::org::ortc::RTCDtlsTransport::get_objectId()
+uint64_t wrapper::impl::org::ortc::RTCDtlsTransport::get_objectId() noexcept
 {
   return native_->getID();
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< list< wrapper::org::ortc::RTCCertificatePtr > > wrapper::impl::org::ortc::RTCDtlsTransport::get_certificates()
+shared_ptr< list< wrapper::org::ortc::RTCCertificatePtr > > wrapper::impl::org::ortc::RTCDtlsTransport::get_certificates() noexcept
 {
   auto result = make_shared< list< wrapper::org::ortc::RTCCertificatePtr > >();
   auto native = native_->certificates();
@@ -135,25 +135,25 @@ shared_ptr< list< wrapper::org::ortc::RTCCertificatePtr > > wrapper::impl::org::
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCIceTransportPtr wrapper::impl::org::ortc::RTCDtlsTransport::get_transport()
+wrapper::org::ortc::RTCIceTransportPtr wrapper::impl::org::ortc::RTCDtlsTransport::get_transport() noexcept
 {
   return RTCIceTransport::toWrapper(native_->transport());
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCDtlsTransportState wrapper::impl::org::ortc::RTCDtlsTransport::get_state()
+wrapper::org::ortc::RTCDtlsTransportState wrapper::impl::org::ortc::RTCDtlsTransport::get_state() noexcept
 {
   return Helper::toWrapper(native_->state());
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCDtlsParametersPtr wrapper::impl::org::ortc::RTCDtlsTransport::get_localParameters()
+wrapper::org::ortc::RTCDtlsParametersPtr wrapper::impl::org::ortc::RTCDtlsTransport::get_localParameters() noexcept
 {
   return RTCDtlsParameters::toWrapper(native_->getLocalParameters());
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCDtlsTransport::wrapper_onObserverCountChanged(size_t count)
+void wrapper::impl::org::ortc::RTCDtlsTransport::wrapper_onObserverCountChanged(size_t count) noexcept
 {
   subscriptionCount_ = count;
   subscribe();
@@ -163,7 +163,7 @@ void wrapper::impl::org::ortc::RTCDtlsTransport::wrapper_onObserverCountChanged(
 void WrapperImplType::onDTLSTransportStateChange(
                                                  IDTLSTransportPtr transport,
                                                  IDTLSTransport::States state
-                                                 )
+                                                 ) noexcept
 {
   onStateChange(RTCDtlsTransportStateChangeEvent::toWrapper(Helper::toWrapper(state)));
 }
@@ -172,13 +172,13 @@ void WrapperImplType::onDTLSTransportStateChange(
 void WrapperImplType::onDTLSTransportError(
                                            IDTLSTransportPtr transport,
                                            ::ortc::ErrorAnyPtr error
-                                           )
+                                           ) noexcept
 {
   onError(ErrorEvent::toWrapper(error));
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr track)
+WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr track) noexcept
 {
   if (!track) return WrapperImplTypePtr();
 
@@ -191,7 +191,7 @@ WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr track)
 }
 
 //------------------------------------------------------------------------------
-NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper)
+NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper) noexcept
 {
   if (!wrapper) return NativeTypePtr();
   auto result = std::dynamic_pointer_cast<WrapperImplType>(wrapper);
@@ -200,7 +200,7 @@ NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper)
 }
 
 //------------------------------------------------------------------------------
-void WrapperImplType::subscribe()
+void WrapperImplType::subscribe() noexcept
 {
   if (defaultSubscription_) return;
   if (!native_) return;

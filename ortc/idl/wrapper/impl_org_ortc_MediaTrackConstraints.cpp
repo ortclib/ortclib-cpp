@@ -26,12 +26,12 @@ using ::std::set;
 using ::std::map;
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::MediaTrackConstraints::MediaTrackConstraints()
+wrapper::impl::org::ortc::MediaTrackConstraints::MediaTrackConstraints() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::MediaTrackConstraintsPtr wrapper::org::ortc::MediaTrackConstraints::wrapper_create()
+wrapper::org::ortc::MediaTrackConstraintsPtr wrapper::org::ortc::MediaTrackConstraints::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::MediaTrackConstraints>();
   pThis->thisWeak_ = pThis;
@@ -39,29 +39,29 @@ wrapper::org::ortc::MediaTrackConstraintsPtr wrapper::org::ortc::MediaTrackConst
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::MediaTrackConstraints::~MediaTrackConstraints()
+wrapper::impl::org::ortc::MediaTrackConstraints::~MediaTrackConstraints() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::JsonPtr wrapper::impl::org::ortc::MediaTrackConstraints::toJson()
+wrapper::org::ortc::JsonPtr wrapper::impl::org::ortc::MediaTrackConstraints::toJson() noexcept
 {
   return Json::toWrapper(toNative(thisWeak_.lock())->createElement());
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::ortc::MediaTrackConstraints::hash()
+String wrapper::impl::org::ortc::MediaTrackConstraints::hash() noexcept
 {
   return toNative(thisWeak_.lock())->hash();
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::MediaTrackConstraints::wrapper_init_org_ortc_MediaTrackConstraints()
+void wrapper::impl::org::ortc::MediaTrackConstraints::wrapper_init_org_ortc_MediaTrackConstraints() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::MediaTrackConstraints::wrapper_init_org_ortc_MediaTrackConstraints(wrapper::org::ortc::MediaTrackConstraintsPtr source)
+void wrapper::impl::org::ortc::MediaTrackConstraints::wrapper_init_org_ortc_MediaTrackConstraints(wrapper::org::ortc::MediaTrackConstraintsPtr source) noexcept
 {
   if (!source) return;
   wrapper::org::ortc::MediaTrackConstraintsPtr pThis = thisWeak_.lock();
@@ -76,7 +76,7 @@ void wrapper::impl::org::ortc::MediaTrackConstraints::wrapper_init_org_ortc_Medi
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::MediaTrackConstraints::wrapper_init_org_ortc_MediaTrackConstraints(wrapper::org::ortc::JsonPtr json)
+void wrapper::impl::org::ortc::MediaTrackConstraints::wrapper_init_org_ortc_MediaTrackConstraints(wrapper::org::ortc::JsonPtr json) noexcept
 {
   if (!json) return;
 
@@ -90,14 +90,14 @@ void wrapper::impl::org::ortc::MediaTrackConstraints::wrapper_init_org_ortc_Medi
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::MediaTrackConstraintsPtr wrapper::impl::org::ortc::MediaTrackConstraints::toWrapper(NativeTrackConstraintsPtr native)
+wrapper::impl::org::ortc::MediaTrackConstraintsPtr wrapper::impl::org::ortc::MediaTrackConstraints::toWrapper(NativeTrackConstraintsPtr native) noexcept
 {
   if (!native) return MediaTrackConstraintsPtr();
   return toWrapper(*native);
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::MediaTrackConstraintsPtr wrapper::impl::org::ortc::MediaTrackConstraints::toWrapper(const NativeTrackConstraints &native)
+wrapper::impl::org::ortc::MediaTrackConstraintsPtr wrapper::impl::org::ortc::MediaTrackConstraints::toWrapper(const NativeTrackConstraints &native) noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::MediaTrackConstraints>();
   pThis->thisWeak_ = pThis;
@@ -128,7 +128,7 @@ wrapper::impl::org::ortc::MediaTrackConstraintsPtr wrapper::impl::org::ortc::Med
   return pThis;
 }
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::MediaTrackConstraints::NativeTrackConstraintsPtr wrapper::impl::org::ortc::MediaTrackConstraints::toNative(wrapper::org::ortc::MediaTrackConstraintsPtr wrapper)
+wrapper::impl::org::ortc::MediaTrackConstraints::NativeTrackConstraintsPtr wrapper::impl::org::ortc::MediaTrackConstraints::toNative(wrapper::org::ortc::MediaTrackConstraintsPtr wrapper) noexcept
 {
   if (!wrapper) return NativeTrackConstraintsPtr();
 

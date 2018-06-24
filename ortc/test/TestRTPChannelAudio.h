@@ -30,12 +30,10 @@
  */
 
 
-
+#if 0
 
 #include <ortc/internal/ortc_RTPReceiverChannel.h>
-#include <ortc/internal/ortc_RTPReceiverChannelAudio.h>
 #include <ortc/internal/ortc_RTPSenderChannel.h>
-#include <ortc/internal/ortc_RTPSenderChannelAudio.h>
 #include <ortc/internal/ortc_MediaStreamTrack.h>
 
 #include <ortc/services/IHelper.h>
@@ -61,8 +59,8 @@ namespace ortc
       using zsLib::Milliseconds;
       
       ZS_DECLARE_USING_PTR(zsLib, ITimer)
-      ZS_DECLARE_USING_PTR(ortc::internal, RTPPacket)
-      ZS_DECLARE_USING_PTR(ortc::internal, RTCPPacket)
+      ZS_DECLARE_USING_PTR(ortc, RTPPacket)
+      ZS_DECLARE_USING_PTR(ortc, RTCPPacket)
       
       ZS_DECLARE_CLASS_PTR(FakeMediaStreamTrack)
       ZS_DECLARE_CLASS_PTR(FakeReceiverChannel)
@@ -74,9 +72,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeMediaStreamTrack
-      #pragma mark
+      //
+      // FakeMediaStreamTrack
+      //
       
       //-----------------------------------------------------------------------
       class FakeMediaStreamTrack : public ortc::internal::MediaStreamTrack
@@ -87,8 +85,6 @@ namespace ortc
         ZS_DECLARE_TYPEDEF_PTR(internal::ISecureTransport, ISecureTransport)
         ZS_DECLARE_TYPEDEF_PTR(internal::IRTPReceiverChannelForMediaStreamTrack, UseReceiverChannel)
         ZS_DECLARE_TYPEDEF_PTR(internal::IRTPSenderChannelForMediaStreamTrack, UseSenderChannel)
-        ZS_DECLARE_TYPEDEF_PTR(internal::IRTPReceiverChannelAudioForMediaStreamTrack, UseReceiverChannelAudio)
-        ZS_DECLARE_TYPEDEF_PTR(internal::IRTPSenderChannelAudioForMediaStreamTrack, UseSenderChannelAudio)
         
       public:
         FakeMediaStreamTrack(IMessageQueuePtr queue, bool remote);
@@ -100,9 +96,9 @@ namespace ortc
                                               );
 
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark FakeMediaStreamTrack => IMediaStreamTrackForRTPReceiverChannelAudio
-        #pragma mark
+        //
+        // FakeMediaStreamTrack => IMediaStreamTrackForRTPReceiverChannelAudio
+        //
 
         //virtual webrtc::AudioDeviceModule* getAudioDeviceModule() override;
 
@@ -111,9 +107,9 @@ namespace ortc
 
 
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark FakeMediaStreamTrack => IMediaStreamTrackForRTPSenderChannelAudio
-        #pragma mark
+        //
+        // FakeMediaStreamTrack => IMediaStreamTrackForRTPSenderChannelAudio
+        //
 
         // (duplicate) virtual webrtc::AudioDeviceModule* getAudioDeviceModule() = 0;
 
@@ -122,9 +118,9 @@ namespace ortc
 
 
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark FakeMediaStreamTrack => webrtc::AudioTransport
-        #pragma mark
+        //
+        // FakeMediaStreamTrack => webrtc::AudioTransport
+        //
 
         virtual int32_t RecordedDataIsAvailable(
                                                 const void* audioSamples,
@@ -152,9 +148,9 @@ namespace ortc
 
         
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark FakeMediaStreamTrack => (friend RTPChannelTester)
-        #pragma mark
+        //
+        // FakeMediaStreamTrack => (friend RTPChannelTester)
+        //
 
         void setTransport(RTPChannelAudioTesterPtr tester);
 
@@ -168,9 +164,9 @@ namespace ortc
 
       protected:
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark FakeMediaStreamTrack => (internal)
-        #pragma mark
+        //
+        // FakeMediaStreamTrack => (internal)
+        //
         
         Log::Params log(const char *message) const;
         
@@ -178,9 +174,9 @@ namespace ortc
         
       protected:
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark FakeMediaStreamTrack => (data)
-        #pragma mark
+        //
+        // FakeMediaStreamTrack => (data)
+        //
         
         FakeMediaStreamTrackWeakPtr mThisWeak;
         
@@ -201,9 +197,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeReceiverChannel
-      #pragma mark
+      //
+      // FakeReceiverChannel
+      //
       
       //-----------------------------------------------------------------------
       class FakeReceiverChannel : public ortc::internal::RTPReceiverChannel
@@ -231,30 +227,30 @@ namespace ortc
         
       protected:
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark FakeReceiverChannel => IRTPReceiverChannelForRTPReceiverChannelBase
-        #pragma mark
+        //
+        // FakeReceiverChannel => IRTPReceiverChannelForRTPReceiverChannelBase
+        //
 
         // (base handles) virtual PUID getID() const = 0;
 
         virtual bool sendPacket(RTCPPacketPtr packet) override;
 
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark FakeReceiverChannel => IRTPReceiverChannelForRTPReceiverChannelAudio
-        #pragma mark
+        //
+        // FakeReceiverChannel => IRTPReceiverChannelForRTPReceiverChannelAudio
+        //
 
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark FakeReceiverChannel => IRTPReceiverChannelForMediaStreamTrack
-        #pragma mark
+        //
+        // FakeReceiverChannel => IRTPReceiverChannelForMediaStreamTrack
+        //
         
         virtual ElementPtr toDebug() const override;
 
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark FakeReceiverChannel => (friend RTPChannelAudioTester)
-        #pragma mark
+        //
+        // FakeReceiverChannel => (friend RTPChannelAudioTester)
+        //
 
         void setTransport(RTPChannelAudioTesterPtr tester);
 
@@ -268,18 +264,18 @@ namespace ortc
 
       protected:
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark FakeReceiverChannel => (internal)
-        #pragma mark
+        //
+        // FakeReceiverChannel => (internal)
+        //
         
         Log::Params log(const char *message) const;
         
         
       protected:
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark FakeReceiverChannel => (data)
-        #pragma mark
+        //
+        // FakeReceiverChannel => (data)
+        //
         
         FakeReceiverChannelWeakPtr mThisWeak;
         
@@ -299,9 +295,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark FakeSenderChannel
-      #pragma mark
+      //
+      // FakeSenderChannel
+      //
       
       //-----------------------------------------------------------------------
       class FakeSenderChannel : public ortc::internal::RTPSenderChannel
@@ -329,9 +325,9 @@ namespace ortc
         
       protected:
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark FakeSenderChannel => IRTPSenderChannelForRTPSenderChannelBase
-        #pragma mark
+        //
+        // FakeSenderChannel => IRTPSenderChannelForRTPSenderChannelBase
+        //
 
         // (base handles) virtual PUID getID() const = 0;
 
@@ -340,21 +336,21 @@ namespace ortc
         virtual bool sendPacket(RTCPPacketPtr packet) override;
 
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark FakeSenderChannel => IRTPSenderChannelForRTPSenderChannelAudio
-        #pragma mark
+        //
+        // FakeSenderChannel => IRTPSenderChannelForRTPSenderChannelAudio
+        //
 
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark FakeSenderChannel => IRTPSenderChannelForMediaStreamTrack
-        #pragma mark
+        //
+        // FakeSenderChannel => IRTPSenderChannelForMediaStreamTrack
+        //
         
         virtual ElementPtr toDebug() const override;
         
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark FakeSenderChannel => (friend RTPChannelTester)
-        #pragma mark
+        //
+        // FakeSenderChannel => (friend RTPChannelTester)
+        //
 
         void setTransport(RTPChannelAudioTesterPtr tester);
 
@@ -366,18 +362,18 @@ namespace ortc
 
       protected:
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark FakeSenderChannel => (internal)
-        #pragma mark
+        //
+        // FakeSenderChannel => (internal)
+        //
         
         Log::Params log(const char *message) const;
         
         
       protected:
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark FakeSenderChannel => (data)
-        #pragma mark
+        //
+        // FakeSenderChannel => (data)
+        //
         
         FakeSenderChannelWeakPtr mThisWeak;
         
@@ -396,9 +392,9 @@ namespace ortc
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark RTPChannelAudioTester
-      #pragma mark
+      //
+      // RTPChannelAudioTester
+      //
       
       //-----------------------------------------------------------------------
       class RTPChannelAudioTester : public SharedRecursiveLock,
@@ -480,9 +476,9 @@ namespace ortc
         typedef std::map<SenderChannelAudiolID, RTPSenderChannelAudioPtr> SenderChannelAudioMap;
         
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark RTPChannelAudioTester::OverrideReceiverChannelAudioFactory
-        #pragma mark
+        //
+        // RTPChannelAudioTester::OverrideReceiverChannelAudioFactory
+        //
         
         class OverrideReceiverChannelAudioFactory : public RTPReceiverChannelAudioFactory
         {
@@ -500,9 +496,9 @@ namespace ortc
         };
         
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark RTPChannelAudioTester::OverrideSenderChannelAudioFactory
-        #pragma mark
+        //
+        // RTPChannelAudioTester::OverrideSenderChannelAudioFactory
+        //
         
         class OverrideSenderChannelAudioFactory : public RTPSenderChannelAudioFactory
         {
@@ -539,9 +535,9 @@ namespace ortc
         
       public:
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark RTPChannelAudioTester (api)
-        #pragma mark
+        //
+        // RTPChannelAudioTester (api)
+        //
         
         static RTPChannelAudioTesterPtr create(
                                                IMessageQueuePtr queue,
@@ -668,9 +664,9 @@ namespace ortc
         
         
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark RTPChannelAudioTester => IRTPReceiverChannelAudioForRTPReceiverChannel
-        #pragma mark
+        //
+        // RTPChannelAudioTester => IRTPReceiverChannelAudioForRTPReceiverChannel
+        //
         
         // simulate methods calls to IRTPReceiverChannelAudioForRTPReceiverChannel
         
@@ -682,16 +678,16 @@ namespace ortc
                                                  );
         
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark RTPChannelAudioTester => IRTPReceiverChannelAudioForMediaStreamTrack
-        #pragma mark
+        //
+        // RTPChannelAudioTester => IRTPReceiverChannelAudioForMediaStreamTrack
+        //
         
         // call methods calls to IRTPReceiverChannelAudioForMediaStreamTrack
         
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark RTPChannelAudioTester => IRTPSenderChannelAudioForRTPSenderChannel
-        #pragma mark
+        //
+        // RTPChannelAudioTester => IRTPSenderChannelAudioForRTPSenderChannel
+        //
         
         // simulate methods calls to IRTPSenderChannelAudioForRTPSenderChannel
         
@@ -703,18 +699,18 @@ namespace ortc
                                                );
         
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark RTPChannelAudioTester => IRTPSenderChannelAudioForMediaStreamTrack
-        #pragma mark
+        //
+        // RTPChannelAudioTester => IRTPSenderChannelAudioForMediaStreamTrack
+        //
         
         // call methods calls to IRTPSenderChannelAudioForMediaStreamTrack
         
       protected:
         
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark RTPChannelAudioTester => (friend fake media track, sender and receiver channel)
-        #pragma mark
+        //
+        // RTPChannelAudioTester => (friend fake media track, sender and receiver channel)
+        //
         
         RTPReceiverChannelAudioPtr createReceiverChannelAudio(
                                                               RTPReceiverChannelPtr receiverChannel,
@@ -733,9 +729,9 @@ namespace ortc
 
       protected:
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark RTPChannelAudioTester => (internal)
-        #pragma mark
+        //
+        // RTPChannelAudioTester => (internal)
+        //
         
         Log::Params log(const char *message) const;
         
@@ -762,9 +758,9 @@ namespace ortc
         
       public:
         //---------------------------------------------------------------------
-        #pragma mark
-        #pragma mark RTPChannelAudioTester => (data)
-        #pragma mark
+        //
+        // RTPChannelAudioTester => (data)
+        //
         
         AutoPUID mID;
         RTPChannelAudioTesterWeakPtr mThisWeak;
@@ -791,3 +787,5 @@ namespace ortc
     }
   }
 }
+
+#endif //0

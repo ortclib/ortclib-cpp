@@ -57,12 +57,6 @@
 #include <cryptopp/sha.h>
 
 
-#ifdef _DEBUG
-#define ASSERT(x) ZS_THROW_BAD_STATE_IF(!(x))
-#else
-#define ASSERT(x)
-#endif //_DEBUG
-
 namespace ortc { ZS_DECLARE_SUBSYSTEM(org_ortc_rtp_sender) }
 
 namespace ortc
@@ -79,37 +73,37 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark (helpers)
-    #pragma mark
+    //
+    // (helpers)
+    //
 
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPSenderChannelSettingsDefaults
-    #pragma mark
+    //
+    // RTPSenderChannelSettingsDefaults
+    //
 
     class RTPSenderChannelSettingsDefaults : public ISettingsApplyDefaultsDelegate
     {
     public:
       //-----------------------------------------------------------------------
-      ~RTPSenderChannelSettingsDefaults()
+      ~RTPSenderChannelSettingsDefaults() noexcept
       {
         ISettings::removeDefaults(*this);
       }
 
       //-----------------------------------------------------------------------
-      static RTPSenderChannelSettingsDefaultsPtr singleton()
+      static RTPSenderChannelSettingsDefaultsPtr singleton() noexcept
       {
         static SingletonLazySharedPtr<RTPSenderChannelSettingsDefaults> singleton(create());
         return singleton.singleton();
       }
 
       //-----------------------------------------------------------------------
-      static RTPSenderChannelSettingsDefaultsPtr create()
+      static RTPSenderChannelSettingsDefaultsPtr create() noexcept
       {
         auto pThis(make_shared<RTPSenderChannelSettingsDefaults>());
         ISettings::installDefaults(pThis);
@@ -117,7 +111,7 @@ namespace ortc
       }
 
       //-----------------------------------------------------------------------
-      virtual void notifySettingsApplyDefaults() override
+      virtual void notifySettingsApplyDefaults() noexcept override
       {
         ISettings::setUInt(ORTC_SETTING_RTP_SENDER_CHANNEL_RETAG_RTP_PACKETS_AFTER_SSRC_NOT_SENT_IN_SECONDS, 5);
         ISettings::setBool(ORTC_SETTING_RTP_SENDER_CHANNEL_TAG_MID_RID_IN_RTCP_SDES, true);
@@ -126,7 +120,7 @@ namespace ortc
     };
 
     //-------------------------------------------------------------------------
-    void installRTPSenderChannelSettingsDefaults()
+    void installRTPSenderChannelSettingsDefaults() noexcept
     {
       RTPSenderChannelSettingsDefaults::singleton();
     }
@@ -135,12 +129,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPSenderChannelForRTPSender
-    #pragma mark
+    //
+    // IRTPSenderChannelForRTPSender
+    //
 
     //-------------------------------------------------------------------------
-    ElementPtr IRTPSenderChannelForRTPSender::toDebug(ForRTPSenderPtr object)
+    ElementPtr IRTPSenderChannelForRTPSender::toDebug(ForRTPSenderPtr object) noexcept
     {
       if (!object) return ElementPtr();
       return ZS_DYNAMIC_PTR_CAST(RTPSenderChannel, object)->toDebug();
@@ -151,7 +145,7 @@ namespace ortc
                                                               RTPSenderPtr sender,
                                                               MediaStreamTrackPtr track,
                                                               const Parameters &params
-                                                              )
+                                                              ) noexcept
     {
       return internal::IRTPSenderChannelFactory::singleton().create(sender, track, params);
     }
@@ -160,12 +154,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPSenderChannelForMediaStreamTrack
-    #pragma mark
+    //
+    // IRTPSenderChannelForMediaStreamTrack
+    //
 
     //-------------------------------------------------------------------------
-    ElementPtr IRTPSenderChannelForMediaStreamTrack::toDebug(ForMediaStreamTrackPtr object)
+    ElementPtr IRTPSenderChannelForMediaStreamTrack::toDebug(ForMediaStreamTrackPtr object) noexcept
     {
       if (!object) return ElementPtr();
       return ZS_DYNAMIC_PTR_CAST(RTPSenderChannel, object)->toDebug();
@@ -175,12 +169,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPSenderChannel
-    #pragma mark
+    //
+    // RTPSenderChannel
+    //
     
     //-------------------------------------------------------------------------
-    const char *RTPSenderChannel::toString(States state)
+    const char *RTPSenderChannel::toString(States state) noexcept
     {
       switch (state) {
         case State_Pending:       return "pending";
@@ -198,7 +192,7 @@ namespace ortc
                                        UseSenderPtr sender,
                                        UseMediaStreamTrackPtr track,
                                        const Parameters &params
-                                       ) :
+                                       ) noexcept :
       MessageQueueAssociator(queue),
       SharedRecursiveLock(SharedRecursiveLock::create()),
       mSender(sender),
@@ -207,9 +201,9 @@ namespace ortc
       mTagSDES(ISettings::getBool(ORTC_SETTING_RTP_SENDER_CHANNEL_TAG_MID_RID_IN_RTCP_SDES)),
       mTrack(track)
     {
-      ZS_LOG_DETAIL(debug("created"))
+      ZS_LOG_DETAIL(debug("created"));
 
-      ORTC_THROW_INVALID_PARAMETERS_IF(!sender)
+      ZS_ASSERT(sender);
 
       setupTagging();
 
@@ -222,7 +216,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPSenderChannel::init()
+    void RTPSenderChannel::init() noexcept
     {
       AutoRecursiveLock lock(*this);
 
@@ -246,7 +240,7 @@ namespace ortc
         }
       }
 
-      ORTC_THROW_INVALID_PARAMETERS_IF(!found);
+      ZS_ASSERT(found);
 
       ZS_EVENTING_2(
                     x, i, Detail, RtpSenderChannelCreateMediaChannel, ol, RtpSender, Info,
@@ -258,7 +252,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    RTPSenderChannel::~RTPSenderChannel()
+    RTPSenderChannel::~RTPSenderChannel() noexcept
     {
       if (isNoop()) return;
 
@@ -271,31 +265,31 @@ namespace ortc
 
 
     //-------------------------------------------------------------------------
-    RTPSenderChannelPtr RTPSenderChannel::convert(ForRTPSenderPtr object)
+    RTPSenderChannelPtr RTPSenderChannel::convert(ForRTPSenderPtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(RTPSenderChannel, object);
     }
 
     //-------------------------------------------------------------------------
-    RTPSenderChannelPtr RTPSenderChannel::convert(ForRTPSenderChannelMediaBasePtr object)
+    RTPSenderChannelPtr RTPSenderChannel::convert(ForRTPSenderChannelMediaBasePtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(RTPSenderChannel, object);
     }
 
     //-------------------------------------------------------------------------
-    RTPSenderChannelPtr RTPSenderChannel::convert(ForRTPSenderChannelAudioPtr object)
+    RTPSenderChannelPtr RTPSenderChannel::convert(ForRTPSenderChannelAudioPtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(RTPSenderChannel, object);
     }
 
     //-------------------------------------------------------------------------
-    RTPSenderChannelPtr RTPSenderChannel::convert(ForRTPSenderChannelVideoPtr object)
+    RTPSenderChannelPtr RTPSenderChannel::convert(ForRTPSenderChannelVideoPtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(RTPSenderChannel, object);
     }
 
     //-------------------------------------------------------------------------
-    RTPSenderChannelPtr RTPSenderChannel::convert(ForMediaStreamTrackPtr object)
+    RTPSenderChannelPtr RTPSenderChannel::convert(ForMediaStreamTrackPtr object) noexcept
     {
       return ZS_DYNAMIC_PTR_CAST(RTPSenderChannel, object);
     }
@@ -304,12 +298,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPSenderChannel => ForRTPSender
-    #pragma mark
+    //
+    // RTPSenderChannel => ForRTPSender
+    //
     
     //-------------------------------------------------------------------------
-    ElementPtr RTPSenderChannel::toDebug(RTPSenderChannelPtr transport)
+    ElementPtr RTPSenderChannel::toDebug(RTPSenderChannelPtr transport) noexcept
     {
       if (!transport) return ElementPtr();
       return transport->toDebug();
@@ -320,7 +314,7 @@ namespace ortc
                                                  RTPSenderPtr sender,
                                                  MediaStreamTrackPtr track,
                                                  const Parameters &params
-                                                 )
+                                                 ) noexcept
     {
       RTPSenderChannelPtr pThis(make_shared<RTPSenderChannel>(make_private {}, IORTCForInternal::queueORTC(), sender, track, params));
       pThis->mThisWeak = pThis;
@@ -329,7 +323,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPSenderChannel::notifyTrackChanged(MediaStreamTrackPtr inTrack)
+    void RTPSenderChannel::notifyTrackChanged(MediaStreamTrackPtr inTrack) noexcept
     {
       UseMediaStreamTrackPtr track = inTrack;
       ZS_EVENTING_2(
@@ -341,7 +335,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPSenderChannel::notifyTransportState(ISecureTransportTypes::States state)
+    void RTPSenderChannel::notifyTransportState(ISecureTransportTypes::States state) noexcept
     {
       ZS_EVENTING_2(
                     x, i, Debug, RtpSenderChannelInternalSecureTransportStateChangedEvent, ol, RtpSenderChannel, InternalEvent,
@@ -354,14 +348,14 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPSenderChannel::notifyPackets(RTCPPacketListPtr packets)
+    void RTPSenderChannel::notifyPackets(RTCPPacketListPtr packets) noexcept
     {
       // do NOT lock this object here, instead notify self asynchronously
       IRTPSenderChannelAsyncDelegateProxy::create(mThisWeak.lock())->onNotifyPackets(packets);
     }
 
     //-------------------------------------------------------------------------
-    void RTPSenderChannel::notifyUpdate(const Parameters &params)
+    void RTPSenderChannel::notifyUpdate(const Parameters &params) noexcept
     {
       ZS_EVENTING_1(x, i, Debug, RtpSenderChannelInternalUpdateEvent, ol, RtpSenderChannel, InternalEvent, puid, id, mID);
 
@@ -370,8 +364,9 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPSenderChannel::requestStats(PromiseWithStatsReportPtr promise, const StatsTypeSet &stats)
+    void RTPSenderChannel::requestStats(PromiseWithStatsReportPtr promise, ZS_MAYBE_USED() const StatsTypeSet &stats) noexcept
     {
+      ZS_MAYBE_USED(stats);
       ZS_LOG_TRACE(log("on provide stats") + ZS_PARAM("promise", promise->getID()));
 
       {
@@ -380,7 +375,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool RTPSenderChannel::handlePacket(RTCPPacketPtr packet)
+    bool RTPSenderChannel::handlePacket(RTCPPacketPtr packet) noexcept
     {
       ZS_EVENTING_4(
                     x, i, Trace, RtpSenderChannelDeliverIncomingPacketToMediaChannel, ol, RtpSenderChannel, Deliver,
@@ -433,27 +428,30 @@ namespace ortc
 
     //-------------------------------------------------------------------------
     void RTPSenderChannel::insertDTMF(
-                                      const char *tones,
-                                      Milliseconds duration,
-                                      Milliseconds interToneGap
-                                      )
+                                      ZS_MAYBE_USED() const char *tones,
+                                      ZS_MAYBE_USED() Milliseconds duration,
+                                      ZS_MAYBE_USED() Milliseconds interToneGap
+                                      ) noexcept
     {
+      ZS_MAYBE_USED(tones);
+      ZS_MAYBE_USED(duration);
+      ZS_MAYBE_USED(interToneGap);
     }
 
     //-------------------------------------------------------------------------
-    String RTPSenderChannel::toneBuffer() const
+    String RTPSenderChannel::toneBuffer() const noexcept
     {
       return String();
     }
 
     //-------------------------------------------------------------------------
-    Milliseconds RTPSenderChannel::duration() const
+    Milliseconds RTPSenderChannel::duration() const noexcept
     {
       return Milliseconds();
     }
 
     //-------------------------------------------------------------------------
-    Milliseconds RTPSenderChannel::interToneGap() const
+    Milliseconds RTPSenderChannel::interToneGap() const noexcept
     {
       return Milliseconds();
     }
@@ -462,12 +460,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPSenderChannel => ForRTPSenderChannelMediaBase
-    #pragma mark
+    //
+    // RTPSenderChannel => ForRTPSenderChannelMediaBase
+    //
 
     //-------------------------------------------------------------------------
-    bool RTPSenderChannel::sendPacket(RTPPacketPtr packet)
+    bool RTPSenderChannel::sendPacket(RTPPacketPtr packet) noexcept
     {
       auto sender = mSender.lock();
       if (!sender) return false;
@@ -498,8 +496,8 @@ namespace ortc
 
           auto oldHeaderExtensions = packet->mHeaderExtensions; // remember old pointer temporarily
 
-          RTPPacket::StringHeaderExtension muxHeader(mMuxHeader ? mMuxHeader->mID : 0, mMuxID.c_str());
-          RTPPacket::StringHeaderExtension ridHeader(mRIDHeader ? mRIDHeader->mID : 0, mRID.c_str());
+          RTPPacket::StringHeaderExtension muxHeader(mMuxHeader ? static_cast<BYTE>(mMuxHeader->mID) : 0, mMuxID.c_str());
+          RTPPacket::StringHeaderExtension ridHeader(mRIDHeader ? static_cast<BYTE>(mRIDHeader->mID) : 0, mRID.c_str());
 
           // Re-point extenion headers in RTP packet to first point to MuxID or
           // RID or both.
@@ -541,7 +539,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool RTPSenderChannel::sendPacket(RTCPPacketPtr packet)
+    bool RTPSenderChannel::sendPacket(RTCPPacketPtr packet) noexcept
     {
       auto sender = mSender.lock();
       if (!sender) return false;
@@ -579,8 +577,8 @@ namespace ortc
         {
           for (auto chunk = sdes->firstChunk(); NULL != chunk; chunk = chunk->next())
           {
-            ASSERT(NULL == chunk->firstMid())
-            ASSERT(NULL == chunk->firstRid())
+            ZS_ASSERT(NULL == chunk->firstMid());
+            ZS_ASSERT(NULL == chunk->firstRid());
             if (muxID.hasData()) {
               chunk->mMidCount = 1;
               chunk->mFirstMid = &midItem;
@@ -620,12 +618,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPSenderChannel => ForRTPSenderChannelAudio
-    #pragma mark
+    //
+    // RTPSenderChannel => ForRTPSenderChannelAudio
+    //
 
     //-------------------------------------------------------------------------
-    void RTPSenderChannel::notifyDTMFSenderToneChanged(const char *tone)
+    void RTPSenderChannel::notifyDTMFSenderToneChanged(const char *tone) noexcept
     {
       auto sender = mSender.lock();
       if (!sender) {
@@ -640,33 +638,35 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPSenderChannel => ForRTPSenderChannelVideo
-    #pragma mark
+    //
+    // RTPSenderChannel => ForRTPSenderChannelVideo
+    //
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPSenderChannel => IRTPSenderChannelForMediaStreamTrack
-    #pragma mark
+    //
+    // RTPSenderChannel => IRTPSenderChannelForMediaStreamTrack
+    //
 
     //-------------------------------------------------------------------------
     int32_t RTPSenderChannel::sendAudioSamples(
-                                               const void* audioSamples,
-                                               const size_t numberOfSamples,
-                                               const uint8_t numberOfChannels
-                                               )
+                                               ZS_MAYBE_USED() const void* audioSamples,
+                                               ZS_MAYBE_USED() const size_t numberOfSamples,
+                                               ZS_MAYBE_USED() const uint8_t numberOfChannels
+                                               ) noexcept
     {
-#define TODO_VERIFY_RESULT 1
-#define TODO_VERIFY_RESULT 2
+      ZS_MAYBE_USED(audioSamples);
+      ZS_MAYBE_USED(numberOfSamples);
+      ZS_MAYBE_USED(numberOfChannels);
+#pragma ZS_BUILD_NOTE("TODO","Verify result")
       if (!mAudio) return 0;
       return 0;
     }
 
     //-------------------------------------------------------------------------
-    void RTPSenderChannel::sendVideoFrame(VideoFramePtr videoFrame)
+    void RTPSenderChannel::sendVideoFrame(VideoFramePtr videoFrame) noexcept
     {
     }
     
@@ -674,9 +674,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPSenderChannel => IWakeDelegate
-    #pragma mark
+    //
+    // RTPSenderChannel => IWakeDelegate
+    //
 
     //-------------------------------------------------------------------------
     void RTPSenderChannel::onWake()
@@ -691,9 +691,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPSenderChannel => ITimerDelegate
-    #pragma mark
+    //
+    // RTPSenderChannel => ITimerDelegate
+    //
 
     //-------------------------------------------------------------------------
     void RTPSenderChannel::onTimer(ITimerPtr timer)
@@ -701,17 +701,16 @@ namespace ortc
       ZS_LOG_DEBUG(log("timer") + ZS_PARAM("timer id", timer->getID()))
 
       AutoRecursiveLock lock(*this);
-#define TODO 1
-#define TODO 2
+#pragma ZS_BUILD_NOTE("TODO","implement timer")
     }
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPSenderChannel => IRTPSenderChannelAsyncDelegate
-    #pragma mark
+    //
+    // RTPSenderChannel => IRTPSenderChannelAsyncDelegate
+    //
 
     //-------------------------------------------------------------------------
     void RTPSenderChannel::onTrackChanged(UseMediaStreamTrackPtr track)
@@ -791,7 +790,7 @@ namespace ortc
           }
         }
 
-        ORTC_THROW_INVALID_PARAMETERS_IF(!found)
+        ZS_ASSERT(found);
 
         setupTagging();
       }
@@ -801,12 +800,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark RTPSenderChannel => (internal)
-    #pragma mark
+    //
+    // RTPSenderChannel => (internal)
+    //
 
     //-------------------------------------------------------------------------
-    Log::Params RTPSenderChannel::log(const char *message) const
+    Log::Params RTPSenderChannel::log(const char *message) const noexcept
     {
       ElementPtr objectEl = Element::create("ortc::RTPSenderChannel");
       IHelper::debugAppend(objectEl, "id", mID);
@@ -814,13 +813,13 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    Log::Params RTPSenderChannel::debug(const char *message) const
+    Log::Params RTPSenderChannel::debug(const char *message) const noexcept
     {
       return Log::Params(message, toDebug());
     }
 
     //-------------------------------------------------------------------------
-    ElementPtr RTPSenderChannel::toDebug() const
+    ElementPtr RTPSenderChannel::toDebug() const noexcept
     {
       AutoRecursiveLock lock(*this);
 
@@ -844,19 +843,19 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    bool RTPSenderChannel::isShuttingDown() const
+    bool RTPSenderChannel::isShuttingDown() const noexcept
     {
       return State_ShuttingDown == mCurrentState;
     }
 
     //-------------------------------------------------------------------------
-    bool RTPSenderChannel::isShutdown() const
+    bool RTPSenderChannel::isShutdown() const noexcept
     {
       return State_Shutdown == mCurrentState;
     }
 
     //-------------------------------------------------------------------------
-    void RTPSenderChannel::step()
+    void RTPSenderChannel::step() noexcept
     {
       ZS_LOG_DEBUG(debug("step"))
 
@@ -880,7 +879,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPSenderChannel::cancel()
+    void RTPSenderChannel::cancel() noexcept
     {
       //.......................................................................
       // try to gracefully shutdown
@@ -903,11 +902,11 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPSenderChannel::setState(States state)
+    void RTPSenderChannel::setState(States state) noexcept
     {
       if (state == mCurrentState) return;
 
-      ZS_LOG_DETAIL(debug("state changed") + ZS_PARAM("new state", toString(state)) + ZS_PARAM("old state", toString(mCurrentState)))
+      ZS_LOG_DETAIL(debug("state changed") + ZS_PARAM("new state", toString(state)) + ZS_PARAM("old state", toString(mCurrentState)));
 
       mCurrentState = state;
 
@@ -918,7 +917,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPSenderChannel::setError(WORD errorCode, const char *inReason)
+    void RTPSenderChannel::setError(WORD errorCode, const char *inReason) noexcept
     {
       String reason(inReason);
       if (reason.isEmpty()) {
@@ -937,7 +936,7 @@ namespace ortc
     }
 
     //-------------------------------------------------------------------------
-    void RTPSenderChannel::setupTagging()
+    void RTPSenderChannel::setupTagging() noexcept
     {
       mMuxHeader.reset();
       mRIDHeader.reset();
@@ -1010,12 +1009,12 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IRTPSenderChannelFactory
-    #pragma mark
+    //
+    // IRTPSenderChannelFactory
+    //
 
     //-------------------------------------------------------------------------
-    IRTPSenderChannelFactory &IRTPSenderChannelFactory::singleton()
+    IRTPSenderChannelFactory &IRTPSenderChannelFactory::singleton() noexcept
     {
       return RTPSenderChannelFactory::singleton();
     }
@@ -1025,7 +1024,7 @@ namespace ortc
                                                          RTPSenderPtr sender,
                                                          MediaStreamTrackPtr track,
                                                          const Parameters &params
-                                                         )
+                                                         ) noexcept
     {
       if (this) {}
       return internal::RTPSenderChannel::create(sender, track, params);

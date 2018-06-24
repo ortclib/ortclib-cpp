@@ -33,12 +33,12 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::MediaDevices::WrapperImplType, 
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::ortc::MediaDevices::WrapperType, WrapperType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::MediaDevices::MediaDevices()
+wrapper::impl::org::ortc::MediaDevices::MediaDevices() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::MediaDevicesPtr wrapper::org::ortc::MediaDevices::wrapper_create()
+wrapper::org::ortc::MediaDevicesPtr wrapper::org::ortc::MediaDevices::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::MediaDevices>();
   pThis->thisWeak_ = pThis;
@@ -46,18 +46,18 @@ wrapper::org::ortc::MediaDevicesPtr wrapper::org::ortc::MediaDevices::wrapper_cr
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::MediaDevices::~MediaDevices()
+wrapper::impl::org::ortc::MediaDevices::~MediaDevices() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::MediaTrackSupportedConstraintsPtr wrapper::org::ortc::MediaDevices::getSupportedConstraints()
+wrapper::org::ortc::MediaTrackSupportedConstraintsPtr wrapper::org::ortc::MediaDevices::getSupportedConstraints() noexcept
 {
   return wrapper::impl::org::ortc::MediaTrackSupportedConstraints::toWrapper(NativeType::getSupportedConstraints());
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWithHolderPtr< shared_ptr< list< wrapper::org::ortc::MediaDeviceInfoPtr > > > > wrapper::org::ortc::MediaDevices::enumerateDevices()
+shared_ptr< PromiseWithHolderPtr< shared_ptr< list< wrapper::org::ortc::MediaDeviceInfoPtr > > > > wrapper::org::ortc::MediaDevices::enumerateDevices() noexcept
 {
   ZS_DECLARE_TYPEDEF_PTR(PromiseWithHolderPtr< shared_ptr< list< wrapper::org::ortc::MediaDeviceInfoPtr > > >, PromiseWithType);
 
@@ -85,7 +85,7 @@ shared_ptr< PromiseWithHolderPtr< shared_ptr< list< wrapper::org::ortc::MediaDev
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWithHolderPtr< shared_ptr< list< wrapper::org::ortc::MediaStreamTrackPtr > > > > wrapper::org::ortc::MediaDevices::getUserMedia(wrapper::org::ortc::MediaStreamConstraintsPtr constraints)
+shared_ptr< PromiseWithHolderPtr< shared_ptr< list< wrapper::org::ortc::MediaStreamTrackPtr > > > > wrapper::org::ortc::MediaDevices::getUserMedia(wrapper::org::ortc::MediaStreamConstraintsPtr constraints) noexcept
 {
   ZS_DECLARE_TYPEDEF_PTR(PromiseWithHolderPtr< shared_ptr< list< wrapper::org::ortc::MediaStreamTrackPtr > > >, PromiseWithType);
 
@@ -115,7 +115,7 @@ shared_ptr< PromiseWithHolderPtr< shared_ptr< list< wrapper::org::ortc::MediaStr
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::MediaDevicesPtr wrapper::org::ortc::MediaDevices::get_singleton()
+wrapper::org::ortc::MediaDevicesPtr wrapper::org::ortc::MediaDevices::get_singleton() noexcept
 {
   zsLib::AutoRecursiveLock lock(*zsLib::IHelper::getGlobalLock());
   static zsLib::SingletonLazySharedPtr<MediaDevices> singleton(wrapper_create());
@@ -124,20 +124,20 @@ wrapper::org::ortc::MediaDevicesPtr wrapper::org::ortc::MediaDevices::get_single
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::MediaDevices::wrapper_onObserverCountChanged(size_t count)
+void wrapper::impl::org::ortc::MediaDevices::wrapper_onObserverCountChanged(size_t count) noexcept
 {
   subscriptionCount_ = count;
   subscribe();
 }
 
 //------------------------------------------------------------------------------
-void WrapperImplType::onMediaDevicesChanged()
+void WrapperImplType::onMediaDevicesChanged() noexcept
 {
   onDeviceChange();
 }
 
 //------------------------------------------------------------------------------
-void WrapperImplType::subscribe()
+void WrapperImplType::subscribe() noexcept
 {
   zsLib::AutoLock lock(lock_);
   if (subscriptionCount_ < 1) {

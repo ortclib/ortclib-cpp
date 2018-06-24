@@ -22,12 +22,12 @@ using ::std::set;
 using ::std::map;
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCStats::RTCStats()
+wrapper::impl::org::ortc::RTCStats::RTCStats() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::RTCStatsPtr wrapper::org::ortc::RTCStats::wrapper_create()
+wrapper::org::ortc::RTCStatsPtr wrapper::org::ortc::RTCStats::wrapper_create() noexcept
 {
   auto pThis = make_shared<wrapper::impl::org::ortc::RTCStats>();
   pThis->thisWeak_ = pThis;
@@ -35,18 +35,18 @@ wrapper::org::ortc::RTCStatsPtr wrapper::org::ortc::RTCStats::wrapper_create()
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCStats::~RTCStats()
+wrapper::impl::org::ortc::RTCStats::~RTCStats() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCStats::wrapper_init_org_ortc_RTCStats()
+void wrapper::impl::org::ortc::RTCStats::wrapper_init_org_ortc_RTCStats() noexcept
 {
   native_ = make_shared<NativeStats>();
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCStats::wrapper_init_org_ortc_RTCStats(wrapper::org::ortc::RTCStatsPtr source)
+void wrapper::impl::org::ortc::RTCStats::wrapper_init_org_ortc_RTCStats(wrapper::org::ortc::RTCStatsPtr source) noexcept
 {
   if (!source) {
     wrapper_init_org_ortc_RTCStats();
@@ -56,50 +56,50 @@ void wrapper::impl::org::ortc::RTCStats::wrapper_init_org_ortc_RTCStats(wrapper:
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::ortc::RTCStats::wrapper_init_org_ortc_RTCStats(wrapper::org::ortc::JsonPtr json)
+void wrapper::impl::org::ortc::RTCStats::wrapper_init_org_ortc_RTCStats(wrapper::org::ortc::JsonPtr json) noexcept
 {
   native_ = NativeStats::create(Json::toNative(json));
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::JsonPtr wrapper::impl::org::ortc::RTCStats::toJson()
+wrapper::org::ortc::JsonPtr wrapper::impl::org::ortc::RTCStats::toJson() noexcept
 {
   return Json::toWrapper(native_->createElement("RTCStats"));
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::ortc::RTCStats::hash()
+String wrapper::impl::org::ortc::RTCStats::hash() noexcept
 {
   return native_->hash();
 }
 
 //------------------------------------------------------------------------------
-::zsLib::Time wrapper::impl::org::ortc::RTCStats::get_timestamp()
+::zsLib::Time wrapper::impl::org::ortc::RTCStats::get_timestamp() noexcept
 {
   return native_->mTimestamp;
 }
 
 //------------------------------------------------------------------------------
-Optional< wrapper::org::ortc::RTCStatsType > wrapper::impl::org::ortc::RTCStats::get_statsType()
+Optional< wrapper::org::ortc::RTCStatsType > wrapper::impl::org::ortc::RTCStats::get_statsType() noexcept
 {
   if (!native_->mStatsType.hasValue()) return Optional< wrapper::org::ortc::RTCStatsType >();
   return Helper::toWrapper(native_->mStatsType.value());
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::ortc::RTCStats::get_statsTypeOther()
+String wrapper::impl::org::ortc::RTCStats::get_statsTypeOther() noexcept
 {
   return native_->mStatsTypeOther;
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::ortc::RTCStats::get_id()
+String wrapper::impl::org::ortc::RTCStats::get_id() noexcept
 {
   return native_->mID;
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCStatsPtr wrapper::impl::org::ortc::RTCStats::toWrapper(NativeStatsPtr native)
+wrapper::impl::org::ortc::RTCStatsPtr wrapper::impl::org::ortc::RTCStats::toWrapper(NativeStatsPtr native) noexcept
 {
   if (!native) return RTCStatsPtr();
 
@@ -110,7 +110,7 @@ wrapper::impl::org::ortc::RTCStatsPtr wrapper::impl::org::ortc::RTCStats::toWrap
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::RTCStats::NativeStatsPtr wrapper::impl::org::ortc::RTCStats::toNative(wrapper::org::ortc::RTCStatsPtr wrapper)
+wrapper::impl::org::ortc::RTCStats::NativeStatsPtr wrapper::impl::org::ortc::RTCStats::toNative(wrapper::org::ortc::RTCStatsPtr wrapper) noexcept
 {
   if (!wrapper) return NativeStatsPtr();
   return std::dynamic_pointer_cast<RTCStats>(wrapper)->native_;

@@ -43,9 +43,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISecureTransportTypes
-    #pragma mark
+    //
+    // ISecureTransportTypes
+    //
 
     interaction ISecureTransportTypes
     {
@@ -57,29 +57,29 @@ namespace ortc
         State_Closed,
       };
 
-      static const char *toString(States state);
+      static const char *toString(States state) noexcept;
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISecureTransport
-    #pragma mark
+    //
+    // ISecureTransport
+    //
 
     interaction ISecureTransport : public ISecureTransportTypes
     {
-      virtual PUID getID() const = 0;
+      virtual PUID getID() const noexcept = 0;
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISecureTransportDelegate
-    #pragma mark
+    //
+    // ISecureTransportDelegate
+    //
 
     interaction ISecureTransportDelegate
     {
@@ -95,32 +95,32 @@ namespace ortc
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
     //---------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISecureTransportSubscription
-    #pragma mark
+    //
+    // ISecureTransportSubscription
+    //
 
     interaction ISecureTransportSubscription
     {
-      virtual PUID getID() const = 0;
+      virtual PUID getID() const noexcept = 0;
 
-      virtual void cancel() = 0;
+      virtual void cancel() noexcept = 0;
 
-      virtual void background() = 0;
+      virtual void background() noexcept = 0;
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISecureTransportForRTPSender
-    #pragma mark
+    //
+    // ISecureTransportForRTPSender
+    //
 
     interaction ISecureTransportForRTPSender
     {
-      ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForRTPSender, ForRTPSender)
+      ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForRTPSender, ForRTPSender);
 
-      static ElementPtr toDebug(ForRTPSenderPtr transport);
+      static ElementPtr toDebug(ForRTPSenderPtr transport) noexcept;
 
       static void getSendingTransport(
                                       IRTPTransportPtr inRTPTransport,
@@ -129,37 +129,37 @@ namespace ortc
                                       IICETypes::Components &outWhenSendingRTCPUseSendOverComponent,
                                       ForRTPSenderPtr &outRTPSecureTransport,
                                       ForRTPSenderPtr &outRTCPSecureTransport
-                                      );
+                                      ) noexcept(false);
 
-      virtual PUID getID() const = 0;
+      virtual PUID getID() const noexcept = 0;
 
-      virtual ISecureTransportSubscriptionPtr subscribe(ISecureTransportDelegatePtr delegate) = 0;
+      virtual ISecureTransportSubscriptionPtr subscribe(ISecureTransportDelegatePtr delegate) noexcept = 0;
 
-      virtual ISecureTransportTypes::States state(ISecureTransportTypes::States ignored = ISecureTransportTypes::States()) const = 0;
+      virtual ISecureTransportTypes::States state(ISecureTransportTypes::States ignored = ISecureTransportTypes::States()) const noexcept = 0;
 
       virtual bool sendPacket(
                               IICETypes::Components sendOverICETransport,
                               IICETypes::Components packetType,
                               const BYTE *buffer,
                               size_t bufferLengthInBytes
-                              ) = 0;
+                              ) noexcept = 0;
 
-      virtual IICETransportPtr getICETransport() const = 0;
+      virtual IICETransportPtr getICETransport() const noexcept = 0;
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISecureTransportForRTPReceiver
-    #pragma mark
+    //
+    // ISecureTransportForRTPReceiver
+    //
 
     interaction ISecureTransportForRTPReceiver
     {
-      ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForRTPReceiver, ForRTPReceiver)
+      ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForRTPReceiver, ForRTPReceiver);
 
-      static ElementPtr toDebug(ForRTPReceiverPtr transport);
+      static ElementPtr toDebug(ForRTPReceiverPtr transport) noexcept;
 
       static void getReceivingTransport(
                                         IRTPTransportPtr inRTPTransport,
@@ -168,165 +168,165 @@ namespace ortc
                                         IICETypes::Components &outWhenReceivingRTCPUseReceiveOverComponent,
                                         ForRTPReceiverPtr &outRTPSecureTransport,
                                         ForRTPReceiverPtr &outRTCPSecureTransport
-                                        );
+                                        ) noexcept(false);
 
-      virtual PUID getID() const = 0;
+      virtual PUID getID() const noexcept = 0;
 
-      virtual ISecureTransportSubscriptionPtr subscribe(ISecureTransportDelegatePtr delegate) = 0;
+      virtual ISecureTransportSubscriptionPtr subscribe(ISecureTransportDelegatePtr delegate) noexcept = 0;
 
-      virtual ISecureTransportTypes::States state(ISecureTransportTypes::States ignored = ISecureTransportTypes::States()) const = 0;
+      virtual ISecureTransportTypes::States state(ISecureTransportTypes::States ignored = ISecureTransportTypes::States()) const noexcept = 0;
 
       virtual bool sendPacket(
                               IICETypes::Components sendOverICETransport,
                               IICETypes::Components packetType,
                               const BYTE *buffer,
                               size_t bufferLengthInBytes
-                              ) = 0;
+                              ) noexcept = 0;
 
-      virtual IICETransportPtr getICETransport() const = 0;
+      virtual IICETransportPtr getICETransport() const noexcept = 0;
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISecureTransportForSRTPTransport
-    #pragma mark
+    //
+    // ISecureTransportForSRTPTransport
+    //
 
     interaction ISecureTransportForSRTPTransport
     {
-      ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForSRTPTransport, ForSRTP)
+      ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForSRTPTransport, ForSRTP);
 
-      static ElementPtr toDebug(ForSRTPPtr transport);
+      static ElementPtr toDebug(ForSRTPPtr transport) noexcept;
 
-      virtual PUID getID() const = 0;
+      virtual PUID getID() const noexcept = 0;
 
       virtual bool sendEncryptedPacket(
                                        IICETypes::Components sendOverICETransport,
                                        IICETypes::Components packetType,
                                        const BYTE *buffer,
                                        size_t bufferLengthInBytes
-                                       ) = 0;
+                                       ) noexcept = 0;
 
       virtual bool handleReceivedDecryptedPacket(
                                                  IICETypes::Components viaTransport,
                                                  IICETypes::Components packetType,
                                                  const BYTE *buffer,
                                                  size_t bufferLengthInBytes
-                                                 ) = 0;
+                                                 ) noexcept = 0;
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISecureTransportForICETransport
-    #pragma mark
+    //
+    // ISecureTransportForICETransport
+    //
 
     interaction ISecureTransportForICETransport
     {
-      ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForICETransport, ForICETransport)
+      ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForICETransport, ForICETransport);
 
-      static ElementPtr toDebug(ForICETransportPtr transport);
+      static ElementPtr toDebug(ForICETransportPtr transport) noexcept;
 
-      virtual PUID getID() const = 0;
+      virtual PUID getID() const noexcept = 0;
 
       virtual void notifyAssociateTransportCreated(
                                                    IICETypes::Components associatedComponent,
                                                    ICETransportPtr assoicated
-                                                   ) = 0;
+                                                   ) noexcept = 0;
 
       virtual bool handleReceivedPacket(
                                         IICETypes::Components viaComponent,
                                         const BYTE *buffer,
                                         size_t bufferLengthInBytes
-                                        ) = 0;
+                                        ) noexcept = 0;
 
       virtual void handleReceivedSTUNPacket(
                                             IICETypes::Components viaComponent,
                                             STUNPacketPtr packet
-                                            ) = 0;
+                                            ) noexcept = 0;
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISecureTransportForRTPListener
-    #pragma mark
+    //
+    // ISecureTransportForRTPListener
+    //
 
     interaction ISecureTransportForRTPListener
     {
       ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForRTPListener, ForRTPListener)
 
-      static ElementPtr toDebug(ForRTPListenerPtr transport);
+      static ElementPtr toDebug(ForRTPListenerPtr transport) noexcept;
 
-      static ForRTPListenerPtr convert(IRTPTransportPtr transport);
+      static ForRTPListenerPtr convert(IRTPTransportPtr transport) noexcept;
 
-      virtual PUID getID() const = 0;
+      virtual PUID getID() const noexcept = 0;
 
-      virtual RTPListenerPtr getListener() const = 0;
+      virtual RTPListenerPtr getListener() const noexcept = 0;
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISecureTransportForDataTransport
-    #pragma mark
+    //
+    // ISecureTransportForDataTransport
+    //
 
     interaction ISecureTransportForDataTransport
     {
-      ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForDataTransport, ForDataTransport)
+      ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForDataTransport, ForDataTransport);
 
-      ZS_DECLARE_TYPEDEF_PTR(IDataTransportForSecureTransport, UseDataTransport)
+      ZS_DECLARE_TYPEDEF_PTR(IDataTransportForSecureTransport, UseDataTransport);
 
-      static ElementPtr toDebug(ForDataTransportPtr transport);
+      static ElementPtr toDebug(ForDataTransportPtr transport) noexcept;
 
-      virtual PUID getID() const = 0;
+      virtual PUID getID() const noexcept = 0;
 
-      virtual ISecureTransportSubscriptionPtr subscribe(ISecureTransportDelegatePtr delegate) = 0;
+      virtual ISecureTransportSubscriptionPtr subscribe(ISecureTransportDelegatePtr delegate) noexcept = 0;
 
-      virtual ISecureTransportTypes::States state(ISecureTransportTypes::States ignored = ISecureTransportTypes::States()) const = 0;
+      virtual ISecureTransportTypes::States state(ISecureTransportTypes::States ignored = ISecureTransportTypes::States()) const noexcept = 0;
 
-      virtual bool isClientRole() const = 0;
+      virtual bool isClientRole() const noexcept = 0;
 
-      virtual UseDataTransportPtr getDataTransport() const = 0;
+      virtual UseDataTransportPtr getDataTransport() const noexcept = 0;
 
       virtual bool sendDataPacket(
                                   const BYTE *buffer,
                                   size_t bufferLengthInBytes
-                                  ) = 0;
+                                  ) noexcept = 0;
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IDataTransportForSecureTransport
-    #pragma mark
+    //
+    // IDataTransportForSecureTransport
+    //
 
     interaction IDataTransportForSecureTransport
     {
-      ZS_DECLARE_TYPEDEF_PTR(IDataTransportForSecureTransport, ForSecureTransport)
+      ZS_DECLARE_TYPEDEF_PTR(IDataTransportForSecureTransport, ForSecureTransport);
 
-      ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForDataTransport, UseSecureTransport)
+      ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForDataTransport, UseSecureTransport);
 
-      static ElementPtr toDebug(ForSecureTransportPtr transport);
+      static ElementPtr toDebug(ForSecureTransportPtr transport) noexcept;
 
-      static ForSecureTransportPtr create(UseSecureTransportPtr transport);
+      static ForSecureTransportPtr create(UseSecureTransportPtr transport) noexcept;
 
-      virtual PUID getID() const = 0;
+      virtual PUID getID() const noexcept = 0;
 
       virtual bool handleDataPacket(
                                     const BYTE *buffer,
                                     size_t bufferLengthInBytes
-                                    ) = 0;
+                                    ) noexcept = 0;
     };
 
   }
@@ -335,11 +335,11 @@ namespace ortc
 ZS_DECLARE_PROXY_BEGIN(ortc::internal::ISecureTransportDelegate)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::ISecureTransportPtr, ISecureTransportPtr)
 ZS_DECLARE_PROXY_TYPEDEF(ortc::internal::ISecureTransportTypes::States, States)
-ZS_DECLARE_PROXY_METHOD_2(onSecureTransportStateChanged, ISecureTransportPtr, States)
+ZS_DECLARE_PROXY_METHOD(onSecureTransportStateChanged, ISecureTransportPtr, States)
 ZS_DECLARE_PROXY_END()
 
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_BEGIN(ortc::internal::ISecureTransportDelegate, ortc::internal::ISecureTransportSubscription)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::internal::ISecureTransportPtr, ISecureTransportPtr)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_TYPEDEF(ortc::internal::ISecureTransportTypes::States, States)
-ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD_2(onSecureTransportStateChanged, ISecureTransportPtr, States)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_METHOD(onSecureTransportStateChanged, ISecureTransportPtr, States)
 ZS_DECLARE_PROXY_SUBSCRIPTIONS_END()

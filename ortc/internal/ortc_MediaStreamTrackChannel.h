@@ -49,9 +49,9 @@ namespace ortc
   {
 
     //-----------------------------------------------------------------------
-    #pragma mark
-    #pragma mark MediaStreamTrackChannel
-    #pragma mark
+    //
+    // MediaStreamTrackChannel
+    //
 
     class MediaStreamTrackChannel : public Noop,
                                     public MessageQueueAssociator,
@@ -96,100 +96,100 @@ namespace ortc
       MediaStreamTrackChannel(
                               const make_private &,
                               IMessageQueuePtr queue
-                              );
+                              ) noexcept;
 
-      MediaStreamTrackChannel(Noop, IMessageQueuePtr queue) :
+      MediaStreamTrackChannel(Noop, IMessageQueuePtr queue) noexcept :
         Noop(true),
         MessageQueueAssociator(queue),
         SharedRecursiveLock(SharedRecursiveLock::create())
       {}
 
     protected:
-      void init();
+      void init() noexcept;
 
     public:
-      ~MediaStreamTrackChannel();
+      ~MediaStreamTrackChannel() noexcept;
 
-      MediaStreamTrackChannelPtr convert(ForMediaStreamTrackPtr object);
-      MediaStreamTrackChannelPtr convert(ForMediaStreamTrackSubscriberPtr object);
-      MediaStreamTrackChannelPtr convert(ForMediaStreamTrackSubscriberMediaPtr object);
-      MediaStreamTrackChannelPtr convert(ForMediaStreamTrackSubscriberRTPPtr object);
+      MediaStreamTrackChannelPtr convert(ForMediaStreamTrackPtr object) noexcept;
+      MediaStreamTrackChannelPtr convert(ForMediaStreamTrackSubscriberPtr object) noexcept;
+      MediaStreamTrackChannelPtr convert(ForMediaStreamTrackSubscriberMediaPtr object) noexcept;
+      MediaStreamTrackChannelPtr convert(ForMediaStreamTrackSubscriberRTPPtr object) noexcept;
 
     protected:
 
       //---------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaChannel (for MediaStreamTrack)
-      #pragma mark
+      //
+      // MediaChannel (for MediaStreamTrack)
+      //
 
       static ForMediaStreamTrackPtr create(
                                            size_t timeIndex,
                                            ImmutableMediaChannelTracePtr trace
-                                           );
+                                           ) noexcept;
 
-      PUID getID() const override { return id_; }
+      PUID getID() const noexcept override { return id_; }
 
-      void shutdown() override;
+      void shutdown() noexcept override;
 
       void notifyAudioFrame(
                             size_t timeIndex,
                             ImmutableMediaChannelTracePtr trace,
                             AudioFramePtr frame
-                            ) override;
+                            ) noexcept override;
       void notifyVideoFrame(
                             size_t timeIndex,
                             ImmutableMediaChannelTracePtr trace,
                             VideoFramePtr frame
-                            ) override;
+                            ) noexcept override;
 
       void notifyRTPPacket(
                            size_t timeIndex,
                            ImmutableMediaChannelTracePtr trace,
                            RTPPacketPtr packet
-                           ) override;
+                           ) noexcept override;
       void notifyRTCPPacket(
                             size_t timeIndex,
                             ImmutableMediaChannelTracePtr trace,
                             RTPPacketPtr packet
-                            ) override;
+                            ) noexcept override;
 
-      void subscribeComplete() override;
+      void subscribeComplete() noexcept override;
 
-      bool shouldCancel(size_t cleanOlderThanTimeIndex) override;
-
-      //---------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaChannel (ForMediaStreamTrackSubscriber)
-      #pragma mark
-
-      virtual void notifyCancelled(SubscriberObjectID subscriberID) override;
+      bool shouldCancel(size_t cleanOlderThanTimeIndex) noexcept override;
 
       //---------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaChannel (ForMediaStreamTrackSubscriberMedia)
-      #pragma mark
+      //
+      // MediaChannel (ForMediaStreamTrackSubscriber)
+      //
+
+      virtual void notifyCancelled(SubscriberObjectID subscriberID) noexcept override;
+
+      //---------------------------------------------------------------------
+      //
+      // MediaChannel (ForMediaStreamTrackSubscriberMedia)
+      //
 
       virtual void subscribeMedia(
                                  SubscriberObjectID subscriberID,
                                  IMediaStreamTrackChannelMediaDelegatePtr delegate
-                                 ) override;
+                                 ) noexcept override;
 
       //---------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaChannel (ForMediaStreamTrackSubscriberRTP)
-      #pragma mark
+      //
+      // MediaChannel (ForMediaStreamTrackSubscriberRTP)
+      //
 
       virtual void subscribeRTP(
                                 SubscriberObjectID subscriberID,
                                 ImmutableParametersPtr params,
                                 IMediaStreamTrackChannelRTPDelegatePtr delegate
-                                ) override;
+                                ) noexcept override;
 
     protected:
       //---------------------------------------------------------------------
-      #pragma mark
-      #pragma mark MediaStreamTrack::RTPSubscriber => (data)
-      #pragma mark
+      //
+      // MediaStreamTrack::RTPSubscriber => (data)
+      //
 
       AutoPUID id_;
       MediaStreamTrackChannelWeakPtr thisWeak_;
@@ -213,9 +213,9 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark IMediaStreamTrackChannelFactory
-    #pragma mark
+    //
+    // IMediaStreamTrackChannelFactory
+    //
 
     interaction IMediaStreamTrackChannelFactory
     {
@@ -227,7 +227,7 @@ namespace ortc
       virtual ForMediaStreamTrackPtr create(
                                             size_t timeIndex,
                                             ImmutableMediaChannelTracePtr trace
-                                            );
+                                            ) noexcept;
     };
 
     class MediaStreamTrackChannelFactory : public IFactory<IMediaStreamTrackChannelFactory> {};

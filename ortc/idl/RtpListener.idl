@@ -89,13 +89,13 @@ namespace org
       [constructor, altname(RTCRtpListenerWithHeaderExtensions)]
       /// <summary>
       /// Construct an instance of RTCRtpListener from an RTCDtlsTransport
-      /// object and the mapped header extensions to properly intepret
+      /// object and the mapped header extensions to properly interpret
       /// RTP header extensions.
       /// </summary>
       void RTCRtpListener(
                           RTCRtpTransport transport,
                           HeaderExtensionParametersList headerExtensions
-                          );
+                          ) throws(InvalidParameters);
 
       /// <summary>
       /// Gets a unique object instance identifier for this object.
@@ -113,7 +113,7 @@ namespace org
       /// Set a list of header extensions that can be interpreted by the listener
       /// on incoming RTP packets.
       /// </summary>
-      void setHeaderExtensions(HeaderExtensionParametersList headerExtensions);
+      void setHeaderExtensions(HeaderExtensionParametersList headerExtensions) throws(InvalidParameters);
 
       /// <summary>
       /// The event handler emits the RTCRtpUnhandledEvent, which is fired

@@ -14,26 +14,26 @@ namespace zsLib {
   namespace eventing {
     
     template <typename TWriteType>
-    void eventWriteBuffer(BYTE * &p, TWriteType value)
+    void eventWriteBuffer(BYTE * &p, TWriteType value) noexcept
     {
       memcpy(&p, &value, sizeof(value));
       p += sizeof(value);
     }
-    inline void eventWriteBuffer(BYTE ** &p, const BYTE *buffer, size_t * &bufferSizes, size_t size)
+    inline void eventWriteBuffer(BYTE ** &p, const BYTE *buffer, size_t * &bufferSizes, size_t size) noexcept
     {
       (*p) = const_cast<BYTE *>(buffer);
       (*bufferSizes) = size;
       ++p;
       ++bufferSizes;
     }
-    inline void eventWriteBuffer(BYTE ** &p, const char *str, size_t * &bufferSizes)
+    inline void eventWriteBuffer(BYTE ** &p, const char *str, size_t * &bufferSizes) noexcept
     {
       (*p) = const_cast<BYTE *>(reinterpret_cast<const BYTE *>(str));
       (*bufferSizes) = (NULL == str ? 0 : strlen(str)) * sizeof(char);
       ++p;
       ++bufferSizes;
     }
-    inline void eventWriteBuffer(const BYTE ** &p, const wchar_t *str, size_t * &bufferSizes)
+    inline void eventWriteBuffer(const BYTE ** &p, const wchar_t *str, size_t * &bufferSizes) noexcept
     {
       (*p) = reinterpret_cast<const BYTE *>(str);
       (*bufferSizes) = (NULL == str ? 0 : wcslen(str)) * sizeof(wchar_t);

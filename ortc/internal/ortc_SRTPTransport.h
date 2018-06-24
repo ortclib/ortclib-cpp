@@ -59,72 +59,72 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISRTPTransportForSettings
-    #pragma mark
+    //
+    // ISRTPTransportForSettings
+    //
 
     interaction ISRTPTransportForSettings
     {
-      ZS_DECLARE_TYPEDEF_PTR(ISRTPTransportForSettings, ForSettings)
+      ZS_DECLARE_TYPEDEF_PTR(ISRTPTransportForSettings, ForSettings);
 
-      static void applyDefaults();
+      static void applyDefaults() noexcept;
 
-      virtual ~ISRTPTransportForSettings() {}
+      virtual ~ISRTPTransportForSettings() noexcept {}
     };
     
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISRTPTransportForSecureTransport
-    #pragma mark
+    //
+    // ISRTPTransportForSecureTransport
+    //
 
     interaction ISRTPTransportForSecureTransport
     {
-      ZS_DECLARE_TYPEDEF_PTR(ISRTPTransportForSecureTransport, ForSecureTransport)
+      ZS_DECLARE_TYPEDEF_PTR(ISRTPTransportForSecureTransport, ForSecureTransport);
 
-      ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForSRTPTransport, UseSecureTransport)
-      ZS_DECLARE_TYPEDEF_PTR(ISRTPSDESTransport::Parameters, Parameters)
-      ZS_DECLARE_TYPEDEF_PTR(ISRTPSDESTransport::CryptoParameters, CryptoParameters)
-      ZS_DECLARE_TYPEDEF_PTR(ISRTPSDESTransport::KeyParameters, KeyParameters)
+      ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForSRTPTransport, UseSecureTransport);
+      ZS_DECLARE_TYPEDEF_PTR(ISRTPSDESTransport::Parameters, Parameters);
+      ZS_DECLARE_TYPEDEF_PTR(ISRTPSDESTransport::CryptoParameters, CryptoParameters);
+      ZS_DECLARE_TYPEDEF_PTR(ISRTPSDESTransport::KeyParameters, KeyParameters);
 
-      static ElementPtr toDebug(ForSecureTransportPtr transport);
+      static ElementPtr toDebug(ForSecureTransportPtr transport) noexcept;
 
-      static ParametersPtr getLocalParameters();
+      static ParametersPtr getLocalParameters() noexcept;
 
       static ForSecureTransportPtr create(
                                           ISRTPTransportDelegatePtr delegate,
                                           UseSecureTransportPtr transport,
                                           const CryptoParameters &encryptParameters,
                                           const CryptoParameters &decryptParameters
-                                          );
+                                          ) noexcept;
 
-      virtual PUID getID() const = 0;
+      virtual PUID getID() const noexcept = 0;
 
-      virtual ISRTPTransportSubscriptionPtr subscribe(ISRTPTransportDelegatePtr delegate) = 0;
+      virtual ISRTPTransportSubscriptionPtr subscribe(ISRTPTransportDelegatePtr delegate) noexcept = 0;
 
       virtual bool handleReceivedPacket(
                                         IICETypes::Components viaTransport,
                                         const BYTE *buffer,
                                         size_t bufferLengthInBytes
-                                        ) = 0;
+                                        ) noexcept = 0;
 
       virtual bool sendPacket(
                               IICETypes::Components sendOverICETransport,
                               IICETypes::Components component,
                               const BYTE *buffer,
                               size_t bufferLengthInBytes
-                              ) = 0;
+                              ) noexcept = 0;
     };
 
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark SRTPTransport
-    #pragma mark
+    //
+    // SRTPTransport
+    //
     
     class SRTPTransport : public Noop,
                           public MessageQueueAssociator,
@@ -142,19 +142,19 @@ namespace ortc
       friend interaction ISRTPTransportFactory;
       friend interaction ISRTPTransportForSecureTransport;
 
-      ZS_DECLARE_STRUCT_PTR(KeyingMaterial)
-      ZS_DECLARE_STRUCT_PTR(DirectionMaterial)
+      ZS_DECLARE_STRUCT_PTR(KeyingMaterial);
+      ZS_DECLARE_STRUCT_PTR(DirectionMaterial);
 
-      ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForSRTPTransport, UseSecureTransport)
-      ZS_DECLARE_TYPEDEF_PTR(ISRTPSDESTransport::Parameters, Parameters)
-      ZS_DECLARE_TYPEDEF_PTR(ISRTPSDESTransport::CryptoParameters, CryptoParameters)
-      ZS_DECLARE_TYPEDEF_PTR(ISRTPSDESTransport::KeyParameters, KeyParameters)
+      ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForSRTPTransport, UseSecureTransport);
+      ZS_DECLARE_TYPEDEF_PTR(ISRTPSDESTransport::Parameters, Parameters);
+      ZS_DECLARE_TYPEDEF_PTR(ISRTPSDESTransport::CryptoParameters, CryptoParameters);
+      ZS_DECLARE_TYPEDEF_PTR(ISRTPSDESTransport::KeyParameters, KeyParameters);
 
-      ZS_DECLARE_TYPEDEF_PTR(SecureByteBlock, MKIValue)
+      ZS_DECLARE_TYPEDEF_PTR(SecureByteBlock, MKIValue);
 
       struct MKIValueCompare
       {
-        bool operator() (const SecureByteBlockPtr &op1, const SecureByteBlockPtr &op2) const;
+        bool operator() (const SecureByteBlockPtr &op1, const SecureByteBlockPtr &op2) const noexcept;
       };
 
       typedef std::map<MKIValuePtr, KeyingMaterialPtr, MKIValueCompare> KeyMap;
@@ -169,7 +169,7 @@ namespace ortc
 
         Direction_Last = Direction_Decrypt
       };
-      static const char *toString(Directions state);
+      static const char *toString(Directions state) noexcept;
 
     public:
       SRTPTransport(
@@ -179,117 +179,117 @@ namespace ortc
                     UseSecureTransportPtr secureTransport,
                     const CryptoParameters &encryptParameters,
                     const CryptoParameters &decryptParameters
-                    ) throw(InvalidParameters);
+                    ) noexcept(false); // throws InvalidParameters
 
     protected:
-      SRTPTransport(Noop) :
+      SRTPTransport(Noop) noexcept :
         Noop(true),
         MessageQueueAssociator(IMessageQueuePtr()),
         SharedRecursiveLock(SharedRecursiveLock::create())
       {}
 
-      void init();
+      void init() noexcept;
 
     public:
-      virtual ~SRTPTransport();
+      virtual ~SRTPTransport() noexcept;
 
-      static SRTPTransportPtr convert(ISRTPTransportPtr object);
-      static SRTPTransportPtr convert(ForSecureTransportPtr object);
+      static SRTPTransportPtr convert(ISRTPTransportPtr object) noexcept;
+      static SRTPTransportPtr convert(ForSecureTransportPtr object) noexcept;
 
     protected:
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SRTPTransport => ISRTPTransport
-      #pragma mark
+      //
+      // SRTPTransport => ISRTPTransport
+      //
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SRTPTransport => ISRTPTransportForSecureTransport
-      #pragma mark
+      //
+      // SRTPTransport => ISRTPTransportForSecureTransport
+      //
 
-      static ElementPtr toDebug(SRTPTransportPtr transport);
+      static ElementPtr toDebug(SRTPTransportPtr transport) noexcept;
 
       static SRTPTransportPtr create(
                                      ISRTPTransportDelegatePtr delegate,
                                      UseSecureTransportPtr transport,
                                      const CryptoParameters &encryptParameters,
                                      const CryptoParameters &decryptParameters
-                                     ) throw(InvalidParameters);
+                                     ) noexcept(false); // throws InvalidParameters
 
-      PUID getID() const override {return mID;}
+      PUID getID() const noexcept override {return mID;}
 
-      ISRTPTransportSubscriptionPtr subscribe(ISRTPTransportDelegatePtr delegate) override;
+      ISRTPTransportSubscriptionPtr subscribe(ISRTPTransportDelegatePtr delegate) noexcept override;
 
       bool handleReceivedPacket(
                                 IICETypes::Components viaTransport,
                                 const BYTE *buffer,
                                 size_t bufferLengthInBytes
-                                ) override;
+                                ) noexcept override;
 
       bool sendPacket(
                       IICETypes::Components sendOverICETransport,
                       IICETypes::Components component,
                       const BYTE *buffer,
                       size_t bufferLengthInBytes
-                      ) override;
+                      ) noexcept override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SRTPTransport => IWakeDelegate
-      #pragma mark
+      //
+      // SRTPTransport => IWakeDelegate
+      //
 
       void onWake() override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SRTPTransport => ITimerDelegate
-      #pragma mark
+      //
+      // SRTPTransport => ITimerDelegate
+      //
 
       void onTimer(ITimerPtr timer) override;
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SRTPTransport => ISRTPTransportAsyncDelegate
-      #pragma mark
+      //
+      // SRTPTransport => ISRTPTransportAsyncDelegate
+      //
 
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SRTPTransport => (internal)
-      #pragma mark
+      //
+      // SRTPTransport => (internal)
+      //
 
-      Log::Params log(const char *message) const;
-      static Log::Params slog(const char *message);
-      Log::Params debug(const char *message) const;
-      virtual ElementPtr toDebug() const;
+      Log::Params log(const char *message) const noexcept;
+      static Log::Params slog(const char *message) noexcept;
+      Log::Params debug(const char *message) const noexcept;
+      virtual ElementPtr toDebug() const noexcept;
 
-      void cancel();
+      void cancel() noexcept;
 
       void updateTotalPackets(
                               Directions direction,
                               IICETypes::Components component,
                               KeyingMaterialPtr &keyingMaterial
-                              );
+                              ) noexcept;
 
-      static size_t parseLifetime(const String &lifetime) throw(InvalidParameters);
+      static size_t parseLifetime(const String &lifetime) noexcept(false); // throws InvalidParameters
 
       static SecureByteBlockPtr convertIntegerToBigEndianEncodedBuffer(
                                                                        const String &base10Value,
                                                                        size_t maxByteLength
-                                                                       ) throw(InvalidParameters);
+                                                                       ) noexcept(false); // throws InvalidParameters
 
     public:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SRTPTransport::SRTPSession
-      #pragma mark
+      //
+      // SRTPTransport::SRTPSession
+      //
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SRTPTransport::KeyingMaterial
-      #pragma mark
+      //
+      // SRTPTransport::KeyingMaterial
+      //
 
       struct KeyingMaterial
       {
@@ -307,14 +307,14 @@ namespace ortc
 
         // E.g. (converted into proper useable format by crypto routines)
 
-        ElementPtr toDebug() const;
-        String hash() const;
+        ElementPtr toDebug() const noexcept;
+        String hash() const noexcept;
       };
 
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SRTPTransport::DirectionMaterial
-      #pragma mark
+      //
+      // SRTPTransport::DirectionMaterial
+      //
 
       struct DirectionMaterial
       {
@@ -332,15 +332,15 @@ namespace ortc
         size_t mTotalPackets[IICETypes::Component_Last+1] {};
         size_t mMaxTotalLifetime[IICETypes::Component_Last+1] {};
 
-        ElementPtr toDebug() const;
-        String hash() const;
+        ElementPtr toDebug() const noexcept;
+        String hash() const noexcept;
       };
 
     protected:
       //-----------------------------------------------------------------------
-      #pragma mark
-      #pragma mark SRTPTransport => (data)
-      #pragma mark
+      //
+      // SRTPTransport => (data)
+      //
 
       AutoPUID mID;
       SRTPTransportWeakPtr mThisWeak;
@@ -364,23 +364,23 @@ namespace ortc
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
     //-------------------------------------------------------------------------
-    #pragma mark
-    #pragma mark ISRTPTransportFactory
-    #pragma mark
+    //
+    // ISRTPTransportFactory
+    //
 
     interaction ISRTPTransportFactory
     {
-      ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForSRTPTransport, UseSecureTransport)
-      ZS_DECLARE_TYPEDEF_PTR(ISRTPSDESTransport::CryptoParameters, CryptoParameters)
+      ZS_DECLARE_TYPEDEF_PTR(ISecureTransportForSRTPTransport, UseSecureTransport);
+    ZS_DECLARE_TYPEDEF_PTR(ISRTPSDESTransport::CryptoParameters, CryptoParameters);
 
-      static ISRTPTransportFactory &singleton();
+      static ISRTPTransportFactory &singleton() noexcept;
 
       virtual SRTPTransportPtr create(
                                       ISRTPTransportDelegatePtr delegate,
                                       UseSecureTransportPtr transport,
                                       const CryptoParameters &encryptParameters,
                                       const CryptoParameters &decryptParameters
-                                      );
+                                      ) noexcept;
     };
 
     class SRTPTransportFactory : public IFactory<ISRTPTransportFactory> {};
