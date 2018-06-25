@@ -21,7 +21,7 @@ using ::std::set;
 using ::std::map;
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::EventQueueMaker::~EventQueueMaker()
+wrapper::impl::org::ortc::EventQueueMaker::~EventQueueMaker() noexcept
 {
 }
 
