@@ -63,7 +63,7 @@ namespace Org
 
 #ifdef USE_OLD_RENDERER
 
-#include "webrtc/modules/video_render/video_render.h"
+#include "modules/video_render/video_render.h"
 
 #include <Mfidl.h>
 

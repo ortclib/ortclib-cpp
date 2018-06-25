@@ -9,8 +9,8 @@
 
 #include "MediaSourceHelper.h"
 
-#include <webrtc/rtc_base/timing.h>
-#include <webrtc/rtc_base/timeutils.h>
+#include <rtc_base/timing.h>
+#include <rtc_base/timeutils.h>
 
 #include <MFapi.h>
 

@@ -12,8 +12,8 @@
 #include <wrl.h>
 #include <collection.h>
 #include <mfidl.h>
-#include "webrtc/api/mediastreaminterface.h"
-#include "webrtc/rtc_base/criticalsection.h"
+#include "api/mediastreaminterface.h"
+#include "rtc_base/criticalsection.h"
 
 using Microsoft::WRL::ComPtr;
 

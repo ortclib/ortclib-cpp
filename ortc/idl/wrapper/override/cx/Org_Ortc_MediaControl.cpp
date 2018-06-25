@@ -1,7 +1,7 @@
 
 #include "Org_Ortc_MediaControl.h"
 
-#include <webrtc/modules/video_capture/windows/video_capture_winuwp.h>
+#include <modules/video_capture/windows/video_capture_winuwp.h>
 
 //------------------------------------------------------------------------------
 ::Org::Ortc::MediaControl^ Org::Ortc::MediaControl::ToCx(wrapper::org::ortc::MediaControlPtr value)
