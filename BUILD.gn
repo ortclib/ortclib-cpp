@@ -1309,7 +1309,7 @@ compile_idl_macro("ortclib_idl") {
     "ortc/idl/config.json",
   ]
     
- outputs = ortc_sources
+  outputs = ortc_sources
 
-  sourcePathPrefix =  "ortc/idl/"
+  idlAlreadyCompletedFlag =  "ortclibIdlCompiledFlag.flg"
 }
