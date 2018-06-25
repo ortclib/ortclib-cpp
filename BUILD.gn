@@ -1173,32 +1173,12 @@ shared_library("libOrtc") {
     libs = [ "uuid", "curl", "ssl", "crypto" ]
   }
 
-  if ((current_os == "winuwp") && (target_cpu == "x64") && is_debug) {
-    lib_dirs = [
-       "..\..\ortc\curl\x64-debug-static\lib",
-    ]
-    libs = [ "libcurl.lib" ]    
-  } else if ((current_os == "winuwp") && (target_cpu == "x64") && !is_debug) {
-    lib_dirs = [
-       "..\..\ortc\curl\x64-release-static\lib",
-    ]
-    libs = [ "libcurl.lib" ]
-  } else if ((current_os == "winuwp") && (target_cpu == "x86") && is_debug) {
-    lib_dirs = [
-       "..\..\ortc\curl\x86-debug-static\lib",
-    ]
-    libs = [ "libcurl.lib" ]  
-  } else if ((current_os == "winuwp") && (target_cpu == "x86") && !is_debug) {
-    lib_dirs = [
-       "..\..\ortc\curl\x86-release-static\lib",
-    ]
-    libs = [ "libcurl.lib" ]    
-  } else if (is_win && is_debug) {
+  if ((current_os != "winuwp") && is_win && is_debug) {
     lib_dirs = [
        "..\..\ortc\curl\x86-debug-static\lib",
     ]
     libs = [ "libcurl.lib", "userenv.lib", "normaliz.lib" ]
-  } else if (is_win && !is_debug) {
+  } else if ((current_os != "winuwp") && is_win && !is_debug) {
     lib_dirs = [
        "..\..\ortc\curl\x86-release-static\lib",
     ]
