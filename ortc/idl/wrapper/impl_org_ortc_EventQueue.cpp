@@ -72,7 +72,7 @@ namespace wrapper { namespace impl { namespace org { namespace ortc {
 namespace wrapper { namespace impl { namespace org { namespace ortc {
         ZS_DECLARE_STRUCT_PTR(EventQueueWrapperAny);
 
-        struct EventQueueWrapperAnyWinrt : Any
+        struct EventQueueWrapperAny : Any
         {
           ::zsLib::IMessageQueuePtr queue_ {nullptr};
         };
@@ -82,7 +82,7 @@ namespace wrapper { namespace impl { namespace org { namespace ortc {
 
 
 //------------------------------------------------------------------------------
-static wrapper::org::ortc::EventQueuePtr &getSingleton()
+static wrapper::org::ortc::EventQueuePtr &getSingleton() noexcept
 {
   static wrapper::org::ortc::EventQueuePtr singleton_ {};
   return singleton_;
@@ -102,7 +102,7 @@ wrapper::org::ortc::EventQueuePtr wrapper::org::ortc::EventQueue::wrapper_create
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::ortc::EventQueue::~EventQueue()
+wrapper::impl::org::ortc::EventQueue::~EventQueue() noexcept
 {
 }
 
@@ -110,8 +110,10 @@ wrapper::impl::org::ortc::EventQueue::~EventQueue()
 wrapper::org::ortc::EventQueuePtr wrapper::org::ortc::EventQueue::getDefaultForUi() noexcept
 {
 #ifndef WINUWP
-  auto result = std::make_shared<wrapper::impl::org::ortc::EventQueue>();
-  result->queue_ = zsLib::IMessageQueueThread::singletonUsingCurrentGUIThreadsMessageQueue();
+  auto result {std::make_shared<wrapper::impl::org::ortc::EventQueue>()};
+  auto any {std::make_shared<wrapper::impl::org::ortc::EventQueueWrapperAny>()};
+  any->queue_ = zsLib::IMessageQueueThread::singletonUsingCurrentGUIThreadsMessageQueue();
+  result->queue_ = any;
   return result;
 #else
   return get_singleton();
@@ -187,7 +189,7 @@ wrapper::org::ortc::EventQueuePtr wrapper::impl::org::ortc::EventQueue::toWrappe
   return result;
 }
 
-static ::zsLib::IMessageQueuePtr wrapper::impl::org::ortc::EventQueue::toNative(wrapper::org::ortc::EventQueuePtr queue) noexcept
+::zsLib::IMessageQueuePtr wrapper::impl::org::ortc::EventQueue::toNative(wrapper::org::ortc::EventQueuePtr queue) noexcept
 {
   if (!queue) return nullptr;
   AnyPtr any = queue->get_queue();

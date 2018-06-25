@@ -553,8 +553,8 @@ namespace ortc
     const char *ICEGatherer::toString(PreferenceTypes preference) noexcept
     {
       switch (preference) {
-        case AddressFamily_IPv4:   return "ipv4";
-        case AddressFamily_IPv6:   return "ipv6";
+        case PreferenceType_Priority:   return "priority";
+        case PreferenceType_Unfreeze:   return "unfreeze";
       }
       return "unknown";
     }
@@ -2916,9 +2916,10 @@ namespace ortc
             // discover information about the adapter
             {
               switch (pCurrAddresses->OperStatus) {
-                case IfOperStatusDown:           goto next_address;
-                case IfOperStatusNotPresent:     goto next_address;
-                case IfOperStatusLowerLayerDown: goto next_address;
+                case IfOperStatusDown:            goto next_address;
+                case IfOperStatusNotPresent:      goto next_address;
+                case IfOperStatusLowerLayerDown:  goto next_address;
+                default:                          break;
               }
 
               IPAddress ip;

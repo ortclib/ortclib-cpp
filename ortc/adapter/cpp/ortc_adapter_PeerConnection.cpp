@@ -2325,10 +2325,10 @@ namespace ortc
             if (mediaLine.mDetails) {
               switch (mediaLine.mDetails->mMediaDirection)
               {
-                case ISDPTypes::Direction_SendReceive: mediaLineInfo->mDirection = ISessionDescriptionTypes::MediaDirection_SendReceive; break;
-                case ISDPTypes::Direction_None:
-                case ISDPTypes::Direction_Send:        mediaLineInfo->mDirection = ISessionDescriptionTypes::MediaDirection_ReceiveOnly; break;
-                case ISDPTypes::Direction_Receive:     mediaLineInfo->mDirection = ISessionDescriptionTypes::MediaDirection_SendOnly; break;
+                case ISessionDescriptionTypes::MediaDirection_SendReceive: mediaLineInfo->mDirection = ISessionDescriptionTypes::MediaDirection_SendReceive; break;
+                case ISessionDescriptionTypes::MediaDirection_Inactive:
+                case ISessionDescriptionTypes::MediaDirection_SendOnly:        mediaLineInfo->mDirection = ISessionDescriptionTypes::MediaDirection_ReceiveOnly; break;
+                case ISessionDescriptionTypes::MediaDirection_ReceiveOnly:     mediaLineInfo->mDirection = ISessionDescriptionTypes::MediaDirection_SendOnly; break;
               }
             }
             mediaLineInfo->mMediaType = mediaLine.mMediaType;

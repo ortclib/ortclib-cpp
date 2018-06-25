@@ -11,6 +11,11 @@
 #include <wrapper/generated/org_ortc_EventQueueMaker.h>
 #include <wrapper/generated/c/c_org_ortc_EventQueue.h>
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wheader-hygiene"
+#endif /* __clang__ */
+
 using namespace wrapper;
 
 #if 0
@@ -52,4 +57,9 @@ namespace wrapper
 
 } /* namespace wrapper */
 
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif /* __clang__ */
+
 #endif /* ifndef C_USE_GENERATED_ORG_ORTC_EVENTQUEUEMAKER */
+
