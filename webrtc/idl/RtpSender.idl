@@ -59,12 +59,12 @@ namespace org
 
       /// <summary>
       /// Gets attribute returning the value of the [[Dtmf]]internal slot,
-      /// which represents a RTCDTMFSender which can be used to send DTMF,
+      /// which represents a RTCDtmfSender which can be used to send DTMF,
       /// or null if unset. The [[Dtmf]]internal slot is set when the kind
       /// of an RTCRtpSender's [[SenderTrack]] is "audio".
       /// </summary>
       [getter]
-      RTCDTMFSender           dtmf;
+      RTCDtmfSender           dtmf;
 
       /// <summary>
       /// The getParameters() method returns the RTCRtpSender object's
