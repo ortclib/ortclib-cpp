@@ -64,12 +64,9 @@ namespace winrt {
           /// <summary>
           /// Gets or sets the platform specific media source.
           /// </summary>
-          Windows::Foundation::IInspectable Source();
-          void Source(Windows::Foundation::IInspectable const & value);
-          /// <summary>
-          /// Gets or sets the media track associated to the media source.
-          /// </summary>
-          Windows::Foundation::IInspectable Track();
+          Windows::Media::Core::IMediaSource Source();
+          void Source(Windows::Media::Core::IMediaSource const & value);
+          
 
         };
 

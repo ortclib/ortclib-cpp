@@ -64,8 +64,8 @@ namespace winrt {
           /// <summary>
           /// Gets or sets the platform specific media element.
           /// </summary>
-          Windows::Foundation::IInspectable Element();
-          void Element(Windows::Foundation::IInspectable const & value);
+          Windows::UI::Xaml::Controls::MediaElement Element();
+          void Element(Windows::UI::Xaml::Controls::MediaElement const & value);
 
         };
 

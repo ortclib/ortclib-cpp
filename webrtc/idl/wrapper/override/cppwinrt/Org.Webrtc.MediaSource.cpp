@@ -133,24 +133,17 @@ Org::Webrtc::MediaSource Org::Webrtc::implementation::MediaSource::CastFromIMedi
 }
 
 //------------------------------------------------------------------------------
-Windows::Foundation::IInspectable Org::Webrtc::implementation::MediaSource::Source()
+Windows::Media::Core::IMediaSource Org::Webrtc::implementation::MediaSource::Source()
 {
   if (!native_) { throw hresult_error(E_POINTER); }
   return nullptr; // ::Internal::Helper::ToCppWinrt(native_->get_source());
 }
 
 //------------------------------------------------------------------------------
-void Org::Webrtc::implementation::MediaSource::Source(Windows::Foundation::IInspectable const & value)
+void Org::Webrtc::implementation::MediaSource::Source(Windows::Media::Core::IMediaSource const & )
 {
   if (!native_) { throw hresult_error(E_POINTER); }
   //native_->set_source(::Internal::Helper::FromCppWinrt(value));
-}
-
-//------------------------------------------------------------------------------
-Windows::Foundation::IInspectable Org::Webrtc::implementation::MediaSource::Track()
-{
-  if (!native_) { throw hresult_error(E_POINTER); }
-  return nullptr; // ::Internal::Helper::ToCppWinrt(native_->get_track());
 }
 
 
