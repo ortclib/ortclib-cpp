@@ -72,9 +72,9 @@ wrapper::org::webrtc::MediaStreamTrackPtr wrapper::impl::org::webrtc::RTCRtpSend
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::RTCDTMFSenderPtr wrapper::impl::org::webrtc::RTCRtpSender::get_dtmf() noexcept
+wrapper::org::webrtc::RTCDtmfSenderPtr wrapper::impl::org::webrtc::RTCRtpSender::get_dtmf() noexcept
 {
-  wrapper::org::webrtc::RTCDTMFSenderPtr result {};
+  wrapper::org::webrtc::RTCDtmfSenderPtr result {};
   return result;
 }
 

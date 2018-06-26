@@ -26,7 +26,7 @@ namespace wrapper {
 
           // properties RTCRtpSender
           wrapper::org::webrtc::MediaStreamTrackPtr get_track() noexcept override;
-          wrapper::org::webrtc::RTCDTMFSenderPtr get_dtmf() noexcept override;
+          wrapper::org::webrtc::RTCDtmfSenderPtr get_dtmf() noexcept override;
         };
 
       } // webrtc

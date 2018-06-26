@@ -25,7 +25,6 @@ namespace wrapper {
         ZS_DECLARE_STRUCT_PTR(RTCCertificateStats);
         ZS_DECLARE_STRUCT_PTR(RTCCodec);
         ZS_DECLARE_STRUCT_PTR(RTCConfiguration);
-        ZS_DECLARE_STRUCT_PTR(RTCDTMFSender);
         ZS_DECLARE_STRUCT_PTR(RTCDataChannel);
         ZS_DECLARE_STRUCT_PTR(RTCDataChannelEvent);
         ZS_DECLARE_STRUCT_PTR(RTCDataChannelInit);
