@@ -45,6 +45,18 @@ namespace org
     interface MediaStreamTrack
     {
       /// <summary>
+      /// Creates a audio MediaStreamTrack for use with an RTCRtpSender.
+      /// </summary>
+      [static]
+      MediaStreamTrack createAudioSource(MediaConstraints constraints);
+
+      /// <summary>
+      /// Creates a video MediaStreamTrack for use with an RTCRtpSender.
+      /// </summary>
+      [static]
+      MediaStreamTrack createVideoSource(MediaConstraints constraints);
+
+      /// <summary>
       /// Gets the kind attribute. MUST return the string "audio" if
       /// this object represents an audio track or "video" if this
       /// object represents a video track.
@@ -75,6 +87,23 @@ namespace org
       [getter]
       MediaStreamTrackState state;
 
+      /// <summary>
+      /// Gets the media source to attach to a renderer like a MediaElement.
+      /// </summary>
+      [getter]
+      MediaSource source;
+
+      /// <summary>
+      /// Gets or sets the media element which will auto-attach any media sources as they change.
+      /// </summary>
+      [getter, setter]
+      MediaElement element;
+
+      /// <summary>
+      /// Event indicates when the MediaSource changes and needs to be reattached to a rendering MediaElement.
+      /// </summary>
+      [event]
+      void onMediaSourceChanged();
     };
   }
 }

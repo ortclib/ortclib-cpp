@@ -1,0 +1,39 @@
+//import "windows.foundation.customattributes.idl";
+import "forwards.idl";
+import "output.idl";
+
+namespace Org
+{
+    namespace Ortc
+    {
+
+
+        [version(1.0)]
+        [uuid(816737fb-1b37-067b-949a-438355312aa2)]
+        [webhosthidden]
+        interface IEventQueueMaker : IInspectable
+        {
+        };
+
+        [webhosthidden]
+        runtimeclass EventQueueMaker : [default] IEventQueueMaker
+        {
+            /// <summary>
+            /// Cast from Org.Ortc.IEventQueueMaker to Org.Ortc.EventQueueMaker
+            /// </summary>
+            static Org.Ortc.EventQueueMaker CastFromIEventQueueMaker(Org.Ortc.IEventQueueMaker source);
+
+            /// <summary>
+            /// Creates an event queue object from a native queue type.
+            /// </summary>
+            static Org.Ortc.IEventQueue BindQueue(Windows.UI.Core.CoreDispatcher Queue);
+
+            /// <summary>
+            /// Extracts a native queue from an event queue object.
+            /// </summary>
+            static Windows.UI.Core.CoreDispatcher ExtractQueue(Org.Ortc.IEventQueue Queue);
+        };
+
+    } // namespace Ortc
+} // namespace Org
+

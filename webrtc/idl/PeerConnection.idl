@@ -34,35 +34,6 @@ namespace org
 {
   namespace webrtc
   {
-    struct Constraint
-    {
-      string key;
-      string value;
-
-      [constructor, default]
-      void Constraint();
-
-      [constructor, default, altname(ConstraintClone)]
-      void Constraint(Constraint source);
-
-      [constructor, default, altname(ConstraintWithKeyValue)]
-      void Constraint(string key, string value);
-    };
-
-    interface MediaConstraints
-    {
-      Constraints constraints;
-
-      [constructor, default]
-      void MediaConstraints();
-
-      [constructor,default,altname(MediaConstraintsClone)]
-      void MediaConstraints(MediaConstraints source);
-
-      [constructor, altname(MediaConstraintsWithConstraints)]
-      void MediaConstraints(Constraints constraints);
-    };
-
     [dictionary]
     struct RTCBitrateParameters {
       [optional]
