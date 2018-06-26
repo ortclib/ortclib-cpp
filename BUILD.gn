@@ -1090,6 +1090,8 @@ static_library("ortclib_static") {
     ":ortclib_events",
     ":ortclib_idl",
     ":webrtc_idl",
+    "//pc/:libjingle_peerconnection",
+    "//system_wrappers/:system_wrappers_default",
   ]
 }
 
