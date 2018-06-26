@@ -1,0 +1,36 @@
+
+#ifndef C_USE_GENERATED_ORG_WEBRTC_MEDIASOURCE
+
+#pragma once
+
+#include <wrapper/generated/types.h>
+
+
+WEBRTC_WRAPPER_C_PLUS_PLUS_BEGIN_GUARD
+
+
+/* org_webrtc_MediaSource*/
+
+WEBRTC_WRAPPER_C_EXPORT_API org_webrtc_MediaSource_t WEBRTC_WRAPPER_C_CALLING_CONVENTION org_webrtc_MediaSource_wrapperCreate_MediaSource();
+WEBRTC_WRAPPER_C_EXPORT_API org_webrtc_MediaSource_t WEBRTC_WRAPPER_C_CALLING_CONVENTION org_webrtc_MediaSource_wrapperClone(org_webrtc_MediaSource_t handle);
+WEBRTC_WRAPPER_C_EXPORT_API void WEBRTC_WRAPPER_C_CALLING_CONVENTION org_webrtc_MediaSource_wrapperDestroy(org_webrtc_MediaSource_t handle);
+WEBRTC_WRAPPER_C_EXPORT_API instance_id_t WEBRTC_WRAPPER_C_CALLING_CONVENTION org_webrtc_MediaSource_wrapperInstanceId(org_webrtc_MediaSource_t handle);
+WEBRTC_WRAPPER_C_EXPORT_API zs_Any_t WEBRTC_WRAPPER_C_CALLING_CONVENTION org_webrtc_MediaSource_get_source(org_webrtc_MediaSource_t wrapperThisHandle);
+WEBRTC_WRAPPER_C_EXPORT_API void WEBRTC_WRAPPER_C_CALLING_CONVENTION org_webrtc_MediaSource_set_source(org_webrtc_MediaSource_t wrapperThisHandle, zs_Any_t value);
+WEBRTC_WRAPPER_C_EXPORT_API zs_Any_t WEBRTC_WRAPPER_C_CALLING_CONVENTION org_webrtc_MediaSource_get_track(org_webrtc_MediaSource_t wrapperThisHandle);
+
+
+WEBRTC_WRAPPER_C_PLUS_PLUS_END_GUARD
+
+#ifdef __cplusplus
+
+
+namespace wrapper
+{
+  org_webrtc_MediaSource_t org_webrtc_MediaSource_wrapperToHandle(wrapper::org::webrtc::MediaSourcePtr value);
+  wrapper::org::webrtc::MediaSourcePtr org_webrtc_MediaSource_wrapperFromHandle(org_webrtc_MediaSource_t handle);
+
+} /* namespace wrapper */
+#endif /* __cplusplus */
+
+#endif /* ifndef C_USE_GENERATED_ORG_WEBRTC_MEDIASOURCE */

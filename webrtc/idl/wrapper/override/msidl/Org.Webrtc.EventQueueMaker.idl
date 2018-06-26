@@ -4,12 +4,12 @@ import "output.idl";
 
 namespace Org
 {
-    namespace Ortc
+    namespace Webrtc
     {
 
 
         [version(1.0)]
-        [uuid(816737fb-1b37-067b-949a-438355312aa2)]
+        [uuid(ff4fed17-f0aa-dd86-d1d8-33bbe7b97ea6)]
         [webhosthidden]
         interface IEventQueueMaker : IInspectable
         {
@@ -19,21 +19,21 @@ namespace Org
         runtimeclass EventQueueMaker : [default] IEventQueueMaker
         {
             /// <summary>
-            /// Cast from Org.Ortc.IEventQueueMaker to Org.Ortc.EventQueueMaker
+            /// Cast from Org.Webrtc.IEventQueueMaker to Org.Webrtc.EventQueueMaker
             /// </summary>
-            static Org.Ortc.EventQueueMaker CastFromIEventQueueMaker(Org.Ortc.IEventQueueMaker source);
+            static Org.Webrtc.EventQueueMaker CastFromIEventQueueMaker(Org.Webrtc.IEventQueueMaker source);
 
             /// <summary>
             /// Creates an event queue object from a native queue type.
             /// </summary>
-            static Org.Ortc.IEventQueue BindQueue(Windows.UI.Core.CoreDispatcher Queue);
+            static Org.Webrtc.IEventQueue BindQueue(Windows.UI.Core.CoreDispatcher Queue);
 
             /// <summary>
             /// Extracts a native queue from an event queue object.
             /// </summary>
-            static Windows.UI.Core.CoreDispatcher ExtractQueue(Org.Ortc.IEventQueue Queue);
+            static Windows.UI.Core.CoreDispatcher ExtractQueue(Org.Webrtc.IEventQueue Queue);
         };
 
-    } // namespace Ortc
+    } // namespace Webrtc
 } // namespace Org
 

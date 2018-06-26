@@ -148,6 +148,7 @@ namespace org
       /// The options parameter may be supplied to provide additional control over
       /// the offer generated.
       /// </summary>
+      [default]
       PromiseWithDescription createOffer(RTCOfferOptions options);
       /// <summary>
       /// The createOffer method generates a blob of SDP that contains an RFC 3264
@@ -158,6 +159,7 @@ namespace org
       /// The options parameter may be supplied to provide additional control over
       /// the offer generated.
       /// </summary>
+      [altname(createOfferWithConstraints)]
       PromiseWithDescription createOffer(MediaConstraints constraints);
       /// <summary>
       /// The createAnswer method generates an [SDP] answer with the supported
@@ -168,6 +170,7 @@ namespace org
       /// that have been gathered by the ICE Agent. The options parameter may be
       /// supplied to provide additional control over the generated answer.
       /// </summary>
+      [default]
       PromiseWithDescription createAnswer(RTCAnswerOptions options);
       /// <summary>
       /// The createAnswer method generates an [SDP] answer with the supported
@@ -178,6 +181,7 @@ namespace org
       /// that have been gathered by the ICE Agent. The options parameter may be
       /// supplied to provide additional control over the generated answer.
       /// </summary>
+      [altname(createAnswerWithConstraints)]
       PromiseWithDescription createAnswer(MediaConstraints constraints);
 
       /// <summary>
@@ -402,35 +406,62 @@ namespace org
       RTCSessionDescription pendingRemoteDescription;
 
       /// <summary>
-      /// The event type of this event handler is datachannel.
+      /// A new RTCDataChannel is dispatched to the script in response to the other peer creating a channel.
       /// </summary>
       [event]
       void onDataChannel(RTCDataChannelEvent event);
 
+      /// <summary>
+      /// The browser wishes to inform the application that session negotiation needs to be done (i.e. a createOffer call followed by setLocalDescription).
+      /// </summary>
       [event]
       void onNegotiationNeeded();
 
+      /// <summary>
+      /// A new RTCIceCandidate is made available to the script.
+      /// </summary>
       [event]
       void onIceCandidate(RTCPeerConnectionIceEvent event);
 
+      /// <summary>
+      /// An RTCIceCandidate is no longer available to the script.
+      /// </summary>
       [event]
       void onIceCandidateRemoved(RTCPeerConnectionIceEvent event);
 
+      /// <summary>
+      /// A failure occured when gathering ICE candidates.
+      /// </summary>
       [event]
       void onIceCandidateError();
 
+      /// <summary>
+      /// The signaling state has changed. This state change is the result of either setLocalDescription or setRemoteDescription being invoked.
+      /// </summary>
       [event]
       void onSignalingStateChange();
 
+      /// <summary>
+      /// The RTCPeerConnection's ICE connection state has changed.
+      /// </summary>
       [event]
       void onIceConnectionStateChange();
 
+      /// <summary>
+      /// The RTCPeerConnection's ICE gathering state has changed.
+      /// </summary>
       [event]
       void onIceGatheringStateChange();
 
+      /// <summary>
+      /// The RTCPeerConnection connectionState has changed.
+      /// </summary>
       [event]
       void onConnectionStateChange();
 
+      /// <summary>
+      /// New incoming media has been negotiated for a specific RTCRtpReceiver, and that receiver's track has been added to any associated remote MediaStreams.
+      /// </summary>
       [event]
       void onTrack(RTCTrackEvent event);
     };

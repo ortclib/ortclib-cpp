@@ -49,28 +49,28 @@ void wrapper::impl::org::webrtc::RTCKeyParams::wrapper_init_org_webrtc_RTCKeyPar
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::RTCKeyParamsPtr wrapper::org::webrtc::RTCKeyParams::rsa() noexcept
+wrapper::org::webrtc::RTCKeyParamsPtr wrapper::org::webrtc::RTCKeyParams::createRsa() noexcept
 {
   wrapper::org::webrtc::RTCKeyParamsPtr result {};
   return result;
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::RTCKeyParamsPtr wrapper::org::webrtc::RTCKeyParams::rsa(wrapper::org::webrtc::RTCRSAParamsPtr params) noexcept
+wrapper::org::webrtc::RTCKeyParamsPtr wrapper::org::webrtc::RTCKeyParams::createRsaWithParams(wrapper::org::webrtc::RTCRSAParamsPtr params) noexcept
 {
   wrapper::org::webrtc::RTCKeyParamsPtr result {};
   return result;
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::RTCKeyParamsPtr wrapper::org::webrtc::RTCKeyParams::ecdsa() noexcept
+wrapper::org::webrtc::RTCKeyParamsPtr wrapper::org::webrtc::RTCKeyParams::createEcdsa() noexcept
 {
   wrapper::org::webrtc::RTCKeyParamsPtr result {};
   return result;
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::RTCKeyParamsPtr wrapper::org::webrtc::RTCKeyParams::ecdsa(wrapper::org::webrtc::RTCECCurve curve) noexcept
+wrapper::org::webrtc::RTCKeyParamsPtr wrapper::org::webrtc::RTCKeyParams::createEcdsaWithCurve(wrapper::org::webrtc::RTCECCurve curve) noexcept
 {
   wrapper::org::webrtc::RTCKeyParamsPtr result {};
   return result;

@@ -58,26 +58,26 @@ namespace org
       /// <summary>
       /// Generate a a KeyParams for RSA with default parameters.
       /// <summary>
-      [static,default]
-      RTCKeyParams rsa();
+      [static]
+      RTCKeyParams createRsa();
 
       /// <summary>
       /// Generate a a KeyParams for RSA with parameters.
       /// <summary>
-      [static,default,altname(rsaWithParams)]
-      RTCKeyParams rsa(RTCRSAParams params);
+      [static]
+      RTCKeyParams createRsaWithParams(RTCRSAParams params);
 
       /// <summary>
       /// Generate a a KeyParams for ECDSA using the default curve.
       /// </summary>
-      [static, default]
-      RTCKeyParams ecdsa();
+      [static]
+      RTCKeyParams createEcdsa();
 
       /// <summary>
       /// Generate a a KeyParams for ECDSA specifying the curve.
       /// </summary>
-      [static, default, altname(ecdsaWithCurve)]
-      RTCKeyParams ecdsa(RTCECCurve curve);
+      [static]
+      RTCKeyParams createEcdsaWithCurve(RTCECCurve curve);
 
       /// <summary>
       /// Check validity of a KeyParams object. Since the factory functions have

@@ -1,0 +1,35 @@
+
+
+#ifndef C_USE_GENERATED_ORG_WEBRTC_EVENTQUEUEMAKER
+
+#pragma once
+
+#include <wrapper/generated/c/types.h>
+
+
+WEBRTC_WRAPPER_C_PLUS_PLUS_BEGIN_GUARD
+
+
+/* org_webrtc_EventQueueMaker*/
+
+#if 0
+WEBRTC_WRAPPER_C_EXPORT_API org_webrtc_EventQueue_t WEBRTC_WRAPPER_C_CALLING_CONVENTION org_webrtc_EventQueueMaker_bindQueue(zs_Any_t queue);
+WEBRTC_WRAPPER_C_EXPORT_API zs_Any_t WEBRTC_WRAPPER_C_CALLING_CONVENTION org_webrtc_EventQueueMaker_extractQueue(org_webrtc_EventQueue_t queue);
+#endif //0
+
+WEBRTC_WRAPPER_C_PLUS_PLUS_END_GUARD
+
+#ifdef __cplusplus
+
+
+namespace wrapper
+{
+#if 0
+  org_webrtc_EventQueueMaker_t org_webrtc_EventQueueMaker_wrapperToHandle(wrapper::org::webrtc::EventQueueMakerPtr value);
+  wrapper::org::webrtc::EventQueueMakerPtr org_webrtc_EventQueueMaker_wrapperFromHandle(org_webrtc_EventQueueMaker_t handle);
+#endif //0
+
+} /* namespace wrapper */
+#endif /* __cplusplus */
+
+#endif /* ifndef C_USE_GENERATED_ORG_WEBRTC_EVENTQUEUEMAKER */
