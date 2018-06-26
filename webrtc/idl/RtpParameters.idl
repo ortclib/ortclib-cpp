@@ -34,6 +34,34 @@ namespace org
 {
   namespace webrtc
   {
+
+    [dictionary]
+    struct RTCRtpFecParameters {
+      /// <summary>
+      /// Gets or sets the SSRC to use for FEC. If unset in an RTCRtpSender object, the browser will choose.
+      /// </summary>
+      [optional]
+      uint32 ssrc;
+
+      /// <summary>
+      /// Gets or sets the Forward Error Correction (FEC) mechanism to use: "red", "red+ulpfec" or "flexfec".
+      /// </summary>
+      string mechanism;
+    };
+
+    /// <summary>
+    /// The RTCRtpRtxParameters dictionary contains information relating to retransmission (RTX) settings.
+    /// </summary>
+    [dictionary]
+    struct RTCRtpRtxParameters {
+      /// <summary>
+      /// Gets or sets the SSRC to use for retransmission, as specified in [RFC4588]. If unset
+      /// when passed to RTCRtpSender.send(), the browser will choose.
+      /// </summary>
+      [optional]
+      uint32 ssrc;
+    };
+
     [dictionary]
     struct RTCRtpCodingParameters {
       /// <summary>
@@ -44,6 +72,12 @@ namespace org
       /// parameter.
       /// </summary>
       string rid;
+
+      /// <summary>
+      /// Gets or sets the SSRC for this encoding.
+      /// </summary>
+      [optional]
+      uint32          ssrc;
     };
 
     [dictionary]
@@ -54,7 +88,21 @@ namespace org
       /// If left unset, the implementation will select a codec
       /// according to its default policy.
       /// </summary>
+      [optional]
       uint8           codecPayloadType;
+
+      /// <summary>
+      /// Specifies the FEC mechanism if set.
+      /// </summary>
+      [optional]
+      RTCRtpFecParameters fec;
+
+      /// <summary>
+      /// Specifies the RTX [RFC4588] parameters if set.
+      /// </summary>
+      [optional]
+      RTCRtpRtxParameters rtx;
+
       /// <summary>
       /// Gets or sets the discontinuous transmission mode. This
       /// member is only used if the sender's kind is "audio".
@@ -69,6 +117,7 @@ namespace org
       /// off regardless of the value of dtx, and media will be
       /// sent even when silence is detected.
       /// </summary>
+      [optional]
       RTCDtxStatus    dtx;
       /// <summary>
       /// Gets or sets a flag that this encoding is actively being
@@ -109,11 +158,13 @@ namespace org
       /// needed without counting IP or other transport
       /// layers like TCP or UDP.
       /// </summary>
+      [optional]
       unsigned long   maxBitrate;
       /// <summary>
       /// Gets or sets the maximum framerate that can be
       /// used to send this encoding, in frames per second.
       /// </summary>
+      [optional]
       double          maxFramerate;
       /// <summary>
       /// Gets or sets the resolution scale. This member is only
@@ -127,7 +178,8 @@ namespace org
       /// or equal to 1.0. By default, the sender will not apply
       /// any scaling, (i.e., scaleResolutionDownBy will be 1.0).
       /// </summary>
-      double          scaleResolutionDownBy;
+      double          scaleResolutionDownBy = 1.0;
+      double          scaleFramerateDownBy = 1.0;
     };
 
     [dictionary]
