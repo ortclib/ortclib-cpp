@@ -1,0 +1,112 @@
+
+/*
+
+ Copyright (c) 2017, Optical Tone Ltd.
+ All rights reserved.
+
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+
+ 1. Redistributions of source code must retain the above copyright notice, this
+ list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright notice,
+ this list of conditions and the following disclaimer in the documentation
+ and/or other materials provided with the distribution.
+
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+ The views and conclusions contained in the software and documentation are those
+ of the authors and should not be interpreted as representing official policies,
+ either expressed or implied, of the FreeBSD Project.
+ 
+ */
+
+namespace org
+{
+  namespace webrtc
+  {
+
+    /// <summary>
+    /// ICE server information.
+    /// </summary>
+    [dictionary]
+    struct RTCIceServer
+    {
+      string                uri;
+      /// <summary>
+      /// Gets or sets the STUN or TURN URI(s) as defined in [RFC7064]
+      /// and [RFC7065] or other URI types.
+      /// </summary>
+      StringList            urls;
+      /// <summary>
+      /// Gets or sets the username to use with that TURN server, if this
+      /// RTCIceServer object represents a TURN Server.
+      /// </summary>
+      string                username;
+      /// <summary>
+      /// Gets or sets the TURN server credential, if this RTCIceServer object
+      /// represents a TURN Server.
+      /// </summary>
+      string                credential;
+
+      /// <summary>
+      /// Gets or sets the contains the OAuth access token and MAC key.
+      /// </summary>
+      RTCOAuthCredential    oauthCredential;
+
+      /// <summary>
+      /// Gets or sets how credential should be used when that TURN server
+      /// requests authorization, if this RTCIceServer object represents a
+      /// TURN Server.
+      /// </summary>
+      RTCIceCredentialType  credentialType = password;
+
+      /// <summary>
+      /// Gets or sets the TLS certificate policy.
+      /// </summary>
+      RTCTlsCertPolicy      tlsCertPolicy = tlsCertPolicySecure
+
+      /// <summary>
+      /// Gets or sets the hostname. If the URIs in |urls| only contain IP addresses,
+      /// this field can be used to indicate the hostname, which may be necessary
+      /// for TLS (using the SNI extension). If |urls| itself contains the hostname,
+      /// this isn't necessary.
+      /// </summary>
+      string                hostname;
+
+      /// <summary>
+      /// Gets or sets a ist of protocols to be used in the TLS ALPN extension.
+      /// </summary>
+      StringList            tlsAlpnProtocols;
+
+      /// <summary>
+      /// Gets or sets a list of elliptic curves to be used in the TLS elliptic
+      /// curves extension.
+      /// </summary>
+      StringList            tlsEllipticCurves;
+
+      /// <summary>
+      /// Constructs an empty instance of an RTCIceServer object.
+      /// </summary>
+      [constructor, default]
+      void RTCIceServer();
+
+      /// <summary>
+      /// Constructs an instance of an RTCIceServer object by cloning the data from an existing object.
+      /// </summary>
+      [constructor, altname(RTCIceServerClone)]
+      void RTCIceServer(RTCIceServer source);
+
+    };
+
+  }
+}

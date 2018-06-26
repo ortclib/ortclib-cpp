@@ -1,0 +1,124 @@
+
+/*
+
+ Copyright (c) 2017, Optical Tone Ltd.
+ All rights reserved.
+
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+
+ 1. Redistributions of source code must retain the above copyright notice, this
+ list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright notice,
+ this list of conditions and the following disclaimer in the documentation
+ and/or other materials provided with the distribution.
+
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+ The views and conclusions contained in the software and documentation are those
+ of the authors and should not be interpreted as representing official policies,
+ either expressed or implied, of the FreeBSD Project.
+ 
+ */
+
+namespace org
+{
+  namespace webrtc
+  {
+    typedef zs::exceptions::BadState InvalidStateError;
+    typedef zs::exceptions::InvalidArgument invalidParameter;
+    typedef zs::exceptions::NotSupported NotSupportedError;
+
+    typedef std::list<string> StringList;
+    typedef zs::Milliseconds Milliseconds;
+
+    typedef zs::Time Time;
+    typedef zs::puid puid;
+    typedef zs::size_t size_t;
+    typedef zs::Promise Promise;
+
+    struct RTCOAuthCredential;
+    struct RTCIceServer;
+    struct RTCConfiguration;
+    struct RTCCertificate;
+    struct RTCOfferAnswerOptions;
+    struct RTCOfferOptions;
+    struct RTCAnswerOptions;
+    struct RTCDataChannelInit;
+    struct MessageEvent;
+    struct RTCSessionDescriptionInit;
+    struct Constraint;
+    struct RTCIceCandidateInit;
+    struct RTCBitrateParameters;
+    struct RTCRtpEncodingParameters;
+    struct RTCRtpHeaderExtensionParameters;
+    struct RTCRtpCodecParameters;
+    struct RTCRtpContributingSource;
+    struct RTCRtpSynchronizationSource;
+    struct RTCRtpDecodingParameters;
+    struct RTCRtpCodecCapability;
+    interface RTCError;
+    interface RTCPeerConnection;
+    interface RTCDTMFSender;
+    interface RTCRtpSender;
+    interface RTCRtpReceiver;
+    interface RTCRtpTransceiver;
+    interface RTCStatsReport;
+    interface RTCStatsProvider;
+    interface RTCDataChannel;
+    interface RTCDataChannelEvent;
+    interface RTCSessionDescription;
+    interface MediaConstraints;
+    interface RTCIceCandidate;
+    interface RTCCertificate;
+    interface RTCKeyParams;
+
+    typedef zs::PromiseWith<RTCSessionDescription> PromiseWithDescription;
+    typedef zs::PromiseWith<RTCCertificate> PromiseWithRTCCertificate;
+
+    typedef std::list<RTCRtpCodecCapability> RTCRtpCodecCapabilityList;
+    typedef std::list<RTCRtpDecodingParameters> RTCRtpDecodingParametersList;
+    typedef std::list<RTCRtpSynchronizationSource> RTCRtpSynchronizationSources;
+    typedef std::list<RTCRtpContributingSource> RTCRtpContributingSources;
+    typedef std::list<RTCRtpEncodingParameters> RTCRtpEncodingParametersList;
+    typedef std::list<RTCRtpHeaderExtensionParameters> RTCRtpHeaderExtensionParametersList;
+    typedef std::list<RTCRtpCodecParameters> RTCRtpCodecParametersList;
+    typedef std::list<Constraint> Constraints;
+    typedef std::list<RTCIceServer> RTCIceServers;
+    typedef std::list<RTCCertificate> RTCCertificates;
+    typedef std::list<RTCRtpSender> RTCRtpSenders;
+    typedef std::list<RTCRtpReceiver> RTCRtpReceivers;
+    typedef std::list<RTCRtpTransceiver> RTCRtpTransceivers;
+    typedef std::list<RTCIceCandidate> RTCIceCandidates;
+
+
+    [dictionary]
+    struct MillisecondIntervalRange
+    {
+      Milliseconds min;
+      Milliseconds max;
+
+      /// <summary>
+      /// Constructs an empty instance of an RTCConfiguration object.
+      /// </summary>
+      [constructor, default]
+      void MillisecondIntervalRange();
+
+      /// <summary>
+      /// Constructs an instance of an RTCConfiguration object by cloning the data from an existing object.
+      /// </summary>
+      [constructor, default, altname(MillisecondIntervalRangeClone)]
+      void MillisecondIntervalRange(MillisecondIntervalRange source);
+    };
+
+  }
+}

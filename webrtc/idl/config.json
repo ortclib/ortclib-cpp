@@ -1,0 +1,47 @@
+{
+  "project": {
+    "name": "webrtc",
+    "aliases": {
+      "alias": [
+        {
+          "in": "bogus_ortc_test_alias",
+          "out": "bogus"
+        }
+      ]
+    },
+    "exclusives": {
+      "exclusive": [
+        "xplatform"
+      ]
+    },
+    "includes": {
+      "include": [
+        "../../../zsLib/zsLib/idl/config.json"
+      ]
+    },
+    "sources": {
+      "source": [
+        "enums.idl",
+        "WebRtc.idl",
+        "Error.idl",
+        "StatsReport.idl",
+        "StatsProvider.idl",
+        "Certificate.idl",
+        "DataChannel.idl",
+        "MediaStreamTrack.idl",
+        "OAuthCredential.idl",
+        "IceCandidate.idl",
+        "IceServer.idl",
+        "Configuration.idl",
+        "OfferAnswerOptions.idl",
+        "RtpParameters.idl",
+        "RtpSender.idl",
+        "RtpReceiver.idl",
+        "DTMFSender.idl",
+        "RtpTransceiver.idl",
+        "SessionDescription.idl",
+        "PeerConnection.idl",
+      ]
+    }
+  }
+}

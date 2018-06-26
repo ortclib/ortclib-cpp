@@ -1,0 +1,121 @@
+
+/*
+
+ Copyright (c) 2017, Optical Tone Ltd.
+ All rights reserved.
+
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+
+ 1. Redistributions of source code must retain the above copyright notice, this
+ list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright notice,
+ this list of conditions and the following disclaimer in the documentation
+ and/or other materials provided with the distribution.
+
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+ The views and conclusions contained in the software and documentation are those
+ of the authors and should not be interpreted as representing official policies,
+ either expressed or implied, of the FreeBSD Project.
+ 
+ */
+
+namespace org
+{
+  namespace webrtc
+  {
+
+    /// <summary>
+    /// The RTCOfferAnswerOptions describe the options that can be used to control the offer/answer creation process.
+    /// </summary>
+    [dictionary]
+    struct RTCOfferAnswerOptions
+    {
+      /// <summary>
+      /// Gets or sets voice activity detection. Many codecs and systems are capable of
+      /// detecting "silence" and changing their behavior in this case by doing things
+      /// such as not transmitting any media. In many cases, such as when dealing with
+      /// emergency calling or sounds other than spoken voice, it is desirable to be able
+      /// to turn off this behavior. This option allows the application to provide
+      /// information about whether it wishes this type of processing enabled or disabled.
+      /// </summary>
+      bool         voiceActivityDetection = true;
+
+      [constructor, delete]
+      void RTCOfferAnswerOptions();
+    };
+
+    struct RTCOfferOptions : RTCOfferAnswerOptions {
+
+      /// <summary>
+      /// Gets or sets a flag if true, the generated description
+      /// will have ICE credentials that are different from the current
+      /// credentials (as visible in the localDescription attribute's SDP).
+      /// Applying the generated description will restart ICE, as described
+      /// in section 9.1.1.1 of [ICE].
+      /// </summary>
+      bool iceRestart = false;
+
+      /// <summary>
+      /// This setting provides additional control over the directionality of video.
+      /// For example, it can be used to ensure that video can be received,
+      /// regardless if video is sent or not.
+      /// </summary>
+      [optional]
+      bool offerToReceiveVideo;
+
+      /// <summary>
+      /// This setting provides additional control over the directionality of audio.
+      /// For example, it can be used to ensure that audio can be received,
+      /// regardless if audio is sent or not.
+      /// </summary>
+      [optional]
+      bool offerToReceiveAudio;
+
+
+      /// <summary>
+      /// Gets or sets a flag if true, will offer to BUNDLE audio/video/data together. Not to be
+      /// confused with RTCP mux (multiplexing RTP and RTCP together).
+      /// </summary>
+      bool useRtpMux = true;
+
+      /// <summary>
+      /// Constructs an empty instance of an RTCOfferOptions object.
+      /// </summary>
+      [constructor, default]
+      void RTCOfferOptions();
+
+      /// <summary>
+      /// Constructs an instance of an RTCOfferOptions object by cloning the data from an existing object.
+      /// </summary>
+      [constructor, default, altname(RTCOfferOptionsClone)]
+      void RTCOfferOptions(RTCOfferOptions source);
+
+    };
+
+    struct RTCAnswerOptions : RTCOfferAnswerOptions {
+      /// <summary>
+      /// Constructs an empty instance of an RTCAnswerOptions object.
+      /// </summary>
+      [constructor, default]
+      void RTCAnswerOptions();
+
+      /// <summary>
+      /// Constructs an instance of an RTCAnswerOptions object by cloning the data from an existing object.
+      /// </summary>
+      [constructor, default, altname(RTCAnswerOptionsClone)]
+      void RTCAnswerOptions(RTCAnswerOptions source);
+    };
+
+  }
+}

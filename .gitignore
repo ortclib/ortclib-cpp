@@ -25,3 +25,4 @@ ipch/
 *.user
 ortc/idl/wrapper/generated/
 ortc/idl/wrapper/cx
+webrtc/idl/wrapper/generated/

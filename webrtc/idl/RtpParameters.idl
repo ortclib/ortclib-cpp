@@ -1,0 +1,242 @@
+/*
+
+ Copyright (c) 2017, Optical Tone Ltd.
+ All rights reserved.
+
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+
+ 1. Redistributions of source code must retain the above copyright notice, this
+ list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright notice,
+ this list of conditions and the following disclaimer in the documentation
+ and/or other materials provided with the distribution.
+
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+ The views and conclusions contained in the software and documentation are those
+ of the authors and should not be interpreted as representing official policies,
+ either expressed or implied, of the FreeBSD Project.
+ 
+ */
+
+
+namespace org
+{
+  namespace webrtc
+  {
+    [dictionary]
+    struct RTCRtpCodingParameters {
+      /// <summary>
+      /// Gets or sets the RID header extension as defined by
+      /// [JSEP] (section 5.2.1.). The RID is not modifiable
+      /// via setParameters. It can only be set or modified
+      /// in addTransceiver on the sending side. Read-only
+      /// parameter.
+      /// </summary>
+      string rid;
+    };
+
+    [dictionary]
+    struct RTCRtpEncodingParameters : RTCRtpCodingParameters {
+      /// <summary>
+      /// Gets or sets a codec to be sent. Must reference a
+      /// payload type from the codecs member of RTCRtpParameters.
+      /// If left unset, the implementation will select a codec
+      /// according to its default policy.
+      /// </summary>
+      uint8           codecPayloadType;
+      /// <summary>
+      /// Gets or sets the discontinuous transmission mode. This
+      /// member is only used if the sender's kind is "audio".
+      /// It indicates whether discontinuous transmission will
+      /// be used. Setting it to disabled causes discontinuous
+      /// transmission to be turned off. Setting it to enabled
+      /// causes discontinuous transmission to be turned on if
+      /// it was negotiated (either via a codec-specific parameter
+      /// or via negotiation of the CN codec); if it was not
+      /// negotiated (such as when setting voiceActivityDetection
+      /// to false), then discontinuous operation will be turned
+      /// off regardless of the value of dtx, and media will be
+      /// sent even when silence is detected.
+      /// </summary>
+      RTCDtxStatus    dtx;
+      /// <summary>
+      /// Gets or sets a flag that this encoding is actively being
+      /// sent. Setting it to false causes this encoding to no
+      /// longer be sent. Setting it to true causes this encoding
+      /// to be sent.
+      /// </summary>
+      bool            active = true;
+      /// <summary>
+      /// Gets or sets the priority of this encoding. It is
+      /// specified in [RTCWEB-TRANSPORT], Section 4.
+      /// </summary>
+      RTCPriorityType priority = low;
+      /// <summary>
+      /// Gets or sets the preferred duration of media
+      /// represented by a packet in milliseconds for this
+      /// encoding. Typically, this is only relevant for audio
+      /// encoding. The user agent MUST use this duration if
+      /// possible, and otherwise use the closest available
+      /// duration. This value MUST take precedence over any
+      /// "ptime" attribute in the remote description, whose
+      /// processing is described in [JSEP] (section 5.10.).
+      /// Note that the user agent MUST still respect the limit
+      /// imposed by any "maxptime" attribute, as defined in
+      /// [RFC4566], Section 6.
+      /// </summary>
+      Milliseconds   ptime;
+      /// <summary>
+      /// Gets or sets the maximum bitrate that can be used
+      /// to send this encoding. The encoding may also be
+      /// further constrained by other limits (such as
+      /// maxFramerate or per-transport or per-session
+      /// bandwidth limits) below the maximum specified
+      /// here. maxBitrate is computed the same way as
+      /// the Transport Independent Application Specific
+      /// Maximum (TIAS) bandwidth defined in [RFC3890]
+      /// Section 6.2.2, which is the maximum bandwidth
+      /// needed without counting IP or other transport
+      /// layers like TCP or UDP.
+      /// </summary>
+      unsigned long   maxBitrate;
+      /// <summary>
+      /// Gets or sets the maximum framerate that can be
+      /// used to send this encoding, in frames per second.
+      /// </summary>
+      double          maxFramerate;
+      /// <summary>
+      /// Gets or sets the resolution scale. This member is only
+      /// present if the sender's kind is "video". The video's
+      /// resolution will be scaled down in each dimension by
+      /// the given value before sending. For example, if the
+      /// value is 2.0, the video will be scaled down by a factor
+      /// of 2 in each dimension, resulting in sending a video of
+      /// one quarter the size. If the value is 1.0, the video
+      /// will not be affected. The value must be greater than
+      /// or equal to 1.0. By default, the sender will not apply
+      /// any scaling, (i.e., scaleResolutionDownBy will be 1.0).
+      /// </summary>
+      double          scaleResolutionDownBy;
+    };
+
+    [dictionary]
+    struct RTCRtpHeaderExtensionParameters {
+      /// <summary>
+      /// Gets or sets the URI of the RTP header extension, as defined in [RFC5285].
+      /// </summary>
+      string          uri;
+      /// <summary>
+      /// Gets or sets the value put in the RTP packet to identify the header extension.
+      /// </summary>
+      unsigned short  id;
+      /// <summary>
+      /// Gets or sets whether the header extension is encrypted or not.
+      /// </summary>
+      bool            encrypted = false;
+    };
+
+    [dictionary]
+    struct RTCRtcpParameters {
+      /// <summary>
+      /// Gets or sets the Canonical Name (CNAME) used by RTCP (e.g. in SDES messages). 
+      /// </summary>
+      string cname;
+      /// <summary>
+      /// Gets or sets whether reduced size RTCP [RFC5506] is configured (if true)
+      /// or compound RTCP as specified in [RFC3550] (if false). Read-only parameter.
+      /// </summary>
+      bool   reducedSize;
+    };
+
+    [dictionary]
+    struct RTCRtpParameters
+    {
+      /// <summary>
+      /// Gets or sets a sequence containing parameters for RTP header extensions.
+      /// </summary>
+      RTCRtpHeaderExtensionParametersList headerExtensions;
+      /// <summary>
+      /// Gets or sets parameters used for RTCP. 
+      /// </summary>
+      RTCRtcpParameters                   rtcp;
+      /// <summary>
+      /// Gets or sets a sequence containing the media codecs that an
+      /// RTCRtpSender will choose from, as well as entries for RTX,
+      /// RED and FEC mechanisms. Corresponding to each media codec
+      /// where retransmission via RTX is enabled, there will be an
+      /// entry in codecs[] with a mimeType attribute indicating
+      /// retransmission via "audio/rtx" or "video/rtx", and an
+      /// sdpFmtpLine attribute (providing the "apt" and "rtx-time"
+      /// parameters).
+      /// </summary>
+      RTCRtpCodecParametersList           codecs;    
+    };
+
+    [dictionary]
+    struct RTCRtpSendParameters : RTCRtpParameters {
+      /// <summary>
+      /// Gets or sets a unique identifier for the last set
+      /// of parameters applied. Ensures that setParameters
+      /// can only be called based on a previous getParameters,
+      /// and that there are no intervening changes.
+      /// </summary>
+      string                        transactionId;
+      /// <summary>
+      /// Gets or sets a sequence containing parameters for RTP
+      /// encodings of media.
+      /// </summary>
+      RTCRtpEncodingParametersList  encodings;
+      /// <summary>
+      /// Gets or sets the degradation preference when bandwidth is
+      /// constrained and the RtpSender needs to choose between
+      /// degrading resolution or degrading framerate,
+      /// degradationPreference indicates which is preferred.
+      /// </summary>
+      RTCDegradationPreference      degradationPreference = balanced;
+    };
+
+    [dictionary]
+    struct RTCRtpReceiveParameters : RTCRtpParameters {
+      /// <summary>
+      /// Gets or sets a sequence containing information
+      /// about incoming RTP encodings of media.
+      /// </summary>
+      RTCRtpDecodingParametersList encodings;
+    };
+
+
+    [dictionary]
+    struct RTCRtpCodecCapability {
+      /// <summary>
+      /// Gets or sets the codec MIME media type/subtype.
+      /// Valid media types and subtypes are listed in [IANA-RTP-2].
+      /// </summary>
+      string         mimeType;
+      /// <summary>
+      /// Gets or sets the codec clock rate expressed in Hertz.
+      /// </summary>
+      unsigned long  clockRate;
+      /// <summary>
+      /// Gets or sets the maximum number of channels (mono=1, stereo=2) if applicable.
+      /// </summary>
+      unsigned short channels;
+      /// <summary>
+      /// Gets or sets the "format specific parameters" field from
+      /// the "a=fmtp" line in the SDP corresponding to the codec, if one exists.
+      /// </summary>
+      string         sdpFmtpLine;
+    };
+
+  }
+}

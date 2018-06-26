@@ -1,0 +1,90 @@
+/*
+
+ Copyright (c) 2017, Optical Tone Ltd.
+ All rights reserved.
+
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+
+ 1. Redistributions of source code must retain the above copyright notice, this
+ list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright notice,
+ this list of conditions and the following disclaimer in the documentation
+ and/or other materials provided with the distribution.
+
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+ The views and conclusions contained in the software and documentation are those
+ of the authors and should not be interpreted as representing official policies,
+ either expressed or implied, of the FreeBSD Project.
+ 
+ */
+
+
+namespace org
+{
+  namespace webrtc
+  {
+    /// <summary>
+    /// The RTCRtpSender interface allows an application to control how
+    /// a given MediaStreamTrack is encoded and transmitted to a remote
+    /// peer. When setParameters is called on an RTCRtpSender object,
+    /// the encoding is changed appropriately.
+    /// </summary>
+    interface RTCRtpSender
+    {
+      /// <summary>
+      /// Gets the attribute for the track that is associated with
+      /// this RTCRtpSender object. If track is ended, or if the
+      /// track's output is disabled, i.e. the track is disabled
+      /// and/or muted, the RTCRtpSender MUST send silence (audio),
+      /// black frames (video) or a zero-information-content
+      /// equivalent. In the case of video, the RTCRtpSender
+      /// SHOULD send one black frame per second. If track is
+      /// null then the RTCRtpSender does not send. On getting,
+      /// the attribute MUST return the value of the
+      /// [[SenderTrack]] slot.
+      /// </summary>
+      [getter]
+      MediaStreamTrack        track;
+
+      /// <summary>
+      /// Gets attribute returning the value of the [[Dtmf]]internal slot,
+      /// which represents a RTCDTMFSender which can be used to send DTMF,
+      /// or null if unset. The [[Dtmf]]internal slot is set when the kind
+      /// of an RTCRtpSender's [[SenderTrack]] is "audio".
+      /// </summary>
+      [getter]
+      RTCDTMFSender           dtmf;
+
+      /// <summary>
+      /// The getParameters() method returns the RTCRtpSender object's
+      /// current parameters for how track is encoded and transmitted
+      /// to a remote RTCRtpReceiver.
+      /// </summary>
+      RTCRtpSendParameters    getParameters();
+
+      /// <summary>
+      /// The setParameters method updates how track is encoded and
+      /// transmitted to a remote peer.
+      /// </summary>
+      Promise                 setParameters(RTCRtpSendParameters parameters) throws (RTCError);
+
+      /// <summary>
+      /// Attempts to replace the RTCRtpSender's current track with
+      /// another track provided (or with a null track), without
+      /// renegotiation.
+      /// </summary>
+      Promise                 replaceTrack(MediaStreamTrack withTrack);
+    };
+  }
+}
