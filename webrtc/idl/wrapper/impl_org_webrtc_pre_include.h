@@ -14,4 +14,6 @@ namespace rtc
 namespace webrtc
 {
   class PeerConnectionFactoryInterface;
+
+  class VideoFrame;
 }

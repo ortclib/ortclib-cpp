@@ -23,6 +23,9 @@
 #include "impl_org_webrtc_MediaSource.h"
 #include "impl_org_webrtc_helpers.h"
 
+#include "impl_org_webrtc_pre_include.h"
+#include "impl_org_webrtc_post_include.h"
+
 using ::zsLib::String;
 using ::zsLib::Optional;
 using ::zsLib::Any;
@@ -80,8 +83,20 @@ static ::webrtc::VideoTrackInterface *unproxyVideoTrack(NativeType *track)
   return WRAPPER_DEPROXIFY_CLASS(::webrtc, VideoTrack, converted);
 }
 
+#ifdef WINUWP
+
+#ifdef __cplusplus_winrt
+//------------------------------------------------------------------------------
+static void notifyAboutNewMediaSource(WrapperImplType &wrapper, Windows::Media::Core::IMediaSource^ newSource)
+{
+  typedef WrapperImplType::UseMediaSourceImpl UseMediaSourceImpl;
+  auto source = UseMediaSourceImpl::toWrapper(newSource);
+  wrapper.notifySourceChanged(source);
+}
+#endif //__cplusplus_winrt
+
 #ifdef CPPWINRT_VERSION
-#pragma ZS_BUILD_NOTE("TODO","(mosa) call this static method with new cppwinrt IMediaSource object and the appropriate events will fire to upper layers (REMOVE THIS TO ACKNOWLEDGE)")
+//------------------------------------------------------------------------------
 static void notifyAboutNewMediaSource(WrapperImplType &wrapper, winrt::Windows::Media::Core::IMediaSource const & newSource)
 {
   typedef WrapperImplType::UseMediaSourceImpl UseMediaSourceImpl;
@@ -89,6 +104,8 @@ static void notifyAboutNewMediaSource(WrapperImplType &wrapper, winrt::Windows::
   wrapper.notifySourceChanged(source);
 }
 #endif //CPPWINRT_VERSION
+
+#endif //WINUWP
 
 //------------------------------------------------------------------------------
 wrapper::impl::org::webrtc::MediaStreamTrack::MediaStreamTrack() noexcept
@@ -106,6 +123,9 @@ wrapper::org::webrtc::MediaStreamTrackPtr wrapper::org::webrtc::MediaStreamTrack
 //------------------------------------------------------------------------------
 wrapper::impl::org::webrtc::MediaStreamTrack::~MediaStreamTrack()
 {
+  thisWeak_.reset();
+  teardownObserver();
+  mapperSingleton().remove(native_.get());
 }
 
 //------------------------------------------------------------------------------
@@ -156,13 +176,6 @@ void wrapper::impl::org::webrtc::MediaStreamTrack::set_enabled(bool value) noexc
   if (!native_) return;
 
   native_->set_enabled(value);
-
-#pragma ZS_BUILD_NOTE("EXAMPLE","(mosa) example of how to obtain the video track interface out of the native pointer (REMOVE THIS EXAMPLE)")
-  // example of what to do to get the video track
-  auto converted = dynamic_cast<::webrtc::VideoTrackInterface *>(native_.get());
-  ZS_ASSERT(converted);
-  if (!converted) return;
-
 }
 
 //------------------------------------------------------------------------------
@@ -238,13 +251,81 @@ void WrapperImplType::autoAttachSourceToElement()
 
   if (!element) return;
 
-#ifdef CPPWINRT_VERSION
-  auto winrtMediaElement = UseMediaElementImpl::toNative_winrt(element);
-  if (!winrtMediaElement) return;
+  {
+    zsLib::AutoLock lock(lock_);
 
-  auto winrtMediaSource = UseMediaSourceImpl::toNative_winrt(source);
-  winrtMediaElement.SetMediaStreamSource(winrtMediaSource);
+    ZS_MAYBE_USED() bool didAttachment = false;
+    ZS_MAYBE_USED(didAttachment);
+
+#ifdef __cplusplus_winrt
+    if (!didAttachment) {
+      auto nativeElement = UseMediaElementImpl::toNative_cx(element);
+      if (nativeElement) {
+        auto nativeSource = UseMediaSourceImpl::toNative_cx(source);
+        nativeElement->SetMediaStreamSource(nativeSource);
+        didAttachment = true;
+      }
+    }
+#endif //__cplusplus_winrt
+
+#ifdef CPPWINRT_VERSION
+    if (!didAttachment) {
+      auto nativeElement = UseMediaElementImpl::toNative_winrt(element);
+      if (nativeElement) {
+        auto nativeSource = UseMediaSourceImpl::toNative_winrt(source);
+        nativeElement.SetMediaStreamSource(nativeSource);
+        didAttachment = true;
+      }
+    }
 #endif //CPPWINRT_VERSION
+  }
+}
+
+//------------------------------------------------------------------------------
+void WrapperImplType::setupObserver()
+{
+  auto converted = dynamic_cast<::webrtc::VideoTrackInterface *>(native_.get());
+  ZS_ASSERT(converted);
+  if (!converted) return;
+
+  observer_ = std::make_unique<WebrtcObserver>(thisWeak_.lock());
+
+  rtc::VideoSinkWants wants;
+
+  // wants.rotation_applied = ;
+  // wants.black_frames = ;
+  // wants.max_pixel_count = ;
+  // wants.target_pixel_count = ;
+  // wants.max_framerate_fps = ;
+
+  converted->AddOrUpdateSink(observer_.get(), wants);
+}
+
+//------------------------------------------------------------------------------
+void WrapperImplType::teardownObserver()
+{
+  if (!observer_) return;
+
+  auto converted = dynamic_cast<::webrtc::VideoTrackInterface *>(native_.get());
+  ZS_ASSERT(converted);
+  if (!converted) return;
+
+  converted->RemoveSink(observer_.get());
+  observer_.reset();
+}
+
+//------------------------------------------------------------------------------
+void WrapperImplType::onFrame(const ::webrtc::VideoFrame& frame) noexcept
+{
+#pragma ZS_BUILD_NOTE("TODO","(mosa) call this static method with new cppwinrt IMediaSource object and the appropriate events will fire to upper layers")
+  // winrt::Windows::Media::Core::IMediaSource source = some_value; // pick one definition
+  // Windows::Media::Core::IMediaSource ^source = some_value;       // pick one definition
+  // notifyAboutNewMediaSource(*this, source);
+}
+
+//------------------------------------------------------------------------------
+void WrapperImplType::onDiscardedFrame() noexcept
+{
 }
 
 //------------------------------------------------------------------------------
@@ -266,6 +347,7 @@ WrapperImplTypePtr WrapperImplType::toWrapper(NativeType *native)
     auto result = make_shared<WrapperImplType>();
     result->thisWeak_ = result;
     result->native_ = rtc::scoped_refptr<NativeType>(native); // only use proxy and never original pointer
+    result->setupObserver();
     return result;
   });
   return wrapper;

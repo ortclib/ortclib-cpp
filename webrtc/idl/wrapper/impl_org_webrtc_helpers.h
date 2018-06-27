@@ -117,6 +117,14 @@ namespace wrapper {
             return temp;
           }
 
+          //-------------------------------------------------------------------
+          void remove(NativeType *native)
+          {
+            if (!native) return;
+            zsLib::AutoLock lock(lock_);
+            map_.erase(native);
+          }
+
         private:
           zsLib::Lock lock_;
           NativeWrapperMap map_;

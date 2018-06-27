@@ -6,6 +6,7 @@
 
 #include "impl_org_webrtc_pre_include.h"
 #include "rtc_base/scoped_ref_ptr.h"
+#include "api/video/video_frame.h"
 #include "api/mediastreaminterface.h"
 #include "impl_org_webrtc_post_include.h"
 
@@ -28,6 +29,33 @@ namespace wrapper {
           ZS_DECLARE_TYPEDEF_PTR(wrapper::org::webrtc::MediaSource, UseMediaSource);
           ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::MediaSource, UseMediaSourceImpl);
 
+          ZS_DECLARE_STRUCT_PTR(WebrtcObserver);
+
+          struct WebrtcObserver : public rtc::VideoSinkInterface<::webrtc::VideoFrame>
+          {
+            WebrtcObserver(WrapperImplTypePtr wrapper) noexcept : outer_(wrapper) {}
+
+            void OnFrame(const ::webrtc::VideoFrame& frame) final
+            {
+              auto outer = outer_.lock();
+              if (!outer) return;
+              outer->onFrame(frame);
+            }
+
+            // Should be called by the source when it discards the frame due to rate
+            // limiting.
+            void OnDiscardedFrame()
+            {
+              auto outer = outer_.lock();
+              if (!outer) return;
+              outer->onDiscardedFrame();
+            }
+
+          private:
+            WrapperImplTypeWeakPtr outer_;
+          };
+
+          WebrtcObserverUniPtr observer_;
           rtc::scoped_refptr<NativeType> native_;
 
           mutable zsLib::Lock lock_;
@@ -54,6 +82,13 @@ namespace wrapper {
 
           void notifySourceChanged(UseMediaSourcePtr source);
           void autoAttachSourceToElement();
+
+          void setupObserver();
+          void teardownObserver();
+
+          // WebrtcObserver methods
+          void onFrame(const ::webrtc::VideoFrame& frame) noexcept;
+          void onDiscardedFrame() noexcept;
 
           static WrapperImplTypePtr toWrapper(NativeType *native);
           ZS_NO_DISCARD() static rtc::scoped_refptr<NativeType> toNative(WrapperTypePtr wrapper);
