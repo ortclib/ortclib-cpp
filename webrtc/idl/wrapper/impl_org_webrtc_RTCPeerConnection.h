@@ -116,7 +116,6 @@ namespace wrapper {
             WrapperImplTypeWeakPtr outer_;
           };
 
-
           WebrtcObserverUniPtr observer_;
           NativeScopedPtr native_;
           RTCPeerConnectionWeakPtr thisWeak_;
