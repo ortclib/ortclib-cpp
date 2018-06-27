@@ -51,16 +51,19 @@ namespace org
 
     interface MediaConstraints
     {
-      Constraints constraints;
+      [getter,setter]
+      Constraints mandatory;
+      [getter,setter]
+      Constraints optional;
 
       [constructor, default]
       void MediaConstraints();
 
-      [constructor,default,altname(MediaConstraintsClone)]
+      [constructor, default, altname(MediaConstraintsClone)]
       void MediaConstraints(MediaConstraints source);
 
       [constructor, altname(MediaConstraintsWithConstraints)]
-      void MediaConstraints(Constraints constraints);
+      void MediaConstraints(Constraints mandatory, Constraints optional);
     };
   }
 }
