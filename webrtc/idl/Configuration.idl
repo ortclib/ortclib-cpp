@@ -127,7 +127,7 @@ namespace org
       /// <summary>
       /// Gets or sets a flag to use RTP data channels instead of SCTP.
       /// </summary>
-      bool                  enable_rtp_data_channel = false;
+      bool                  enableRtpDataChannel = false;
 
       /// <summary>
       /// Gets or sets the minimum bitrate at which screencast video
@@ -184,7 +184,6 @@ namespace org
       /// pair is considered to be "not receiving", after which a lower
       /// priority candidate pair may be selected.
       /// </summary>
-      [optional]
       Milliseconds          iceConnectionReceivingTimeout;
 
       /// <summary>
@@ -197,7 +196,6 @@ namespace org
       /// want this backup cellular candidate pair pinged frequently, since it
       /// consumes data/battery.
       /// </summary>
-      [optional]
       Milliseconds          iceBackupCandidatePairPingInterval;
 
       /// <summary>
@@ -246,14 +244,12 @@ namespace org
       /// Gets or sets the min interval (max rate) at which we will send ICE checks
       /// (STUN pings), in milliseconds.
       /// </summary>
-      [optional]
       Milliseconds          iceCheckMinInterval;
 
       /// <summary>
       /// Gets or sets the interval in milliseconds at which STUN candidates will
       /// resend STUN binding requests to keep NAT bindings open.
       /// </summary>
-      [optional]
       Milliseconds          stunCandidateKeepaliveInterval;
 
       /// <summary>

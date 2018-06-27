@@ -11,10 +11,13 @@
 namespace rtc
 {
   class Thread;
+  class RTCCertificate;
+  class IntervalRange;
 }
 
 namespace webrtc
 {
+  enum class SdpSemantics;
   class PeerConnectionInterface;
   class PeerConnectionFactoryInterface;
 
