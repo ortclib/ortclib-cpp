@@ -21,6 +21,19 @@
 
 #include "impl_org_webrtc_WebRtcLib.h"
 #include "impl_org_webrtc_EventQueue.h"
+#include "impl_org_webrtc_helpers.h"
+
+#include "impl_org_webrtc_pre_include.h"
+#include "api/audio_codecs/builtin_audio_decoder_factory.h"
+#include "api/audio_codecs/builtin_audio_encoder_factory.h"
+#include "api/peerconnectioninterface.h"
+#include "api/test/fakeconstraints.h"
+#include "common_video/video_common_winuwp.h"
+#include "rtc_base/event_tracer.h"
+#include "rtc_base/ssladapter.h"
+#include "rtc_base/win32socketinit.h"
+#include "third_party/winuwp_h264/winuwp_h264_factory.h"
+#include "impl_org_webrtc_post_include.h"
 
 using ::zsLib::String;
 using ::zsLib::Optional;
@@ -103,20 +116,20 @@ bool wrapper::org::webrtc::WebRtcLib::isMediaTracing() noexcept
 }
 
 //------------------------------------------------------------------------------
-bool wrapper::org::webrtc::WebRtcLib::saveMediaTrace(String filename) noexcept
+bool wrapper::org::webrtc::WebRtcLib::startMediaTrace(String filename) noexcept
 {
   auto singleton = WrapperImplType::singleton();
-  return singleton->actual_saveMediaTrace(filename);
+  return singleton->actual_startMediaTrace(filename);
 }
 
 //------------------------------------------------------------------------------
-bool wrapper::org::webrtc::WebRtcLib::saveMediaTrace(
+bool wrapper::org::webrtc::WebRtcLib::startMediaTrace(
   String host,
   int port
   ) noexcept
 {
   auto singleton = WrapperImplType::singleton();
-  return singleton->actual_saveMediaTrace(host, port);
+  return singleton->actual_startMediaTrace(host, port);
 }
 
 //------------------------------------------------------------------------------
@@ -142,10 +155,8 @@ void WrapperImplType::actual_setup() noexcept
 //------------------------------------------------------------------------------
 void WrapperImplType::actual_setup(wrapper::org::webrtc::EventQueuePtr queue) noexcept
 {
-  if (alreadySetup_.exchange(true)) {
-    ZS_ASSERT_FAIL("already setup webrtc wrapper");
-    return;
-  }
+  // prevent multiple setups being called simulatuously
+  if (setupCalledOnce_.test_and_set()) return;
 
 #pragma ZS_BUILD_NOTE("TODO","(robin) prepare webrtc peer connection factory here")
 
@@ -169,17 +180,21 @@ void WrapperImplType::actual_setup(wrapper::org::webrtc::EventQueuePtr queue) no
 
 #ifdef __cplusplus_winrt
   // Setup if WinUWP CX is defined...
-  auto nativeCx = UseEventQueue::toNative_cx(queue);
-  if ((nativeCx) && (!didSetupZsLib_.test_and_set())) {
-    UseHelper::setup(nativeCx);
+  {
+    auto nativeCx = UseEventQueue::toNative_cx(queue);
+    if ((nativeCx) && (!didSetupZsLib_.test_and_set())) {
+      UseHelper::setup(nativeCx);
+    }
   }
 #endif //__cplusplus_winrt
 
 #ifdef CPPWINRT_VERSION
-  // Setup if WinUWP CppWinRT is defined...
-  auto nativeCppWinrt = UseEventQueue::toNative_winrt(queue);
-  if ((nativeCppWinrt) && (!didSetupZsLib_.test_and_set())) {
-    UseHelper::setup(nativeCppWinrt);
+  {
+    // Setup if WinUWP CppWinRT is defined...
+    auto nativeCppWinrt = UseEventQueue::toNative_winrt(queue);
+    if ((nativeCppWinrt) && (!didSetupZsLib_.test_and_set())) {
+      UseHelper::setup(nativeCppWinrt);
+    }
   }
 #endif //CPPWINRT_VERSION
 
@@ -198,6 +213,76 @@ void WrapperImplType::actual_setup(wrapper::org::webrtc::EventQueuePtr queue) no
   if (!didSetupZsLib_.test_and_set()) {
     UseHelper::setup();
   }
+
+#ifdef WINUWP
+
+  // Setup for WinWUP...
+
+#if (defined(__cplusplus_winrt) && defined(CPPWINRT_VERSION)) || defined(__cplusplus_winrt)
+
+  Windows::UI::Core::CoreDispatcher^ dispatcher{};
+
+#if defined(CPPWINRT_VERSION)
+  if (!dispatcher) {
+    auto nativeCppWinrt = UseEventQueue::toNative_winrt(queue);
+    if (nativeCppWinrt) {
+      dispatcher = WRAPPER_TO_CX(Windows::UI::Core::CoreDispatcher, nativeCppWinrt);
+    }
+  }
+#endif //defined(CPPWINRT_VERSION)
+
+  if (!dispatcher) {
+    dispatcher = UseEventQueue::toNative_cx(queue);
+  }
+
+  // on WinUWP a dispatcher is not optional
+  ZS_ASSERT(dispatcher);
+
+  ::webrtc::VideoCommonWinUWP::SetCoreDispatcher(dispatcher);
+
+#else
+
+#error cppwinrt requires CX consume runtime support to be enabled (for now)
+
+#endif //(defined(__cplusplus_winrt) && defined(CPPWINRT_VERSION)) || defined(__cplusplus_winrt)
+
+#else //WINUWP
+
+#endif //WINUWP
+
+  rtc::EnsureWinsockInit();
+  rtc::InitializeSSL([](void *) { return false; }); // no custom verifier of SSL
+
+  networkThread = rtc::Thread::CreateWithSocketServer();
+  networkThread->Start();
+
+  workerThread = rtc::Thread::Create();
+  workerThread->Start();
+
+  signalingThread = rtc::Thread::Create();
+  signalingThread->Start();
+
+
+  auto encoderFactory = new ::webrtc::WinUWPH264EncoderFactory();
+  auto decoderFactory = new ::webrtc::WinUWPH264DecoderFactory();
+
+  peerConnectionFactory_ = ::webrtc::CreatePeerConnectionFactory(
+    networkThread.get(),
+    workerThread.get(),
+    signalingThread.get(),
+    nullptr,
+    ::webrtc::CreateBuiltinAudioEncoderFactory(),
+    ::webrtc::CreateBuiltinAudioDecoderFactory(),
+    encoderFactory,
+    decoderFactory
+  );
+
+  rtc::tracing::SetupInternalTracer();
+
+  if (setupComplete_.exchange(true)) {
+    ZS_ASSERT_FAIL("already setup webrtc wrapper");
+    return;
+  }
 }
 
 //------------------------------------------------------------------------------
@@ -205,7 +290,18 @@ void WrapperImplType::actual_startMediaTracing() noexcept
 {
   if (!actual_checkSetup()) return;
 
-#pragma ZS_BUILD_NOTE("TODO","(mosa) actual_startMediaTracing")
+  // prevent multiple calls to start or stop simultaneously
+  if (isTracingStartOrStopping_.test_and_set()) return;
+
+  if (isTracing_.exchange(false)) {
+    isTracingStartOrStopping_.clear();
+    return;
+  }
+
+  //rtc::tracing::StartInternalCapture();
+#pragma ZS_BUILD_NOTE("TODO","(mosa) actual_startMediaTrace no options")
+
+  isTracingStartOrStopping_.clear();
 }
 
 //------------------------------------------------------------------------------
@@ -213,36 +309,66 @@ void WrapperImplType::actual_stopMediaTracing() noexcept
 {
   if (!actual_checkSetup()) return;
 
-#pragma ZS_BUILD_NOTE("TODO","(mosa) actual_stopMediaTracing")
+  // prevent multiple calls to start or stop simultaneously
+  if (isTracingStartOrStopping_.test_and_set()) return;
+
+  if (isTracing_.exchange(false)) {
+    isTracingStartOrStopping_.clear();
+    return;
+  }
+
+  rtc::tracing::StopInternalCapture();
+
+  isTracingStartOrStopping_.clear();
 }
 
 //------------------------------------------------------------------------------
 bool WrapperImplType::actual_isMediaTracing() noexcept
 {
   if (!actual_checkSetup(false)) return false;
-
-#pragma ZS_BUILD_NOTE("TODO","(mosa) actual_isMediaTracing")
-  return false;
+  return isTracing_;
 }
 
 //------------------------------------------------------------------------------
-bool WrapperImplType::actual_saveMediaTrace(String filename) noexcept
+bool WrapperImplType::actual_startMediaTrace(String filename) noexcept
 {
   if (!actual_checkSetup()) return false;
 
-#pragma ZS_BUILD_NOTE("TODO","(mosa) actual_saveMediaTrace")
+  // prevent multiple calls to start or stop simultaneously
+  if (isTracingStartOrStopping_.test_and_set()) return false;
+
+  ZS_ASSERT(!isTracing_);
+  if (isTracing_.exchange(true)) {
+    isTracingStartOrStopping_.clear();
+    return false;
+  }
+
+  rtc::tracing::StartInternalCapture(filename.c_str());
+
+  isTracingStartOrStopping_.clear();
   return false;
 }
 
 //------------------------------------------------------------------------------
-bool WrapperImplType::actual_saveMediaTrace(
+bool WrapperImplType::actual_startMediaTrace(
                                             String host,
                                             int port
                                             ) noexcept
 {
   if (!actual_checkSetup()) return false;
 
-#pragma ZS_BUILD_NOTE("TODO","(mosa) actual_saveMediaTrace")
+  // prevent multiple calls to start or stop simultaneously
+  if (isTracingStartOrStopping_.test_and_set()) return false;
+
+  ZS_ASSERT(!isTracing_);
+  if (isTracing_.exchange(true)) {
+    isTracingStartOrStopping_.clear();
+    return false;
+  }
+
+#pragma ZS_BUILD_NOTE("TODO","(mosa) actual_startMediaTrace host/port")
+
+  isTracingStartOrStopping_.clear();
   return false;
 }
 
@@ -259,8 +385,11 @@ bool WrapperImplType::actual_saveMediaTrace(
 void WrapperImplType::actual_set_ntpServerTime(::zsLib::Milliseconds value) noexcept
 {
   if (!actual_checkSetup()) return;
-  zsLib::AutoLock lock(lock_);
-  ntpServerTime_ = value;
+
+  {
+    zsLib::AutoLock lock(lock_);
+    ntpServerTime_ = value;
+  }
 
 #pragma ZS_BUILD_NOTE("TODO","(mosa) set the NTP time from the server inside webrtc engine here")
 
@@ -269,11 +398,12 @@ void WrapperImplType::actual_set_ntpServerTime(::zsLib::Milliseconds value) noex
 //------------------------------------------------------------------------------
 bool WrapperImplType::actual_checkSetup(bool assert) noexcept
 {
-  if ((assert) && (!alreadySetup_)) {
+  if ((assert) && ((!setupComplete_) && (!alreadyCleaned_))) {
     ZS_ASSERT_FAIL("Setup was never called on wrapper");
   }
-  return alreadySetup_;
+  return setupComplete_ && (!alreadyCleaned_);
 }
+
 //------------------------------------------------------------------------------
 PeerConnectionFactoryInterfaceScopedPtr WrapperImplType::actual_peerConnectionFactory() noexcept
 {
@@ -287,17 +417,26 @@ PeerConnectionFactoryInterfaceScopedPtr WrapperImplType::actual_peerConnectionFa
 //------------------------------------------------------------------------------
 void WrapperImplType::notifySingletonCleanup() noexcept
 {
-
   // prevent clean-up twice
-  if (alreadyCleaned_.test_and_set()) return;
   if (!actual_checkSetup()) return;
-
-#pragma ZS_BUILD_NOTE("TODO","This is the better spot to clean up webrtc then the destructor")
+  if (alreadyCleaned_.exchange(true)) return;
 
   // Add what is needed to shutdown webrtc...
 
+#pragma ZS_BUILD_NOTE("TODO","(mosa) shutdown webrtc engine here")
+
+  rtc::tracing::ShutdownInternalTracer();
+
   // reset the factory (cannot be used anymore)...
   peerConnectionFactory_ = PeerConnectionFactoryInterfaceScopedPtr();
+
+#pragma ZS_BUILD_NOTE("TODO","(mosa) shutdown threads need something more?")
+
+  networkThread.reset();
+  workerThread.reset();
+  signalingThread.reset();
+
+  rtc::CleanupSSL();
 }
 
 //------------------------------------------------------------------------------
@@ -320,8 +459,8 @@ WrapperImplTypePtr WrapperImplType::singleton() noexcept
       void actual_startMediaTracing() noexcept final {}
       void actual_stopMediaTracing() noexcept final {}
       bool actual_isMediaTracing() noexcept final { return false; }
-      bool actual_saveMediaTrace(String) noexcept final { return false; }
-      bool actual_saveMediaTrace(
+      bool actual_startMediaTrace(String) noexcept final { return false; }
+      bool actual_startMediaTrace(
                                  String,
                                  int
                                  ) noexcept final { return false; }

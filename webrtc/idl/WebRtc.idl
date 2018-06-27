@@ -223,12 +223,12 @@ namespace org
       /// Saves media trace data to the file specified by filename.
       /// </summary>
       [static]
-      bool saveMediaTrace(string filename);
+      bool startMediaTrace(string filename);
       /// <summary>
       /// Sends all traced data to TCP listener specified by host name and port.
       /// </summary>
-      [static, altname(saveMediaTraceWithHostPort)]
-      bool saveMediaTrace(string host, int port);
+      [static, altname(startMediaTraceWithHostPort)]
+      bool startMediaTrace(string host, int port);
     };
 
   }

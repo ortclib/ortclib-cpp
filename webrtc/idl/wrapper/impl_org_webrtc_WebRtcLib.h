@@ -7,7 +7,6 @@
 
 #include "impl_org_webrtc_pre_include.h"
 #include "rtc_base/scoped_ref_ptr.h"
-#include "api/peerconnectioninterface.h"
 #include "impl_org_webrtc_post_include.h"
 
 #include <zsLib/Singleton.h>
@@ -27,12 +26,19 @@ namespace wrapper {
           virtual ~WebRtcLib() noexcept;
 
           WebRtcLibWeakPtr thisWeak_;
-          std::atomic_bool alreadySetup_{};
-          std::atomic_flag alreadyCleaned_{};
+          std::atomic_flag setupCalledOnce_{};
+          std::atomic_bool setupComplete_ {};
+          std::atomic_bool alreadyCleaned_{};
           std::atomic_flag didSetupZsLib_ {};
+          std::atomic_flag isTracingStartOrStopping_ {};
+          std::atomic_bool isTracing_ {};
           zsLib::Lock lock_;
           PeerConnectionFactoryInterfaceScopedPtr peerConnectionFactory_;
           ::zsLib::Milliseconds ntpServerTime_;
+
+          std::unique_ptr<rtc::Thread> networkThread;
+          std::unique_ptr<rtc::Thread> workerThread;
+          std::unique_ptr<rtc::Thread> signalingThread;
 
           // constructor
           static WrapperImplTypePtr create() noexcept;
@@ -43,8 +49,8 @@ namespace wrapper {
           virtual void actual_startMediaTracing() noexcept;
           virtual void actual_stopMediaTracing() noexcept;
           virtual bool actual_isMediaTracing() noexcept;
-          virtual bool actual_saveMediaTrace(String filename) noexcept;
-          virtual bool actual_saveMediaTrace(
+          virtual bool actual_startMediaTrace(String filename) noexcept;
+          virtual bool actual_startMediaTrace(
                                              String host,
                                              int port
                                              ) noexcept;
