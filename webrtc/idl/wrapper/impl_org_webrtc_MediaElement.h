@@ -32,17 +32,17 @@ namespace wrapper {
 
 #ifdef WINUWP
 #ifdef __cplusplus_winrt
-          static wrapper::org::webrtc::MediaElementPtr toWrapper(Windows::UI::Xaml::Controls::MediaElement^ element) noexcept;
-          static Windows::UI::Xaml::Controls::MediaElement^ toNative_cx(wrapper::org::webrtc::MediaElementPtr element) noexcept;
+          [[nodiscard]] static wrapper::org::webrtc::MediaElementPtr toWrapper(Windows::UI::Xaml::Controls::MediaElement^ element) noexcept;
+          [[nodiscard]] static Windows::UI::Xaml::Controls::MediaElement^ toNative_cx(wrapper::org::webrtc::MediaElementPtr element) noexcept;
 #endif //__cplusplus_winrt
 #ifdef CPPWINRT_VERSION
-          static wrapper::org::webrtc::MediaElementPtr toWrapper(winrt::Windows::UI::Xaml::Controls::MediaElement const & element) noexcept;
-          static winrt::Windows::UI::Xaml::Controls::MediaElement toNative_winrt(wrapper::org::webrtc::MediaElementPtr element) noexcept;
+          [[nodiscard]] static wrapper::org::webrtc::MediaElementPtr toWrapper(winrt::Windows::UI::Xaml::Controls::MediaElement const & element) noexcept;
+          [[nodiscard]] static winrt::Windows::UI::Xaml::Controls::MediaElement toNative_winrt(wrapper::org::webrtc::MediaElementPtr element) noexcept;
 #endif // CPPWINRT_VERSION
 #else
 #ifdef _WIN32
-          static wrapper::org::webrtc::MediaElementPtr toWrapper(HWND element) noexcept;
-          static element toNative(wrapper::org::webrtc::MediaElementPtr element) noexcept;
+          [[nodiscard]] static wrapper::org::webrtc::MediaElementPtr toWrapper(HWND element) noexcept;
+          [[nodiscard]] static element toNative(wrapper::org::webrtc::MediaElementPtr element) noexcept;
 #endif //_WIN32
 #endif //WINUWP
 

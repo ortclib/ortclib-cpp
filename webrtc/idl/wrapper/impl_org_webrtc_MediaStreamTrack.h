@@ -30,7 +30,7 @@ namespace wrapper {
 
           rtc::scoped_refptr<NativeType> native_;
 
-          zsLib::Lock lock_;
+          mutable zsLib::Lock lock_;
           UseMediaElementPtr element_;
           UseMediaSourcePtr source_;
 
@@ -52,11 +52,11 @@ namespace wrapper {
 
           virtual void wrapper_onObserverCountChanged(size_t count) noexcept override;
 
-          void notifySourceChanged();
+          void notifySourceChanged(UseMediaSourcePtr source);
           void autoAttachSourceToElement();
 
           static WrapperImplTypePtr toWrapper(NativeType *native);
-          static rtc::scoped_refptr<NativeType> toNative(WrapperTypePtr wrapper);
+          [[nodiscard]] static rtc::scoped_refptr<NativeType> toNative(WrapperTypePtr wrapper);
         };
 
       } // webrtc

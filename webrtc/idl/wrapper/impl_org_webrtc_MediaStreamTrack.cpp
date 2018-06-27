@@ -80,6 +80,16 @@ static ::webrtc::VideoTrackInterface *unproxyVideoTrack(NativeType *track)
   return WRAPPER_DEPROXIFY_CLASS(::webrtc, VideoTrack, converted);
 }
 
+#ifdef CPPWINRT_VERSION
+#pragma ZS_BUILD_NOTE("TODO","(mosa) call this static method with new cppwinrt IMediaSource object and the appropriate events will fire to upper layers (REMOVE THIS TO ACKNOWLEDGE)")
+static void notifyAboutNewMediaSource(WrapperImplType &wrapper, winrt::Windows::Media::Core::IMediaSource const & newSource)
+{
+  typedef WrapperImplType::UseMediaSourceImpl UseMediaSourceImpl;
+  auto source = UseMediaSourceImpl::toWrapper(newSource);
+  wrapper.notifySourceChanged(source);
+}
+#endif //CPPWINRT_VERSION
+
 //------------------------------------------------------------------------------
 wrapper::impl::org::webrtc::MediaStreamTrack::MediaStreamTrack() noexcept
 {
@@ -106,7 +116,7 @@ void wrapper::impl::org::webrtc::MediaStreamTrack::wrapper_init_org_webrtc_Media
 //------------------------------------------------------------------------------
 wrapper::org::webrtc::MediaStreamTrackPtr wrapper::org::webrtc::MediaStreamTrack::createAudioSource(wrapper::org::webrtc::MediaConstraintsPtr constraints) noexcept
 {
-#pragma ZS_BUILD_NOTE("TODO","implement")
+#pragma ZS_BUILD_NOTE("IMPLEMENT","(robin)")
   wrapper::org::webrtc::MediaStreamTrackPtr result {};
   return result;
 }
@@ -114,7 +124,7 @@ wrapper::org::webrtc::MediaStreamTrackPtr wrapper::org::webrtc::MediaStreamTrack
 //------------------------------------------------------------------------------
 wrapper::org::webrtc::MediaStreamTrackPtr wrapper::org::webrtc::MediaStreamTrack::createVideoSource(wrapper::org::webrtc::MediaConstraintsPtr constraints) noexcept
 {
-#pragma ZS_BUILD_NOTE("TODO","implement")
+#pragma ZS_BUILD_NOTE("IMPLEMENT","(robin)")
   wrapper::org::webrtc::MediaStreamTrackPtr result {};
   return result;
 }
@@ -147,7 +157,7 @@ void wrapper::impl::org::webrtc::MediaStreamTrack::set_enabled(bool value) noexc
 
   native_->set_enabled(value);
 
-#pragma ZS_BUILD_NOTE("EXAMPLE","how to obtain the video track interface out of the native pointer (REMOVE THIS EXAMPLE)")
+#pragma ZS_BUILD_NOTE("EXAMPLE","(mosa) example of how to obtain the video track interface out of the native pointer (REMOVE THIS EXAMPLE)")
   // example of what to do to get the video track
   auto converted = dynamic_cast<::webrtc::VideoTrackInterface *>(native_.get());
   ZS_ASSERT(converted);
@@ -158,7 +168,7 @@ void wrapper::impl::org::webrtc::MediaStreamTrack::set_enabled(bool value) noexc
 //------------------------------------------------------------------------------
 wrapper::org::webrtc::MediaStreamTrackState wrapper::impl::org::webrtc::MediaStreamTrack::get_state() noexcept
 {
-#pragma ZS_BUILD_NOTE("TODO","implement")
+#pragma ZS_BUILD_NOTE("IMPLEMENT","(robin)")
   wrapper::org::webrtc::MediaStreamTrackState result {};
   return result;
 }
@@ -195,8 +205,13 @@ void wrapper::impl::org::webrtc::MediaStreamTrack::wrapper_onObserverCountChange
 }
 
 //------------------------------------------------------------------------------
-void WrapperImplType::notifySourceChanged()
+void WrapperImplType::notifySourceChanged(UseMediaSourcePtr source)
 {
+  {
+    zsLib::AutoLock lock(lock_);
+    source_ = source;
+  }
+
   // notify subscribers of event
   onMediaSourceChanged();
 
@@ -207,6 +222,8 @@ void WrapperImplType::notifySourceChanged()
 //------------------------------------------------------------------------------
 void WrapperImplType::autoAttachSourceToElement()
 {
+#pragma ZS_BUILD_NOTE("VERIFY","(mosa) verify this is correct behaviour (REMOVE IF GOOD)")
+
   if (!native_) return;
 
   UseMediaElementPtr element;
@@ -227,9 +244,7 @@ void WrapperImplType::autoAttachSourceToElement()
 
   auto winrtMediaSource = UseMediaSourceImpl::toNative_winrt(source);
   winrtMediaElement.SetMediaStreamSource(winrtMediaSource);
-#pragma ZS_BUILD_NOTE("TODO","(mosa) verify this is correct behaviour")
 #endif //CPPWINRT_VERSION
-
 }
 
 //------------------------------------------------------------------------------

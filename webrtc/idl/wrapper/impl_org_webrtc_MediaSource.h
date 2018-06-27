@@ -29,12 +29,12 @@ namespace wrapper {
 
 #ifdef WINUWP
 #ifdef __cplusplus_winrt
-          static wrapper::org::webrtc::MediaSourcePtr toWrapper(Windows::Media::Core::IMediaSource^ source) noexcept;
-          static Windows::Media::Core::IMediaSource^ toNative_cx(wrapper::org::webrtc::MediaSourcePtr source) noexcept;
+          [[nodiscard]] static wrapper::org::webrtc::MediaSourcePtr toWrapper(Windows::Media::Core::IMediaSource^ source) noexcept;
+          [[nodiscard]] static Windows::Media::Core::IMediaSource^ toNative_cx(wrapper::org::webrtc::MediaSourcePtr source) noexcept;
 #endif //__cplusplus_winrt
 #ifdef CPPWINRT_VERSION
-          static wrapper::org::webrtc::MediaSourcePtr toWrapper(winrt::Windows::Media::Core::IMediaSource const & source) noexcept;
-          static winrt::Windows::Media::Core::IMediaSource toNative_winrt(wrapper::org::webrtc::MediaSourcePtr source) noexcept;
+          [[nodiscard]] static wrapper::org::webrtc::MediaSourcePtr toWrapper(winrt::Windows::Media::Core::IMediaSource const & source) noexcept;
+          [[nodiscard]] static winrt::Windows::Media::Core::IMediaSource toNative_winrt(wrapper::org::webrtc::MediaSourcePtr source) noexcept;
 #endif // CPPWINRT_VERSION
 #else
 #ifdef _WIN32

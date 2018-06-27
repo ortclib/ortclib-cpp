@@ -15,7 +15,7 @@ namespace wrapper {
       namespace webrtc {
 
         template<class XClassType, class XProxyType, class XOriginalInterfaceType>
-        XOriginalInterfaceType *deproxifyClass(XClassType *possibleProxy) noexcept
+        [[nodiscard]] XOriginalInterfaceType *deproxifyClass(XClassType *possibleProxy) noexcept
         {
           do
           {
