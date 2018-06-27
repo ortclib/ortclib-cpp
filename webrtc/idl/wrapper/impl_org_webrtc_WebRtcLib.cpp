@@ -60,6 +60,14 @@ wrapper::impl::org::webrtc::WebRtcLib::~WebRtcLib()
 }
 
 //------------------------------------------------------------------------------
+WrapperImplTypePtr WrapperImplType::create() noexcept
+{
+  auto result = make_shared<WrapperImplType>();
+  result->thisWeak_ = result;
+  return result;
+}
+
+//------------------------------------------------------------------------------
 void wrapper::org::webrtc::WebRtcLib::setup() noexcept
 {
   auto singleton = WrapperImplType::singleton();

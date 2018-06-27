@@ -35,7 +35,7 @@ namespace wrapper {
           ::zsLib::Milliseconds ntpServerTime_;
 
           // constructor
-          static WrapperImplTypePtr create();
+          static WrapperImplTypePtr create() noexcept;
 
           // overrides of base class
           virtual void actual_setup() noexcept;
