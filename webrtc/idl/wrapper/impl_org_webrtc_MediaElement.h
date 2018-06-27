@@ -36,7 +36,7 @@ namespace wrapper {
           static Windows::UI::Xaml::Controls::MediaElement^ toNative_cx(wrapper::org::webrtc::MediaElementPtr element) noexcept;
 #endif //__cplusplus_winrt
 #ifdef CPPWINRT_VERSION
-          static wrapper::org::webrtc::MediaElementPtr toWrapper(winrt::Windows::UI::Xaml::Controls::MediaElement element) noexcept;
+          static wrapper::org::webrtc::MediaElementPtr toWrapper(winrt::Windows::UI::Xaml::Controls::MediaElement const & element) noexcept;
           static winrt::Windows::UI::Xaml::Controls::MediaElement toNative_winrt(wrapper::org::webrtc::MediaElementPtr element) noexcept;
 #endif // CPPWINRT_VERSION
 #else

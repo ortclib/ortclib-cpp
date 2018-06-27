@@ -141,7 +141,7 @@ Windows::Media::Core::IMediaSource^ wrapper::impl::org::webrtc::MediaSource::toN
 
 #ifdef CPPWINRT_VERSION
 
-wrapper::org::webrtc::MediaSourcePtr wrapper::impl::org::webrtc::MediaSource::toWrapper(winrt::Windows::Media::Core::IMediaSource source) noexcept
+wrapper::org::webrtc::MediaSourcePtr wrapper::impl::org::webrtc::MediaSource::toWrapper(winrt::Windows::Media::Core::IMediaSource const & source) noexcept
 {
   auto any{ make_shared<wrapper::impl::org::webrtc::MediaSourceWrapperAnyWinrt>() };
   any->source_ = source;

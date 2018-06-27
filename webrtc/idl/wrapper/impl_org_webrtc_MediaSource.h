@@ -33,7 +33,7 @@ namespace wrapper {
           static Windows::Media::Core::IMediaSource^ toNative_cx(wrapper::org::webrtc::MediaSourcePtr source) noexcept;
 #endif //__cplusplus_winrt
 #ifdef CPPWINRT_VERSION
-          static wrapper::org::webrtc::MediaSourcePtr toWrapper(winrt::Windows::Media::Core::IMediaSource source) noexcept;
+          static wrapper::org::webrtc::MediaSourcePtr toWrapper(winrt::Windows::Media::Core::IMediaSource const & source) noexcept;
           static winrt::Windows::Media::Core::IMediaSource toNative_winrt(wrapper::org::webrtc::MediaSourcePtr source) noexcept;
 #endif // CPPWINRT_VERSION
 #else

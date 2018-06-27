@@ -6,6 +6,8 @@
 #include <wrapper/generated/cppwinrt/cppwinrt_Helpers.h>
 #include <wrapper/override/cppwinrt/Org.Webrtc.MediaSource.h>
 
+#include <wrapper/impl_org_webrtc_MediaSource.h>
+
 using namespace winrt;
 
 //------------------------------------------------------------------------------
@@ -136,14 +138,18 @@ Org::Webrtc::MediaSource Org::Webrtc::implementation::MediaSource::CastFromIMedi
 Windows::Media::Core::IMediaSource Org::Webrtc::implementation::MediaSource::Source()
 {
   if (!native_) { throw hresult_error(E_POINTER); }
-  return nullptr; // ::Internal::Helper::ToCppWinrt(native_->get_source());
+
+  Windows::Media::Core::IMediaSource result{ nullptr };
+  result = wrapper::impl::org::webrtc::MediaSource::toNative_winrt(native_);
+  return result;
+
 }
 
 //------------------------------------------------------------------------------
-void Org::Webrtc::implementation::MediaSource::Source(Windows::Media::Core::IMediaSource const & )
+void Org::Webrtc::implementation::MediaSource::Source(Windows::Media::Core::IMediaSource const & source)
 {
   if (!native_) { throw hresult_error(E_POINTER); }
-  //native_->set_source(::Internal::Helper::FromCppWinrt(value));
+  native_ = wrapper::impl::org::webrtc::MediaSource::toWrapper(source);
 }
 
 

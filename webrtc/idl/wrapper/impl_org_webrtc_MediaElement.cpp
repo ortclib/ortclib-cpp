@@ -142,7 +142,7 @@ Windows::UI::Xaml::Controls::MediaElement^ wrapper::impl::org::webrtc::MediaElem
 
 #ifdef CPPWINRT_VERSION
 
-wrapper::org::webrtc::MediaElementPtr wrapper::impl::org::webrtc::MediaElement::toWrapper(winrt::Windows::UI::Xaml::Controls::MediaElement element) noexcept
+wrapper::org::webrtc::MediaElementPtr wrapper::impl::org::webrtc::MediaElement::toWrapper(winrt::Windows::UI::Xaml::Controls::MediaElement const & element) noexcept
 {
   auto any{ make_shared<wrapper::impl::org::webrtc::MediaElementWrapperAnyWinrt>() };
   any->element_ = element;

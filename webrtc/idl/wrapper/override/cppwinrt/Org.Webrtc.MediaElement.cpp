@@ -6,6 +6,8 @@
 #include <wrapper/generated/cppwinrt/cppwinrt_Helpers.h>
 #include <wrapper/override/cppwinrt/Org.Webrtc.MediaElement.h>
 
+#include <wrapper/impl_org_webrtc_MediaElement.h>
+
 using namespace winrt;
 
 //------------------------------------------------------------------------------
@@ -136,15 +138,16 @@ Org::Webrtc::MediaElement Org::Webrtc::implementation::MediaElement::CastFromIMe
 Windows::UI::Xaml::Controls::MediaElement Org::Webrtc::implementation::MediaElement::Element()
 {
   if (!native_) {throw hresult_error(E_POINTER);}
-  return nullptr;  //::Internal::Helper::ToCppWinrt(native_->get_element());
+
+  Windows::UI::Xaml::Controls::MediaElement result{ nullptr };
+  result = wrapper::impl::org::webrtc::MediaElement::toNative_winrt(native_);
+  return result;
 }
 
 //------------------------------------------------------------------------------
-void Org::Webrtc::implementation::MediaElement::Element(Windows::UI::Xaml::Controls::MediaElement const & )
+void Org::Webrtc::implementation::MediaElement::Element(Windows::UI::Xaml::Controls::MediaElement const & element)
 {
-  if (!native_) {throw hresult_error(E_POINTER);}
-  //native_->set_element(::Internal::Helper::FromCppWinrt(value));
+  native_ = wrapper::impl::org::webrtc::MediaElement::toWrapper(element);
 }
-
 
 #endif //ifndef CPPWINRT_USE_GENERATED_ORG_WEBRTC_MEDIAELEMENT
