@@ -292,6 +292,8 @@ void WrapperImplType::setupObserver()
 
   rtc::VideoSinkWants wants;
 
+#pragma ZS_BUILD_NOTE("TODO","(mosa) you may want to tweak these properties -- not sure")
+
   // wants.rotation_applied = ;
   // wants.black_frames = ;
   // wants.max_pixel_count = ;
