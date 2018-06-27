@@ -24,6 +24,9 @@
 #include "impl_org_webrtc_helpers.h"
 
 #include "impl_org_webrtc_pre_include.h"
+#include "pc/audiotrack.h"
+#include "pc/videotrack.h"
+#include "api/mediastreamtrackproxy.h"
 #include "impl_org_webrtc_post_include.h"
 
 using ::zsLib::String;
@@ -57,27 +60,21 @@ static UseWrapperMapper &mapperSingleton()
   return singleton;
 }
 
-#include "impl_org_webrtc_pre_include.h"
-#include "pc/audiotrack.h"
-#include "pc/videotrack.h"
-#include "api/mediastreamtrackproxy.h"
-#include "impl_org_webrtc_post_include.h"
-
 //------------------------------------------------------------------------------
-static ::webrtc::AudioTrackInterface *unproxyAudioTrack(NativeType *track)
+static ::webrtc::AudioTrackInterface *unproxyAudioTrack(NativeType *native)
 {
-  if (!track) return nullptr;
-  auto converted = dynamic_cast<::webrtc::AudioTrack *>(track);
+  if (!native) return nullptr;
+  auto converted = dynamic_cast<::webrtc::AudioTrack *>(native);
   if (!converted) return nullptr;
 
   return WRAPPER_DEPROXIFY_CLASS(::webrtc, AudioTrack, converted);
 }
 
 //------------------------------------------------------------------------------
-static ::webrtc::VideoTrackInterface *unproxyVideoTrack(NativeType *track)
+static ::webrtc::VideoTrackInterface *unproxyVideoTrack(NativeType *native)
 {
-  if (!track) return nullptr;
-  auto converted = dynamic_cast<::webrtc::VideoTrack *>(track);
+  if (!native) return nullptr;
+  auto converted = dynamic_cast<::webrtc::VideoTrack *>(native);
   if (!converted) return nullptr;
 
   return WRAPPER_DEPROXIFY_CLASS(::webrtc, VideoTrack, converted);
@@ -317,7 +314,7 @@ void WrapperImplType::teardownObserver()
 }
 
 //------------------------------------------------------------------------------
-void WrapperImplType::onFrame(const ::webrtc::VideoFrame& frame) noexcept
+void WrapperImplType::notifyFrame(const ::webrtc::VideoFrame& frame) noexcept
 {
 #pragma ZS_BUILD_NOTE("TODO","(mosa) call this static method with new cppwinrt IMediaSource object and the appropriate events will fire to upper layers")
   // winrt::Windows::Media::Core::IMediaSource source = some_value; // pick one definition
@@ -326,12 +323,12 @@ void WrapperImplType::onFrame(const ::webrtc::VideoFrame& frame) noexcept
 }
 
 //------------------------------------------------------------------------------
-void WrapperImplType::onDiscardedFrame() noexcept
+void WrapperImplType::notifyDiscardedFrame() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-WrapperImplTypePtr WrapperImplType::toWrapper(NativeType *native)
+WrapperImplTypePtr WrapperImplType::toWrapper(NativeType *native) noexcept
 {
   if (!native) return WrapperImplTypePtr();
 
@@ -356,7 +353,7 @@ WrapperImplTypePtr WrapperImplType::toWrapper(NativeType *native)
 }
 
 //------------------------------------------------------------------------------
-rtc::scoped_refptr<NativeType> WrapperImplType::toNative(WrapperTypePtr wrapper)
+rtc::scoped_refptr<NativeType> WrapperImplType::toNative(WrapperTypePtr wrapper) noexcept
 {
   if (!wrapper) return rtc::scoped_refptr<NativeType>();
   auto converted = ZS_DYNAMIC_PTR_CAST(WrapperImplType, wrapper);

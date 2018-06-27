@@ -39,7 +39,7 @@ namespace wrapper {
             {
               auto outer = outer_.lock();
               if (!outer) return;
-              outer->onFrame(frame);
+              outer->notifyFrame(frame);
             }
 
             // Should be called by the source when it discards the frame due to rate
@@ -48,7 +48,7 @@ namespace wrapper {
             {
               auto outer = outer_.lock();
               if (!outer) return;
-              outer->onDiscardedFrame();
+              outer->notifyDiscardedFrame();
             }
 
           private:
@@ -87,11 +87,11 @@ namespace wrapper {
           void teardownObserver();
 
           // WebrtcObserver methods
-          void onFrame(const ::webrtc::VideoFrame& frame) noexcept;
-          void onDiscardedFrame() noexcept;
+          void notifyFrame(const ::webrtc::VideoFrame& frame) noexcept;
+          void notifyDiscardedFrame() noexcept;
 
-          static WrapperImplTypePtr toWrapper(NativeType *native);
-          ZS_NO_DISCARD() static rtc::scoped_refptr<NativeType> toNative(WrapperTypePtr wrapper);
+          ZS_NO_DISCARD() static WrapperImplTypePtr toWrapper(NativeType *native) noexcept;
+          ZS_NO_DISCARD() static rtc::scoped_refptr<NativeType> toNative(WrapperTypePtr wrapper) noexcept;
         };
 
       } // webrtc
