@@ -56,7 +56,7 @@ namespace wrapper {
           void autoAttachSourceToElement();
 
           static WrapperImplTypePtr toWrapper(NativeType *native);
-          [[nodiscard]] static rtc::scoped_refptr<NativeType> toNative(WrapperTypePtr wrapper);
+          ZS_NO_DISCARD() static rtc::scoped_refptr<NativeType> toNative(WrapperTypePtr wrapper);
         };
 
       } // webrtc

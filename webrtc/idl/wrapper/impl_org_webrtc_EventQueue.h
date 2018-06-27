@@ -26,16 +26,16 @@ namespace wrapper {
 
 #ifdef WINUWP
 #ifdef __cplusplus_winrt
-          [[nodiscard]] static wrapper::org::webrtc::EventQueuePtr toWrapper(Windows::UI::Core::CoreDispatcher^ queue) noexcept;
-          [[nodiscard]] static Windows::UI::Core::CoreDispatcher^ toNative_cx(wrapper::org::webrtc::EventQueuePtr queue) noexcept;
+          ZS_NO_DISCARD() static wrapper::org::webrtc::EventQueuePtr toWrapper(Windows::UI::Core::CoreDispatcher^ queue) noexcept;
+          ZS_NO_DISCARD() static Windows::UI::Core::CoreDispatcher^ toNative_cx(wrapper::org::webrtc::EventQueuePtr queue) noexcept;
 #endif //__cplusplus_winrt
 #ifdef CPPWINRT_VERSION
-          [[nodiscard]] static wrapper::org::webrtc::EventQueuePtr toWrapper(winrt::Windows::UI::Core::CoreDispatcher queue) noexcept;
-          [[nodiscard]] static winrt::Windows::UI::Core::CoreDispatcher toNative_winrt(wrapper::org::webrtc::EventQueuePtr queue) noexcept;
+          ZS_NO_DISCARD() static wrapper::org::webrtc::EventQueuePtr toWrapper(winrt::Windows::UI::Core::CoreDispatcher queue) noexcept;
+          ZS_NO_DISCARD() static winrt::Windows::UI::Core::CoreDispatcher toNative_winrt(wrapper::org::webrtc::EventQueuePtr queue) noexcept;
 #endif // CPPWINRT_VERSION
 #else
-          [[nodiscard]] static wrapper::org::webrtc::EventQueuePtr toWrapper(::zsLib::IMessageQueuePtr queue) noexcept;
-          [[nodiscard]] static ::zsLib::IMessageQueuePtr toNative(wrapper::org::webrtc::EventQueuePtr queue) noexcept;
+          ZS_NO_DISCARD() static wrapper::org::webrtc::EventQueuePtr toWrapper(::zsLib::IMessageQueuePtr queue) noexcept;
+          ZS_NO_DISCARD() static ::zsLib::IMessageQueuePtr toNative(wrapper::org::webrtc::EventQueuePtr queue) noexcept;
 #endif //WINUWP
 
         };

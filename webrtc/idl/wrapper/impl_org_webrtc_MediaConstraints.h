@@ -53,6 +53,11 @@ namespace wrapper {
           void set_mandatory(shared_ptr< list< wrapper::org::webrtc::ConstraintPtr > > value) noexcept override;
           shared_ptr< list< wrapper::org::webrtc::ConstraintPtr > > get_optional() noexcept override;
           void set_optional(shared_ptr< list< wrapper::org::webrtc::ConstraintPtr > > value) noexcept override;
+
+          ZS_NO_DISCARD() static WrapperImplTypePtr toWrapper(NativeTypePtr native) noexcept;
+          ZS_NO_DISCARD() static WrapperImplTypePtr toWrapper(const NativeType &native) noexcept;
+
+          ZS_NO_DISCARD() static NativeTypePtr toNative(WrapperTypePtr wrapper) noexcept;
         };
 
       } // webrtc

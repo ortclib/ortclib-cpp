@@ -15,7 +15,11 @@ namespace wrapper {
 
         struct MediaSource : public wrapper::org::webrtc::MediaSource
         {
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::MediaSource, WrapperImplType);
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::org::webrtc::MediaSource, WrapperType);
+
           AnyPtr source_{};
+
           MediaSourceWeakPtr thisWeak_;
 
           MediaSource() noexcept;
@@ -26,15 +30,14 @@ namespace wrapper {
           AnyPtr get_source() noexcept override;
           void set_source(AnyPtr value) noexcept override;
 
-
 #ifdef WINUWP
 #ifdef __cplusplus_winrt
-          [[nodiscard]] static wrapper::org::webrtc::MediaSourcePtr toWrapper(Windows::Media::Core::IMediaSource^ source) noexcept;
-          [[nodiscard]] static Windows::Media::Core::IMediaSource^ toNative_cx(wrapper::org::webrtc::MediaSourcePtr source) noexcept;
+          ZS_NO_DISCARD() static wrapper::org::webrtc::MediaSourcePtr toWrapper(Windows::Media::Core::IMediaSource^ source) noexcept;
+          ZS_NO_DISCARD() static Windows::Media::Core::IMediaSource^ toNative_cx(wrapper::org::webrtc::MediaSourcePtr source) noexcept;
 #endif //__cplusplus_winrt
 #ifdef CPPWINRT_VERSION
-          [[nodiscard]] static wrapper::org::webrtc::MediaSourcePtr toWrapper(winrt::Windows::Media::Core::IMediaSource const & source) noexcept;
-          [[nodiscard]] static winrt::Windows::Media::Core::IMediaSource toNative_winrt(wrapper::org::webrtc::MediaSourcePtr source) noexcept;
+          ZS_NO_DISCARD() static wrapper::org::webrtc::MediaSourcePtr toWrapper(winrt::Windows::Media::Core::IMediaSource const & source) noexcept;
+          ZS_NO_DISCARD() static winrt::Windows::Media::Core::IMediaSource toNative_winrt(wrapper::org::webrtc::MediaSourcePtr source) noexcept;
 #endif // CPPWINRT_VERSION
 #else
 #ifdef _WIN32

@@ -39,6 +39,9 @@ using ::std::list;
 using ::std::set;
 using ::std::map;
 
+// borrow existing definitions from wrapper implementation
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::MediaElement::WrapperImplType, WrapperImplType);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::MediaElement::WrapperType, WrapperType);
 
 #ifdef WINUWP
 #ifdef __cplusplus_winrt
@@ -124,8 +127,9 @@ wrapper::org::webrtc::MediaElementPtr wrapper::impl::org::webrtc::MediaElement::
 {
   auto any{ make_shared<wrapper::impl::org::webrtc::MediaElementWrapperAnyCx>() };
   any->element_ = element;
-  auto result = wrapper::org::webrtc::MediaElement::wrapper_create();
-  result->element_ = element;
+  auto result = make_shared<WrapperImplType>();
+  result->thisWeak_ = result;
+  result->element_ = any;
   return result;
 }
 
@@ -146,8 +150,9 @@ wrapper::org::webrtc::MediaElementPtr wrapper::impl::org::webrtc::MediaElement::
 {
   auto any{ make_shared<wrapper::impl::org::webrtc::MediaElementWrapperAnyWinrt>() };
   any->element_ = element;
-  auto result = wrapper::org::webrtc::MediaElement::wrapper_create();
-  any->element_ = element;
+  auto result = make_shared<WrapperImplType>();
+  result->thisWeak_ = result;
+  result->element_ = any;
   return result;
 }
 

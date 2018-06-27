@@ -39,10 +39,10 @@ namespace wrapper {
           String get_value() noexcept override;
           void set_value(String value) noexcept override;
 
-          [[nodiscard]] static WrapperImplTypePtr toWrapper(const NativeType &native) noexcept;
-          [[nodiscard]] static WrapperImplTypePtr toWrapper(NativeTypePtr native) noexcept;
+          ZS_NO_DISCARD() static WrapperImplTypePtr toWrapper(const NativeType &native) noexcept;
+          ZS_NO_DISCARD() static WrapperImplTypePtr toWrapper(NativeTypePtr native) noexcept;
 
-          [[nodiscard]] static NativeTypePtr toNative(WrapperTypePtr wrapper) noexcept;
+          ZS_NO_DISCARD() static NativeTypePtr toNative(WrapperTypePtr wrapper) noexcept;
         };
 
       } // webrtc

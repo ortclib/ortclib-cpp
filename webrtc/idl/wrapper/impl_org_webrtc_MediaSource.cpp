@@ -38,6 +38,9 @@ using ::std::list;
 using ::std::set;
 using ::std::map;
 
+// borrow existing definitions from wrapper implementation
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::MediaSource::WrapperImplType, WrapperImplType);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::MediaSource::WrapperType, WrapperType);
 
 
 #ifdef WINUWP
@@ -57,7 +60,7 @@ namespace wrapper { namespace impl { namespace org { namespace webrtc {
 #ifdef CPPWINRT_VERSION
 
 namespace wrapper { namespace impl { namespace org { namespace webrtc {
-        ZS_DECLARE_STRUCT_PTR(MediaSourceWrapperAnyCx);
+        ZS_DECLARE_STRUCT_PTR(MediaSourceWrapperAnyWinrt);
 
         struct MediaSourceWrapperAnyWinrt : Any
         {
@@ -123,8 +126,9 @@ wrapper::org::webrtc::MediaSourcePtr wrapper::impl::org::webrtc::MediaSource::to
 {
   auto any{ make_shared<wrapper::impl::org::webrtc::MediaSourceWrapperAnyCx>() };
   any->source_ = source;
-  auto result = wrapper::org::webrtc::MediaSource::wrapper_create();
-  result->source_ = source;
+  auto result = make_shared<WrapperImplType>();
+  result->thisWeak_ = result;
+  result->source_ = any;
   return result;
 }
 
@@ -145,8 +149,9 @@ wrapper::org::webrtc::MediaSourcePtr wrapper::impl::org::webrtc::MediaSource::to
 {
   auto any{ make_shared<wrapper::impl::org::webrtc::MediaSourceWrapperAnyWinrt>() };
   any->source_ = source;
-  auto result = wrapper::org::webrtc::MediaSource::wrapper_create();
-  any->source_ = source;
+  auto result = make_shared<WrapperImplType>();
+  result->thisWeak_ = result;
+  result->source_ = any;
   return result;
 }
 

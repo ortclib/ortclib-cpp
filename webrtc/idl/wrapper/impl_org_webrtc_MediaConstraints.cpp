@@ -163,5 +163,30 @@ void wrapper::impl::org::webrtc::MediaConstraints::set_optional(shared_ptr< list
   fillNativeList(value, native_->optional_);
 }
 
+//------------------------------------------------------------------------------
+WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypePtr native) noexcept
+{
+  if (!native) return WrapperImplTypePtr();
+  return toWrapper(*native);
+}
 
-#pragma ZS_BUILD_NOTE("TODO","(robin) no conversion routines are present")
+//------------------------------------------------------------------------------
+WrapperImplTypePtr WrapperImplType::toWrapper(const NativeType &native) noexcept
+{
+  auto nativeImpl = make_shared<NativeImplType>(native.GetMandatory(), native.GetOptional());
+
+  auto result = make_shared<WrapperImplType>();
+  result->thisWeak_ = result;
+  result->native_ = nativeImpl;
+  return result;
+}
+
+//------------------------------------------------------------------------------
+NativeTypePtr WrapperImplType::toNative(WrapperTypePtr wrapper) noexcept
+{
+  if (!wrapper) return NativeTypePtr();
+  auto converted = ZS_DYNAMIC_PTR_CAST(WrapperImplType, wrapper);
+  ZS_ASSERT(converted);
+  if (!converted) return NativeTypePtr();
+  return converted->native_;
+}
