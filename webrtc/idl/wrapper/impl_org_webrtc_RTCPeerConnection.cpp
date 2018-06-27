@@ -1,8 +1,9 @@
 
 #include "impl_org_webrtc_RTCPeerConnection.h"
 #include "impl_org_webrtc_helpers.h"
-#include "impl_org_webrtc_WebrtcLib.h"
 #include "impl_org_webrtc_RTCConfiguration.h"
+#include "impl_org_webrtc_RTCError.h"
+#include "impl_org_webrtc_WebrtcLib.h"
 
 #include "impl_org_webrtc_pre_include.h"
 #include "api/peerconnectionproxy.h"
@@ -39,6 +40,7 @@ typedef wrapper::impl::org::webrtc::WrapperMapper<NativeType, WrapperImplType> U
 
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::WebRtcLib, UseWebrtcLib);
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::RTCConfiguration, UseConfiguration);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::RTCError, UseError);
 
 //------------------------------------------------------------------------------
 static UseWrapperMapper &mapperSingleton()
@@ -171,10 +173,7 @@ void wrapper::impl::org::webrtc::RTCPeerConnection::setConfiguration(wrapper::or
   if (!nativeConfig) return;
 
   ::webrtc::RTCError error;
-  if (!native_->SetConfiguration(*nativeConfig, &error)) {
-#define WARNING_TODO 1
-#define WARNING_TODO 2
-  }
+  if (!native_->SetConfiguration(*nativeConfig, &error)) throw UseError::toWrapper(error);
 }
 
 //------------------------------------------------------------------------------
@@ -197,6 +196,9 @@ void wrapper::impl::org::webrtc::RTCPeerConnection::setBitrate(wrapper::org::web
 //------------------------------------------------------------------------------
 void wrapper::impl::org::webrtc::RTCPeerConnection::close() noexcept
 {
+  ZS_ASSERT(native_);
+  if (!native_) return;
+  native_->Close();
 }
 
 //------------------------------------------------------------------------------

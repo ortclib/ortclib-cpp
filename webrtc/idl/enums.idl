@@ -794,6 +794,30 @@ namespace org
       inactive
     };
 
+
+    /// <summary>
+    /// Current state of the capturer.
+    /// </summary>
+    enum VideoCaptureState
+    {
+      /// <summary>
+      /// The capturer has been stopped or hasn't started yet.
+      /// </summary>
+      stopped,
+      /// <summary>
+      /// The capturer is in the process of starting. Note, it may still fail to start.
+      /// </summary>
+      starting,
+      /// <summary>
+      /// The capturer has been started successfully and is now capturing.
+      /// </summary>
+      running,
+      /// <summary>
+      /// The capturer failed to start.
+      /// </summary>
+      failed,
+    };
+
   }
 }
 

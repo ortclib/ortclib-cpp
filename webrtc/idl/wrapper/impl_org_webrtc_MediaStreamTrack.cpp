@@ -19,14 +19,17 @@
 #endif //WINUWP
 
 #include "impl_org_webrtc_MediaStreamTrack.h"
+
+#include "impl_org_webrtc_helpers.h"
 #include "impl_org_webrtc_MediaElement.h"
 #include "impl_org_webrtc_MediaSource.h"
-#include "impl_org_webrtc_helpers.h"
+#include "impl_org_webrtc_WebrtcLib.h"
 
 #include "impl_org_webrtc_pre_include.h"
 #include "pc/audiotrack.h"
 #include "pc/videotrack.h"
 #include "api/mediastreamtrackproxy.h"
+#include "api/peerconnectioninterface.h"
 #include "impl_org_webrtc_post_include.h"
 
 using ::zsLib::String;
@@ -52,6 +55,8 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::MediaStreamTrack::WrapperImpl
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::MediaStreamTrack::NativeType, NativeType);
 
 typedef wrapper::impl::org::webrtc::WrapperMapper<NativeType, WrapperImplType> UseWrapperMapper;
+
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::WebRtcLib, UseWebrtcLib);
 
 //------------------------------------------------------------------------------
 static UseWrapperMapper &mapperSingleton()
@@ -133,6 +138,12 @@ void wrapper::impl::org::webrtc::MediaStreamTrack::wrapper_init_org_webrtc_Media
 //------------------------------------------------------------------------------
 wrapper::org::webrtc::MediaStreamTrackPtr wrapper::org::webrtc::MediaStreamTrack::createAudioSource(wrapper::org::webrtc::MediaConstraintsPtr constraints) noexcept
 {
+  //HERE
+
+  auto factory = UseWebrtcLib::peerConnectionFactory();
+  if (!factory) return WrapperTypePtr();
+
+  factory->
 #pragma ZS_BUILD_NOTE("IMPLEMENT","(robin)")
   wrapper::org::webrtc::MediaStreamTrackPtr result {};
   return result;

@@ -40,6 +40,7 @@ namespace org
 
     typedef std::list<string> StringList;
     typedef zs::Milliseconds Milliseconds;
+    typedef zs::Nanoseconds Nanoseconds;
 
     typedef zs::Any Any;
     typedef zs::Time Time;
@@ -47,6 +48,7 @@ namespace org
     typedef zs::size_t size_t;
     typedef zs::Promise Promise;
 
+    struct VideoFormat;
     struct RTCOAuthCredential;
     struct RTCIceServer;
     struct RTCConfiguration;
@@ -86,6 +88,7 @@ namespace org
     typedef zs::PromiseWith<RTCSessionDescription> PromiseWithDescription;
     typedef zs::PromiseWith<RTCCertificate> PromiseWithRTCCertificate;
 
+    typedef std::list<VideoFormat> VideoFormats;
     typedef std::list<RTCRtpCodecCapability> RTCRtpCodecCapabilityList;
     typedef std::list<RTCRtpDecodingParameters> RTCRtpDecodingParametersList;
     typedef std::list<RTCRtpSynchronizationSource> RTCRtpSynchronizationSources;
