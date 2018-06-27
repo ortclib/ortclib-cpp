@@ -10,6 +10,7 @@ namespace wrapper {
     namespace org {
       namespace webrtc {
 
+        ZS_DECLARE_STRUCT_PTR(AudioOptions);
         ZS_DECLARE_STRUCT_PTR(Constraint);
         ZS_DECLARE_STRUCT_PTR(EventQueue);
         ZS_DECLARE_STRUCT_PTR(EventQueueMaker);
@@ -80,6 +81,9 @@ namespace wrapper {
         ZS_DECLARE_STRUCT_PTR(RTCStatsReport);
         ZS_DECLARE_STRUCT_PTR(RTCStatsTypeSet);
         ZS_DECLARE_STRUCT_PTR(RTCTrackEvent);
+        ZS_DECLARE_STRUCT_PTR(VideoCapturer);
+        ZS_DECLARE_STRUCT_PTR(VideoCapturerInputSize);
+        ZS_DECLARE_STRUCT_PTR(VideoFormat);
         ZS_DECLARE_STRUCT_PTR(WebRtcLib);
 
       } // namespace webrtc
