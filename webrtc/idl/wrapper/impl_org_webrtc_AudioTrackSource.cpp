@@ -1,9 +1,8 @@
 
 #include "impl_org_webrtc_AudioTrackSource.h"
-
+#include "impl_org_webrtc_helpers.h"
 
 #include "impl_org_webrtc_pre_include.h"
-#include "api/mediastreaminterface.h"
 #include "impl_org_webrtc_post_include.h"
 
 using ::zsLib::String;
@@ -23,6 +22,34 @@ using ::std::make_shared;
 using ::std::list;
 using ::std::set;
 using ::std::map;
+
+// borrow types from call defintions
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::AudioTrackSource::WrapperType, WrapperType);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::AudioTrackSource::WrapperImplType, WrapperImplType);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::AudioTrackSource::NativeType, NativeType);
+
+typedef WrapperImplType::NativeScopedPtr NativeScopedPtr;
+
+typedef wrapper::impl::org::webrtc::WrapperMapper<NativeType, WrapperImplType> UseWrapperMapper;
+
+//------------------------------------------------------------------------------
+static UseWrapperMapper &mapperSingleton()
+{
+  static UseWrapperMapper singleton;
+  return singleton;
+}
+
+#if 0
+//------------------------------------------------------------------------------
+static NativeType *unproxy(NativeType *native)
+{
+  if (!native) return nullptr;
+  auto converted = dynamic_cast<::webrtc::AudioSource *>(native);
+  if (!converted) return nullptr;
+
+  return WRAPPER_DEPROXIFY_CLASS(::webrtc, AudioSource, converted);
+}
+#endif //0
 
 //------------------------------------------------------------------------------
 wrapper::impl::org::webrtc::AudioTrackSource::AudioTrackSource() noexcept
@@ -57,13 +84,17 @@ wrapper::org::webrtc::MediaSourceState wrapper::impl::org::webrtc::AudioTrackSou
 //------------------------------------------------------------------------------
 bool wrapper::impl::org::webrtc::AudioTrackSource::get_remote() noexcept
 {
-  bool result {};
-  return result;
+  ZS_ASSERT(native_);
+  if (!native_) return;
+  return native_->remote();
 }
 
 //------------------------------------------------------------------------------
 void wrapper::impl::org::webrtc::AudioTrackSource::set_volume(double value) noexcept
 {
+  ZS_ASSERT(native_);
+  if (!native_) return;
+  native_->SetVolume(value);
 }
 
 //------------------------------------------------------------------------------
@@ -71,4 +102,33 @@ void wrapper::impl::org::webrtc::AudioTrackSource::wrapper_onObserverCountChange
 {
 }
 
+//------------------------------------------------------------------------------
+void WrapperImplType::notifyVolume(double volume) noexcept
+{
+  onSetVolume(volume);
+}
 
+//------------------------------------------------------------------------------
+WrapperImplTypePtr WrapperImplType::toWrapper(NativeType *native) noexcept
+{
+  if (!native) return WrapperImplTypePtr();
+
+  // search for original non-proxied pointer in map
+  auto wrapper = mapperSingleton().getExistingOrCreateNew(native, [native]() {
+    auto result = make_shared<WrapperImplType>();
+    result->thisWeak_ = result;
+    result->native_ = rtc::scoped_refptr<NativeType>(native); // only use proxy and never original pointer
+    result->setupObserver();
+    return result;
+  });
+  return wrapper;
+}
+
+//------------------------------------------------------------------------------
+rtc::scoped_refptr<NativeType> WrapperImplType::toNative(WrapperTypePtr wrapper) noexcept
+{
+  if (!wrapper) return rtc::scoped_refptr<NativeType>();
+  auto converted = ZS_DYNAMIC_PTR_CAST(WrapperImplType, wrapper);
+  if (!converted) return rtc::scoped_refptr<NativeType>();
+  return converted->native_;
+}
