@@ -159,12 +159,12 @@ namespace org
       Time expires;
 
       /// <summary>
-      /// Gets the fingerprint of the certificate. As noted in
-      /// [draft-ietf-rtcweb-jsep] Section 5.2.1, the digest algorithm used
-      /// for the fingerprint matches that used in the certificate signature.
+      ///Returns the list of certificate fingerprints, one of
+      /// which is computed with the digest algorithm used in the
+      /// certificate signature.
       /// </summary>
       [getter]
-      RTCDtlsFingerprint fingerprint;
+      RTCDtlsFingerprints fingerprints;
     };
   }
 }

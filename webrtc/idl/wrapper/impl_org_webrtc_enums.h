@@ -55,6 +55,10 @@ namespace wrapper {
           static wrapper::org::webrtc::RTCSdpSemantics toWrapper(::webrtc::SdpSemantics value) noexcept;
           static ::webrtc::SdpSemantics toNative(wrapper::org::webrtc::RTCSdpSemantics value) noexcept;
 
+          static wrapper::org::webrtc::RTCTlsCertPolicy toWrapper(::webrtc::PeerConnectionInterface::TlsCertPolicy value) noexcept;
+          static ::webrtc::PeerConnectionInterface::TlsCertPolicy toNative(wrapper::org::webrtc::RTCTlsCertPolicy value) noexcept;
+
+
         };
 
       } // webrtc

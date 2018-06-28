@@ -256,3 +256,27 @@ wrapper::org::webrtc::RTCSdpSemantics UseEnum::toWrapper(::webrtc::SdpSemantics 
   ZS_ASSERT_FAIL("unknown type");
   return ::webrtc::SdpSemantics::kDefault;
 }
+
+//-----------------------------------------------------------------------------
+wrapper::org::webrtc::RTCTlsCertPolicy toWrapper(::webrtc::PeerConnectionInterface::TlsCertPolicy value) noexcept
+{
+  switch (value)
+  {
+    case ::webrtc::PeerConnectionInterface::TlsCertPolicy::kTlsCertPolicySecure:          return wrapper::org::webrtc::RTCTlsCertPolicy::RTCTlsCertPolicy_tlsCertPolicySecure;
+    case ::webrtc::PeerConnectionInterface::TlsCertPolicy::kTlsCertPolicyInsecureNoCheck: return wrapper::org::webrtc::RTCTlsCertPolicy::RTCTlsCertPolicy_tlsCertPolicyInsecureNoCheck;
+  }
+  ZS_ASSERT_FAIL("unknown type");
+  return wrapper::org::webrtc::RTCTlsCertPolicy::RTCTlsCertPolicy_tlsCertPolicySecure;
+}
+
+//-----------------------------------------------------------------------------
+::webrtc::PeerConnectionInterface::TlsCertPolicy toNative(wrapper::org::webrtc::RTCTlsCertPolicy value) noexcept
+{
+  switch (value)
+  {
+    case wrapper::org::webrtc::RTCTlsCertPolicy::RTCTlsCertPolicy_tlsCertPolicySecure:          return ::webrtc::PeerConnectionInterface::TlsCertPolicy::kTlsCertPolicySecure;
+    case wrapper::org::webrtc::RTCTlsCertPolicy::RTCTlsCertPolicy_tlsCertPolicyInsecureNoCheck: return ::webrtc::PeerConnectionInterface::TlsCertPolicy::kTlsCertPolicyInsecureNoCheck;
+  }
+  ZS_ASSERT_FAIL("unknown type");
+  return ::webrtc::PeerConnectionInterface::TlsCertPolicy::kTlsCertPolicySecure;
+}
