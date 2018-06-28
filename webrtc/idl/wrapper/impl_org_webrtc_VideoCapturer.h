@@ -28,7 +28,6 @@ namespace wrapper {
           virtual ~VideoCapturer() noexcept;
 
           // methods VideoCapturer
-          void wrapper_init_org_webrtc_VideoCapturer() noexcept override;
           shared_ptr< list< wrapper::org::webrtc::VideoFormatPtr > > getSupportedFormats() noexcept override;
           wrapper::org::webrtc::VideoFormatPtr getBestCaptureFormat(wrapper::org::webrtc::VideoFormatPtr desired) noexcept override;
           wrapper::org::webrtc::VideoCaptureState start(wrapper::org::webrtc::VideoFormatPtr captureFormat) noexcept override;
