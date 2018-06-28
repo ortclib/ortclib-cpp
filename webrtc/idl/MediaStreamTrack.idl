@@ -51,13 +51,13 @@ namespace org
       /// Creates an audio MediaStreamTrack for use with an RtpSender.
       /// </summary>
       [static]
-      MediaStreamTrack createAudioTrack(AudioTrackSource source);
+      MediaStreamTrack createAudioTrack(string label, AudioTrackSource source);
 
       /// <summary>
       /// Creates a video MediaStreamTrack for use with an RtpSender.
       /// </summary>
       [static]
-      MediaStreamTrack createVideoTrack(VideoTrackSource source);
+      MediaStreamTrack createVideoTrack(string label, VideoTrackSource source);
 
       /// <summary>
       /// Gets the kind attribute. MUST return the string "audio" if
