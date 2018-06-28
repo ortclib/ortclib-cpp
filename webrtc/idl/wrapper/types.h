@@ -87,6 +87,7 @@ namespace wrapper {
         ZS_DECLARE_STRUCT_PTR(VideoCapturerInputSize);
         ZS_DECLARE_STRUCT_PTR(VideoFormat);
         ZS_DECLARE_STRUCT_PTR(VideoTrackSource);
+        ZS_DECLARE_STRUCT_PTR(VideoTrackSourceStats);
         ZS_DECLARE_STRUCT_PTR(WebRtcLib);
 
       } // namespace webrtc

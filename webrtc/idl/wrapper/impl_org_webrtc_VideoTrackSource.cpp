@@ -76,4 +76,11 @@ Optional< bool > wrapper::impl::org::webrtc::VideoTrackSource::get_needsDenoisin
   return result;
 }
 
+//------------------------------------------------------------------------------
+Optional< wrapper::org::webrtc::VideoTrackSourceStatsPtr > wrapper::impl::org::webrtc::VideoTrackSource::get_stats() noexcept
+{
+  Optional< wrapper::org::webrtc::VideoTrackSourceStatsPtr > result {};
+  return result;
+}
+
 

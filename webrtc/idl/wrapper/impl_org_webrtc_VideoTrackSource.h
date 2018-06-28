@@ -27,6 +27,7 @@ namespace wrapper {
           bool get_isScreencast() noexcept override;
           void set_isScreencast(bool value) noexcept override;
           Optional< bool > get_needsDenoising() noexcept override;
+          Optional< wrapper::org::webrtc::VideoTrackSourceStatsPtr > get_stats() noexcept override;
         };
 
       } // webrtc
