@@ -1,6 +1,9 @@
 
 #include "impl_org_webrtc_AudioTrackSource.h"
 #include "impl_org_webrtc_helpers.h"
+#include "impl_org_webrtc_AudioOptions.h"
+#include "impl_org_webrtc_MediaConstraints.h"
+#include "impl_org_webrtc_WebrtcLib.h"
 
 #include "impl_org_webrtc_pre_include.h"
 #include "impl_org_webrtc_post_include.h"
@@ -31,6 +34,10 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::AudioTrackSource::NativeType,
 typedef WrapperImplType::NativeScopedPtr NativeScopedPtr;
 
 typedef wrapper::impl::org::webrtc::WrapperMapper<NativeType, WrapperImplType> UseWrapperMapper;
+
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::WebRtcLib, UseWebrtcLib);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::MediaConstraints, UseMediaConstraints);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::AudioOptions, UseAudioOptions);
 
 //------------------------------------------------------------------------------
 static UseWrapperMapper &mapperSingleton()
@@ -70,7 +77,39 @@ wrapper::impl::org::webrtc::AudioTrackSource::~AudioTrackSource()
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webrtc::AudioTrackSource::wrapper_init_org_webrtc_AudioTrackSource() noexcept
+void wrapper::impl::org::webrtc::AudioTrackSource::wrapper_init_org_webrtc_AudioTrackSource(wrapper::org::webrtc::AudioOptionsPtr options) noexcept
+{
+  auto factory = UseWebrtcLib::peerConnectionFactory();
+  ZS_ASSERT(factory);
+  if (!factory) return;
+
+  auto converted = UseAudioOptions::toNative(options);
+
+  native_ = factory->CreateAudioSource(*converted);
+  ZS_ASSERT(native_);
+  if (!native_) return;
+
+  setupObserver();
+}
+
+//------------------------------------------------------------------------------
+void wrapper::impl::org::webrtc::AudioTrackSource::wrapper_init_org_webrtc_AudioTrackSource(wrapper::org::webrtc::MediaConstraintsPtr constraints) noexcept
+{
+  auto factory = UseWebrtcLib::peerConnectionFactory();
+  ZS_ASSERT(factory);
+  if (!factory) return;
+
+  auto converted = UseMediaConstraints::toNative(constraints);
+
+  native_ = factory->CreateAudioSource(converted.get());
+  ZS_ASSERT(native_);
+  if (!native_) return;
+
+  setupObserver();
+}
+
+//------------------------------------------------------------------------------
+void wrapper::impl::org::webrtc::AudioTrackSource::wrapper_onObserverCountChanged(size_t count) noexcept
 {
 }
 
@@ -95,11 +134,6 @@ void wrapper::impl::org::webrtc::AudioTrackSource::set_volume(double value) noex
   ZS_ASSERT(native_);
   if (!native_) return;
   native_->SetVolume(value);
-}
-
-//------------------------------------------------------------------------------
-void wrapper::impl::org::webrtc::AudioTrackSource::wrapper_onObserverCountChanged(size_t count) noexcept
-{
 }
 
 //------------------------------------------------------------------------------

@@ -50,7 +50,10 @@ namespace wrapper {
           // properties MediaTrackSource
           wrapper::org::webrtc::MediaSourceState get_state() noexcept override;
           bool get_remote() noexcept override;
-          void wrapper_init_org_webrtc_AudioTrackSource() noexcept override;
+
+          // methods AudioTrackSource
+          void wrapper_init_org_webrtc_AudioTrackSource(wrapper::org::webrtc::AudioOptionsPtr options) noexcept override;
+          void wrapper_init_org_webrtc_AudioTrackSource(wrapper::org::webrtc::MediaConstraintsPtr constraints) noexcept override;
 
           // properties AudioTrackSource
           void set_volume(double value) noexcept override;

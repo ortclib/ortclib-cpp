@@ -66,7 +66,6 @@ namespace wrapper {
 
           MediaStreamTrack() noexcept;
           virtual ~MediaStreamTrack() noexcept;
-          void wrapper_init_org_webrtc_MediaStreamTrack() noexcept override;
 
           // properties MediaStreamTrack
           String get_kind() noexcept override;

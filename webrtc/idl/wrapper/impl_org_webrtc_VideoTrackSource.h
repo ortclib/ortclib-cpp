@@ -21,7 +21,10 @@ namespace wrapper {
           // properties MediaTrackSource
           wrapper::org::webrtc::MediaSourceState get_state() noexcept override;
           bool get_remote() noexcept override;
-          void wrapper_init_org_webrtc_VideoTrackSource() noexcept override;
+
+          // methods VideoTrackSource
+          void wrapper_init_org_webrtc_VideoTrackSource(wrapper::org::webrtc::VideoCapturerPtr capturer) noexcept override;
+          void wrapper_init_org_webrtc_VideoTrackSource(wrapper::org::webrtc::MediaConstraintsPtr constraints) noexcept override;
 
           // properties VideoTrackSource
           bool get_isScreencast() noexcept override;

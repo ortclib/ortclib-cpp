@@ -85,6 +85,7 @@ namespace org
     interface RTCIceCandidate;
     interface RTCCertificate;
     interface RTCKeyParams;
+    interface VideoCapturer;
 
     typedef zs::PromiseWith<RTCSessionDescription> PromiseWithDescription;
     typedef zs::PromiseWith<RTCCertificate> PromiseWithRTCCertificate;

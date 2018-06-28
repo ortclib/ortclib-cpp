@@ -44,30 +44,9 @@ namespace org
     /// </summary>
     interface MediaStreamTrack
     {
-      /// <summary>
-      /// Creates an AudioTrackSource for use with an MediaStreamTrack.
-      /// </summary>
-      [static]
-      AudioTrackSource createAudioTrackSource(MediaConstraints constraints);
-
-      /// <summary>
-      /// Creates an AudioTrackSource for use with an MediaStreamTrack.
-      /// </summary>
-      [static]
-      AudioTrackSource createAudioTrackSource(AudioOptions options);
-
-      /// <summary>
-      /// Creates a VideoTrackSource for use with an MediaStreamTrack.
-      /// </summary>
-      [static]
-      VideoTrackSource createVideoTrackSource(MediaConstraints constraints);
-
-      /// <summary>
-      /// Creates an VideoTrackSource for use with an MediaStreamTrack.
-      /// </summary>
-      [static]
-      VideoTrackSource createVideoTrackSource(VideoCapturer capturer);
-
+      [constructor,delete]
+      void MediaStreamTrack();
+      
       /// <summary>
       /// Creates an audio MediaStreamTrack for use with an RtpSender.
       /// </summary>

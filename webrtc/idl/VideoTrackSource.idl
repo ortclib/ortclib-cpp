@@ -49,6 +49,21 @@ namespace org
     /// </summary>
     interface VideoTrackSource : MediaTrackSource
     {
+      [constructor, delete]
+      void VideoTrackSource();
+      
+      /// <summary>
+      /// Creates an VideoTrackSource for use with an MediaStreamTrack.
+      /// </summary>
+      [static, default]
+      VideoTrackSource create(VideoCapturer capturer);
+
+      /// <summary>
+      /// Creates a VideoTrackSource for use with an MediaStreamTrack.
+      /// </summary>
+      [static, default, altname(createWithContraints)]
+      VideoTrackSource create(VideoCapturer capturer, MediaConstraints constraints);
+
       /// <summary>
       /// Indicates that parameters suitable for screencasts should be automatically
       /// applied to RtpSenders.

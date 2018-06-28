@@ -39,11 +39,6 @@ wrapper::impl::org::webrtc::VideoTrackSource::~VideoTrackSource()
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webrtc::VideoTrackSource::wrapper_init_org_webrtc_VideoTrackSource() noexcept
-{
-}
-
-//------------------------------------------------------------------------------
 wrapper::org::webrtc::MediaSourceState wrapper::impl::org::webrtc::VideoTrackSource::get_state() noexcept
 {
   wrapper::org::webrtc::MediaSourceState result {};
@@ -55,6 +50,16 @@ bool wrapper::impl::org::webrtc::VideoTrackSource::get_remote() noexcept
 {
   bool result {};
   return result;
+}
+
+//------------------------------------------------------------------------------
+void wrapper::impl::org::webrtc::VideoTrackSource::wrapper_init_org_webrtc_VideoTrackSource(wrapper::org::webrtc::VideoCapturerPtr capturer) noexcept
+{
+}
+
+//------------------------------------------------------------------------------
+void wrapper::impl::org::webrtc::VideoTrackSource::wrapper_init_org_webrtc_VideoTrackSource(wrapper::org::webrtc::MediaConstraintsPtr constraints) noexcept
+{
 }
 
 //------------------------------------------------------------------------------

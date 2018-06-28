@@ -23,7 +23,6 @@
 #include "impl_org_webrtc_helpers.h"
 #include "impl_org_webrtc_MediaElement.h"
 #include "impl_org_webrtc_MediaSource.h"
-#include "impl_org_webrtc_AudioOptions.h"
 #include "impl_org_webrtc_MediaConstraints.h"
 #include "impl_org_webrtc_WebrtcLib.h"
 
@@ -60,8 +59,6 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::MediaStreamTrack::NativeType,
 typedef wrapper::impl::org::webrtc::WrapperMapper<NativeType, WrapperImplType> UseWrapperMapper;
 
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::WebRtcLib, UseWebrtcLib);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::MediaConstraints, UseMediaConstraints);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::AudioOptions, UseAudioOptions);
 
 //------------------------------------------------------------------------------
 static UseWrapperMapper &mapperSingleton()
@@ -135,10 +132,6 @@ wrapper::impl::org::webrtc::MediaStreamTrack::~MediaStreamTrack()
   mapperSingleton().remove(native_.get());
 }
 
-//------------------------------------------------------------------------------
-void wrapper::impl::org::webrtc::MediaStreamTrack::wrapper_init_org_webrtc_MediaStreamTrack() noexcept
-{
-}
 
 //------------------------------------------------------------------------------
 wrapper::org::webrtc::AudioTrackSourcePtr wrapper::org::webrtc::MediaStreamTrack::createAudioTrackSource(wrapper::org::webrtc::MediaConstraintsPtr constraints) noexcept
