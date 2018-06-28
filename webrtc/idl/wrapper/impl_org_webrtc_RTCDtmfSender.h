@@ -36,7 +36,7 @@ namespace wrapper {
           ::zsLib::Milliseconds get_duration() noexcept override;
           ::zsLib::Milliseconds get_interToneGap() noexcept override;
 
-          virtual void wrapper_onObserverCountChanged(size_t count) noexcept override;
+          void wrapper_onObserverCountChanged(size_t count) noexcept override;
         };
 
       } // webrtc

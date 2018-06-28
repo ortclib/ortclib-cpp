@@ -51,7 +51,7 @@ namespace org
     {
       [constructor, delete]
       void VideoTrackSource();
-      
+
       /// <summary>
       /// Creates an VideoTrackSource for use with an MediaStreamTrack.
       /// </summary>
@@ -68,6 +68,7 @@ namespace org
       /// Indicates that parameters suitable for screencasts should be automatically
       /// applied to RtpSenders.
       /// </summary>
+      [getter]
       bool isScreencast;
 
       /// <summary>

@@ -40,6 +40,7 @@ namespace wrapper {
             WrapperImplTypeWeakPtr outer_;
           };
 
+          std::atomic<double> lastVolume_;
           WebrtcObserverUniPtr observer_;
           NativeScopedPtr native_;
           AudioTrackSourceWeakPtr thisWeak_;
@@ -51,11 +52,8 @@ namespace wrapper {
           wrapper::org::webrtc::MediaSourceState get_state() noexcept override;
           bool get_remote() noexcept override;
 
-          // methods AudioTrackSource
-          void wrapper_init_org_webrtc_AudioTrackSource(wrapper::org::webrtc::AudioOptionsPtr options) noexcept override;
-          void wrapper_init_org_webrtc_AudioTrackSource(wrapper::org::webrtc::MediaConstraintsPtr constraints) noexcept override;
-
           // properties AudioTrackSource
+          double get_volume() noexcept override;
           void set_volume(double value) noexcept override;
 
           void wrapper_onObserverCountChanged(size_t count) noexcept override;
@@ -67,7 +65,7 @@ namespace wrapper {
           void notifyVolume(double volume) noexcept;
 
           ZS_NO_DISCARD() static WrapperImplTypePtr toWrapper(NativeType *native) noexcept;
-          ZS_NO_DISCARD() static rtc::scoped_refptr<NativeType> toNative(WrapperTypePtr wrapper) noexcept;
+          ZS_NO_DISCARD() static NativeScopedPtr toNative(WrapperTypePtr wrapper) noexcept;
         };
 
       } // webrtc

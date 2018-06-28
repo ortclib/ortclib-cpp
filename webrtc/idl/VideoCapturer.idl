@@ -70,7 +70,7 @@ namespace org
       [constructor, default]
       void VideoFormat();
 
-      [constructor, default, altname("VideoFormatClone")]
+      [constructor, default, altname(VideoFormatClone)]
       void VideoFormat(VideoFormat source);
     };
 
@@ -187,9 +187,6 @@ namespace org
 
       [getter]
       VideoCaptureState state;
-
-      [event]
-      void onSignalStateChange();
     };
   }
 }

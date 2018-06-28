@@ -39,11 +39,6 @@ wrapper::impl::org::webrtc::MediaTrackSource::~MediaTrackSource()
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webrtc::MediaTrackSource::wrapper_init_org_webrtc_MediaTrackSource() noexcept
-{
-}
-
-//------------------------------------------------------------------------------
 wrapper::org::webrtc::MediaSourceState wrapper::impl::org::webrtc::MediaTrackSource::get_state() noexcept
 {
   wrapper::org::webrtc::MediaSourceState result {};

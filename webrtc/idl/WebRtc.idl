@@ -142,7 +142,7 @@ namespace org
       /// <summary>
       /// Constructs an event queue object from a native queue type.
       /// </summary>
-      [constructor, default, altname("EventQueueWithNativeQueue")]
+      [constructor, default, altname(EventQueueWithNativeQueue)]
       void EventQueue(Any queue);
 
       /// <summary>

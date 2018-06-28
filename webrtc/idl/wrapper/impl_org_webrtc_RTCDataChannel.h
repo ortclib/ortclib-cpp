@@ -43,7 +43,7 @@ namespace wrapper {
           String get_binaryType() noexcept override;
           void set_binaryType(String value) noexcept override;
 
-          virtual void wrapper_onObserverCountChanged(size_t count) noexcept override;
+          void wrapper_onObserverCountChanged(size_t count) noexcept override;
         };
 
       } // webrtc

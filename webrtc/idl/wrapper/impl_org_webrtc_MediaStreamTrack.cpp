@@ -56,6 +56,8 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::MediaStreamTrack::WrapperType
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::MediaStreamTrack::WrapperImplType, WrapperImplType);
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::MediaStreamTrack::NativeType, NativeType);
 
+typedef WrapperImplType::NativeTypeScopedPtr NativeTypeScopedPtr;
+
 typedef wrapper::impl::org::webrtc::WrapperMapper<NativeType, WrapperImplType> UseWrapperMapper;
 
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::WebRtcLib, UseWebrtcLib);
@@ -130,41 +132,6 @@ wrapper::impl::org::webrtc::MediaStreamTrack::~MediaStreamTrack()
   thisWeak_.reset();
   teardownObserver();
   mapperSingleton().remove(native_.get());
-}
-
-
-//------------------------------------------------------------------------------
-wrapper::org::webrtc::AudioTrackSourcePtr wrapper::org::webrtc::MediaStreamTrack::createAudioTrackSource(wrapper::org::webrtc::MediaConstraintsPtr constraints) noexcept
-{
-  //HERE
-
-  auto factory = UseWebrtcLib::peerConnectionFactory();
-  if (!factory) return WrapperTypePtr();
-
-  auto converted = UseMediaConstraints::toNative(constraints);
-
-  auto source = factory->CreateAudioSource(converted.get());
-}
-
-//------------------------------------------------------------------------------
-wrapper::org::webrtc::AudioTrackSourcePtr wrapper::org::webrtc::MediaStreamTrack::createAudioTrackSource(wrapper::org::webrtc::AudioOptionsPtr options) noexcept
-{
-  wrapper::org::webrtc::AudioTrackSourcePtr result {};
-  return result;
-}
-
-//------------------------------------------------------------------------------
-wrapper::org::webrtc::VideoTrackSourcePtr wrapper::org::webrtc::MediaStreamTrack::createVideoTrackSource(wrapper::org::webrtc::MediaConstraintsPtr constraints) noexcept
-{
-  wrapper::org::webrtc::VideoTrackSourcePtr result {};
-  return result;
-}
-
-//------------------------------------------------------------------------------
-wrapper::org::webrtc::VideoTrackSourcePtr wrapper::org::webrtc::MediaStreamTrack::createVideoTrackSource(wrapper::org::webrtc::VideoCapturerPtr capturer) noexcept
-{
-  wrapper::org::webrtc::VideoTrackSourcePtr result {};
-  return result;
 }
 
 //------------------------------------------------------------------------------
@@ -388,7 +355,7 @@ WrapperImplTypePtr WrapperImplType::toWrapper(NativeType *native) noexcept
 }
 
 //------------------------------------------------------------------------------
-rtc::scoped_refptr<NativeType> WrapperImplType::toNative(WrapperTypePtr wrapper) noexcept
+NativeTypeScopedPtr WrapperImplType::toNative(WrapperTypePtr wrapper) noexcept
 {
   if (!wrapper) return rtc::scoped_refptr<NativeType>();
   auto converted = ZS_DYNAMIC_PTR_CAST(WrapperImplType, wrapper);

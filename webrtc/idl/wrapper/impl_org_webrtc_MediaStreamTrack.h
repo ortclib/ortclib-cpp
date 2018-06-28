@@ -23,6 +23,8 @@ namespace wrapper {
           ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::MediaStreamTrack, WrapperImplType);
           ZS_DECLARE_TYPEDEF_PTR(::webrtc::MediaStreamTrackInterface, NativeType);
 
+          typedef rtc::scoped_refptr<NativeType> NativeTypeScopedPtr;
+
           ZS_DECLARE_TYPEDEF_PTR(wrapper::org::webrtc::MediaElement, UseMediaElement);
           ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::MediaElement, UseMediaElementImpl);
 
@@ -90,7 +92,7 @@ namespace wrapper {
           void notifyDiscardedFrame() noexcept;
 
           ZS_NO_DISCARD() static WrapperImplTypePtr toWrapper(NativeType *native) noexcept;
-          ZS_NO_DISCARD() static rtc::scoped_refptr<NativeType> toNative(WrapperTypePtr wrapper) noexcept;
+          ZS_NO_DISCARD() static NativeTypeScopedPtr toNative(WrapperTypePtr wrapper) noexcept;
         };
 
       } // webrtc

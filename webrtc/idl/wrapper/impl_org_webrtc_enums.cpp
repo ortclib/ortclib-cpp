@@ -258,7 +258,7 @@ wrapper::org::webrtc::RTCSdpSemantics UseEnum::toWrapper(::webrtc::SdpSemantics 
 }
 
 //-----------------------------------------------------------------------------
-wrapper::org::webrtc::RTCTlsCertPolicy toWrapper(::webrtc::PeerConnectionInterface::TlsCertPolicy value) noexcept
+wrapper::org::webrtc::RTCTlsCertPolicy UseEnum::toWrapper(::webrtc::PeerConnectionInterface::TlsCertPolicy value) noexcept
 {
   switch (value)
   {
@@ -270,7 +270,7 @@ wrapper::org::webrtc::RTCTlsCertPolicy toWrapper(::webrtc::PeerConnectionInterfa
 }
 
 //-----------------------------------------------------------------------------
-::webrtc::PeerConnectionInterface::TlsCertPolicy toNative(wrapper::org::webrtc::RTCTlsCertPolicy value) noexcept
+::webrtc::PeerConnectionInterface::TlsCertPolicy UseEnum::toNative(wrapper::org::webrtc::RTCTlsCertPolicy value) noexcept
 {
   switch (value)
   {

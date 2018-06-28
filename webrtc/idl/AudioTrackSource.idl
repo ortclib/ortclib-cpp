@@ -74,7 +74,7 @@ namespace org
       /// <summary>
       /// Sets the volume of the source. |volume| is in  the range of [0, 10].
       /// </summary>
-      [setter]
+      [getter,setter]
       double volume;
 
       [event]
