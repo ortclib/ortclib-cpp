@@ -24,6 +24,8 @@
 #include "impl_org_webrtc_MediaElement.h"
 #include "impl_org_webrtc_MediaSource.h"
 #include "impl_org_webrtc_MediaConstraints.h"
+#include "impl_org_webrtc_AudioTrackSource.h"
+#include "impl_org_webrtc_VideoTrackSource.h"
 #include "impl_org_webrtc_WebrtcLib.h"
 
 #include "impl_org_webrtc_pre_include.h"
@@ -61,6 +63,8 @@ typedef WrapperImplType::NativeTypeScopedPtr NativeTypeScopedPtr;
 typedef wrapper::impl::org::webrtc::WrapperMapper<NativeType, WrapperImplType> UseWrapperMapper;
 
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::WebRtcLib, UseWebrtcLib);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::AudioTrackSource, UseAudioTrackSource);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::VideoTrackSource, UseVideoTrackSource);
 
 //------------------------------------------------------------------------------
 static UseWrapperMapper &mapperSingleton()
@@ -135,17 +139,37 @@ wrapper::impl::org::webrtc::MediaStreamTrack::~MediaStreamTrack()
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::MediaStreamTrackPtr wrapper::org::webrtc::MediaStreamTrack::createAudioTrack(wrapper::org::webrtc::AudioTrackSourcePtr source) noexcept
+wrapper::org::webrtc::MediaStreamTrackPtr wrapper::org::webrtc::MediaStreamTrack::createAudioTrack(
+  String label,
+  wrapper::org::webrtc::AudioTrackSourcePtr source
+  ) noexcept
 {
-  wrapper::org::webrtc::MediaStreamTrackPtr result {};
-  return result;
+  auto factory = UseWebrtcLib::peerConnectionFactory();
+  ZS_ASSERT(factory);
+  if (!factory) return WrapperTypePtr();
+
+  auto nativeSource = UseAudioTrackSource::toNative(source);
+
+  auto native = factory->CreateAudioTrack(label, nativeSource);
+
+  return WrapperImplType::toWrapper(native);
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::MediaStreamTrackPtr wrapper::org::webrtc::MediaStreamTrack::createVideoTrack(wrapper::org::webrtc::VideoTrackSourcePtr source) noexcept
+wrapper::org::webrtc::MediaStreamTrackPtr wrapper::org::webrtc::MediaStreamTrack::createVideoTrack(
+  String label,
+  wrapper::org::webrtc::VideoTrackSourcePtr source
+  ) noexcept
 {
-  wrapper::org::webrtc::MediaStreamTrackPtr result {};
-  return result;
+  auto factory = UseWebrtcLib::peerConnectionFactory();
+  ZS_ASSERT(factory);
+  if (!factory) return WrapperTypePtr();
+
+  auto nativeSource = UseVideoTrackSource::toNative(source);
+
+  auto native = factory->CreateVideoTrack(label, nativeSource);
+
+  return WrapperImplType::toWrapper(native);
 }
 
 //------------------------------------------------------------------------------
