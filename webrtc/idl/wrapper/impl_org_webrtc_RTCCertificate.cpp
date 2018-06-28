@@ -67,14 +67,13 @@ wrapper::impl::org::webrtc::RTCCertificate::~RTCCertificate()
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::RTCDtlsFingerprintPtr wrapper::impl::org::webrtc::RTCCertificate::get_fingerprint() noexcept
+shared_ptr< list< wrapper::org::webrtc::RTCDtlsFingerprintPtr > > wrapper::impl::org::webrtc::RTCCertificate::get_fingerprints() noexcept
 {
   ZS_ASSERT(native_);
-  if (!native_) return zsLib::Time();
+  if (!native_) return shared_ptr< list< wrapper::org::webrtc::RTCDtlsFingerprintPtr > >();
 
-  native_->FromPEM
-  wrapper::org::webrtc::RTCDtlsFingerprintPtr result {};
-  return result;
+#pragma ZS_BUILD_NOTE("LATER","No direct api in webrtc to obtain certificates given algorithms")
+  return make_shared< list< wrapper::org::webrtc::RTCDtlsFingerprintPtr > >();
 }
 
 //------------------------------------------------------------------------------

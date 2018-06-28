@@ -29,7 +29,7 @@ namespace wrapper {
 
           // properties RTCCertificate
           ::zsLib::Time get_expires() noexcept override;
-          wrapper::org::webrtc::RTCDtlsFingerprintPtr get_fingerprint() noexcept override;
+          shared_ptr< list< wrapper::org::webrtc::RTCDtlsFingerprintPtr > > get_fingerprints() noexcept override;
 
           ZS_NO_DISCARD() static WrapperImplTypePtr toWrapper(NativeType *native) noexcept;
           ZS_NO_DISCARD() static NativeTypeScopedPtr toNative(WrapperTypePtr wrapper) noexcept;
