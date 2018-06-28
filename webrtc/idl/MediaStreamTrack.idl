@@ -45,28 +45,40 @@ namespace org
     interface MediaStreamTrack
     {
       /// <summary>
-      /// Creates a audio MediaStreamTrack for use with an RTCRtpSender.
+      /// Creates an AudioSource for use with an MediaStreamTrack.
       /// </summary>
       [static]
-      MediaStreamTrack createAudioSource(MediaConstraints constraints);
+      AudioSource createAudioSource(MediaConstraints constraints);
 
       /// <summary>
-      /// Creates a audio MediaStreamTrack for use with an RTCRtpSender.
+      /// Creates an AudioSource for use with an MediaStreamTrack.
       /// </summary>
       [static]
-      MediaStreamTrack createAudioSource(AudioOptions options);
+      AudioSource createAudioSource(AudioOptions options);
 
       /// <summary>
-      /// Creates a video MediaStreamTrack for use with an RTCRtpSender.
+      /// Creates a VideoSource for use with an MediaStreamTrack.
       /// </summary>
       [static]
-      MediaStreamTrack createVideoSource(MediaConstraints constraints);
+      VideoSource createVideoSource(MediaConstraints constraints);
 
       /// <summary>
-      /// Creates a audio MediaStreamTrack for use with an RTCRtpSender.
+      /// Creates an VideoSource for use with an MediaStreamTrack.
       /// </summary>
       [static]
-      MediaStreamTrack createVideoSource(VideoCapturer capturer);
+      VideoSource createVideoSource(VideoCapturer capturer);
+
+      /// <summary>
+      /// Creates an audio MediaStreamTrack for use with an RtpSender.
+      /// </summary>
+      [static]
+      MediaStreamTrack createAudioTrack(AudioSource source);
+
+      /// <summary>
+      /// Creates a video MediaStreamTrack for use with an RtpSender.
+      /// </summary>
+      [static]
+      MediaStreamTrack createVideoTrack(VideoSource source);
 
       /// <summary>
       /// Gets the kind attribute. MUST return the string "audio" if

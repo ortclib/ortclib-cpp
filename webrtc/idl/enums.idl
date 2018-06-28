@@ -324,6 +324,13 @@ namespace org
       debug,
     };
 
+    enum MediaSourceState {
+      initializing,
+      live,
+      ended,
+      muted
+    };
+
     enum MediaStreamTrackState {
       live,
       ended,

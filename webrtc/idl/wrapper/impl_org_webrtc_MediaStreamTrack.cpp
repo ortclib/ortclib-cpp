@@ -23,6 +23,8 @@
 #include "impl_org_webrtc_helpers.h"
 #include "impl_org_webrtc_MediaElement.h"
 #include "impl_org_webrtc_MediaSource.h"
+#include "impl_org_webrtc_AudioOptions.h"
+#include "impl_org_webrtc_MediaConstraints.h"
 #include "impl_org_webrtc_WebrtcLib.h"
 
 #include "impl_org_webrtc_pre_include.h"
@@ -57,6 +59,8 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::MediaStreamTrack::NativeType,
 typedef wrapper::impl::org::webrtc::WrapperMapper<NativeType, WrapperImplType> UseWrapperMapper;
 
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::WebRtcLib, UseWebrtcLib);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::MediaConstraints, UseMediaConstraints);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::AudioOptions, UseAudioOptions);
 
 //------------------------------------------------------------------------------
 static UseWrapperMapper &mapperSingleton()
@@ -143,8 +147,16 @@ wrapper::org::webrtc::MediaStreamTrackPtr wrapper::org::webrtc::MediaStreamTrack
   auto factory = UseWebrtcLib::peerConnectionFactory();
   if (!factory) return WrapperTypePtr();
 
-  //factory->
+  auto converted = UseMediaConstraints::toNative(constraints);
+
+  auto source = factory->CreateAudioSource(converted.get());
+
 #pragma ZS_BUILD_NOTE("IMPLEMENT","(robin)")
+}
+
+//------------------------------------------------------------------------------
+wrapper::org::webrtc::MediaStreamTrackPtr wrapper::org::webrtc::MediaStreamTrack::createAudioSource(wrapper::org::webrtc::AudioOptionsPtr options) noexcept
+{
   wrapper::org::webrtc::MediaStreamTrackPtr result {};
   return result;
 }
@@ -152,7 +164,13 @@ wrapper::org::webrtc::MediaStreamTrackPtr wrapper::org::webrtc::MediaStreamTrack
 //------------------------------------------------------------------------------
 wrapper::org::webrtc::MediaStreamTrackPtr wrapper::org::webrtc::MediaStreamTrack::createVideoSource(wrapper::org::webrtc::MediaConstraintsPtr constraints) noexcept
 {
-#pragma ZS_BUILD_NOTE("IMPLEMENT","(robin)")
+  wrapper::org::webrtc::MediaStreamTrackPtr result {};
+  return result;
+}
+
+//------------------------------------------------------------------------------
+wrapper::org::webrtc::MediaStreamTrackPtr wrapper::org::webrtc::MediaStreamTrack::createVideoSource(wrapper::org::webrtc::VideoCapturerPtr capturer) noexcept
+{
   wrapper::org::webrtc::MediaStreamTrackPtr result {};
   return result;
 }

@@ -32,6 +32,8 @@
         "DataChannel.idl",
         "MediaConstraints.idl",
         "AudioOptions.idl",
+        "AudioSource.idl",
+        "VideoSource.idl",
         "VideoCapturer.idl",
         "MediaStreamTrack.idl",
         "OAuthCredential.idl",
