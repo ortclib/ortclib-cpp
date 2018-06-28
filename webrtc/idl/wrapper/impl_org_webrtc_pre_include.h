@@ -21,6 +21,9 @@ namespace webrtc
   class PeerConnectionInterface;
   class PeerConnectionFactoryInterface;
 
+  class AudioSourceInterface;
+  class VideoTrackSourceInterface;
+
   class RTCError;
 
   class VideoFrame;

@@ -11,6 +11,7 @@ namespace wrapper {
       namespace webrtc {
 
         ZS_DECLARE_STRUCT_PTR(AudioOptions);
+        ZS_DECLARE_STRUCT_PTR(AudioTrackSource);
         ZS_DECLARE_STRUCT_PTR(Constraint);
         ZS_DECLARE_STRUCT_PTR(EventQueue);
         ZS_DECLARE_STRUCT_PTR(EventQueueMaker);
@@ -18,6 +19,7 @@ namespace wrapper {
         ZS_DECLARE_STRUCT_PTR(MediaElement);
         ZS_DECLARE_STRUCT_PTR(MediaSource);
         ZS_DECLARE_STRUCT_PTR(MediaStreamTrack);
+        ZS_DECLARE_STRUCT_PTR(MediaTrackSource);
         ZS_DECLARE_STRUCT_PTR(MessageEvent);
         ZS_DECLARE_STRUCT_PTR(MillisecondIntervalRange);
         ZS_DECLARE_STRUCT_PTR(RTCAnswerOptions);
@@ -84,6 +86,7 @@ namespace wrapper {
         ZS_DECLARE_STRUCT_PTR(VideoCapturer);
         ZS_DECLARE_STRUCT_PTR(VideoCapturerInputSize);
         ZS_DECLARE_STRUCT_PTR(VideoFormat);
+        ZS_DECLARE_STRUCT_PTR(VideoTrackSource);
         ZS_DECLARE_STRUCT_PTR(WebRtcLib);
 
       } // namespace webrtc

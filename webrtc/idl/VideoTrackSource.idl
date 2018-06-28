@@ -34,6 +34,16 @@ namespace org
   namespace webrtc
   {
     /// <summary>
+    /// Original size of captured frame, before video adaptation.
+    /// </summary>
+    [dictionary]
+    struct VideoTrackSourceStats
+    {
+      int inputWidth;
+      int inputHeight;
+    };
+
+    /// <summary>
     /// VideoTrackSourceInterface is a used for VideoTracks. The same source can
     /// be used by multiple VideoTracks.
     /// </summary>
@@ -52,6 +62,14 @@ namespace org
       /// </summary>
       [getter,optional]
       bool needsDenoising;
+
+      /// <summary>
+      /// Returns null if no stats are available, e.g, for a remote source, or a
+      /// source which has not seen its first frame yet.
+      /// </summary>
+      [getter,optional]
+      VideoTrackSourceStats stats;
+
     };
   }
 }
