@@ -29,29 +29,38 @@
  
  */
 
+
 namespace org
 {
   namespace webrtc
   {
     /// <summary>
-    /// VideoTrackSourceInterface is a used for VideoTracks. The same source can
-    /// be used by multiple VideoTracks.
+    /// Base class for sources. A MediaStreamTrack has an underlying source that
+    /// provides media. A source can be shared by multiple tracks.
     /// </summary>
-    interface VideoSource : MediaSource
+    interface MediaTrackSource
+    {
+      [getter]
+      MediaSourceState state;
+
+      [getter]
+      bool remote;
+    };
+
+    /// <summary>
+    /// AudioSourceInterface is a source used for AudioTracks.
+    /// The same source can be used by multiple AudioTracks.
+    /// </summary>
+    interface AudioTrackSource : MediaTrackSource
     {
       /// <summary>
-      /// Indicates that parameters suitable for screencasts should be automatically
-      /// applied to RtpSenders.
+      /// Sets the volume of the source. |volume| is in  the range of [0, 10].
       /// </summary>
-      bool isScreencast;
+      [setter]
+      double volume;
 
-      /// <summary>
-      /// Indicates that the encoder should denoise video before encoding it.
-      /// If it is not set, the default configuration is used which is different
-      /// depending on video codec.
-      /// </summary>
-      [getter,optional]
-      bool needsDenoising;
+      [event]
+      void onSetVolume(double volume);
     };
   }
 }
