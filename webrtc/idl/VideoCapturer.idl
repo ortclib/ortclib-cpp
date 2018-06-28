@@ -83,8 +83,11 @@ namespace org
 
     interface VideoCapturer
     {
-      [constructor, default]
+      [constructor, default, delete]
       void VideoCapturer();
+
+      [static]
+      VideoCapturer create(string name, string id);
 
       /// <summary>
       /// Get the capture formats supported by the video capturer. The supported

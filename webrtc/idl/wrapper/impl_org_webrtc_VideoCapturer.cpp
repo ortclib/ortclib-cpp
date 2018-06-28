@@ -1,5 +1,6 @@
 
 #include "impl_org_webrtc_VideoCapturer.h"
+#include "impl_org_webrtc_WebrtcLib.h"
 
 #include "impl_org_webrtc_pre_include.h"
 #include "impl_org_webrtc_post_include.h"
@@ -28,6 +29,8 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::VideoCapturer::WrapperType, W
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::VideoCapturer::WrapperImplType, WrapperImplType);
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::VideoCapturer::NativeType, NativeType);
 
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::WebRtcLib, UseWebrtcLib);
+
 //------------------------------------------------------------------------------
 wrapper::impl::org::webrtc::VideoCapturer::VideoCapturer() noexcept
 {
@@ -49,6 +52,7 @@ wrapper::impl::org::webrtc::VideoCapturer::~VideoCapturer()
 //------------------------------------------------------------------------------
 void wrapper::impl::org::webrtc::VideoCapturer::wrapper_init_org_webrtc_VideoCapturer() noexcept
 {
+  auto factory = UseWebrtcLib::videoDeviceCaptureFactory();
 }
 
 //------------------------------------------------------------------------------

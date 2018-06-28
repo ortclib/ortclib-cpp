@@ -33,6 +33,7 @@
 #include "rtc_base/ssladapter.h"
 #include "rtc_base/win32socketinit.h"
 #include "third_party/winuwp_h264/winuwp_h264_factory.h"
+#include "media/engine/webrtcvideocapturerfactory.h"
 #include "impl_org_webrtc_post_include.h"
 
 using ::zsLib::String;
@@ -59,9 +60,13 @@ using ::std::map;
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::WebRtcLib::WrapperType, WrapperType);
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::WebRtcLib::WrapperImplType, WrapperImplType);
 
+typedef WrapperImplType::PeerConnectionFactoryInterfaceScopedPtr PeerConnectionFactoryInterfaceScopedPtr;
+ZS_DECLARE_TYPEDEF_PTR(WrapperImplType::UseVideoDeviceCaptureFacrtory, UseVideoDeviceCaptureFacrtory);
+
+ZS_DECLARE_TYPEDEF_PTR(::cricket::WebRtcVideoDeviceCapturerFactory, UseWebrtcVideoDeviceCaptureFacrtory);
+
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::EventQueue::WrapperImplType, UseEventQueue);
 
-typedef wrapper::impl::org::webrtc::WebRtcLib::PeerConnectionFactoryInterfaceScopedPtr PeerConnectionFactoryInterfaceScopedPtr;
 
 ZS_DECLARE_TYPEDEF_PTR(zsLib::eventing::IHelper, UseHelper);
 
@@ -277,6 +282,12 @@ void WrapperImplType::actual_setup(wrapper::org::webrtc::EventQueuePtr queue) no
     decoderFactory
   );
 
+#ifdef WINUWP
+  videoDeviceCaptureFactory_ = make_shared<::cricket::WebRtcVideoDeviceCapturerFactory>();
+#else
+#error PLATFORM REQUIRES FACTORY
+#endif //WEBRTC
+
   rtc::tracing::SetupInternalTracer();
 
   if (setupComplete_.exchange(true)) {
@@ -409,8 +420,16 @@ PeerConnectionFactoryInterfaceScopedPtr WrapperImplType::actual_peerConnectionFa
 {
   if (!actual_checkSetup()) return PeerConnectionFactoryInterfaceScopedPtr();
 
-  zsLib::AutoLock lock(lock_);
   return peerConnectionFactory_;
+}
+
+
+//------------------------------------------------------------------------------
+UseVideoDeviceCaptureFacrtoryPtr WrapperImplType::actual_videoDeviceCaptureFactory() noexcept
+{
+  if (!actual_checkSetup()) return UseVideoDeviceCaptureFacrtoryPtr();
+
+  return videoDeviceCaptureFactory_;
 }
 
 
@@ -429,6 +448,7 @@ void WrapperImplType::notifySingletonCleanup() noexcept
 
   // reset the factory (cannot be used anymore)...
   peerConnectionFactory_ = PeerConnectionFactoryInterfaceScopedPtr();
+  videoDeviceCaptureFactory_.reset();
 
 #pragma ZS_BUILD_NOTE("TODO","(mosa) shutdown threads need something more?")
 
@@ -478,6 +498,14 @@ WrapperImplTypePtr WrapperImplType::singleton() noexcept
         return PeerConnectionFactoryInterfaceScopedPtr();
       }
 
+      //-----------------------------------------------------------------------
+      UseVideoDeviceCaptureFacrtoryPtr actual_videoDeviceCaptureFactory() noexcept override
+      {
+        ZS_ASSERT_FAIL("why is the factory needed during shutdown?");
+        // no way around this one with a bogus factory...
+        return UseVideoDeviceCaptureFacrtoryPtr();
+      }
+
       void notifySingletonCleanup() noexcept final {}
     };
     return make_shared<BogusSingleton>();
@@ -498,4 +526,11 @@ PeerConnectionFactoryInterfaceScopedPtr WrapperImplType::peerConnectionFactory()
 {
   auto singleton = WrapperImplType::singleton();
   return singleton->actual_peerConnectionFactory();
+}
+
+//------------------------------------------------------------------------------
+UseVideoDeviceCaptureFacrtoryPtr WrapperImplType::videoDeviceCaptureFactory() noexcept
+{
+  auto singleton = WrapperImplType::singleton();
+  return singleton->actual_videoDeviceCaptureFactory();
 }

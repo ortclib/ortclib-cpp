@@ -7,6 +7,7 @@
 
 #include "impl_org_webrtc_pre_include.h"
 #include "rtc_base/scoped_ref_ptr.h"
+#include "media/base/videocapturerfactory.h"
 #include "impl_org_webrtc_post_include.h"
 
 #include <zsLib/Singleton.h>
@@ -21,7 +22,10 @@ namespace wrapper {
         {
           ZS_DECLARE_TYPEDEF_PTR(wrapper::org::webrtc::WebRtcLib, WrapperType);
           ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::WebRtcLib, WrapperImplType);
+
           typedef rtc::scoped_refptr<::webrtc::PeerConnectionFactoryInterface> PeerConnectionFactoryInterfaceScopedPtr;
+
+          ZS_DECLARE_TYPEDEF_PTR(::cricket::VideoDeviceCapturerFactory, UseVideoDeviceCaptureFacrtory);
 
           virtual ~WebRtcLib() noexcept;
 
@@ -34,6 +38,7 @@ namespace wrapper {
           std::atomic_bool isTracing_ {};
           zsLib::Lock lock_;
           PeerConnectionFactoryInterfaceScopedPtr peerConnectionFactory_;
+          UseVideoDeviceCaptureFacrtoryPtr videoDeviceCaptureFactory_;
           ::zsLib::Milliseconds ntpServerTime_;
 
           std::unique_ptr<rtc::Thread> networkThread;
@@ -61,6 +66,7 @@ namespace wrapper {
           // addition methods needed
           virtual bool actual_checkSetup(bool assert = true) noexcept;
           virtual PeerConnectionFactoryInterfaceScopedPtr actual_peerConnectionFactory() noexcept;
+          virtual UseVideoDeviceCaptureFacrtoryPtr actual_videoDeviceCaptureFactory() noexcept;
 
           //-------------------------------------------------------------------
           //
@@ -73,6 +79,7 @@ namespace wrapper {
 
           // addition methods needed
           static PeerConnectionFactoryInterfaceScopedPtr peerConnectionFactory() noexcept;
+          static UseVideoDeviceCaptureFacrtoryPtr videoDeviceCaptureFactory() noexcept;
           static bool checkSetup(bool assert = true) noexcept;
         };
 
