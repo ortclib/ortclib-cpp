@@ -55,6 +55,7 @@ namespace org
       void RTCOfferAnswerOptions();
     };
 
+    [dictionary]
     struct RTCOfferOptions : RTCOfferAnswerOptions {
 
       /// <summary>
@@ -82,7 +83,6 @@ namespace org
       [optional]
       bool offerToReceiveAudio;
 
-
       /// <summary>
       /// Gets or sets a flag if true, will offer to BUNDLE audio/video/data together. Not to be
       /// confused with RTCP mux (multiplexing RTP and RTCP together).
@@ -103,6 +103,7 @@ namespace org
 
     };
 
+    [dictionary]
     struct RTCAnswerOptions : RTCOfferAnswerOptions {
       /// <summary>
       /// Constructs an empty instance of an RTCAnswerOptions object.
