@@ -58,7 +58,7 @@ namespace org
       /// Audio processing to adjust the sensitivity of the local mic dynamically.
       /// </summary>
       [optional]
-      bool autoGinControl;
+      bool autoGainControl;
 
       /// <summary>
       /// Audio processing to filter out background noise.
@@ -76,7 +76,7 @@ namespace org
       /// Audio processing to swap the left and right channels.
       /// </summary>
       [optional]
-      bool stereoWwapping;
+      bool stereoSwapping;
 
       /// <summary>
       /// Audio receiver jitter buffer (NetEq) max capacity in number of packets.

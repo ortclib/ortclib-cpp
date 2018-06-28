@@ -164,7 +164,7 @@ static void apply(const WrapperImplType &from, NativeType &to)
 
   to.certificates.clear();
   if (from.certificates) {
-    for (auto iter = from.iceServers->begin(); iter != from.iceServers->end(); ++iter) {
+    for (auto iter = from.certificates->begin(); iter != from.certificates->end(); ++iter) {
       auto converted = UseCertificate::toNative(*iter);
       if (!converted) continue;
       to.certificates.push_back(converted);
@@ -178,7 +178,7 @@ static void apply(const WrapperImplType &from, NativeType &to)
   to.disable_ipv6 = from.disableIpv6;
   to.disable_ipv6_on_wifi = from.disableIpv6OnWifi;
 
-  if (from.maxIpv6Networks.hasValue()) {
+  if (from.maxIpv6Networks.has_value()) {
     to.max_ipv6_networks = SafeInt<decltype(to.max_ipv6_networks)>(from.maxIpv6Networks.value());
   } else {
     to.max_ipv6_networks = ::cricket::kDefaultMaxIPv6Networks;
@@ -187,18 +187,18 @@ static void apply(const WrapperImplType &from, NativeType &to)
   to.disable_link_local_networks = from.disableLinkLocalNetworks;
   to.enable_rtp_data_channel = from.enableRtpDataChannel;
 
-  if (from.screencastMinBitrate.hasValue()) {
+  if (from.screencastMinBitrate.has_value()) {
     to.screencast_min_bitrate = (int)(SafeInt<int>(from.screencastMinBitrate.value()));
   } else {
     to.screencast_min_bitrate.reset();
   }
-  if (from.combinedAudioVideoBwe.hasValue()) {
+  if (from.combinedAudioVideoBwe.has_value()) {
     to.combined_audio_video_bwe = from.combinedAudioVideoBwe.value();
   } else {
     to.combined_audio_video_bwe.reset();
   }
 
-  if (from.enableDtlsSrtp.hasValue()) {
+  if (from.enableDtlsSrtp.has_value()) {
     to.enable_dtls_srtp = from.enableDtlsSrtp.value();
   }
   else {
@@ -209,8 +209,8 @@ static void apply(const WrapperImplType &from, NativeType &to)
   to.audio_jitter_buffer_max_packets = SafeInt<decltype(to.audio_jitter_buffer_max_packets)>(from.audioJitterBufferMaxPackets);
   to.audio_jitter_buffer_fast_accelerate = from.audioJitterBufferFastAccelerate;
 
-  to.ice_connection_receiving_timeout = (Milliseconds() == iceConnectionReceivingTimeout ? NativeType::kUndefined : SafeInt<decltype(to.ice_connection_receiving_timeout)>(iceConnectionReceivingTimeout.count()));
-  to.ice_backup_candidate_pair_ping_interval = (Milliseconds() == iceBackupCandidatePairPingInterval ? NativeType::kUndefined : SafeInt<decltype(to.ice_connection_receiving_timeout)>(iceBackupCandidatePairPingInterval.count()));
+  to.ice_connection_receiving_timeout = (Milliseconds() == from.iceConnectionReceivingTimeout ? NativeType::kUndefined : SafeInt<decltype(to.ice_connection_receiving_timeout)>(from.iceConnectionReceivingTimeout.count()));
+  to.ice_backup_candidate_pair_ping_interval = (Milliseconds() == from.iceBackupCandidatePairPingInterval ? NativeType::kUndefined : SafeInt<decltype(to.ice_connection_receiving_timeout)>(from.iceBackupCandidatePairPingInterval.count()));
 
   to.continual_gathering_policy = UseEnum::toNative(from.continualGatheringPolicy);
   to.prioritize_most_likely_ice_candidate_pairs = from.prioritizeMostLikelyIceCandidatePairs;
@@ -218,20 +218,20 @@ static void apply(const WrapperImplType &from, NativeType &to)
   to.enable_ice_renomination = from.enableIceRenomination;
   to.redetermine_role_on_ice_restart = from.redetermineRoleOnIceRestart;
 
-  if (Milliseconds() == iceCheckMinInterval) {
-    to.ice_check_min_interval = SafeInt<int>(iceCheckMinInterval.count());
+  if (Milliseconds() == from.iceCheckMinInterval) {
+    to.ice_check_min_interval = (int)SafeInt<int>(from.iceCheckMinInterval.count());
   } else {
     to.ice_check_min_interval.reset();
   }
-  if (Milliseconds() == stunCandidateKeepaliveInterval) {
-    to.stun_candidate_keepalive_interval = SafeInt<int>(stunCandidateKeepaliveInterval.count());
+  if (Milliseconds() == from.stunCandidateKeepaliveInterval) {
+    to.stun_candidate_keepalive_interval = (int)SafeInt<int>(from.stunCandidateKeepaliveInterval.count());
   }
   else {
     to.stun_candidate_keepalive_interval.reset();
   }
 
-  if (iceRegatherIntervalRange.hasValue()) {
-    auto converted = UseMillisecondIntervalRange::toNative(iceRegatherIntervalRange.value());
+  if (from.iceRegatherIntervalRange.has_value()) {
+    auto converted = UseMillisecondIntervalRange::toNative(from.iceRegatherIntervalRange.value());
     if (converted) {
       to.ice_regather_interval_range = *converted;
     } else {
@@ -241,7 +241,7 @@ static void apply(const WrapperImplType &from, NativeType &to)
     to.ice_regather_interval_range.reset();
   }
 
-  if (from.networkPreference.hasValue()) {
+  if (from.networkPreference.has_value()) {
     to.network_preference = UseEnum::toNative(from.networkPreference.value());
   } else {
     to.network_preference.reset();
@@ -279,7 +279,7 @@ static void apply(const NativeType &from, WrapperImplType &to)
   to.disableIpv6OnWifi = from.disable_ipv6_on_wifi;
 
   if (::cricket::kDefaultMaxIPv6Networks != from.max_ipv6_networks) {
-    to.maxIpv6Networks = SafeInt<decltype(to.maxIpv6Networks)::UseType>(from.max_ipv6_networks);
+    to.maxIpv6Networks = SafeInt<decltype(to.maxIpv6Networks)::value_type>(from.max_ipv6_networks);
   }
 
   to.disableLinkLocalNetworks = from.disable_link_local_networks;

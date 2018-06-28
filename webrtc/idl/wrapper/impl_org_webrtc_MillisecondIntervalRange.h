@@ -4,7 +4,6 @@
 #include "types.h"
 #include "generated/org_webrtc_MillisecondIntervalRange.h"
 
-
 #include "impl_org_webrtc_pre_include.h"
 #include "rtc_base/scoped_ref_ptr.h"
 #include "impl_org_webrtc_post_include.h"
