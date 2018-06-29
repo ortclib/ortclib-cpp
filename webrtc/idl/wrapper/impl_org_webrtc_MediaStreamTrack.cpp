@@ -342,10 +342,23 @@ void WrapperImplType::teardownObserver()
 //------------------------------------------------------------------------------
 void WrapperImplType::notifyFrame(const ::webrtc::VideoFrame& frame) noexcept
 {
-#pragma ZS_BUILD_NOTE("TODO","(mosa) call this static method with new cppwinrt IMediaSource object and the appropriate events will fire to upper layers")
-  // winrt::Windows::Media::Core::IMediaSource source = some_value; // pick one definition
-  // Windows::Media::Core::IMediaSource ^source = some_value;       // pick one definition
-  // notifyAboutNewMediaSource(*this, source);
+	Org::WebRtc::Internal::VideoFrameType frameType;
+	if (frame.video_frame_buffer()->ToI420() != nullptr)
+		frameType = Org::WebRtc::Internal::FrameTypeI420;
+	else
+		frameType = Org::WebRtc::Internal::FrameTypeH264;
+
+	if (frameType != currentFrameType_ || !firstFrameReceived_) {
+		{
+			zsLib::AutoLock lock(lock_);
+
+			firstFrameReceived_ = true;
+			currentFrameType_ = frameType;
+			mediaStreamSource_ = Org::WebRtc::Internal::RTMediaStreamSource::CreateMediaSource(frameType, "");
+		}
+		Windows::Media::Core::IMediaSource^ source = mediaStreamSource_->GetMediaStreamSource();
+		notifyAboutNewMediaSource(*this, source);
+	}
 }
 
 //------------------------------------------------------------------------------
