@@ -13,6 +13,8 @@ namespace wrapper {
 
         struct RTCStatsProvider : public wrapper::org::webrtc::RTCStatsProvider
         {
+          RTCStatsProvider() noexcept = delete;
+          RTCStatsProvider(const RTCStatsProvider &) noexcept = delete;
           virtual ~RTCStatsProvider() noexcept;
 
           // methods RTCStatsProvider
