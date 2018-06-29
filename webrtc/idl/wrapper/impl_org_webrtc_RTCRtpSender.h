@@ -22,7 +22,6 @@ namespace wrapper {
           wrapper::org::webrtc::RTCRtpSendParametersPtr getParameters() noexcept override;
           PromisePtr setParameters(wrapper::org::webrtc::RTCRtpSendParametersPtr parameters) noexcept(false) override; // throws wrapper::org::webrtc::RTCErrorPtr
           PromisePtr replaceTrack(wrapper::org::webrtc::MediaStreamTrackPtr withTrack) noexcept override;
-          void wrapper_init_org_webrtc_RTCRtpSender() noexcept override;
 
           // properties RTCRtpSender
           wrapper::org::webrtc::MediaStreamTrackPtr get_track() noexcept override;

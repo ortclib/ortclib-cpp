@@ -39,8 +39,9 @@ wrapper::org::webrtc::RTCOfferOptionsPtr wrapper::org::webrtc::RTCOfferOptions::
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCOfferOptions::~RTCOfferOptions()
+wrapper::impl::org::webrtc::RTCOfferOptions::~RTCOfferOptions() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

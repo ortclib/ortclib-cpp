@@ -73,7 +73,7 @@ wrapper::org::webrtc::RTCPeerConnectionPtr wrapper::org::webrtc::RTCPeerConnecti
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCPeerConnection::~RTCPeerConnection()
+wrapper::impl::org::webrtc::RTCPeerConnection::~RTCPeerConnection() noexcept
 {
   thisWeak_.reset();
   teardownObserver();

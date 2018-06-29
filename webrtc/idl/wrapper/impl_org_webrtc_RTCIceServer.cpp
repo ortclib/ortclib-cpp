@@ -42,8 +42,9 @@ wrapper::org::webrtc::RTCIceServerPtr wrapper::org::webrtc::RTCIceServer::wrappe
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCIceServer::~RTCIceServer()
+wrapper::impl::org::webrtc::RTCIceServer::~RTCIceServer() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

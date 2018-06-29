@@ -131,7 +131,7 @@ wrapper::org::webrtc::MediaStreamTrackPtr wrapper::org::webrtc::MediaStreamTrack
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::MediaStreamTrack::~MediaStreamTrack()
+wrapper::impl::org::webrtc::MediaStreamTrack::~MediaStreamTrack() noexcept
 {
   thisWeak_.reset();
   teardownObserver();

@@ -17,6 +17,7 @@ namespace wrapper {
 
           RTCRtpCodecParameters() noexcept;
           virtual ~RTCRtpCodecParameters() noexcept;
+          void wrapper_init_org_webrtc_RTCRtpCodecParameters() noexcept override;
         };
 
       } // webrtc

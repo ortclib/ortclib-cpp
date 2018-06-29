@@ -40,8 +40,10 @@ wrapper::impl::org::webrtc::RTCRtpSender::~RTCRtpSender() noexcept
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webrtc::RTCRtpSender::wrapper_init_org_webrtc_RTCRtpSender() noexcept
+wrapper::org::webrtc::RTCRtpCapabilitiesPtr wrapper::org::webrtc::RTCRtpSender::getCapabilities(String kind) noexcept
 {
+  wrapper::org::webrtc::RTCRtpCapabilitiesPtr result {};
+  return result;
 }
 
 //------------------------------------------------------------------------------

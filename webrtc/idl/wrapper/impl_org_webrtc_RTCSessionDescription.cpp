@@ -42,8 +42,9 @@ wrapper::org::webrtc::RTCSessionDescriptionPtr wrapper::org::webrtc::RTCSessionD
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCSessionDescription::~RTCSessionDescription()
+wrapper::impl::org::webrtc::RTCSessionDescription::~RTCSessionDescription() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

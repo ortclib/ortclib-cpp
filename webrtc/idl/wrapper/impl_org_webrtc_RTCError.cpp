@@ -43,7 +43,7 @@ wrapper::org::webrtc::RTCErrorPtr wrapper::org::webrtc::RTCError::wrapper_create
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCError::~RTCError()
+wrapper::impl::org::webrtc::RTCError::~RTCError() noexcept
 {
   thisWeak_.reset();
 }

@@ -44,8 +44,9 @@ wrapper::org::webrtc::MillisecondIntervalRangePtr wrapper::org::webrtc::Millisec
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::MillisecondIntervalRange::~MillisecondIntervalRange()
+wrapper::impl::org::webrtc::MillisecondIntervalRange::~MillisecondIntervalRange() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

@@ -182,6 +182,157 @@ namespace org
       double          scaleFramerateDownBy = 1.0;
     };
 
+    /// The RTCRtpCodecCapability dictionary provides information on the capabilities of a codec.
+    /// Exactly one RTCRtpCodecCapability will be present for each supported combination of
+    /// parameters that requires a distinct value of preferredPayloadType.
+    [dictionary]
+    struct RTCRtpCodecCapability {
+      /// <summary>
+      /// The preferred RTP payload type for the codec denoted by RTCRtpCodecCapability.name.
+      /// This attribute was added to make it possible for the sender and receiver to pick a
+      /// matching payload type when creating sender and receiver parameters. When returned
+      /// by RTCRtpSender.getCapabilities(), RTCRtpCapabilities.codecs.preferredPayloadtype
+      /// represents the preferred RTP payload type for sending. When returned by
+      /// RTCRtpReceiver.getCapabilities(), RTCRtpCapabilities.codecs.preferredPayloadtype
+      /// represents the preferred RTP payload type for receiving. To avoid payload type
+      /// conflicts, each value of preferredPayloadType MUST be unique.
+      /// </summary>
+      [optional]
+      uint8                 preferredPayloadType;
+
+      /// <summary>
+      /// The MIME media subtype. Valid subtypes are listed in [IANA-RTP-2].
+      /// </summary>
+      string                name;
+
+      /// <summary>
+      /// The codec MIME media type/subtype. Valid media types and subtypes are listed in [IANA-RTP-2].
+      /// </summary>
+      string                mimeType;
+
+      /// <summary>
+      /// Codec clock rate expressed in Hertz. If unset, the codec is applicable to any clock rate.
+      /// </summary>
+      [optional]
+      unsigned long         clockRate;
+
+      /// <summary>
+      /// The number of channels supported (e.g. two for stereo). For video, this attribute is unset.
+      /// </summary>
+      [optional]
+      unsigned short        channels;
+
+      /// <summary>
+      /// The "format specific parameters" field from the "a=fmtp" line in the SDP
+      /// corresponding to the codec, if one exists.
+      /// </summary>
+      string                sdpFmtpLine;
+
+      /// <summary>
+      /// The maximum packetization time supported by the RTCRtpReceiver.
+      /// </summary>
+      [optional]
+      Milliseconds          maxptime;
+
+      /// <summary>
+      /// The preferred duration of media represented by a packet in milliseconds for the RTCRtpSender or RTCRtpReceiver.
+      /// </summary>
+      [optional]
+      Milliseconds          ptime;
+
+      /// <summary>
+      /// Transport layer and codec-specific feedback messages for this codec.
+      /// </summary>
+      RTCRtcpFeedbackList   rtcpFeedback;
+
+      /// <summary>
+      /// Codec-specific parameters that must be signaled to the remote party.
+      /// </summary>
+      StringList            parameters;
+
+      /// <summary>
+      /// Codec-specific parameters that may be optionally signalled and are available
+      /// as additional supported information or settings about the codec.
+      /// </summary>
+      StringList            options;
+
+      /// <summary>
+      /// Maximum number of temporal layer extensions supported by this codec (e.g. a
+      /// value of 1 indicates support for up to 2 temporal layers). A value of 0
+      /// indicates no support for temporal scalability.
+      /// </summary>
+      unsigned short        maxTemporalLayers = 0;
+
+      /// <summary>
+      /// Maximum number of spatial layer extensions supported by this codec
+      /// (e.g. a value of 1 indicates support for up to 2 spatial layers). A
+      /// value of 0 indicates no support for spatial scalability.
+      /// </summary>
+      unsigned short        maxSpatialLayers = 0;
+
+      /// <summary>
+      /// Whether the implementation can send/receive SVC layers utilizing
+      /// distinct SSRCs. Unset for audio codecs. For video codecs, only set
+      /// if the codec supports scalable video coding with MRST.
+      /// </summary>
+      bool                  svcMultiStreamSupport = false;
+    };
+
+
+    /// <summary>
+    /// The RTCRtpHeaderExtensionCapability dictionary provides information relating to supported header extensions.
+    /// </summary>
+    [dictionary]
+    struct RTCRtpHeaderExtensionCapability {
+      /// <summary>
+      /// The URI of the RTP header extension, as defined in [RFC5285].
+      /// </summary>
+      string uri;
+
+      /// <summary>
+      /// The preferred ID value that goes in the packet.
+      /// </summary>
+      [optional]
+      unsigned short  preferredId;
+
+      /// <summary>
+      /// If true, it is preferred that the value in the header be encrypted as per [RFC6904]. Default is to prefer unencrypted.
+      /// </summary>
+      bool            preferredEncrypt = false;
+    };
+
+    /// <summary>
+    /// The RTCRtpCapabilities object expresses the capabilities of RTCRtpSender and RTCRtpReceiver
+    /// objects. Features which are mandatory to implement in [RTP-USAGE], such as RTP/RTCP multiplexing
+    /// [RFC5761], audio/video multiplexing [RTP-MULTI-STREAM] and reduced size RTCP [RFC5506] are 
+    /// assumed to be available and are therefore not included in RTCRtpCapabilities,
+    /// although these parameters may be set.
+    /// </summary>
+    [dictionary]
+    struct RTCRtpCapabilities {
+      /// <summary>
+      /// Supported media codecs as well as entries for RTX, RED and FEC mechanisms. There will
+      /// only be a single entry in codecs[] for retransmission via RTX, with sdpFmtpLine not present.
+      /// </summary>
+      RTCRtpCodecCapabilityList             codecs;
+
+      /// <summary>
+      /// Supported RTP header extensions.
+      /// </summary>
+      RTCRtpHeaderExtensionCapabilityList   headerExtensions;
+
+      /// <summary>
+      /// Supported Forward Error Correction (FEC) mechanisms and combinations. Supported values
+      /// are "red" [RFC2198], "red+ulpfec" [RFC5109] and "flexfec" [FLEXFEC].
+      /// Note that supported mechanisms also need to be included within
+      /// RTCRtpCapabilities.codecs[]. [FEC] summarizes requirements relating to FEC mechanisms.
+      /// </summary>
+      StringList                            fecMechanisms;
+    };
+
+    /// <summary>
+    /// RTCRtpParameters contains the RTP stack settings used by both senders and receivers.
+    /// </summary>
     [dictionary]
     struct RTCRtpHeaderExtensionParameters {
       /// <summary>
@@ -198,6 +349,9 @@ namespace org
       bool            encrypted = false;
     };
 
+    /// <summary>
+    /// RTCRtcpParameters provides information on RTCP settings.
+    /// </summary>
     [dictionary]
     struct RTCRtcpParameters {
       /// <summary>
@@ -211,6 +365,89 @@ namespace org
       bool   reducedSize;
     };
 
+    /// <summary>
+    /// RTCRtcpFeedback provides information on RTCP feedback messages.
+    /// <summary>
+    [dictionary]
+    struct RTCRtcpFeedback
+    {
+      /// <summary>
+      /// Valid values for type are the "RTCP Feedback" Attribute Values enumerated
+      /// in [IANA-SDP-14] ("ack", "ccm", "nack", etc.), as well as "goog-remb"
+      /// [REMB] and "transport-cc" [TRANSPORT-CC].
+      /// </summary>
+      string type;
+      /// <summary>
+      /// For a type value of "ack" or "nack", valid values for parameter are the
+      /// "ack" and "nack" Attribute Values enumerated in [IANA-SDP-15] ("sli",
+      /// "rpsi", etc.). For the Generic NACK feedback message defined in
+      /// [RFC4585] Section 6.2.1, the type attribute is set to "nack" and
+      /// the parameter attribute is unset. For a type value of "ccm", valid
+      /// values for parameter are the "Codec Control Messages" enumerated in
+      /// [IANA-SDP-19] ("fir", "tmmbr" (includes "tmmbn"), etc.).
+      /// </summary>
+      string parameter;
+    };
+
+    /// RTCRtpCodecParameters provides information on codec settings.
+    [dictionary]
+    struct RTCRtpCodecParameters {
+      /// <summary>
+      /// The value that goes in the RTP Payload Type Field [RFC3550].
+      /// The payloadType MUST always be provided, and MUST be unique.
+      /// </summary>
+      uint8         payloadType;
+
+      /// <summary>
+      /// The codec MIME subtype. Valid subtypes are listed in [IANA-RTP-2].
+      /// </summary>
+      string        name;
+
+      /// <summary>
+      /// The codec MIME media type/subtype. Valid media types and subtypes are listed in [IANA-RTP-2].
+      /// </summary>
+      string        mimeType;
+
+      /// <summary>
+      /// Codec clock rate expressed in Hertz.
+      /// </summary>
+      [optional]
+      unsigned long  clockRate;
+
+      /// <summary>
+      /// The number of channels supported (e.g. two for stereo). If unset for
+      /// audio, use the codec default. For video, this can be left unset.
+      /// </summary>
+      [optional]
+      unsigned short channels;
+
+      /// <summary>
+      /// The "format specific parameters" field from the "a=fmtp" line in the SDP corresponding
+      /// to the codec, if one exists, as defined by [JSEP] (section 5.8.). For an RTCRtpSender,
+      /// these parameters come from the remote description, and for an RTCRtpReceiver,
+      /// they come from the local description. Read-only parameter.
+      /// </summary>
+      string          sdpFmtpLine;
+
+      /// <summary>
+      /// The duration of media represented by a packet in milliseconds for
+      /// the RTCRtpSender. If unset, the RTCRtpSender may select any
+      /// value up to maxptime.
+      /// </summary>
+      Milliseconds    ptime;
+
+      /// <summary>
+      /// The maximum packetization time set on the RTCRtpSender. Not specified if
+      /// unset. If ptime is also set, maxptime is ignored.
+      /// </summary>
+      Milliseconds    maxPtime;
+
+      /// <summary>
+      /// Transport layer and codec-specific feedback messages for this codec.
+      /// </summary>
+      RTCRtcpFeedbackList rtcpFeedback;
+    };
+
     [dictionary]
     struct RTCRtpParameters
     {
@@ -218,10 +455,12 @@ namespace org
       /// Gets or sets a sequence containing parameters for RTP header extensions.
       /// </summary>
       RTCRtpHeaderExtensionParametersList headerExtensions;
+
       /// <summary>
       /// Gets or sets parameters used for RTCP. 
       /// </summary>
       RTCRtcpParameters                   rtcp;
+
       /// <summary>
       /// Gets or sets a sequence containing the media codecs that an
       /// RTCRtpSender will choose from, as well as entries for RTX,
@@ -265,29 +504,6 @@ namespace org
       /// about incoming RTP encodings of media.
       /// </summary>
       RTCRtpDecodingParametersList encodings;
-    };
-
-
-    [dictionary]
-    struct RTCRtpCodecCapability {
-      /// <summary>
-      /// Gets or sets the codec MIME media type/subtype.
-      /// Valid media types and subtypes are listed in [IANA-RTP-2].
-      /// </summary>
-      string         mimeType;
-      /// <summary>
-      /// Gets or sets the codec clock rate expressed in Hertz.
-      /// </summary>
-      unsigned long  clockRate;
-      /// <summary>
-      /// Gets or sets the maximum number of channels (mono=1, stereo=2) if applicable.
-      /// </summary>
-      unsigned short channels;
-      /// <summary>
-      /// Gets or sets the "format specific parameters" field from
-      /// the "a=fmtp" line in the SDP corresponding to the codec, if one exists.
-      /// </summary>
-      string         sdpFmtpLine;
     };
 
   }

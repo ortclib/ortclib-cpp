@@ -38,8 +38,9 @@ wrapper::org::webrtc::RTCAnswerOptionsPtr wrapper::org::webrtc::RTCAnswerOptions
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCAnswerOptions::~RTCAnswerOptions()
+wrapper::impl::org::webrtc::RTCAnswerOptions::~RTCAnswerOptions() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

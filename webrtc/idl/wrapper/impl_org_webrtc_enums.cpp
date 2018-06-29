@@ -25,21 +25,23 @@ using ::std::map;
 
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::IEnum, UseEnum);
 
+namespace wrapper { namespace impl { namespace org { namespace webrtc { ZS_DECLARE_SUBSYSTEM(wrapper_org_webrtc); } } } }
+
 //-----------------------------------------------------------------------------
 wrapper::org::webrtc::RTCErrorType UseEnum::toWrapper(::webrtc::RTCErrorType value) noexcept
 {
   switch (value) {
-    case ::webrtc::RTCErrorType::NONE: return wrapper::org::webrtc::RTCErrorType::RTCErrorType_none;
-    case ::webrtc::RTCErrorType::UNSUPPORTED_OPERATION: return wrapper::org::webrtc::RTCErrorType::RTCErrorType_unsupportedOperation;
-    case ::webrtc::RTCErrorType::UNSUPPORTED_PARAMETER: return wrapper::org::webrtc::RTCErrorType::RTCErrorType_unsupportedParameter;
-    case ::webrtc::RTCErrorType::INVALID_PARAMETER: return wrapper::org::webrtc::RTCErrorType::RTCErrorType_invalidParameter;
-    case ::webrtc::RTCErrorType::INVALID_RANGE: return wrapper::org::webrtc::RTCErrorType::RTCErrorType_invalidRange;
-    case ::webrtc::RTCErrorType::SYNTAX_ERROR: return wrapper::org::webrtc::RTCErrorType::RTCErrorType_syntaxError;
-    case ::webrtc::RTCErrorType::INVALID_STATE: return wrapper::org::webrtc::RTCErrorType::RTCErrorType_invalidState;
-    case ::webrtc::RTCErrorType::INVALID_MODIFICATION: return wrapper::org::webrtc::RTCErrorType::RTCErrorType_invalidModification;
-    case ::webrtc::RTCErrorType::NETWORK_ERROR: return wrapper::org::webrtc::RTCErrorType::RTCErrorType_networkError;
-    case ::webrtc::RTCErrorType::RESOURCE_EXHAUSTED: return wrapper::org::webrtc::RTCErrorType::RTCErrorType_resourceExhausted;
-    case ::webrtc::RTCErrorType::INTERNAL_ERROR: return wrapper::org::webrtc::RTCErrorType::RTCErrorType_internalError;
+    case ::webrtc::RTCErrorType::NONE:                      return wrapper::org::webrtc::RTCErrorType::RTCErrorType_none;
+    case ::webrtc::RTCErrorType::UNSUPPORTED_OPERATION:     return wrapper::org::webrtc::RTCErrorType::RTCErrorType_unsupportedOperation;
+    case ::webrtc::RTCErrorType::UNSUPPORTED_PARAMETER:     return wrapper::org::webrtc::RTCErrorType::RTCErrorType_unsupportedParameter;
+    case ::webrtc::RTCErrorType::INVALID_PARAMETER:         return wrapper::org::webrtc::RTCErrorType::RTCErrorType_invalidParameter;
+    case ::webrtc::RTCErrorType::INVALID_RANGE:             return wrapper::org::webrtc::RTCErrorType::RTCErrorType_invalidRange;
+    case ::webrtc::RTCErrorType::SYNTAX_ERROR:              return wrapper::org::webrtc::RTCErrorType::RTCErrorType_syntaxError;
+    case ::webrtc::RTCErrorType::INVALID_STATE:             return wrapper::org::webrtc::RTCErrorType::RTCErrorType_invalidState;
+    case ::webrtc::RTCErrorType::INVALID_MODIFICATION:      return wrapper::org::webrtc::RTCErrorType::RTCErrorType_invalidModification;
+    case ::webrtc::RTCErrorType::NETWORK_ERROR:             return wrapper::org::webrtc::RTCErrorType::RTCErrorType_networkError;
+    case ::webrtc::RTCErrorType::RESOURCE_EXHAUSTED:        return wrapper::org::webrtc::RTCErrorType::RTCErrorType_resourceExhausted;
+    case ::webrtc::RTCErrorType::INTERNAL_ERROR:            return wrapper::org::webrtc::RTCErrorType::RTCErrorType_internalError;
   }
   ZS_ASSERT_FAIL("unknown type");
   return wrapper::org::webrtc::RTCErrorType::RTCErrorType_none;
@@ -405,3 +407,112 @@ wrapper::org::webrtc::RTCConfigurationType UseEnum::toWrapper(::webrtc::PeerConn
   return ::webrtc::PeerConnectionInterface::RTCConfigurationType::kSafe;
 }
 
+//-----------------------------------------------------------------------------
+wrapper::org::webrtc::RTCDataChannelState UseEnum::toWrapper(::webrtc::DataChannelInterface::DataState value) noexcept
+{
+  switch (value)
+  {
+    case ::webrtc::DataChannelInterface::DataState::kConnecting:    return wrapper::org::webrtc::RTCDataChannelState::RTCDataChannelState_connecting;
+    case ::webrtc::DataChannelInterface::DataState::kOpen:          return wrapper::org::webrtc::RTCDataChannelState::RTCDataChannelState_open;
+    case ::webrtc::DataChannelInterface::DataState::kClosing:       return wrapper::org::webrtc::RTCDataChannelState::RTCDataChannelState_closing;
+    case ::webrtc::DataChannelInterface::DataState::kClosed:        return wrapper::org::webrtc::RTCDataChannelState::RTCDataChannelState_closed;
+  }
+  ZS_ASSERT_FAIL("unknown type");
+  return wrapper::org::webrtc::RTCDataChannelState::RTCDataChannelState_closed;
+}
+
+//-----------------------------------------------------------------------------
+::webrtc::DataChannelInterface::DataState UseEnum::toNative(wrapper::org::webrtc::RTCDataChannelState value) noexcept
+{
+  switch (value)
+  {
+    case wrapper::org::webrtc::RTCDataChannelState::RTCDataChannelState_connecting: return ::webrtc::DataChannelInterface::DataState::kConnecting;
+    case wrapper::org::webrtc::RTCDataChannelState::RTCDataChannelState_open:       return ::webrtc::DataChannelInterface::DataState::kOpen;
+    case wrapper::org::webrtc::RTCDataChannelState::RTCDataChannelState_closing:    return ::webrtc::DataChannelInterface::DataState::kClosing;
+    case wrapper::org::webrtc::RTCDataChannelState::RTCDataChannelState_closed:     return ::webrtc::DataChannelInterface::DataState::kClosed;
+  }
+  ZS_ASSERT_FAIL("unknown type");
+  return ::webrtc::DataChannelInterface::DataState::kClosed;
+}
+
+//-----------------------------------------------------------------------------
+wrapper::org::webrtc::RTCDegradationPreference UseEnum::toWrapper(::webrtc::DegradationPreference value) noexcept
+{
+  switch (value)
+  {
+    case ::webrtc::DegradationPreference::MAINTAIN_FRAMERATE:   return wrapper::org::webrtc::RTCDegradationPreference::RTCDegradationPreference_maintainFramerate;
+    case ::webrtc::DegradationPreference::MAINTAIN_RESOLUTION:  return wrapper::org::webrtc::RTCDegradationPreference::RTCDegradationPreference_maintainResolution;
+    case ::webrtc::DegradationPreference::BALANCED:             return wrapper::org::webrtc::RTCDegradationPreference::RTCDegradationPreference_balanced;
+  }
+  ZS_ASSERT_FAIL("unknown type");
+  return wrapper::org::webrtc::RTCDegradationPreference::RTCDegradationPreference_balanced;
+}
+
+//-----------------------------------------------------------------------------
+::webrtc::DegradationPreference UseEnum::toNative(wrapper::org::webrtc::RTCDegradationPreference value) noexcept
+{
+  switch (value)
+  {
+    case wrapper::org::webrtc::RTCDegradationPreference::RTCDegradationPreference_maintainFramerate:    return ::webrtc::DegradationPreference::MAINTAIN_FRAMERATE;
+    case wrapper::org::webrtc::RTCDegradationPreference::RTCDegradationPreference_maintainResolution:   return ::webrtc::DegradationPreference::MAINTAIN_RESOLUTION;
+    case wrapper::org::webrtc::RTCDegradationPreference::RTCDegradationPreference_balanced:             return ::webrtc::DegradationPreference::BALANCED;
+  }
+  ZS_ASSERT_FAIL("unknown type");
+  return ::webrtc::DegradationPreference::BALANCED;
+}
+
+//-----------------------------------------------------------------------------
+const char *UseEnum::toWrapper(::webrtc::FecMechanism value) noexcept
+{
+  switch (value)
+  {
+    case ::webrtc::FecMechanism::RED:             return "red";
+    case ::webrtc::FecMechanism::RED_AND_ULPFEC:  return "red+ulpfec";
+    case ::webrtc::FecMechanism::FLEXFEC:         return "flexfec";
+  }
+  ZS_ASSERT_FAIL("unknown type");
+  return "unknown";
+}
+
+//-----------------------------------------------------------------------------
+::webrtc::FecMechanism UseEnum::toNative(const char *value) noexcept(false)
+{
+  const ::webrtc::FecMechanism enums[] = {
+    ::webrtc::FecMechanism::RED,
+    ::webrtc::FecMechanism::RED_AND_ULPFEC,
+    ::webrtc::FecMechanism::FLEXFEC
+  };
+
+  String str(value);
+
+  for (size_t loop = 0; loop < sizeof(enums) / sizeof(enums[0]); ++loop) {
+    if (0 == str.compareNoCase(toWrapper(enums[loop]))) return enums[loop];
+  }
+
+  ZS_THROW_INVALID_ARGUMENT("Fec mechanism is not understood: " + str);
+}
+
+
+//-----------------------------------------------------------------------------
+wrapper::org::webrtc::RTCDtxStatus UseEnum::toWrapper(::webrtc::DtxStatus value) noexcept
+{
+  switch (value)
+  {
+    case ::webrtc::DtxStatus::DISABLED:   return wrapper::org::webrtc::RTCDtxStatus::RTCDtxStatus_disabled;
+    case ::webrtc::DtxStatus::ENABLED:    return wrapper::org::webrtc::RTCDtxStatus::RTCDtxStatus_enabled;
+  }
+  ZS_ASSERT_FAIL("unknown type");
+  return wrapper::org::webrtc::RTCDtxStatus::RTCDtxStatus_enabled;
+}
+
+//-----------------------------------------------------------------------------
+::webrtc::DtxStatus UseEnum::toNative(wrapper::org::webrtc::RTCDtxStatus value) noexcept
+{
+  switch (value)
+  {
+    case wrapper::org::webrtc::RTCDtxStatus::RTCDtxStatus_disabled:   return ::webrtc::DtxStatus::DISABLED;
+    case wrapper::org::webrtc::RTCDtxStatus::RTCDtxStatus_enabled:    return ::webrtc::DtxStatus::ENABLED;
+  }
+  ZS_ASSERT_FAIL("unknown type");
+  return ::webrtc::DtxStatus::ENABLED;
+}

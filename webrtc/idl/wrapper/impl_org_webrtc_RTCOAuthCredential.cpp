@@ -41,8 +41,9 @@ wrapper::org::webrtc::RTCOAuthCredentialPtr wrapper::org::webrtc::RTCOAuthCreden
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCOAuthCredential::~RTCOAuthCredential()
+wrapper::impl::org::webrtc::RTCOAuthCredential::~RTCOAuthCredential() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

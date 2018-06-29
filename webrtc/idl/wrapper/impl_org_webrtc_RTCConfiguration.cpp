@@ -39,6 +39,9 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::RTCCertificate, UseCertificat
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::MillisecondIntervalRange, UseMillisecondIntervalRange);
 
 
+static void apply(const WrapperImplType &from, NativeType &to) noexcept;
+static void apply(const NativeType &from, WrapperImplType &to) noexcept;
+
 //------------------------------------------------------------------------------
 wrapper::impl::org::webrtc::RTCConfiguration::RTCConfiguration() noexcept
 {
@@ -68,7 +71,8 @@ void wrapper::impl::org::webrtc::RTCConfiguration::wrapper_init_org_webrtc_RTCCo
 //------------------------------------------------------------------------------
 void wrapper::impl::org::webrtc::RTCConfiguration::wrapper_init_org_webrtc_RTCConfiguration(wrapper::org::webrtc::RTCConfigurationType type) noexcept
 {
-#pragma ZS_BUILD_NOTE("TODO","(robin)")
+  native_ = make_shared<NativeType>(UseEnum::toNative(type));
+  apply(*native_, *this);
 }
 
 //------------------------------------------------------------------------------
@@ -153,7 +157,7 @@ void wrapper::impl::org::webrtc::RTCConfiguration::set_experimentCpuLoadEstimato
 }
 
 //------------------------------------------------------------------------------
-static void apply(const WrapperImplType &from, NativeType &to)
+static void apply(const WrapperImplType &from, NativeType &to) noexcept
 {
   to.servers.clear();
   if (from.iceServers) {
@@ -257,7 +261,7 @@ static void apply(const WrapperImplType &from, NativeType &to)
 }
 
 //------------------------------------------------------------------------------
-static void apply(const NativeType &from, WrapperImplType &to)
+static void apply(const NativeType &from, WrapperImplType &to) noexcept
 {
   to.iceServers = make_shared< list< wrapper::org::webrtc::RTCIceServerPtr > >();
   for (auto iter = from.servers.begin(); iter != from.servers.end(); ++iter) {

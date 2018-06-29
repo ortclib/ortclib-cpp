@@ -48,8 +48,9 @@ wrapper::org::webrtc::VideoCapturerPtr wrapper::org::webrtc::VideoCapturer::wrap
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::VideoCapturer::~VideoCapturer()
+wrapper::impl::org::webrtc::VideoCapturer::~VideoCapturer() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

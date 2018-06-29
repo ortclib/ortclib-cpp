@@ -22,7 +22,6 @@ namespace wrapper {
           wrapper::org::webrtc::RTCRtpReceiveParametersPtr getParameters() noexcept override;
           shared_ptr< list< wrapper::org::webrtc::RTCRtpContributingSourcePtr > > getContributingSources() noexcept override;
           shared_ptr< list< wrapper::org::webrtc::RTCRtpSynchronizationSourcePtr > > getSynchronizationSources() noexcept override;
-          void wrapper_init_org_webrtc_RTCRtpReceiver() noexcept override;
 
           // properties RTCRtpReceiver
           wrapper::org::webrtc::MediaStreamTrackPtr get_track() noexcept override;

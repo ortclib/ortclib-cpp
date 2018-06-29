@@ -70,8 +70,9 @@ wrapper::org::webrtc::MediaConstraintsPtr wrapper::org::webrtc::MediaConstraints
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::MediaConstraints::~MediaConstraints()
+wrapper::impl::org::webrtc::MediaConstraints::~MediaConstraints() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

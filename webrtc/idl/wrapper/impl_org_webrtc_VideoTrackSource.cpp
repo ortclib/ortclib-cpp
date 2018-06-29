@@ -52,8 +52,9 @@ wrapper::org::webrtc::VideoTrackSourcePtr wrapper::org::webrtc::VideoTrackSource
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::VideoTrackSource::~VideoTrackSource()
+wrapper::impl::org::webrtc::VideoTrackSource::~VideoTrackSource() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

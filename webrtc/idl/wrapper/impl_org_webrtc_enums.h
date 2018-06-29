@@ -6,6 +6,7 @@
 #include "impl_org_webrtc_pre_include.h"
 #include "api/peerconnectioninterface.h"
 #include "api/mediastreaminterface.h"
+#include "api/datachannelinterface.h"
 #include "rtc_base/network_constants.h"
 #include "impl_org_webrtc_post_include.h"
 
@@ -72,36 +73,22 @@ namespace wrapper {
           ZS_NO_DISCARD() static wrapper::org::webrtc::RTCConfigurationType toWrapper(::webrtc::PeerConnectionInterface::RTCConfigurationType value) noexcept;
           ZS_NO_DISCARD() static ::webrtc::PeerConnectionInterface::RTCConfigurationType toNative(wrapper::org::webrtc::RTCConfigurationType value) noexcept;
 
+          ZS_NO_DISCARD() static wrapper::org::webrtc::RTCDataChannelState toWrapper(::webrtc::DataChannelInterface::DataState value) noexcept;
+          ZS_NO_DISCARD() static ::webrtc::DataChannelInterface::DataState toNative(wrapper::org::webrtc::RTCDataChannelState value) noexcept;
+
+          ZS_NO_DISCARD() static wrapper::org::webrtc::RTCDegradationPreference toWrapper(::webrtc::DegradationPreference value) noexcept;
+          ZS_NO_DISCARD() static ::webrtc::DegradationPreference toNative(wrapper::org::webrtc::RTCDegradationPreference value) noexcept;
+
+          ZS_NO_DISCARD() static const char *toWrapper(::webrtc::FecMechanism value) noexcept;
+          ZS_NO_DISCARD() static ::webrtc::FecMechanism toNative(const char *value) noexcept(false); // throws InvalidParameters
+
+          ZS_NO_DISCARD() static wrapper::org::webrtc::RTCDtxStatus toWrapper(::webrtc::DtxStatus value) noexcept;
+          ZS_NO_DISCARD() static ::webrtc::DtxStatus toNative(wrapper::org::webrtc::RTCDtxStatus value) noexcept;
+
 #if 0
-          enum RTCConfigurationType {
-            RTCConfigurationType_safe,
-            RTCConfigurationType_aggressive,
-          };
 
-          PeerConnectionInterface::RTCConfigurationType {
-            // A configuration that is safer to use, despite not having the best
-            // performance. Currently this is the default configuration.
-            kSafe,
-            // An aggressive configuration that has better performance, although it
-            // may be riskier and may need extra support in the application.
-            kAggressive
-          };
 
-          enum RTCDataChannelState {
-            RTCDataChannelState_connecting,
-            RTCDataChannelState_open,
-            RTCDataChannelState_closing,
-            RTCDataChannelState_closed,
-          };
-          enum RTCDegradationPreference {
-            RTCDegradationPreference_maintainFramerate,
-            RTCDegradationPreference_maintainResolution,
-            RTCDegradationPreference_balanced,
-          };
-          enum RTCDtxStatus {
-            RTCDtxStatus_disabled,
-            RTCDtxStatus_enabled,
-          };
+  
           enum RTCECCurve {
             RTCECCurve_nistP256,
           };
@@ -211,6 +198,25 @@ namespace wrapper {
             VideoCaptureState_running,
             VideoCaptureState_failed,
           };
+
+
+
+          // Used in RtcpFeedback struct.
+          enum class RtcpFeedbackType {
+            CCM,
+            NACK,
+            REMB,  // "goog-remb"
+            TRANSPORT_CC,
+};
+
+          // Used in RtcpFeedback struct when type is NACK or CCM.
+          enum class RtcpFeedbackMessageType {
+            // Equivalent to {type: "nack", parameter: undefined} in ORTC.
+            GENERIC_NACK,
+            PLI,  // Usable with NACK.
+            FIR,  // Usable with CCM.
+          };
+
 #endif //0
 
         };

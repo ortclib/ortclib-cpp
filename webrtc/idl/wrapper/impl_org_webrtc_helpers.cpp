@@ -39,3 +39,4 @@ using ::std::list;
 using ::std::set;
 using ::std::map;
 
+namespace wrapper { namespace impl { namespace org { namespace webrtc { ZS_IMPLEMENT_SUBSYSTEM(wrapper_org_webrtc); } } } }

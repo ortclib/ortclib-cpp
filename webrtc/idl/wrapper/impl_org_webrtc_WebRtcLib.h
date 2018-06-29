@@ -27,6 +27,8 @@ namespace wrapper {
 
           ZS_DECLARE_TYPEDEF_PTR(::cricket::VideoDeviceCapturerFactory, UseVideoDeviceCaptureFacrtory);
 
+          WebRtcLib() noexcept;
+          WebRtcLib(const WebRtcLib &) = delete;
           virtual ~WebRtcLib() noexcept;
 
           WebRtcLibWeakPtr thisWeak_;

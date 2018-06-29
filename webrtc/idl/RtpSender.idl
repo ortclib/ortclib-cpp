@@ -42,6 +42,22 @@ namespace org
     /// </summary>
     interface RTCRtpSender
     {
+      [constructor, delete]
+      void RTCRtpSender();
+
+      /// <summary>
+      /// The getCapabilities() method returns the most optimistic view of
+      /// the capabilities of the system for sending media of the given kind.
+      /// It does not reserve any resources, ports, or other state but is
+      /// meant to provide a way to discover the types of capabilities of
+      /// the browser including which codecs may be supported. User agents
+      /// MUST support kind values of "audio" and "video". If the system
+      /// has no capabilities corresponding to the value of the kind
+      /// argument, getCapabilities returns null.
+      /// </summary>
+      [static]
+      RTCRtpCapabilities getCapabilities(string kind);
+
       /// <summary>
       /// Gets the attribute for the track that is associated with
       /// this RTCRtpSender object. If track is ended, or if the

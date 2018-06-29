@@ -49,7 +49,7 @@ wrapper::org::webrtc::RTCCertificatePtr wrapper::org::webrtc::RTCCertificate::wr
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCCertificate::~RTCCertificate()
+wrapper::impl::org::webrtc::RTCCertificate::~RTCCertificate() noexcept
 {
   thisWeak_.reset();
 }

@@ -56,6 +56,9 @@ using ::std::map;
 
 #include <zsLib/eventing/IHelper.h>
 
+namespace wrapper { namespace impl { namespace org { namespace webrtc { ZS_DECLARE_SUBSYSTEM(wrapper_org_webrtc); } } } }
+
+
 // borrow from previous class definitions
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::WebRtcLib::WrapperType, WrapperType);
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::WebRtcLib::WrapperImplType, WrapperImplType);
@@ -69,6 +72,12 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::EventQueue::WrapperImplType, 
 
 
 ZS_DECLARE_TYPEDEF_PTR(zsLib::eventing::IHelper, UseHelper);
+
+//------------------------------------------------------------------------------
+WrapperImplType::WebRtcLib() noexcept
+{
+  ZS_GET_LOG_LEVEL(); // force the subsystem to get referenced before any usage happens
+}
 
 //------------------------------------------------------------------------------
 wrapper::impl::org::webrtc::WebRtcLib::~WebRtcLib()

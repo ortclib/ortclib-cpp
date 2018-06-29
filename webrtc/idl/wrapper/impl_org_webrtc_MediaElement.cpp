@@ -98,8 +98,9 @@ wrapper::org::webrtc::MediaElementPtr wrapper::org::webrtc::MediaElement::wrappe
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::MediaElement::~MediaElement()
+wrapper::impl::org::webrtc::MediaElement::~MediaElement() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

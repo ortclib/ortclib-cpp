@@ -70,6 +70,9 @@ namespace org
     struct RTCRtpDecodingParameters;
     struct RTCRtpCodecCapability;
     struct RTCDtlsFingerprint;
+    struct RTCRtpCodecCapability;
+    struct RTCRtpHeaderExtensionCapability;
+    struct RTCRtcpFeedback;
     interface RTCError;
     interface RTCPeerConnection;
     interface RTCDtmfSender;
@@ -90,6 +93,9 @@ namespace org
     typedef zs::PromiseWith<RTCSessionDescription> PromiseWithDescription;
     typedef zs::PromiseWith<RTCCertificate> PromiseWithRTCCertificate;
 
+    typedef std::list<RTCRtcpFeedback> RTCRtcpFeedbackList;
+    typedef std::list<RTCRtpHeaderExtensionCapability> RTCRtpHeaderExtensionCapabilityList;
+    typedef std::list<RTCRtpCodecCapability> RTCRtpCodecCapabilityList;
     typedef std::list<RTCDtlsFingerprint> RTCDtlsFingerprints;
     typedef std::list<VideoFormat> VideoFormats;
     typedef std::list<RTCRtpCodecCapability> RTCRtpCodecCapabilityList;

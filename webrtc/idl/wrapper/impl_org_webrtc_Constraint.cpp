@@ -36,8 +36,9 @@ wrapper::org::webrtc::ConstraintPtr wrapper::org::webrtc::Constraint::wrapper_cr
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::Constraint::~Constraint()
+wrapper::impl::org::webrtc::Constraint::~Constraint() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

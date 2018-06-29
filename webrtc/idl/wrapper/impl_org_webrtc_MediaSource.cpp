@@ -98,8 +98,9 @@ wrapper::org::webrtc::MediaSourcePtr wrapper::org::webrtc::MediaSource::wrapper_
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::MediaSource::~MediaSource()
+wrapper::impl::org::webrtc::MediaSource::~MediaSource() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

@@ -72,7 +72,7 @@ wrapper::org::webrtc::AudioTrackSourcePtr wrapper::org::webrtc::AudioTrackSource
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::AudioTrackSource::~AudioTrackSource()
+wrapper::impl::org::webrtc::AudioTrackSource::~AudioTrackSource() noexcept
 {
   thisWeak_.reset();
   teardownObserver();
