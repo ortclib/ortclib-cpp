@@ -34,8 +34,9 @@ wrapper::org::webrtc::MessageEventPtr wrapper::org::webrtc::MessageEvent::wrappe
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::MessageEvent::~MessageEvent()
+wrapper::impl::org::webrtc::MessageEvent::~MessageEvent() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

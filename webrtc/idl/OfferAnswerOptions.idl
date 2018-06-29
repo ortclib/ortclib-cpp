@@ -38,7 +38,7 @@ namespace org
     /// <summary>
     /// The RTCOfferAnswerOptions describe the options that can be used to control the offer/answer creation process.
     /// </summary>
-    [dictionary]
+    [dictionary, notconstructable]
     struct RTCOfferAnswerOptions
     {
       /// <summary>
@@ -50,9 +50,6 @@ namespace org
       /// information about whether it wishes this type of processing enabled or disabled.
       /// </summary>
       bool         voiceActivityDetection = true;
-
-      [constructor, delete]
-      void RTCOfferAnswerOptions();
     };
 
     [dictionary]

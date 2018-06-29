@@ -34,8 +34,9 @@ wrapper::org::webrtc::RTCRtpSynchronizationSourcePtr wrapper::org::webrtc::RTCRt
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCRtpSynchronizationSource::~RTCRtpSynchronizationSource()
+wrapper::impl::org::webrtc::RTCRtpSynchronizationSource::~RTCRtpSynchronizationSource() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

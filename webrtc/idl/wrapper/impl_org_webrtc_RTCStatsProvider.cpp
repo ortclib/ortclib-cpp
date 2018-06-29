@@ -21,20 +21,7 @@ using ::std::set;
 using ::std::map;
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCStatsProvider::RTCStatsProvider() noexcept
-{
-}
-
-//------------------------------------------------------------------------------
-wrapper::org::webrtc::RTCStatsProviderPtr wrapper::org::webrtc::RTCStatsProvider::wrapper_create() noexcept
-{
-  auto pThis = make_shared<wrapper::impl::org::webrtc::RTCStatsProvider>();
-  pThis->thisWeak_ = pThis;
-  return pThis;
-}
-
-//------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCStatsProvider::~RTCStatsProvider()
+wrapper::impl::org::webrtc::RTCStatsProvider::~RTCStatsProvider() noexcept
 {
 }
 

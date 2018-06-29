@@ -302,6 +302,9 @@ namespace org
       [constructor, default]
       void RTCConfiguration();
 
+      [constructor, altname(RTCConfigurationWithType)]
+      void RTCConfiguration(RTCConfigurationType type);
+
       /// <summary>
       /// Constructs an instance of an RTCConfiguration object by cloning the data from an existing object.
       /// </summary>

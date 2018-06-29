@@ -34,8 +34,9 @@ wrapper::org::webrtc::VideoTrackSourceStatsPtr wrapper::org::webrtc::VideoTrackS
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::VideoTrackSourceStats::~VideoTrackSourceStats()
+wrapper::impl::org::webrtc::VideoTrackSourceStats::~VideoTrackSourceStats() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

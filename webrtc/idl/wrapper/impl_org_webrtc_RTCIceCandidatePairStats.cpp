@@ -34,8 +34,9 @@ wrapper::org::webrtc::RTCIceCandidatePairStatsPtr wrapper::org::webrtc::RTCIceCa
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCIceCandidatePairStats::~RTCIceCandidatePairStats()
+wrapper::impl::org::webrtc::RTCIceCandidatePairStats::~RTCIceCandidatePairStats() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

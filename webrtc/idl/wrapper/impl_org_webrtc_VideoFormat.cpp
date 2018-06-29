@@ -34,8 +34,9 @@ wrapper::org::webrtc::VideoFormatPtr wrapper::org::webrtc::VideoFormat::wrapper_
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::VideoFormat::~VideoFormat()
+wrapper::impl::org::webrtc::VideoFormat::~VideoFormat() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

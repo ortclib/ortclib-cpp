@@ -46,6 +46,26 @@ wrapper::org::webrtc::RTCErrorType UseEnum::toWrapper(::webrtc::RTCErrorType val
 }
 
 //-----------------------------------------------------------------------------
+::webrtc::RTCErrorType UseEnum::toNative(wrapper::org::webrtc::RTCErrorType value) noexcept
+{
+  switch (value) {
+    case wrapper::org::webrtc::RTCErrorType::RTCErrorType_none:                   return ::webrtc::RTCErrorType::NONE;
+    case wrapper::org::webrtc::RTCErrorType::RTCErrorType_unsupportedOperation:   return ::webrtc::RTCErrorType::UNSUPPORTED_OPERATION;
+    case wrapper::org::webrtc::RTCErrorType::RTCErrorType_unsupportedParameter:   return ::webrtc::RTCErrorType::UNSUPPORTED_PARAMETER;
+    case wrapper::org::webrtc::RTCErrorType::RTCErrorType_invalidParameter:       return ::webrtc::RTCErrorType::INVALID_PARAMETER;
+    case wrapper::org::webrtc::RTCErrorType::RTCErrorType_invalidRange:           return ::webrtc::RTCErrorType::INVALID_RANGE;
+    case wrapper::org::webrtc::RTCErrorType::RTCErrorType_syntaxError:            return ::webrtc::RTCErrorType::SYNTAX_ERROR;
+    case wrapper::org::webrtc::RTCErrorType::RTCErrorType_invalidState:           return ::webrtc::RTCErrorType::INVALID_STATE;
+    case wrapper::org::webrtc::RTCErrorType::RTCErrorType_invalidModification:    return ::webrtc::RTCErrorType::INVALID_MODIFICATION;
+    case wrapper::org::webrtc::RTCErrorType::RTCErrorType_networkError:           return ::webrtc::RTCErrorType::NETWORK_ERROR;
+    case wrapper::org::webrtc::RTCErrorType::RTCErrorType_resourceExhausted:      return ::webrtc::RTCErrorType::RESOURCE_EXHAUSTED;
+    case wrapper::org::webrtc::RTCErrorType::RTCErrorType_internalError:          return ::webrtc::RTCErrorType::INTERNAL_ERROR;
+  }
+  ZS_ASSERT_FAIL("unknown type");
+  return ::webrtc::RTCErrorType::INTERNAL_ERROR;
+}
+
+//-----------------------------------------------------------------------------
 wrapper::org::webrtc::RTCIceTransportPolicy UseEnum::toWrapper(::webrtc::PeerConnectionInterface::IceTransportsType value) noexcept
 {
   switch (value)
@@ -280,3 +300,108 @@ wrapper::org::webrtc::RTCTlsCertPolicy UseEnum::toWrapper(::webrtc::PeerConnecti
   ZS_ASSERT_FAIL("unknown type");
   return ::webrtc::PeerConnectionInterface::TlsCertPolicy::kTlsCertPolicySecure;
 }
+
+//-----------------------------------------------------------------------------
+wrapper::org::webrtc::RTCSdpType UseEnum::toWrapper(::webrtc::SdpType value) noexcept
+{
+  switch (value)
+  {
+    case ::webrtc::SdpType::kOffer:        return wrapper::org::webrtc::RTCSdpType::RTCSdpType_offer;
+    case ::webrtc::SdpType::kPrAnswer:     return wrapper::org::webrtc::RTCSdpType::RTCSdpType_pranswer;
+    case ::webrtc::SdpType::kAnswer:       return wrapper::org::webrtc::RTCSdpType::RTCSdpType_answer;
+  }
+  ZS_ASSERT_FAIL("unknown type");
+  return wrapper::org::webrtc::RTCSdpType::RTCSdpType_rollback;
+}
+
+//-----------------------------------------------------------------------------
+::webrtc::SdpType UseEnum::toNative(wrapper::org::webrtc::RTCSdpType value) noexcept
+{
+  switch (value)
+  {
+    case wrapper::org::webrtc::RTCSdpType::RTCSdpType_offer:        return ::webrtc::SdpType::kOffer;
+    case wrapper::org::webrtc::RTCSdpType::RTCSdpType_pranswer:     return ::webrtc::SdpType::kPrAnswer;
+    case wrapper::org::webrtc::RTCSdpType::RTCSdpType_answer:       return ::webrtc::SdpType::kAnswer;
+#pragma ZS_BUILD_NOTE("LATER","webrtc does not support rollback sdp type")
+    case wrapper::org::webrtc::RTCSdpType::RTCSdpType_rollback:     break;
+  }
+  ZS_ASSERT_FAIL("unknown type");
+  return ::webrtc::SdpType::kPrAnswer;
+}
+
+//-----------------------------------------------------------------------------
+wrapper::org::webrtc::MediaSourceState UseEnum::toWrapper(::webrtc::MediaSourceInterface::SourceState value) noexcept
+{
+  switch (value)
+  {
+    case ::webrtc::MediaSourceInterface::SourceState::kInitializing:    return wrapper::org::webrtc::MediaSourceState::MediaSourceState_initializing;
+    case ::webrtc::MediaSourceInterface::SourceState::kLive:            return wrapper::org::webrtc::MediaSourceState::MediaSourceState_live;
+    case ::webrtc::MediaSourceInterface::SourceState::kEnded:           return wrapper::org::webrtc::MediaSourceState::MediaSourceState_ended;
+    case ::webrtc::MediaSourceInterface::SourceState::kMuted:           return wrapper::org::webrtc::MediaSourceState::MediaSourceState_muted;
+  }
+  ZS_ASSERT_FAIL("unknown type");
+  return wrapper::org::webrtc::MediaSourceState::MediaSourceState_ended;
+}
+
+//-----------------------------------------------------------------------------
+::webrtc::MediaSourceInterface::SourceState UseEnum::toNative(wrapper::org::webrtc::MediaSourceState value) noexcept
+{
+  switch (value)
+  {
+    case wrapper::org::webrtc::MediaSourceState::MediaSourceState_initializing:   return ::webrtc::MediaSourceInterface::SourceState::kInitializing;
+    case wrapper::org::webrtc::MediaSourceState::MediaSourceState_live:           return ::webrtc::MediaSourceInterface::SourceState::kLive;
+    case wrapper::org::webrtc::MediaSourceState::MediaSourceState_ended:          return ::webrtc::MediaSourceInterface::SourceState::kEnded;
+    case wrapper::org::webrtc::MediaSourceState::MediaSourceState_muted:          return ::webrtc::MediaSourceInterface::SourceState::kMuted;
+  }
+  ZS_ASSERT_FAIL("unknown type");
+  return ::webrtc::MediaSourceInterface::SourceState::kEnded;
+}
+
+//-----------------------------------------------------------------------------
+wrapper::org::webrtc::MediaStreamTrackState UseEnum::toWrapper(::webrtc::MediaStreamTrackInterface::TrackState value) noexcept
+{
+  switch (value)
+  {
+    case ::webrtc::MediaStreamTrackInterface::TrackState::kLive:    return wrapper::org::webrtc::MediaStreamTrackState::MediaStreamTrackState_live;
+    case ::webrtc::MediaStreamTrackInterface::TrackState::kEnded:   return wrapper::org::webrtc::MediaStreamTrackState::MediaStreamTrackState_ended;
+  }
+  ZS_ASSERT_FAIL("unknown type");
+  return wrapper::org::webrtc::MediaStreamTrackState::MediaStreamTrackState_ended;
+}
+
+//-----------------------------------------------------------------------------
+::webrtc::MediaStreamTrackInterface::TrackState UseEnum::toNative(wrapper::org::webrtc::MediaStreamTrackState value) noexcept
+{
+  switch (value)
+  {
+    case wrapper::org::webrtc::MediaStreamTrackState::MediaStreamTrackState_live:     return ::webrtc::MediaStreamTrackInterface::TrackState::kLive;
+    case wrapper::org::webrtc::MediaStreamTrackState::MediaStreamTrackState_ended:    return ::webrtc::MediaStreamTrackInterface::TrackState::kEnded;
+  }
+  ZS_ASSERT_FAIL("unknown type");
+  return ::webrtc::MediaStreamTrackInterface::TrackState::kEnded;
+}
+
+//-----------------------------------------------------------------------------
+wrapper::org::webrtc::RTCConfigurationType UseEnum::toWrapper(::webrtc::PeerConnectionInterface::RTCConfigurationType value) noexcept
+{
+  switch (value)
+  {
+    case ::webrtc::PeerConnectionInterface::RTCConfigurationType::kSafe:        return wrapper::org::webrtc::RTCConfigurationType::RTCConfigurationType_safe;
+    case ::webrtc::PeerConnectionInterface::RTCConfigurationType::kAggressive:  return wrapper::org::webrtc::RTCConfigurationType::RTCConfigurationType_aggressive;
+  }
+  ZS_ASSERT_FAIL("unknown type");
+  return wrapper::org::webrtc::RTCConfigurationType::RTCConfigurationType_safe;
+}
+
+//-----------------------------------------------------------------------------
+::webrtc::PeerConnectionInterface::RTCConfigurationType UseEnum::toNative(wrapper::org::webrtc::RTCConfigurationType value) noexcept
+{
+  switch (value)
+  {
+    case wrapper::org::webrtc::RTCConfigurationType::RTCConfigurationType_safe:         return ::webrtc::PeerConnectionInterface::RTCConfigurationType::kSafe;
+    case wrapper::org::webrtc::RTCConfigurationType::RTCConfigurationType_aggressive:   return ::webrtc::PeerConnectionInterface::RTCConfigurationType::kAggressive;
+  }
+  ZS_ASSERT_FAIL("unknown type");
+  return ::webrtc::PeerConnectionInterface::RTCConfigurationType::kSafe;
+}
+

@@ -34,8 +34,9 @@ wrapper::org::webrtc::RTCIceGathererStatsPtr wrapper::org::webrtc::RTCIceGathere
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCIceGathererStats::~RTCIceGathererStats()
+wrapper::impl::org::webrtc::RTCIceGathererStats::~RTCIceGathererStats() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

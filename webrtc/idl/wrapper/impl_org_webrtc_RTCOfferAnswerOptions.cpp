@@ -20,20 +20,7 @@ using ::std::set;
 using ::std::map;
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCOfferAnswerOptions::RTCOfferAnswerOptions() noexcept
-{
-}
-
-//------------------------------------------------------------------------------
-wrapper::org::webrtc::RTCOfferAnswerOptionsPtr wrapper::org::webrtc::RTCOfferAnswerOptions::wrapper_create() noexcept
-{
-  auto pThis = make_shared<wrapper::impl::org::webrtc::RTCOfferAnswerOptions>();
-  pThis->thisWeak_ = pThis;
-  return pThis;
-}
-
-//------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCOfferAnswerOptions::~RTCOfferAnswerOptions()
+wrapper::impl::org::webrtc::RTCOfferAnswerOptions::~RTCOfferAnswerOptions() noexcept
 {
 }
 

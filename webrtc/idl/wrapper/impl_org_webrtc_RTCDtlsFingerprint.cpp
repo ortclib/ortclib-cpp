@@ -34,8 +34,9 @@ wrapper::org::webrtc::RTCDtlsFingerprintPtr wrapper::org::webrtc::RTCDtlsFingerp
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCDtlsFingerprint::~RTCDtlsFingerprint()
+wrapper::impl::org::webrtc::RTCDtlsFingerprint::~RTCDtlsFingerprint() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

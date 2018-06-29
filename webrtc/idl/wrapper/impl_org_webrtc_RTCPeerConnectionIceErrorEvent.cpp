@@ -34,8 +34,9 @@ wrapper::org::webrtc::RTCPeerConnectionIceErrorEventPtr wrapper::org::webrtc::RT
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCPeerConnectionIceErrorEvent::~RTCPeerConnectionIceErrorEvent()
+wrapper::impl::org::webrtc::RTCPeerConnectionIceErrorEvent::~RTCPeerConnectionIceErrorEvent() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

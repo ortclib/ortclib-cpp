@@ -34,8 +34,9 @@ wrapper::org::webrtc::RTCBitrateParametersPtr wrapper::org::webrtc::RTCBitratePa
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCBitrateParameters::~RTCBitrateParameters()
+wrapper::impl::org::webrtc::RTCBitrateParameters::~RTCBitrateParameters() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

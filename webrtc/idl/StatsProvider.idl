@@ -36,12 +36,10 @@ namespace org
     /// <summary>
     /// The RTCStatsProvider interface enables the retrieval of statistics.
     /// </summary>
+    [notconstructable]
     interface RTCStatsProvider
     {
       typedef zs::PromiseWith<RTCStatsReport> PromiseWithStatsReport;
-
-      [constructor, delete]
-      void RTCStatsProvider();
 
       /// <summary>
       /// Gets an awaitable RTCStatsReport object that will contain a set of

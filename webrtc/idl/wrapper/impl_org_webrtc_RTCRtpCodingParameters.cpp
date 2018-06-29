@@ -34,8 +34,9 @@ wrapper::org::webrtc::RTCRtpCodingParametersPtr wrapper::org::webrtc::RTCRtpCodi
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCRtpCodingParameters::~RTCRtpCodingParameters()
+wrapper::impl::org::webrtc::RTCRtpCodingParameters::~RTCRtpCodingParameters() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

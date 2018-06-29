@@ -34,8 +34,9 @@ wrapper::org::webrtc::RTCDataChannelPtr wrapper::org::webrtc::RTCDataChannel::wr
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCDataChannel::~RTCDataChannel()
+wrapper::impl::org::webrtc::RTCDataChannel::~RTCDataChannel() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

@@ -34,8 +34,9 @@ wrapper::org::webrtc::RTCIceTransportStatsPtr wrapper::org::webrtc::RTCIceTransp
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCIceTransportStats::~RTCIceTransportStats()
+wrapper::impl::org::webrtc::RTCIceTransportStats::~RTCIceTransportStats() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

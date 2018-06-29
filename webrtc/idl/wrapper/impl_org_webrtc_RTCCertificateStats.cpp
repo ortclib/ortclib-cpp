@@ -34,8 +34,9 @@ wrapper::org::webrtc::RTCCertificateStatsPtr wrapper::org::webrtc::RTCCertificat
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCCertificateStats::~RTCCertificateStats()
+wrapper::impl::org::webrtc::RTCCertificateStats::~RTCCertificateStats() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

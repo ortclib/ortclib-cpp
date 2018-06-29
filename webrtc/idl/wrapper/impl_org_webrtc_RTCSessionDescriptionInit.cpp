@@ -33,11 +33,14 @@ wrapper::org::webrtc::RTCSessionDescriptionInitPtr wrapper::org::webrtc::RTCSess
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCSessionDescriptionInit::~RTCSessionDescriptionInit()
+wrapper::impl::org::webrtc::RTCSessionDescriptionInit::~RTCSessionDescriptionInit() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------
 void wrapper::impl::org::webrtc::RTCSessionDescriptionInit::wrapper_init_org_webrtc_RTCSessionDescriptionInit() noexcept
 {
 }
+
+

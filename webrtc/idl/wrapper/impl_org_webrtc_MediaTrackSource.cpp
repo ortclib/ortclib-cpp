@@ -34,8 +34,9 @@ wrapper::org::webrtc::MediaTrackSourcePtr wrapper::org::webrtc::MediaTrackSource
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::MediaTrackSource::~MediaTrackSource()
+wrapper::impl::org::webrtc::MediaTrackSource::~MediaTrackSource() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

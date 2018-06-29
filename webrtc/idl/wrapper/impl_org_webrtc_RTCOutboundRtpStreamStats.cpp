@@ -34,8 +34,9 @@ wrapper::org::webrtc::RTCOutboundRtpStreamStatsPtr wrapper::org::webrtc::RTCOutb
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCOutboundRtpStreamStats::~RTCOutboundRtpStreamStats()
+wrapper::impl::org::webrtc::RTCOutboundRtpStreamStats::~RTCOutboundRtpStreamStats() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

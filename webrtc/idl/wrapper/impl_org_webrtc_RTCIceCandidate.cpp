@@ -34,8 +34,9 @@ wrapper::org::webrtc::RTCIceCandidatePtr wrapper::org::webrtc::RTCIceCandidate::
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCIceCandidate::~RTCIceCandidate()
+wrapper::impl::org::webrtc::RTCIceCandidate::~RTCIceCandidate() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

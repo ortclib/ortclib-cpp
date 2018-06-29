@@ -34,8 +34,9 @@ wrapper::org::webrtc::RTCKeyParamsPtr wrapper::org::webrtc::RTCKeyParams::wrappe
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCKeyParams::~RTCKeyParams()
+wrapper::impl::org::webrtc::RTCKeyParams::~RTCKeyParams() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

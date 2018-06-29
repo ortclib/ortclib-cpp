@@ -34,8 +34,9 @@ wrapper::org::webrtc::VideoCapturerInputSizePtr wrapper::org::webrtc::VideoCaptu
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::VideoCapturerInputSize::~VideoCapturerInputSize()
+wrapper::impl::org::webrtc::VideoCapturerInputSize::~VideoCapturerInputSize() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

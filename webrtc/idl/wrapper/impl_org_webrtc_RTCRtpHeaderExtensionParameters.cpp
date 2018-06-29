@@ -34,8 +34,9 @@ wrapper::org::webrtc::RTCRtpHeaderExtensionParametersPtr wrapper::org::webrtc::R
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCRtpHeaderExtensionParameters::~RTCRtpHeaderExtensionParameters()
+wrapper::impl::org::webrtc::RTCRtpHeaderExtensionParameters::~RTCRtpHeaderExtensionParameters() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

@@ -34,8 +34,9 @@ wrapper::org::webrtc::RTCRtpTransceiverPtr wrapper::org::webrtc::RTCRtpTransceiv
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCRtpTransceiver::~RTCRtpTransceiver()
+wrapper::impl::org::webrtc::RTCRtpTransceiver::~RTCRtpTransceiver() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

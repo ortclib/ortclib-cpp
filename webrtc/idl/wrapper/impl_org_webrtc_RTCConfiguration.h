@@ -27,6 +27,7 @@ namespace wrapper {
 
           // methods RTCConfiguration
           void wrapper_init_org_webrtc_RTCConfiguration() noexcept override;
+          void wrapper_init_org_webrtc_RTCConfiguration(wrapper::org::webrtc::RTCConfigurationType type) noexcept override;
           void wrapper_init_org_webrtc_RTCConfiguration(wrapper::org::webrtc::RTCConfigurationPtr source) noexcept override;
 
           // properties RTCConfiguration

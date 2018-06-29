@@ -34,8 +34,9 @@ wrapper::org::webrtc::RTCDtmfSenderPtr wrapper::org::webrtc::RTCDtmfSender::wrap
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCDtmfSender::~RTCDtmfSender()
+wrapper::impl::org::webrtc::RTCDtmfSender::~RTCDtmfSender() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

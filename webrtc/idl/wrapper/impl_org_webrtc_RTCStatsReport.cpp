@@ -34,8 +34,9 @@ wrapper::org::webrtc::RTCStatsReportPtr wrapper::org::webrtc::RTCStatsReport::wr
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCStatsReport::~RTCStatsReport()
+wrapper::impl::org::webrtc::RTCStatsReport::~RTCStatsReport() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

@@ -34,8 +34,9 @@ wrapper::org::webrtc::RTCTrackEventPtr wrapper::org::webrtc::RTCTrackEvent::wrap
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCTrackEvent::~RTCTrackEvent()
+wrapper::impl::org::webrtc::RTCTrackEvent::~RTCTrackEvent() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

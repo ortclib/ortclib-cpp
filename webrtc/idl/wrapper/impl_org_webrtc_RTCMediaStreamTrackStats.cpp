@@ -34,8 +34,9 @@ wrapper::org::webrtc::RTCMediaStreamTrackStatsPtr wrapper::org::webrtc::RTCMedia
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCMediaStreamTrackStats::~RTCMediaStreamTrackStats()
+wrapper::impl::org::webrtc::RTCMediaStreamTrackStats::~RTCMediaStreamTrackStats() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

@@ -34,8 +34,9 @@ wrapper::org::webrtc::RTCRtpContributingSourcePtr wrapper::org::webrtc::RTCRtpCo
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCRtpContributingSource::~RTCRtpContributingSource()
+wrapper::impl::org::webrtc::RTCRtpContributingSource::~RTCRtpContributingSource() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

@@ -34,8 +34,9 @@ wrapper::org::webrtc::RTCRtpEncodingParametersPtr wrapper::org::webrtc::RTCRtpEn
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCRtpEncodingParameters::~RTCRtpEncodingParameters()
+wrapper::impl::org::webrtc::RTCRtpEncodingParameters::~RTCRtpEncodingParameters() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

@@ -12,9 +12,6 @@ namespace wrapper {
 
         struct RTCOfferAnswerOptions : public wrapper::org::webrtc::RTCOfferAnswerOptions
         {
-          RTCOfferAnswerOptionsWeakPtr thisWeak_;
-
-          RTCOfferAnswerOptions() noexcept;
           virtual ~RTCOfferAnswerOptions() noexcept;
         };
 

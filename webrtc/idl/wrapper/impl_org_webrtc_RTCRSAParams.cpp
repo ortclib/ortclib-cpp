@@ -34,8 +34,9 @@ wrapper::org::webrtc::RTCRSAParamsPtr wrapper::org::webrtc::RTCRSAParams::wrappe
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCRSAParams::~RTCRSAParams()
+wrapper::impl::org::webrtc::RTCRSAParams::~RTCRSAParams() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

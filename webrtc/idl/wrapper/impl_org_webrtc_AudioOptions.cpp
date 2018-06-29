@@ -40,8 +40,9 @@ wrapper::org::webrtc::AudioOptionsPtr wrapper::org::webrtc::AudioOptions::wrappe
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::AudioOptions::~AudioOptions()
+wrapper::impl::org::webrtc::AudioOptions::~AudioOptions() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

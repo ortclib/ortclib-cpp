@@ -34,8 +34,9 @@ wrapper::org::webrtc::RTCRtpSendParametersPtr wrapper::org::webrtc::RTCRtpSendPa
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCRtpSendParameters::~RTCRtpSendParameters()
+wrapper::impl::org::webrtc::RTCRtpSendParameters::~RTCRtpSendParameters() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

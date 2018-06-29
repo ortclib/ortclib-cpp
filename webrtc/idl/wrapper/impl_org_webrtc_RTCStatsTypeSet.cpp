@@ -34,8 +34,9 @@ wrapper::org::webrtc::RTCStatsTypeSetPtr wrapper::org::webrtc::RTCStatsTypeSet::
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCStatsTypeSet::~RTCStatsTypeSet()
+wrapper::impl::org::webrtc::RTCStatsTypeSet::~RTCStatsTypeSet() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

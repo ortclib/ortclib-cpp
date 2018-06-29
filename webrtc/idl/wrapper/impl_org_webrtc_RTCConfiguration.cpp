@@ -53,15 +53,22 @@ wrapper::org::webrtc::RTCConfigurationPtr wrapper::org::webrtc::RTCConfiguration
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCConfiguration::~RTCConfiguration()
+wrapper::impl::org::webrtc::RTCConfiguration::~RTCConfiguration() noexcept
 {
   ZS_ASSERT(native_);
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------
 void wrapper::impl::org::webrtc::RTCConfiguration::wrapper_init_org_webrtc_RTCConfiguration() noexcept
 {
   native_ = make_shared<NativeType>();
+}
+
+//------------------------------------------------------------------------------
+void wrapper::impl::org::webrtc::RTCConfiguration::wrapper_init_org_webrtc_RTCConfiguration(wrapper::org::webrtc::RTCConfigurationType type) noexcept
+{
+#pragma ZS_BUILD_NOTE("TODO","(robin)")
 }
 
 //------------------------------------------------------------------------------
@@ -72,7 +79,6 @@ void wrapper::impl::org::webrtc::RTCConfiguration::wrapper_init_org_webrtc_RTCCo
     wrapper_init_org_webrtc_RTCConfiguration();
     return;
   }
-
   native_ = make_shared<NativeType>(*native);
 }
 

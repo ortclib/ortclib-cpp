@@ -34,8 +34,9 @@ wrapper::org::webrtc::RTCDtmfToneChangeEventPtr wrapper::org::webrtc::RTCDtmfTon
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCDtmfToneChangeEvent::~RTCDtmfToneChangeEvent()
+wrapper::impl::org::webrtc::RTCDtmfToneChangeEvent::~RTCDtmfToneChangeEvent() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

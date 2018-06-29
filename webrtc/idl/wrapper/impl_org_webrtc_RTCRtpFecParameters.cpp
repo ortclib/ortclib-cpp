@@ -34,8 +34,9 @@ wrapper::org::webrtc::RTCRtpFecParametersPtr wrapper::org::webrtc::RTCRtpFecPara
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCRtpFecParameters::~RTCRtpFecParameters()
+wrapper::impl::org::webrtc::RTCRtpFecParameters::~RTCRtpFecParameters() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

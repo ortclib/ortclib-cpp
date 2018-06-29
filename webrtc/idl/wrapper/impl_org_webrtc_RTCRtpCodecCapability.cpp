@@ -34,8 +34,9 @@ wrapper::org::webrtc::RTCRtpCodecCapabilityPtr wrapper::org::webrtc::RTCRtpCodec
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCRtpCodecCapability::~RTCRtpCodecCapability()
+wrapper::impl::org::webrtc::RTCRtpCodecCapability::~RTCRtpCodecCapability() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

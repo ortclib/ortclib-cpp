@@ -13,9 +13,6 @@ namespace wrapper {
 
         struct RTCStatsProvider : public wrapper::org::webrtc::RTCStatsProvider
         {
-          RTCStatsProviderWeakPtr thisWeak_;
-
-          RTCStatsProvider() noexcept;
           virtual ~RTCStatsProvider() noexcept;
 
           // methods RTCStatsProvider

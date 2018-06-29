@@ -18,6 +18,7 @@ namespace rtc
 namespace webrtc
 {
   enum class SdpSemantics;
+  enum class SdpType;
 
   class SessionDescriptionInterface;
   class PeerConnectionInterface;

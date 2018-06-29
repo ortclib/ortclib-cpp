@@ -34,8 +34,9 @@ wrapper::org::webrtc::RTCRtpRtxParametersPtr wrapper::org::webrtc::RTCRtpRtxPara
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCRtpRtxParameters::~RTCRtpRtxParameters()
+wrapper::impl::org::webrtc::RTCRtpRtxParameters::~RTCRtpRtxParameters() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------
