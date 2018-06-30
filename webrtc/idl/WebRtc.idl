@@ -1,0 +1,248 @@
+
+/*
+
+ Copyright (c) 2017, Optical Tone Ltd.
+ All rights reserved.
+
+ Redistribution and use in source and binary forms, with or without
+ modification, are permitted provided that the following conditions are met:
+
+ 1. Redistributions of source code must retain the above copyright notice, this
+ list of conditions and the following disclaimer.
+ 2. Redistributions in binary form must reproduce the above copyright notice,
+ this list of conditions and the following disclaimer in the documentation
+ and/or other materials provided with the distribution.
+
+ THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+ ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+ WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+ DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR
+ ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+ (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+ LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+ ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+ (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+ SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+ The views and conclusions contained in the software and documentation are those
+ of the authors and should not be interpreted as representing official policies,
+ either expressed or implied, of the FreeBSD Project.
+ 
+ */
+
+namespace org
+{
+  namespace webRtc
+  {
+    typedef zs::exceptions::BadState InvalidStateError;
+    typedef zs::exceptions::InvalidArgument invalidParameter;
+    typedef zs::exceptions::NotSupported NotSupportedError;
+
+    typedef std::list<string> StringList;
+    typedef zs::Milliseconds Milliseconds;
+    typedef zs::Nanoseconds Nanoseconds;
+
+    typedef zs::Any Any;
+    typedef zs::Time Time;
+    typedef zs::puid puid;
+    typedef zs::size_t size_t;
+    typedef zs::Promise Promise;
+
+    struct VideoFormat;
+    struct RTCOAuthCredential;
+    struct RTCIceServer;
+    struct RTCConfiguration;
+    struct RTCCertificate;
+    struct RTCOfferAnswerOptions;
+    struct RTCOfferOptions;
+    struct RTCAnswerOptions;
+    struct RTCDataChannelInit;
+    struct MessageEvent;
+    struct RTCSessionDescriptionInit;
+    struct Constraint;
+    struct RTCIceCandidateInit;
+    struct RTCBitrateParameters;
+    struct RTCRtpEncodingParameters;
+    struct RTCRtpHeaderExtensionParameters;
+    struct RTCRtpCodecParameters;
+    struct RTCRtpContributingSource;
+    struct RTCRtpSynchronizationSource;
+    struct RTCRtpDecodingParameters;
+    struct RTCRtpCodecCapability;
+    struct RTCDtlsFingerprint;
+    struct RTCRtpCodecCapability;
+    struct RTCRtpHeaderExtensionCapability;
+    struct RTCRtcpFeedback;
+    interface RTCError;
+    interface RTCPeerConnection;
+    interface RTCDtmfSender;
+    interface RTCRtpSender;
+    interface RTCRtpReceiver;
+    interface RTCRtpTransceiver;
+    interface RTCStatsReport;
+    interface RTCStatsProvider;
+    interface RTCDataChannel;
+    interface RTCDataChannelEvent;
+    interface RTCSessionDescription;
+    interface MediaConstraints;
+    interface RTCIceCandidate;
+    interface RTCCertificate;
+    interface RTCKeyParams;
+    interface VideoCapturer;
+
+    typedef zs::PromiseWith<RTCSessionDescription> PromiseWithDescription;
+    typedef zs::PromiseWith<RTCCertificate> PromiseWithRTCCertificate;
+
+    typedef std::list<RTCRtcpFeedback> RTCRtcpFeedbackList;
+    typedef std::list<RTCRtpHeaderExtensionCapability> RTCRtpHeaderExtensionCapabilityList;
+    typedef std::list<RTCRtpCodecCapability> RTCRtpCodecCapabilityList;
+    typedef std::list<RTCDtlsFingerprint> RTCDtlsFingerprints;
+    typedef std::list<VideoFormat> VideoFormats;
+    typedef std::list<RTCRtpCodecCapability> RTCRtpCodecCapabilityList;
+    typedef std::list<RTCRtpDecodingParameters> RTCRtpDecodingParametersList;
+    typedef std::list<RTCRtpSynchronizationSource> RTCRtpSynchronizationSources;
+    typedef std::list<RTCRtpContributingSource> RTCRtpContributingSources;
+    typedef std::list<RTCRtpEncodingParameters> RTCRtpEncodingParametersList;
+    typedef std::list<RTCRtpHeaderExtensionParameters> RTCRtpHeaderExtensionParametersList;
+    typedef std::list<RTCRtpCodecParameters> RTCRtpCodecParametersList;
+    typedef std::list<Constraint> Constraints;
+    typedef std::list<RTCIceServer> RTCIceServers;
+    typedef std::list<RTCCertificate> RTCCertificates;
+    typedef std::list<RTCRtpSender> RTCRtpSenders;
+    typedef std::list<RTCRtpReceiver> RTCRtpReceivers;
+    typedef std::list<RTCRtpTransceiver> RTCRtpTransceivers;
+    typedef std::list<RTCIceCandidate> RTCIceCandidates;
+
+
+    [dictionary]
+    struct MillisecondIntervalRange
+    {
+      Milliseconds min;
+      Milliseconds max;
+
+      /// <summary>
+      /// Constructs an empty instance of an RTCConfiguration object.
+      /// </summary>
+      [constructor, default]
+      void MillisecondIntervalRange();
+
+      /// <summary>
+      /// Constructs an instance of an RTCConfiguration object by cloning the data from an existing object.
+      /// </summary>
+      [constructor, default, altname(MillisecondIntervalRangeClone)]
+      void MillisecondIntervalRange(MillisecondIntervalRange source);
+    };
+
+    /// <summary>
+    /// A message queue for receiving delegate events.
+    /// </summary>
+    [special]
+    interface EventQueue
+    {
+      /// <summary>
+      /// Constructs an event queue object.
+      /// </summary>
+      [constructor, delete]
+      void EventQueue();
+
+      /// <summary>
+      /// Constructs an event queue object from a native queue type.
+      /// </summary>
+      [constructor, default, altname(EventQueueWithNativeQueue)]
+      void EventQueue(Any queue);
+
+      /// <summary>
+      /// The default windows message queue for the system GUI thread.
+      /// </summary>
+      [static]
+      EventQueue getDefaultForUi();
+
+      /// <summary>
+      /// Gets or sets the default system dispatcher object.
+      /// </summary>
+      [static, getter, setter]
+      EventQueue singleton;
+
+      /// <summary>
+      /// Gets a native queue from an event queue object.
+      /// </summary>
+      [getter]
+      Any queue;
+    };
+
+    [special, static, platform(webhidden)]
+    interface EventQueueMaker
+    {
+      /// <summary>
+      /// Creates an event queue object from a native queue type.
+      /// </summary>
+      [static]
+      EventQueue bindQueue(Any queue);
+      /// <summary>
+      /// Extracts a native queue from an event queue object.
+      /// </summary>
+      [static]
+      Any extractQueue(EventQueue queue);
+    };
+
+    /// <summary>
+    /// Setup methods for the ORTC Lib stack.
+    /// </summary>
+    [static]
+    interface WebRtcLib
+    {
+      /// <summary>
+      /// Initialize the ORTC stack.
+      /// </summary>
+      [static, default]
+      void setup();
+
+      /// <summary>
+      /// Initialize the ORTC stack with a target event queue for delegate events.
+      /// </summary>
+      [static, altname(setupWithQueue)]
+      void setup(EventQueue queue);
+
+      /// <summary>
+      /// Gets or sets the NTP server time discovered in milliseconds since
+      /// NTP epoch. This property must only be set at the actual moment when
+      /// the server time was discovered to ensure the NTP clock is as closed
+      /// to accurate as possible.
+      /// </summary>
+      [static]
+      Milliseconds ntpServerTime;
+
+      /// <summary>
+      /// Starts media engine trancing system. The collected traces can be
+      /// saved to file or sent to TCP listener. Traces can be visualised
+      /// further by importing the data into Chrome browser tool that can be
+      /// accessed using following option - chrome://tracing.
+      /// This method starts the tracing engine.
+      /// </summary>
+      [static]
+      void startMediaTracing();
+      /// <summary>
+      /// Stops media tracing process.
+      /// </summary>
+      [static]
+      void stopMediaTracing();
+      /// <summary>
+      /// Indicates whether tracing system is activated.
+      /// </summary>
+      [static]
+      bool isMediaTracing();
+      /// <summary>
+      /// Saves media trace data to the file specified by filename.
+      /// </summary>
+      [static]
+      bool startMediaTrace(string filename);
+      /// <summary>
+      /// Sends all traced data to TCP listener specified by host name and port.
+      /// </summary>
+      [static, altname(startMediaTraceWithHostPort)]
+      bool startMediaTrace(string host, int port);
+    };
+
+  }
+}
+
