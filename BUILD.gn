@@ -393,8 +393,8 @@ webrtc_sources = []
 
 if(current_os != "winuwp"){
 webrtc_sources = [
- "$target_gen_dir/../../../../../../third_party/ortc/ortclib/webrtc/idl/wrapper/generated/c/c_helpers.cpp",
- "$target_gen_dir/../../../../../../third_party/ortc/ortclib/webrtc/idl/wrapper/generated/c/c_helpers.h",
+ "$target_gen_dir/../../../../../../third_party/ortc/ortclib/webRtc/idl/wrapper/generated/c/c_helpers.cpp",
+ "$target_gen_dir/../../../../../../third_party/ortc/ortclib/webRtc/idl/wrapper/generated/c/c_helpers.h",
 ]
 ortc_sources = [
  "$target_gen_dir/../../../../../../third_party/ortc/ortclib/ortc/idl/wrapper/generated/c/c_helpers.cpp",
@@ -717,8 +717,8 @@ ortc_sources = [
 
 if(current_os == "winuwp"){
  webrtc_sources = [
-  "$target_gen_dir/../../../../../../third_party/ortc/ortclib/webrtc/idl/wrapper/generated/cx/cx_Helpers.cpp",
-  "$target_gen_dir/../../../../../../third_party/ortc/ortclib/webrtc/idl/wrapper/generated/cx/cx_Helpers.h",
+  "$target_gen_dir/../../../../../../third_party/ortc/ortclib/webRtc/idl/wrapper/generated/cx/cx_Helpers.cpp",
+  "$target_gen_dir/../../../../../../third_party/ortc/ortclib/webRtc/idl/wrapper/generated/cx/cx_Helpers.h",
  ]
  ortc_sources = [
   "$target_gen_dir/../../../../../../third_party/ortc/ortclib/ortc/idl/wrapper/generated/cx/cx_Helpers.cpp",
