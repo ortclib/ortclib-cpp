@@ -13,6 +13,9 @@ namespace rtc
   class Thread;
   class RTCCertificate;
   class IntervalRange;
+
+  enum ECCurve;
+  enum KeyType;
 }
 
 namespace webrtc

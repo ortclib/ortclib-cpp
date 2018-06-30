@@ -80,46 +80,35 @@ namespace wrapper {
           ZS_NO_DISCARD() static ::webrtc::DegradationPreference toNative(wrapper::org::webrtc::RTCDegradationPreference value) noexcept;
 
           ZS_NO_DISCARD() static const char *toWrapper(::webrtc::FecMechanism value) noexcept;
-          ZS_NO_DISCARD() static ::webrtc::FecMechanism toNative(const char *value) noexcept(false); // throws InvalidParameters
+          ZS_NO_DISCARD() static ::webrtc::FecMechanism toNativeFecMechanism(const char *value) noexcept(false); // throws InvalidParameters
 
           ZS_NO_DISCARD() static wrapper::org::webrtc::RTCDtxStatus toWrapper(::webrtc::DtxStatus value) noexcept;
           ZS_NO_DISCARD() static ::webrtc::DtxStatus toNative(wrapper::org::webrtc::RTCDtxStatus value) noexcept;
 
+          ZS_NO_DISCARD() static const char *toWrapper(::webrtc::RtcpFeedbackType value) noexcept;
+          ZS_NO_DISCARD() static ::webrtc::RtcpFeedbackType toNativeRtcpFeedbackType(const char *value) noexcept(false); // throws InvalidParameters
+
+          ZS_NO_DISCARD() static const char *toWrapper(::webrtc::RtcpFeedbackMessageType value) noexcept;
+          ZS_NO_DISCARD() static ::webrtc::RtcpFeedbackMessageType toNativeRtcpFeedbackMessageType(const char *value) noexcept(false); // throws InvalidParameters
+
+          ZS_NO_DISCARD() static wrapper::org::webrtc::RTCECCurve toWrapper(::rtc::ECCurve value) noexcept;
+          ZS_NO_DISCARD() static ::rtc::ECCurve toNative(wrapper::org::webrtc::RTCECCurve value) noexcept;
+
+          ZS_NO_DISCARD() static wrapper::org::webrtc::RTCKeyType toWrapper(::rtc::KeyType value) noexcept;
+          ZS_NO_DISCARD() static ::rtc::KeyType toNative(wrapper::org::webrtc::RTCKeyType value) noexcept;
+
+          ZS_NO_DISCARD() static wrapper::org::webrtc::RTCIceCandidateType toWrapperRTCIceCandidateType(const char *value) noexcept(false); // throws InvalidParameters
+          ZS_NO_DISCARD() static const char *toNative(wrapper::org::webrtc::RTCIceCandidateType value) noexcept;
+
+          ZS_NO_DISCARD() static wrapper::org::webrtc::RTCIceComponent toWrapperRTCIceComponent(int value) noexcept(false); // throws InvalidParameters
+          ZS_NO_DISCARD() static int toNative(wrapper::org::webrtc::RTCIceComponent value) noexcept;
+
+          ZS_NO_DISCARD() static wrapper::org::webrtc::RTCIceConnectionState toWrapper(::webrtc::PeerConnectionInterface::IceConnectionState value) noexcept;
+          ZS_NO_DISCARD() static ::webrtc::PeerConnectionInterface::IceConnectionState toNative(wrapper::org::webrtc::RTCIceConnectionState value) noexcept;
+
 #if 0
 
 
-  
-          enum RTCECCurve {
-            RTCECCurve_nistP256,
-          };
-     
-          enum RTCIceCandidatePairState {
-            RTCIceCandidatePairState_frozen,
-            RTCIceCandidatePairState_waiting,
-            RTCIceCandidatePairState_inProgress,
-            RTCIceCandidatePairState_failed,
-            RTCIceCandidatePairState_succeeded,
-            RTCIceCandidatePairState_cancelled,
-          };
-          enum RTCIceCandidateType {
-            RTCIceCandidateType_host,
-            RTCIceCandidateType_srflex,
-            RTCIceCandidateType_prflx,
-            RTCIceCandidateType_relay,
-          };
-          enum RTCIceComponent {
-            RTCIceComponent_rtp = 1,
-            RTCIceComponent_rtcp = 2,
-          };
-          enum RTCIceConnectionState {
-            RTCIceConnectionState_new,
-            RTCIceConnectionState_checking,
-            RTCIceConnectionState_connected,
-            RTCIceConnectionState_completed,
-            RTCIceConnectionState_failed,
-            RTCIceConnectionState_disconnected,
-            RTCIceConnectionState_closed,
-          };
           enum RTCIceCredentialType {
             RTCIceCredentialType_password,
             RTCIceCredentialType_oauth,
@@ -137,10 +126,6 @@ namespace wrapper {
             RTCIceTcpCandidateType_active,
             RTCIceTcpCandidateType_passive,
             RTCIceTcpCandidateType_so,
-          };
-          enum RTCKeyType {
-            RTCKeyType_rsa,
-            RTCKeyType_ecdsa,
           };
           enum RTCPeerConnectionState {
             RTCPeerConnectionState_new,
@@ -199,22 +184,262 @@ namespace wrapper {
             VideoCaptureState_failed,
           };
 
+          PeerConnectionInterface
+          enum SignalingState {
+            kStable,
+            kHaveLocalOffer,
+            kHaveLocalPrAnswer,
+            kHaveRemoteOffer,
+            kHaveRemotePrAnswer,
+            kClosed,
+  };
+          PeerConnectionInterface
+          enum IceGatheringState {
+            kIceGatheringNew,
+            kIceGatheringGathering,
+            kIceGatheringComplete
+          };
 
 
-          // Used in RtcpFeedback struct.
-          enum class RtcpFeedbackType {
-            CCM,
-            NACK,
-            REMB,  // "goog-remb"
-            TRANSPORT_CC,
-};
 
-          // Used in RtcpFeedback struct when type is NACK or CCM.
-          enum class RtcpFeedbackMessageType {
-            // Equivalent to {type: "nack", parameter: undefined} in ORTC.
-            GENERIC_NACK,
-            PLI,  // Usable with NACK.
-            FIR,  // Usable with CCM.
+
+
+
+          ///// StatsReport
+
+
+          enum Direction {
+            kSend = 0,
+            kReceive,
+  };
+
+          enum StatsType {
+            // StatsReport types.
+            // A StatsReport of |type| = "googSession" contains overall information
+            // about the thing libjingle calls a session (which may contain one
+            // or more RTP sessions.
+            kStatsReportTypeSession,
+
+            // A StatsReport of |type| = "googTransport" contains information
+            // about a libjingle "transport".
+            kStatsReportTypeTransport,
+
+            // A StatsReport of |type| = "googComponent" contains information
+            // about a libjingle "channel" (typically, RTP or RTCP for a transport).
+            // This is intended to be the same thing as an ICE "Component".
+            kStatsReportTypeComponent,
+
+            // A StatsReport of |type| = "googCandidatePair" contains information
+            // about a libjingle "connection" - a single source/destination port pair.
+            // This is intended to be the same thing as an ICE "candidate pair".
+            kStatsReportTypeCandidatePair,
+
+            // A StatsReport of |type| = "VideoBWE" is statistics for video Bandwidth
+            // Estimation, which is global per-session.  The |id| field is "bweforvideo"
+            // (will probably change in the future).
+            kStatsReportTypeBwe,
+
+            // A StatsReport of |type| = "ssrc" is statistics for a specific rtp stream.
+            // The |id| field is the SSRC in decimal form of the rtp stream.
+            kStatsReportTypeSsrc,
+
+            // A StatsReport of |type| = "remoteSsrc" is statistics for a specific
+            // rtp stream, generated by the remote end of the connection.
+            kStatsReportTypeRemoteSsrc,
+
+            // A StatsReport of |type| = "googTrack" is statistics for a specific media
+            // track. The |id| field is the track id.
+            kStatsReportTypeTrack,
+
+            // A StatsReport of |type| = "localcandidate" or "remotecandidate" is
+            // attributes on a specific ICE Candidate. It links to its connection pair
+            // by candidate id. The string value is taken from
+            // http://w3c.github.io/webrtc-stats/#rtcstatstype-enum*.
+            kStatsReportTypeIceLocalCandidate,
+            kStatsReportTypeIceRemoteCandidate,
+
+            // A StatsReport of |type| = "googCertificate" contains an SSL certificate
+            // transmitted by one of the endpoints of this connection.  The |id| is
+            // controlled by the fingerprint, and is used to identify the certificate in
+            // the Channel stats (as "googLocalCertificateId" or
+            // "googRemoteCertificateId") and in any child certificates (as
+            // "googIssuerId").
+            kStatsReportTypeCertificate,
+
+            // A StatsReport of |type| = "datachannel" with statistics for a
+            // particular DataChannel.
+            kStatsReportTypeDataChannel,
+          };
+
+          enum StatsValueName {
+            kStatsValueNameActiveConnection,
+            kStatsValueNameAecDivergentFilterFraction,
+            kStatsValueNameAudioInputLevel,
+            kStatsValueNameAudioOutputLevel,
+            kStatsValueNameBytesReceived,
+            kStatsValueNameBytesSent,
+            kStatsValueNameCodecImplementationName,
+            kStatsValueNameConcealedSamples,
+            kStatsValueNameConcealmentEvents,
+            kStatsValueNameDataChannelId,
+            kStatsValueNameFramesDecoded,
+            kStatsValueNameFramesEncoded,
+            kStatsValueNameJitterBufferDelay,
+            kStatsValueNameMediaType,
+            kStatsValueNamePacketsLost,
+            kStatsValueNamePacketsReceived,
+            kStatsValueNamePacketsSent,
+            kStatsValueNameProtocol,
+            kStatsValueNameQpSum,
+            kStatsValueNameReceiving,
+            kStatsValueNameSelectedCandidatePairId,
+            kStatsValueNameSsrc,
+            kStatsValueNameState,
+            kStatsValueNameTotalAudioEnergy,
+            kStatsValueNameTotalSamplesDuration,
+            kStatsValueNameTotalSamplesReceived,
+            kStatsValueNameTransportId,
+            kStatsValueNameSentPingRequestsTotal,
+            kStatsValueNameSentPingRequestsBeforeFirstResponse,
+            kStatsValueNameSentPingResponses,
+            kStatsValueNameRecvPingRequests,
+            kStatsValueNameRecvPingResponses,
+            kStatsValueNameSentStunKeepaliveRequests,
+            kStatsValueNameRecvStunKeepaliveResponses,
+            kStatsValueNameStunKeepaliveRttTotal,
+            kStatsValueNameStunKeepaliveRttSquaredTotal,
+
+            // Internal StatsValue names.
+            kStatsValueNameAccelerateRate,
+            kStatsValueNameActualEncBitrate,
+            kStatsValueNameAdaptationChanges,
+            kStatsValueNameAvailableReceiveBandwidth,
+            kStatsValueNameAvailableSendBandwidth,
+            kStatsValueNameAvgEncodeMs,
+            kStatsValueNameBandwidthLimitedResolution,
+            kStatsValueNameBucketDelay,
+            kStatsValueNameCaptureStartNtpTimeMs,
+            kStatsValueNameCandidateIPAddress,
+            kStatsValueNameCandidateNetworkType,
+            kStatsValueNameCandidatePortNumber,
+            kStatsValueNameCandidatePriority,
+            kStatsValueNameCandidateTransportType,
+            kStatsValueNameCandidateType,
+            kStatsValueNameChannelId,
+            kStatsValueNameCodecName,
+            kStatsValueNameComponent,
+            kStatsValueNameContentName,
+            kStatsValueNameContentType,
+            kStatsValueNameCpuLimitedResolution,
+            kStatsValueNameCurrentDelayMs,
+#ifdef WEBRTC_FEATURE_END_TO_END_DELAY
+            kStatsValueNameCurrentEndToEndDelayMs,
+#endif /* WEBRTC_FEATURE_END_TO_END_DELAY */
+            kStatsValueNameDecodeMs,
+            kStatsValueNameDecodingCNG,
+            kStatsValueNameDecodingCTN,
+            kStatsValueNameDecodingCTSG,
+            kStatsValueNameDecodingMutedOutput,
+            kStatsValueNameDecodingNormal,
+            kStatsValueNameDecodingPLC,
+            kStatsValueNameDecodingPLCCNG,
+            kStatsValueNameDer,
+            kStatsValueNameDtlsCipher,
+            kStatsValueNameEchoDelayMedian,
+            kStatsValueNameEchoDelayStdDev,
+            kStatsValueNameEchoReturnLoss,
+            kStatsValueNameEchoReturnLossEnhancement,
+            kStatsValueNameEncodeUsagePercent,
+            kStatsValueNameExpandRate,
+            kStatsValueNameFingerprint,
+            kStatsValueNameFingerprintAlgorithm,
+            kStatsValueNameFirsReceived,
+            kStatsValueNameFirsSent,
+            kStatsValueNameFrameHeightInput,
+            kStatsValueNameFrameHeightReceived,
+            kStatsValueNameFrameHeightSent,
+            kStatsValueNameFrameRateDecoded,
+            kStatsValueNameFrameRateInput,
+            kStatsValueNameFrameRateOutput,
+            kStatsValueNameFrameRateReceived,
+            kStatsValueNameFrameRateSent,
+            kStatsValueNameFrameWidthInput,
+            kStatsValueNameFrameWidthReceived,
+            kStatsValueNameFrameWidthSent,
+            kStatsValueNameHasEnteredLowResolution,
+            kStatsValueNameHugeFramesSent,
+            kStatsValueNameInitiator,
+            kStatsValueNameInterframeDelayMaxMs,  // Max over last 10 seconds.
+            kStatsValueNameIssuerId,
+            kStatsValueNameJitterBufferMs,
+            kStatsValueNameJitterReceived,
+            kStatsValueNameLabel,
+            kStatsValueNameLocalAddress,
+            kStatsValueNameLocalCandidateId,
+            kStatsValueNameLocalCandidateType,
+            kStatsValueNameLocalCertificateId,
+            kStatsValueNameMaxDecodeMs,
+            kStatsValueNameMinPlayoutDelayMs,
+            kStatsValueNameNacksReceived,
+            kStatsValueNameNacksSent,
+            kStatsValueNamePlisReceived,
+            kStatsValueNamePlisSent,
+            kStatsValueNamePreemptiveExpandRate,
+            kStatsValueNamePreferredJitterBufferMs,
+            kStatsValueNameRemoteAddress,
+            kStatsValueNameRemoteCandidateId,
+            kStatsValueNameRemoteCandidateType,
+            kStatsValueNameRemoteCertificateId,
+            kStatsValueNameRenderDelayMs,
+            kStatsValueNameResidualEchoLikelihood,
+            kStatsValueNameResidualEchoLikelihoodRecentMax,
+            kStatsValueNameAnaBitrateActionCounter,
+            kStatsValueNameAnaChannelActionCounter,
+            kStatsValueNameAnaDtxActionCounter,
+            kStatsValueNameAnaFecActionCounter,
+            kStatsValueNameAnaFrameLengthIncreaseCounter,
+            kStatsValueNameAnaFrameLengthDecreaseCounter,
+            kStatsValueNameAnaUplinkPacketLossFraction,
+            kStatsValueNameRetransmitBitrate,
+            kStatsValueNameRtt,
+            kStatsValueNameSecondaryDecodedRate,
+            kStatsValueNameSecondaryDiscardedRate,
+            kStatsValueNameSendPacketsDiscarded,
+            kStatsValueNameSpeechExpandRate,
+            kStatsValueNameSrtpCipher,
+            kStatsValueNameTargetDelayMs,
+            kStatsValueNameTargetEncBitrate,
+            kStatsValueNameTimingFrameInfo,  // Result of |TimingFrameInfo::ToString|
+            kStatsValueNameTrackId,
+            kStatsValueNameTransmitBitrate,
+            kStatsValueNameTransportType,
+            kStatsValueNameTypingNoiseState,
+            kStatsValueNameWritable,
+          };
+
+          struct Value {
+            enum Type {
+              kInt,           // int.
+              kInt64,         // int64_t.
+              kFloat,         // float.
+              kString,        // std::string
+              kStaticString,  // const char*.
+              kBool,          // bool.
+              kId,            // Id.
+    };
+
+
+          ///// StatsReport
+
+
+
+            enum RTCIceCandidatePairState {
+              RTCIceCandidatePairState_frozen,
+              RTCIceCandidatePairState_waiting,
+              RTCIceCandidatePairState_inProgress,
+              RTCIceCandidatePairState_failed,
+              RTCIceCandidatePairState_succeeded,
+              RTCIceCandidatePairState_cancelled,
           };
 
 #endif //0

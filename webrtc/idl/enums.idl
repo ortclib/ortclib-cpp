@@ -690,6 +690,10 @@ namespace org
 
     enum RTCKeyType {
       /// <summary>
+      /// Default key type used (currently ecdsa).
+      /// </summary>
+      default,
+      /// <summary>
       /// RSA public key.
       /// </summary>
       rsa,
