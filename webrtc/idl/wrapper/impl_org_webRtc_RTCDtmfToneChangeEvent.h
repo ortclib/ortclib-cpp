@@ -3,15 +3,15 @@
 #pragma once
 
 #include "types.h"
-#include "generated/org_webrtc_RTCDtmfToneChangeEvent.h"
+#include "generated/org_webRtc_RTCDtmfToneChangeEvent.h"
 
 
 namespace wrapper {
   namespace impl {
     namespace org {
-      namespace webrtc {
+      namespace webRtc {
 
-        struct RTCDtmfToneChangeEvent : public wrapper::org::webrtc::RTCDtmfToneChangeEvent
+        struct RTCDtmfToneChangeEvent : public wrapper::org::webRtc::RTCDtmfToneChangeEvent
         {
           RTCDtmfToneChangeEventWeakPtr thisWeak_;
 
@@ -22,7 +22,7 @@ namespace wrapper {
           String get_tone() noexcept override;
         };
 
-      } // webrtc
+      } // webRtc
     } // org
   } // namespace impl
 } // namespace wrapper

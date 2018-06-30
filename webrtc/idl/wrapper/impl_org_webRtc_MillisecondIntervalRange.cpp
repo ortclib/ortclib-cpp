@@ -1,9 +1,9 @@
 
-#include "impl_org_webrtc_MillisecondIntervalRange.h"
+#include "impl_org_webRtc_MillisecondIntervalRange.h"
 
-#include "impl_org_webrtc_pre_include.h"
+#include "impl_org_webRtc_pre_include.h"
 #include "rtc_base/timeutils.h"
-#include "impl_org_webrtc_post_include.h"
+#include "impl_org_webRtc_post_include.h"
 
 #include <zsLib/SafeInt.h>
 
@@ -26,39 +26,39 @@ using ::std::set;
 using ::std::map;
 
 // borrow definitions from class
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::MillisecondIntervalRange::WrapperImplType, WrapperImplType);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::MillisecondIntervalRange::WrapperType, WrapperType);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::MillisecondIntervalRange::NativeType, NativeType);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::MillisecondIntervalRange::WrapperImplType, WrapperImplType);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::MillisecondIntervalRange::WrapperType, WrapperType);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::MillisecondIntervalRange::NativeType, NativeType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::MillisecondIntervalRange::MillisecondIntervalRange() noexcept
+wrapper::impl::org::webRtc::MillisecondIntervalRange::MillisecondIntervalRange() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::MillisecondIntervalRangePtr wrapper::org::webrtc::MillisecondIntervalRange::wrapper_create() noexcept
+wrapper::org::webRtc::MillisecondIntervalRangePtr wrapper::org::webRtc::MillisecondIntervalRange::wrapper_create() noexcept
 {
-  auto pThis = make_shared<wrapper::impl::org::webrtc::MillisecondIntervalRange>();
+  auto pThis = make_shared<wrapper::impl::org::webRtc::MillisecondIntervalRange>();
   pThis->thisWeak_ = pThis;
   return pThis;
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::MillisecondIntervalRange::~MillisecondIntervalRange() noexcept
+wrapper::impl::org::webRtc::MillisecondIntervalRange::~MillisecondIntervalRange() noexcept
 {
   thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webrtc::MillisecondIntervalRange::wrapper_init_org_webrtc_MillisecondIntervalRange() noexcept
+void wrapper::impl::org::webRtc::MillisecondIntervalRange::wrapper_init_org_webRtc_MillisecondIntervalRange() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webrtc::MillisecondIntervalRange::wrapper_init_org_webrtc_MillisecondIntervalRange(wrapper::org::webrtc::MillisecondIntervalRangePtr source) noexcept
+void wrapper::impl::org::webRtc::MillisecondIntervalRange::wrapper_init_org_webRtc_MillisecondIntervalRange(wrapper::org::webRtc::MillisecondIntervalRangePtr source) noexcept
 {
   if (!source) {
-    wrapper_init_org_webrtc_MillisecondIntervalRange();
+    wrapper_init_org_webRtc_MillisecondIntervalRange();
     return;
   }
 

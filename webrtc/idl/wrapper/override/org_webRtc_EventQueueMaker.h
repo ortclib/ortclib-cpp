@@ -4,24 +4,24 @@
 #pragma once
 
 #include <wrapper/generated/types.h>
-#include <wrapper/generated/org_webrtc_EventQueue.h>
+#include <wrapper/generated/org_webRtc_EventQueue.h>
 
 namespace wrapper {
   namespace org {
-    namespace webrtc {
+    namespace webRtc {
 
       struct EventQueueMaker
       {
         virtual ~EventQueueMaker() noexcept {}
 
 #if 0
-        static wrapper::org::webrtc::EventQueuePtr bindQueue(AnyPtr queue) noexcept;
-        static AnyPtr extractQueue(wrapper::org::webrtc::EventQueuePtr queue) noexcept;
+        static wrapper::org::webRtc::EventQueuePtr bindQueue(AnyPtr queue) noexcept;
+        static AnyPtr extractQueue(wrapper::org::webRtc::EventQueuePtr queue) noexcept;
 #endif //0
 
       };
 
-    } // webrtc
+    } // webRtc
   } // org
 } // namespace wrapper
 

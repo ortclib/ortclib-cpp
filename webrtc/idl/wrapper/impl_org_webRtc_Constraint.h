@@ -2,22 +2,22 @@
 #pragma once
 
 #include "types.h"
-#include "generated/org_webrtc_Constraint.h"
+#include "generated/org_webRtc_Constraint.h"
 
-#include "impl_org_webrtc_pre_include.h"
+#include "impl_org_webRtc_pre_include.h"
 #include "api/mediaconstraintsinterface.h"
-#include "impl_org_webrtc_post_include.h"
+#include "impl_org_webRtc_post_include.h"
 
 namespace wrapper {
   namespace impl {
     namespace org {
-      namespace webrtc {
+      namespace webRtc {
 
-        struct Constraint : public wrapper::org::webrtc::Constraint
+        struct Constraint : public wrapper::org::webRtc::Constraint
         {
           ZS_DECLARE_TYPEDEF_PTR(::webrtc::MediaConstraintsInterface::Constraint, NativeType);
-          ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::Constraint, WrapperImplType);
-          ZS_DECLARE_TYPEDEF_PTR(wrapper::org::webrtc::Constraint, WrapperType);
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::Constraint, WrapperImplType);
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::org::webRtc::Constraint, WrapperType);
 
           NativeTypePtr native_;
           ConstraintWeakPtr thisWeak_;
@@ -26,9 +26,9 @@ namespace wrapper {
           virtual ~Constraint() noexcept;
 
           // methods Constraint
-          void wrapper_init_org_webrtc_Constraint() noexcept override;
-          void wrapper_init_org_webrtc_Constraint(wrapper::org::webrtc::ConstraintPtr source) noexcept override;
-          void wrapper_init_org_webrtc_Constraint(
+          void wrapper_init_org_webRtc_Constraint() noexcept override;
+          void wrapper_init_org_webRtc_Constraint(wrapper::org::webRtc::ConstraintPtr source) noexcept override;
+          void wrapper_init_org_webRtc_Constraint(
             String key,
             String value
             ) noexcept override;
@@ -45,7 +45,7 @@ namespace wrapper {
           ZS_NO_DISCARD() static NativeTypePtr toNative(WrapperTypePtr wrapper) noexcept;
         };
 
-      } // webrtc
+      } // webRtc
     } // org
   } // namespace impl
 } // namespace wrapper

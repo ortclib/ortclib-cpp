@@ -2,23 +2,23 @@
 #pragma once
 
 #include "types.h"
-#include "generated/org_webrtc_AudioTrackSource.h"
+#include "generated/org_webRtc_AudioTrackSource.h"
 
 
-#include "impl_org_webrtc_pre_include.h"
+#include "impl_org_webRtc_pre_include.h"
 #include "rtc_base/scoped_ref_ptr.h"
 #include "api/mediastreaminterface.h"
-#include "impl_org_webrtc_post_include.h"
+#include "impl_org_webRtc_post_include.h"
 
 namespace wrapper {
   namespace impl {
     namespace org {
-      namespace webrtc {
+      namespace webRtc {
 
-        struct AudioTrackSource : public wrapper::org::webrtc::AudioTrackSource
+        struct AudioTrackSource : public wrapper::org::webRtc::AudioTrackSource
         {
-          ZS_DECLARE_TYPEDEF_PTR(wrapper::org::webrtc::AudioTrackSource, WrapperType);
-          ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::AudioTrackSource, WrapperImplType);
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::org::webRtc::AudioTrackSource, WrapperType);
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::AudioTrackSource, WrapperImplType);
           ZS_DECLARE_TYPEDEF_PTR(::webrtc::AudioSourceInterface, NativeType);
 
           typedef rtc::scoped_refptr<::webrtc::AudioSourceInterface> NativeScopedPtr;
@@ -49,7 +49,7 @@ namespace wrapper {
           virtual ~AudioTrackSource() noexcept;
 
           // properties MediaTrackSource
-          wrapper::org::webrtc::MediaSourceState get_state() noexcept override;
+          wrapper::org::webRtc::MediaSourceState get_state() noexcept override;
           bool get_remote() noexcept override;
 
           // properties AudioTrackSource
@@ -68,7 +68,7 @@ namespace wrapper {
           ZS_NO_DISCARD() static NativeScopedPtr toNative(WrapperTypePtr wrapper) noexcept;
         };
 
-      } // webrtc
+      } // webRtc
     } // org
   } // namespace impl
 } // namespace wrapper

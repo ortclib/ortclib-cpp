@@ -12,10 +12,10 @@
 
 #include "MediaSourceHelper.h"
 
-#include <wrapper/impl_org_webrtc_pre_include.h>
+#include <wrapper/impl_org_webRtc_pre_include.h>
 #include "api/mediastreaminterface.h"
 #include "rtc_base/criticalsection.h"
-#include <wrapper/impl_org_webrtc_post_include.h>
+#include <wrapper/impl_org_webRtc_post_include.h>
 
 
 namespace Org {

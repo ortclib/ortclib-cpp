@@ -3,15 +3,15 @@
 #pragma once
 
 #include "types.h"
-#include "generated/org_webrtc_RTCRtpDecodingParameters.h"
+#include "generated/org_webRtc_RTCRtpDecodingParameters.h"
 
 
 namespace wrapper {
   namespace impl {
     namespace org {
-      namespace webrtc {
+      namespace webRtc {
 
-        struct RTCRtpDecodingParameters : public wrapper::org::webrtc::RTCRtpDecodingParameters
+        struct RTCRtpDecodingParameters : public wrapper::org::webRtc::RTCRtpDecodingParameters
         {
           RTCRtpDecodingParametersWeakPtr thisWeak_;
 
@@ -19,7 +19,7 @@ namespace wrapper {
           virtual ~RTCRtpDecodingParameters() noexcept;
         };
 
-      } // webrtc
+      } // webRtc
     } // org
   } // namespace impl
 } // namespace wrapper

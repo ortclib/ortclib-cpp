@@ -3,24 +3,24 @@
 #pragma once
 
 #include "types.h"
-#include "generated/org_webrtc_RTCRtpSynchronizationSource.h"
+#include "generated/org_webRtc_RTCRtpSynchronizationSource.h"
 
 
 namespace wrapper {
   namespace impl {
     namespace org {
-      namespace webrtc {
+      namespace webRtc {
 
-        struct RTCRtpSynchronizationSource : public wrapper::org::webrtc::RTCRtpSynchronizationSource
+        struct RTCRtpSynchronizationSource : public wrapper::org::webRtc::RTCRtpSynchronizationSource
         {
           RTCRtpSynchronizationSourceWeakPtr thisWeak_;
 
           RTCRtpSynchronizationSource() noexcept;
           virtual ~RTCRtpSynchronizationSource() noexcept;
-          void wrapper_init_org_webrtc_RTCRtpSynchronizationSource() noexcept override;
+          void wrapper_init_org_webRtc_RTCRtpSynchronizationSource() noexcept override;
         };
 
-      } // webrtc
+      } // webRtc
     } // org
   } // namespace impl
 } // namespace wrapper

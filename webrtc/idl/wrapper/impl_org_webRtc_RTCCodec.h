@@ -3,15 +3,15 @@
 #pragma once
 
 #include "types.h"
-#include "generated/org_webrtc_RTCCodec.h"
+#include "generated/org_webRtc_RTCCodec.h"
 
 
 namespace wrapper {
   namespace impl {
     namespace org {
-      namespace webrtc {
+      namespace webRtc {
 
-        struct RTCCodec : public wrapper::org::webrtc::RTCCodec
+        struct RTCCodec : public wrapper::org::webRtc::RTCCodec
         {
           RTCCodecWeakPtr thisWeak_;
 
@@ -20,13 +20,13 @@ namespace wrapper {
 
           // properties RTCStats
           ::zsLib::Time get_timestamp() noexcept override;
-          Optional< wrapper::org::webrtc::RTCStatsType > get_statsType() noexcept override;
+          Optional< wrapper::org::webRtc::RTCStatsType > get_statsType() noexcept override;
           String get_statsTypeOther() noexcept override;
           String get_id() noexcept override;
 
           // methods RTCCodec
-          void wrapper_init_org_webrtc_RTCCodec() noexcept override;
-          void wrapper_init_org_webrtc_RTCCodec(wrapper::org::webrtc::RTCCodecPtr source) noexcept override;
+          void wrapper_init_org_webRtc_RTCCodec() noexcept override;
+          void wrapper_init_org_webRtc_RTCCodec(wrapper::org::webRtc::RTCCodecPtr source) noexcept override;
 
           // properties RTCCodec
           Optional< uint8_t > get_payloadType() noexcept override;
@@ -36,7 +36,7 @@ namespace wrapper {
           String get_parameters() noexcept override;
         };
 
-      } // webrtc
+      } // webRtc
     } // org
   } // namespace impl
 } // namespace wrapper

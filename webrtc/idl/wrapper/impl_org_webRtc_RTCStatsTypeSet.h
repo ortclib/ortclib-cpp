@@ -3,15 +3,15 @@
 #pragma once
 
 #include "types.h"
-#include "generated/org_webrtc_RTCStatsTypeSet.h"
+#include "generated/org_webRtc_RTCStatsTypeSet.h"
 
 
 namespace wrapper {
   namespace impl {
     namespace org {
-      namespace webrtc {
+      namespace webRtc {
 
-        struct RTCStatsTypeSet : public wrapper::org::webrtc::RTCStatsTypeSet
+        struct RTCStatsTypeSet : public wrapper::org::webRtc::RTCStatsTypeSet
         {
           RTCStatsTypeSetWeakPtr thisWeak_;
 
@@ -19,12 +19,12 @@ namespace wrapper {
           virtual ~RTCStatsTypeSet() noexcept;
 
           // methods RTCStatsTypeSet
-          void wrapper_init_org_webrtc_RTCStatsTypeSet() noexcept override;
-          void wrapper_init_org_webrtc_RTCStatsTypeSet(shared_ptr< set< wrapper::org::webrtc::RTCStatsType > > values) noexcept override;
-          bool hasStatType(wrapper::org::webrtc::RTCStatsType type) noexcept override;
+          void wrapper_init_org_webRtc_RTCStatsTypeSet() noexcept override;
+          void wrapper_init_org_webRtc_RTCStatsTypeSet(shared_ptr< set< wrapper::org::webRtc::RTCStatsType > > values) noexcept override;
+          bool hasStatType(wrapper::org::webRtc::RTCStatsType type) noexcept override;
         };
 
-      } // webrtc
+      } // webRtc
     } // org
   } // namespace impl
 } // namespace wrapper

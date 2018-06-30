@@ -3,15 +3,15 @@
 #pragma once
 
 #include "types.h"
-#include "generated/org_webrtc_RTCMediaStreamTrackStats.h"
+#include "generated/org_webRtc_RTCMediaStreamTrackStats.h"
 
 
 namespace wrapper {
   namespace impl {
     namespace org {
-      namespace webrtc {
+      namespace webRtc {
 
-        struct RTCMediaStreamTrackStats : public wrapper::org::webrtc::RTCMediaStreamTrackStats
+        struct RTCMediaStreamTrackStats : public wrapper::org::webRtc::RTCMediaStreamTrackStats
         {
           RTCMediaStreamTrackStatsWeakPtr thisWeak_;
 
@@ -20,13 +20,13 @@ namespace wrapper {
 
           // properties RTCStats
           ::zsLib::Time get_timestamp() noexcept override;
-          Optional< wrapper::org::webrtc::RTCStatsType > get_statsType() noexcept override;
+          Optional< wrapper::org::webRtc::RTCStatsType > get_statsType() noexcept override;
           String get_statsTypeOther() noexcept override;
           String get_id() noexcept override;
 
           // methods RTCMediaStreamTrackStats
-          void wrapper_init_org_webrtc_RTCMediaStreamTrackStats() noexcept override;
-          void wrapper_init_org_webrtc_RTCMediaStreamTrackStats(wrapper::org::webrtc::RTCMediaStreamTrackStatsPtr source) noexcept override;
+          void wrapper_init_org_webRtc_RTCMediaStreamTrackStats() noexcept override;
+          void wrapper_init_org_webRtc_RTCMediaStreamTrackStats(wrapper::org::webRtc::RTCMediaStreamTrackStatsPtr source) noexcept override;
 
           // properties RTCMediaStreamTrackStats
           String get_trackId() noexcept override;
@@ -45,7 +45,7 @@ namespace wrapper {
           double get_echoReturnLossEnhancement() noexcept override;
         };
 
-      } // webrtc
+      } // webRtc
     } // org
   } // namespace impl
 } // namespace wrapper

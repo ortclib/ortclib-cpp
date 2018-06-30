@@ -1,10 +1,10 @@
 
-#include "impl_org_webrtc_RTCError.h"
-#include "impl_org_webrtc_enums.h"
+#include "impl_org_webRtc_RTCError.h"
+#include "impl_org_webRtc_enums.h"
 
-#include "impl_org_webrtc_pre_include.h"
+#include "impl_org_webRtc_pre_include.h"
 #include "api/rtcerror.h"
-#include "impl_org_webrtc_post_include.h"
+#include "impl_org_webRtc_post_include.h"
 
 using ::zsLib::String;
 using ::zsLib::Optional;
@@ -25,51 +25,51 @@ using ::std::set;
 using ::std::map;
 
 // borrow definitions from class
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::RTCError::WrapperImplType, WrapperImplType);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::RTCError::WrapperType, WrapperType);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::RTCError::NativeType, NativeType);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCError::WrapperImplType, WrapperImplType);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCError::WrapperType, WrapperType);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCError::NativeType, NativeType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCError::RTCError() noexcept
+wrapper::impl::org::webRtc::RTCError::RTCError() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::RTCErrorPtr wrapper::org::webrtc::RTCError::wrapper_create() noexcept
+wrapper::org::webRtc::RTCErrorPtr wrapper::org::webRtc::RTCError::wrapper_create() noexcept
 {
-  auto pThis = make_shared<wrapper::impl::org::webrtc::RTCError>();
+  auto pThis = make_shared<wrapper::impl::org::webRtc::RTCError>();
   pThis->thisWeak_ = pThis;
   return pThis;
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCError::~RTCError() noexcept
+wrapper::impl::org::webRtc::RTCError::~RTCError() noexcept
 {
   thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webrtc::RTCError::wrapper_init_org_webrtc_RTCError() noexcept
+void wrapper::impl::org::webRtc::RTCError::wrapper_init_org_webRtc_RTCError() noexcept
 {
   native_ = make_shared<NativeType>();
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::RTCErrorType wrapper::impl::org::webrtc::RTCError::get_type() noexcept
+wrapper::org::webRtc::RTCErrorType wrapper::impl::org::webRtc::RTCError::get_type() noexcept
 {
-  if (!native_) return wrapper::org::webrtc::RTCErrorType::RTCErrorType_none;
+  if (!native_) return wrapper::org::webRtc::RTCErrorType::RTCErrorType_none;
   return IEnum::toWrapper(native_->type());
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::webrtc::RTCError::get_message() noexcept
+String wrapper::impl::org::webRtc::RTCError::get_message() noexcept
 {
   if (!native_) return String();
   return native_->message();
 }
 
 //------------------------------------------------------------------------------
-bool wrapper::impl::org::webrtc::RTCError::get_ok() noexcept
+bool wrapper::impl::org::webRtc::RTCError::get_ok() noexcept
 {
   if (!native_) return false;
   return native_->ok();

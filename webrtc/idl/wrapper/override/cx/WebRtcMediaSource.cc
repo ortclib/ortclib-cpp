@@ -310,5 +310,5 @@ namespace Org
 
       return S_OK;
     }
-  } // namespace webrtc
+  } // namespace webRtc
 }  // namespace org

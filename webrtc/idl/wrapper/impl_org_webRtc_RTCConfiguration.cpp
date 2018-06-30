@@ -1,10 +1,10 @@
 
-#include "impl_org_webrtc_RTCConfiguration.h"
-#include "impl_org_webrtc_RTCIceServer.h"
-#include "impl_org_webrtc_RTCCertificate.h"
-#include "impl_org_webrtc_MillisecondIntervalRange.h"
+#include "impl_org_webRtc_RTCConfiguration.h"
+#include "impl_org_webRtc_RTCIceServer.h"
+#include "impl_org_webRtc_RTCCertificate.h"
+#include "impl_org_webRtc_MillisecondIntervalRange.h"
 
-#include "impl_org_webrtc_enums.h"
+#include "impl_org_webRtc_enums.h"
 
 #include <zsLib/SafeInt.h>
 
@@ -28,129 +28,129 @@ using ::std::map;
 using zsLib::Milliseconds;
 
 // borrow definitions from class
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::RTCConfiguration::WrapperImplType, WrapperImplType);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::RTCConfiguration::WrapperType, WrapperType);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::RTCConfiguration::NativeType, NativeType);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCConfiguration::WrapperImplType, WrapperImplType);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCConfiguration::WrapperType, WrapperType);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCConfiguration::NativeType, NativeType);
 
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::RTCIceServer, UseIceServer);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::IEnum, UseEnum);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::RTCCertificate, UseCertificate);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCIceServer, UseIceServer);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::IEnum, UseEnum);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCCertificate, UseCertificate);
 
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::MillisecondIntervalRange, UseMillisecondIntervalRange);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::MillisecondIntervalRange, UseMillisecondIntervalRange);
 
 
 static void apply(const WrapperImplType &from, NativeType &to) noexcept;
 static void apply(const NativeType &from, WrapperImplType &to) noexcept;
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCConfiguration::RTCConfiguration() noexcept
+wrapper::impl::org::webRtc::RTCConfiguration::RTCConfiguration() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::RTCConfigurationPtr wrapper::org::webrtc::RTCConfiguration::wrapper_create() noexcept
+wrapper::org::webRtc::RTCConfigurationPtr wrapper::org::webRtc::RTCConfiguration::wrapper_create() noexcept
 {
-  auto pThis = make_shared<wrapper::impl::org::webrtc::RTCConfiguration>();
+  auto pThis = make_shared<wrapper::impl::org::webRtc::RTCConfiguration>();
   pThis->thisWeak_ = pThis;
   return pThis;
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCConfiguration::~RTCConfiguration() noexcept
+wrapper::impl::org::webRtc::RTCConfiguration::~RTCConfiguration() noexcept
 {
   ZS_ASSERT(native_);
   thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webrtc::RTCConfiguration::wrapper_init_org_webrtc_RTCConfiguration() noexcept
+void wrapper::impl::org::webRtc::RTCConfiguration::wrapper_init_org_webRtc_RTCConfiguration() noexcept
 {
   native_ = make_shared<NativeType>();
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webrtc::RTCConfiguration::wrapper_init_org_webrtc_RTCConfiguration(wrapper::org::webrtc::RTCConfigurationType type) noexcept
+void wrapper::impl::org::webRtc::RTCConfiguration::wrapper_init_org_webRtc_RTCConfiguration(wrapper::org::webRtc::RTCConfigurationType type) noexcept
 {
   native_ = make_shared<NativeType>(UseEnum::toNative(type));
   apply(*native_, *this);
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webrtc::RTCConfiguration::wrapper_init_org_webrtc_RTCConfiguration(wrapper::org::webrtc::RTCConfigurationPtr source) noexcept
+void wrapper::impl::org::webRtc::RTCConfiguration::wrapper_init_org_webRtc_RTCConfiguration(wrapper::org::webRtc::RTCConfigurationPtr source) noexcept
 {
   auto native = toNative(source);
   if (!native) {
-    wrapper_init_org_webrtc_RTCConfiguration();
+    wrapper_init_org_webRtc_RTCConfiguration();
     return;
   }
   native_ = make_shared<NativeType>(*native);
 }
 
 //------------------------------------------------------------------------------
-bool wrapper::impl::org::webrtc::RTCConfiguration::get_dscp() noexcept
+bool wrapper::impl::org::webRtc::RTCConfiguration::get_dscp() noexcept
 {
   if (!native_) return false;
   return native_->dscp();
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webrtc::RTCConfiguration::set_dscp(bool value) noexcept
+void wrapper::impl::org::webRtc::RTCConfiguration::set_dscp(bool value) noexcept
 {
   if (!native_) return;
   native_->set_dscp(value);
 }
 
 //------------------------------------------------------------------------------
-bool wrapper::impl::org::webrtc::RTCConfiguration::get_cpuAdaptation() noexcept
+bool wrapper::impl::org::webRtc::RTCConfiguration::get_cpuAdaptation() noexcept
 {
   if (!native_) return false;
   return native_->cpu_adaptation();
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webrtc::RTCConfiguration::set_cpuAdaptation(bool value) noexcept
+void wrapper::impl::org::webRtc::RTCConfiguration::set_cpuAdaptation(bool value) noexcept
 {
   if (!native_) return;
   native_->set_cpu_adaptation(value);
 }
 
 //------------------------------------------------------------------------------
-bool wrapper::impl::org::webrtc::RTCConfiguration::get_suspendBelowMinBitrate() noexcept
+bool wrapper::impl::org::webRtc::RTCConfiguration::get_suspendBelowMinBitrate() noexcept
 {
   if (!native_) return false;
   return native_->suspend_below_min_bitrate();
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webrtc::RTCConfiguration::set_suspendBelowMinBitrate(bool value) noexcept
+void wrapper::impl::org::webRtc::RTCConfiguration::set_suspendBelowMinBitrate(bool value) noexcept
 {
   if (!native_) return;
   native_->set_suspend_below_min_bitrate(value);
 }
 
 //------------------------------------------------------------------------------
-bool wrapper::impl::org::webrtc::RTCConfiguration::get_prerendererSmoothing() noexcept
+bool wrapper::impl::org::webRtc::RTCConfiguration::get_prerendererSmoothing() noexcept
 {
   if (!native_) return false;
   return native_->prerenderer_smoothing();
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webrtc::RTCConfiguration::set_prerendererSmoothing(bool value) noexcept
+void wrapper::impl::org::webRtc::RTCConfiguration::set_prerendererSmoothing(bool value) noexcept
 {
   if (!native_) return;
   native_->set_prerenderer_smoothing(value);
 }
 
 //------------------------------------------------------------------------------
-bool wrapper::impl::org::webrtc::RTCConfiguration::get_experimentCpuLoadEstimator() noexcept
+bool wrapper::impl::org::webRtc::RTCConfiguration::get_experimentCpuLoadEstimator() noexcept
 {
   if (!native_) return false;
   return native_->experiment_cpu_load_estimator();
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webrtc::RTCConfiguration::set_experimentCpuLoadEstimator(bool value) noexcept
+void wrapper::impl::org::webRtc::RTCConfiguration::set_experimentCpuLoadEstimator(bool value) noexcept
 {
   if (!native_) return;
   native_->set_experiment_cpu_load_estimator(value);
@@ -263,7 +263,7 @@ static void apply(const WrapperImplType &from, NativeType &to) noexcept
 //------------------------------------------------------------------------------
 static void apply(const NativeType &from, WrapperImplType &to) noexcept
 {
-  to.iceServers = make_shared< list< wrapper::org::webrtc::RTCIceServerPtr > >();
+  to.iceServers = make_shared< list< wrapper::org::webRtc::RTCIceServerPtr > >();
   for (auto iter = from.servers.begin(); iter != from.servers.end(); ++iter) {
     auto converted = UseIceServer::toWrapper(*iter);
     if (!converted) continue;
@@ -274,7 +274,7 @@ static void apply(const NativeType &from, WrapperImplType &to) noexcept
   to.bundlePolicy = UseEnum::toWrapper(from.bundle_policy);
   to.rtcpMuxPolicy = UseEnum::toWrapper(from.rtcp_mux_policy);
 
-  to.certificates = make_shared< list< wrapper::org::webrtc::RTCCertificatePtr > >();
+  to.certificates = make_shared< list< wrapper::org::webRtc::RTCCertificatePtr > >();
   for (auto iter = from.certificates.begin(); iter != from.certificates.end(); ++iter) {
     auto converted = UseCertificate::toWrapper((*iter).get());
     if (!converted) continue;

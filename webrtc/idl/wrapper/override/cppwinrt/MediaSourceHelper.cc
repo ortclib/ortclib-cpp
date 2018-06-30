@@ -12,12 +12,12 @@
 #include <mfidl.h>
 
 
-#include <wrapper/impl_org_webrtc_pre_include.h>
+#include <wrapper/impl_org_webRtc_pre_include.h>
 #include "api/videosourceinterface.h"
 #include "libyuv/convert.h"
 #include "modules/video_coding/timing.h"
 #include "third_party/winuwp_h264/H264Decoder/H264Decoder.h"
-#include <wrapper/impl_org_webrtc_post_include.h>
+#include <wrapper/impl_org_webRtc_post_include.h>
 
 // note: 
 /*

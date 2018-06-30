@@ -3,15 +3,15 @@
 #pragma once
 
 #include "types.h"
-#include "generated/org_webrtc_RTCDtmfSender.h"
+#include "generated/org_webRtc_RTCDtmfSender.h"
 
 
 namespace wrapper {
   namespace impl {
     namespace org {
-      namespace webrtc {
+      namespace webRtc {
 
-        struct RTCDtmfSender : public wrapper::org::webrtc::RTCDtmfSender
+        struct RTCDtmfSender : public wrapper::org::webRtc::RTCDtmfSender
         {
           RTCDtmfSenderWeakPtr thisWeak_;
 
@@ -20,16 +20,16 @@ namespace wrapper {
 
           // methods RTCDtmfSender
           bool canInsertDtmf() noexcept override;
-          void insertDtmf(String tones) noexcept(false) override; // throws wrapper::org::webrtc::RTCErrorPtr
+          void insertDtmf(String tones) noexcept(false) override; // throws wrapper::org::webRtc::RTCErrorPtr
           void insertDtmf(
             String tones,
             ::zsLib::Milliseconds duration
-            ) noexcept(false) override; // throws wrapper::org::webrtc::RTCErrorPtr
+            ) noexcept(false) override; // throws wrapper::org::webRtc::RTCErrorPtr
           void insertDtmf(
             String tones,
             ::zsLib::Milliseconds duration,
             ::zsLib::Milliseconds interToneGap
-            ) noexcept(false) override; // throws wrapper::org::webrtc::RTCErrorPtr
+            ) noexcept(false) override; // throws wrapper::org::webRtc::RTCErrorPtr
 
           // properties RTCDtmfSender
           String get_toneBuffer() noexcept override;
@@ -39,7 +39,7 @@ namespace wrapper {
           void wrapper_onObserverCountChanged(size_t count) noexcept override;
         };
 
-      } // webrtc
+      } // webRtc
     } // org
   } // namespace impl
 } // namespace wrapper

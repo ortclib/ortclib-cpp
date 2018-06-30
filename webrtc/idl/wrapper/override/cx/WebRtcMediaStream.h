@@ -135,5 +135,5 @@ namespace Org
       bool _isH264{};
       bool _started{};
     };
-  } // namespace webrtc
+  } // namespace webRtc
 }  // namespace org

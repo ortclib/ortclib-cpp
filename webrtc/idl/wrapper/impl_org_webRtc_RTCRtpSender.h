@@ -3,15 +3,15 @@
 #pragma once
 
 #include "types.h"
-#include "generated/org_webrtc_RTCRtpSender.h"
+#include "generated/org_webRtc_RTCRtpSender.h"
 
 
 namespace wrapper {
   namespace impl {
     namespace org {
-      namespace webrtc {
+      namespace webRtc {
 
-        struct RTCRtpSender : public wrapper::org::webrtc::RTCRtpSender
+        struct RTCRtpSender : public wrapper::org::webRtc::RTCRtpSender
         {
           RTCRtpSenderWeakPtr thisWeak_;
 
@@ -19,16 +19,16 @@ namespace wrapper {
           virtual ~RTCRtpSender() noexcept;
 
           // methods RTCRtpSender
-          wrapper::org::webrtc::RTCRtpSendParametersPtr getParameters() noexcept override;
-          PromisePtr setParameters(wrapper::org::webrtc::RTCRtpSendParametersPtr parameters) noexcept(false) override; // throws wrapper::org::webrtc::RTCErrorPtr
-          PromisePtr replaceTrack(wrapper::org::webrtc::MediaStreamTrackPtr withTrack) noexcept override;
+          wrapper::org::webRtc::RTCRtpSendParametersPtr getParameters() noexcept override;
+          PromisePtr setParameters(wrapper::org::webRtc::RTCRtpSendParametersPtr parameters) noexcept(false) override; // throws wrapper::org::webRtc::RTCErrorPtr
+          PromisePtr replaceTrack(wrapper::org::webRtc::MediaStreamTrackPtr withTrack) noexcept override;
 
           // properties RTCRtpSender
-          wrapper::org::webrtc::MediaStreamTrackPtr get_track() noexcept override;
-          wrapper::org::webrtc::RTCDtmfSenderPtr get_dtmf() noexcept override;
+          wrapper::org::webRtc::MediaStreamTrackPtr get_track() noexcept override;
+          wrapper::org::webRtc::RTCDtmfSenderPtr get_dtmf() noexcept override;
         };
 
-      } // webrtc
+      } // webRtc
     } // org
   } // namespace impl
 } // namespace wrapper

@@ -1,12 +1,12 @@
 
-#include "impl_org_webrtc_VideoCapturer.h"
-#include "impl_org_webrtc_WebrtcLib.h"
+#include "impl_org_webRtc_VideoCapturer.h"
+#include "impl_org_webRtc_WebrtcLib.h"
 
-#include "impl_org_webrtc_pre_include.h"
+#include "impl_org_webRtc_pre_include.h"
 #ifdef WINUWP
 #include "media/engine/webrtcvideocapturer.h"
 #endif //WINUWP
-#include "impl_org_webrtc_post_include.h"
+#include "impl_org_webRtc_post_include.h"
 
 using ::zsLib::String;
 using ::zsLib::Optional;
@@ -28,33 +28,33 @@ using ::std::map;
 
 
 // borrow types from call defintions
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::VideoCapturer::WrapperType, WrapperType);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::VideoCapturer::WrapperImplType, WrapperImplType);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::VideoCapturer::NativeType, NativeType);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::VideoCapturer::WrapperType, WrapperType);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::VideoCapturer::WrapperImplType, WrapperImplType);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::VideoCapturer::NativeType, NativeType);
 
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::WebRtcLib, UseWebrtcLib);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::WebRtcLib, UseWebrtcLib);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::VideoCapturer::VideoCapturer() noexcept
+wrapper::impl::org::webRtc::VideoCapturer::VideoCapturer() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::VideoCapturerPtr wrapper::org::webrtc::VideoCapturer::wrapper_create() noexcept
+wrapper::org::webRtc::VideoCapturerPtr wrapper::org::webRtc::VideoCapturer::wrapper_create() noexcept
 {
-  auto pThis = make_shared<wrapper::impl::org::webrtc::VideoCapturer>();
+  auto pThis = make_shared<wrapper::impl::org::webRtc::VideoCapturer>();
   pThis->thisWeak_ = pThis;
   return pThis;
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::VideoCapturer::~VideoCapturer() noexcept
+wrapper::impl::org::webRtc::VideoCapturer::~VideoCapturer() noexcept
 {
   thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::VideoCapturerPtr wrapper::org::webrtc::VideoCapturer::create(
+wrapper::org::webRtc::VideoCapturerPtr wrapper::org::webRtc::VideoCapturer::create(
   String name,
   String id
   ) noexcept
@@ -73,58 +73,58 @@ wrapper::org::webrtc::VideoCapturerPtr wrapper::org::webrtc::VideoCapturer::crea
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< list< wrapper::org::webrtc::VideoFormatPtr > > wrapper::impl::org::webrtc::VideoCapturer::getSupportedFormats() noexcept
+shared_ptr< list< wrapper::org::webRtc::VideoFormatPtr > > wrapper::impl::org::webRtc::VideoCapturer::getSupportedFormats() noexcept
 {
   if (!native_) {
     ZS_ASSERT_FAIL("Cannot call into VideoCapturer after VideoCapturer has been passed into to a VideoTrackSource.");
-    return make_shared< list< wrapper::org::webrtc::VideoFormatPtr > >();
+    return make_shared< list< wrapper::org::webRtc::VideoFormatPtr > >();
   }
 #pragma ZS_BUILD_NOTE("TODO","(robin)")
 
-  shared_ptr< list< wrapper::org::webrtc::VideoFormatPtr > > result {};
+  shared_ptr< list< wrapper::org::webRtc::VideoFormatPtr > > result {};
   return result;
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::VideoFormatPtr wrapper::impl::org::webrtc::VideoCapturer::getBestCaptureFormat(wrapper::org::webrtc::VideoFormatPtr desired) noexcept
+wrapper::org::webRtc::VideoFormatPtr wrapper::impl::org::webRtc::VideoCapturer::getBestCaptureFormat(wrapper::org::webRtc::VideoFormatPtr desired) noexcept
 {
   if (!native_) {
     ZS_ASSERT_FAIL("Cannot call into VideoCapturer after VideoCapturer has been passed into to a VideoTrackSource.");
-    return wrapper::org::webrtc::VideoFormatPtr();
+    return wrapper::org::webRtc::VideoFormatPtr();
   }
 #pragma ZS_BUILD_NOTE("TODO","(robin)")
 
-  wrapper::org::webrtc::VideoFormatPtr result {};
+  wrapper::org::webRtc::VideoFormatPtr result {};
   return result;
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::VideoCaptureState wrapper::impl::org::webrtc::VideoCapturer::start(wrapper::org::webrtc::VideoFormatPtr captureFormat) noexcept
+wrapper::org::webRtc::VideoCaptureState wrapper::impl::org::webRtc::VideoCapturer::start(wrapper::org::webRtc::VideoFormatPtr captureFormat) noexcept
 {
   if (!native_) {
     ZS_ASSERT_FAIL("Cannot call into VideoCapturer after VideoCapturer has been passed into to a VideoTrackSource.");
-    return wrapper::org::webrtc::VideoCaptureState::VideoCaptureState_failed;
+    return wrapper::org::webRtc::VideoCaptureState::VideoCaptureState_failed;
   }
 #pragma ZS_BUILD_NOTE("TODO","(robin)")
 
-  wrapper::org::webrtc::VideoCaptureState result {};
+  wrapper::org::webRtc::VideoCaptureState result {};
   return result;
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::VideoFormatPtr wrapper::impl::org::webrtc::VideoCapturer::getCaptureFormat() noexcept
+wrapper::org::webRtc::VideoFormatPtr wrapper::impl::org::webRtc::VideoCapturer::getCaptureFormat() noexcept
 {
   if (!native_) {
     ZS_ASSERT_FAIL("Cannot call into VideoCapturer after VideoCapturer has been passed into to a VideoTrackSource.");
-    return wrapper::org::webrtc::VideoFormatPtr();
+    return wrapper::org::webRtc::VideoFormatPtr();
   }
 #pragma ZS_BUILD_NOTE("TODO","(robin)")
-  wrapper::org::webrtc::VideoFormatPtr result {};
+  wrapper::org::webRtc::VideoFormatPtr result {};
   return result;
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webrtc::VideoCapturer::stop() noexcept
+void wrapper::impl::org::webRtc::VideoCapturer::stop() noexcept
 {
   if (!native_) {
     ZS_ASSERT_FAIL("Cannot call into VideoCapturer after VideoCapturer has been passed into to a VideoTrackSource.");
@@ -134,7 +134,7 @@ void wrapper::impl::org::webrtc::VideoCapturer::stop() noexcept
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webrtc::VideoCapturer::constrainSupportedFormats(wrapper::org::webrtc::VideoFormatPtr maxFormat) noexcept
+void wrapper::impl::org::webRtc::VideoCapturer::constrainSupportedFormats(wrapper::org::webRtc::VideoFormatPtr maxFormat) noexcept
 {
   if (!native_) {
     ZS_ASSERT_FAIL("Cannot call into VideoCapturer after VideoCapturer has been passed into to a VideoTrackSource.");
@@ -143,7 +143,7 @@ void wrapper::impl::org::webrtc::VideoCapturer::constrainSupportedFormats(wrappe
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::webrtc::VideoCapturer::get_id() noexcept
+String wrapper::impl::org::webRtc::VideoCapturer::get_id() noexcept
 {
   if (!native_) {
     ZS_ASSERT_FAIL("Cannot call into VideoCapturer after VideoCapturer has been passed into to a VideoTrackSource.");
@@ -153,7 +153,7 @@ String wrapper::impl::org::webrtc::VideoCapturer::get_id() noexcept
 }
 
 //------------------------------------------------------------------------------
-bool wrapper::impl::org::webrtc::VideoCapturer::get_enableCameraList() noexcept
+bool wrapper::impl::org::webRtc::VideoCapturer::get_enableCameraList() noexcept
 {
   if (!native_) {
     ZS_ASSERT_FAIL("Cannot call into VideoCapturer after VideoCapturer has been passed into to a VideoTrackSource.");
@@ -163,7 +163,7 @@ bool wrapper::impl::org::webrtc::VideoCapturer::get_enableCameraList() noexcept
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webrtc::VideoCapturer::set_enableCameraList(bool value) noexcept
+void wrapper::impl::org::webRtc::VideoCapturer::set_enableCameraList(bool value) noexcept
 {
   if (!native_) {
     ZS_ASSERT_FAIL("Cannot call into VideoCapturer after VideoCapturer has been passed into to a VideoTrackSource.");
@@ -173,7 +173,7 @@ void wrapper::impl::org::webrtc::VideoCapturer::set_enableCameraList(bool value)
 }
 
 //------------------------------------------------------------------------------
-bool wrapper::impl::org::webrtc::VideoCapturer::get_enableVideoAdapter() noexcept
+bool wrapper::impl::org::webRtc::VideoCapturer::get_enableVideoAdapter() noexcept
 {
   if (!native_) {
     ZS_ASSERT_FAIL("Cannot call into VideoCapturer after VideoCapturer has been passed into to a VideoTrackSource.");
@@ -183,7 +183,7 @@ bool wrapper::impl::org::webrtc::VideoCapturer::get_enableVideoAdapter() noexcep
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webrtc::VideoCapturer::set_enableVideoAdapter(bool value) noexcept
+void wrapper::impl::org::webRtc::VideoCapturer::set_enableVideoAdapter(bool value) noexcept
 {
   if (!native_) {
     ZS_ASSERT_FAIL("Cannot call into VideoCapturer after VideoCapturer has been passed into to a VideoTrackSource.");
@@ -193,7 +193,7 @@ void wrapper::impl::org::webrtc::VideoCapturer::set_enableVideoAdapter(bool valu
 }
 
 //------------------------------------------------------------------------------
-bool wrapper::impl::org::webrtc::VideoCapturer::get_isRunning() noexcept
+bool wrapper::impl::org::webRtc::VideoCapturer::get_isRunning() noexcept
 {
   if (!native_) {
     ZS_ASSERT_FAIL("Cannot call into VideoCapturer after VideoCapturer has been passed into to a VideoTrackSource.");
@@ -203,7 +203,7 @@ bool wrapper::impl::org::webrtc::VideoCapturer::get_isRunning() noexcept
 }
 
 //------------------------------------------------------------------------------
-bool wrapper::impl::org::webrtc::VideoCapturer::get_applyRotation() noexcept
+bool wrapper::impl::org::webRtc::VideoCapturer::get_applyRotation() noexcept
 {
   if (!native_) {
     ZS_ASSERT_FAIL("Cannot call into VideoCapturer after VideoCapturer has been passed into to a VideoTrackSource.");
@@ -213,7 +213,7 @@ bool wrapper::impl::org::webrtc::VideoCapturer::get_applyRotation() noexcept
 }
 
 //------------------------------------------------------------------------------
-bool wrapper::impl::org::webrtc::VideoCapturer::get_isScreencast() noexcept
+bool wrapper::impl::org::webRtc::VideoCapturer::get_isScreencast() noexcept
 {
   if (!native_) {
     ZS_ASSERT_FAIL("Cannot call into VideoCapturer after VideoCapturer has been passed into to a VideoTrackSource.");
@@ -223,26 +223,26 @@ bool wrapper::impl::org::webrtc::VideoCapturer::get_isScreencast() noexcept
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::VideoCapturerInputSizePtr wrapper::impl::org::webrtc::VideoCapturer::get_inputSize() noexcept
+wrapper::org::webRtc::VideoCapturerInputSizePtr wrapper::impl::org::webRtc::VideoCapturer::get_inputSize() noexcept
 {
   if (!native_) {
     ZS_ASSERT_FAIL("Cannot call into VideoCapturer after VideoCapturer has been passed into to a VideoTrackSource.");
-    return wrapper::org::webrtc::VideoCapturerInputSizePtr();
+    return wrapper::org::webRtc::VideoCapturerInputSizePtr();
   }
 #pragma ZS_BUILD_NOTE("TODO","(robin)")
-  wrapper::org::webrtc::VideoCapturerInputSizePtr result {};
+  wrapper::org::webRtc::VideoCapturerInputSizePtr result {};
   return result;
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::VideoCaptureState wrapper::impl::org::webrtc::VideoCapturer::get_state() noexcept
+wrapper::org::webRtc::VideoCaptureState wrapper::impl::org::webRtc::VideoCapturer::get_state() noexcept
 {
   if (!native_) {
     ZS_ASSERT_FAIL("Cannot call into VideoCapturer after VideoCapturer has been passed into to a VideoTrackSource.");
-    return wrapper::org::webrtc::VideoCaptureState::VideoCaptureState_failed;
+    return wrapper::org::webRtc::VideoCaptureState::VideoCaptureState_failed;
   }
 #pragma ZS_BUILD_NOTE("TODO","(robin)")
-  wrapper::org::webrtc::VideoCaptureState result {};
+  wrapper::org::webRtc::VideoCaptureState result {};
   return result;
 }
 

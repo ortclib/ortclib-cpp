@@ -3,15 +3,15 @@
 #pragma once
 
 #include "types.h"
-#include "generated/org_webrtc_MessageEvent.h"
+#include "generated/org_webRtc_MessageEvent.h"
 
 
 namespace wrapper {
   namespace impl {
     namespace org {
-      namespace webrtc {
+      namespace webRtc {
 
-        struct MessageEvent : public wrapper::org::webrtc::MessageEvent
+        struct MessageEvent : public wrapper::org::webRtc::MessageEvent
         {
           MessageEventWeakPtr thisWeak_;
 
@@ -23,7 +23,7 @@ namespace wrapper {
           String get_text() noexcept override;
         };
 
-      } // webrtc
+      } // webRtc
     } // org
   } // namespace impl
 } // namespace wrapper

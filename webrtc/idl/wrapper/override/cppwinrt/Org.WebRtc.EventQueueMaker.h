@@ -7,7 +7,7 @@
 #include <wrapper/generated/cppwinrt/types.h>
 
 #include "Org/Webrtc/EventQueueMaker.g.h"
-#include <wrapper/generated/org_webrtc_EventQueueMaker.h>
+#include <wrapper/generated/org_webRtc_EventQueueMaker.h>
 
 namespace winrt {
   namespace Org {
@@ -18,34 +18,34 @@ namespace winrt {
         struct EventQueueMaker : EventQueueMakerT<EventQueueMaker>
         {
           // internal
-          wrapper::org::webrtc::EventQueueMakerPtr native_;
+          wrapper::org::webRtc::EventQueueMakerPtr native_;
 
           struct WrapperCreate {};
           EventQueueMaker(const WrapperCreate &) {}
 
           // ToCppWinrtImpl
-          static winrt::com_ptr< Org::Webrtc::implementation::EventQueueMaker > ToCppWinrtImpl(wrapper::org::webrtc::EventQueueMakerPtr value);
+          static winrt::com_ptr< Org::Webrtc::implementation::EventQueueMaker > ToCppWinrtImpl(wrapper::org::webRtc::EventQueueMakerPtr value);
           static winrt::com_ptr< Org::Webrtc::implementation::EventQueueMaker > ToCppWinrtImpl(Org::Webrtc::EventQueueMaker const & value);
           static winrt::com_ptr< Org::Webrtc::implementation::EventQueueMaker > ToCppWinrtImpl(winrt::com_ptr< Org::Webrtc::implementation::EventQueueMaker > const & value);
           static winrt::com_ptr< Org::Webrtc::implementation::EventQueueMaker > ToCppWinrtImpl(Org::Webrtc::IEventQueueMaker const & value);
 
           // ToCppWinrt
-          static Org::Webrtc::EventQueueMaker ToCppWinrt(wrapper::org::webrtc::EventQueueMakerPtr value);
+          static Org::Webrtc::EventQueueMaker ToCppWinrt(wrapper::org::webRtc::EventQueueMakerPtr value);
           static Org::Webrtc::EventQueueMaker ToCppWinrt(Org::Webrtc::EventQueueMaker const & value);
           static Org::Webrtc::EventQueueMaker ToCppWinrt(winrt::com_ptr< Org::Webrtc::implementation::EventQueueMaker > const & value);
           static Org::Webrtc::EventQueueMaker ToCppWinrt(Org::Webrtc::IEventQueueMaker const & value);
 
           // ToCppWinrtInterface
-          static Org::Webrtc::IEventQueueMaker ToCppWinrtInterface(wrapper::org::webrtc::EventQueueMakerPtr value);
+          static Org::Webrtc::IEventQueueMaker ToCppWinrtInterface(wrapper::org::webRtc::EventQueueMakerPtr value);
           static Org::Webrtc::IEventQueueMaker ToCppWinrtInterface(Org::Webrtc::EventQueueMaker const & value);
           static Org::Webrtc::IEventQueueMaker ToCppWinrtInterface(winrt::com_ptr< Org::Webrtc::implementation::EventQueueMaker > const & value);
           static Org::Webrtc::IEventQueueMaker ToCppWinrtInterface(Org::Webrtc::IEventQueueMaker const & value);
 
           // FromCppWinrt
-          static wrapper::org::webrtc::EventQueueMakerPtr FromCppWinrt(wrapper::org::webrtc::EventQueueMakerPtr value);
-          static wrapper::org::webrtc::EventQueueMakerPtr FromCppWinrt(winrt::com_ptr< Org::Webrtc::implementation::EventQueueMaker > const & value);
-          static wrapper::org::webrtc::EventQueueMakerPtr FromCppWinrt(Org::Webrtc::EventQueueMaker const & value);
-          static wrapper::org::webrtc::EventQueueMakerPtr FromCppWinrt(Org::Webrtc::IEventQueueMaker const & value);
+          static wrapper::org::webRtc::EventQueueMakerPtr FromCppWinrt(wrapper::org::webRtc::EventQueueMakerPtr value);
+          static wrapper::org::webRtc::EventQueueMakerPtr FromCppWinrt(winrt::com_ptr< Org::Webrtc::implementation::EventQueueMaker > const & value);
+          static wrapper::org::webRtc::EventQueueMakerPtr FromCppWinrt(Org::Webrtc::EventQueueMaker const & value);
+          static wrapper::org::webRtc::EventQueueMakerPtr FromCppWinrt(Org::Webrtc::IEventQueueMaker const & value);
 
 
 

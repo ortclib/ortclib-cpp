@@ -1,15 +1,15 @@
 
-#include "impl_org_webrtc_RTCPeerConnection.h"
-#include "impl_org_webrtc_helpers.h"
-#include "impl_org_webrtc_RTCConfiguration.h"
-#include "impl_org_webrtc_RTCError.h"
-#include "impl_org_webrtc_WebrtcLib.h"
+#include "impl_org_webRtc_RTCPeerConnection.h"
+#include "impl_org_webRtc_helpers.h"
+#include "impl_org_webRtc_RTCConfiguration.h"
+#include "impl_org_webRtc_RTCError.h"
+#include "impl_org_webRtc_WebrtcLib.h"
 
-#include "impl_org_webrtc_pre_include.h"
+#include "impl_org_webRtc_pre_include.h"
 #include "api/peerconnectionproxy.h"
 #include "api/rtcerror.h"
 #include "pc/peerconnection.h"
-#include "impl_org_webrtc_post_include.h"
+#include "impl_org_webRtc_post_include.h"
 
 using ::zsLib::String;
 using ::zsLib::Optional;
@@ -30,17 +30,17 @@ using ::std::set;
 using ::std::map;
 
 // borrow definitions from class
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::RTCPeerConnection::WrapperImplType, WrapperImplType);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::RTCPeerConnection::WrapperType, WrapperType);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::RTCPeerConnection::NativeType, NativeType);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCPeerConnection::WrapperImplType, WrapperImplType);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCPeerConnection::WrapperType, WrapperType);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCPeerConnection::NativeType, NativeType);
 
-typedef wrapper::impl::org::webrtc::RTCPeerConnection::NativeScopedPtr NativeScopedPtr;
+typedef wrapper::impl::org::webRtc::RTCPeerConnection::NativeScopedPtr NativeScopedPtr;
 
-typedef wrapper::impl::org::webrtc::WrapperMapper<NativeType, WrapperImplType> UseWrapperMapper;
+typedef wrapper::impl::org::webRtc::WrapperMapper<NativeType, WrapperImplType> UseWrapperMapper;
 
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::WebRtcLib, UseWebrtcLib);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::RTCConfiguration, UseConfiguration);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::RTCError, UseError);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::WebRtcLib, UseWebrtcLib);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCConfiguration, UseConfiguration);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCError, UseError);
 
 //------------------------------------------------------------------------------
 static UseWrapperMapper &mapperSingleton()
@@ -60,20 +60,20 @@ static ::webrtc::PeerConnectionInterface *unproxyNative(NativeType *native)
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCPeerConnection::RTCPeerConnection() noexcept
+wrapper::impl::org::webRtc::RTCPeerConnection::RTCPeerConnection() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::RTCPeerConnectionPtr wrapper::org::webrtc::RTCPeerConnection::wrapper_create() noexcept
+wrapper::org::webRtc::RTCPeerConnectionPtr wrapper::org::webRtc::RTCPeerConnection::wrapper_create() noexcept
 {
-  auto pThis = make_shared<wrapper::impl::org::webrtc::RTCPeerConnection>();
+  auto pThis = make_shared<wrapper::impl::org::webRtc::RTCPeerConnection>();
   pThis->thisWeak_ = pThis;
   return pThis;
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCPeerConnection::~RTCPeerConnection() noexcept
+wrapper::impl::org::webRtc::RTCPeerConnection::~RTCPeerConnection() noexcept
 {
   thisWeak_.reset();
   teardownObserver();
@@ -81,21 +81,21 @@ wrapper::impl::org::webrtc::RTCPeerConnection::~RTCPeerConnection() noexcept
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWithHolderPtr< wrapper::org::webrtc::RTCStatsReportPtr > > wrapper::impl::org::webrtc::RTCPeerConnection::getStats(wrapper::org::webrtc::RTCStatsTypeSetPtr statTypes) noexcept(false)
+shared_ptr< PromiseWithHolderPtr< wrapper::org::webRtc::RTCStatsReportPtr > > wrapper::impl::org::webRtc::RTCPeerConnection::getStats(wrapper::org::webRtc::RTCStatsTypeSetPtr statTypes) noexcept(false)
 {
-  shared_ptr< PromiseWithHolderPtr< wrapper::org::webrtc::RTCStatsReportPtr > > result {};
+  shared_ptr< PromiseWithHolderPtr< wrapper::org::webRtc::RTCStatsReportPtr > > result {};
   return result;
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWithHolderPtr< wrapper::org::webrtc::RTCCertificatePtr > > wrapper::org::webrtc::RTCPeerConnection::generateCertificate(wrapper::org::webrtc::RTCKeyParamsPtr keygenAlgorithm) noexcept
+shared_ptr< PromiseWithHolderPtr< wrapper::org::webRtc::RTCCertificatePtr > > wrapper::org::webRtc::RTCPeerConnection::generateCertificate(wrapper::org::webRtc::RTCKeyParamsPtr keygenAlgorithm) noexcept
 {
-  shared_ptr< PromiseWithHolderPtr< wrapper::org::webrtc::RTCCertificatePtr > > result {};
+  shared_ptr< PromiseWithHolderPtr< wrapper::org::webRtc::RTCCertificatePtr > > result {};
   return result;
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webrtc::RTCPeerConnection::wrapper_init_org_webrtc_RTCPeerConnection(wrapper::org::webrtc::RTCConfigurationPtr config) noexcept
+void wrapper::impl::org::webRtc::RTCPeerConnection::wrapper_init_org_webRtc_RTCPeerConnection(wrapper::org::webRtc::RTCConfigurationPtr config) noexcept
 {
   auto factory = UseWebrtcLib::peerConnectionFactory();
   if (!factory) return;
@@ -111,49 +111,49 @@ void wrapper::impl::org::webrtc::RTCPeerConnection::wrapper_init_org_webrtc_RTCP
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWithHolderPtr< wrapper::org::webrtc::RTCSessionDescriptionPtr > > wrapper::impl::org::webrtc::RTCPeerConnection::createOffer(wrapper::org::webrtc::RTCOfferOptionsPtr options) noexcept
+shared_ptr< PromiseWithHolderPtr< wrapper::org::webRtc::RTCSessionDescriptionPtr > > wrapper::impl::org::webRtc::RTCPeerConnection::createOffer(wrapper::org::webRtc::RTCOfferOptionsPtr options) noexcept
 {
-  shared_ptr< PromiseWithHolderPtr< wrapper::org::webrtc::RTCSessionDescriptionPtr > > result {};
+  shared_ptr< PromiseWithHolderPtr< wrapper::org::webRtc::RTCSessionDescriptionPtr > > result {};
   return result;
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWithHolderPtr< wrapper::org::webrtc::RTCSessionDescriptionPtr > > wrapper::impl::org::webrtc::RTCPeerConnection::createOffer(wrapper::org::webrtc::MediaConstraintsPtr constraints) noexcept
+shared_ptr< PromiseWithHolderPtr< wrapper::org::webRtc::RTCSessionDescriptionPtr > > wrapper::impl::org::webRtc::RTCPeerConnection::createOffer(wrapper::org::webRtc::MediaConstraintsPtr constraints) noexcept
 {
-  shared_ptr< PromiseWithHolderPtr< wrapper::org::webrtc::RTCSessionDescriptionPtr > > result {};
+  shared_ptr< PromiseWithHolderPtr< wrapper::org::webRtc::RTCSessionDescriptionPtr > > result {};
   return result;
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWithHolderPtr< wrapper::org::webrtc::RTCSessionDescriptionPtr > > wrapper::impl::org::webrtc::RTCPeerConnection::createAnswer(wrapper::org::webrtc::RTCAnswerOptionsPtr options) noexcept
+shared_ptr< PromiseWithHolderPtr< wrapper::org::webRtc::RTCSessionDescriptionPtr > > wrapper::impl::org::webRtc::RTCPeerConnection::createAnswer(wrapper::org::webRtc::RTCAnswerOptionsPtr options) noexcept
 {
-  shared_ptr< PromiseWithHolderPtr< wrapper::org::webrtc::RTCSessionDescriptionPtr > > result {};
+  shared_ptr< PromiseWithHolderPtr< wrapper::org::webRtc::RTCSessionDescriptionPtr > > result {};
   return result;
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< PromiseWithHolderPtr< wrapper::org::webrtc::RTCSessionDescriptionPtr > > wrapper::impl::org::webrtc::RTCPeerConnection::createAnswer(wrapper::org::webrtc::MediaConstraintsPtr constraints) noexcept
+shared_ptr< PromiseWithHolderPtr< wrapper::org::webRtc::RTCSessionDescriptionPtr > > wrapper::impl::org::webRtc::RTCPeerConnection::createAnswer(wrapper::org::webRtc::MediaConstraintsPtr constraints) noexcept
 {
-  shared_ptr< PromiseWithHolderPtr< wrapper::org::webrtc::RTCSessionDescriptionPtr > > result {};
+  shared_ptr< PromiseWithHolderPtr< wrapper::org::webRtc::RTCSessionDescriptionPtr > > result {};
   return result;
 }
 
 //------------------------------------------------------------------------------
-PromisePtr wrapper::impl::org::webrtc::RTCPeerConnection::setLocalDescription(wrapper::org::webrtc::RTCSessionDescriptionPtr constraints) noexcept
-{
-  PromisePtr result {};
-  return result;
-}
-
-//------------------------------------------------------------------------------
-PromisePtr wrapper::impl::org::webrtc::RTCPeerConnection::setRemoteDescription(wrapper::org::webrtc::RTCSessionDescriptionPtr constraints) noexcept
+PromisePtr wrapper::impl::org::webRtc::RTCPeerConnection::setLocalDescription(wrapper::org::webRtc::RTCSessionDescriptionPtr constraints) noexcept
 {
   PromisePtr result {};
   return result;
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::RTCConfigurationPtr wrapper::impl::org::webrtc::RTCPeerConnection::getConfiguration() noexcept
+PromisePtr wrapper::impl::org::webRtc::RTCPeerConnection::setRemoteDescription(wrapper::org::webRtc::RTCSessionDescriptionPtr constraints) noexcept
+{
+  PromisePtr result {};
+  return result;
+}
+
+//------------------------------------------------------------------------------
+wrapper::org::webRtc::RTCConfigurationPtr wrapper::impl::org::webRtc::RTCPeerConnection::getConfiguration() noexcept
 {
   ZS_ASSERT(native_);
   if (!native_) return UseConfigurationPtr();
@@ -163,7 +163,7 @@ wrapper::org::webrtc::RTCConfigurationPtr wrapper::impl::org::webrtc::RTCPeerCon
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webrtc::RTCPeerConnection::setConfiguration(wrapper::org::webrtc::RTCConfigurationPtr config) noexcept(false)
+void wrapper::impl::org::webRtc::RTCPeerConnection::setConfiguration(wrapper::org::webRtc::RTCConfigurationPtr config) noexcept(false)
 {
   ZS_ASSERT(native_);
   if (!native_) return;
@@ -177,24 +177,24 @@ void wrapper::impl::org::webrtc::RTCPeerConnection::setConfiguration(wrapper::or
 }
 
 //------------------------------------------------------------------------------
-PromisePtr wrapper::impl::org::webrtc::RTCPeerConnection::addIceCandidate(wrapper::org::webrtc::RTCIceCandidatePtr candidate) noexcept
+PromisePtr wrapper::impl::org::webRtc::RTCPeerConnection::addIceCandidate(wrapper::org::webRtc::RTCIceCandidatePtr candidate) noexcept
 {
   PromisePtr result {};
   return result;
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webrtc::RTCPeerConnection::removeIceCandidates(shared_ptr< list< wrapper::org::webrtc::RTCIceCandidatePtr > > candidates) noexcept
+void wrapper::impl::org::webRtc::RTCPeerConnection::removeIceCandidates(shared_ptr< list< wrapper::org::webRtc::RTCIceCandidatePtr > > candidates) noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webrtc::RTCPeerConnection::setBitrate(wrapper::org::webrtc::RTCBitrateParametersPtr params) noexcept(false)
+void wrapper::impl::org::webRtc::RTCPeerConnection::setBitrate(wrapper::org::webRtc::RTCBitrateParametersPtr params) noexcept(false)
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webrtc::RTCPeerConnection::close() noexcept
+void wrapper::impl::org::webRtc::RTCPeerConnection::close() noexcept
 {
   ZS_ASSERT(native_);
   if (!native_) return;
@@ -202,153 +202,153 @@ void wrapper::impl::org::webrtc::RTCPeerConnection::close() noexcept
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::RTCRtpSenderPtr wrapper::impl::org::webrtc::RTCPeerConnection::addTrack(wrapper::org::webrtc::MediaStreamTrackPtr track) noexcept(false)
+wrapper::org::webRtc::RTCRtpSenderPtr wrapper::impl::org::webRtc::RTCPeerConnection::addTrack(wrapper::org::webRtc::MediaStreamTrackPtr track) noexcept(false)
 {
-  wrapper::org::webrtc::RTCRtpSenderPtr result {};
+  wrapper::org::webRtc::RTCRtpSenderPtr result {};
   return result;
 }
 
 //------------------------------------------------------------------------------
-bool wrapper::impl::org::webrtc::RTCPeerConnection::removeTrack(wrapper::org::webrtc::RTCRtpSenderPtr sender) noexcept
+bool wrapper::impl::org::webRtc::RTCPeerConnection::removeTrack(wrapper::org::webRtc::RTCRtpSenderPtr sender) noexcept
 {
   bool result {};
   return result;
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::RTCRtpTransceiverPtr wrapper::impl::org::webrtc::RTCPeerConnection::addTransceiver(wrapper::org::webrtc::MediaStreamTrackPtr track) noexcept(false)
+wrapper::org::webRtc::RTCRtpTransceiverPtr wrapper::impl::org::webRtc::RTCPeerConnection::addTransceiver(wrapper::org::webRtc::MediaStreamTrackPtr track) noexcept(false)
 {
-  wrapper::org::webrtc::RTCRtpTransceiverPtr result {};
+  wrapper::org::webRtc::RTCRtpTransceiverPtr result {};
   return result;
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::RTCRtpTransceiverPtr wrapper::impl::org::webrtc::RTCPeerConnection::addTransceiver(String kind) noexcept(false)
+wrapper::org::webRtc::RTCRtpTransceiverPtr wrapper::impl::org::webRtc::RTCPeerConnection::addTransceiver(String kind) noexcept(false)
 {
-  wrapper::org::webrtc::RTCRtpTransceiverPtr result {};
+  wrapper::org::webRtc::RTCRtpTransceiverPtr result {};
   return result;
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::RTCRtpSenderPtr wrapper::impl::org::webrtc::RTCPeerConnection::addSender(
+wrapper::org::webRtc::RTCRtpSenderPtr wrapper::impl::org::webRtc::RTCPeerConnection::addSender(
   String kind,
   String trackId
   ) noexcept
 {
-  wrapper::org::webrtc::RTCRtpSenderPtr result {};
+  wrapper::org::webRtc::RTCRtpSenderPtr result {};
   return result;
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< list< wrapper::org::webrtc::RTCRtpSenderPtr > > wrapper::impl::org::webrtc::RTCPeerConnection::getSenders() noexcept
+shared_ptr< list< wrapper::org::webRtc::RTCRtpSenderPtr > > wrapper::impl::org::webRtc::RTCPeerConnection::getSenders() noexcept
 {
-  shared_ptr< list< wrapper::org::webrtc::RTCRtpSenderPtr > > result {};
+  shared_ptr< list< wrapper::org::webRtc::RTCRtpSenderPtr > > result {};
   return result;
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< list< wrapper::org::webrtc::RTCRtpReceiverPtr > > wrapper::impl::org::webrtc::RTCPeerConnection::getReceivers() noexcept
+shared_ptr< list< wrapper::org::webRtc::RTCRtpReceiverPtr > > wrapper::impl::org::webRtc::RTCPeerConnection::getReceivers() noexcept
 {
-  shared_ptr< list< wrapper::org::webrtc::RTCRtpReceiverPtr > > result {};
+  shared_ptr< list< wrapper::org::webRtc::RTCRtpReceiverPtr > > result {};
   return result;
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< list< wrapper::org::webrtc::RTCRtpTransceiverPtr > > wrapper::impl::org::webrtc::RTCPeerConnection::getTransceivers() noexcept
+shared_ptr< list< wrapper::org::webRtc::RTCRtpTransceiverPtr > > wrapper::impl::org::webRtc::RTCPeerConnection::getTransceivers() noexcept
 {
-  shared_ptr< list< wrapper::org::webrtc::RTCRtpTransceiverPtr > > result {};
+  shared_ptr< list< wrapper::org::webRtc::RTCRtpTransceiverPtr > > result {};
   return result;
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::RTCDataChannelPtr wrapper::impl::org::webrtc::RTCPeerConnection::createDataChannel(
+wrapper::org::webRtc::RTCDataChannelPtr wrapper::impl::org::webRtc::RTCPeerConnection::createDataChannel(
   String label,
-  wrapper::org::webrtc::RTCDataChannelInitPtr init
+  wrapper::org::webRtc::RTCDataChannelInitPtr init
   ) noexcept
 {
-  wrapper::org::webrtc::RTCDataChannelPtr result {};
+  wrapper::org::webRtc::RTCDataChannelPtr result {};
   return result;
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::RTCSignalingState wrapper::impl::org::webrtc::RTCPeerConnection::get_signalingState() noexcept
+wrapper::org::webRtc::RTCSignalingState wrapper::impl::org::webRtc::RTCPeerConnection::get_signalingState() noexcept
 {
-  wrapper::org::webrtc::RTCSignalingState result {};
+  wrapper::org::webRtc::RTCSignalingState result {};
   return result;
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::RTCIceGatheringState wrapper::impl::org::webrtc::RTCPeerConnection::get_iceGatheringState() noexcept
+wrapper::org::webRtc::RTCIceGatheringState wrapper::impl::org::webRtc::RTCPeerConnection::get_iceGatheringState() noexcept
 {
-  wrapper::org::webrtc::RTCIceGatheringState result {};
+  wrapper::org::webRtc::RTCIceGatheringState result {};
   return result;
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::RTCIceConnectionState wrapper::impl::org::webrtc::RTCPeerConnection::get_iceConnectionState() noexcept
+wrapper::org::webRtc::RTCIceConnectionState wrapper::impl::org::webRtc::RTCPeerConnection::get_iceConnectionState() noexcept
 {
-  wrapper::org::webrtc::RTCIceConnectionState result {};
+  wrapper::org::webRtc::RTCIceConnectionState result {};
   return result;
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::RTCPeerConnectionState wrapper::impl::org::webrtc::RTCPeerConnection::get_connectionState_NotAvailable() noexcept
+wrapper::org::webRtc::RTCPeerConnectionState wrapper::impl::org::webRtc::RTCPeerConnection::get_connectionState_NotAvailable() noexcept
 {
-  wrapper::org::webrtc::RTCPeerConnectionState result {};
+  wrapper::org::webRtc::RTCPeerConnectionState result {};
   return result;
 }
 
 //------------------------------------------------------------------------------
-Optional< bool > wrapper::impl::org::webrtc::RTCPeerConnection::get_canTrickleIceCandidates_NotAvailable() noexcept
+Optional< bool > wrapper::impl::org::webRtc::RTCPeerConnection::get_canTrickleIceCandidates_NotAvailable() noexcept
 {
   Optional< bool > result {};
   return result;
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::RTCSessionDescriptionPtr wrapper::impl::org::webrtc::RTCPeerConnection::get_localDescription() noexcept
+wrapper::org::webRtc::RTCSessionDescriptionPtr wrapper::impl::org::webRtc::RTCPeerConnection::get_localDescription() noexcept
 {
-  wrapper::org::webrtc::RTCSessionDescriptionPtr result {};
+  wrapper::org::webRtc::RTCSessionDescriptionPtr result {};
   return result;
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::RTCSessionDescriptionPtr wrapper::impl::org::webrtc::RTCPeerConnection::get_currentLocalDescription() noexcept
+wrapper::org::webRtc::RTCSessionDescriptionPtr wrapper::impl::org::webRtc::RTCPeerConnection::get_currentLocalDescription() noexcept
 {
-  wrapper::org::webrtc::RTCSessionDescriptionPtr result {};
+  wrapper::org::webRtc::RTCSessionDescriptionPtr result {};
   return result;
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::RTCSessionDescriptionPtr wrapper::impl::org::webrtc::RTCPeerConnection::get_pendingLocalDescription() noexcept
+wrapper::org::webRtc::RTCSessionDescriptionPtr wrapper::impl::org::webRtc::RTCPeerConnection::get_pendingLocalDescription() noexcept
 {
-  wrapper::org::webrtc::RTCSessionDescriptionPtr result {};
+  wrapper::org::webRtc::RTCSessionDescriptionPtr result {};
   return result;
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::RTCSessionDescriptionPtr wrapper::impl::org::webrtc::RTCPeerConnection::get_remoteDescription() noexcept
+wrapper::org::webRtc::RTCSessionDescriptionPtr wrapper::impl::org::webRtc::RTCPeerConnection::get_remoteDescription() noexcept
 {
-  wrapper::org::webrtc::RTCSessionDescriptionPtr result {};
+  wrapper::org::webRtc::RTCSessionDescriptionPtr result {};
   return result;
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::RTCSessionDescriptionPtr wrapper::impl::org::webrtc::RTCPeerConnection::get_currentRemoteDescription() noexcept
+wrapper::org::webRtc::RTCSessionDescriptionPtr wrapper::impl::org::webRtc::RTCPeerConnection::get_currentRemoteDescription() noexcept
 {
-  wrapper::org::webrtc::RTCSessionDescriptionPtr result {};
+  wrapper::org::webRtc::RTCSessionDescriptionPtr result {};
   return result;
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::RTCSessionDescriptionPtr wrapper::impl::org::webrtc::RTCPeerConnection::get_pendingRemoteDescription() noexcept
+wrapper::org::webRtc::RTCSessionDescriptionPtr wrapper::impl::org::webRtc::RTCPeerConnection::get_pendingRemoteDescription() noexcept
 {
-  wrapper::org::webrtc::RTCSessionDescriptionPtr result {};
+  wrapper::org::webRtc::RTCSessionDescriptionPtr result {};
   return result;
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webrtc::RTCPeerConnection::wrapper_onObserverCountChanged(size_t count) noexcept
+void wrapper::impl::org::webRtc::RTCPeerConnection::wrapper_onObserverCountChanged(size_t count) noexcept
 {
 }
 

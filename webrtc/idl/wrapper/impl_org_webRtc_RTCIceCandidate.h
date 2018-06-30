@@ -3,15 +3,15 @@
 #pragma once
 
 #include "types.h"
-#include "generated/org_webrtc_RTCIceCandidate.h"
+#include "generated/org_webRtc_RTCIceCandidate.h"
 
 
 namespace wrapper {
   namespace impl {
     namespace org {
-      namespace webrtc {
+      namespace webRtc {
 
-        struct RTCIceCandidate : public wrapper::org::webrtc::RTCIceCandidate
+        struct RTCIceCandidate : public wrapper::org::webRtc::RTCIceCandidate
         {
           RTCIceCandidateWeakPtr thisWeak_;
 
@@ -19,29 +19,29 @@ namespace wrapper {
           virtual ~RTCIceCandidate() noexcept;
 
           // methods RTCIceCandidate
-          void wrapper_init_org_webrtc_RTCIceCandidate() noexcept override;
-          void wrapper_init_org_webrtc_RTCIceCandidate(wrapper::org::webrtc::RTCIceCandidateInitPtr init) noexcept(false) override; // throws wrapper::org::webrtc::RTCErrorPtr
-          wrapper::org::webrtc::RTCIceCandidateInitPtr toJson() noexcept override;
+          void wrapper_init_org_webRtc_RTCIceCandidate() noexcept override;
+          void wrapper_init_org_webRtc_RTCIceCandidate(wrapper::org::webRtc::RTCIceCandidateInitPtr init) noexcept(false) override; // throws wrapper::org::webRtc::RTCErrorPtr
+          wrapper::org::webRtc::RTCIceCandidateInitPtr toJson() noexcept override;
 
           // properties RTCIceCandidate
           String get_candidate() noexcept override;
           String get_sdpMid() noexcept override;
           Optional< unsigned short > get_sdpMLineIndex() noexcept override;
           String get_foundation() noexcept override;
-          Optional< wrapper::org::webrtc::RTCIceComponent > get_component() noexcept override;
+          Optional< wrapper::org::webRtc::RTCIceComponent > get_component() noexcept override;
           Optional< unsigned long > get_priority() noexcept override;
           String get_ip() noexcept override;
-          Optional< wrapper::org::webrtc::RTCIceProtocol > get_protocol() noexcept override;
+          Optional< wrapper::org::webRtc::RTCIceProtocol > get_protocol() noexcept override;
           Optional< uint16_t > get_port() noexcept override;
-          Optional< wrapper::org::webrtc::RTCIceCandidateType > get_type() noexcept override;
-          Optional< wrapper::org::webrtc::RTCIceTcpCandidateType > get_tcpType() noexcept override;
+          Optional< wrapper::org::webRtc::RTCIceCandidateType > get_type() noexcept override;
+          Optional< wrapper::org::webRtc::RTCIceTcpCandidateType > get_tcpType() noexcept override;
           String get_relatedAddress() noexcept override;
           Optional< uint16_t > get_relatedPort() noexcept override;
           String get_usernameFragment() noexcept override;
           void set_usernameFragment(String value) noexcept override;
         };
 
-      } // webrtc
+      } // webRtc
     } // org
   } // namespace impl
 } // namespace wrapper

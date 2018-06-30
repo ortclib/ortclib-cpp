@@ -3,15 +3,15 @@
 #pragma once
 
 #include "types.h"
-#include "generated/org_webrtc_RTCCertificateStats.h"
+#include "generated/org_webRtc_RTCCertificateStats.h"
 
 
 namespace wrapper {
   namespace impl {
     namespace org {
-      namespace webrtc {
+      namespace webRtc {
 
-        struct RTCCertificateStats : public wrapper::org::webrtc::RTCCertificateStats
+        struct RTCCertificateStats : public wrapper::org::webRtc::RTCCertificateStats
         {
           RTCCertificateStatsWeakPtr thisWeak_;
 
@@ -20,13 +20,13 @@ namespace wrapper {
 
           // properties RTCStats
           ::zsLib::Time get_timestamp() noexcept override;
-          Optional< wrapper::org::webrtc::RTCStatsType > get_statsType() noexcept override;
+          Optional< wrapper::org::webRtc::RTCStatsType > get_statsType() noexcept override;
           String get_statsTypeOther() noexcept override;
           String get_id() noexcept override;
 
           // methods RTCCertificateStats
-          void wrapper_init_org_webrtc_RTCCertificateStats() noexcept override;
-          void wrapper_init_org_webrtc_RTCCertificateStats(wrapper::org::webrtc::RTCCertificateStatsPtr source) noexcept override;
+          void wrapper_init_org_webRtc_RTCCertificateStats() noexcept override;
+          void wrapper_init_org_webRtc_RTCCertificateStats(wrapper::org::webRtc::RTCCertificateStatsPtr source) noexcept override;
 
           // properties RTCCertificateStats
           String get_fingerprint() noexcept override;
@@ -35,7 +35,7 @@ namespace wrapper {
           String get_issuerCertificateId() noexcept override;
         };
 
-      } // webrtc
+      } // webRtc
     } // org
   } // namespace impl
 } // namespace wrapper

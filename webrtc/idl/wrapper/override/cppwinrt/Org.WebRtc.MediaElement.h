@@ -7,7 +7,7 @@
 #include <wrapper/generated/cppwinrt/types.h>
 
 #include "Org/Webrtc/MediaElement.g.h"
-#include <wrapper/generated/org_webrtc_MediaElement.h>
+#include <wrapper/generated/org_webRtc_MediaElement.h>
 
 namespace winrt {
   namespace Org {
@@ -22,34 +22,34 @@ namespace winrt {
         struct MediaElement : MediaElementT<MediaElement>
         {
           // internal
-          wrapper::org::webrtc::MediaElementPtr native_;
+          wrapper::org::webRtc::MediaElementPtr native_;
 
           struct WrapperCreate {};
           MediaElement(const WrapperCreate &) {}
 
           // ToCppWinrtImpl
-          static winrt::com_ptr< Org::Webrtc::implementation::MediaElement > ToCppWinrtImpl(wrapper::org::webrtc::MediaElementPtr value);
+          static winrt::com_ptr< Org::Webrtc::implementation::MediaElement > ToCppWinrtImpl(wrapper::org::webRtc::MediaElementPtr value);
           static winrt::com_ptr< Org::Webrtc::implementation::MediaElement > ToCppWinrtImpl(Org::Webrtc::MediaElement const & value);
           static winrt::com_ptr< Org::Webrtc::implementation::MediaElement > ToCppWinrtImpl(winrt::com_ptr< Org::Webrtc::implementation::MediaElement > const & value);
           static winrt::com_ptr< Org::Webrtc::implementation::MediaElement > ToCppWinrtImpl(Org::Webrtc::IMediaElement const & value);
 
           // ToCppWinrt
-          static Org::Webrtc::MediaElement ToCppWinrt(wrapper::org::webrtc::MediaElementPtr value);
+          static Org::Webrtc::MediaElement ToCppWinrt(wrapper::org::webRtc::MediaElementPtr value);
           static Org::Webrtc::MediaElement ToCppWinrt(Org::Webrtc::MediaElement const & value);
           static Org::Webrtc::MediaElement ToCppWinrt(winrt::com_ptr< Org::Webrtc::implementation::MediaElement > const & value);
           static Org::Webrtc::MediaElement ToCppWinrt(Org::Webrtc::IMediaElement const & value);
 
           // ToCppWinrtInterface
-          static Org::Webrtc::IMediaElement ToCppWinrtInterface(wrapper::org::webrtc::MediaElementPtr value);
+          static Org::Webrtc::IMediaElement ToCppWinrtInterface(wrapper::org::webRtc::MediaElementPtr value);
           static Org::Webrtc::IMediaElement ToCppWinrtInterface(Org::Webrtc::MediaElement const & value);
           static Org::Webrtc::IMediaElement ToCppWinrtInterface(winrt::com_ptr< Org::Webrtc::implementation::MediaElement > const & value);
           static Org::Webrtc::IMediaElement ToCppWinrtInterface(Org::Webrtc::IMediaElement const & value);
 
           // FromCppWinrt
-          static wrapper::org::webrtc::MediaElementPtr FromCppWinrt(wrapper::org::webrtc::MediaElementPtr value);
-          static wrapper::org::webrtc::MediaElementPtr FromCppWinrt(winrt::com_ptr< Org::Webrtc::implementation::MediaElement > const & value);
-          static wrapper::org::webrtc::MediaElementPtr FromCppWinrt(Org::Webrtc::MediaElement const & value);
-          static wrapper::org::webrtc::MediaElementPtr FromCppWinrt(Org::Webrtc::IMediaElement const & value);
+          static wrapper::org::webRtc::MediaElementPtr FromCppWinrt(wrapper::org::webRtc::MediaElementPtr value);
+          static wrapper::org::webRtc::MediaElementPtr FromCppWinrt(winrt::com_ptr< Org::Webrtc::implementation::MediaElement > const & value);
+          static wrapper::org::webRtc::MediaElementPtr FromCppWinrt(Org::Webrtc::MediaElement const & value);
+          static wrapper::org::webRtc::MediaElementPtr FromCppWinrt(Org::Webrtc::IMediaElement const & value);
 
 
 

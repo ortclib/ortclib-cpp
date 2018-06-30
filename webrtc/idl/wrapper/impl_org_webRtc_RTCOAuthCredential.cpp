@@ -1,5 +1,5 @@
 
-#include "impl_org_webrtc_RTCOAuthCredential.h"
+#include "impl_org_webRtc_RTCOAuthCredential.h"
 
 #include <zsLib/String.h>
 
@@ -23,39 +23,39 @@ using ::std::map;
 
 
 // borrow definitions from class
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::RTCOAuthCredential::WrapperImplType, WrapperImplType);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::RTCOAuthCredential::WrapperType, WrapperType);
-//ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::RTCOAuthCredential::NativeType, NativeType);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCOAuthCredential::WrapperImplType, WrapperImplType);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCOAuthCredential::WrapperType, WrapperType);
+//ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCOAuthCredential::NativeType, NativeType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCOAuthCredential::RTCOAuthCredential() noexcept
+wrapper::impl::org::webRtc::RTCOAuthCredential::RTCOAuthCredential() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::RTCOAuthCredentialPtr wrapper::org::webrtc::RTCOAuthCredential::wrapper_create() noexcept
+wrapper::org::webRtc::RTCOAuthCredentialPtr wrapper::org::webRtc::RTCOAuthCredential::wrapper_create() noexcept
 {
-  auto pThis = make_shared<wrapper::impl::org::webrtc::RTCOAuthCredential>();
+  auto pThis = make_shared<wrapper::impl::org::webRtc::RTCOAuthCredential>();
   pThis->thisWeak_ = pThis;
   return pThis;
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCOAuthCredential::~RTCOAuthCredential() noexcept
+wrapper::impl::org::webRtc::RTCOAuthCredential::~RTCOAuthCredential() noexcept
 {
   thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webrtc::RTCOAuthCredential::wrapper_init_org_webrtc_RTCOAuthCredential() noexcept
+void wrapper::impl::org::webRtc::RTCOAuthCredential::wrapper_init_org_webRtc_RTCOAuthCredential() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webrtc::RTCOAuthCredential::wrapper_init_org_webrtc_RTCOAuthCredential(wrapper::org::webrtc::RTCOAuthCredentialPtr source) noexcept
+void wrapper::impl::org::webRtc::RTCOAuthCredential::wrapper_init_org_webRtc_RTCOAuthCredential(wrapper::org::webRtc::RTCOAuthCredentialPtr source) noexcept
 {
   if (!source) {
-    wrapper_init_org_webrtc_RTCOAuthCredential();
+    wrapper_init_org_webRtc_RTCOAuthCredential();
     return;
   }
   macKey = source->macKey;

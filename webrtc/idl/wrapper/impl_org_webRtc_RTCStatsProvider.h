@@ -3,25 +3,25 @@
 #pragma once
 
 #include "types.h"
-#include "generated/org_webrtc_RTCStatsProvider.h"
+#include "generated/org_webRtc_RTCStatsProvider.h"
 
 
 namespace wrapper {
   namespace impl {
     namespace org {
-      namespace webrtc {
+      namespace webRtc {
 
-        struct RTCStatsProvider : public wrapper::org::webrtc::RTCStatsProvider
+        struct RTCStatsProvider : public wrapper::org::webRtc::RTCStatsProvider
         {
           RTCStatsProvider() noexcept = delete;
           RTCStatsProvider(const RTCStatsProvider &) noexcept = delete;
           virtual ~RTCStatsProvider() noexcept;
 
           // methods RTCStatsProvider
-          shared_ptr< PromiseWithHolderPtr< wrapper::org::webrtc::RTCStatsReportPtr > > getStats(wrapper::org::webrtc::RTCStatsTypeSetPtr statTypes) noexcept(false) override; // throws wrapper::org::webrtc::RTCErrorPtr
+          shared_ptr< PromiseWithHolderPtr< wrapper::org::webRtc::RTCStatsReportPtr > > getStats(wrapper::org::webRtc::RTCStatsTypeSetPtr statTypes) noexcept(false) override; // throws wrapper::org::webRtc::RTCErrorPtr
         };
 
-      } // webrtc
+      } // webRtc
     } // org
   } // namespace impl
 } // namespace wrapper

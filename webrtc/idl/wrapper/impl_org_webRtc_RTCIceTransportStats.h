@@ -3,15 +3,15 @@
 #pragma once
 
 #include "types.h"
-#include "generated/org_webrtc_RTCIceTransportStats.h"
+#include "generated/org_webRtc_RTCIceTransportStats.h"
 
 
 namespace wrapper {
   namespace impl {
     namespace org {
-      namespace webrtc {
+      namespace webRtc {
 
-        struct RTCIceTransportStats : public wrapper::org::webrtc::RTCIceTransportStats
+        struct RTCIceTransportStats : public wrapper::org::webRtc::RTCIceTransportStats
         {
           RTCIceTransportStatsWeakPtr thisWeak_;
 
@@ -20,13 +20,13 @@ namespace wrapper {
 
           // properties RTCStats
           ::zsLib::Time get_timestamp() noexcept override;
-          Optional< wrapper::org::webrtc::RTCStatsType > get_statsType() noexcept override;
+          Optional< wrapper::org::webRtc::RTCStatsType > get_statsType() noexcept override;
           String get_statsTypeOther() noexcept override;
           String get_id() noexcept override;
 
           // methods RTCIceTransportStats
-          void wrapper_init_org_webrtc_RTCIceTransportStats() noexcept override;
-          void wrapper_init_org_webrtc_RTCIceTransportStats(wrapper::org::webrtc::RTCIceTransportStatsPtr source) noexcept override;
+          void wrapper_init_org_webRtc_RTCIceTransportStats() noexcept override;
+          void wrapper_init_org_webRtc_RTCIceTransportStats(wrapper::org::webRtc::RTCIceTransportStatsPtr source) noexcept override;
 
           // properties RTCIceTransportStats
           unsigned long long get_bytesSent() noexcept override;
@@ -36,7 +36,7 @@ namespace wrapper {
           String get_selectedCandidatePairId() noexcept override;
         };
 
-      } // webrtc
+      } // webRtc
     } // org
   } // namespace impl
 } // namespace wrapper

@@ -1,5 +1,5 @@
 
-#include "impl_org_webrtc_RTCOfferOptions.h"
+#include "impl_org_webRtc_RTCOfferOptions.h"
 
 using ::zsLib::String;
 using ::zsLib::Optional;
@@ -21,36 +21,36 @@ using ::std::map;
 
 
 // borrow definitions from class
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::RTCOfferOptions::WrapperImplType, WrapperImplType);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::RTCOfferOptions::WrapperType, WrapperType);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::RTCOfferOptions::NativeType, NativeType);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCOfferOptions::WrapperImplType, WrapperImplType);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCOfferOptions::WrapperType, WrapperType);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCOfferOptions::NativeType, NativeType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCOfferOptions::RTCOfferOptions() noexcept
+wrapper::impl::org::webRtc::RTCOfferOptions::RTCOfferOptions() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::RTCOfferOptionsPtr wrapper::org::webrtc::RTCOfferOptions::wrapper_create() noexcept
+wrapper::org::webRtc::RTCOfferOptionsPtr wrapper::org::webRtc::RTCOfferOptions::wrapper_create() noexcept
 {
-  auto pThis = make_shared<wrapper::impl::org::webrtc::RTCOfferOptions>();
+  auto pThis = make_shared<wrapper::impl::org::webRtc::RTCOfferOptions>();
   pThis->thisWeak_ = pThis;
   return pThis;
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCOfferOptions::~RTCOfferOptions() noexcept
+wrapper::impl::org::webRtc::RTCOfferOptions::~RTCOfferOptions() noexcept
 {
   thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webrtc::RTCOfferOptions::wrapper_init_org_webrtc_RTCOfferOptions() noexcept
+void wrapper::impl::org::webRtc::RTCOfferOptions::wrapper_init_org_webRtc_RTCOfferOptions() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webrtc::RTCOfferOptions::wrapper_init_org_webrtc_RTCOfferOptions(wrapper::org::webrtc::RTCOfferOptionsPtr source) noexcept
+void wrapper::impl::org::webRtc::RTCOfferOptions::wrapper_init_org_webRtc_RTCOfferOptions(wrapper::org::webRtc::RTCOfferOptionsPtr source) noexcept
 {
 }
 

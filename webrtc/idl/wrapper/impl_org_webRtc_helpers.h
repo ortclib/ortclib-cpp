@@ -7,14 +7,14 @@
 #include <map>
 
 #define WRAPPER_DEPROXIFY_CLASS(xClassNamespace, xClassType, xPtr) \
-        ::wrapper::impl::org::webrtc::deproxifyClass<xClassNamespace::xClassType, xClassNamespace::xClassType##Proxy, xClassNamespace::xClassType##Interface>(xPtr)
+        ::wrapper::impl::org::webRtc::deproxifyClass<xClassNamespace::xClassType, xClassNamespace::xClassType##Proxy, xClassNamespace::xClassType##Interface>(xPtr)
 
 #ifdef WINUWP
 #if defined(__cplusplus_winrt) && defined(CPPWINRT_VERSION)
 #define WRAPPER_TO_CX(xCxType, xWinrtObject) \
-        ::wrapper::impl::org::webrtc::to_cx<xCxType>(xWinrtObject)
+        ::wrapper::impl::org::webRtc::to_cx<xCxType>(xWinrtObject)
 #define WRAPPER_FROM_CX(xWinrtType, xCxObject) \
-        ::wrapper::impl::org::webrtc::from_cx<xWinrtType>(xCxObject)
+        ::wrapper::impl::org::webRtc::from_cx<xWinrtType>(xCxObject)
 #else
 #define WRAPPER_TO_CX(xCxType, xWinrtObject) \
         ERROR_USING_CONVERSION_ROUTING_TO_CX_WHEN_BOTH_CX_AND_CPPWINRT_ARE_NOT_AVAILABLE()
@@ -25,7 +25,7 @@
 namespace wrapper {
   namespace impl {
     namespace org {
-      namespace webrtc {
+      namespace webRtc {
 
         //---------------------------------------------------------------------
         //---------------------------------------------------------------------
@@ -130,7 +130,7 @@ namespace wrapper {
           NativeWrapperMap map_;
         };
 
-      } // webrtc
+      } // webRtc
     } // org
   } // namespace impl
 } // namespace wrapper

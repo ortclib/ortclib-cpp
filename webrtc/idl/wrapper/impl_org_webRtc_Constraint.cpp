@@ -1,5 +1,5 @@
 
-#include "impl_org_webrtc_Constraint.h"
+#include "impl_org_webRtc_Constraint.h"
 
 using ::zsLib::String;
 using ::zsLib::Optional;
@@ -19,36 +19,36 @@ using ::std::list;
 using ::std::set;
 using ::std::map;
 
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::Constraint::WrapperImplType, WrapperImplType);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::Constraint::NativeType, NativeType);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::Constraint::WrapperImplType, WrapperImplType);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::Constraint::NativeType, NativeType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::Constraint::Constraint() noexcept
+wrapper::impl::org::webRtc::Constraint::Constraint() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::ConstraintPtr wrapper::org::webrtc::Constraint::wrapper_create() noexcept
+wrapper::org::webRtc::ConstraintPtr wrapper::org::webRtc::Constraint::wrapper_create() noexcept
 {
-  auto pThis = make_shared<wrapper::impl::org::webrtc::Constraint>();
+  auto pThis = make_shared<wrapper::impl::org::webRtc::Constraint>();
   pThis->thisWeak_ = pThis;
   return pThis;
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::Constraint::~Constraint() noexcept
+wrapper::impl::org::webRtc::Constraint::~Constraint() noexcept
 {
   thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webrtc::Constraint::wrapper_init_org_webrtc_Constraint() noexcept
+void wrapper::impl::org::webRtc::Constraint::wrapper_init_org_webRtc_Constraint() noexcept
 {
   native_ = make_shared<NativeType>();
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webrtc::Constraint::wrapper_init_org_webrtc_Constraint(wrapper::org::webrtc::ConstraintPtr source) noexcept
+void wrapper::impl::org::webRtc::Constraint::wrapper_init_org_webRtc_Constraint(wrapper::org::webRtc::ConstraintPtr source) noexcept
 {
   if (!source) {
     native_ = make_shared<NativeType>();
@@ -58,7 +58,7 @@ void wrapper::impl::org::webrtc::Constraint::wrapper_init_org_webrtc_Constraint(
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webrtc::Constraint::wrapper_init_org_webrtc_Constraint(
+void wrapper::impl::org::webRtc::Constraint::wrapper_init_org_webRtc_Constraint(
   String key,
   String value
   ) noexcept
@@ -67,28 +67,28 @@ void wrapper::impl::org::webrtc::Constraint::wrapper_init_org_webrtc_Constraint(
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::webrtc::Constraint::get_key() noexcept
+String wrapper::impl::org::webRtc::Constraint::get_key() noexcept
 {
   if (!native_) return String();
   return native_->key;
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webrtc::Constraint::set_key(String value) noexcept
+void wrapper::impl::org::webRtc::Constraint::set_key(String value) noexcept
 {
   if (!native_) return;
   native_->key = value;
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::webrtc::Constraint::get_value() noexcept
+String wrapper::impl::org::webRtc::Constraint::get_value() noexcept
 {
   if (!native_) return String();
   return native_->value;
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webrtc::Constraint::set_value(String value) noexcept
+void wrapper::impl::org::webRtc::Constraint::set_value(String value) noexcept
 {
   if (!native_) return;
   native_->value = value;

@@ -3,27 +3,27 @@
 #pragma once
 
 #include "types.h"
-#include "generated/org_webrtc_RTCDataChannelEvent.h"
+#include "generated/org_webRtc_RTCDataChannelEvent.h"
 
 
 namespace wrapper {
   namespace impl {
     namespace org {
-      namespace webrtc {
+      namespace webRtc {
 
-        struct RTCDataChannelEvent : public wrapper::org::webrtc::RTCDataChannelEvent
+        struct RTCDataChannelEvent : public wrapper::org::webRtc::RTCDataChannelEvent
         {
           RTCDataChannelEventWeakPtr thisWeak_;
 
           RTCDataChannelEvent() noexcept;
           virtual ~RTCDataChannelEvent() noexcept;
-          void wrapper_init_org_webrtc_RTCDataChannelEvent() noexcept override;
+          void wrapper_init_org_webRtc_RTCDataChannelEvent() noexcept override;
 
           // properties RTCDataChannelEvent
-          wrapper::org::webrtc::RTCDataChannelPtr get_channel() noexcept override;
+          wrapper::org::webRtc::RTCDataChannelPtr get_channel() noexcept override;
         };
 
-      } // webrtc
+      } // webRtc
     } // org
   } // namespace impl
 } // namespace wrapper

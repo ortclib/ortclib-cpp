@@ -1,12 +1,12 @@
 
-#include "impl_org_webrtc_AudioTrackSource.h"
-#include "impl_org_webrtc_helpers.h"
-#include "impl_org_webrtc_AudioOptions.h"
-#include "impl_org_webrtc_MediaConstraints.h"
-#include "impl_org_webrtc_WebrtcLib.h"
+#include "impl_org_webRtc_AudioTrackSource.h"
+#include "impl_org_webRtc_helpers.h"
+#include "impl_org_webRtc_AudioOptions.h"
+#include "impl_org_webRtc_MediaConstraints.h"
+#include "impl_org_webRtc_WebrtcLib.h"
 
-#include "impl_org_webrtc_pre_include.h"
-#include "impl_org_webrtc_post_include.h"
+#include "impl_org_webRtc_pre_include.h"
+#include "impl_org_webRtc_post_include.h"
 
 using ::zsLib::String;
 using ::zsLib::Optional;
@@ -27,17 +27,17 @@ using ::std::set;
 using ::std::map;
 
 // borrow types from call defintions
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::AudioTrackSource::WrapperType, WrapperType);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::AudioTrackSource::WrapperImplType, WrapperImplType);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::AudioTrackSource::NativeType, NativeType);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::AudioTrackSource::WrapperType, WrapperType);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::AudioTrackSource::WrapperImplType, WrapperImplType);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::AudioTrackSource::NativeType, NativeType);
 
 typedef WrapperImplType::NativeScopedPtr NativeScopedPtr;
 
-typedef wrapper::impl::org::webrtc::WrapperMapper<NativeType, WrapperImplType> UseWrapperMapper;
+typedef wrapper::impl::org::webRtc::WrapperMapper<NativeType, WrapperImplType> UseWrapperMapper;
 
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::WebRtcLib, UseWebrtcLib);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::MediaConstraints, UseMediaConstraints);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::AudioOptions, UseAudioOptions);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::WebRtcLib, UseWebrtcLib);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::MediaConstraints, UseMediaConstraints);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::AudioOptions, UseAudioOptions);
 
 //------------------------------------------------------------------------------
 static UseWrapperMapper &mapperSingleton()
@@ -59,27 +59,27 @@ static NativeType *unproxy(NativeType *native)
 #endif //0
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::AudioTrackSource::AudioTrackSource() noexcept
+wrapper::impl::org::webRtc::AudioTrackSource::AudioTrackSource() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::AudioTrackSourcePtr wrapper::org::webrtc::AudioTrackSource::wrapper_create() noexcept
+wrapper::org::webRtc::AudioTrackSourcePtr wrapper::org::webRtc::AudioTrackSource::wrapper_create() noexcept
 {
-  auto pThis = make_shared<wrapper::impl::org::webrtc::AudioTrackSource>();
+  auto pThis = make_shared<wrapper::impl::org::webRtc::AudioTrackSource>();
   pThis->thisWeak_ = pThis;
   return pThis;
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::AudioTrackSource::~AudioTrackSource() noexcept
+wrapper::impl::org::webRtc::AudioTrackSource::~AudioTrackSource() noexcept
 {
   thisWeak_.reset();
   teardownObserver();
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::AudioTrackSourcePtr wrapper::org::webrtc::AudioTrackSource::create(wrapper::org::webrtc::AudioOptionsPtr options) noexcept
+wrapper::org::webRtc::AudioTrackSourcePtr wrapper::org::webRtc::AudioTrackSource::create(wrapper::org::webRtc::AudioOptionsPtr options) noexcept
 {
   auto factory = UseWebrtcLib::peerConnectionFactory();
   ZS_ASSERT(factory);
@@ -90,7 +90,7 @@ wrapper::org::webrtc::AudioTrackSourcePtr wrapper::org::webrtc::AudioTrackSource
   return WrapperImplType::toWrapper(factory->CreateAudioSource(*converted));
 }
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::AudioTrackSourcePtr wrapper::org::webrtc::AudioTrackSource::create(wrapper::org::webrtc::MediaConstraintsPtr constraints) noexcept
+wrapper::org::webRtc::AudioTrackSourcePtr wrapper::org::webRtc::AudioTrackSource::create(wrapper::org::webRtc::MediaConstraintsPtr constraints) noexcept
 {
   auto factory = UseWebrtcLib::peerConnectionFactory();
   ZS_ASSERT(factory);
@@ -102,21 +102,21 @@ wrapper::org::webrtc::AudioTrackSourcePtr wrapper::org::webrtc::AudioTrackSource
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webrtc::AudioTrackSource::wrapper_onObserverCountChanged(ZS_MAYBE_USED() size_t count) noexcept
+void wrapper::impl::org::webRtc::AudioTrackSource::wrapper_onObserverCountChanged(ZS_MAYBE_USED() size_t count) noexcept
 {
   ZS_MAYBE_USED(count);
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::MediaSourceState wrapper::impl::org::webrtc::AudioTrackSource::get_state() noexcept
+wrapper::org::webRtc::MediaSourceState wrapper::impl::org::webRtc::AudioTrackSource::get_state() noexcept
 {
 #pragma ZS_BUILD_NOTE("TODO","(robin)")
-  wrapper::org::webrtc::MediaSourceState result {};
+  wrapper::org::webRtc::MediaSourceState result {};
   return result;
 }
 
 //------------------------------------------------------------------------------
-bool wrapper::impl::org::webrtc::AudioTrackSource::get_remote() noexcept
+bool wrapper::impl::org::webRtc::AudioTrackSource::get_remote() noexcept
 {
   ZS_ASSERT(native_);
   if (!native_) return false;
@@ -124,7 +124,7 @@ bool wrapper::impl::org::webrtc::AudioTrackSource::get_remote() noexcept
 }
 
 //------------------------------------------------------------------------------
-double wrapper::impl::org::webrtc::AudioTrackSource::get_volume() noexcept
+double wrapper::impl::org::webRtc::AudioTrackSource::get_volume() noexcept
 {
   ZS_ASSERT(native_);
   if (!native_) return 0.0;
@@ -132,7 +132,7 @@ double wrapper::impl::org::webrtc::AudioTrackSource::get_volume() noexcept
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webrtc::AudioTrackSource::set_volume(double value) noexcept
+void wrapper::impl::org::webRtc::AudioTrackSource::set_volume(double value) noexcept
 {
   ZS_ASSERT(native_);
   if (!native_) return;

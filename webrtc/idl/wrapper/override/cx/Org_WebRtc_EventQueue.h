@@ -4,7 +4,7 @@
 #ifndef CX_USE_GENERATED_ORG_WEBRTC_EVENTQUEUE
 
 #include <wrapper/generated/cx/types.h>
-#include <wrapper/generated/org_webrtc_EventQueue.h>
+#include <wrapper/generated/org_webRtc_EventQueue.h>
 
 namespace Org {
   namespace Webrtc {
@@ -17,13 +17,13 @@ namespace Org {
     public ref class EventQueue sealed
     {
     internal:
-      wrapper::org::webrtc::EventQueuePtr native_;
+      wrapper::org::webRtc::EventQueuePtr native_;
 
       struct WrapperCreate {};
       EventQueue(const WrapperCreate &) {}
 
-      static EventQueue^ ToCx(wrapper::org::webrtc::EventQueuePtr value);
-      static wrapper::org::webrtc::EventQueuePtr FromCx(EventQueue^ value);
+      static EventQueue^ ToCx(wrapper::org::webRtc::EventQueuePtr value);
+      static wrapper::org::webRtc::EventQueuePtr FromCx(EventQueue^ value);
 
 
 

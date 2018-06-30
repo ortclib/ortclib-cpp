@@ -328,5 +328,5 @@ namespace Org
     void FirstFrameRenderHelper::FireEvent(double timestamp) {
       FirstFrameRendered(timestamp);
     }
-  } // namespace webrtc
+  } // namespace webRtc
 }  // namespace org

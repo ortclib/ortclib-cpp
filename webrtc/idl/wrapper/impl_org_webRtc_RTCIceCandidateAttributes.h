@@ -3,15 +3,15 @@
 #pragma once
 
 #include "types.h"
-#include "generated/org_webrtc_RTCIceCandidateAttributes.h"
+#include "generated/org_webRtc_RTCIceCandidateAttributes.h"
 
 
 namespace wrapper {
   namespace impl {
     namespace org {
-      namespace webrtc {
+      namespace webRtc {
 
-        struct RTCIceCandidateAttributes : public wrapper::org::webrtc::RTCIceCandidateAttributes
+        struct RTCIceCandidateAttributes : public wrapper::org::webRtc::RTCIceCandidateAttributes
         {
           RTCIceCandidateAttributesWeakPtr thisWeak_;
 
@@ -20,25 +20,25 @@ namespace wrapper {
 
           // properties RTCStats
           ::zsLib::Time get_timestamp() noexcept override;
-          Optional< wrapper::org::webrtc::RTCStatsType > get_statsType() noexcept override;
+          Optional< wrapper::org::webRtc::RTCStatsType > get_statsType() noexcept override;
           String get_statsTypeOther() noexcept override;
           String get_id() noexcept override;
 
           // methods RTCIceCandidateAttributes
-          void wrapper_init_org_webrtc_RTCIceCandidateAttributes() noexcept override;
-          void wrapper_init_org_webrtc_RTCIceCandidateAttributes(wrapper::org::webrtc::RTCIceCandidateAttributesPtr source) noexcept override;
+          void wrapper_init_org_webRtc_RTCIceCandidateAttributes() noexcept override;
+          void wrapper_init_org_webRtc_RTCIceCandidateAttributes(wrapper::org::webRtc::RTCIceCandidateAttributesPtr source) noexcept override;
 
           // properties RTCIceCandidateAttributes
           String get_relatedId() noexcept override;
           String get_ipAddress() noexcept override;
           unsigned long get_portNumber() noexcept override;
           String get_transport() noexcept override;
-          wrapper::org::webrtc::RTCIceCandidateType get_candidateType() noexcept override;
+          wrapper::org::webRtc::RTCIceCandidateType get_candidateType() noexcept override;
           unsigned long get_priority() noexcept override;
           String get_addressSourceUrl() noexcept override;
         };
 
-      } // webrtc
+      } // webRtc
     } // org
   } // namespace impl
 } // namespace wrapper

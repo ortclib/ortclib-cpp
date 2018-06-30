@@ -26,7 +26,7 @@
 
 using Windows::System::Threading::TimerElapsedHandler;
 
-namespace webrtc
+namespace webRtc
 {
   namespace vcm
   {
@@ -543,5 +543,5 @@ namespace Org
 
       return 0;
     }
-  } // namespace webrtc
+  } // namespace webRtc
 }  // namespace org

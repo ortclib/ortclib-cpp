@@ -2,21 +2,21 @@
 #pragma once
 
 #include "types.h"
-#include "generated/org_webrtc_RTCCertificate.h"
+#include "generated/org_webRtc_RTCCertificate.h"
 
-#include "impl_org_webrtc_pre_include.h"
+#include "impl_org_webRtc_pre_include.h"
 #include "rtc_base/scoped_ref_ptr.h"
-#include "impl_org_webrtc_post_include.h"
+#include "impl_org_webRtc_post_include.h"
 
 namespace wrapper {
   namespace impl {
     namespace org {
-      namespace webrtc {
+      namespace webRtc {
 
-        struct RTCCertificate : public wrapper::org::webrtc::RTCCertificate
+        struct RTCCertificate : public wrapper::org::webRtc::RTCCertificate
         {
-          ZS_DECLARE_TYPEDEF_PTR(wrapper::org::webrtc::RTCCertificate, WrapperType);
-          ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::RTCCertificate, WrapperImplType);
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::org::webRtc::RTCCertificate, WrapperType);
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCCertificate, WrapperImplType);
           ZS_DECLARE_TYPEDEF_PTR(::rtc::RTCCertificate, NativeType);
 
           typedef ::rtc::scoped_refptr<NativeType> NativeTypeScopedPtr;
@@ -29,13 +29,13 @@ namespace wrapper {
 
           // properties RTCCertificate
           ::zsLib::Time get_expires() noexcept override;
-          shared_ptr< list< wrapper::org::webrtc::RTCDtlsFingerprintPtr > > get_fingerprints() noexcept override;
+          shared_ptr< list< wrapper::org::webRtc::RTCDtlsFingerprintPtr > > get_fingerprints() noexcept override;
 
           ZS_NO_DISCARD() static WrapperImplTypePtr toWrapper(NativeType *native) noexcept;
           ZS_NO_DISCARD() static NativeTypeScopedPtr toNative(WrapperTypePtr wrapper) noexcept;
         };
 
-      } // webrtc
+      } // webRtc
     } // org
   } // namespace impl
 } // namespace wrapper

@@ -2,21 +2,21 @@
 #pragma once
 
 #include "types.h"
-#include "generated/org_webrtc_RTCConfiguration.h"
+#include "generated/org_webRtc_RTCConfiguration.h"
 
-#include "impl_org_webrtc_pre_include.h"
+#include "impl_org_webRtc_pre_include.h"
 #include "api/peerconnectioninterface.h"
-#include "impl_org_webrtc_post_include.h"
+#include "impl_org_webRtc_post_include.h"
 
 namespace wrapper {
   namespace impl {
     namespace org {
-      namespace webrtc {
+      namespace webRtc {
 
-        struct RTCConfiguration : public wrapper::org::webrtc::RTCConfiguration
+        struct RTCConfiguration : public wrapper::org::webRtc::RTCConfiguration
         {
-          ZS_DECLARE_TYPEDEF_PTR(wrapper::org::webrtc::RTCConfiguration, WrapperType);
-          ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::RTCConfiguration, WrapperImplType);
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::org::webRtc::RTCConfiguration, WrapperType);
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCConfiguration, WrapperImplType);
           ZS_DECLARE_TYPEDEF_PTR(::webrtc::PeerConnectionInterface::RTCConfiguration, NativeType);
 
           RTCConfigurationWeakPtr thisWeak_;
@@ -26,9 +26,9 @@ namespace wrapper {
           virtual ~RTCConfiguration() noexcept;
 
           // methods RTCConfiguration
-          void wrapper_init_org_webrtc_RTCConfiguration() noexcept override;
-          void wrapper_init_org_webrtc_RTCConfiguration(wrapper::org::webrtc::RTCConfigurationType type) noexcept override;
-          void wrapper_init_org_webrtc_RTCConfiguration(wrapper::org::webrtc::RTCConfigurationPtr source) noexcept override;
+          void wrapper_init_org_webRtc_RTCConfiguration() noexcept override;
+          void wrapper_init_org_webRtc_RTCConfiguration(wrapper::org::webRtc::RTCConfigurationType type) noexcept override;
+          void wrapper_init_org_webRtc_RTCConfiguration(wrapper::org::webRtc::RTCConfigurationPtr source) noexcept override;
 
           // properties RTCConfiguration
           bool get_dscp() noexcept override;
@@ -48,7 +48,7 @@ namespace wrapper {
           ZS_NO_DISCARD() static NativeTypePtr toNative(WrapperTypePtr wrapper) noexcept;
         };
 
-      } // webrtc
+      } // webRtc
     } // org
   } // namespace impl
 } // namespace wrapper

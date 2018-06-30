@@ -18,22 +18,22 @@
 
 #endif //WINUWP
 
-#include "impl_org_webrtc_MediaStreamTrack.h"
+#include "impl_org_webRtc_MediaStreamTrack.h"
 
-#include "impl_org_webrtc_helpers.h"
-#include "impl_org_webrtc_MediaElement.h"
-#include "impl_org_webrtc_MediaSource.h"
-#include "impl_org_webrtc_MediaConstraints.h"
-#include "impl_org_webrtc_AudioTrackSource.h"
-#include "impl_org_webrtc_VideoTrackSource.h"
-#include "impl_org_webrtc_WebrtcLib.h"
+#include "impl_org_webRtc_helpers.h"
+#include "impl_org_webRtc_MediaElement.h"
+#include "impl_org_webRtc_MediaSource.h"
+#include "impl_org_webRtc_MediaConstraints.h"
+#include "impl_org_webRtc_AudioTrackSource.h"
+#include "impl_org_webRtc_VideoTrackSource.h"
+#include "impl_org_webRtc_WebrtcLib.h"
 
-#include "impl_org_webrtc_pre_include.h"
+#include "impl_org_webRtc_pre_include.h"
 #include "pc/audiotrack.h"
 #include "pc/videotrack.h"
 #include "api/mediastreamtrackproxy.h"
 #include "api/peerconnectioninterface.h"
-#include "impl_org_webrtc_post_include.h"
+#include "impl_org_webRtc_post_include.h"
 
 using ::zsLib::String;
 using ::zsLib::Optional;
@@ -54,17 +54,17 @@ using ::std::set;
 using ::std::map;
 
 // borrow types from call defintions
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::MediaStreamTrack::WrapperType, WrapperType);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::MediaStreamTrack::WrapperImplType, WrapperImplType);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::MediaStreamTrack::NativeType, NativeType);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::MediaStreamTrack::WrapperType, WrapperType);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::MediaStreamTrack::WrapperImplType, WrapperImplType);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::MediaStreamTrack::NativeType, NativeType);
 
 typedef WrapperImplType::NativeTypeScopedPtr NativeTypeScopedPtr;
 
-typedef wrapper::impl::org::webrtc::WrapperMapper<NativeType, WrapperImplType> UseWrapperMapper;
+typedef wrapper::impl::org::webRtc::WrapperMapper<NativeType, WrapperImplType> UseWrapperMapper;
 
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::WebRtcLib, UseWebrtcLib);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::AudioTrackSource, UseAudioTrackSource);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::VideoTrackSource, UseVideoTrackSource);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::WebRtcLib, UseWebrtcLib);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::AudioTrackSource, UseAudioTrackSource);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::VideoTrackSource, UseVideoTrackSource);
 
 //------------------------------------------------------------------------------
 static UseWrapperMapper &mapperSingleton()
@@ -118,20 +118,20 @@ static void notifyAboutNewMediaSource(WrapperImplType &wrapper, winrt::Windows::
 #endif //WINUWP
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::MediaStreamTrack::MediaStreamTrack() noexcept
+wrapper::impl::org::webRtc::MediaStreamTrack::MediaStreamTrack() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::MediaStreamTrackPtr wrapper::org::webrtc::MediaStreamTrack::wrapper_create() noexcept
+wrapper::org::webRtc::MediaStreamTrackPtr wrapper::org::webRtc::MediaStreamTrack::wrapper_create() noexcept
 {
-  auto pThis = make_shared<wrapper::impl::org::webrtc::MediaStreamTrack>();
+  auto pThis = make_shared<wrapper::impl::org::webRtc::MediaStreamTrack>();
   pThis->thisWeak_ = pThis;
   return pThis;
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::MediaStreamTrack::~MediaStreamTrack() noexcept
+wrapper::impl::org::webRtc::MediaStreamTrack::~MediaStreamTrack() noexcept
 {
   thisWeak_.reset();
   teardownObserver();
@@ -139,9 +139,9 @@ wrapper::impl::org::webrtc::MediaStreamTrack::~MediaStreamTrack() noexcept
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::MediaStreamTrackPtr wrapper::org::webrtc::MediaStreamTrack::createAudioTrack(
+wrapper::org::webRtc::MediaStreamTrackPtr wrapper::org::webRtc::MediaStreamTrack::createAudioTrack(
   String label,
-  wrapper::org::webrtc::AudioTrackSourcePtr source
+  wrapper::org::webRtc::AudioTrackSourcePtr source
   ) noexcept
 {
   auto factory = UseWebrtcLib::peerConnectionFactory();
@@ -156,9 +156,9 @@ wrapper::org::webrtc::MediaStreamTrackPtr wrapper::org::webrtc::MediaStreamTrack
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::MediaStreamTrackPtr wrapper::org::webrtc::MediaStreamTrack::createVideoTrack(
+wrapper::org::webRtc::MediaStreamTrackPtr wrapper::org::webRtc::MediaStreamTrack::createVideoTrack(
   String label,
-  wrapper::org::webrtc::VideoTrackSourcePtr source
+  wrapper::org::webRtc::VideoTrackSourcePtr source
   ) noexcept
 {
   auto factory = UseWebrtcLib::peerConnectionFactory();
@@ -173,28 +173,28 @@ wrapper::org::webrtc::MediaStreamTrackPtr wrapper::org::webrtc::MediaStreamTrack
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::webrtc::MediaStreamTrack::get_kind() noexcept
+String wrapper::impl::org::webRtc::MediaStreamTrack::get_kind() noexcept
 {
   if (!native_) return String();
   return native_->kind();
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::webrtc::MediaStreamTrack::get_id() noexcept
+String wrapper::impl::org::webRtc::MediaStreamTrack::get_id() noexcept
 {
   if (!native_) return String();
   return native_->id();
 }
 
 //------------------------------------------------------------------------------
-bool wrapper::impl::org::webrtc::MediaStreamTrack::get_enabled() noexcept
+bool wrapper::impl::org::webRtc::MediaStreamTrack::get_enabled() noexcept
 {
   if (!native_) return false;
   return native_->enabled();
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webrtc::MediaStreamTrack::set_enabled(bool value) noexcept
+void wrapper::impl::org::webRtc::MediaStreamTrack::set_enabled(bool value) noexcept
 {
   if (!native_) return;
 
@@ -202,29 +202,29 @@ void wrapper::impl::org::webrtc::MediaStreamTrack::set_enabled(bool value) noexc
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::MediaStreamTrackState wrapper::impl::org::webrtc::MediaStreamTrack::get_state() noexcept
+wrapper::org::webRtc::MediaStreamTrackState wrapper::impl::org::webRtc::MediaStreamTrack::get_state() noexcept
 {
 #pragma ZS_BUILD_NOTE("IMPLEMENT","(robin)")
-  wrapper::org::webrtc::MediaStreamTrackState result {};
+  wrapper::org::webRtc::MediaStreamTrackState result {};
   return result;
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::MediaSourcePtr wrapper::impl::org::webrtc::MediaStreamTrack::get_source() noexcept
+wrapper::org::webRtc::MediaSourcePtr wrapper::impl::org::webRtc::MediaStreamTrack::get_source() noexcept
 {
   zsLib::AutoLock lock(lock_);
   return source_;
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::MediaElementPtr wrapper::impl::org::webrtc::MediaStreamTrack::get_element() noexcept
+wrapper::org::webRtc::MediaElementPtr wrapper::impl::org::webRtc::MediaStreamTrack::get_element() noexcept
 {
   zsLib::AutoLock lock(lock_);
   return element_;
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webrtc::MediaStreamTrack::set_element(wrapper::org::webrtc::MediaElementPtr value) noexcept
+void wrapper::impl::org::webRtc::MediaStreamTrack::set_element(wrapper::org::webRtc::MediaElementPtr value) noexcept
 {
   {
     zsLib::AutoLock lock(lock_);
@@ -235,7 +235,7 @@ void wrapper::impl::org::webrtc::MediaStreamTrack::set_element(wrapper::org::web
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webrtc::MediaStreamTrack::wrapper_onObserverCountChanged(ZS_MAYBE_USED() size_t count) noexcept
+void wrapper::impl::org::webRtc::MediaStreamTrack::wrapper_onObserverCountChanged(ZS_MAYBE_USED() size_t count) noexcept
 {
   ZS_MAYBE_USED(count);
 }

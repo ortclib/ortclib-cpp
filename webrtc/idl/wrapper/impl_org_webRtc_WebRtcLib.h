@@ -3,25 +3,25 @@
 
 #include "types.h"
 
-#include "generated/org_webrtc_WebRtcLib.h"
+#include "generated/org_webRtc_WebRtcLib.h"
 
-#include "impl_org_webrtc_pre_include.h"
+#include "impl_org_webRtc_pre_include.h"
 #include "rtc_base/scoped_ref_ptr.h"
 #include "media/base/videocapturerfactory.h"
-#include "impl_org_webrtc_post_include.h"
+#include "impl_org_webRtc_post_include.h"
 
 #include <zsLib/Singleton.h>
 
 namespace wrapper {
   namespace impl {
     namespace org {
-      namespace webrtc {
+      namespace webRtc {
 
-        struct WebRtcLib : public wrapper::org::webrtc::WebRtcLib,
+        struct WebRtcLib : public wrapper::org::webRtc::WebRtcLib,
                            public zsLib::ISingletonManagerDelegate
         {
-          ZS_DECLARE_TYPEDEF_PTR(wrapper::org::webrtc::WebRtcLib, WrapperType);
-          ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::WebRtcLib, WrapperImplType);
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::org::webRtc::WebRtcLib, WrapperType);
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::WebRtcLib, WrapperImplType);
 
           typedef rtc::scoped_refptr<::webrtc::PeerConnectionFactoryInterface> PeerConnectionFactoryInterfaceScopedPtr;
 
@@ -52,7 +52,7 @@ namespace wrapper {
 
           // overrides of base class
           virtual void actual_setup() noexcept;
-          virtual void actual_setup(wrapper::org::webrtc::EventQueuePtr queue) noexcept;
+          virtual void actual_setup(wrapper::org::webRtc::EventQueuePtr queue) noexcept;
           virtual void actual_startMediaTracing() noexcept;
           virtual void actual_stopMediaTracing() noexcept;
           virtual bool actual_isMediaTracing() noexcept;
@@ -85,7 +85,7 @@ namespace wrapper {
           static bool checkSetup(bool assert = true) noexcept;
         };
 
-      } // webrtc
+      } // webRtc
     } // org
   } // namespace impl
 } // namespace wrapper

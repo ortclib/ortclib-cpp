@@ -1,5 +1,5 @@
 
-#include "impl_org_webrtc_AudioOptions.h"
+#include "impl_org_webRtc_AudioOptions.h"
 
 #include <zsLib/SafeInt.h>
 
@@ -22,31 +22,31 @@ using ::std::set;
 using ::std::map;
 
 // borrow definitions from class
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::AudioOptions::WrapperImplType, WrapperImplType);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::AudioOptions::WrapperType, WrapperType);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::AudioOptions::NativeType, NativeType);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::AudioOptions::WrapperImplType, WrapperImplType);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::AudioOptions::WrapperType, WrapperType);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::AudioOptions::NativeType, NativeType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::AudioOptions::AudioOptions() noexcept
+wrapper::impl::org::webRtc::AudioOptions::AudioOptions() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::AudioOptionsPtr wrapper::org::webrtc::AudioOptions::wrapper_create() noexcept
+wrapper::org::webRtc::AudioOptionsPtr wrapper::org::webRtc::AudioOptions::wrapper_create() noexcept
 {
-  auto pThis = make_shared<wrapper::impl::org::webrtc::AudioOptions>();
+  auto pThis = make_shared<wrapper::impl::org::webRtc::AudioOptions>();
   pThis->thisWeak_ = pThis;
   return pThis;
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::AudioOptions::~AudioOptions() noexcept
+wrapper::impl::org::webRtc::AudioOptions::~AudioOptions() noexcept
 {
   thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webrtc::AudioOptions::wrapper_init_org_webrtc_AudioOptions() noexcept
+void wrapper::impl::org::webRtc::AudioOptions::wrapper_init_org_webRtc_AudioOptions() noexcept
 {
 }
 

@@ -3,21 +3,21 @@
 #pragma once
 
 #include "types.h"
-#include "generated/org_webrtc_RTCIceCandidateInit.h"
+#include "generated/org_webRtc_RTCIceCandidateInit.h"
 
 
 namespace wrapper {
   namespace impl {
     namespace org {
-      namespace webrtc {
+      namespace webRtc {
 
-        struct RTCIceCandidateInit : public wrapper::org::webrtc::RTCIceCandidateInit
+        struct RTCIceCandidateInit : public wrapper::org::webRtc::RTCIceCandidateInit
         {
           RTCIceCandidateInitWeakPtr thisWeak_;
 
           RTCIceCandidateInit() noexcept;
           virtual ~RTCIceCandidateInit() noexcept;
-          void wrapper_init_org_webrtc_RTCIceCandidateInit() noexcept override;
+          void wrapper_init_org_webRtc_RTCIceCandidateInit() noexcept override;
 
           // properties RTCIceCandidateInit
           String get_candidate() noexcept override;
@@ -30,7 +30,7 @@ namespace wrapper {
           void set_usernameFragment(String value) noexcept override;
         };
 
-      } // webrtc
+      } // webRtc
     } // org
   } // namespace impl
 } // namespace wrapper

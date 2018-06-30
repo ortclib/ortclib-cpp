@@ -3,24 +3,24 @@
 #pragma once
 
 #include "types.h"
-#include "generated/org_webrtc_RTCRtcpFeedback.h"
+#include "generated/org_webRtc_RTCRtcpFeedback.h"
 
 
 namespace wrapper {
   namespace impl {
     namespace org {
-      namespace webrtc {
+      namespace webRtc {
 
-        struct RTCRtcpFeedback : public wrapper::org::webrtc::RTCRtcpFeedback
+        struct RTCRtcpFeedback : public wrapper::org::webRtc::RTCRtcpFeedback
         {
           RTCRtcpFeedbackWeakPtr thisWeak_;
 
           RTCRtcpFeedback() noexcept;
           virtual ~RTCRtcpFeedback() noexcept;
-          void wrapper_init_org_webrtc_RTCRtcpFeedback() noexcept override;
+          void wrapper_init_org_webRtc_RTCRtcpFeedback() noexcept override;
         };
 
-      } // webrtc
+      } // webRtc
     } // org
   } // namespace impl
 } // namespace wrapper

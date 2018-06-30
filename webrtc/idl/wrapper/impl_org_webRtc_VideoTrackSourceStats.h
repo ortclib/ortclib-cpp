@@ -3,24 +3,24 @@
 #pragma once
 
 #include "types.h"
-#include "generated/org_webrtc_VideoTrackSourceStats.h"
+#include "generated/org_webRtc_VideoTrackSourceStats.h"
 
 
 namespace wrapper {
   namespace impl {
     namespace org {
-      namespace webrtc {
+      namespace webRtc {
 
-        struct VideoTrackSourceStats : public wrapper::org::webrtc::VideoTrackSourceStats
+        struct VideoTrackSourceStats : public wrapper::org::webRtc::VideoTrackSourceStats
         {
           VideoTrackSourceStatsWeakPtr thisWeak_;
 
           VideoTrackSourceStats() noexcept;
           virtual ~VideoTrackSourceStats() noexcept;
-          void wrapper_init_org_webrtc_VideoTrackSourceStats() noexcept override;
+          void wrapper_init_org_webRtc_VideoTrackSourceStats() noexcept override;
         };
 
-      } // webrtc
+      } // webRtc
     } // org
   } // namespace impl
 } // namespace wrapper

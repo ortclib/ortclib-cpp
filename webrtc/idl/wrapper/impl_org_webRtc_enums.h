@@ -3,15 +3,15 @@
 
 #include "types.h"
 
-#include "impl_org_webrtc_pre_include.h"
+#include "impl_org_webRtc_pre_include.h"
 #include "api/peerconnectioninterface.h"
 #include "api/mediastreaminterface.h"
 #include "api/datachannelinterface.h"
 #include "rtc_base/network_constants.h"
-#include "impl_org_webrtc_post_include.h"
+#include "impl_org_webRtc_post_include.h"
 
 
-namespace webrtc
+namespace webRtc
 {
   enum class RTCErrorType;
 }
@@ -19,7 +19,7 @@ namespace webrtc
 namespace wrapper {
   namespace impl {
     namespace org {
-      namespace webrtc {
+      namespace webRtc {
 
         //---------------------------------------------------------------------
         //---------------------------------------------------------------------
@@ -31,59 +31,59 @@ namespace wrapper {
 
         struct IEnum
         {
-          ZS_NO_DISCARD() static wrapper::org::webrtc::RTCErrorType toWrapper(::webrtc::RTCErrorType value) noexcept;
-          ZS_NO_DISCARD() static ::webrtc::RTCErrorType toNative(wrapper::org::webrtc::RTCErrorType value) noexcept;
+          ZS_NO_DISCARD() static wrapper::org::webRtc::RTCErrorType toWrapper(::webrtc::RTCErrorType value) noexcept;
+          ZS_NO_DISCARD() static ::webrtc::RTCErrorType toNative(wrapper::org::webRtc::RTCErrorType value) noexcept;
 
-          ZS_NO_DISCARD() static wrapper::org::webrtc::RTCIceTransportPolicy toWrapper(::webrtc::PeerConnectionInterface::IceTransportsType value) noexcept;
-          ZS_NO_DISCARD() static ::webrtc::PeerConnectionInterface::IceTransportsType toNative(wrapper::org::webrtc::RTCIceTransportPolicy value) noexcept;
+          ZS_NO_DISCARD() static wrapper::org::webRtc::RTCIceTransportPolicy toWrapper(::webrtc::PeerConnectionInterface::IceTransportsType value) noexcept;
+          ZS_NO_DISCARD() static ::webrtc::PeerConnectionInterface::IceTransportsType toNative(wrapper::org::webRtc::RTCIceTransportPolicy value) noexcept;
 
-          ZS_NO_DISCARD() static wrapper::org::webrtc::RTCBundlePolicy toWrapper(::webrtc::PeerConnectionInterface::BundlePolicy value) noexcept;
-          ZS_NO_DISCARD() static ::webrtc::PeerConnectionInterface::BundlePolicy toNative(wrapper::org::webrtc::RTCBundlePolicy value) noexcept;
+          ZS_NO_DISCARD() static wrapper::org::webRtc::RTCBundlePolicy toWrapper(::webrtc::PeerConnectionInterface::BundlePolicy value) noexcept;
+          ZS_NO_DISCARD() static ::webrtc::PeerConnectionInterface::BundlePolicy toNative(wrapper::org::webRtc::RTCBundlePolicy value) noexcept;
 
-          ZS_NO_DISCARD() static wrapper::org::webrtc::RTCRtcpMuxPolicy toWrapper(::webrtc::PeerConnectionInterface::RtcpMuxPolicy value) noexcept;
-          ZS_NO_DISCARD() static ::webrtc::PeerConnectionInterface::RtcpMuxPolicy toNative(wrapper::org::webrtc::RTCRtcpMuxPolicy value) noexcept;
+          ZS_NO_DISCARD() static wrapper::org::webRtc::RTCRtcpMuxPolicy toWrapper(::webrtc::PeerConnectionInterface::RtcpMuxPolicy value) noexcept;
+          ZS_NO_DISCARD() static ::webrtc::PeerConnectionInterface::RtcpMuxPolicy toNative(wrapper::org::webRtc::RTCRtcpMuxPolicy value) noexcept;
 
-          ZS_NO_DISCARD() static wrapper::org::webrtc::RTCTcpCandidatePolicy toWrapper(::webrtc::PeerConnectionInterface::TcpCandidatePolicy value) noexcept;
-          ZS_NO_DISCARD() static ::webrtc::PeerConnectionInterface::TcpCandidatePolicy toNative(wrapper::org::webrtc::RTCTcpCandidatePolicy value) noexcept;
+          ZS_NO_DISCARD() static wrapper::org::webRtc::RTCTcpCandidatePolicy toWrapper(::webrtc::PeerConnectionInterface::TcpCandidatePolicy value) noexcept;
+          ZS_NO_DISCARD() static ::webrtc::PeerConnectionInterface::TcpCandidatePolicy toNative(wrapper::org::webRtc::RTCTcpCandidatePolicy value) noexcept;
 
-          ZS_NO_DISCARD() static wrapper::org::webrtc::RTCCandidateNetworkPolicy toWrapper(::webrtc::PeerConnectionInterface::CandidateNetworkPolicy value) noexcept;
-          ZS_NO_DISCARD() static ::webrtc::PeerConnectionInterface::CandidateNetworkPolicy toNative(wrapper::org::webrtc::RTCCandidateNetworkPolicy value) noexcept;
+          ZS_NO_DISCARD() static wrapper::org::webRtc::RTCCandidateNetworkPolicy toWrapper(::webrtc::PeerConnectionInterface::CandidateNetworkPolicy value) noexcept;
+          ZS_NO_DISCARD() static ::webrtc::PeerConnectionInterface::CandidateNetworkPolicy toNative(wrapper::org::webRtc::RTCCandidateNetworkPolicy value) noexcept;
 
-          ZS_NO_DISCARD() static wrapper::org::webrtc::RTCContinualGatheringPolicy toWrapper(::webrtc::PeerConnectionInterface::ContinualGatheringPolicy value) noexcept;
-          ZS_NO_DISCARD() static ::webrtc::PeerConnectionInterface::ContinualGatheringPolicy toNative(wrapper::org::webrtc::RTCContinualGatheringPolicy value) noexcept;
+          ZS_NO_DISCARD() static wrapper::org::webRtc::RTCContinualGatheringPolicy toWrapper(::webrtc::PeerConnectionInterface::ContinualGatheringPolicy value) noexcept;
+          ZS_NO_DISCARD() static ::webrtc::PeerConnectionInterface::ContinualGatheringPolicy toNative(wrapper::org::webRtc::RTCContinualGatheringPolicy value) noexcept;
 
-          ZS_NO_DISCARD() static wrapper::org::webrtc::RTCAdapterType toWrapper(::rtc::AdapterType value) noexcept;
-          ZS_NO_DISCARD() static ::rtc::AdapterType toNative(wrapper::org::webrtc::RTCAdapterType value) noexcept;
+          ZS_NO_DISCARD() static wrapper::org::webRtc::RTCAdapterType toWrapper(::rtc::AdapterType value) noexcept;
+          ZS_NO_DISCARD() static ::rtc::AdapterType toNative(wrapper::org::webRtc::RTCAdapterType value) noexcept;
 
-          ZS_NO_DISCARD() static wrapper::org::webrtc::RTCSdpSemantics toWrapper(::webrtc::SdpSemantics value) noexcept;
-          ZS_NO_DISCARD() static ::webrtc::SdpSemantics toNative(wrapper::org::webrtc::RTCSdpSemantics value) noexcept;
+          ZS_NO_DISCARD() static wrapper::org::webRtc::RTCSdpSemantics toWrapper(::webrtc::SdpSemantics value) noexcept;
+          ZS_NO_DISCARD() static ::webrtc::SdpSemantics toNative(wrapper::org::webRtc::RTCSdpSemantics value) noexcept;
 
-          ZS_NO_DISCARD() static wrapper::org::webrtc::RTCTlsCertPolicy toWrapper(::webrtc::PeerConnectionInterface::TlsCertPolicy value) noexcept;
-          ZS_NO_DISCARD() static ::webrtc::PeerConnectionInterface::TlsCertPolicy toNative(wrapper::org::webrtc::RTCTlsCertPolicy value) noexcept;
+          ZS_NO_DISCARD() static wrapper::org::webRtc::RTCTlsCertPolicy toWrapper(::webrtc::PeerConnectionInterface::TlsCertPolicy value) noexcept;
+          ZS_NO_DISCARD() static ::webrtc::PeerConnectionInterface::TlsCertPolicy toNative(wrapper::org::webRtc::RTCTlsCertPolicy value) noexcept;
 
-          ZS_NO_DISCARD() static wrapper::org::webrtc::RTCSdpType toWrapper(::webrtc::SdpType value) noexcept;
-          ZS_NO_DISCARD() static ::webrtc::SdpType toNative(wrapper::org::webrtc::RTCSdpType value) noexcept;
+          ZS_NO_DISCARD() static wrapper::org::webRtc::RTCSdpType toWrapper(::webrtc::SdpType value) noexcept;
+          ZS_NO_DISCARD() static ::webrtc::SdpType toNative(wrapper::org::webRtc::RTCSdpType value) noexcept;
 
-          ZS_NO_DISCARD() static wrapper::org::webrtc::MediaSourceState toWrapper(::webrtc::MediaSourceInterface::SourceState value) noexcept;
-          ZS_NO_DISCARD() static ::webrtc::MediaSourceInterface::SourceState toNative(wrapper::org::webrtc::MediaSourceState value) noexcept;
+          ZS_NO_DISCARD() static wrapper::org::webRtc::MediaSourceState toWrapper(::webrtc::MediaSourceInterface::SourceState value) noexcept;
+          ZS_NO_DISCARD() static ::webrtc::MediaSourceInterface::SourceState toNative(wrapper::org::webRtc::MediaSourceState value) noexcept;
 
-          ZS_NO_DISCARD() static wrapper::org::webrtc::MediaStreamTrackState toWrapper(::webrtc::MediaStreamTrackInterface::TrackState value) noexcept;
-          ZS_NO_DISCARD() static ::webrtc::MediaStreamTrackInterface::TrackState toNative(wrapper::org::webrtc::MediaStreamTrackState value) noexcept;
+          ZS_NO_DISCARD() static wrapper::org::webRtc::MediaStreamTrackState toWrapper(::webrtc::MediaStreamTrackInterface::TrackState value) noexcept;
+          ZS_NO_DISCARD() static ::webrtc::MediaStreamTrackInterface::TrackState toNative(wrapper::org::webRtc::MediaStreamTrackState value) noexcept;
 
-          ZS_NO_DISCARD() static wrapper::org::webrtc::RTCConfigurationType toWrapper(::webrtc::PeerConnectionInterface::RTCConfigurationType value) noexcept;
-          ZS_NO_DISCARD() static ::webrtc::PeerConnectionInterface::RTCConfigurationType toNative(wrapper::org::webrtc::RTCConfigurationType value) noexcept;
+          ZS_NO_DISCARD() static wrapper::org::webRtc::RTCConfigurationType toWrapper(::webrtc::PeerConnectionInterface::RTCConfigurationType value) noexcept;
+          ZS_NO_DISCARD() static ::webrtc::PeerConnectionInterface::RTCConfigurationType toNative(wrapper::org::webRtc::RTCConfigurationType value) noexcept;
 
-          ZS_NO_DISCARD() static wrapper::org::webrtc::RTCDataChannelState toWrapper(::webrtc::DataChannelInterface::DataState value) noexcept;
-          ZS_NO_DISCARD() static ::webrtc::DataChannelInterface::DataState toNative(wrapper::org::webrtc::RTCDataChannelState value) noexcept;
+          ZS_NO_DISCARD() static wrapper::org::webRtc::RTCDataChannelState toWrapper(::webrtc::DataChannelInterface::DataState value) noexcept;
+          ZS_NO_DISCARD() static ::webrtc::DataChannelInterface::DataState toNative(wrapper::org::webRtc::RTCDataChannelState value) noexcept;
 
-          ZS_NO_DISCARD() static wrapper::org::webrtc::RTCDegradationPreference toWrapper(::webrtc::DegradationPreference value) noexcept;
-          ZS_NO_DISCARD() static ::webrtc::DegradationPreference toNative(wrapper::org::webrtc::RTCDegradationPreference value) noexcept;
+          ZS_NO_DISCARD() static wrapper::org::webRtc::RTCDegradationPreference toWrapper(::webrtc::DegradationPreference value) noexcept;
+          ZS_NO_DISCARD() static ::webrtc::DegradationPreference toNative(wrapper::org::webRtc::RTCDegradationPreference value) noexcept;
 
           ZS_NO_DISCARD() static const char *toWrapper(::webrtc::FecMechanism value) noexcept;
           ZS_NO_DISCARD() static ::webrtc::FecMechanism toNativeFecMechanism(const char *value) noexcept(false); // throws InvalidParameters
 
-          ZS_NO_DISCARD() static wrapper::org::webrtc::RTCDtxStatus toWrapper(::webrtc::DtxStatus value) noexcept;
-          ZS_NO_DISCARD() static ::webrtc::DtxStatus toNative(wrapper::org::webrtc::RTCDtxStatus value) noexcept;
+          ZS_NO_DISCARD() static wrapper::org::webRtc::RTCDtxStatus toWrapper(::webrtc::DtxStatus value) noexcept;
+          ZS_NO_DISCARD() static ::webrtc::DtxStatus toNative(wrapper::org::webRtc::RTCDtxStatus value) noexcept;
 
           ZS_NO_DISCARD() static const char *toWrapper(::webrtc::RtcpFeedbackType value) noexcept;
           ZS_NO_DISCARD() static ::webrtc::RtcpFeedbackType toNativeRtcpFeedbackType(const char *value) noexcept(false); // throws InvalidParameters
@@ -91,20 +91,20 @@ namespace wrapper {
           ZS_NO_DISCARD() static const char *toWrapper(::webrtc::RtcpFeedbackMessageType value) noexcept;
           ZS_NO_DISCARD() static ::webrtc::RtcpFeedbackMessageType toNativeRtcpFeedbackMessageType(const char *value) noexcept(false); // throws InvalidParameters
 
-          ZS_NO_DISCARD() static wrapper::org::webrtc::RTCECCurve toWrapper(::rtc::ECCurve value) noexcept;
-          ZS_NO_DISCARD() static ::rtc::ECCurve toNative(wrapper::org::webrtc::RTCECCurve value) noexcept;
+          ZS_NO_DISCARD() static wrapper::org::webRtc::RTCECCurve toWrapper(::rtc::ECCurve value) noexcept;
+          ZS_NO_DISCARD() static ::rtc::ECCurve toNative(wrapper::org::webRtc::RTCECCurve value) noexcept;
 
-          ZS_NO_DISCARD() static wrapper::org::webrtc::RTCKeyType toWrapper(::rtc::KeyType value) noexcept;
-          ZS_NO_DISCARD() static ::rtc::KeyType toNative(wrapper::org::webrtc::RTCKeyType value) noexcept;
+          ZS_NO_DISCARD() static wrapper::org::webRtc::RTCKeyType toWrapper(::rtc::KeyType value) noexcept;
+          ZS_NO_DISCARD() static ::rtc::KeyType toNative(wrapper::org::webRtc::RTCKeyType value) noexcept;
 
-          ZS_NO_DISCARD() static wrapper::org::webrtc::RTCIceCandidateType toWrapperRTCIceCandidateType(const char *value) noexcept(false); // throws InvalidParameters
-          ZS_NO_DISCARD() static const char *toNative(wrapper::org::webrtc::RTCIceCandidateType value) noexcept;
+          ZS_NO_DISCARD() static wrapper::org::webRtc::RTCIceCandidateType toWrapperRTCIceCandidateType(const char *value) noexcept(false); // throws InvalidParameters
+          ZS_NO_DISCARD() static const char *toNative(wrapper::org::webRtc::RTCIceCandidateType value) noexcept;
 
-          ZS_NO_DISCARD() static wrapper::org::webrtc::RTCIceComponent toWrapperRTCIceComponent(int value) noexcept(false); // throws InvalidParameters
-          ZS_NO_DISCARD() static int toNative(wrapper::org::webrtc::RTCIceComponent value) noexcept;
+          ZS_NO_DISCARD() static wrapper::org::webRtc::RTCIceComponent toWrapperRTCIceComponent(int value) noexcept(false); // throws InvalidParameters
+          ZS_NO_DISCARD() static int toNative(wrapper::org::webRtc::RTCIceComponent value) noexcept;
 
-          ZS_NO_DISCARD() static wrapper::org::webrtc::RTCIceConnectionState toWrapper(::webrtc::PeerConnectionInterface::IceConnectionState value) noexcept;
-          ZS_NO_DISCARD() static ::webrtc::PeerConnectionInterface::IceConnectionState toNative(wrapper::org::webrtc::RTCIceConnectionState value) noexcept;
+          ZS_NO_DISCARD() static wrapper::org::webRtc::RTCIceConnectionState toWrapper(::webrtc::PeerConnectionInterface::IceConnectionState value) noexcept;
+          ZS_NO_DISCARD() static ::webrtc::PeerConnectionInterface::IceConnectionState toNative(wrapper::org::webRtc::RTCIceConnectionState value) noexcept;
 
 #if 0
 
@@ -446,7 +446,7 @@ namespace wrapper {
 
         };
 
-      } // webrtc
+      } // webRtc
     } // org
   } // namespace impl
 } // namespace wrapper

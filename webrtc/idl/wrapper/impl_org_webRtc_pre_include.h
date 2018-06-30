@@ -18,7 +18,7 @@ namespace rtc
   enum KeyType;
 }
 
-namespace webrtc
+namespace webRtc
 {
   enum class SdpSemantics;
   enum class SdpType;

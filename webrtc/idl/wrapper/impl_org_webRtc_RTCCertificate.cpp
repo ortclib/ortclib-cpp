@@ -1,9 +1,9 @@
 
-#include "impl_org_webrtc_RTCCertificate.h"
+#include "impl_org_webRtc_RTCCertificate.h"
 
-#include "impl_org_webrtc_pre_include.h"
+#include "impl_org_webRtc_pre_include.h"
 #include "rtc_base/rtccertificate.h"
-#include "impl_org_webrtc_post_include.h"
+#include "impl_org_webRtc_post_include.h"
 
 #include <zsLib/date.h>
 #include <zsLib/SafeInt.h>
@@ -29,33 +29,33 @@ using ::std::map;
 using namespace date;
 
 // borrow definitions from class
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::RTCCertificate::WrapperImplType, WrapperImplType);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::RTCCertificate::WrapperType, WrapperType);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::RTCCertificate::NativeType, NativeType);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCCertificate::WrapperImplType, WrapperImplType);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCCertificate::WrapperType, WrapperType);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCCertificate::NativeType, NativeType);
 
 typedef WrapperImplType::NativeTypeScopedPtr NativeTypeScopedPtr;
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCCertificate::RTCCertificate() noexcept
+wrapper::impl::org::webRtc::RTCCertificate::RTCCertificate() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::RTCCertificatePtr wrapper::org::webrtc::RTCCertificate::wrapper_create() noexcept
+wrapper::org::webRtc::RTCCertificatePtr wrapper::org::webRtc::RTCCertificate::wrapper_create() noexcept
 {
-  auto pThis = make_shared<wrapper::impl::org::webrtc::RTCCertificate>();
+  auto pThis = make_shared<wrapper::impl::org::webRtc::RTCCertificate>();
   pThis->thisWeak_ = pThis;
   return pThis;
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCCertificate::~RTCCertificate() noexcept
+wrapper::impl::org::webRtc::RTCCertificate::~RTCCertificate() noexcept
 {
   thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------
-::zsLib::Time wrapper::impl::org::webrtc::RTCCertificate::get_expires() noexcept
+::zsLib::Time wrapper::impl::org::webRtc::RTCCertificate::get_expires() noexcept
 {
   ZS_ASSERT(native_);
   if (!native_) return zsLib::Time();
@@ -67,13 +67,13 @@ wrapper::impl::org::webrtc::RTCCertificate::~RTCCertificate() noexcept
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< list< wrapper::org::webrtc::RTCDtlsFingerprintPtr > > wrapper::impl::org::webrtc::RTCCertificate::get_fingerprints() noexcept
+shared_ptr< list< wrapper::org::webRtc::RTCDtlsFingerprintPtr > > wrapper::impl::org::webRtc::RTCCertificate::get_fingerprints() noexcept
 {
   ZS_ASSERT(native_);
-  if (!native_) return shared_ptr< list< wrapper::org::webrtc::RTCDtlsFingerprintPtr > >();
+  if (!native_) return shared_ptr< list< wrapper::org::webRtc::RTCDtlsFingerprintPtr > >();
 
 #pragma ZS_BUILD_NOTE("LATER","No direct api in webrtc to obtain certificates given algorithms")
-  return make_shared< list< wrapper::org::webrtc::RTCDtlsFingerprintPtr > >();
+  return make_shared< list< wrapper::org::webRtc::RTCDtlsFingerprintPtr > >();
 }
 
 //------------------------------------------------------------------------------

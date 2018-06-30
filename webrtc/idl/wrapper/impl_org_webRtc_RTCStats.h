@@ -3,15 +3,15 @@
 #pragma once
 
 #include "types.h"
-#include "generated/org_webrtc_RTCStats.h"
+#include "generated/org_webRtc_RTCStats.h"
 
 
 namespace wrapper {
   namespace impl {
     namespace org {
-      namespace webrtc {
+      namespace webRtc {
 
-        struct RTCStats : public wrapper::org::webrtc::RTCStats
+        struct RTCStats : public wrapper::org::webRtc::RTCStats
         {
           RTCStatsWeakPtr thisWeak_;
 
@@ -19,17 +19,17 @@ namespace wrapper {
           virtual ~RTCStats() noexcept;
 
           // methods RTCStats
-          void wrapper_init_org_webrtc_RTCStats() noexcept override;
-          void wrapper_init_org_webrtc_RTCStats(wrapper::org::webrtc::RTCStatsPtr source) noexcept override;
+          void wrapper_init_org_webRtc_RTCStats() noexcept override;
+          void wrapper_init_org_webRtc_RTCStats(wrapper::org::webRtc::RTCStatsPtr source) noexcept override;
 
           // properties RTCStats
           ::zsLib::Time get_timestamp() noexcept override;
-          Optional< wrapper::org::webrtc::RTCStatsType > get_statsType() noexcept override;
+          Optional< wrapper::org::webRtc::RTCStatsType > get_statsType() noexcept override;
           String get_statsTypeOther() noexcept override;
           String get_id() noexcept override;
         };
 
-      } // webrtc
+      } // webRtc
     } // org
   } // namespace impl
 } // namespace wrapper

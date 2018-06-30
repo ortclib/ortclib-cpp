@@ -7,9 +7,9 @@
 #include <zsLib/eventing/types.h>
 #include <zsLib/SafeInt.h>
 
-#include <wrapper/generated/c/c_org_webrtc_EventQueueMaker.h>
-#include <wrapper/generated/org_webrtc_EventQueueMaker.h>
-#include <wrapper/generated/c/c_org_webrtc_EventQueue.h>
+#include <wrapper/generated/c/c_org_webRtc_EventQueueMaker.h>
+#include <wrapper/generated/org_webRtc_EventQueueMaker.h>
+#include <wrapper/generated/c/c_org_webRtc_EventQueue.h>
 
 #ifdef __clang__
 #pragma clang diagnostic push
@@ -20,15 +20,15 @@ using namespace wrapper;
 
 #if 0
 //------------------------------------------------------------------------------
-org_webrtc_EventQueue_t WEBRTC_WRAPPER_C_CALLING_CONVENTION org_webrtc_EventQueueMaker_bindQueue(zs_Any_t queue)
+org_webRtc_EventQueue_t WEBRTC_WRAPPER_C_CALLING_CONVENTION org_webRtc_EventQueueMaker_bindQueue(zs_Any_t queue)
 {
-  return wrapper::org_webrtc_EventQueue_wrapperToHandle(wrapper::org::webrtc::EventQueueMaker::bindQueue(wrapper::zs_Any_wrapperFromHandle(queue)));
+  return wrapper::org_webRtc_EventQueue_wrapperToHandle(wrapper::org::webRtc::EventQueueMaker::bindQueue(wrapper::zs_Any_wrapperFromHandle(queue)));
 }
 
 //------------------------------------------------------------------------------
-zs_Any_t WEBRTC_WRAPPER_C_CALLING_CONVENTION org_webrtc_EventQueueMaker_extractQueue(org_webrtc_EventQueue_t queue)
+zs_Any_t WEBRTC_WRAPPER_C_CALLING_CONVENTION org_webRtc_EventQueueMaker_extractQueue(org_webRtc_EventQueue_t queue)
 {
-  return wrapper::zs_Any_wrapperToHandle(wrapper::org::webrtc::EventQueueMaker::extractQueue(wrapper::org_webrtc_EventQueue_wrapperFromHandle(queue)));
+  return wrapper::zs_Any_wrapperToHandle(wrapper::org::webRtc::EventQueueMaker::extractQueue(wrapper::org_webRtc_EventQueue_wrapperFromHandle(queue)));
 }
 #endif //0
 
@@ -36,19 +36,19 @@ namespace wrapper
 {
 #if 0
   //----------------------------------------------------------------------------
-  org_webrtc_EventQueueMaker_t org_webrtc_EventQueueMaker_wrapperToHandle(wrapper::org::webrtc::EventQueueMakerPtr value)
+  org_webRtc_EventQueueMaker_t org_webRtc_EventQueueMaker_wrapperToHandle(wrapper::org::webRtc::EventQueueMakerPtr value)
   {
-    typedef org_webrtc_EventQueueMaker_t CType;
-    typedef wrapper::org::webrtc::EventQueueMakerPtr WrapperTypePtr;
+    typedef org_webRtc_EventQueueMaker_t CType;
+    typedef wrapper::org::webRtc::EventQueueMakerPtr WrapperTypePtr;
     typedef WrapperTypePtr * WrapperTypePtrRawPtr;
     if (!value) return 0;
     return reinterpret_cast<CType>(new WrapperTypePtr(value));
   }
 
   //----------------------------------------------------------------------------
-  wrapper::org::webrtc::EventQueueMakerPtr org_webrtc_EventQueueMaker_wrapperFromHandle(org_webrtc_EventQueueMaker_t handle)
+  wrapper::org::webRtc::EventQueueMakerPtr org_webRtc_EventQueueMaker_wrapperFromHandle(org_webRtc_EventQueueMaker_t handle)
   {
-    typedef wrapper::org::webrtc::EventQueueMakerPtr WrapperTypePtr;
+    typedef wrapper::org::webRtc::EventQueueMakerPtr WrapperTypePtr;
     typedef WrapperTypePtr * WrapperTypePtrRawPtr;
     if (0 == handle) return WrapperTypePtr();
     return (*reinterpret_cast<WrapperTypePtrRawPtr>(handle));

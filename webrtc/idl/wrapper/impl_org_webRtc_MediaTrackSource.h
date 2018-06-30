@@ -3,15 +3,15 @@
 #pragma once
 
 #include "types.h"
-#include "generated/org_webrtc_MediaTrackSource.h"
+#include "generated/org_webRtc_MediaTrackSource.h"
 
 
 namespace wrapper {
   namespace impl {
     namespace org {
-      namespace webrtc {
+      namespace webRtc {
 
-        struct MediaTrackSource : public wrapper::org::webrtc::MediaTrackSource
+        struct MediaTrackSource : public wrapper::org::webRtc::MediaTrackSource
         {
           MediaTrackSourceWeakPtr thisWeak_;
 
@@ -19,11 +19,11 @@ namespace wrapper {
           virtual ~MediaTrackSource() noexcept;
 
           // properties MediaTrackSource
-          wrapper::org::webrtc::MediaSourceState get_state() noexcept override;
+          wrapper::org::webRtc::MediaSourceState get_state() noexcept override;
           bool get_remote() noexcept override;
         };
 
-      } // webrtc
+      } // webRtc
     } // org
   } // namespace impl
 } // namespace wrapper

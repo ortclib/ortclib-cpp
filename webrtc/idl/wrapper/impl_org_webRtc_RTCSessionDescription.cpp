@@ -1,9 +1,9 @@
 
-#include "impl_org_webrtc_RTCSessionDescription.h"
+#include "impl_org_webRtc_RTCSessionDescription.h"
 
-#include "impl_org_webrtc_pre_include.h"
+#include "impl_org_webRtc_pre_include.h"
 #include "api/jsep.h"
-#include "impl_org_webrtc_post_include.h"
+#include "impl_org_webRtc_post_include.h"
 
 using ::zsLib::String;
 using ::zsLib::Optional;
@@ -24,44 +24,44 @@ using ::std::set;
 using ::std::map;
 
 // borrow definitions from class
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::RTCSessionDescription::WrapperImplType, WrapperImplType);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::RTCSessionDescription::WrapperType, WrapperType);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::RTCSessionDescription::NativeType, NativeType);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCSessionDescription::WrapperImplType, WrapperImplType);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCSessionDescription::WrapperType, WrapperType);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCSessionDescription::NativeType, NativeType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCSessionDescription::RTCSessionDescription() noexcept
+wrapper::impl::org::webRtc::RTCSessionDescription::RTCSessionDescription() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::RTCSessionDescriptionPtr wrapper::org::webrtc::RTCSessionDescription::wrapper_create() noexcept
+wrapper::org::webRtc::RTCSessionDescriptionPtr wrapper::org::webRtc::RTCSessionDescription::wrapper_create() noexcept
 {
-  auto pThis = make_shared<wrapper::impl::org::webrtc::RTCSessionDescription>();
+  auto pThis = make_shared<wrapper::impl::org::webRtc::RTCSessionDescription>();
   pThis->thisWeak_ = pThis;
   return pThis;
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCSessionDescription::~RTCSessionDescription() noexcept
+wrapper::impl::org::webRtc::RTCSessionDescription::~RTCSessionDescription() noexcept
 {
   thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webrtc::RTCSessionDescription::wrapper_init_org_webrtc_RTCSessionDescription(wrapper::org::webrtc::RTCSessionDescriptionInitPtr init) noexcept(false)
+void wrapper::impl::org::webRtc::RTCSessionDescription::wrapper_init_org_webRtc_RTCSessionDescription(wrapper::org::webRtc::RTCSessionDescriptionInitPtr init) noexcept(false)
 {
   ZS_ASSERT(init);
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::RTCSdpType wrapper::impl::org::webrtc::RTCSessionDescription::get_sdpType() noexcept
+wrapper::org::webRtc::RTCSdpType wrapper::impl::org::webRtc::RTCSessionDescription::get_sdpType() noexcept
 {
-  wrapper::org::webrtc::RTCSdpType result {};
+  wrapper::org::webRtc::RTCSdpType result {};
   return result;
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::webrtc::RTCSessionDescription::get_sdp() noexcept
+String wrapper::impl::org::webRtc::RTCSessionDescription::get_sdp() noexcept
 {
   String result {};
   return result;

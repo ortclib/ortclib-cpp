@@ -19,7 +19,7 @@
 
 #endif //WINUWP
 
-#include "impl_org_webrtc_helpers.h"
+#include "impl_org_webRtc_helpers.h"
 
 using ::zsLib::String;
 using ::zsLib::Optional;
@@ -39,4 +39,4 @@ using ::std::list;
 using ::std::set;
 using ::std::map;
 
-namespace wrapper { namespace impl { namespace org { namespace webrtc { ZS_IMPLEMENT_SUBSYSTEM(wrapper_org_webrtc); } } } }
+namespace wrapper { namespace impl { namespace org { namespace webRtc { ZS_IMPLEMENT_SUBSYSTEM(wrapper_org_webRtc); } } } }

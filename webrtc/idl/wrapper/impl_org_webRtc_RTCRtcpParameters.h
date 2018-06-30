@@ -3,24 +3,24 @@
 #pragma once
 
 #include "types.h"
-#include "generated/org_webrtc_RTCRtcpParameters.h"
+#include "generated/org_webRtc_RTCRtcpParameters.h"
 
 
 namespace wrapper {
   namespace impl {
     namespace org {
-      namespace webrtc {
+      namespace webRtc {
 
-        struct RTCRtcpParameters : public wrapper::org::webrtc::RTCRtcpParameters
+        struct RTCRtcpParameters : public wrapper::org::webRtc::RTCRtcpParameters
         {
           RTCRtcpParametersWeakPtr thisWeak_;
 
           RTCRtcpParameters() noexcept;
           virtual ~RTCRtcpParameters() noexcept;
-          void wrapper_init_org_webrtc_RTCRtcpParameters() noexcept override;
+          void wrapper_init_org_webRtc_RTCRtcpParameters() noexcept override;
         };
 
-      } // webrtc
+      } // webRtc
     } // org
   } // namespace impl
 } // namespace wrapper

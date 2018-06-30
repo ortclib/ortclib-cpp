@@ -19,11 +19,11 @@
 
 #endif //WINUWP
 
-#include "impl_org_webrtc_WebRtcLib.h"
-#include "impl_org_webrtc_EventQueue.h"
-#include "impl_org_webrtc_helpers.h"
+#include "impl_org_webRtc_WebRtcLib.h"
+#include "impl_org_webRtc_EventQueue.h"
+#include "impl_org_webRtc_helpers.h"
 
-#include "impl_org_webrtc_pre_include.h"
+#include "impl_org_webRtc_pre_include.h"
 #include "api/audio_codecs/builtin_audio_decoder_factory.h"
 #include "api/audio_codecs/builtin_audio_encoder_factory.h"
 #include "api/peerconnectioninterface.h"
@@ -34,7 +34,7 @@
 #include "rtc_base/win32socketinit.h"
 #include "third_party/winuwp_h264/winuwp_h264_factory.h"
 #include "media/engine/webrtcvideocapturerfactory.h"
-#include "impl_org_webrtc_post_include.h"
+#include "impl_org_webRtc_post_include.h"
 
 using ::zsLib::String;
 using ::zsLib::Optional;
@@ -56,19 +56,19 @@ using ::std::map;
 
 #include <zsLib/eventing/IHelper.h>
 
-namespace wrapper { namespace impl { namespace org { namespace webrtc { ZS_DECLARE_SUBSYSTEM(wrapper_org_webrtc); } } } }
+namespace wrapper { namespace impl { namespace org { namespace webRtc { ZS_DECLARE_SUBSYSTEM(wrapper_org_webRtc); } } } }
 
 
 // borrow from previous class definitions
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::WebRtcLib::WrapperType, WrapperType);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::WebRtcLib::WrapperImplType, WrapperImplType);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::WebRtcLib::WrapperType, WrapperType);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::WebRtcLib::WrapperImplType, WrapperImplType);
 
 typedef WrapperImplType::PeerConnectionFactoryInterfaceScopedPtr PeerConnectionFactoryInterfaceScopedPtr;
 ZS_DECLARE_TYPEDEF_PTR(WrapperImplType::UseVideoDeviceCaptureFacrtory, UseVideoDeviceCaptureFacrtory);
 
 ZS_DECLARE_TYPEDEF_PTR(::cricket::WebRtcVideoDeviceCapturerFactory, UseWebrtcVideoDeviceCaptureFacrtory);
 
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::EventQueue::WrapperImplType, UseEventQueue);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::EventQueue::WrapperImplType, UseEventQueue);
 
 
 ZS_DECLARE_TYPEDEF_PTR(zsLib::eventing::IHelper, UseHelper);
@@ -80,7 +80,7 @@ WrapperImplType::WebRtcLib() noexcept
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::WebRtcLib::~WebRtcLib()
+wrapper::impl::org::webRtc::WebRtcLib::~WebRtcLib()
 {
   thisWeak_.reset();
   notifySingletonCleanup();
@@ -95,49 +95,49 @@ WrapperImplTypePtr WrapperImplType::create() noexcept
 }
 
 //------------------------------------------------------------------------------
-void wrapper::org::webrtc::WebRtcLib::setup() noexcept
+void wrapper::org::webRtc::WebRtcLib::setup() noexcept
 {
   auto singleton = WrapperImplType::singleton();
   singleton->actual_setup();
 }
 
 //------------------------------------------------------------------------------
-void wrapper::org::webrtc::WebRtcLib::setup(wrapper::org::webrtc::EventQueuePtr queue) noexcept
+void wrapper::org::webRtc::WebRtcLib::setup(wrapper::org::webRtc::EventQueuePtr queue) noexcept
 {
   auto singleton = WrapperImplType::singleton();
   singleton->actual_setup(queue);
 }
 
 //------------------------------------------------------------------------------
-void wrapper::org::webrtc::WebRtcLib::startMediaTracing() noexcept
+void wrapper::org::webRtc::WebRtcLib::startMediaTracing() noexcept
 {
   auto singleton = WrapperImplType::singleton();
   singleton->actual_startMediaTracing();
 }
 
 //------------------------------------------------------------------------------
-void wrapper::org::webrtc::WebRtcLib::stopMediaTracing() noexcept
+void wrapper::org::webRtc::WebRtcLib::stopMediaTracing() noexcept
 {
   auto singleton = WrapperImplType::singleton();
   singleton->actual_stopMediaTracing();
 }
 
 //------------------------------------------------------------------------------
-bool wrapper::org::webrtc::WebRtcLib::isMediaTracing() noexcept
+bool wrapper::org::webRtc::WebRtcLib::isMediaTracing() noexcept
 {
   auto singleton = WrapperImplType::singleton();
   return singleton->actual_isMediaTracing();
 }
 
 //------------------------------------------------------------------------------
-bool wrapper::org::webrtc::WebRtcLib::startMediaTrace(String filename) noexcept
+bool wrapper::org::webRtc::WebRtcLib::startMediaTrace(String filename) noexcept
 {
   auto singleton = WrapperImplType::singleton();
   return singleton->actual_startMediaTrace(filename);
 }
 
 //------------------------------------------------------------------------------
-bool wrapper::org::webrtc::WebRtcLib::startMediaTrace(
+bool wrapper::org::webRtc::WebRtcLib::startMediaTrace(
   String host,
   int port
   ) noexcept
@@ -147,14 +147,14 @@ bool wrapper::org::webrtc::WebRtcLib::startMediaTrace(
 }
 
 //------------------------------------------------------------------------------
-::zsLib::Milliseconds wrapper::org::webrtc::WebRtcLib::get_ntpServerTime() noexcept
+::zsLib::Milliseconds wrapper::org::webRtc::WebRtcLib::get_ntpServerTime() noexcept
 {
   auto singleton = WrapperImplType::singleton();
   return singleton->actual_get_ntpServerTime();
 }
 
 //------------------------------------------------------------------------------
-void wrapper::org::webrtc::WebRtcLib::set_ntpServerTime(::zsLib::Milliseconds value) noexcept
+void wrapper::org::webRtc::WebRtcLib::set_ntpServerTime(::zsLib::Milliseconds value) noexcept
 {
   auto singleton = WrapperImplType::singleton();
   singleton->actual_set_ntpServerTime(value);
@@ -163,11 +163,11 @@ void wrapper::org::webrtc::WebRtcLib::set_ntpServerTime(::zsLib::Milliseconds va
 //------------------------------------------------------------------------------
 void WrapperImplType::actual_setup() noexcept
 {
-  actual_setup(wrapper::org::webrtc::EventQueuePtr());
+  actual_setup(wrapper::org::webRtc::EventQueuePtr());
 }
 
 //------------------------------------------------------------------------------
-void WrapperImplType::actual_setup(wrapper::org::webrtc::EventQueuePtr queue) noexcept
+void WrapperImplType::actual_setup(wrapper::org::webRtc::EventQueuePtr queue) noexcept
 {
   // prevent multiple setups being called simulatuously
   if (setupCalledOnce_.test_and_set()) return;
@@ -484,7 +484,7 @@ WrapperImplTypePtr WrapperImplType::singleton() noexcept
     private:
 
       void actual_setup() noexcept final {}
-      void actual_setup(wrapper::org::webrtc::EventQueuePtr queue) noexcept final {}
+      void actual_setup(wrapper::org::webRtc::EventQueuePtr queue) noexcept final {}
       void actual_startMediaTracing() noexcept final {}
       void actual_stopMediaTracing() noexcept final {}
       bool actual_isMediaTracing() noexcept final { return false; }

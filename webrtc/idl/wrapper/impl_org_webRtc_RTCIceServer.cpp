@@ -1,6 +1,6 @@
 
-#include "impl_org_webrtc_RTCIceServer.h"
-#include "impl_org_webrtc_enums.h"
+#include "impl_org_webRtc_RTCIceServer.h"
+#include "impl_org_webRtc_enums.h"
 
 using ::zsLib::String;
 using ::zsLib::Optional;
@@ -22,38 +22,38 @@ using ::std::map;
 
 
 // borrow definitions from class
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::RTCIceServer::WrapperImplType, WrapperImplType);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::RTCIceServer::WrapperType, WrapperType);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::RTCIceServer::NativeType, NativeType);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCIceServer::WrapperImplType, WrapperImplType);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCIceServer::WrapperType, WrapperType);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCIceServer::NativeType, NativeType);
 
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::IEnum, UseEnum);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::IEnum, UseEnum);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCIceServer::RTCIceServer() noexcept
+wrapper::impl::org::webRtc::RTCIceServer::RTCIceServer() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::RTCIceServerPtr wrapper::org::webrtc::RTCIceServer::wrapper_create() noexcept
+wrapper::org::webRtc::RTCIceServerPtr wrapper::org::webRtc::RTCIceServer::wrapper_create() noexcept
 {
-  auto pThis = make_shared<wrapper::impl::org::webrtc::RTCIceServer>();
+  auto pThis = make_shared<wrapper::impl::org::webRtc::RTCIceServer>();
   pThis->thisWeak_ = pThis;
   return pThis;
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCIceServer::~RTCIceServer() noexcept
+wrapper::impl::org::webRtc::RTCIceServer::~RTCIceServer() noexcept
 {
   thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webrtc::RTCIceServer::wrapper_init_org_webrtc_RTCIceServer() noexcept
+void wrapper::impl::org::webRtc::RTCIceServer::wrapper_init_org_webRtc_RTCIceServer() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webrtc::RTCIceServer::wrapper_init_org_webrtc_RTCIceServer(wrapper::org::webrtc::RTCIceServerPtr source) noexcept
+void wrapper::impl::org::webRtc::RTCIceServer::wrapper_init_org_webRtc_RTCIceServer(wrapper::org::webRtc::RTCIceServerPtr source) noexcept
 {
 }
 

@@ -1,12 +1,12 @@
 
-#include "impl_org_webrtc_VideoTrackSource.h"
-#include "impl_org_webrtc_MediaConstraints.h"
-#include "impl_org_webrtc_VideoCapturer.h"
-#include "impl_org_webrtc_WebrtcLib.h"
+#include "impl_org_webRtc_VideoTrackSource.h"
+#include "impl_org_webRtc_MediaConstraints.h"
+#include "impl_org_webRtc_VideoCapturer.h"
+#include "impl_org_webRtc_WebrtcLib.h"
 
-#include "impl_org_webrtc_pre_include.h"
+#include "impl_org_webRtc_pre_include.h"
 #include "api/mediastreaminterface.h"
-#include "impl_org_webrtc_post_include.h"
+#include "impl_org_webRtc_post_include.h"
 
 using ::zsLib::String;
 using ::zsLib::Optional;
@@ -28,45 +28,45 @@ using ::std::map;
 
 
 // borrow types from call defintions
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::VideoTrackSource::WrapperType, WrapperType);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::VideoTrackSource::WrapperImplType, WrapperImplType);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::VideoTrackSource::NativeType, NativeType);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::VideoTrackSource::WrapperType, WrapperType);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::VideoTrackSource::WrapperImplType, WrapperImplType);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::VideoTrackSource::NativeType, NativeType);
 
 typedef WrapperImplType::NativeScopedPtr NativeScopedPtr;
 
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::WebRtcLib, UseWebrtcLib);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::MediaConstraints, UseMediaConstraints);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::VideoCapturer, UseVideoCapturer);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::WebRtcLib, UseWebrtcLib);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::MediaConstraints, UseMediaConstraints);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::VideoCapturer, UseVideoCapturer);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::VideoTrackSource::VideoTrackSource() noexcept
+wrapper::impl::org::webRtc::VideoTrackSource::VideoTrackSource() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::VideoTrackSourcePtr wrapper::org::webrtc::VideoTrackSource::wrapper_create() noexcept
+wrapper::org::webRtc::VideoTrackSourcePtr wrapper::org::webRtc::VideoTrackSource::wrapper_create() noexcept
 {
-  auto pThis = make_shared<wrapper::impl::org::webrtc::VideoTrackSource>();
+  auto pThis = make_shared<wrapper::impl::org::webRtc::VideoTrackSource>();
   pThis->thisWeak_ = pThis;
   return pThis;
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::VideoTrackSource::~VideoTrackSource() noexcept
+wrapper::impl::org::webRtc::VideoTrackSource::~VideoTrackSource() noexcept
 {
   thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::MediaSourceState wrapper::impl::org::webrtc::VideoTrackSource::get_state() noexcept
+wrapper::org::webRtc::MediaSourceState wrapper::impl::org::webRtc::VideoTrackSource::get_state() noexcept
 {
 #pragma ZS_BUILD_NOTE("TODO","(robin)")
-  wrapper::org::webrtc::MediaSourceState result {};
+  wrapper::org::webRtc::MediaSourceState result {};
   return result;
 }
 
 //------------------------------------------------------------------------------
-bool wrapper::impl::org::webrtc::VideoTrackSource::get_remote() noexcept
+bool wrapper::impl::org::webRtc::VideoTrackSource::get_remote() noexcept
 {
   ZS_ASSERT(native_);
   if (!native_) return false;
@@ -74,7 +74,7 @@ bool wrapper::impl::org::webrtc::VideoTrackSource::get_remote() noexcept
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::VideoTrackSourcePtr wrapper::org::webrtc::VideoTrackSource::create(wrapper::org::webrtc::VideoCapturerPtr capturer) noexcept
+wrapper::org::webRtc::VideoTrackSourcePtr wrapper::org::webRtc::VideoTrackSource::create(wrapper::org::webRtc::VideoCapturerPtr capturer) noexcept
 {
   auto factory = UseWebrtcLib::peerConnectionFactory();
   ZS_ASSERT(factory);
@@ -86,9 +86,9 @@ wrapper::org::webrtc::VideoTrackSourcePtr wrapper::org::webrtc::VideoTrackSource
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::VideoTrackSourcePtr wrapper::org::webrtc::VideoTrackSource::create(
-  wrapper::org::webrtc::VideoCapturerPtr capturer,
-  wrapper::org::webrtc::MediaConstraintsPtr constraints
+wrapper::org::webRtc::VideoTrackSourcePtr wrapper::org::webRtc::VideoTrackSource::create(
+  wrapper::org::webRtc::VideoCapturerPtr capturer,
+  wrapper::org::webRtc::MediaConstraintsPtr constraints
   ) noexcept
 {
   auto factory = UseWebrtcLib::peerConnectionFactory();
@@ -102,7 +102,7 @@ wrapper::org::webrtc::VideoTrackSourcePtr wrapper::org::webrtc::VideoTrackSource
 }
 
 //------------------------------------------------------------------------------
-bool wrapper::impl::org::webrtc::VideoTrackSource::get_isScreencast() noexcept
+bool wrapper::impl::org::webRtc::VideoTrackSource::get_isScreencast() noexcept
 {
   ZS_ASSERT(native_);
   if (!native_) return false;
@@ -110,7 +110,7 @@ bool wrapper::impl::org::webrtc::VideoTrackSource::get_isScreencast() noexcept
 }
 
 //------------------------------------------------------------------------------
-Optional< bool > wrapper::impl::org::webrtc::VideoTrackSource::get_needsDenoising() noexcept
+Optional< bool > wrapper::impl::org::webRtc::VideoTrackSource::get_needsDenoising() noexcept
 {
   ZS_ASSERT(native_);
   if (!native_) return false;
@@ -121,10 +121,10 @@ Optional< bool > wrapper::impl::org::webrtc::VideoTrackSource::get_needsDenoisin
 }
 
 //------------------------------------------------------------------------------
-Optional< wrapper::org::webrtc::VideoTrackSourceStatsPtr > wrapper::impl::org::webrtc::VideoTrackSource::get_stats() noexcept
+Optional< wrapper::org::webRtc::VideoTrackSourceStatsPtr > wrapper::impl::org::webRtc::VideoTrackSource::get_stats() noexcept
 {
 #pragma ZS_BUILD_NOTE("TODO","(robin)")
-  Optional< wrapper::org::webrtc::VideoTrackSourceStatsPtr > result {};
+  Optional< wrapper::org::webRtc::VideoTrackSourceStatsPtr > result {};
   return result;
 }
 

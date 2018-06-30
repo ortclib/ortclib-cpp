@@ -2,24 +2,24 @@
 #pragma once
 
 #include "types.h"
-#include "generated/org_webrtc_RTCSessionDescriptionInit.h"
+#include "generated/org_webRtc_RTCSessionDescriptionInit.h"
 
 
 namespace wrapper {
   namespace impl {
     namespace org {
-      namespace webrtc {
+      namespace webRtc {
 
-        struct RTCSessionDescriptionInit : public wrapper::org::webrtc::RTCSessionDescriptionInit
+        struct RTCSessionDescriptionInit : public wrapper::org::webRtc::RTCSessionDescriptionInit
         {
           RTCSessionDescriptionInitWeakPtr thisWeak_;
 
           RTCSessionDescriptionInit() noexcept;
           virtual ~RTCSessionDescriptionInit() noexcept;
-          void wrapper_init_org_webrtc_RTCSessionDescriptionInit() noexcept override;
+          void wrapper_init_org_webRtc_RTCSessionDescriptionInit() noexcept override;
         };
 
-      } // webrtc
+      } // webRtc
     } // org
   } // namespace impl
 } // namespace wrapper

@@ -3,15 +3,15 @@
 #pragma once
 
 #include "types.h"
-#include "generated/org_webrtc_RTCIceCandidatePairStats.h"
+#include "generated/org_webRtc_RTCIceCandidatePairStats.h"
 
 
 namespace wrapper {
   namespace impl {
     namespace org {
-      namespace webrtc {
+      namespace webRtc {
 
-        struct RTCIceCandidatePairStats : public wrapper::org::webrtc::RTCIceCandidatePairStats
+        struct RTCIceCandidatePairStats : public wrapper::org::webRtc::RTCIceCandidatePairStats
         {
           RTCIceCandidatePairStatsWeakPtr thisWeak_;
 
@@ -20,19 +20,19 @@ namespace wrapper {
 
           // properties RTCStats
           ::zsLib::Time get_timestamp() noexcept override;
-          Optional< wrapper::org::webrtc::RTCStatsType > get_statsType() noexcept override;
+          Optional< wrapper::org::webRtc::RTCStatsType > get_statsType() noexcept override;
           String get_statsTypeOther() noexcept override;
           String get_id() noexcept override;
 
           // methods RTCIceCandidatePairStats
-          void wrapper_init_org_webrtc_RTCIceCandidatePairStats() noexcept override;
-          void wrapper_init_org_webrtc_RTCIceCandidatePairStats(wrapper::org::webrtc::RTCIceCandidatePairStatsPtr source) noexcept override;
+          void wrapper_init_org_webRtc_RTCIceCandidatePairStats() noexcept override;
+          void wrapper_init_org_webRtc_RTCIceCandidatePairStats(wrapper::org::webRtc::RTCIceCandidatePairStatsPtr source) noexcept override;
 
           // properties RTCIceCandidatePairStats
           String get_transportId() noexcept override;
           String get_localCandidateId() noexcept override;
           String get_remoteCandidateId() noexcept override;
-          wrapper::org::webrtc::RTCIceCandidatePairState get_state() noexcept override;
+          wrapper::org::webRtc::RTCIceCandidatePairState get_state() noexcept override;
           unsigned long long get_priority() noexcept override;
           bool get_nominated() noexcept override;
           bool get_writable() noexcept override;
@@ -44,7 +44,7 @@ namespace wrapper {
           double get_availableIncomingBitrate() noexcept override;
         };
 
-      } // webrtc
+      } // webRtc
     } // org
   } // namespace impl
 } // namespace wrapper

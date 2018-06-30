@@ -1,6 +1,6 @@
 
-#include "impl_org_webrtc_EventQueue.h"
-#include "impl_org_webrtc_EventQueueMaker.h"
+#include "impl_org_webRtc_EventQueue.h"
+#include "impl_org_webRtc_EventQueueMaker.h"
 
 using ::zsLib::String;
 using ::zsLib::Optional;
@@ -21,21 +21,21 @@ using ::std::set;
 using ::std::map;
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::EventQueueMaker::~EventQueueMaker() noexcept
+wrapper::impl::org::webRtc::EventQueueMaker::~EventQueueMaker() noexcept
 {
 }
 
 #if 0
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::EventQueuePtr wrapper::org::webrtc::EventQueueMaker::bindQueue(AnyPtr queue) noexcept
+wrapper::org::webRtc::EventQueuePtr wrapper::org::webRtc::EventQueueMaker::bindQueue(AnyPtr queue) noexcept
 {
-  wrapper::org::webrtc::EventQueuePtr result = wrapper::org::webrtc::EventQueue::wrapper_create();
-  result->wrapper_init_org_webrtc_EventQueue(queue);
+  wrapper::org::webRtc::EventQueuePtr result = wrapper::org::webRtc::EventQueue::wrapper_create();
+  result->wrapper_init_org_webRtc_EventQueue(queue);
   return result;
 }
 
 //------------------------------------------------------------------------------
-AnyPtr wrapper::org::webrtc::EventQueueMaker::extractQueue(wrapper::org::webrtc::EventQueuePtr queue) noexcept
+AnyPtr wrapper::org::webRtc::EventQueueMaker::extractQueue(wrapper::org::webRtc::EventQueuePtr queue) noexcept
 {
   if (!queue) return nullptr;
   return queue->get_queue();

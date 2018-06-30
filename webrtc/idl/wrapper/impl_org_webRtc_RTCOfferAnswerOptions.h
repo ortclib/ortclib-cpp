@@ -3,22 +3,22 @@
 #pragma once
 
 #include "types.h"
-#include "generated/org_webrtc_RTCOfferAnswerOptions.h"
+#include "generated/org_webRtc_RTCOfferAnswerOptions.h"
 
 
 namespace wrapper {
   namespace impl {
     namespace org {
-      namespace webrtc {
+      namespace webRtc {
 
-        struct RTCOfferAnswerOptions : public wrapper::org::webrtc::RTCOfferAnswerOptions
+        struct RTCOfferAnswerOptions : public wrapper::org::webRtc::RTCOfferAnswerOptions
         {
           RTCOfferAnswerOptions() noexcept = delete;
           RTCOfferAnswerOptions(const RTCOfferAnswerOptions &) noexcept = delete;
           virtual ~RTCOfferAnswerOptions() noexcept;
         };
 
-      } // webrtc
+      } // webRtc
     } // org
   } // namespace impl
 } // namespace wrapper

@@ -1,5 +1,5 @@
 
-#include "impl_org_webrtc_RTCAnswerOptions.h"
+#include "impl_org_webRtc_RTCAnswerOptions.h"
 
 using ::zsLib::String;
 using ::zsLib::Optional;
@@ -20,36 +20,36 @@ using ::std::set;
 using ::std::map;
 
 // borrow definitions from class
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::RTCAnswerOptions::WrapperImplType, WrapperImplType);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::RTCAnswerOptions::WrapperType, WrapperType);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::RTCAnswerOptions::NativeType, NativeType);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCAnswerOptions::WrapperImplType, WrapperImplType);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCAnswerOptions::WrapperType, WrapperType);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCAnswerOptions::NativeType, NativeType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCAnswerOptions::RTCAnswerOptions() noexcept
+wrapper::impl::org::webRtc::RTCAnswerOptions::RTCAnswerOptions() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::RTCAnswerOptionsPtr wrapper::org::webrtc::RTCAnswerOptions::wrapper_create() noexcept
+wrapper::org::webRtc::RTCAnswerOptionsPtr wrapper::org::webRtc::RTCAnswerOptions::wrapper_create() noexcept
 {
-  auto pThis = make_shared<wrapper::impl::org::webrtc::RTCAnswerOptions>();
+  auto pThis = make_shared<wrapper::impl::org::webRtc::RTCAnswerOptions>();
   pThis->thisWeak_ = pThis;
   return pThis;
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCAnswerOptions::~RTCAnswerOptions() noexcept
+wrapper::impl::org::webRtc::RTCAnswerOptions::~RTCAnswerOptions() noexcept
 {
   thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webrtc::RTCAnswerOptions::wrapper_init_org_webrtc_RTCAnswerOptions() noexcept
+void wrapper::impl::org::webRtc::RTCAnswerOptions::wrapper_init_org_webRtc_RTCAnswerOptions() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webrtc::RTCAnswerOptions::wrapper_init_org_webrtc_RTCAnswerOptions(wrapper::org::webrtc::RTCAnswerOptionsPtr source) noexcept
+void wrapper::impl::org::webRtc::RTCAnswerOptions::wrapper_init_org_webRtc_RTCAnswerOptions(wrapper::org::webRtc::RTCAnswerOptionsPtr source) noexcept
 {
 }
 

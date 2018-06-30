@@ -1,6 +1,6 @@
 
-#include "impl_org_webrtc_MediaConstraints.h"
-#include "impl_org_webrtc_Constraint.h"
+#include "impl_org_webRtc_MediaConstraints.h"
+#include "impl_org_webRtc_Constraint.h"
 
 using ::zsLib::String;
 using ::zsLib::Optional;
@@ -20,11 +20,11 @@ using ::std::list;
 using ::std::set;
 using ::std::map;
 
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::MediaConstraints::WrapperImplType, WrapperImplType);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::MediaConstraints::NativeType, NativeType);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::MediaConstraints::NativeImplType, NativeImplType);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::MediaConstraints::WrapperImplType, WrapperImplType);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::MediaConstraints::NativeType, NativeType);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::MediaConstraints::NativeImplType, NativeImplType);
 
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::Constraint, WrapperConstraintType);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::Constraint, WrapperConstraintType);
 
 //------------------------------------------------------------------------------
 NativeImplType::~MediaConstraintsImpl() noexcept
@@ -57,44 +57,44 @@ const NativeType::Constraints& NativeImplType::GetOptional() const
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::MediaConstraints::MediaConstraints() noexcept
+wrapper::impl::org::webRtc::MediaConstraints::MediaConstraints() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::MediaConstraintsPtr wrapper::org::webrtc::MediaConstraints::wrapper_create() noexcept
+wrapper::org::webRtc::MediaConstraintsPtr wrapper::org::webRtc::MediaConstraints::wrapper_create() noexcept
 {
-  auto pThis = make_shared<wrapper::impl::org::webrtc::MediaConstraints>();
+  auto pThis = make_shared<wrapper::impl::org::webRtc::MediaConstraints>();
   pThis->thisWeak_ = pThis;
   return pThis;
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::MediaConstraints::~MediaConstraints() noexcept
+wrapper::impl::org::webRtc::MediaConstraints::~MediaConstraints() noexcept
 {
   thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webrtc::MediaConstraints::wrapper_init_org_webrtc_MediaConstraints() noexcept
+void wrapper::impl::org::webRtc::MediaConstraints::wrapper_init_org_webRtc_MediaConstraints() noexcept
 {
   native_ = make_shared<NativeImplType>();
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webrtc::MediaConstraints::wrapper_init_org_webrtc_MediaConstraints(wrapper::org::webrtc::MediaConstraintsPtr source) noexcept
+void wrapper::impl::org::webRtc::MediaConstraints::wrapper_init_org_webRtc_MediaConstraints(wrapper::org::webRtc::MediaConstraintsPtr source) noexcept
 {
   if (!source) {
     native_ = make_shared<NativeImplType>();
     return;
   }
-  wrapper_init_org_webrtc_MediaConstraints(source->get_mandatory(), source->get_optional());
+  wrapper_init_org_webRtc_MediaConstraints(source->get_mandatory(), source->get_optional());
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webrtc::MediaConstraints::wrapper_init_org_webrtc_MediaConstraints(
-  shared_ptr< list< wrapper::org::webrtc::ConstraintPtr > > mandatory,
-  shared_ptr< list< wrapper::org::webrtc::ConstraintPtr > > optional
+void wrapper::impl::org::webRtc::MediaConstraints::wrapper_init_org_webRtc_MediaConstraints(
+  shared_ptr< list< wrapper::org::webRtc::ConstraintPtr > > mandatory,
+  shared_ptr< list< wrapper::org::webRtc::ConstraintPtr > > optional
   ) noexcept
 {
   set_mandatory(mandatory);
@@ -102,9 +102,9 @@ void wrapper::impl::org::webrtc::MediaConstraints::wrapper_init_org_webrtc_Media
 }
 
 //------------------------------------------------------------------------------
-static shared_ptr< list< wrapper::org::webrtc::ConstraintPtr > > toWrapperList(const NativeType::Constraints &constraints)
+static shared_ptr< list< wrapper::org::webRtc::ConstraintPtr > > toWrapperList(const NativeType::Constraints &constraints)
 {
-  auto result = make_shared< list< wrapper::org::webrtc::ConstraintPtr > >();
+  auto result = make_shared< list< wrapper::org::webRtc::ConstraintPtr > >();
 
   for (auto iter = constraints.begin(); iter != constraints.end(); ++iter) {
     auto &constraint = (*iter);
@@ -117,7 +117,7 @@ static shared_ptr< list< wrapper::org::webrtc::ConstraintPtr > > toWrapperList(c
 
 //------------------------------------------------------------------------------
 void fillNativeList(
-  shared_ptr< list< wrapper::org::webrtc::ConstraintPtr > > value,
+  shared_ptr< list< wrapper::org::webRtc::ConstraintPtr > > value,
   NativeType::Constraints &output
 )
 {
@@ -131,14 +131,14 @@ void fillNativeList(
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< list< wrapper::org::webrtc::ConstraintPtr > > wrapper::impl::org::webrtc::MediaConstraints::get_mandatory() noexcept
+shared_ptr< list< wrapper::org::webRtc::ConstraintPtr > > wrapper::impl::org::webRtc::MediaConstraints::get_mandatory() noexcept
 {
   if (!native_) return nullptr;
   return toWrapperList(native_->GetMandatory());
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webrtc::MediaConstraints::set_mandatory(shared_ptr< list< wrapper::org::webrtc::ConstraintPtr > > value) noexcept
+void wrapper::impl::org::webRtc::MediaConstraints::set_mandatory(shared_ptr< list< wrapper::org::webRtc::ConstraintPtr > > value) noexcept
 {
   if (!native_) return;
 
@@ -148,14 +148,14 @@ void wrapper::impl::org::webrtc::MediaConstraints::set_mandatory(shared_ptr< lis
 }
 
 //------------------------------------------------------------------------------
-shared_ptr< list< wrapper::org::webrtc::ConstraintPtr > > wrapper::impl::org::webrtc::MediaConstraints::get_optional() noexcept
+shared_ptr< list< wrapper::org::webRtc::ConstraintPtr > > wrapper::impl::org::webRtc::MediaConstraints::get_optional() noexcept
 {
   if (!native_) return nullptr;
   return toWrapperList(native_->GetOptional());
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webrtc::MediaConstraints::set_optional(shared_ptr< list< wrapper::org::webrtc::ConstraintPtr > > value) noexcept
+void wrapper::impl::org::webRtc::MediaConstraints::set_optional(shared_ptr< list< wrapper::org::webRtc::ConstraintPtr > > value) noexcept
 {
   if (!native_) return;
 

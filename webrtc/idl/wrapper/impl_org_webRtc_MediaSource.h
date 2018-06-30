@@ -2,7 +2,7 @@
 #pragma once
 
 #include "types.h"
-#include "generated/org_webrtc_MediaSource.h"
+#include "generated/org_webRtc_MediaSource.h"
 
 #ifdef CPPWINRT_VERSION
 #include <winrt/Windows.Media.Core.h>
@@ -11,12 +11,12 @@
 namespace wrapper {
   namespace impl {
     namespace org {
-      namespace webrtc {
+      namespace webRtc {
 
-        struct MediaSource : public wrapper::org::webrtc::MediaSource
+        struct MediaSource : public wrapper::org::webRtc::MediaSource
         {
-          ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::MediaSource, WrapperImplType);
-          ZS_DECLARE_TYPEDEF_PTR(wrapper::org::webrtc::MediaSource, WrapperType);
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::MediaSource, WrapperImplType);
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::org::webRtc::MediaSource, WrapperType);
 
           AnyPtr source_{};
 
@@ -24,7 +24,7 @@ namespace wrapper {
 
           MediaSource() noexcept;
           virtual ~MediaSource() noexcept;
-          void wrapper_init_org_webrtc_MediaSource() noexcept override;
+          void wrapper_init_org_webRtc_MediaSource() noexcept override;
 
           // properties MediaSource
           AnyPtr get_source() noexcept override;
@@ -32,12 +32,12 @@ namespace wrapper {
 
 #ifdef WINUWP
 #ifdef __cplusplus_winrt
-          ZS_NO_DISCARD() static wrapper::org::webrtc::MediaSourcePtr toWrapper(Windows::Media::Core::IMediaSource^ source) noexcept;
-          ZS_NO_DISCARD() static Windows::Media::Core::IMediaSource^ toNative_cx(wrapper::org::webrtc::MediaSourcePtr source) noexcept;
+          ZS_NO_DISCARD() static wrapper::org::webRtc::MediaSourcePtr toWrapper(Windows::Media::Core::IMediaSource^ source) noexcept;
+          ZS_NO_DISCARD() static Windows::Media::Core::IMediaSource^ toNative_cx(wrapper::org::webRtc::MediaSourcePtr source) noexcept;
 #endif //__cplusplus_winrt
 #ifdef CPPWINRT_VERSION
-          ZS_NO_DISCARD() static wrapper::org::webrtc::MediaSourcePtr toWrapper(winrt::Windows::Media::Core::IMediaSource const & source) noexcept;
-          ZS_NO_DISCARD() static winrt::Windows::Media::Core::IMediaSource toNative_winrt(wrapper::org::webrtc::MediaSourcePtr source) noexcept;
+          ZS_NO_DISCARD() static wrapper::org::webRtc::MediaSourcePtr toWrapper(winrt::Windows::Media::Core::IMediaSource const & source) noexcept;
+          ZS_NO_DISCARD() static winrt::Windows::Media::Core::IMediaSource toNative_winrt(wrapper::org::webRtc::MediaSourcePtr source) noexcept;
 #endif // CPPWINRT_VERSION
 #else
 #ifdef _WIN32
@@ -46,7 +46,7 @@ namespace wrapper {
 
         };
 
-      } // webrtc
+      } // webRtc
     } // org
   } // namespace impl
 } // namespace wrapper

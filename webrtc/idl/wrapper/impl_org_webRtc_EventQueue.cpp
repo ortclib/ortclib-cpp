@@ -16,7 +16,7 @@
 #include <zsLib/IMessageQueue.h>
 #endif //WINUWP
 
-#include "impl_org_webrtc_EventQueue.h"
+#include "impl_org_webRtc_EventQueue.h"
 
 #include <zsLib/IMessageQueueThread.h>
 
@@ -42,7 +42,7 @@ using ::std::map;
 #ifdef WINUWP
 #ifdef __cplusplus_winrt
 
-namespace wrapper { namespace impl { namespace org { namespace webrtc {
+namespace wrapper { namespace impl { namespace org { namespace webRtc {
         ZS_DECLARE_STRUCT_PTR(EventQueueWrapperAnyCx);
 
         struct EventQueueWrapperAnyCx : Any
@@ -55,7 +55,7 @@ namespace wrapper { namespace impl { namespace org { namespace webrtc {
 
 #ifdef CPPWINRT_VERSION
 
-namespace wrapper { namespace impl { namespace org { namespace webrtc {
+namespace wrapper { namespace impl { namespace org { namespace webRtc {
         ZS_DECLARE_STRUCT_PTR(EventQueueWrapperAnyCx);
 
         struct EventQueueWrapperAnyWinrt : Any
@@ -69,7 +69,7 @@ namespace wrapper { namespace impl { namespace org { namespace webrtc {
 #else
 
 
-namespace wrapper { namespace impl { namespace org { namespace webrtc {
+namespace wrapper { namespace impl { namespace org { namespace webRtc {
         ZS_DECLARE_STRUCT_PTR(EventQueueWrapperAny);
 
         struct EventQueueWrapperAny : Any
@@ -82,36 +82,36 @@ namespace wrapper { namespace impl { namespace org { namespace webrtc {
 
 
 //------------------------------------------------------------------------------
-static wrapper::org::webrtc::EventQueuePtr &getSingleton() noexcept
+static wrapper::org::webRtc::EventQueuePtr &getSingleton() noexcept
 {
-  static wrapper::org::webrtc::EventQueuePtr singleton_ {};
+  static wrapper::org::webRtc::EventQueuePtr singleton_ {};
   return singleton_;
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::EventQueue::EventQueue() noexcept
+wrapper::impl::org::webRtc::EventQueue::EventQueue() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::EventQueuePtr wrapper::org::webrtc::EventQueue::wrapper_create() noexcept
+wrapper::org::webRtc::EventQueuePtr wrapper::org::webRtc::EventQueue::wrapper_create() noexcept
 {
-  auto pThis = make_shared<wrapper::impl::org::webrtc::EventQueue>();
+  auto pThis = make_shared<wrapper::impl::org::webRtc::EventQueue>();
   pThis->thisWeak_ = pThis;
   return pThis;
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::EventQueue::~EventQueue() noexcept
+wrapper::impl::org::webRtc::EventQueue::~EventQueue() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::EventQueuePtr wrapper::org::webrtc::EventQueue::getDefaultForUi() noexcept
+wrapper::org::webRtc::EventQueuePtr wrapper::org::webRtc::EventQueue::getDefaultForUi() noexcept
 {
 #ifndef WINUWP
-  auto result {std::make_shared<wrapper::impl::org::webrtc::EventQueue>()};
-  auto any {std::make_shared<wrapper::impl::org::webrtc::EventQueueWrapperAny>()};
+  auto result {std::make_shared<wrapper::impl::org::webRtc::EventQueue>()};
+  auto any {std::make_shared<wrapper::impl::org::webRtc::EventQueueWrapperAny>()};
   any->queue_ = zsLib::IMessageQueueThread::singletonUsingCurrentGUIThreadsMessageQueue();
   result->queue_ = any;
   return result;
@@ -121,13 +121,13 @@ wrapper::org::webrtc::EventQueuePtr wrapper::org::webrtc::EventQueue::getDefault
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::EventQueuePtr wrapper::org::webrtc::EventQueue::get_singleton() noexcept
+wrapper::org::webRtc::EventQueuePtr wrapper::org::webRtc::EventQueue::get_singleton() noexcept
 {
   return getSingleton();
 }
 
 //------------------------------------------------------------------------------
-void wrapper::org::webrtc::EventQueue::set_singleton(wrapper::org::webrtc::EventQueuePtr value) noexcept
+void wrapper::org::webRtc::EventQueue::set_singleton(wrapper::org::webRtc::EventQueuePtr value) noexcept
 {
   getSingleton() = value;
 }
@@ -135,21 +135,21 @@ void wrapper::org::webrtc::EventQueue::set_singleton(wrapper::org::webrtc::Event
 #ifdef WINUWP
 #ifdef __cplusplus_winrt
 
-wrapper::org::webrtc::EventQueuePtr wrapper::impl::org::webrtc::EventQueue::toWrapper(Windows::UI::Core::CoreDispatcher^ queue) noexcept
+wrapper::org::webRtc::EventQueuePtr wrapper::impl::org::webRtc::EventQueue::toWrapper(Windows::UI::Core::CoreDispatcher^ queue) noexcept
 {
-  auto any {make_shared<wrapper::impl::org::webrtc::EventQueueWrapperAnyCx>()};
+  auto any {make_shared<wrapper::impl::org::webRtc::EventQueueWrapperAnyCx>()};
   any->queue_ = queue;
-  auto result = wrapper::org::webrtc::EventQueue::wrapper_create();
-  result->wrapper_init_org_webrtc_EventQueue(any);
+  auto result = wrapper::org::webRtc::EventQueue::wrapper_create();
+  result->wrapper_init_org_webRtc_EventQueue(any);
   return result;
 }
 
-Windows::UI::Core::CoreDispatcher^ wrapper::impl::org::webrtc::EventQueue::toNative_cx(wrapper::org::webrtc::EventQueuePtr queue) noexcept
+Windows::UI::Core::CoreDispatcher^ wrapper::impl::org::webRtc::EventQueue::toNative_cx(wrapper::org::webRtc::EventQueuePtr queue) noexcept
 {
   if (!queue) return nullptr;
   AnyPtr any = queue->get_queue();
   if (!any) return nullptr;
-  auto castedAny = ZS_DYNAMIC_PTR_CAST(wrapper::impl::org::webrtc::EventQueueWrapperAnyCx, any);
+  auto castedAny = ZS_DYNAMIC_PTR_CAST(wrapper::impl::org::webRtc::EventQueueWrapperAnyCx, any);
   if (!castedAny) return nullptr;
   return castedAny->queue_;
 }
@@ -157,21 +157,21 @@ Windows::UI::Core::CoreDispatcher^ wrapper::impl::org::webrtc::EventQueue::toNat
 
 #ifdef CPPWINRT_VERSION
 
-wrapper::org::webrtc::EventQueuePtr wrapper::impl::org::webrtc::EventQueue::toWrapper(winrt::Windows::UI::Core::CoreDispatcher queue) noexcept
+wrapper::org::webRtc::EventQueuePtr wrapper::impl::org::webRtc::EventQueue::toWrapper(winrt::Windows::UI::Core::CoreDispatcher queue) noexcept
 {  
-  auto any {make_shared<wrapper::impl::org::webrtc::EventQueueWrapperAnyWinrt>()};
+  auto any {make_shared<wrapper::impl::org::webRtc::EventQueueWrapperAnyWinrt>()};
   any->queue_ = queue;
-  auto result = wrapper::org::webrtc::EventQueue::wrapper_create();
-  result->wrapper_init_org_webrtc_EventQueue(any);
+  auto result = wrapper::org::webRtc::EventQueue::wrapper_create();
+  result->wrapper_init_org_webRtc_EventQueue(any);
   return result;
 }
 
-winrt::Windows::UI::Core::CoreDispatcher wrapper::impl::org::webrtc::EventQueue::toNative_winrt(wrapper::org::webrtc::EventQueuePtr queue) noexcept
+winrt::Windows::UI::Core::CoreDispatcher wrapper::impl::org::webRtc::EventQueue::toNative_winrt(wrapper::org::webRtc::EventQueuePtr queue) noexcept
 {            
   if (!queue) return nullptr;
   AnyPtr any = queue->get_queue();
   if (!any) return nullptr;
-  auto castedAny = ZS_DYNAMIC_PTR_CAST(wrapper::impl::org::webrtc::EventQueueWrapperAnyWinrt, any);
+  auto castedAny = ZS_DYNAMIC_PTR_CAST(wrapper::impl::org::webRtc::EventQueueWrapperAnyWinrt, any);
   if (!castedAny) return nullptr;
   return castedAny->queue_;
 }
@@ -180,21 +180,21 @@ winrt::Windows::UI::Core::CoreDispatcher wrapper::impl::org::webrtc::EventQueue:
 
 #else
 
-wrapper::org::webrtc::EventQueuePtr wrapper::impl::org::webrtc::EventQueue::toWrapper(::zsLib::IMessageQueuePtr queue) noexcept
+wrapper::org::webRtc::EventQueuePtr wrapper::impl::org::webRtc::EventQueue::toWrapper(::zsLib::IMessageQueuePtr queue) noexcept
 {  
-  auto any {make_shared<wrapper::impl::org::webrtc::EventQueueWrapperAny>()};
+  auto any {make_shared<wrapper::impl::org::webRtc::EventQueueWrapperAny>()};
   any->queue_ = queue;
-  auto result = wrapper::org::webrtc::EventQueue::wrapper_create();
-  result->wrapper_init_org_webrtc_EventQueue(any);
+  auto result = wrapper::org::webRtc::EventQueue::wrapper_create();
+  result->wrapper_init_org_webRtc_EventQueue(any);
   return result;
 }
 
-::zsLib::IMessageQueuePtr wrapper::impl::org::webrtc::EventQueue::toNative(wrapper::org::webrtc::EventQueuePtr queue) noexcept
+::zsLib::IMessageQueuePtr wrapper::impl::org::webRtc::EventQueue::toNative(wrapper::org::webRtc::EventQueuePtr queue) noexcept
 {
   if (!queue) return nullptr;
   AnyPtr any = queue->get_queue();
   if (!any) return nullptr;
-  auto castedAny = ZS_DYNAMIC_PTR_CAST(wrapper::impl::org::webrtc::EventQueueWrapperAny, any);
+  auto castedAny = ZS_DYNAMIC_PTR_CAST(wrapper::impl::org::webRtc::EventQueueWrapperAny, any);
   if (!castedAny) return nullptr;
   return castedAny->queue_;
 }

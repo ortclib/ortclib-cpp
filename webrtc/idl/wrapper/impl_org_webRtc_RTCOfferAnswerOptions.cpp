@@ -1,5 +1,5 @@
 
-#include "impl_org_webrtc_RTCOfferAnswerOptions.h"
+#include "impl_org_webRtc_RTCOfferAnswerOptions.h"
 
 using ::zsLib::String;
 using ::zsLib::Optional;
@@ -20,7 +20,7 @@ using ::std::set;
 using ::std::map;
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCOfferAnswerOptions::~RTCOfferAnswerOptions() noexcept
+wrapper::impl::org::webRtc::RTCOfferAnswerOptions::~RTCOfferAnswerOptions() noexcept
 {
 }
 

@@ -3,24 +3,24 @@
 #pragma once
 
 #include "types.h"
-#include "generated/org_webrtc_RTCRtpHeaderExtensionCapability.h"
+#include "generated/org_webRtc_RTCRtpHeaderExtensionCapability.h"
 
 
 namespace wrapper {
   namespace impl {
     namespace org {
-      namespace webrtc {
+      namespace webRtc {
 
-        struct RTCRtpHeaderExtensionCapability : public wrapper::org::webrtc::RTCRtpHeaderExtensionCapability
+        struct RTCRtpHeaderExtensionCapability : public wrapper::org::webRtc::RTCRtpHeaderExtensionCapability
         {
           RTCRtpHeaderExtensionCapabilityWeakPtr thisWeak_;
 
           RTCRtpHeaderExtensionCapability() noexcept;
           virtual ~RTCRtpHeaderExtensionCapability() noexcept;
-          void wrapper_init_org_webrtc_RTCRtpHeaderExtensionCapability() noexcept override;
+          void wrapper_init_org_webRtc_RTCRtpHeaderExtensionCapability() noexcept override;
         };
 
-      } // webrtc
+      } // webRtc
     } // org
   } // namespace impl
 } // namespace wrapper

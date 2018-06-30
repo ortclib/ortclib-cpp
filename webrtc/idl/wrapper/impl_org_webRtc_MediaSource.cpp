@@ -18,7 +18,7 @@
 
 #endif //WINUWP
 
-#include "impl_org_webrtc_MediaSource.h"
+#include "impl_org_webRtc_MediaSource.h"
 
 using ::zsLib::String;
 using ::zsLib::Optional;
@@ -39,14 +39,14 @@ using ::std::set;
 using ::std::map;
 
 // borrow existing definitions from wrapper implementation
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::MediaSource::WrapperImplType, WrapperImplType);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::MediaSource::WrapperType, WrapperType);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::MediaSource::WrapperImplType, WrapperImplType);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::MediaSource::WrapperType, WrapperType);
 
 
 #ifdef WINUWP
 #ifdef __cplusplus_winrt
 
-namespace wrapper { namespace impl { namespace org { namespace webrtc {
+namespace wrapper { namespace impl { namespace org { namespace webRtc {
         ZS_DECLARE_STRUCT_PTR(MediaSourceWrapperAnyCx);
 
         struct MediaSourceWrapperAnyCx : Any
@@ -59,7 +59,7 @@ namespace wrapper { namespace impl { namespace org { namespace webrtc {
 
 #ifdef CPPWINRT_VERSION
 
-namespace wrapper { namespace impl { namespace org { namespace webrtc {
+namespace wrapper { namespace impl { namespace org { namespace webRtc {
         ZS_DECLARE_STRUCT_PTR(MediaSourceWrapperAnyWinrt);
 
         struct MediaSourceWrapperAnyWinrt : Any
@@ -73,7 +73,7 @@ namespace wrapper { namespace impl { namespace org { namespace webrtc {
 #else
 
 
-namespace wrapper { namespace impl { namespace org { namespace webrtc {
+namespace wrapper { namespace impl { namespace org { namespace webRtc {
         ZS_DECLARE_STRUCT_PTR(MediaSourceWrapperAny);
 
         struct MediaSourceWrapperAny : Any
@@ -85,37 +85,37 @@ namespace wrapper { namespace impl { namespace org { namespace webrtc {
 #endif //WINUWP
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::MediaSource::MediaSource() noexcept
+wrapper::impl::org::webRtc::MediaSource::MediaSource() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::MediaSourcePtr wrapper::org::webrtc::MediaSource::wrapper_create() noexcept
+wrapper::org::webRtc::MediaSourcePtr wrapper::org::webRtc::MediaSource::wrapper_create() noexcept
 {
-  auto pThis = make_shared<wrapper::impl::org::webrtc::MediaSource>();
+  auto pThis = make_shared<wrapper::impl::org::webRtc::MediaSource>();
   pThis->thisWeak_ = pThis;
   return pThis;
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::MediaSource::~MediaSource() noexcept
+wrapper::impl::org::webRtc::MediaSource::~MediaSource() noexcept
 {
   thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webrtc::MediaSource::wrapper_init_org_webrtc_MediaSource() noexcept
+void wrapper::impl::org::webRtc::MediaSource::wrapper_init_org_webRtc_MediaSource() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-AnyPtr wrapper::impl::org::webrtc::MediaSource::get_source() noexcept
+AnyPtr wrapper::impl::org::webRtc::MediaSource::get_source() noexcept
 {
   return source_;
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webrtc::MediaSource::set_source(AnyPtr value) noexcept
+void wrapper::impl::org::webRtc::MediaSource::set_source(AnyPtr value) noexcept
 {
   source_ = value;
 }
@@ -123,9 +123,9 @@ void wrapper::impl::org::webrtc::MediaSource::set_source(AnyPtr value) noexcept
 #ifdef WINUWP
 #ifdef __cplusplus_winrt
 
-wrapper::org::webrtc::MediaSourcePtr wrapper::impl::org::webrtc::MediaSource::toWrapper(Windows::Media::Core::IMediaSource^ source) noexcept
+wrapper::org::webRtc::MediaSourcePtr wrapper::impl::org::webRtc::MediaSource::toWrapper(Windows::Media::Core::IMediaSource^ source) noexcept
 {
-  auto any{ make_shared<wrapper::impl::org::webrtc::MediaSourceWrapperAnyCx>() };
+  auto any{ make_shared<wrapper::impl::org::webRtc::MediaSourceWrapperAnyCx>() };
   any->source_ = source;
   auto result = make_shared<WrapperImplType>();
   result->thisWeak_ = result;
@@ -133,12 +133,12 @@ wrapper::org::webrtc::MediaSourcePtr wrapper::impl::org::webrtc::MediaSource::to
   return result;
 }
 
-Windows::Media::Core::IMediaSource^ wrapper::impl::org::webrtc::MediaSource::toNative_cx(wrapper::org::webrtc::MediaSourcePtr source) noexcept
+Windows::Media::Core::IMediaSource^ wrapper::impl::org::webRtc::MediaSource::toNative_cx(wrapper::org::webRtc::MediaSourcePtr source) noexcept
 {
   if (!source) return nullptr;
   AnyPtr any = source->get_source();
   if (!any) return nullptr;
-  auto castedAny = ZS_DYNAMIC_PTR_CAST(wrapper::impl::org::webrtc::MediaSourceWrapperAnyCx, any);
+  auto castedAny = ZS_DYNAMIC_PTR_CAST(wrapper::impl::org::webRtc::MediaSourceWrapperAnyCx, any);
   if (!castedAny) return nullptr;
   return castedAny->source_;
 }
@@ -146,9 +146,9 @@ Windows::Media::Core::IMediaSource^ wrapper::impl::org::webrtc::MediaSource::toN
 
 #ifdef CPPWINRT_VERSION
 
-wrapper::org::webrtc::MediaSourcePtr wrapper::impl::org::webrtc::MediaSource::toWrapper(winrt::Windows::Media::Core::IMediaSource const & source) noexcept
+wrapper::org::webRtc::MediaSourcePtr wrapper::impl::org::webRtc::MediaSource::toWrapper(winrt::Windows::Media::Core::IMediaSource const & source) noexcept
 {
-  auto any{ make_shared<wrapper::impl::org::webrtc::MediaSourceWrapperAnyWinrt>() };
+  auto any{ make_shared<wrapper::impl::org::webRtc::MediaSourceWrapperAnyWinrt>() };
   any->source_ = source;
   auto result = make_shared<WrapperImplType>();
   result->thisWeak_ = result;
@@ -156,12 +156,12 @@ wrapper::org::webrtc::MediaSourcePtr wrapper::impl::org::webrtc::MediaSource::to
   return result;
 }
 
-winrt::Windows::Media::Core::IMediaSource wrapper::impl::org::webrtc::MediaSource::toNative_winrt(wrapper::org::webrtc::MediaSourcePtr source) noexcept
+winrt::Windows::Media::Core::IMediaSource wrapper::impl::org::webRtc::MediaSource::toNative_winrt(wrapper::org::webRtc::MediaSourcePtr source) noexcept
 {
   if (!source) return nullptr;
   AnyPtr any = source->get_source();
   if (!any) return nullptr;
-  auto castedAny = ZS_DYNAMIC_PTR_CAST(wrapper::impl::org::webrtc::MediaSourceWrapperAnyWinrt, any);
+  auto castedAny = ZS_DYNAMIC_PTR_CAST(wrapper::impl::org::webRtc::MediaSourceWrapperAnyWinrt, any);
   if (!castedAny) return nullptr;
   return castedAny->source_;
 }

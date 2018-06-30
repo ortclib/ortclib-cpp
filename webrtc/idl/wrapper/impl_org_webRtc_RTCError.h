@@ -2,20 +2,20 @@
 #pragma once
 
 #include "types.h"
-#include "generated/org_webrtc_RTCError.h"
+#include "generated/org_webRtc_RTCError.h"
 
-#include "impl_org_webrtc_pre_include.h"
-#include "impl_org_webrtc_post_include.h"
+#include "impl_org_webRtc_pre_include.h"
+#include "impl_org_webRtc_post_include.h"
 
 namespace wrapper {
   namespace impl {
     namespace org {
-      namespace webrtc {
+      namespace webRtc {
 
-        struct RTCError : public wrapper::org::webrtc::RTCError
+        struct RTCError : public wrapper::org::webRtc::RTCError
         {
-          ZS_DECLARE_TYPEDEF_PTR(wrapper::org::webrtc::RTCError, WrapperType);
-          ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::RTCError, WrapperImplType);
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::org::webRtc::RTCError, WrapperType);
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCError, WrapperImplType);
           ZS_DECLARE_TYPEDEF_PTR(::webrtc::RTCError, NativeType);
 
           RTCErrorWeakPtr thisWeak_;
@@ -23,10 +23,10 @@ namespace wrapper {
 
           RTCError() noexcept;
           virtual ~RTCError() noexcept;
-          void wrapper_init_org_webrtc_RTCError() noexcept override;
+          void wrapper_init_org_webRtc_RTCError() noexcept override;
 
           // properties RTCError
-          wrapper::org::webrtc::RTCErrorType get_type() noexcept override;
+          wrapper::org::webRtc::RTCErrorType get_type() noexcept override;
           String get_message() noexcept override;
           bool get_ok() noexcept override;
 
@@ -36,7 +36,7 @@ namespace wrapper {
           ZS_NO_DISCARD() static NativeTypePtr toNative(WrapperTypePtr wrapper) noexcept;
         };
 
-      } // webrtc
+      } // webRtc
     } // org
   } // namespace impl
 } // namespace wrapper

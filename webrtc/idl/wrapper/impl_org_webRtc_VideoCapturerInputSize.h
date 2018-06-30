@@ -3,24 +3,24 @@
 #pragma once
 
 #include "types.h"
-#include "generated/org_webrtc_VideoCapturerInputSize.h"
+#include "generated/org_webRtc_VideoCapturerInputSize.h"
 
 
 namespace wrapper {
   namespace impl {
     namespace org {
-      namespace webrtc {
+      namespace webRtc {
 
-        struct VideoCapturerInputSize : public wrapper::org::webrtc::VideoCapturerInputSize
+        struct VideoCapturerInputSize : public wrapper::org::webRtc::VideoCapturerInputSize
         {
           VideoCapturerInputSizeWeakPtr thisWeak_;
 
           VideoCapturerInputSize() noexcept;
           virtual ~VideoCapturerInputSize() noexcept;
-          void wrapper_init_org_webrtc_VideoCapturerInputSize() noexcept override;
+          void wrapper_init_org_webRtc_VideoCapturerInputSize() noexcept override;
         };
 
-      } // webrtc
+      } // webRtc
     } // org
   } // namespace impl
 } // namespace wrapper

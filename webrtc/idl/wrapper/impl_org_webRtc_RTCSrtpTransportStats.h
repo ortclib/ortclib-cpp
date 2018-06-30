@@ -3,15 +3,15 @@
 #pragma once
 
 #include "types.h"
-#include "generated/org_webrtc_RTCSrtpTransportStats.h"
+#include "generated/org_webRtc_RTCSrtpTransportStats.h"
 
 
 namespace wrapper {
   namespace impl {
     namespace org {
-      namespace webrtc {
+      namespace webRtc {
 
-        struct RTCSrtpTransportStats : public wrapper::org::webrtc::RTCSrtpTransportStats
+        struct RTCSrtpTransportStats : public wrapper::org::webRtc::RTCSrtpTransportStats
         {
           RTCSrtpTransportStatsWeakPtr thisWeak_;
 
@@ -20,16 +20,16 @@ namespace wrapper {
 
           // properties RTCStats
           ::zsLib::Time get_timestamp() noexcept override;
-          Optional< wrapper::org::webrtc::RTCStatsType > get_statsType() noexcept override;
+          Optional< wrapper::org::webRtc::RTCStatsType > get_statsType() noexcept override;
           String get_statsTypeOther() noexcept override;
           String get_id() noexcept override;
 
           // methods RTCSrtpTransportStats
-          void wrapper_init_org_webrtc_RTCSrtpTransportStats() noexcept override;
-          void wrapper_init_org_webrtc_RTCSrtpTransportStats(wrapper::org::webrtc::RTCSrtpTransportStatsPtr source) noexcept override;
+          void wrapper_init_org_webRtc_RTCSrtpTransportStats() noexcept override;
+          void wrapper_init_org_webRtc_RTCSrtpTransportStats(wrapper::org::webRtc::RTCSrtpTransportStatsPtr source) noexcept override;
         };
 
-      } // webrtc
+      } // webRtc
     } // org
   } // namespace impl
 } // namespace wrapper

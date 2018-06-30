@@ -9,7 +9,7 @@ namespace wrapper {
   namespace impl {
 
     namespace org {
-      namespace webrtc {
+      namespace webRtc {
 
         ZS_DECLARE_TYPEDEF_PTR(::zsLib::Exceptions::InvalidArgument, InvalidParameters);
 
@@ -96,7 +96,7 @@ namespace wrapper {
         ZS_DECLARE_STRUCT_PTR(VideoTrackSourceStats);
         ZS_DECLARE_STRUCT_PTR(WebRtcLib);
 
-      } // namespace webrtc
+      } // namespace webRtc
     } // namespace org
   } // namespace impl
 } // namespace wrapper

@@ -1,5 +1,5 @@
 
-#include "impl_org_webrtc_RTCSessionDescriptionInit.h"
+#include "impl_org_webRtc_RTCSessionDescriptionInit.h"
 
 using ::zsLib::String;
 using ::zsLib::Optional;
@@ -20,26 +20,26 @@ using ::std::set;
 using ::std::map;
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCSessionDescriptionInit::RTCSessionDescriptionInit() noexcept
+wrapper::impl::org::webRtc::RTCSessionDescriptionInit::RTCSessionDescriptionInit() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webrtc::RTCSessionDescriptionInitPtr wrapper::org::webrtc::RTCSessionDescriptionInit::wrapper_create() noexcept
+wrapper::org::webRtc::RTCSessionDescriptionInitPtr wrapper::org::webRtc::RTCSessionDescriptionInit::wrapper_create() noexcept
 {
-  auto pThis = make_shared<wrapper::impl::org::webrtc::RTCSessionDescriptionInit>();
+  auto pThis = make_shared<wrapper::impl::org::webRtc::RTCSessionDescriptionInit>();
   pThis->thisWeak_ = pThis;
   return pThis;
 }
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webrtc::RTCSessionDescriptionInit::~RTCSessionDescriptionInit() noexcept
+wrapper::impl::org::webRtc::RTCSessionDescriptionInit::~RTCSessionDescriptionInit() noexcept
 {
   thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webrtc::RTCSessionDescriptionInit::wrapper_init_org_webrtc_RTCSessionDescriptionInit() noexcept
+void wrapper::impl::org::webRtc::RTCSessionDescriptionInit::wrapper_init_org_webRtc_RTCSessionDescriptionInit() noexcept
 {
 }
 

@@ -3,15 +3,15 @@
 #pragma once
 
 #include "types.h"
-#include "generated/org_webrtc_RTCDataChannelInit.h"
+#include "generated/org_webRtc_RTCDataChannelInit.h"
 
 
 namespace wrapper {
   namespace impl {
     namespace org {
-      namespace webrtc {
+      namespace webRtc {
 
-        struct RTCDataChannelInit : public wrapper::org::webrtc::RTCDataChannelInit
+        struct RTCDataChannelInit : public wrapper::org::webRtc::RTCDataChannelInit
         {
           RTCDataChannelInitWeakPtr thisWeak_;
 
@@ -19,11 +19,11 @@ namespace wrapper {
           virtual ~RTCDataChannelInit() noexcept;
 
           // methods RTCDataChannelInit
-          void wrapper_init_org_webrtc_RTCDataChannelInit() noexcept override;
-          void wrapper_init_org_webrtc_RTCDataChannelInit(wrapper::org::webrtc::RTCDataChannelInitPtr source) noexcept override;
+          void wrapper_init_org_webRtc_RTCDataChannelInit() noexcept override;
+          void wrapper_init_org_webRtc_RTCDataChannelInit(wrapper::org::webRtc::RTCDataChannelInitPtr source) noexcept override;
         };
 
-      } // webrtc
+      } // webRtc
     } // org
   } // namespace impl
 } // namespace wrapper

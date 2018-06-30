@@ -3,15 +3,15 @@
 #pragma once
 
 #include "types.h"
-#include "generated/org_webrtc_VideoFormat.h"
+#include "generated/org_webRtc_VideoFormat.h"
 
 
 namespace wrapper {
   namespace impl {
     namespace org {
-      namespace webrtc {
+      namespace webRtc {
 
-        struct VideoFormat : public wrapper::org::webrtc::VideoFormat
+        struct VideoFormat : public wrapper::org::webRtc::VideoFormat
         {
           VideoFormatWeakPtr thisWeak_;
 
@@ -19,9 +19,9 @@ namespace wrapper {
           virtual ~VideoFormat() noexcept;
 
           // methods VideoFormat
-          bool IsPixelRateLess(wrapper::org::webrtc::VideoFormatPtr other) noexcept override;
-          void wrapper_init_org_webrtc_VideoFormat() noexcept override;
-          void wrapper_init_org_webrtc_VideoFormat(wrapper::org::webrtc::VideoFormatPtr source) noexcept override;
+          bool IsPixelRateLess(wrapper::org::webRtc::VideoFormatPtr other) noexcept override;
+          void wrapper_init_org_webRtc_VideoFormat() noexcept override;
+          void wrapper_init_org_webRtc_VideoFormat(wrapper::org::webRtc::VideoFormatPtr source) noexcept override;
 
           // properties VideoFormat
           int get_width() noexcept override;
@@ -37,7 +37,7 @@ namespace wrapper {
           bool get_isSize0x0() noexcept override;
         };
 
-      } // webrtc
+      } // webRtc
     } // org
   } // namespace impl
 } // namespace wrapper

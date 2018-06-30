@@ -3,15 +3,15 @@
 #pragma once
 
 #include "types.h"
-#include "generated/org_webrtc_RTCIceGathererStats.h"
+#include "generated/org_webRtc_RTCIceGathererStats.h"
 
 
 namespace wrapper {
   namespace impl {
     namespace org {
-      namespace webrtc {
+      namespace webRtc {
 
-        struct RTCIceGathererStats : public wrapper::org::webrtc::RTCIceGathererStats
+        struct RTCIceGathererStats : public wrapper::org::webRtc::RTCIceGathererStats
         {
           RTCIceGathererStatsWeakPtr thisWeak_;
 
@@ -20,13 +20,13 @@ namespace wrapper {
 
           // properties RTCStats
           ::zsLib::Time get_timestamp() noexcept override;
-          Optional< wrapper::org::webrtc::RTCStatsType > get_statsType() noexcept override;
+          Optional< wrapper::org::webRtc::RTCStatsType > get_statsType() noexcept override;
           String get_statsTypeOther() noexcept override;
           String get_id() noexcept override;
 
           // methods RTCIceGathererStats
-          void wrapper_init_org_webrtc_RTCIceGathererStats() noexcept override;
-          void wrapper_init_org_webrtc_RTCIceGathererStats(wrapper::org::webrtc::RTCIceGathererStatsPtr source) noexcept override;
+          void wrapper_init_org_webRtc_RTCIceGathererStats() noexcept override;
+          void wrapper_init_org_webRtc_RTCIceGathererStats(wrapper::org::webRtc::RTCIceGathererStatsPtr source) noexcept override;
 
           // properties RTCIceGathererStats
           unsigned long long get_bytesSent() noexcept override;
@@ -34,7 +34,7 @@ namespace wrapper {
           String get_rtcpGathererStatsId() noexcept override;
         };
 
-      } // webrtc
+      } // webRtc
     } // org
   } // namespace impl
 } // namespace wrapper

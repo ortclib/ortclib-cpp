@@ -2,21 +2,21 @@
 #pragma once
 
 #include "types.h"
-#include "generated/org_webrtc_RTCAnswerOptions.h"
+#include "generated/org_webRtc_RTCAnswerOptions.h"
 
-#include "impl_org_webrtc_pre_include.h"
+#include "impl_org_webRtc_pre_include.h"
 #include "api/peerconnectioninterface.h"
-#include "impl_org_webrtc_post_include.h"
+#include "impl_org_webRtc_post_include.h"
 
 namespace wrapper {
   namespace impl {
     namespace org {
-      namespace webrtc {
+      namespace webRtc {
 
-        struct RTCAnswerOptions : public wrapper::org::webrtc::RTCAnswerOptions
+        struct RTCAnswerOptions : public wrapper::org::webRtc::RTCAnswerOptions
         {
-          ZS_DECLARE_TYPEDEF_PTR(wrapper::org::webrtc::RTCAnswerOptions, WrapperType);
-          ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::RTCAnswerOptions, WrapperImplType);
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::org::webRtc::RTCAnswerOptions, WrapperType);
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCAnswerOptions, WrapperImplType);
           ZS_DECLARE_TYPEDEF_PTR(::webrtc::PeerConnectionInterface::RTCOfferAnswerOptions, NativeType);
           
           RTCAnswerOptionsWeakPtr thisWeak_;
@@ -25,8 +25,8 @@ namespace wrapper {
           virtual ~RTCAnswerOptions() noexcept;
 
           // methods RTCAnswerOptions
-          void wrapper_init_org_webrtc_RTCAnswerOptions() noexcept override;
-          void wrapper_init_org_webrtc_RTCAnswerOptions(wrapper::org::webrtc::RTCAnswerOptionsPtr source) noexcept override;
+          void wrapper_init_org_webRtc_RTCAnswerOptions() noexcept override;
+          void wrapper_init_org_webRtc_RTCAnswerOptions(wrapper::org::webRtc::RTCAnswerOptionsPtr source) noexcept override;
 
           ZS_NO_DISCARD() static WrapperImplTypePtr toWrapper(const NativeType &native) noexcept;
           ZS_NO_DISCARD() static WrapperImplTypePtr toWrapper(NativeTypePtr native) noexcept;
@@ -34,7 +34,7 @@ namespace wrapper {
           ZS_NO_DISCARD() static NativeTypePtr toNative(WrapperTypePtr wrapper) noexcept;
         };
 
-      } // webrtc
+      } // webRtc
     } // org
   } // namespace impl
 } // namespace wrapper

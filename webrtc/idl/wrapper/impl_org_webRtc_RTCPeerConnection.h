@@ -2,22 +2,22 @@
 #pragma once
 
 #include "types.h"
-#include "generated/org_webrtc_RTCPeerConnection.h"
+#include "generated/org_webRtc_RTCPeerConnection.h"
 
-#include "impl_org_webrtc_pre_include.h"
+#include "impl_org_webRtc_pre_include.h"
 #include "rtc_base/scoped_ref_ptr.h"
 #include "api/peerconnectioninterface.h"
-#include "impl_org_webrtc_post_include.h"
+#include "impl_org_webRtc_post_include.h"
 
 namespace wrapper {
   namespace impl {
     namespace org {
-      namespace webrtc {
+      namespace webRtc {
 
-        struct RTCPeerConnection : public wrapper::org::webrtc::RTCPeerConnection
+        struct RTCPeerConnection : public wrapper::org::webRtc::RTCPeerConnection
         {
-          ZS_DECLARE_TYPEDEF_PTR(wrapper::org::webrtc::RTCPeerConnection, WrapperType);
-          ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webrtc::RTCPeerConnection, WrapperImplType);
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::org::webRtc::RTCPeerConnection, WrapperType);
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCPeerConnection, WrapperImplType);
           ZS_DECLARE_TYPEDEF_PTR(::webrtc::PeerConnectionInterface, NativeType);
 
           typedef rtc::scoped_refptr<::webrtc::PeerConnectionInterface> NativeScopedPtr;
@@ -124,50 +124,50 @@ namespace wrapper {
           virtual ~RTCPeerConnection() noexcept;
 
           // methods RTCStatsProvider
-          shared_ptr< PromiseWithHolderPtr< wrapper::org::webrtc::RTCStatsReportPtr > > getStats(wrapper::org::webrtc::RTCStatsTypeSetPtr statTypes) noexcept(false) override; // throws wrapper::org::webrtc::RTCErrorPtr
+          shared_ptr< PromiseWithHolderPtr< wrapper::org::webRtc::RTCStatsReportPtr > > getStats(wrapper::org::webRtc::RTCStatsTypeSetPtr statTypes) noexcept(false) override; // throws wrapper::org::webRtc::RTCErrorPtr
 
           // methods RTCPeerConnection
-          void wrapper_init_org_webrtc_RTCPeerConnection(wrapper::org::webrtc::RTCConfigurationPtr config) noexcept override;
-          shared_ptr< PromiseWithHolderPtr< wrapper::org::webrtc::RTCSessionDescriptionPtr > > createOffer(wrapper::org::webrtc::RTCOfferOptionsPtr options) noexcept override;
-          shared_ptr< PromiseWithHolderPtr< wrapper::org::webrtc::RTCSessionDescriptionPtr > > createOffer(wrapper::org::webrtc::MediaConstraintsPtr constraints) noexcept override;
-          shared_ptr< PromiseWithHolderPtr< wrapper::org::webrtc::RTCSessionDescriptionPtr > > createAnswer(wrapper::org::webrtc::RTCAnswerOptionsPtr options) noexcept override;
-          shared_ptr< PromiseWithHolderPtr< wrapper::org::webrtc::RTCSessionDescriptionPtr > > createAnswer(wrapper::org::webrtc::MediaConstraintsPtr constraints) noexcept override;
-          PromisePtr setLocalDescription(wrapper::org::webrtc::RTCSessionDescriptionPtr constraints) noexcept override;
-          PromisePtr setRemoteDescription(wrapper::org::webrtc::RTCSessionDescriptionPtr constraints) noexcept override;
-          wrapper::org::webrtc::RTCConfigurationPtr getConfiguration() noexcept override;
-          void setConfiguration(wrapper::org::webrtc::RTCConfigurationPtr config) noexcept(false) override; // throws wrapper::org::webrtc::RTCErrorPtr
-          PromisePtr addIceCandidate(wrapper::org::webrtc::RTCIceCandidatePtr candidate) noexcept override;
-          void removeIceCandidates(shared_ptr< list< wrapper::org::webrtc::RTCIceCandidatePtr > > candidates) noexcept override;
-          void setBitrate(wrapper::org::webrtc::RTCBitrateParametersPtr params) noexcept(false) override; // throws wrapper::org::webrtc::RTCErrorPtr
+          void wrapper_init_org_webRtc_RTCPeerConnection(wrapper::org::webRtc::RTCConfigurationPtr config) noexcept override;
+          shared_ptr< PromiseWithHolderPtr< wrapper::org::webRtc::RTCSessionDescriptionPtr > > createOffer(wrapper::org::webRtc::RTCOfferOptionsPtr options) noexcept override;
+          shared_ptr< PromiseWithHolderPtr< wrapper::org::webRtc::RTCSessionDescriptionPtr > > createOffer(wrapper::org::webRtc::MediaConstraintsPtr constraints) noexcept override;
+          shared_ptr< PromiseWithHolderPtr< wrapper::org::webRtc::RTCSessionDescriptionPtr > > createAnswer(wrapper::org::webRtc::RTCAnswerOptionsPtr options) noexcept override;
+          shared_ptr< PromiseWithHolderPtr< wrapper::org::webRtc::RTCSessionDescriptionPtr > > createAnswer(wrapper::org::webRtc::MediaConstraintsPtr constraints) noexcept override;
+          PromisePtr setLocalDescription(wrapper::org::webRtc::RTCSessionDescriptionPtr constraints) noexcept override;
+          PromisePtr setRemoteDescription(wrapper::org::webRtc::RTCSessionDescriptionPtr constraints) noexcept override;
+          wrapper::org::webRtc::RTCConfigurationPtr getConfiguration() noexcept override;
+          void setConfiguration(wrapper::org::webRtc::RTCConfigurationPtr config) noexcept(false) override; // throws wrapper::org::webRtc::RTCErrorPtr
+          PromisePtr addIceCandidate(wrapper::org::webRtc::RTCIceCandidatePtr candidate) noexcept override;
+          void removeIceCandidates(shared_ptr< list< wrapper::org::webRtc::RTCIceCandidatePtr > > candidates) noexcept override;
+          void setBitrate(wrapper::org::webRtc::RTCBitrateParametersPtr params) noexcept(false) override; // throws wrapper::org::webRtc::RTCErrorPtr
           void close() noexcept override;
-          wrapper::org::webrtc::RTCRtpSenderPtr addTrack(wrapper::org::webrtc::MediaStreamTrackPtr track) noexcept(false) override; // throws wrapper::org::webrtc::RTCErrorPtr
-          bool removeTrack(wrapper::org::webrtc::RTCRtpSenderPtr sender) noexcept override;
-          wrapper::org::webrtc::RTCRtpTransceiverPtr addTransceiver(wrapper::org::webrtc::MediaStreamTrackPtr track) noexcept(false) override; // throws wrapper::org::webrtc::RTCErrorPtr
-          wrapper::org::webrtc::RTCRtpTransceiverPtr addTransceiver(String kind) noexcept(false) override; // throws wrapper::org::webrtc::RTCErrorPtr
-          wrapper::org::webrtc::RTCRtpSenderPtr addSender(
+          wrapper::org::webRtc::RTCRtpSenderPtr addTrack(wrapper::org::webRtc::MediaStreamTrackPtr track) noexcept(false) override; // throws wrapper::org::webRtc::RTCErrorPtr
+          bool removeTrack(wrapper::org::webRtc::RTCRtpSenderPtr sender) noexcept override;
+          wrapper::org::webRtc::RTCRtpTransceiverPtr addTransceiver(wrapper::org::webRtc::MediaStreamTrackPtr track) noexcept(false) override; // throws wrapper::org::webRtc::RTCErrorPtr
+          wrapper::org::webRtc::RTCRtpTransceiverPtr addTransceiver(String kind) noexcept(false) override; // throws wrapper::org::webRtc::RTCErrorPtr
+          wrapper::org::webRtc::RTCRtpSenderPtr addSender(
             String kind,
             String trackId
             ) noexcept override;
-          shared_ptr< list< wrapper::org::webrtc::RTCRtpSenderPtr > > getSenders() noexcept override;
-          shared_ptr< list< wrapper::org::webrtc::RTCRtpReceiverPtr > > getReceivers() noexcept override;
-          shared_ptr< list< wrapper::org::webrtc::RTCRtpTransceiverPtr > > getTransceivers() noexcept override;
-          wrapper::org::webrtc::RTCDataChannelPtr createDataChannel(
+          shared_ptr< list< wrapper::org::webRtc::RTCRtpSenderPtr > > getSenders() noexcept override;
+          shared_ptr< list< wrapper::org::webRtc::RTCRtpReceiverPtr > > getReceivers() noexcept override;
+          shared_ptr< list< wrapper::org::webRtc::RTCRtpTransceiverPtr > > getTransceivers() noexcept override;
+          wrapper::org::webRtc::RTCDataChannelPtr createDataChannel(
             String label,
-            wrapper::org::webrtc::RTCDataChannelInitPtr init
+            wrapper::org::webRtc::RTCDataChannelInitPtr init
             ) noexcept override;
 
           // properties RTCPeerConnection
-          wrapper::org::webrtc::RTCSignalingState get_signalingState() noexcept override;
-          wrapper::org::webrtc::RTCIceGatheringState get_iceGatheringState() noexcept override;
-          wrapper::org::webrtc::RTCIceConnectionState get_iceConnectionState() noexcept override;
-          wrapper::org::webrtc::RTCPeerConnectionState get_connectionState_NotAvailable() noexcept override;
+          wrapper::org::webRtc::RTCSignalingState get_signalingState() noexcept override;
+          wrapper::org::webRtc::RTCIceGatheringState get_iceGatheringState() noexcept override;
+          wrapper::org::webRtc::RTCIceConnectionState get_iceConnectionState() noexcept override;
+          wrapper::org::webRtc::RTCPeerConnectionState get_connectionState_NotAvailable() noexcept override;
           Optional< bool > get_canTrickleIceCandidates_NotAvailable() noexcept override;
-          wrapper::org::webrtc::RTCSessionDescriptionPtr get_localDescription() noexcept override;
-          wrapper::org::webrtc::RTCSessionDescriptionPtr get_currentLocalDescription() noexcept override;
-          wrapper::org::webrtc::RTCSessionDescriptionPtr get_pendingLocalDescription() noexcept override;
-          wrapper::org::webrtc::RTCSessionDescriptionPtr get_remoteDescription() noexcept override;
-          wrapper::org::webrtc::RTCSessionDescriptionPtr get_currentRemoteDescription() noexcept override;
-          wrapper::org::webrtc::RTCSessionDescriptionPtr get_pendingRemoteDescription() noexcept override;
+          wrapper::org::webRtc::RTCSessionDescriptionPtr get_localDescription() noexcept override;
+          wrapper::org::webRtc::RTCSessionDescriptionPtr get_currentLocalDescription() noexcept override;
+          wrapper::org::webRtc::RTCSessionDescriptionPtr get_pendingLocalDescription() noexcept override;
+          wrapper::org::webRtc::RTCSessionDescriptionPtr get_remoteDescription() noexcept override;
+          wrapper::org::webRtc::RTCSessionDescriptionPtr get_currentRemoteDescription() noexcept override;
+          wrapper::org::webRtc::RTCSessionDescriptionPtr get_pendingRemoteDescription() noexcept override;
 
           virtual void wrapper_onObserverCountChanged(size_t count) noexcept override;
 
@@ -194,7 +194,7 @@ namespace wrapper {
           ZS_NO_DISCARD() static NativeScopedPtr toNative(WrapperTypePtr wrapper) noexcept;
         };
 
-      } // webrtc
+      } // webRtc
     } // org
   } // namespace impl
 } // namespace wrapper

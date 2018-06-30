@@ -3,15 +3,15 @@
 #pragma once
 
 #include "types.h"
-#include "generated/org_webrtc_RTCDtlsFingerprint.h"
+#include "generated/org_webRtc_RTCDtlsFingerprint.h"
 
 
 namespace wrapper {
   namespace impl {
     namespace org {
-      namespace webrtc {
+      namespace webRtc {
 
-        struct RTCDtlsFingerprint : public wrapper::org::webrtc::RTCDtlsFingerprint
+        struct RTCDtlsFingerprint : public wrapper::org::webRtc::RTCDtlsFingerprint
         {
           RTCDtlsFingerprintWeakPtr thisWeak_;
 
@@ -19,11 +19,11 @@ namespace wrapper {
           virtual ~RTCDtlsFingerprint() noexcept;
 
           // methods RTCDtlsFingerprint
-          void wrapper_init_org_webrtc_RTCDtlsFingerprint() noexcept override;
-          void wrapper_init_org_webrtc_RTCDtlsFingerprint(wrapper::org::webrtc::RTCDtlsFingerprintPtr source) noexcept override;
+          void wrapper_init_org_webRtc_RTCDtlsFingerprint() noexcept override;
+          void wrapper_init_org_webRtc_RTCDtlsFingerprint(wrapper::org::webRtc::RTCDtlsFingerprintPtr source) noexcept override;
         };
 
-      } // webrtc
+      } // webRtc
     } // org
   } // namespace impl
 } // namespace wrapper

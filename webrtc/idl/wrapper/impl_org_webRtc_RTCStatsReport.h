@@ -3,15 +3,15 @@
 #pragma once
 
 #include "types.h"
-#include "generated/org_webrtc_RTCStatsReport.h"
+#include "generated/org_webRtc_RTCStatsReport.h"
 
 
 namespace wrapper {
   namespace impl {
     namespace org {
-      namespace webrtc {
+      namespace webRtc {
 
-        struct RTCStatsReport : public wrapper::org::webrtc::RTCStatsReport
+        struct RTCStatsReport : public wrapper::org::webRtc::RTCStatsReport
         {
           RTCStatsReportWeakPtr thisWeak_;
 
@@ -19,14 +19,14 @@ namespace wrapper {
           virtual ~RTCStatsReport() noexcept;
 
           // methods RTCStatsReport
-          wrapper::org::webrtc::RTCStatsPtr getStats(String id) noexcept override;
+          wrapper::org::webRtc::RTCStatsPtr getStats(String id) noexcept override;
 
           // properties RTCStatsReport
           uint64_t get_objectId() noexcept override;
           shared_ptr< list< String > > get_statsIds() noexcept override;
         };
 
-      } // webrtc
+      } // webRtc
     } // org
   } // namespace impl
 } // namespace wrapper

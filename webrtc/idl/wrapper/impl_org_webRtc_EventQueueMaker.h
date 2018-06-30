@@ -2,20 +2,20 @@
 #pragma once
 
 #include "types.h"
-#include "generated/org_webrtc_EventQueueMaker.h"
+#include "generated/org_webRtc_EventQueueMaker.h"
 
 
 namespace wrapper {
   namespace impl {
     namespace org {
-      namespace webrtc {
+      namespace webRtc {
 
-        struct EventQueueMaker : public wrapper::org::webrtc::EventQueueMaker
+        struct EventQueueMaker : public wrapper::org::webRtc::EventQueueMaker
         {
           virtual ~EventQueueMaker() noexcept;
         };
 
-      } // webrtc
+      } // webRtc
     } // org
   } // namespace impl
 } // namespace wrapper

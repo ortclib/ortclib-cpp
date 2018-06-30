@@ -3,15 +3,15 @@
 #pragma once
 
 #include "types.h"
-#include "generated/org_webrtc_RTCOutboundRtpStreamStats.h"
+#include "generated/org_webRtc_RTCOutboundRtpStreamStats.h"
 
 
 namespace wrapper {
   namespace impl {
     namespace org {
-      namespace webrtc {
+      namespace webRtc {
 
-        struct RTCOutboundRtpStreamStats : public wrapper::org::webrtc::RTCOutboundRtpStreamStats
+        struct RTCOutboundRtpStreamStats : public wrapper::org::webRtc::RTCOutboundRtpStreamStats
         {
           RTCOutboundRtpStreamStatsWeakPtr thisWeak_;
 
@@ -20,7 +20,7 @@ namespace wrapper {
 
           // properties RTCStats
           ::zsLib::Time get_timestamp() noexcept override;
-          Optional< wrapper::org::webrtc::RTCStatsType > get_statsType() noexcept override;
+          Optional< wrapper::org::webRtc::RTCStatsType > get_statsType() noexcept override;
           String get_statsTypeOther() noexcept override;
           String get_id() noexcept override;
 
@@ -38,8 +38,8 @@ namespace wrapper {
           unsigned long get_sliCount() noexcept override;
 
           // methods RTCOutboundRtpStreamStats
-          void wrapper_init_org_webrtc_RTCOutboundRtpStreamStats() noexcept override;
-          void wrapper_init_org_webrtc_RTCOutboundRtpStreamStats(wrapper::org::webrtc::RTCOutboundRtpStreamStatsPtr source) noexcept override;
+          void wrapper_init_org_webRtc_RTCOutboundRtpStreamStats() noexcept override;
+          void wrapper_init_org_webRtc_RTCOutboundRtpStreamStats(wrapper::org::webRtc::RTCOutboundRtpStreamStatsPtr source) noexcept override;
 
           // properties RTCOutboundRtpStreamStats
           unsigned long get_packetsSent() noexcept override;
@@ -48,7 +48,7 @@ namespace wrapper {
           double get_roundTripTime() noexcept override;
         };
 
-      } // webrtc
+      } // webRtc
     } // org
   } // namespace impl
 } // namespace wrapper

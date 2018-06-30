@@ -3,28 +3,28 @@
 #pragma once
 
 #include "types.h"
-#include "generated/org_webrtc_RTCPeerConnectionIceEvent.h"
+#include "generated/org_webRtc_RTCPeerConnectionIceEvent.h"
 
 
 namespace wrapper {
   namespace impl {
     namespace org {
-      namespace webrtc {
+      namespace webRtc {
 
-        struct RTCPeerConnectionIceEvent : public wrapper::org::webrtc::RTCPeerConnectionIceEvent
+        struct RTCPeerConnectionIceEvent : public wrapper::org::webRtc::RTCPeerConnectionIceEvent
         {
           RTCPeerConnectionIceEventWeakPtr thisWeak_;
 
           RTCPeerConnectionIceEvent() noexcept;
           virtual ~RTCPeerConnectionIceEvent() noexcept;
-          void wrapper_init_org_webrtc_RTCPeerConnectionIceEvent() noexcept override;
+          void wrapper_init_org_webRtc_RTCPeerConnectionIceEvent() noexcept override;
 
           // properties RTCPeerConnectionIceEvent
-          wrapper::org::webrtc::RTCIceCandidatePtr get_candidate() noexcept override;
+          wrapper::org::webRtc::RTCIceCandidatePtr get_candidate() noexcept override;
           String get_url() noexcept override;
         };
 
-      } // webrtc
+      } // webRtc
     } // org
   } // namespace impl
 } // namespace wrapper
