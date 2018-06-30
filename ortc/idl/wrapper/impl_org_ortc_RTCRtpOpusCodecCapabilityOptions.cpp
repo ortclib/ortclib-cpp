@@ -41,6 +41,7 @@ wrapper::org::ortc::RTCRtpOpusCodecCapabilityOptionsPtr wrapper::org::ortc::RTCR
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::RTCRtpOpusCodecCapabilityOptions::~RTCRtpOpusCodecCapabilityOptions() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

@@ -38,6 +38,7 @@ wrapper::org::ortc::RTCRtpUnhandledEventPtr wrapper::org::ortc::RTCRtpUnhandledE
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::RTCRtpUnhandledEvent::~RTCRtpUnhandledEvent() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

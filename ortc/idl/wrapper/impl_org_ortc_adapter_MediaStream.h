@@ -32,14 +32,14 @@ namespace wrapper {
             virtual ~MediaStream() noexcept;
 
             // methods RTCStatsProvider
-            shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept(false) override;
+            shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept(false) override; // throws ::zsLib::Exceptions::InvalidArgument::zsLib::Exceptions::BadState
 
             // methods MediaStream
             void wrapper_init_org_ortc_adapter_MediaStream() noexcept override;
             void wrapper_init_org_ortc_adapter_MediaStream(wrapper::org::ortc::adapter::MediaStreamPtr source) noexcept override;
             void wrapper_init_org_ortc_adapter_MediaStream(shared_ptr< list< wrapper::org::ortc::MediaStreamTrackPtr > > tracks) noexcept override;
             wrapper::org::ortc::MediaStreamTrackPtr getTrackById(String id) noexcept override;
-            void addTrack(wrapper::org::ortc::MediaStreamTrackPtr track) noexcept(false) override;
+            void addTrack(wrapper::org::ortc::MediaStreamTrackPtr track) noexcept(false) override; // throws ::zsLib::Exceptions::InvalidArgument
             void removeTrack(wrapper::org::ortc::MediaStreamTrackPtr track) noexcept override;
             wrapper::org::ortc::adapter::MediaStreamPtr clone() noexcept override;
 

@@ -37,6 +37,7 @@ wrapper::org::ortc::RTCOutboundRtpStreamStatsPtr wrapper::org::ortc::RTCOutbound
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::RTCOutboundRtpStreamStats::~RTCOutboundRtpStreamStats() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

@@ -25,7 +25,7 @@ namespace wrapper {
             // methods RTCIceCandidate
             void wrapper_init_org_ortc_adapter_RTCIceCandidate() noexcept override;
             void wrapper_init_org_ortc_adapter_RTCIceCandidate(wrapper::org::ortc::adapter::RTCIceCandidatePtr source) noexcept override;
-            void wrapper_init_org_ortc_adapter_RTCIceCandidate(wrapper::org::ortc::JsonPtr json) noexcept(false) override;
+            void wrapper_init_org_ortc_adapter_RTCIceCandidate(wrapper::org::ortc::JsonPtr json) noexcept(false) override; // throws ::zsLib::Exceptions::InvalidArgument
             String toSdp() noexcept override;
             wrapper::org::ortc::JsonPtr toJson() noexcept override;
             String hash() noexcept override;

@@ -37,6 +37,7 @@ wrapper::org::ortc::RTCIceServerPtr wrapper::org::ortc::RTCIceServer::wrapper_cr
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::RTCIceServer::~RTCIceServer() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

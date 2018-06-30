@@ -41,6 +41,7 @@ wrapper::org::ortc::RTCDataChannelParametersPtr wrapper::org::ortc::RTCDataChann
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::RTCDataChannelParameters::~RTCDataChannelParameters() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

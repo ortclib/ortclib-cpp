@@ -38,6 +38,7 @@ wrapper::org::ortc::RTCCertificatePtr wrapper::org::ortc::RTCCertificate::wrappe
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::RTCCertificate::~RTCCertificate() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

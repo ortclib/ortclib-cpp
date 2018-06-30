@@ -41,6 +41,7 @@ wrapper::org::ortc::RTCRtpFlexFecCodecParameterSettingsPtr wrapper::org::ortc::R
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::RTCRtpFlexFecCodecParameterSettings::~RTCRtpFlexFecCodecParameterSettings() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

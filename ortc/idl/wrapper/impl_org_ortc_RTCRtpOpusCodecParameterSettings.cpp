@@ -42,6 +42,7 @@ wrapper::org::ortc::RTCRtpOpusCodecParameterSettingsPtr wrapper::org::ortc::RTCR
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::RTCRtpOpusCodecParameterSettings::~RTCRtpOpusCodecParameterSettings() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

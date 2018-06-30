@@ -48,6 +48,7 @@ wrapper::org::ortc::adapter::RTCSessionDescriptionPtr wrapper::org::ortc::adapte
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::adapter::RTCSessionDescription::~RTCSessionDescription() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

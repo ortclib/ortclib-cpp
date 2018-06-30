@@ -50,6 +50,7 @@ wrapper::org::ortc::RTCSctpTransportPtr wrapper::org::ortc::RTCSctpTransport::wr
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::RTCSctpTransport::~RTCSctpTransport() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

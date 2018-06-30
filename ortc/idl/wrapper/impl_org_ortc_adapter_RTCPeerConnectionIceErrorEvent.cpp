@@ -41,6 +41,7 @@ wrapper::org::ortc::adapter::RTCPeerConnectionIceErrorEventPtr wrapper::org::ort
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::adapter::RTCPeerConnectionIceErrorEvent::~RTCPeerConnectionIceErrorEvent() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

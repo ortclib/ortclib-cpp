@@ -48,6 +48,7 @@ wrapper::org::ortc::MediaDevicesPtr wrapper::org::ortc::MediaDevices::wrapper_cr
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::MediaDevices::~MediaDevices() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

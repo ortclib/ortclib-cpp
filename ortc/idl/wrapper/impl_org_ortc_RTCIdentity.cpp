@@ -39,6 +39,7 @@ wrapper::org::ortc::RTCIdentityPtr wrapper::org::ortc::RTCIdentity::wrapper_crea
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::RTCIdentity::~RTCIdentity() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

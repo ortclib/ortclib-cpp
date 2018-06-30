@@ -37,7 +37,7 @@ namespace wrapper {
           wrapper::org::ortc::MediaTrackCapabilitiesPtr getCapabilities() noexcept override;
           wrapper::org::ortc::MediaTrackConstraintsPtr getConstraints() noexcept override;
           wrapper::org::ortc::MediaTrackSettingsPtr getSettings() noexcept override;
-          PromisePtr applyConstraints(wrapper::org::ortc::MediaTrackConstraintsPtr constraints) noexcept(false) override;
+          PromisePtr applyConstraints(wrapper::org::ortc::MediaTrackConstraintsPtr constraints) noexcept(false) override; // throws ::zsLib::Exceptions::InvalidArgument
 
           // properties MediaStreamTrack
           uint64_t get_objectId() noexcept override;

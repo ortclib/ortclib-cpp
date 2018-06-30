@@ -36,6 +36,7 @@ wrapper::org::ortc::RTCStatsReportPtr wrapper::org::ortc::RTCStatsReport::wrappe
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::RTCStatsReport::~RTCStatsReport() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

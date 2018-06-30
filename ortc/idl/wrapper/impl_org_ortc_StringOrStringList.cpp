@@ -36,6 +36,7 @@ wrapper::org::ortc::StringOrStringListPtr wrapper::org::ortc::StringOrStringList
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::StringOrStringList::~StringOrStringList() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

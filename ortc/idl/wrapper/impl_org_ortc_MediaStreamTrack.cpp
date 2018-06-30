@@ -49,6 +49,7 @@ wrapper::org::ortc::MediaStreamTrackPtr wrapper::org::ortc::MediaStreamTrack::wr
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::MediaStreamTrack::~MediaStreamTrack() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

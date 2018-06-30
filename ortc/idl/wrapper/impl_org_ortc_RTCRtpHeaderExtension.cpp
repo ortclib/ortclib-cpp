@@ -42,6 +42,7 @@ wrapper::org::ortc::RTCRtpHeaderExtensionPtr wrapper::org::ortc::RTCRtpHeaderExt
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::RTCRtpHeaderExtension::~RTCRtpHeaderExtension() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

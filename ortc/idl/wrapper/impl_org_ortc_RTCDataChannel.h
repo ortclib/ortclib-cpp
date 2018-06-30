@@ -31,16 +31,16 @@ namespace wrapper {
           virtual ~RTCDataChannel() noexcept;
 
           // methods RTCStatsProvider
-          shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept(false) override;
+          shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept(false) override; // throws ::zsLib::Exceptions::InvalidArgument::zsLib::Exceptions::BadState
 
           // methods RTCDataChannel
           void wrapper_init_org_ortc_RTCDataChannel(
             wrapper::org::ortc::RTCDataTransportPtr transport,
             wrapper::org::ortc::RTCDataChannelParametersPtr params
-            ) noexcept(false) override;
+            ) noexcept(false) override; // throws ::zsLib::Exceptions::InvalidArgument::zsLib::Exceptions::BadState
           void close() noexcept override;
-          void send(String text) noexcept(false) override;
-          void send(SecureByteBlockPtr data) noexcept(false) override;
+          void send(String text) noexcept(false) override; // throws ::zsLib::Exceptions::InvalidArgument::zsLib::Exceptions::BadState
+          void send(SecureByteBlockPtr data) noexcept(false) override; // throws ::zsLib::Exceptions::InvalidArgument::zsLib::Exceptions::BadState
 
           // properties RTCDataChannel
           uint64_t get_objectId() noexcept override;

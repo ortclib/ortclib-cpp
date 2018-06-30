@@ -39,6 +39,7 @@ wrapper::org::ortc::OverconstrainedErrorPtr wrapper::org::ortc::OverconstrainedE
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::OverconstrainedError::~OverconstrainedError() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

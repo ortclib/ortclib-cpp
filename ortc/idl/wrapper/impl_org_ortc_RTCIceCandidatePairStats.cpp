@@ -37,6 +37,7 @@ wrapper::org::ortc::RTCIceCandidatePairStatsPtr wrapper::org::ortc::RTCIceCandid
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::RTCIceCandidatePairStats::~RTCIceCandidatePairStats() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

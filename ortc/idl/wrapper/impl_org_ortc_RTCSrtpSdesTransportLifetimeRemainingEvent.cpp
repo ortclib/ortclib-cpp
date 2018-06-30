@@ -38,6 +38,7 @@ wrapper::org::ortc::RTCSrtpSdesTransportLifetimeRemainingEventPtr wrapper::org::
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::RTCSrtpSdesTransportLifetimeRemainingEvent::~RTCSrtpSdesTransportLifetimeRemainingEvent() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

@@ -61,6 +61,7 @@ wrapper::org::ortc::adapter::RTCPeerConnectionPtr wrapper::org::ortc::adapter::R
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::adapter::RTCPeerConnection::~RTCPeerConnection() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

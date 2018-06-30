@@ -37,6 +37,7 @@ wrapper::org::ortc::RTCDataChannelStatsPtr wrapper::org::ortc::RTCDataChannelSta
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::RTCDataChannelStats::~RTCDataChannelStats() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

@@ -26,11 +26,11 @@ namespace wrapper {
 
           // methods RTCIceTransportController
           void wrapper_init_org_ortc_RTCIceTransportController() noexcept override;
-          void addTransport(wrapper::org::ortc::RTCIceTransportPtr transport) noexcept(false) override;
+          void addTransport(wrapper::org::ortc::RTCIceTransportPtr transport) noexcept(false) override; // throws ::zsLib::Exceptions::InvalidArgument::zsLib::Exceptions::BadState
           void addTransport(
             wrapper::org::ortc::RTCIceTransportPtr transport,
             uint64_t index
-            ) noexcept(false) override;
+            ) noexcept(false) override; // throws ::zsLib::Exceptions::InvalidArgument::zsLib::Exceptions::BadState
 
           // properties RTCIceTransportController
           uint64_t get_objectId() noexcept override;

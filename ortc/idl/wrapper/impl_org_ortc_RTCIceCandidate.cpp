@@ -42,6 +42,7 @@ wrapper::org::ortc::RTCIceCandidatePtr wrapper::org::ortc::RTCIceCandidate::wrap
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::RTCIceCandidate::~RTCIceCandidate() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

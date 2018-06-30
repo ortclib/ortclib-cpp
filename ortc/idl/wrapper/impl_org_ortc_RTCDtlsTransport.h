@@ -30,16 +30,16 @@ namespace wrapper {
           virtual ~RTCDtlsTransport() noexcept;
 
           // methods RTCStatsProvider
-          shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept(false) override;
+          shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept(false) override; // throws ::zsLib::Exceptions::InvalidArgument::zsLib::Exceptions::BadState
 
           // methods RTCDtlsTransport
           void wrapper_init_org_ortc_RTCDtlsTransport(
             wrapper::org::ortc::RTCIceTransportPtr iceTransport,
             shared_ptr< list< wrapper::org::ortc::RTCCertificatePtr > > certificates
-            ) noexcept(false) override;
+            ) noexcept(false) override; // throws ::zsLib::Exceptions::InvalidArgument::zsLib::Exceptions::BadState
           wrapper::org::ortc::RTCDtlsParametersPtr remoteParameters() noexcept override;
           shared_ptr< list< wrapper::org::ortc::RTCDtlsCertificateBinaryPtr > > getRemoteCertificates() noexcept override;
-          void start(wrapper::org::ortc::RTCDtlsParametersPtr remoteParameters) noexcept(false) override;
+          void start(wrapper::org::ortc::RTCDtlsParametersPtr remoteParameters) noexcept(false) override; // throws ::zsLib::Exceptions::BadState::zsLib::Exceptions::InvalidArgument
           void stop() noexcept override;
 
           // properties RTCDtlsTransport

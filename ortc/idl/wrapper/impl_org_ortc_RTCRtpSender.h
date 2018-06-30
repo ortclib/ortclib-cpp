@@ -31,25 +31,25 @@ namespace wrapper {
           virtual ~RTCRtpSender() noexcept;
 
           // methods RTCStatsProvider
-          shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept(false) override;
+          shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept(false) override; // throws ::zsLib::Exceptions::InvalidArgument::zsLib::Exceptions::BadState
 
           // methods RTCRtpSender
           void wrapper_init_org_ortc_RTCRtpSender(
             wrapper::org::ortc::MediaStreamTrackPtr track,
             wrapper::org::ortc::RTCRtpTransportPtr transport
-            ) noexcept(false) override;
+            ) noexcept(false) override; // throws ::zsLib::Exceptions::InvalidArgument::zsLib::Exceptions::BadState
           void wrapper_init_org_ortc_RTCRtpSender(
             wrapper::org::ortc::MediaStreamTrackPtr track,
             wrapper::org::ortc::RTCRtpTransportPtr transport,
             wrapper::org::ortc::RTCRtcpTransportPtr rtcpTransport
-            ) noexcept(false) override;
-          void setTransport(wrapper::org::ortc::RTCRtpTransportPtr transport) noexcept(false) override;
+            ) noexcept(false) override; // throws ::zsLib::Exceptions::InvalidArgument::zsLib::Exceptions::BadState
+          void setTransport(wrapper::org::ortc::RTCRtpTransportPtr transport) noexcept(false) override; // throws ::zsLib::Exceptions::InvalidArgument::zsLib::Exceptions::BadState
           void setTransport(
             wrapper::org::ortc::RTCRtpTransportPtr transport,
             wrapper::org::ortc::RTCRtcpTransportPtr rtcpTransport
-            ) noexcept(false) override;
-          PromisePtr setTrack(wrapper::org::ortc::MediaStreamTrackPtr track) noexcept(false) override;
-          PromisePtr send(wrapper::org::ortc::RTCRtpParametersPtr parameters) noexcept(false) override;
+            ) noexcept(false) override; // throws ::zsLib::Exceptions::InvalidArgument::zsLib::Exceptions::BadState
+          PromisePtr setTrack(wrapper::org::ortc::MediaStreamTrackPtr track) noexcept(false) override; // throws ::zsLib::Exceptions::InvalidArgument::zsLib::Exceptions::BadState
+          PromisePtr send(wrapper::org::ortc::RTCRtpParametersPtr parameters) noexcept(false) override; // throws ::zsLib::Exceptions::InvalidArgument::zsLib::Exceptions::BadState
           void stop() noexcept override;
 
           // properties RTCRtpSender

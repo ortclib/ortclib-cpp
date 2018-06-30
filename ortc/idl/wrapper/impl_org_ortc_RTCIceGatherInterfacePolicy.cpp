@@ -37,6 +37,7 @@ wrapper::org::ortc::RTCIceGatherInterfacePolicyPtr wrapper::org::ortc::RTCIceGat
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::RTCIceGatherInterfacePolicy::~RTCIceGatherInterfacePolicy() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

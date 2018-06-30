@@ -39,6 +39,7 @@ wrapper::org::ortc::RTCIceGathererCandidateCompleteEventPtr wrapper::org::ortc::
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::RTCIceGathererCandidateCompleteEvent::~RTCIceGathererCandidateCompleteEvent() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

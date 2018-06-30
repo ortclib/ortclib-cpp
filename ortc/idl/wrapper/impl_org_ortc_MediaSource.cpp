@@ -36,6 +36,7 @@ wrapper::org::ortc::MediaSourcePtr wrapper::org::ortc::MediaSource::wrapper_crea
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::MediaSource::~MediaSource() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

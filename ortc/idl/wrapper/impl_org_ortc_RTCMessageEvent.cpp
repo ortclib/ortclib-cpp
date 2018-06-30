@@ -39,6 +39,7 @@ wrapper::org::ortc::RTCMessageEventPtr wrapper::org::ortc::RTCMessageEvent::wrap
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::RTCMessageEvent::~RTCMessageEvent() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

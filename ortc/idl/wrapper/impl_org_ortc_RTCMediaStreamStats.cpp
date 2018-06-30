@@ -37,6 +37,7 @@ wrapper::org::ortc::RTCMediaStreamStatsPtr wrapper::org::ortc::RTCMediaStreamSta
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::RTCMediaStreamStats::~RTCMediaStreamStats() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

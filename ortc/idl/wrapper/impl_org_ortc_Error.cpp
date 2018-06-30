@@ -40,6 +40,7 @@ wrapper::org::ortc::ErrorPtr wrapper::org::ortc::Error::wrapper_create() noexcep
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::Error::~Error() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

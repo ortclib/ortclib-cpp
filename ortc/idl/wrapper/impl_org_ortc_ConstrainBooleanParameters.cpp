@@ -36,6 +36,7 @@ wrapper::org::ortc::ConstrainBooleanParametersPtr wrapper::org::ortc::ConstrainB
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::ConstrainBooleanParameters::~ConstrainBooleanParameters() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

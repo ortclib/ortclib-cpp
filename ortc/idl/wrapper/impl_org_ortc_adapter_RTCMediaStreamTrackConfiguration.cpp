@@ -42,6 +42,7 @@ wrapper::org::ortc::adapter::RTCMediaStreamTrackConfigurationPtr wrapper::org::o
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::adapter::RTCMediaStreamTrackConfiguration::~RTCMediaStreamTrackConfiguration() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

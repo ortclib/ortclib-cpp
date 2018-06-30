@@ -42,6 +42,7 @@ wrapper::org::ortc::adapter::RTCSessionDescriptionConnectionDataPtr wrapper::org
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::adapter::RTCSessionDescriptionConnectionData::~RTCSessionDescriptionConnectionData() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

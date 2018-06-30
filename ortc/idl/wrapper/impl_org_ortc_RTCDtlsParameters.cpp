@@ -42,6 +42,7 @@ wrapper::org::ortc::RTCDtlsParametersPtr wrapper::org::ortc::RTCDtlsParameters::
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::RTCDtlsParameters::~RTCDtlsParameters() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

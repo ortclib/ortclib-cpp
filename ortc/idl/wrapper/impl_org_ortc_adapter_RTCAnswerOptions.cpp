@@ -35,6 +35,7 @@ wrapper::org::ortc::adapter::RTCAnswerOptionsPtr wrapper::org::ortc::adapter::RT
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::adapter::RTCAnswerOptions::~RTCAnswerOptions() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

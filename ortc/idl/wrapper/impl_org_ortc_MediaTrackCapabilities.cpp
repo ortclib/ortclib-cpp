@@ -38,6 +38,7 @@ wrapper::org::ortc::MediaTrackCapabilitiesPtr wrapper::org::ortc::MediaTrackCapa
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::MediaTrackCapabilities::~MediaTrackCapabilities() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

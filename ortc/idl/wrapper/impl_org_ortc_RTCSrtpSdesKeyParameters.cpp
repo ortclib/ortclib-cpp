@@ -41,6 +41,7 @@ wrapper::org::ortc::RTCSrtpSdesKeyParametersPtr wrapper::org::ortc::RTCSrtpSdesK
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::RTCSrtpSdesKeyParameters::~RTCSrtpSdesKeyParameters() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

@@ -41,6 +41,7 @@ wrapper::org::ortc::RTCIceGathererIceErrorEventPtr wrapper::org::ortc::RTCIceGat
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::RTCIceGathererIceErrorEvent::~RTCIceGathererIceErrorEvent() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

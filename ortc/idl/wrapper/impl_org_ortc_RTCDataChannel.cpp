@@ -48,6 +48,7 @@ wrapper::org::ortc::RTCDataChannelPtr wrapper::org::ortc::RTCDataChannel::wrappe
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::RTCDataChannel::~RTCDataChannel() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

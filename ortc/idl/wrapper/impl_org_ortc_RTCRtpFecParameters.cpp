@@ -41,6 +41,7 @@ wrapper::org::ortc::RTCRtpFecParametersPtr wrapper::org::ortc::RTCRtpFecParamete
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::RTCRtpFecParameters::~RTCRtpFecParameters() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

@@ -41,6 +41,7 @@ wrapper::org::ortc::MediaStreamConstraintsPtr wrapper::org::ortc::MediaStreamCon
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::MediaStreamConstraints::~MediaStreamConstraints() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

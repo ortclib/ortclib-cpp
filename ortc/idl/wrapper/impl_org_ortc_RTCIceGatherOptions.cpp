@@ -38,6 +38,7 @@ wrapper::org::ortc::RTCIceGatherOptionsPtr wrapper::org::ortc::RTCIceGatherOptio
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::RTCIceGatherOptions::~RTCIceGatherOptions() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

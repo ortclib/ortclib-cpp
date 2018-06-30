@@ -41,6 +41,7 @@ wrapper::org::ortc::RTCSctpCapabilitiesPtr wrapper::org::ortc::RTCSctpCapabiliti
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::RTCSctpCapabilities::~RTCSctpCapabilities() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

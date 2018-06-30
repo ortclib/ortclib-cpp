@@ -42,6 +42,7 @@ wrapper::org::ortc::adapter::RTCSessionDescriptionRtpMediaLinePtr wrapper::org::
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::adapter::RTCSessionDescriptionRtpMediaLine::~RTCSessionDescriptionRtpMediaLine() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

@@ -41,6 +41,7 @@ wrapper::org::ortc::RTCRtpContributingSourcePtr wrapper::org::ortc::RTCRtpContri
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::RTCRtpContributingSource::~RTCRtpContributingSource() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

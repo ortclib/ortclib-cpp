@@ -49,6 +49,7 @@ wrapper::org::ortc::RTCRtpSenderPtr wrapper::org::ortc::RTCRtpSender::wrapper_cr
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::RTCRtpSender::~RTCRtpSender() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

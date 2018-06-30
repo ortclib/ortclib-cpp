@@ -36,6 +36,7 @@ wrapper::org::ortc::LongRangePtr wrapper::org::ortc::LongRange::wrapper_create()
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::LongRange::~LongRange() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

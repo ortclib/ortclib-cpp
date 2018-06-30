@@ -42,6 +42,7 @@ wrapper::org::ortc::adapter::RTCTrackEventPtr wrapper::org::ortc::adapter::RTCTr
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::adapter::RTCTrackEvent::~RTCTrackEvent() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

@@ -104,6 +104,7 @@ wrapper::org::ortc::EventQueuePtr wrapper::org::ortc::EventQueue::wrapper_create
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::EventQueue::~EventQueue() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

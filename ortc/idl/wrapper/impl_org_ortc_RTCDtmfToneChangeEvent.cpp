@@ -39,6 +39,7 @@ wrapper::org::ortc::RTCDtmfToneChangeEventPtr wrapper::org::ortc::RTCDtmfToneCha
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::RTCDtmfToneChangeEvent::~RTCDtmfToneChangeEvent() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

@@ -46,6 +46,7 @@ wrapper::org::ortc::RTCRtpListenerPtr wrapper::org::ortc::RTCRtpListener::wrappe
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::RTCRtpListener::~RTCRtpListener() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

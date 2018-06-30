@@ -36,6 +36,7 @@ wrapper::org::ortc::MediaTrackSettingsPtr wrapper::org::ortc::MediaTrackSettings
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::MediaTrackSettings::~MediaTrackSettings() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

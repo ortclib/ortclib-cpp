@@ -40,6 +40,7 @@ wrapper::org::ortc::MediaTrackConstraintSetPtr wrapper::org::ortc::MediaTrackCon
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::MediaTrackConstraintSet::~MediaTrackConstraintSet() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

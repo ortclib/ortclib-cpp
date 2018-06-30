@@ -40,6 +40,7 @@ wrapper::org::ortc::RTCDtlsFingerprintPtr wrapper::org::ortc::RTCDtlsFingerprint
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::RTCDtlsFingerprint::~RTCDtlsFingerprint() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

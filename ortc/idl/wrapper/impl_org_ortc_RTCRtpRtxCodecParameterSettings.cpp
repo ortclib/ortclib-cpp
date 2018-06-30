@@ -41,6 +41,7 @@ wrapper::org::ortc::RTCRtpRtxCodecParameterSettingsPtr wrapper::org::ortc::RTCRt
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::RTCRtpRtxCodecParameterSettings::~RTCRtpRtxCodecParameterSettings() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

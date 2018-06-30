@@ -14,6 +14,8 @@ namespace wrapper {
         {
           MediaControlWeakPtr thisWeak_;
 
+          MediaControl() noexcept = delete;
+          MediaControl(const MediaControl &) noexcept = delete;
           virtual ~MediaControl() noexcept;
         };
 

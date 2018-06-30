@@ -39,6 +39,7 @@ wrapper::org::ortc::JsonPtr wrapper::org::ortc::Json::wrapper_create() noexcept
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::Json::~Json() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

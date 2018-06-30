@@ -42,6 +42,7 @@ wrapper::org::ortc::RTCRtcpTransportPtr wrapper::org::ortc::RTCRtcpTransport::wr
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::RTCRtcpTransport::~RTCRtcpTransport() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

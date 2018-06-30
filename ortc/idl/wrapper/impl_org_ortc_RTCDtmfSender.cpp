@@ -44,6 +44,7 @@ wrapper::org::ortc::RTCDtmfSenderPtr wrapper::org::ortc::RTCDtmfSender::wrapper_
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::RTCDtmfSender::~RTCDtmfSender() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

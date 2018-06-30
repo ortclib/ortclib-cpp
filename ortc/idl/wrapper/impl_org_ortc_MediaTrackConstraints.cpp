@@ -41,6 +41,7 @@ wrapper::org::ortc::MediaTrackConstraintsPtr wrapper::org::ortc::MediaTrackConst
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::MediaTrackConstraints::~MediaTrackConstraints() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

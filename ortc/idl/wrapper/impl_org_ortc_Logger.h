@@ -12,6 +12,8 @@ namespace wrapper {
 
         struct Logger : public wrapper::org::ortc::Logger
         {
+          Logger() noexcept = delete;
+          Logger(const Logger &) noexcept = delete;
           virtual ~Logger() noexcept;
         };
 

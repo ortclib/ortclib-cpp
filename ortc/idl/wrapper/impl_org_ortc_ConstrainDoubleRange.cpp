@@ -36,6 +36,7 @@ wrapper::org::ortc::ConstrainDoubleRangePtr wrapper::org::ortc::ConstrainDoubleR
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::ConstrainDoubleRange::~ConstrainDoubleRange() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

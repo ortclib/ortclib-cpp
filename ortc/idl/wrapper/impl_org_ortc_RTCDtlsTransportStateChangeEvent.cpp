@@ -38,6 +38,7 @@ wrapper::org::ortc::RTCDtlsTransportStateChangeEventPtr wrapper::org::ortc::RTCD
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::RTCDtlsTransportStateChangeEvent::~RTCDtlsTransportStateChangeEvent() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

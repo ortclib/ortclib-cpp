@@ -30,24 +30,24 @@ namespace wrapper {
           virtual ~RTCRtpReceiver() noexcept;
 
           // methods RTCStatsProvider
-          shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept(false) override;
+          shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept(false) override; // throws ::zsLib::Exceptions::InvalidArgument::zsLib::Exceptions::BadState
 
           // methods RTCRtpReceiver
           void wrapper_init_org_ortc_RTCRtpReceiver(
             wrapper::org::ortc::MediaStreamTrackKind kind,
             wrapper::org::ortc::RTCRtpTransportPtr transport
-            ) noexcept(false) override;
+            ) noexcept(false) override; // throws ::zsLib::Exceptions::InvalidArgument::zsLib::Exceptions::BadState
           void wrapper_init_org_ortc_RTCRtpReceiver(
             wrapper::org::ortc::MediaStreamTrackKind kind,
             wrapper::org::ortc::RTCRtpTransportPtr transport,
             wrapper::org::ortc::RTCRtcpTransportPtr rtcpTransport
-            ) noexcept(false) override;
-          void setTransport(wrapper::org::ortc::RTCRtpTransportPtr transport) noexcept(false) override;
+            ) noexcept(false) override; // throws ::zsLib::Exceptions::InvalidArgument::zsLib::Exceptions::BadState
+          void setTransport(wrapper::org::ortc::RTCRtpTransportPtr transport) noexcept(false) override; // throws ::zsLib::Exceptions::InvalidArgument::zsLib::Exceptions::BadState
           void setTransport(
             wrapper::org::ortc::RTCRtpTransportPtr transport,
             wrapper::org::ortc::RTCRtcpTransportPtr rtcpTransport
-            ) noexcept(false) override;
-          PromisePtr receive(wrapper::org::ortc::RTCRtpParametersPtr parameters) noexcept(false) override;
+            ) noexcept(false) override; // throws ::zsLib::Exceptions::InvalidArgument::zsLib::Exceptions::BadState
+          PromisePtr receive(wrapper::org::ortc::RTCRtpParametersPtr parameters) noexcept(false) override; // throws ::zsLib::Exceptions::InvalidArgument::zsLib::Exceptions::BadState
           void stop() noexcept override;
           shared_ptr< list< wrapper::org::ortc::RTCRtpContributingSourcePtr > > getContributingSources() noexcept override;
           void requestSendCsrc(uint32_t csrc) noexcept override;

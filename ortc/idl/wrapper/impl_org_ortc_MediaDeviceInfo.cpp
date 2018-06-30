@@ -41,6 +41,7 @@ wrapper::org::ortc::MediaDeviceInfoPtr wrapper::org::ortc::MediaDeviceInfo::wrap
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::MediaDeviceInfo::~MediaDeviceInfo() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

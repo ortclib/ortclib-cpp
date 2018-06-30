@@ -40,6 +40,7 @@ wrapper::org::ortc::RTCSctpTransportStateChangeEventPtr wrapper::org::ortc::RTCS
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::RTCSctpTransportStateChangeEvent::~RTCSctpTransportStateChangeEvent() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

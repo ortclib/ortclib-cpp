@@ -40,6 +40,7 @@ wrapper::org::ortc::RTCIceParametersPtr wrapper::org::ortc::RTCIceParameters::wr
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::RTCIceParameters::~RTCIceParameters() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

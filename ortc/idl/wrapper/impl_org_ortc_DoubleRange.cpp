@@ -36,6 +36,7 @@ wrapper::org::ortc::DoubleRangePtr wrapper::org::ortc::DoubleRange::wrapper_crea
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::DoubleRange::~DoubleRange() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

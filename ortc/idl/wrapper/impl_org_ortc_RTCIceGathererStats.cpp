@@ -37,6 +37,7 @@ wrapper::org::ortc::RTCIceGathererStatsPtr wrapper::org::ortc::RTCIceGathererSta
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::RTCIceGathererStats::~RTCIceGathererStats() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

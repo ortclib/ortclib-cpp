@@ -13,6 +13,8 @@ namespace wrapper {
 
         struct EventQueueMaker : public wrapper::org::ortc::EventQueueMaker
         {
+          EventQueueMaker() noexcept = delete;
+          EventQueueMaker(const EventQueueMaker &) noexcept = delete;
           virtual ~EventQueueMaker() noexcept;
         };
 

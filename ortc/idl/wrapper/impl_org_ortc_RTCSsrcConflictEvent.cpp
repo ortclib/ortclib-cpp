@@ -39,6 +39,7 @@ wrapper::org::ortc::RTCSsrcConflictEventPtr wrapper::org::ortc::RTCSsrcConflictE
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::RTCSsrcConflictEvent::~RTCSsrcConflictEvent() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

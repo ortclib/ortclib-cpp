@@ -31,15 +31,15 @@ namespace wrapper {
           virtual ~RTCRtpListener() noexcept;
 
           // methods RTCStatsProvider
-          shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept(false) override;
+          shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept(false) override; // throws ::zsLib::Exceptions::InvalidArgument::zsLib::Exceptions::BadState
 
           // methods RTCRtpListener
           void wrapper_init_org_ortc_RTCRtpListener(wrapper::org::ortc::RTCRtpTransportPtr transport) noexcept override;
           void wrapper_init_org_ortc_RTCRtpListener(
             wrapper::org::ortc::RTCRtpTransportPtr transport,
             shared_ptr< list< wrapper::org::ortc::RTCRtpHeaderExtensionParametersPtr > > headerExtensions
-            ) noexcept(false) override;
-          void setHeaderExtensions(shared_ptr< list< wrapper::org::ortc::RTCRtpHeaderExtensionParametersPtr > > headerExtensions) noexcept(false) override;
+            ) noexcept(false) override; // throws ::zsLib::Exceptions::InvalidArgument
+          void setHeaderExtensions(shared_ptr< list< wrapper::org::ortc::RTCRtpHeaderExtensionParametersPtr > > headerExtensions) noexcept(false) override; // throws ::zsLib::Exceptions::InvalidArgument
 
           // properties RTCRtpListener
           uint64_t get_objectId() noexcept override;

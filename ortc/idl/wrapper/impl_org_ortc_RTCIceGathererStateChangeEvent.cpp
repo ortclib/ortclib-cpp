@@ -39,6 +39,7 @@ wrapper::org::ortc::RTCIceGathererStateChangeEventPtr wrapper::org::ortc::RTCIce
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::RTCIceGathererStateChangeEvent::~RTCIceGathererStateChangeEvent() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

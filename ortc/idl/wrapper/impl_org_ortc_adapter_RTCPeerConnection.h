@@ -42,7 +42,7 @@ namespace wrapper {
             virtual ~RTCPeerConnection() noexcept;
 
             // methods RTCStatsProvider
-            shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept(false) override;
+            shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept(false) override; // throws ::zsLib::Exceptions::InvalidArgument::zsLib::Exceptions::BadState
 
             // methods RTCPeerConnection
             void wrapper_init_org_ortc_adapter_RTCPeerConnection() noexcept override;

@@ -44,6 +44,7 @@ wrapper::org::ortc::RTCIceGathererCandidatePtr wrapper::org::ortc::RTCIceGathere
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::RTCIceGathererCandidate::~RTCIceGathererCandidate() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

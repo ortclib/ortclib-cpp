@@ -39,6 +39,7 @@ wrapper::org::ortc::ErrorEventPtr wrapper::org::ortc::ErrorEvent::wrapper_create
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::ErrorEvent::~ErrorEvent() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

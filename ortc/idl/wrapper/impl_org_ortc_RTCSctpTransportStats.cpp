@@ -37,6 +37,7 @@ wrapper::org::ortc::RTCSctpTransportStatsPtr wrapper::org::ortc::RTCSctpTranspor
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::RTCSctpTransportStats::~RTCSctpTransportStats() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

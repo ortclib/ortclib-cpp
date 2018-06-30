@@ -41,6 +41,7 @@ wrapper::org::ortc::RTCRtpH264CodecCapabilityParametersPtr wrapper::org::ortc::R
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::RTCRtpH264CodecCapabilityParameters::~RTCRtpH264CodecCapabilityParameters() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

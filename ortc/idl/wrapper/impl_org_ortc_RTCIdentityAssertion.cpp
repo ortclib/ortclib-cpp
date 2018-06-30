@@ -35,6 +35,7 @@ wrapper::org::ortc::RTCIdentityAssertionPtr wrapper::org::ortc::RTCIdentityAsser
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::RTCIdentityAssertion::~RTCIdentityAssertion() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

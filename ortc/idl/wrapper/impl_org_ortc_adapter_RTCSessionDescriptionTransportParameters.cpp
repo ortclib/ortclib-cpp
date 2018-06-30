@@ -46,6 +46,7 @@ wrapper::org::ortc::adapter::RTCSessionDescriptionTransportParametersPtr wrapper
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::adapter::RTCSessionDescriptionTransportParameters::~RTCSessionDescriptionTransportParameters() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

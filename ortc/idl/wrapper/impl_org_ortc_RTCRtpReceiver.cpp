@@ -50,6 +50,7 @@ wrapper::org::ortc::RTCRtpReceiverPtr wrapper::org::ortc::RTCRtpReceiver::wrappe
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::RTCRtpReceiver::~RTCRtpReceiver() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

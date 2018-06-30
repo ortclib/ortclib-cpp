@@ -17,6 +17,8 @@ namespace wrapper {
           ZS_DECLARE_TYPEDEF_PTR(OrtcLib, WrapperImplType);
           ZS_DECLARE_TYPEDEF_PTR(wrapper::org::ortc::OrtcLib, WrapperType);
 
+          OrtcLib() noexcept = delete;
+          OrtcLib(const OrtcLib &) noexcept = delete;
           virtual ~OrtcLib() noexcept;
         };
 

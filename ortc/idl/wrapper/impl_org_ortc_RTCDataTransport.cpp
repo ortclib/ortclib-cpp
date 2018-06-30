@@ -40,6 +40,7 @@ wrapper::org::ortc::RTCDataTransportPtr wrapper::org::ortc::RTCDataTransport::wr
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::RTCDataTransport::~RTCDataTransport() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

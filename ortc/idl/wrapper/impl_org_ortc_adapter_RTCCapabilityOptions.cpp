@@ -40,6 +40,7 @@ wrapper::org::ortc::adapter::RTCCapabilityOptionsPtr wrapper::org::ortc::adapter
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::adapter::RTCCapabilityOptions::~RTCCapabilityOptions() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

@@ -27,11 +27,11 @@ namespace wrapper {
             void wrapper_init_org_ortc_adapter_RTCSessionDescription(
               wrapper::org::ortc::adapter::RTCSessionDescriptionSignalingType type,
               String description
-              ) noexcept(false) override;
+              ) noexcept(false) override; // throws ::zsLib::Exceptions::InvalidArgument::zsLib::Exceptions::BadState
             void wrapper_init_org_ortc_adapter_RTCSessionDescription(
               wrapper::org::ortc::adapter::RTCSessionDescriptionSignalingType type,
               wrapper::org::ortc::adapter::RTCSessionDescriptionDescriptionPtr description
-              ) noexcept(false) override;
+              ) noexcept(false) override; // throws ::zsLib::Exceptions::InvalidArgument::zsLib::Exceptions::BadState
 
             // properties RTCSessionDescription
             uint64_t get_objectId() noexcept override;

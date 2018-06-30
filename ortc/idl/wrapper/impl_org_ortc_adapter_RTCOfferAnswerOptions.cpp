@@ -40,6 +40,7 @@ wrapper::org::ortc::adapter::RTCOfferAnswerOptionsPtr wrapper::org::ortc::adapte
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::adapter::RTCOfferAnswerOptions::~RTCOfferAnswerOptions() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

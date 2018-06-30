@@ -30,35 +30,35 @@ namespace wrapper {
           virtual ~RTCIceTransport() noexcept;
 
           // methods RTCStatsProvider
-          shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept(false) override;
+          shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept(false) override; // throws ::zsLib::Exceptions::InvalidArgument::zsLib::Exceptions::BadState
 
           // methods RTCIceTransport
           void wrapper_init_org_ortc_RTCIceTransport() noexcept override;
-          void wrapper_init_org_ortc_RTCIceTransport(wrapper::org::ortc::RTCIceGathererPtr gatherer) noexcept(false) override;
+          void wrapper_init_org_ortc_RTCIceTransport(wrapper::org::ortc::RTCIceGathererPtr gatherer) noexcept(false) override; // throws ::zsLib::Exceptions::InvalidArgument::zsLib::Exceptions::BadState
           void start(
             wrapper::org::ortc::RTCIceGathererPtr gatherer,
             wrapper::org::ortc::RTCIceParametersPtr remoteParameters
-            ) noexcept(false) override;
+            ) noexcept(false) override; // throws ::zsLib::Exceptions::InvalidArgument::zsLib::Exceptions::BadState
           void start(
             wrapper::org::ortc::RTCIceGathererPtr gatherer,
             wrapper::org::ortc::RTCIceParametersPtr remoteParameters,
             wrapper::org::ortc::RTCIceRole role
-            ) noexcept(false) override;
+            ) noexcept(false) override; // throws ::zsLib::Exceptions::InvalidArgument::zsLib::Exceptions::BadState
           void start(
             wrapper::org::ortc::RTCIceGathererPtr gatherer,
             wrapper::org::ortc::RTCIceParametersPtr remoteParameters,
             wrapper::org::ortc::RTCIceTransportOptionsPtr options
-            ) noexcept(false) override;
+            ) noexcept(false) override; // throws ::zsLib::Exceptions::InvalidArgument::zsLib::Exceptions::BadState
           void stop() noexcept override;
           wrapper::org::ortc::RTCIceTransportPtr createAssociatedTransport() noexcept override;
-          void addRemoteCandidate(wrapper::org::ortc::RTCIceGathererCandidatePtr remoteCandidate) noexcept(false) override;
-          void setRemoteCandidates(shared_ptr< list< wrapper::org::ortc::RTCIceCandidatePtr > > remoteCandidates) noexcept(false) override;
-          void removeRemoteCandidate(wrapper::org::ortc::RTCIceGathererCandidatePtr remoteCandidate) noexcept(false) override;
-          void keepWarm(wrapper::org::ortc::RTCIceCandidatePairPtr candidatePair) noexcept(false) override;
+          void addRemoteCandidate(wrapper::org::ortc::RTCIceGathererCandidatePtr remoteCandidate) noexcept(false) override; // throws ::zsLib::Exceptions::BadState::zsLib::Exceptions::InvalidArgument
+          void setRemoteCandidates(shared_ptr< list< wrapper::org::ortc::RTCIceCandidatePtr > > remoteCandidates) noexcept(false) override; // throws ::zsLib::Exceptions::BadState::zsLib::Exceptions::InvalidArgument
+          void removeRemoteCandidate(wrapper::org::ortc::RTCIceGathererCandidatePtr remoteCandidate) noexcept(false) override; // throws ::zsLib::Exceptions::BadState::zsLib::Exceptions::InvalidArgument
+          void keepWarm(wrapper::org::ortc::RTCIceCandidatePairPtr candidatePair) noexcept(false) override; // throws ::zsLib::Exceptions::BadState
           void keepWarm(
             wrapper::org::ortc::RTCIceCandidatePairPtr candidatePair,
             bool keepWarm
-            ) noexcept(false) override;
+            ) noexcept(false) override; // throws ::zsLib::Exceptions::BadState
 
           // properties RTCIceTransport
           uint64_t get_objectId() noexcept override;

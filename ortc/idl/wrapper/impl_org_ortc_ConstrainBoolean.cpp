@@ -37,6 +37,7 @@ wrapper::org::ortc::ConstrainBooleanPtr wrapper::org::ortc::ConstrainBoolean::wr
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::ConstrainBoolean::~ConstrainBoolean() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

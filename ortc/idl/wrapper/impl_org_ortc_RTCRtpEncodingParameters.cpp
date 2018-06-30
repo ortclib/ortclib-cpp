@@ -43,6 +43,7 @@ wrapper::org::ortc::RTCRtpEncodingParametersPtr wrapper::org::ortc::RTCRtpEncodi
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::RTCRtpEncodingParameters::~RTCRtpEncodingParameters() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

@@ -40,6 +40,7 @@ wrapper::org::ortc::RTCRtcpFeedbackPtr wrapper::org::ortc::RTCRtcpFeedback::wrap
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::RTCRtcpFeedback::~RTCRtcpFeedback() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

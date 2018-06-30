@@ -39,6 +39,7 @@ wrapper::org::ortc::RTCIceCandidatePairChangeEventPtr wrapper::org::ortc::RTCIce
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::RTCIceCandidatePairChangeEvent::~RTCIceCandidatePairChangeEvent() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

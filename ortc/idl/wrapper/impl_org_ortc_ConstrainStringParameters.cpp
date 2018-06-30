@@ -37,6 +37,7 @@ wrapper::org::ortc::ConstrainStringParametersPtr wrapper::org::ortc::ConstrainSt
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::ConstrainStringParameters::~ConstrainStringParameters() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

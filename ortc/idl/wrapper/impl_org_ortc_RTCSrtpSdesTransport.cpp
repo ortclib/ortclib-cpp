@@ -49,6 +49,7 @@ wrapper::org::ortc::RTCSrtpSdesTransportPtr wrapper::org::ortc::RTCSrtpSdesTrans
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::RTCSrtpSdesTransport::~RTCSrtpSdesTransport() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

@@ -50,6 +50,7 @@ wrapper::org::ortc::RTCIceGathererPtr wrapper::org::ortc::RTCIceGatherer::wrappe
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::RTCIceGatherer::~RTCIceGatherer() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

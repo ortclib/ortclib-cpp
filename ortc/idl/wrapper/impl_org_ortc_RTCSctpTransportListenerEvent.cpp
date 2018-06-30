@@ -40,6 +40,7 @@ wrapper::org::ortc::RTCSctpTransportListenerEventPtr wrapper::org::ortc::RTCSctp
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::RTCSctpTransportListenerEvent::~RTCSctpTransportListenerEvent() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

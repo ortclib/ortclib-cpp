@@ -53,6 +53,7 @@ namespace wrapper {
         ZS_DECLARE_STRUCT_PTR(Error);
         ZS_DECLARE_STRUCT_PTR(ErrorEvent);
         ZS_DECLARE_STRUCT_PTR(EventQueue);
+        ZS_DECLARE_STRUCT_PTR(EventQueueMaker);
         ZS_DECLARE_STRUCT_PTR(Json);
         ZS_DECLARE_STRUCT_PTR(Logger);
         ZS_DECLARE_STRUCT_PTR(LongRange);

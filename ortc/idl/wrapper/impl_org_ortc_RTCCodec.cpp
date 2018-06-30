@@ -37,6 +37,7 @@ wrapper::org::ortc::RTCCodecPtr wrapper::org::ortc::RTCCodec::wrapper_create() n
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::RTCCodec::~RTCCodec() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

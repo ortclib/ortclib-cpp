@@ -39,6 +39,7 @@ wrapper::org::ortc::RTCDtlsCertificateBinaryPtr wrapper::org::ortc::RTCDtlsCerti
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::RTCDtlsCertificateBinary::~RTCDtlsCertificateBinary() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

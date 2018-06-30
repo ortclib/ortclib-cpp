@@ -37,6 +37,7 @@ wrapper::org::ortc::ConstrainLongPtr wrapper::org::ortc::ConstrainLong::wrapper_
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::ConstrainLong::~ConstrainLong() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

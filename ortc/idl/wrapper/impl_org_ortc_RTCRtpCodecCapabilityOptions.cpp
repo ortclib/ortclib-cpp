@@ -40,6 +40,7 @@ wrapper::org::ortc::RTCRtpCodecCapabilityOptionsPtr wrapper::org::ortc::RTCRtpCo
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::RTCRtpCodecCapabilityOptions::~RTCRtpCodecCapabilityOptions() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

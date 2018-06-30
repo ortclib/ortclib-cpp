@@ -30,18 +30,18 @@ namespace wrapper {
           virtual ~RTCDtmfSender() noexcept;
 
           // methods RTCDtmfSender
-          void wrapper_init_org_ortc_RTCDtmfSender(wrapper::org::ortc::RTCRtpSenderPtr sender) noexcept(false) override;
+          void wrapper_init_org_ortc_RTCDtmfSender(wrapper::org::ortc::RTCRtpSenderPtr sender) noexcept(false) override; // throws ::zsLib::Exceptions::BadState
           bool canInsertDtmf() noexcept override;
-          void insertDtmf(String tones) noexcept(false) override;
+          void insertDtmf(String tones) noexcept(false) override; // throws ::zsLib::Exceptions::BadState::zsLib::Exceptions::InvalidArgument
           void insertDtmf(
             String tones,
             ::zsLib::Milliseconds duration
-            ) noexcept(false) override;
+            ) noexcept(false) override; // throws ::zsLib::Exceptions::BadState::zsLib::Exceptions::InvalidArgument
           void insertDtmf(
             String tones,
             ::zsLib::Milliseconds duration,
             ::zsLib::Milliseconds interToneGap
-            ) noexcept(false) override;
+            ) noexcept(false) override; // throws ::zsLib::Exceptions::BadState::zsLib::Exceptions::InvalidArgument
 
           // properties RTCDtmfSender
           uint64_t get_objectId() noexcept override;

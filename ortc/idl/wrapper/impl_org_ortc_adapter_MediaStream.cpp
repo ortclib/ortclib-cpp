@@ -44,6 +44,7 @@ wrapper::org::ortc::adapter::MediaStreamPtr wrapper::org::ortc::adapter::MediaSt
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::adapter::MediaStream::~MediaStream() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

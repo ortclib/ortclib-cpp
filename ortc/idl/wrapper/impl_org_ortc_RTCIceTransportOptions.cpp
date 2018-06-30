@@ -41,6 +41,7 @@ wrapper::org::ortc::RTCIceTransportOptionsPtr wrapper::org::ortc::RTCIceTranspor
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::RTCIceTransportOptions::~RTCIceTransportOptions() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

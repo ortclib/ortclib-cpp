@@ -31,14 +31,14 @@ namespace wrapper {
           virtual ~RTCSrtpSdesTransport() noexcept;
 
           // methods RTCStatsProvider
-          shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept(false) override;
+          shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept(false) override; // throws ::zsLib::Exceptions::InvalidArgument::zsLib::Exceptions::BadState
 
           // methods RTCSrtpSdesTransport
           void wrapper_init_org_ortc_RTCSrtpSdesTransport(
             wrapper::org::ortc::RTCIceTransportPtr iceTransport,
             wrapper::org::ortc::RTCSrtpSdesCryptoParametersPtr encryptParameters,
             wrapper::org::ortc::RTCSrtpSdesCryptoParametersPtr decryptParameters
-            ) noexcept(false) override;
+            ) noexcept(false) override; // throws ::zsLib::Exceptions::InvalidArgument::zsLib::Exceptions::BadState
           void stop() noexcept override;
 
           // properties RTCSrtpSdesTransport

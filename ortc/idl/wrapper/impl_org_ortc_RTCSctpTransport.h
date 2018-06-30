@@ -31,19 +31,19 @@ namespace wrapper {
           virtual ~RTCSctpTransport() noexcept;
 
           // methods RTCStatsProvider
-          shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept(false) override;
+          shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept(false) override; // throws ::zsLib::Exceptions::InvalidArgument::zsLib::Exceptions::BadState
 
           // methods RTCSctpTransport
-          void wrapper_init_org_ortc_RTCSctpTransport(wrapper::org::ortc::RTCDtlsTransportPtr transport) noexcept(false) override;
+          void wrapper_init_org_ortc_RTCSctpTransport(wrapper::org::ortc::RTCDtlsTransportPtr transport) noexcept(false) override; // throws ::zsLib::Exceptions::InvalidArgument::zsLib::Exceptions::BadState
           void wrapper_init_org_ortc_RTCSctpTransport(
             wrapper::org::ortc::RTCDtlsTransportPtr transport,
             uint16_t localPort
-            ) noexcept(false) override;
-          void start(wrapper::org::ortc::RTCSctpCapabilitiesPtr remoteCapabilities) noexcept(false) override;
+            ) noexcept(false) override; // throws ::zsLib::Exceptions::InvalidArgument::zsLib::Exceptions::BadState
+          void start(wrapper::org::ortc::RTCSctpCapabilitiesPtr remoteCapabilities) noexcept(false) override; // throws ::zsLib::Exceptions::BadState::zsLib::Exceptions::InvalidArgument
           void start(
             wrapper::org::ortc::RTCSctpCapabilitiesPtr remoteCapabilities,
             uint16_t remotePort
-            ) noexcept(false) override;
+            ) noexcept(false) override; // throws ::zsLib::Exceptions::BadState::zsLib::Exceptions::InvalidArgument
           void stop() noexcept override;
 
           // properties RTCSctpTransport

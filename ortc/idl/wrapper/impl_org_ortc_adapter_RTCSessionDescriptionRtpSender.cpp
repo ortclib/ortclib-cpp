@@ -42,6 +42,7 @@ wrapper::org::ortc::adapter::RTCSessionDescriptionRtpSenderPtr wrapper::org::ort
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::adapter::RTCSessionDescriptionRtpSender::~RTCSessionDescriptionRtpSender() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

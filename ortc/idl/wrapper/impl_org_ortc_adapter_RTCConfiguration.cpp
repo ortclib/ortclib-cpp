@@ -44,6 +44,7 @@ wrapper::org::ortc::adapter::RTCConfigurationPtr wrapper::org::ortc::adapter::RT
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::adapter::RTCConfiguration::~RTCConfiguration() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

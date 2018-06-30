@@ -40,6 +40,7 @@ wrapper::org::ortc::RTCDataChannelEventPtr wrapper::org::ortc::RTCDataChannelEve
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::RTCDataChannelEvent::~RTCDataChannelEvent() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------

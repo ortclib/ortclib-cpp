@@ -30,11 +30,11 @@ namespace wrapper {
           virtual ~RTCIceGatherer() noexcept;
 
           // methods RTCStatsProvider
-          shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept(false) override;
+          shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::RTCStatsReportPtr > > getStats(wrapper::org::ortc::RTCStatsTypeSetPtr statTypes) noexcept(false) override; // throws ::zsLib::Exceptions::InvalidArgument::zsLib::Exceptions::BadState
 
           // methods RTCIceGatherer
-          void wrapper_init_org_ortc_RTCIceGatherer(wrapper::org::ortc::RTCIceGatherOptionsPtr options) noexcept(false) override;
-          wrapper::org::ortc::RTCIceGathererPtr createAssociatedGatherer() noexcept(false) override;
+          void wrapper_init_org_ortc_RTCIceGatherer(wrapper::org::ortc::RTCIceGatherOptionsPtr options) noexcept(false) override; // throws ::zsLib::Exceptions::InvalidArgument
+          wrapper::org::ortc::RTCIceGathererPtr createAssociatedGatherer() noexcept(false) override; // throws ::zsLib::Exceptions::BadState
           void gather() noexcept override;
           void gather(wrapper::org::ortc::RTCIceGatherOptionsPtr options) noexcept override;
           void close() noexcept override;

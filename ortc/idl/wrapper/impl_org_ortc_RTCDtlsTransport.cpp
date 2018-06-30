@@ -49,6 +49,7 @@ wrapper::org::ortc::RTCDtlsTransportPtr wrapper::org::ortc::RTCDtlsTransport::wr
 //------------------------------------------------------------------------------
 wrapper::impl::org::ortc::RTCDtlsTransport::~RTCDtlsTransport() noexcept
 {
+  thisWeak_.reset();
 }
 
 //------------------------------------------------------------------------------
