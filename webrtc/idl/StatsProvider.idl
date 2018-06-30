@@ -31,7 +31,7 @@
 
 namespace org
 {
-  namespace webrtc
+  namespace webRtc
   {
     /// <summary>
     /// The RTCStatsProvider interface enables the retrieval of statistics.

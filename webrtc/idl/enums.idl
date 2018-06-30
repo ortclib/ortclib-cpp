@@ -32,7 +32,7 @@
 
 namespace org
 {
-  namespace webrtc
+  namespace webRtc
   {
     /// <summary>
     /// The RTCSignalingState describes the current state of an offer / 

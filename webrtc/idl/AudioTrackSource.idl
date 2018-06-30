@@ -32,7 +32,7 @@
 
 namespace org
 {
-  namespace webrtc
+  namespace webRtc
   {
     /// <summary>
     /// Base class for sources. A MediaStreamTrack has an underlying source that

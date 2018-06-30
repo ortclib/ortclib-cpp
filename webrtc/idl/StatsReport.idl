@@ -31,7 +31,7 @@
 
 namespace org
 {
-  namespace webrtc
+  namespace webRtc
   {
     typedef uint32 SsrcType;
     typedef uint8 PayloadType;

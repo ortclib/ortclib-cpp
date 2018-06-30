@@ -31,7 +31,7 @@
 
 namespace org
 {
-  namespace webrtc
+  namespace webRtc
   {
     [dictionary]
     struct RTCRSAParams
