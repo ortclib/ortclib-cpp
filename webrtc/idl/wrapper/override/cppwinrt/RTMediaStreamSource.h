@@ -11,88 +11,112 @@
 #define WEBRTC_BUILD_WINUWP_GYP_API_RTMEDIASTREAMSOURCE_H_
 
 #include "MediaSourceHelper.h"
+
+#include <wrapper/impl_org_webrtc_pre_include.h>
 #include "api/mediastreaminterface.h"
 #include "rtc_base/criticalsection.h"
+#include <wrapper/impl_org_webrtc_post_include.h>
 
-using Windows::Media::Core::MediaStreamSource;
-using Platform::WeakReference;
-using Platform::String;
-using Windows::System::Threading::ThreadPoolTimer;
-using Windows::Media::Core::MediaStreamSourceSampleRequest;
 
 namespace Org {
-	namespace WebRtc {
-		namespace Internal {
-			ref class RTMediaStreamSource sealed {
-			public:
-				virtual ~RTMediaStreamSource();
-				void Teardown();
+  namespace WebRtc {
+    namespace Internal {
+      //using Windows::Media::Core::MediaStreamSource;
+      //using Platform::WeakReference;
+      //using Windows::System::Threading::ThreadPoolTimer;
+      //using Windows::Media::Core::MediaStreamSourceSampleRequest;
 
-				void OnSampleRequested(Windows::Media::Core::MediaStreamSource ^sender,
-					Windows::Media::Core::MediaStreamSourceSampleRequestedEventArgs ^args);
+      ref class RTMediaStreamSource sealed {
+        typedef Windows::Media::Core::MediaStreamSource MediaStreamSource;
+        typedef Windows::System::Threading::ThreadPoolTimer ThreadPoolTimer;
+        typedef Windows::Media::Core::MediaStreamSourceSampleRequest MediaStreamSourceSampleRequest;
+        typedef Platform::WeakReference WeakReference;
 
-			internal:
-				static RTMediaStreamSource^ CreateMediaSource(
-					VideoFrameType frameType, String^ id);
+      public:
+        virtual ~RTMediaStreamSource();
+        void Teardown();
 
-				MediaStreamSource^ GetMediaStreamSource();
+        void OnSampleRequested(Windows::Media::Core::MediaStreamSource ^sender,
+          Windows::Media::Core::MediaStreamSourceSampleRequestedEventArgs ^args);
 
-				void RenderFrame(const webrtc::VideoFrame *frame);
+      internal:
+        static RTMediaStreamSource^ CreateMediaSource(
+                                                      VideoFrameType frameType,
+                                                      Platform::String^ id
+                                                      );
 
-			private:
-				class RTCRenderer : public rtc::VideoSinkInterface<webrtc::VideoFrame> {
-				public:
-					explicit RTCRenderer(RTMediaStreamSource^ streamSource);
-					virtual ~RTCRenderer();
-					virtual void SetSize(uint32 width, uint32 height, uint32 reserved);
-					virtual void RenderFrame(const webrtc::VideoFrame *frame);
-					virtual bool CanApplyRotation() { return true; }
-					void OnFrame(const webrtc::VideoFrame& frame) override {
-						RenderFrame(&frame);
-					}
-				private:
-					// This object is owned by RTMediaStreamSource
-					// so _streamSource must be a weak reference
-					WeakReference _streamSource;
-				};
+        MediaStreamSource^ GetMediaStreamSource();
 
-				RTMediaStreamSource(VideoFrameType frameType);
-				void ProcessReceivedFrame(webrtc::VideoFrame *frame);
-				bool ConvertFrame(IMFMediaBuffer* mediaBuffer, webrtc::VideoFrame* frame);
-				void ResizeSource(uint32 width, uint32 height);
+        void RenderFrame(const webrtc::VideoFrame *frame);
 
-				HRESULT MakeSampleCallback(webrtc::VideoFrame* frame, IMFSample** sample);
-				void FpsCallback(int fps);
+      private:
+        class RTCRenderer : public rtc::VideoSinkInterface<webrtc::VideoFrame> {
+        public:
+          explicit RTCRenderer(RTMediaStreamSource^ streamSource);
+          virtual ~RTCRenderer();
+          virtual void SetSize(
+                               uint32 width,
+                               uint32 height,
+                               uint32 reserved
+                               );
+          virtual void RenderFrame(const webrtc::VideoFrame *frame);
+          virtual bool CanApplyRotation() { return true; }
+          void OnFrame(const webrtc::VideoFrame& frame) override
+          {
+            RenderFrame(&frame);
+          }
+        private:
+          // This object is owned by RTMediaStreamSource
+          // so _streamSource must be a weak reference
+          WeakReference _streamSource;
+        };
 
-				String^ _id;  // Provided by the calling API.
-				std::string _idUtf8; // Provided by the calling API, same as _id
+        RTMediaStreamSource(VideoFrameType frameType);
+        void ProcessReceivedFrame(webrtc::VideoFrame *frame);
+        bool ConvertFrame(
+                          IMFMediaBuffer* mediaBuffer,
+                          webrtc::VideoFrame* frame
+                          );
+        void ResizeSource(
+                          uint32 width,
+                          uint32 height
+                          );
 
-				MediaStreamSource^ _mediaStreamSource;
-				std::unique_ptr<RTCRenderer> _rtcRenderer;
-				rtc::CriticalSection _critSect;
+        HRESULT MakeSampleCallback(
+                                   webrtc::VideoFrame* frame,
+                                   IMFSample** sample
+                                   );
+        void FpsCallback(int fps);
 
-				std::unique_ptr<MediaSourceHelper> _helper;
+        void ProgressTimerElapsedExecute(ThreadPoolTimer^ source);
+        void FPSTimerElapsedExecute(ThreadPoolTimer^ source);
+        void ReplyToSampleRequest();
 
-				ThreadPoolTimer^ _progressTimer;
-				void ProgressTimerElapsedExecute(ThreadPoolTimer^ source);
+        Platform::String^ _id;  // Provided by the calling API.
+        std::string _idUtf8; // Provided by the calling API, same as _id
 
-				ThreadPoolTimer^ _fpsTimer;
-				void FPSTimerElapsedExecute(ThreadPoolTimer^ source);
-				bool _frameSentThisTime;
+        MediaStreamSource^ _mediaStreamSource;
+        std::unique_ptr<RTCRenderer> _rtcRenderer;
+        rtc::CriticalSection _critSect;
 
-				Windows::Media::Core::VideoStreamDescriptor^ _videoDesc;
+        std::unique_ptr<MediaSourceHelper> _helper;
 
-				void ReplyToSampleRequest();
+        ThreadPoolTimer^ _progressTimer;
 
-				MediaStreamSourceSampleRequest^ _request;
-				Windows::Media::Core::MediaStreamSourceSampleRequestDeferral^ _deferral;
-				Windows::Media::Core::MediaStreamSourceStartingRequestDeferral^ _startingDeferral;
-				Windows::Media::Core::MediaStreamSourceStartingEventArgs^ _startingArgs;
+        ThreadPoolTimer^ _fpsTimer;
+        bool _frameSentThisTime {};
 
-				ULONG _frameBeingQueued;
-			};
-		}
-	}
+        Windows::Media::Core::VideoStreamDescriptor^ _videoDesc;
+
+        MediaStreamSourceSampleRequest^ _request;
+        Windows::Media::Core::MediaStreamSourceSampleRequestDeferral^ _deferral;
+        Windows::Media::Core::MediaStreamSourceStartingRequestDeferral^ _startingDeferral;
+        Windows::Media::Core::MediaStreamSourceStartingEventArgs^ _startingArgs;
+
+        ULONG _frameBeingQueued {};
+      };
+    }
+  }
 }  // namespace Org.WebRtc.Internal
 
 #endif  // WEBRTC_BUILD_WINUWP_GYP_API_RTMEDIASTREAMSOURCE_H_

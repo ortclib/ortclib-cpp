@@ -65,9 +65,9 @@ namespace wrapper {
           mutable zsLib::Lock lock_;
           UseMediaElementPtr element_;
           UseMediaSourcePtr source_;
-		  Org::WebRtc::Internal::RTMediaStreamSource^ mediaStreamSource_;
-		  Org::WebRtc::Internal::VideoFrameType currentFrameType_;
-		  bool firstFrameReceived_ { false };
+          Org::WebRtc::Internal::RTMediaStreamSource^ mediaStreamSource_;
+          Org::WebRtc::Internal::VideoFrameType currentFrameType_;
+          bool firstFrameReceived_ { false };
 
           MediaStreamTrackWeakPtr thisWeak_;
 
