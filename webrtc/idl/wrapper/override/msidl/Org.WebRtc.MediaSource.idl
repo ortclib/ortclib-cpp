@@ -1,0 +1,40 @@
+import "forwards.idl";
+import "output.idl";
+
+namespace Org
+{
+    namespace Webrtc
+    {
+
+
+        /// <summary>
+        /// MediaSource represents an object holder for a platform specific
+        /// media source.
+        /// </summary>
+        [version(1.0)]
+        [uuid(58a56d3e-a3d5-0b90-6729-2da6b742b9d9)]
+        interface IMediaSource : IInspectable
+        {
+
+            /// <summary>
+            /// Gets or sets the platform specific media source.
+            /// </summary>
+            Windows.Media.Core.IMediaSource Source { get; set; };
+        };
+
+        /// <summary>
+        /// MediaSource represents an object holder for a platform specific
+        /// media source.
+        /// </summary>
+        runtimeclass MediaSource : [default] IMediaSource
+        {
+
+            /// <summary>
+            /// Cast from Org.Webrtc.IMediaSource to Org.Webrtc.MediaSource
+            /// </summary>
+            static Org.Webrtc.MediaSource CastFromIMediaSource(Org.Webrtc.IMediaSource source);
+        };
+
+    } // namespace Webrtc
+} // namespace Org
+

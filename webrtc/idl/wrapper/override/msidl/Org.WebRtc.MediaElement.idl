@@ -1,0 +1,40 @@
+import "forwards.idl";
+import "output.idl";
+
+namespace Org
+{
+    namespace Webrtc
+    {
+
+
+        /// <summary>
+        /// MediaSource represents an object holder for a platform specific
+        /// media element.
+        /// </summary>
+        [version(1.0)]
+        [uuid(63b69797-058b-8f50-b94a-76ba7ab67922)]
+        interface IMediaElement : IInspectable
+        {
+
+            /// <summary>
+            /// Gets or sets the platform specific media element.
+            /// </summary>
+          Windows.UI.Xaml.Controls.MediaElement Element { get; set; };
+        };
+
+        /// <summary>
+        /// MediaSource represents an object holder for a platform specific
+        /// media element.
+        /// </summary>
+        runtimeclass MediaElement : [default] IMediaElement
+        {
+
+            /// <summary>
+            /// Cast from Org.Webrtc.IMediaElement to Org.Webrtc.MediaElement
+            /// </summary>
+            static Org.Webrtc.MediaElement CastFromIMediaElement(Org.Webrtc.IMediaElement source);
+        };
+
+    } // namespace Webrtc
+} // namespace Org
+
