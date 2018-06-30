@@ -3,7 +3,7 @@ import "output.idl";
 
 namespace Org
 {
-    namespace Webrtc
+    namespace WebRtc
     {
 
 
@@ -30,11 +30,11 @@ namespace Org
         {
 
             /// <summary>
-            /// Cast from Org.Webrtc.IMediaSource to Org.Webrtc.MediaSource
+            /// Cast from Org.WebRtc.IMediaSource to Org.WebRtc.MediaSource
             /// </summary>
-            static Org.Webrtc.MediaSource CastFromIMediaSource(Org.Webrtc.IMediaSource source);
+            static Org.WebRtc.MediaSource CastFromIMediaSource(Org.WebRtc.IMediaSource source);
         };
 
-    } // namespace Webrtc
+    } // namespace WebRtc
 } // namespace Org
 

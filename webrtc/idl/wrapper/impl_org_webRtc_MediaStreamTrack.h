@@ -4,12 +4,13 @@
 #include "types.h"
 #include "generated/org_webRtc_MediaStreamTrack.h"
 
+#include "impl_org_webRtc_MediaSourceHelper.h"
+#include "impl_org_webRtc_MediaStreamSource.h"
+
 #include "impl_org_webRtc_pre_include.h"
 #include "rtc_base/scoped_ref_ptr.h"
 #include "api/video/video_frame.h"
 #include "api/mediastreaminterface.h"
-#include "override/cppwinrt/MediaSourceHelper.h"
-#include "override/cppwinrt/RTMediaStreamSource.h"
 #include "impl_org_webRtc_post_include.h"
 
 #include <set>
@@ -65,9 +66,9 @@ namespace wrapper {
           mutable zsLib::Lock lock_;
           UseMediaElementPtr element_;
           UseMediaSourcePtr source_;
-		  Org::WebRtc::Internal::RTMediaStreamSource^ mediaStreamSource_;
-		  Org::WebRtc::Internal::VideoFrameType currentFrameType_;
-		  bool firstFrameReceived_ { false };
+          MediaStreamSource^ mediaStreamSource_;
+          VideoFrameType currentFrameType_;
+          bool firstFrameReceived_ { false };
 
           MediaStreamTrackWeakPtr thisWeak_;
 

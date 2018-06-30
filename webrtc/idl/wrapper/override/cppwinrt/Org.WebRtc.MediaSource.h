@@ -6,12 +6,12 @@
 
 #include <wrapper/generated/cppwinrt/types.h>
 
-#include "Org/Webrtc/MediaSource.g.h"
+#include "Org/WebRtc/MediaSource.g.h"
 #include <wrapper/generated/org_webRtc_MediaSource.h>
 
 namespace winrt {
   namespace Org {
-    namespace Webrtc {
+    namespace WebRtc {
       namespace implementation {
 
 
@@ -28,28 +28,28 @@ namespace winrt {
           MediaSource(const WrapperCreate &) {}
 
           // ToCppWinrtImpl
-          static winrt::com_ptr< Org::Webrtc::implementation::MediaSource > ToCppWinrtImpl(wrapper::org::webRtc::MediaSourcePtr value);
-          static winrt::com_ptr< Org::Webrtc::implementation::MediaSource > ToCppWinrtImpl(Org::Webrtc::MediaSource const & value);
-          static winrt::com_ptr< Org::Webrtc::implementation::MediaSource > ToCppWinrtImpl(winrt::com_ptr< Org::Webrtc::implementation::MediaSource > const & value);
-          static winrt::com_ptr< Org::Webrtc::implementation::MediaSource > ToCppWinrtImpl(Org::Webrtc::IMediaSource const & value);
+          static winrt::com_ptr< Org::WebRtc::implementation::MediaSource > ToCppWinrtImpl(wrapper::org::webRtc::MediaSourcePtr value);
+          static winrt::com_ptr< Org::WebRtc::implementation::MediaSource > ToCppWinrtImpl(Org::WebRtc::MediaSource const & value);
+          static winrt::com_ptr< Org::WebRtc::implementation::MediaSource > ToCppWinrtImpl(winrt::com_ptr< Org::WebRtc::implementation::MediaSource > const & value);
+          static winrt::com_ptr< Org::WebRtc::implementation::MediaSource > ToCppWinrtImpl(Org::WebRtc::IMediaSource const & value);
 
           // ToCppWinrt
-          static Org::Webrtc::MediaSource ToCppWinrt(wrapper::org::webRtc::MediaSourcePtr value);
-          static Org::Webrtc::MediaSource ToCppWinrt(Org::Webrtc::MediaSource const & value);
-          static Org::Webrtc::MediaSource ToCppWinrt(winrt::com_ptr< Org::Webrtc::implementation::MediaSource > const & value);
-          static Org::Webrtc::MediaSource ToCppWinrt(Org::Webrtc::IMediaSource const & value);
+          static Org::WebRtc::MediaSource ToCppWinrt(wrapper::org::webRtc::MediaSourcePtr value);
+          static Org::WebRtc::MediaSource ToCppWinrt(Org::WebRtc::MediaSource const & value);
+          static Org::WebRtc::MediaSource ToCppWinrt(winrt::com_ptr< Org::WebRtc::implementation::MediaSource > const & value);
+          static Org::WebRtc::MediaSource ToCppWinrt(Org::WebRtc::IMediaSource const & value);
 
           // ToCppWinrtInterface
-          static Org::Webrtc::IMediaSource ToCppWinrtInterface(wrapper::org::webRtc::MediaSourcePtr value);
-          static Org::Webrtc::IMediaSource ToCppWinrtInterface(Org::Webrtc::MediaSource const & value);
-          static Org::Webrtc::IMediaSource ToCppWinrtInterface(winrt::com_ptr< Org::Webrtc::implementation::MediaSource > const & value);
-          static Org::Webrtc::IMediaSource ToCppWinrtInterface(Org::Webrtc::IMediaSource const & value);
+          static Org::WebRtc::IMediaSource ToCppWinrtInterface(wrapper::org::webRtc::MediaSourcePtr value);
+          static Org::WebRtc::IMediaSource ToCppWinrtInterface(Org::WebRtc::MediaSource const & value);
+          static Org::WebRtc::IMediaSource ToCppWinrtInterface(winrt::com_ptr< Org::WebRtc::implementation::MediaSource > const & value);
+          static Org::WebRtc::IMediaSource ToCppWinrtInterface(Org::WebRtc::IMediaSource const & value);
 
           // FromCppWinrt
           static wrapper::org::webRtc::MediaSourcePtr FromCppWinrt(wrapper::org::webRtc::MediaSourcePtr value);
-          static wrapper::org::webRtc::MediaSourcePtr FromCppWinrt(winrt::com_ptr< Org::Webrtc::implementation::MediaSource > const & value);
-          static wrapper::org::webRtc::MediaSourcePtr FromCppWinrt(Org::Webrtc::MediaSource const & value);
-          static wrapper::org::webRtc::MediaSourcePtr FromCppWinrt(Org::Webrtc::IMediaSource const & value);
+          static wrapper::org::webRtc::MediaSourcePtr FromCppWinrt(winrt::com_ptr< Org::WebRtc::implementation::MediaSource > const & value);
+          static wrapper::org::webRtc::MediaSourcePtr FromCppWinrt(Org::WebRtc::MediaSource const & value);
+          static wrapper::org::webRtc::MediaSourcePtr FromCppWinrt(Org::WebRtc::IMediaSource const & value);
 
 
 
@@ -57,9 +57,9 @@ namespace winrt {
         public:
           MediaSource();
           /// <summary>
-          /// Cast from Org::Webrtc::IMediaSource to MediaSource
+          /// Cast from Org::WebRtc::IMediaSource to MediaSource
           /// </summary>
-          static Org::Webrtc::MediaSource CastFromIMediaSource(Org::Webrtc::IMediaSource const & value);
+          static Org::WebRtc::MediaSource CastFromIMediaSource(Org::WebRtc::IMediaSource const & value);
 
           /// <summary>
           /// Gets or sets the platform specific media source.
@@ -80,7 +80,7 @@ namespace winrt {
 
       } // namespace factory_implementation
 
-    } // namespace Webrtc
+    } // namespace WebRtc
   } // namespace Org
 } // namespace winrt
 #endif //ifndef CPPWINRT_USE_GENERATED_ORG_WEBRTC_MEDIASOURCE

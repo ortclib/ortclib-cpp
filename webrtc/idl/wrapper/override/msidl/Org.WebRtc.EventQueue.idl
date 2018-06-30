@@ -4,7 +4,7 @@ import "output.idl";
 
 namespace Org
 {
-    namespace Webrtc
+    namespace WebRtc
     {
 
 
@@ -23,21 +23,21 @@ namespace Org
         runtimeclass EventQueue : [default] IEventQueue
         {
             /// <summary>
-            /// Cast from Org.Webrtc.IEventQueue to Org.Webrtc.EventQueue
+            /// Cast from Org.WebRtc.IEventQueue to Org.WebRtc.EventQueue
             /// </summary>
-            static Org.Webrtc.EventQueue CastFromIEventQueue(Org.Webrtc.IEventQueue source);
+            static Org.WebRtc.EventQueue CastFromIEventQueue(Org.WebRtc.IEventQueue source);
 
             /// <summary>
             /// The default windows message queue for the system GUI thread.
             /// </summary>
-            static Org.Webrtc.IEventQueue GetDefaultForUi();
+            static Org.WebRtc.IEventQueue GetDefaultForUi();
 
             /// <summary>
             /// Gets or sets the default system dispatcher object.
             /// </summary>
-            static Org.Webrtc.IEventQueue Singleton { get; set; };
+            static Org.WebRtc.IEventQueue Singleton { get; set; };
         };
 
-    } // namespace Webrtc
+    } // namespace WebRtc
 } // namespace Org
 

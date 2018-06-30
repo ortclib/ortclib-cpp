@@ -4,130 +4,130 @@
 #ifndef CPPWINRT_USE_GENERATED_ORG_WEBRTC_MEDIASOURCE
 
 #include <wrapper/generated/cppwinrt/cppwinrt_Helpers.h>
-#include <wrapper/override/cppwinrt/Org.Webrtc.MediaSource.h>
+#include <wrapper/override/cppwinrt/Org.WebRtc.MediaSource.h>
 
 #include <wrapper/impl_org_webRtc_MediaSource.h>
 
 using namespace winrt;
 
 //------------------------------------------------------------------------------
-winrt::com_ptr< Org::Webrtc::implementation::MediaSource > Org::Webrtc::implementation::MediaSource::ToCppWinrtImpl(wrapper::org::webRtc::MediaSourcePtr value)
+winrt::com_ptr< Org::WebRtc::implementation::MediaSource > Org::WebRtc::implementation::MediaSource::ToCppWinrtImpl(wrapper::org::webRtc::MediaSourcePtr value)
 {
   if (!value) return nullptr;
-  auto result = winrt::make_self<Org::Webrtc::implementation::MediaSource>(WrapperCreate{});
+  auto result = winrt::make_self<Org::WebRtc::implementation::MediaSource>(WrapperCreate{});
   result->native_ = value;
   return result;
 }
 
 //------------------------------------------------------------------------------
-winrt::com_ptr< Org::Webrtc::implementation::MediaSource > Org::Webrtc::implementation::MediaSource::ToCppWinrtImpl(Org::Webrtc::MediaSource const & value)
+winrt::com_ptr< Org::WebRtc::implementation::MediaSource > Org::WebRtc::implementation::MediaSource::ToCppWinrtImpl(Org::WebRtc::MediaSource const & value)
 {
-  winrt::com_ptr< Org::Webrtc::implementation::MediaSource > impl{ nullptr };
-  impl.copy_from(winrt::from_abi<Org::Webrtc::implementation::MediaSource>(value));
+  winrt::com_ptr< Org::WebRtc::implementation::MediaSource > impl{ nullptr };
+  impl.copy_from(winrt::from_abi<Org::WebRtc::implementation::MediaSource>(value));
   return impl;
 }
 
 //------------------------------------------------------------------------------
-winrt::com_ptr< Org::Webrtc::implementation::MediaSource > Org::Webrtc::implementation::MediaSource::ToCppWinrtImpl(winrt::com_ptr< Org::Webrtc::implementation::MediaSource > const & value)
+winrt::com_ptr< Org::WebRtc::implementation::MediaSource > Org::WebRtc::implementation::MediaSource::ToCppWinrtImpl(winrt::com_ptr< Org::WebRtc::implementation::MediaSource > const & value)
 {
   return value;
 }
 
 //------------------------------------------------------------------------------
-winrt::com_ptr< Org::Webrtc::implementation::MediaSource > Org::Webrtc::implementation::MediaSource::ToCppWinrtImpl(Org::Webrtc::IMediaSource const & value)
+winrt::com_ptr< Org::WebRtc::implementation::MediaSource > Org::WebRtc::implementation::MediaSource::ToCppWinrtImpl(Org::WebRtc::IMediaSource const & value)
 {
-  winrt::com_ptr< Org::Webrtc::implementation::MediaSource > impl{ nullptr };
-  impl.copy_from(winrt::from_abi<Org::Webrtc::implementation::MediaSource>(value));
+  winrt::com_ptr< Org::WebRtc::implementation::MediaSource > impl{ nullptr };
+  impl.copy_from(winrt::from_abi<Org::WebRtc::implementation::MediaSource>(value));
   return impl;
 }
 
 //------------------------------------------------------------------------------
-Org::Webrtc::MediaSource Org::Webrtc::implementation::MediaSource::ToCppWinrt(wrapper::org::webRtc::MediaSourcePtr value)
+Org::WebRtc::MediaSource Org::WebRtc::implementation::MediaSource::ToCppWinrt(wrapper::org::webRtc::MediaSourcePtr value)
 {
   auto result = ToCppWinrtImpl(value);
-  return result.as< Org::Webrtc::MediaSource >();
+  return result.as< Org::WebRtc::MediaSource >();
 }
 
 //------------------------------------------------------------------------------
-Org::Webrtc::MediaSource Org::Webrtc::implementation::MediaSource::ToCppWinrt(Org::Webrtc::MediaSource const & value)
+Org::WebRtc::MediaSource Org::WebRtc::implementation::MediaSource::ToCppWinrt(Org::WebRtc::MediaSource const & value)
 {
   return value;
 }
 
 //------------------------------------------------------------------------------
-Org::Webrtc::MediaSource Org::Webrtc::implementation::MediaSource::ToCppWinrt(winrt::com_ptr< Org::Webrtc::implementation::MediaSource > const & value)
+Org::WebRtc::MediaSource Org::WebRtc::implementation::MediaSource::ToCppWinrt(winrt::com_ptr< Org::WebRtc::implementation::MediaSource > const & value)
 {
-  return value.as< Org::Webrtc::MediaSource >();
+  return value.as< Org::WebRtc::MediaSource >();
 }
 
 //------------------------------------------------------------------------------
-Org::Webrtc::MediaSource Org::Webrtc::implementation::MediaSource::ToCppWinrt(Org::Webrtc::IMediaSource const & value)
+Org::WebRtc::MediaSource Org::WebRtc::implementation::MediaSource::ToCppWinrt(Org::WebRtc::IMediaSource const & value)
 {
-  return value.as< Org::Webrtc::MediaSource >();
+  return value.as< Org::WebRtc::MediaSource >();
 }
 
 //------------------------------------------------------------------------------
-Org::Webrtc::IMediaSource Org::Webrtc::implementation::MediaSource::ToCppWinrtInterface(wrapper::org::webRtc::MediaSourcePtr value)
+Org::WebRtc::IMediaSource Org::WebRtc::implementation::MediaSource::ToCppWinrtInterface(wrapper::org::webRtc::MediaSourcePtr value)
 {
   auto result = ToCppWinrtImpl(value);
-  return result.as< Org::Webrtc::IMediaSource >();
+  return result.as< Org::WebRtc::IMediaSource >();
 }
 
 //------------------------------------------------------------------------------
-Org::Webrtc::IMediaSource Org::Webrtc::implementation::MediaSource::ToCppWinrtInterface(Org::Webrtc::MediaSource const & value)
+Org::WebRtc::IMediaSource Org::WebRtc::implementation::MediaSource::ToCppWinrtInterface(Org::WebRtc::MediaSource const & value)
 {
-  return value.as< Org::Webrtc::MediaSource >();
+  return value.as< Org::WebRtc::MediaSource >();
 }
 
 //------------------------------------------------------------------------------
-Org::Webrtc::IMediaSource Org::Webrtc::implementation::MediaSource::ToCppWinrtInterface(winrt::com_ptr< Org::Webrtc::implementation::MediaSource > const & value)
+Org::WebRtc::IMediaSource Org::WebRtc::implementation::MediaSource::ToCppWinrtInterface(winrt::com_ptr< Org::WebRtc::implementation::MediaSource > const & value)
 {
-  return value.as< Org::Webrtc::MediaSource >();
+  return value.as< Org::WebRtc::MediaSource >();
 }
 
 //------------------------------------------------------------------------------
-Org::Webrtc::IMediaSource Org::Webrtc::implementation::MediaSource::ToCppWinrtInterface(Org::Webrtc::IMediaSource const & value)
+Org::WebRtc::IMediaSource Org::WebRtc::implementation::MediaSource::ToCppWinrtInterface(Org::WebRtc::IMediaSource const & value)
 {
   return value;
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webRtc::MediaSourcePtr Org::Webrtc::implementation::MediaSource::FromCppWinrt(winrt::com_ptr< Org::Webrtc::implementation::MediaSource > const & value)
+wrapper::org::webRtc::MediaSourcePtr Org::WebRtc::implementation::MediaSource::FromCppWinrt(winrt::com_ptr< Org::WebRtc::implementation::MediaSource > const & value)
 {
   if (!value) return wrapper::org::webRtc::MediaSourcePtr();
   return value->native_;
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webRtc::MediaSourcePtr Org::Webrtc::implementation::MediaSource::FromCppWinrt(Org::Webrtc::MediaSource const & value)
+wrapper::org::webRtc::MediaSourcePtr Org::WebRtc::implementation::MediaSource::FromCppWinrt(Org::WebRtc::MediaSource const & value)
 {
   return FromCppWinrt(ToCppWinrtImpl(value));
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webRtc::MediaSourcePtr Org::Webrtc::implementation::MediaSource::FromCppWinrt(wrapper::org::webRtc::MediaSourcePtr value)
+wrapper::org::webRtc::MediaSourcePtr Org::WebRtc::implementation::MediaSource::FromCppWinrt(wrapper::org::webRtc::MediaSourcePtr value)
 {
   return value;
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webRtc::MediaSourcePtr Org::Webrtc::implementation::MediaSource::FromCppWinrt(Org::Webrtc::IMediaSource const & value)
+wrapper::org::webRtc::MediaSourcePtr Org::WebRtc::implementation::MediaSource::FromCppWinrt(Org::WebRtc::IMediaSource const & value)
 {
   return FromCppWinrt(ToCppWinrtImpl(value));
 }
 
 //------------------------------------------------------------------------------
-Org::Webrtc::implementation::MediaSource::MediaSource()
+Org::WebRtc::implementation::MediaSource::MediaSource()
   : native_(wrapper::org::webRtc::MediaSource::wrapper_create())
 {
   native_->wrapper_init_org_webRtc_MediaSource();
 }
 
 //------------------------------------------------------------------------------
-Org::Webrtc::MediaSource Org::Webrtc::implementation::MediaSource::CastFromIMediaSource(Org::Webrtc::IMediaSource const & value)
+Org::WebRtc::MediaSource Org::WebRtc::implementation::MediaSource::CastFromIMediaSource(Org::WebRtc::IMediaSource const & value)
 {
   if (!value) return nullptr;
-  auto nativeObject = ::Internal::Helper::FromCppWinrt_Org_Webrtc_MediaSource(value);
+  auto nativeObject = ::Internal::Helper::FromCppWinrt_Org_WebRtc_MediaSource(value);
   if (!nativeObject) return nullptr;
   auto result = std::dynamic_pointer_cast< wrapper::org::webRtc::MediaSource >(nativeObject);
   if (!result) return nullptr;
@@ -135,7 +135,7 @@ Org::Webrtc::MediaSource Org::Webrtc::implementation::MediaSource::CastFromIMedi
 }
 
 //------------------------------------------------------------------------------
-Windows::Media::Core::IMediaSource Org::Webrtc::implementation::MediaSource::Source()
+Windows::Media::Core::IMediaSource Org::WebRtc::implementation::MediaSource::Source()
 {
   if (!native_) { throw hresult_error(E_POINTER); }
 
@@ -146,7 +146,7 @@ Windows::Media::Core::IMediaSource Org::Webrtc::implementation::MediaSource::Sou
 }
 
 //------------------------------------------------------------------------------
-void Org::Webrtc::implementation::MediaSource::Source(Windows::Media::Core::IMediaSource const & source)
+void Org::WebRtc::implementation::MediaSource::Source(Windows::Media::Core::IMediaSource const & source)
 {
   if (!native_) { throw hresult_error(E_POINTER); }
   native_ = wrapper::impl::org::webRtc::MediaSource::toWrapper(source);

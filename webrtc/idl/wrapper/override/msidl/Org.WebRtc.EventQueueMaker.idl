@@ -4,7 +4,7 @@ import "output.idl";
 
 namespace Org
 {
-    namespace Webrtc
+    namespace WebRtc
     {
 
 
@@ -19,21 +19,21 @@ namespace Org
         runtimeclass EventQueueMaker : [default] IEventQueueMaker
         {
             /// <summary>
-            /// Cast from Org.Webrtc.IEventQueueMaker to Org.Webrtc.EventQueueMaker
+            /// Cast from Org.WebRtc.IEventQueueMaker to Org.WebRtc.EventQueueMaker
             /// </summary>
-            static Org.Webrtc.EventQueueMaker CastFromIEventQueueMaker(Org.Webrtc.IEventQueueMaker source);
+            static Org.WebRtc.EventQueueMaker CastFromIEventQueueMaker(Org.WebRtc.IEventQueueMaker source);
 
             /// <summary>
             /// Creates an event queue object from a native queue type.
             /// </summary>
-            static Org.Webrtc.IEventQueue BindQueue(Windows.UI.Core.CoreDispatcher Queue);
+            static Org.WebRtc.IEventQueue BindQueue(Windows.UI.Core.CoreDispatcher Queue);
 
             /// <summary>
             /// Extracts a native queue from an event queue object.
             /// </summary>
-            static Windows.UI.Core.CoreDispatcher ExtractQueue(Org.Webrtc.IEventQueue Queue);
+            static Windows.UI.Core.CoreDispatcher ExtractQueue(Org.WebRtc.IEventQueue Queue);
         };
 
-    } // namespace Webrtc
+    } // namespace WebRtc
 } // namespace Org
 

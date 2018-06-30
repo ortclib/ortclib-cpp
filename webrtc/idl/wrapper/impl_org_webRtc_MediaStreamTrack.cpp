@@ -342,11 +342,11 @@ void WrapperImplType::teardownObserver()
 //------------------------------------------------------------------------------
 void WrapperImplType::notifyFrame(const ::webrtc::VideoFrame& frame) noexcept
 {
-	Org::WebRtc::Internal::VideoFrameType frameType;
+  VideoFrameType frameType {};
 	if (frame.video_frame_buffer()->ToI420() != nullptr)
-		frameType = Org::WebRtc::Internal::FrameTypeI420;
+		frameType = VideoFrameType::FrameTypeI420;
 	else
-		frameType = Org::WebRtc::Internal::FrameTypeH264;
+		frameType = VideoFrameType::FrameTypeH264;
 
 	if (frameType != currentFrameType_ || !firstFrameReceived_) {
 		{
@@ -354,7 +354,7 @@ void WrapperImplType::notifyFrame(const ::webrtc::VideoFrame& frame) noexcept
 
 			firstFrameReceived_ = true;
 			currentFrameType_ = frameType;
-			mediaStreamSource_ = Org::WebRtc::Internal::RTMediaStreamSource::CreateMediaSource(frameType, "");
+			mediaStreamSource_ = MediaStreamSource::CreateMediaSource(frameType, "");
 		}
 		Windows::Media::Core::IMediaSource^ source = mediaStreamSource_->GetMediaStreamSource();
 		notifyAboutNewMediaSource(*this, source);
