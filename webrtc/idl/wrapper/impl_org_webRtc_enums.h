@@ -53,8 +53,8 @@ namespace wrapper {
           ZS_NO_DISCARD() static wrapper::org::webRtc::RTCContinualGatheringPolicy toWrapper(::webrtc::PeerConnectionInterface::ContinualGatheringPolicy value) noexcept;
           ZS_NO_DISCARD() static ::webrtc::PeerConnectionInterface::ContinualGatheringPolicy toNative(wrapper::org::webRtc::RTCContinualGatheringPolicy value) noexcept;
 
-          ZS_NO_DISCARD() static wrapper::org::webRtc::RTCAdapterType toWrapper(::rtc::AdapterType value) noexcept;
-          ZS_NO_DISCARD() static ::rtc::AdapterType toNative(wrapper::org::webRtc::RTCAdapterType value) noexcept;
+          ZS_NO_DISCARD() static wrapper::org::webRtc::RTCNetworkType toWrapper(::rtc::AdapterType value) noexcept;
+          ZS_NO_DISCARD() static ::rtc::AdapterType toNative(wrapper::org::webRtc::RTCNetworkType value) noexcept;
 
           ZS_NO_DISCARD() static wrapper::org::webRtc::RTCSdpSemantics toWrapper(::webrtc::SdpSemantics value) noexcept;
           ZS_NO_DISCARD() static ::webrtc::SdpSemantics toNative(wrapper::org::webRtc::RTCSdpSemantics value) noexcept;
@@ -218,6 +218,35 @@ namespace wrapper {
             kStatsReportTypeDataChannel,
           };
 
+          enum RTCCodecType {
+            RTCCodecType_encode,
+            RTCCodecType_decode,
+          };
+
+          enum RTCQualityLimitationReason {
+            RTCQualityLimitationReason_none,
+            RTCQualityLimitationReason_cpu,
+            RTCQualityLimitationReason_bandwidth,
+            RTCQualityLimitationReason_other,
+          };
+
+          enum RTCIceRole {
+            RTCIceRole_controlling,
+            RTCIceRole_controlled,
+          };
+
+          enum RTCDtlsTransportState {
+            RTCDtlsTransportState_new,
+            RTCDtlsTransportState_connecting,
+            RTCDtlsTransportState_connected,
+            RTCDtlsTransportState_closed,
+            RTCDtlsTransportState_failed,
+          };
+
+          "apit/stats/rtcstats_objects.h"
+
+          
+          
 
           // no conversion possible
           enum RTCPeerConnectionState {

@@ -228,32 +228,34 @@ wrapper::org::webRtc::RTCContinualGatheringPolicy UseEnum::toWrapper(::webrtc::P
 
 
 //-----------------------------------------------------------------------------
-wrapper::org::webRtc::RTCAdapterType UseEnum::toWrapper(::rtc::AdapterType value) noexcept
+wrapper::org::webRtc::RTCNetworkType UseEnum::toWrapper(::rtc::AdapterType value) noexcept
 {
   switch (value)
   {
-    case ::rtc::AdapterType::ADAPTER_TYPE_UNKNOWN:    return wrapper::org::webRtc::RTCAdapterType::RTCAdapterType_unknown;
-    case ::rtc::AdapterType::ADAPTER_TYPE_ETHERNET:   return wrapper::org::webRtc::RTCAdapterType::RTCAdapterType_ethernet;
-    case ::rtc::AdapterType::ADAPTER_TYPE_WIFI:       return wrapper::org::webRtc::RTCAdapterType::RTCAdapterType_wifi;
-    case ::rtc::AdapterType::ADAPTER_TYPE_CELLULAR:   return wrapper::org::webRtc::RTCAdapterType::RTCAdapterType_cellular;
-    case ::rtc::AdapterType::ADAPTER_TYPE_VPN:        return wrapper::org::webRtc::RTCAdapterType::RTCAdapterType_vpn;
-    case ::rtc::AdapterType::ADAPTER_TYPE_LOOPBACK:   return wrapper::org::webRtc::RTCAdapterType::RTCAdapterType_loopback;
+    case ::rtc::AdapterType::ADAPTER_TYPE_UNKNOWN:    return wrapper::org::webRtc::RTCNetworkType::RTCNetworkType_unknown;
+    case ::rtc::AdapterType::ADAPTER_TYPE_ETHERNET:   return wrapper::org::webRtc::RTCNetworkType::RTCNetworkType_ethernet;
+    case ::rtc::AdapterType::ADAPTER_TYPE_WIFI:       return wrapper::org::webRtc::RTCNetworkType::RTCNetworkType_wifi;
+    case ::rtc::AdapterType::ADAPTER_TYPE_CELLULAR:   return wrapper::org::webRtc::RTCNetworkType::RTCNetworkType_cellular;
+    case ::rtc::AdapterType::ADAPTER_TYPE_VPN:        return wrapper::org::webRtc::RTCNetworkType::RTCNetworkType_vpn;
+    case ::rtc::AdapterType::ADAPTER_TYPE_LOOPBACK:   return wrapper::org::webRtc::RTCNetworkType::RTCNetworkType_loopback;
   }
   ZS_ASSERT_FAIL("unknown type");
-  return wrapper::org::webRtc::RTCAdapterType::RTCAdapterType_unknown;
+  return wrapper::org::webRtc::RTCNetworkType::RTCNetworkType_unknown;
 }
 
 //-----------------------------------------------------------------------------
-::rtc::AdapterType UseEnum::toNative(wrapper::org::webRtc::RTCAdapterType value) noexcept
+::rtc::AdapterType UseEnum::toNative(wrapper::org::webRtc::RTCNetworkType value) noexcept
 {
   switch (value)
   {
-    case wrapper::org::webRtc::RTCAdapterType::RTCAdapterType_unknown:    return ::rtc::AdapterType::ADAPTER_TYPE_UNKNOWN;
-    case wrapper::org::webRtc::RTCAdapterType::RTCAdapterType_ethernet:   return ::rtc::AdapterType::ADAPTER_TYPE_ETHERNET;
-    case wrapper::org::webRtc::RTCAdapterType::RTCAdapterType_wifi:       return ::rtc::AdapterType::ADAPTER_TYPE_WIFI;
-    case wrapper::org::webRtc::RTCAdapterType::RTCAdapterType_cellular:   return ::rtc::AdapterType::ADAPTER_TYPE_CELLULAR;
-    case wrapper::org::webRtc::RTCAdapterType::RTCAdapterType_vpn:        return ::rtc::AdapterType::ADAPTER_TYPE_VPN;
-    case wrapper::org::webRtc::RTCAdapterType::RTCAdapterType_loopback:   return ::rtc::AdapterType::ADAPTER_TYPE_LOOPBACK;
+    case wrapper::org::webRtc::RTCNetworkType::RTCNetworkType_unknown:    return ::rtc::AdapterType::ADAPTER_TYPE_UNKNOWN;
+    case wrapper::org::webRtc::RTCNetworkType::RTCNetworkType_ethernet:   return ::rtc::AdapterType::ADAPTER_TYPE_ETHERNET;
+    case wrapper::org::webRtc::RTCNetworkType::RTCNetworkType_wifi:       return ::rtc::AdapterType::ADAPTER_TYPE_WIFI;
+    case wrapper::org::webRtc::RTCNetworkType::RTCNetworkType_cellular:   return ::rtc::AdapterType::ADAPTER_TYPE_CELLULAR;
+    case wrapper::org::webRtc::RTCNetworkType::RTCNetworkType_vpn:        return ::rtc::AdapterType::ADAPTER_TYPE_VPN;
+    case wrapper::org::webRtc::RTCNetworkType::RTCNetworkType_loopback:   return ::rtc::AdapterType::ADAPTER_TYPE_LOOPBACK;
+    case wrapper::org::webRtc::RTCNetworkType::RTCNetworkType_bluetooth:  return ::rtc::AdapterType::ADAPTER_TYPE_UNKNOWN;
+    case wrapper::org::webRtc::RTCNetworkType::RTCNetworkType_wimax:      return ::rtc::AdapterType::ADAPTER_TYPE_UNKNOWN;
   }
   ZS_ASSERT_FAIL("unknown type");
   return ::rtc::AdapterType::ADAPTER_TYPE_UNKNOWN;
