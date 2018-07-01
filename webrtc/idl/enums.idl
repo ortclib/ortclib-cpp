@@ -885,6 +885,42 @@ namespace org
       other,
     };
 
+    enum RTCIceRole {
+      /// <summary>
+      /// A controlling agent as defined by [ICE], Section 3.
+      /// </summary>
+      controlling,
+      /// <summary>
+      /// A controlled agent as defined by [ICE], Section 3.
+      /// </summary>
+      controlled
+    };
+
+    enum RTCDtlsTransportState {
+      /// <summary>
+      /// DTLS has not started negotiating yet.
+      /// </summary>
+      new,
+      /// <summary>
+      /// DTLS is in the process of negotiating a secure connection and verifying the remote fingerprint.
+      /// </summary>
+      connecting,
+      /// <summary>
+      /// DTLS has completed negotiation of a secure connection and verified the remote fingerprint.
+      /// </summary>
+      connected,
+      /// <summary>
+      /// The transport has been closed intentionally as the result of receipt of a
+      /// close_notify alert, or calling close().
+      /// </summary>
+      closed,
+      /// <summary>
+      /// The transport has failed as the result of an error (such as receipt of an error alert
+      /// or failure to validate the remote fingerprint).
+      /// </summary>
+      failed
+    };
+
   }
 }
 

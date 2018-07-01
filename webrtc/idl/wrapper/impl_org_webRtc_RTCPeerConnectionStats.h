@@ -3,7 +3,7 @@
 #pragma once
 
 #include "types.h"
-#include "generated/org_webRtc_RTCSctpTransportStats.h"
+#include "generated/org_webRtc_RTCPeerConnectionStats.h"
 
 
 namespace wrapper {
@@ -11,12 +11,12 @@ namespace wrapper {
     namespace org {
       namespace webRtc {
 
-        struct RTCSctpTransportStats : public wrapper::org::webRtc::RTCSctpTransportStats
+        struct RTCPeerConnectionStats : public wrapper::org::webRtc::RTCPeerConnectionStats
         {
-          RTCSctpTransportStatsWeakPtr thisWeak_;
+          RTCPeerConnectionStatsWeakPtr thisWeak_;
 
-          RTCSctpTransportStats() noexcept;
-          virtual ~RTCSctpTransportStats() noexcept;
+          RTCPeerConnectionStats() noexcept;
+          virtual ~RTCPeerConnectionStats() noexcept;
 
           // properties RTCStats
           ::zsLib::Time get_timestamp() noexcept override;
@@ -24,13 +24,11 @@ namespace wrapper {
           String get_statsTypeOther() noexcept override;
           String get_id() noexcept override;
 
-          // methods RTCSctpTransportStats
-          void wrapper_init_org_webRtc_RTCSctpTransportStats() noexcept override;
-          void wrapper_init_org_webRtc_RTCSctpTransportStats(wrapper::org::webRtc::RTCSctpTransportStatsPtr source) noexcept override;
-
-          // properties RTCSctpTransportStats
+          // properties RTCPeerConnectionStats
           unsigned long get_dataChannelsOpened() noexcept override;
           unsigned long get_dataChannelsClosed() noexcept override;
+          unsigned long get_dataChannelsRequested() noexcept override;
+          unsigned long get_dataChannelsAccepted() noexcept override;
         };
 
       } // webRtc

@@ -40,16 +40,6 @@ wrapper::impl::org::webRtc::RTCStats::~RTCStats() noexcept
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webRtc::RTCStats::wrapper_init_org_webRtc_RTCStats() noexcept
-{
-}
-
-//------------------------------------------------------------------------------
-void wrapper::impl::org::webRtc::RTCStats::wrapper_init_org_webRtc_RTCStats(wrapper::org::webRtc::RTCStatsPtr source) noexcept
-{
-}
-
-//------------------------------------------------------------------------------
 ::zsLib::Time wrapper::impl::org::webRtc::RTCStats::get_timestamp() noexcept
 {
   ::zsLib::Time result {};

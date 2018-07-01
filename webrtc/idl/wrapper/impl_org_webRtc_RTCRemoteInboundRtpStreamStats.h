@@ -3,7 +3,7 @@
 #pragma once
 
 #include "types.h"
-#include "generated/org_webRtc_RTCInboundRtpStreamStats.h"
+#include "generated/org_webRtc_RTCRemoteInboundRtpStreamStats.h"
 
 
 namespace wrapper {
@@ -11,12 +11,12 @@ namespace wrapper {
     namespace org {
       namespace webRtc {
 
-        struct RTCInboundRtpStreamStats : public wrapper::org::webRtc::RTCInboundRtpStreamStats
+        struct RTCRemoteInboundRtpStreamStats : public wrapper::org::webRtc::RTCRemoteInboundRtpStreamStats
         {
-          RTCInboundRtpStreamStatsWeakPtr thisWeak_;
+          RTCRemoteInboundRtpStreamStatsWeakPtr thisWeak_;
 
-          RTCInboundRtpStreamStats() noexcept;
-          virtual ~RTCInboundRtpStreamStats() noexcept;
+          RTCRemoteInboundRtpStreamStats() noexcept;
+          virtual ~RTCRemoteInboundRtpStreamStats() noexcept;
 
           // properties RTCStats
           ::zsLib::Time get_timestamp() noexcept override;
@@ -50,18 +50,10 @@ namespace wrapper {
           double get_gapLossRate() noexcept override;
           double get_gapDiscardRate() noexcept override;
 
-          // properties RTCInboundRtpStreamStats
-          String get_trackId() noexcept override;
-          String get_receiverId() noexcept override;
-          String get_remoteId() noexcept override;
-          Optional< unsigned long > get_framesDecoded() noexcept override;
-          ::zsLib::Time get_lastPacketReceivedTimestamp() noexcept override;
-          double get_averageRtcpInterval() noexcept override;
-          unsigned long get_fecPacketsReceived() noexcept override;
-          unsigned long long get_bytesReceived() noexcept override;
-          unsigned long get_packetsFailedDecryption() noexcept override;
-          unsigned long get_packetsDuplicated() noexcept override;
-          shared_ptr< map< String, unsigned long > > get_perDscpPacketsReceived() noexcept override;
+          // properties RTCRemoteInboundRtpStreamStats
+          String get_localId() noexcept override;
+          double get_roundTripTime() noexcept override;
+          double get_fractionLost() noexcept override;
         };
 
       } // webRtc

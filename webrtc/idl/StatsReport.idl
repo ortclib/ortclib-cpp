@@ -673,7 +673,7 @@ namespace org
       /// RTCInboundRtpStreamStats object for the same SSRC.
       /// </summary>
       [getter]
-      String localId;
+      string localId;
 
       /// <summary>
       /// Gets remoteTimestamp, of type DOMHighResTimeStamp [HIGHRES-TIME],
@@ -823,7 +823,7 @@ namespace org
       /// another host via an RTCPeerConnection. False otherwise. Only applicable
       /// for 'track' stats.
       /// </summary>
-      [getter, optionsl]
+      [getter, optional]
       bool remoteSource;
 
       /// <summary>
@@ -967,7 +967,7 @@ namespace org
     /// It appears in the stats as soon as the RTCRtpReceiver is added by either
     /// addTrack or addTransceiver, or by media negotiation.
     /// </summary>
-    dictionary RTCVideoReceiverStats : RTCVideoHandlerStats {
+    struct RTCVideoReceiverStats : RTCVideoHandlerStats {
 
       /// <summary>
       /// Gets the estimated playout time of this receiver's track. The playout time
@@ -1484,7 +1484,7 @@ namespace org
       /// For remote candidates, this property is not applicable.
       /// </summary>
       [getter, optional]
-      boolean deleted = false;
+      bool deleted = false;
 
       [constructor, default, delete]
       void RTCIceCandidateStats();
@@ -1526,7 +1526,7 @@ namespace org
       /// Gets the nominated flag described in Section 7.1.3.2.4 of [RFC5245].
       /// </summary>
       [getter]
-      boolean nominated;
+      bool nominated;
 
       /// <summary>
       /// Gets the total number of packets sent on this candidate pair.

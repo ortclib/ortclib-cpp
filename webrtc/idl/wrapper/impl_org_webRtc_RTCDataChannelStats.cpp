@@ -40,6 +40,11 @@ wrapper::impl::org::webRtc::RTCDataChannelStats::~RTCDataChannelStats() noexcept
 }
 
 //------------------------------------------------------------------------------
+void wrapper::impl::org::webRtc::RTCDataChannelStats::wrapper_init_org_webRtc_RTCDataChannelStats() noexcept
+{
+}
+
+//------------------------------------------------------------------------------
 ::zsLib::Time wrapper::impl::org::webRtc::RTCDataChannelStats::get_timestamp() noexcept
 {
   ::zsLib::Time result {};
@@ -68,16 +73,6 @@ String wrapper::impl::org::webRtc::RTCDataChannelStats::get_id() noexcept
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webRtc::RTCDataChannelStats::wrapper_init_org_webRtc_RTCDataChannelStats() noexcept
-{
-}
-
-//------------------------------------------------------------------------------
-void wrapper::impl::org::webRtc::RTCDataChannelStats::wrapper_init_org_webRtc_RTCDataChannelStats(wrapper::org::webRtc::RTCDataChannelStatsPtr source) noexcept
-{
-}
-
-//------------------------------------------------------------------------------
 String wrapper::impl::org::webRtc::RTCDataChannelStats::get_label() noexcept
 {
   String result {};
@@ -92,9 +87,16 @@ String wrapper::impl::org::webRtc::RTCDataChannelStats::get_protocol() noexcept
 }
 
 //------------------------------------------------------------------------------
-long wrapper::impl::org::webRtc::RTCDataChannelStats::get_dataChannelId() noexcept
+long wrapper::impl::org::webRtc::RTCDataChannelStats::get_dataChannelIdentifier() noexcept
 {
   long result {};
+  return result;
+}
+
+//------------------------------------------------------------------------------
+String wrapper::impl::org::webRtc::RTCDataChannelStats::get_transportId() noexcept
+{
+  String result {};
   return result;
 }
 

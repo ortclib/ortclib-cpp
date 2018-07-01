@@ -75,28 +75,7 @@ Optional< uint32_t > wrapper::impl::org::webRtc::RTCInboundRtpStreamStats::get_s
 }
 
 //------------------------------------------------------------------------------
-String wrapper::impl::org::webRtc::RTCInboundRtpStreamStats::get_associatedStatId() noexcept
-{
-  String result {};
-  return result;
-}
-
-//------------------------------------------------------------------------------
-bool wrapper::impl::org::webRtc::RTCInboundRtpStreamStats::get_isRemote() noexcept
-{
-  bool result {};
-  return result;
-}
-
-//------------------------------------------------------------------------------
-String wrapper::impl::org::webRtc::RTCInboundRtpStreamStats::get_mediaType() noexcept
-{
-  String result {};
-  return result;
-}
-
-//------------------------------------------------------------------------------
-String wrapper::impl::org::webRtc::RTCInboundRtpStreamStats::get_mediaTrackId() noexcept
+String wrapper::impl::org::webRtc::RTCInboundRtpStreamStats::get_kind() noexcept
 {
   String result {};
   return result;
@@ -145,26 +124,16 @@ unsigned long wrapper::impl::org::webRtc::RTCInboundRtpStreamStats::get_sliCount
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webRtc::RTCInboundRtpStreamStats::wrapper_init_org_webRtc_RTCInboundRtpStreamStats() noexcept
+unsigned long long wrapper::impl::org::webRtc::RTCInboundRtpStreamStats::get_qpSum() noexcept
 {
-}
-
-//------------------------------------------------------------------------------
-void wrapper::impl::org::webRtc::RTCInboundRtpStreamStats::wrapper_init_org_webRtc_RTCInboundRtpStreamStats(wrapper::org::webRtc::RTCInboundRtpStreamStatsPtr source) noexcept
-{
+  unsigned long long result {};
+  return result;
 }
 
 //------------------------------------------------------------------------------
 unsigned long wrapper::impl::org::webRtc::RTCInboundRtpStreamStats::get_packetsReceived() noexcept
 {
   unsigned long result {};
-  return result;
-}
-
-//------------------------------------------------------------------------------
-unsigned long long wrapper::impl::org::webRtc::RTCInboundRtpStreamStats::get_bytesReceived() noexcept
-{
-  unsigned long long result {};
   return result;
 }
 
@@ -183,16 +152,149 @@ double wrapper::impl::org::webRtc::RTCInboundRtpStreamStats::get_jitter() noexce
 }
 
 //------------------------------------------------------------------------------
-double wrapper::impl::org::webRtc::RTCInboundRtpStreamStats::get_fractionLost() noexcept
+unsigned long wrapper::impl::org::webRtc::RTCInboundRtpStreamStats::get_packetsDiscarded() noexcept
+{
+  unsigned long result {};
+  return result;
+}
+
+//------------------------------------------------------------------------------
+unsigned long wrapper::impl::org::webRtc::RTCInboundRtpStreamStats::get_packetsRepaired() noexcept
+{
+  unsigned long result {};
+  return result;
+}
+
+//------------------------------------------------------------------------------
+unsigned long wrapper::impl::org::webRtc::RTCInboundRtpStreamStats::get_burstPacketsLost() noexcept
+{
+  unsigned long result {};
+  return result;
+}
+
+//------------------------------------------------------------------------------
+unsigned long wrapper::impl::org::webRtc::RTCInboundRtpStreamStats::get_burstPacketsDiscarded() noexcept
+{
+  unsigned long result {};
+  return result;
+}
+
+//------------------------------------------------------------------------------
+unsigned long wrapper::impl::org::webRtc::RTCInboundRtpStreamStats::get_burstLossCount() noexcept
+{
+  unsigned long result {};
+  return result;
+}
+
+//------------------------------------------------------------------------------
+unsigned long wrapper::impl::org::webRtc::RTCInboundRtpStreamStats::get_burstDiscardCount() noexcept
+{
+  unsigned long result {};
+  return result;
+}
+
+//------------------------------------------------------------------------------
+double wrapper::impl::org::webRtc::RTCInboundRtpStreamStats::get_burstLossRate() noexcept
 {
   double result {};
   return result;
 }
 
 //------------------------------------------------------------------------------
-::zsLib::Milliseconds wrapper::impl::org::webRtc::RTCInboundRtpStreamStats::get_endToEndDelay() noexcept
+double wrapper::impl::org::webRtc::RTCInboundRtpStreamStats::get_burstDiscardRate() noexcept
 {
-  ::zsLib::Milliseconds result {};
+  double result {};
+  return result;
+}
+
+//------------------------------------------------------------------------------
+double wrapper::impl::org::webRtc::RTCInboundRtpStreamStats::get_gapLossRate() noexcept
+{
+  double result {};
+  return result;
+}
+
+//------------------------------------------------------------------------------
+double wrapper::impl::org::webRtc::RTCInboundRtpStreamStats::get_gapDiscardRate() noexcept
+{
+  double result {};
+  return result;
+}
+
+//------------------------------------------------------------------------------
+String wrapper::impl::org::webRtc::RTCInboundRtpStreamStats::get_trackId() noexcept
+{
+  String result {};
+  return result;
+}
+
+//------------------------------------------------------------------------------
+String wrapper::impl::org::webRtc::RTCInboundRtpStreamStats::get_receiverId() noexcept
+{
+  String result {};
+  return result;
+}
+
+//------------------------------------------------------------------------------
+String wrapper::impl::org::webRtc::RTCInboundRtpStreamStats::get_remoteId() noexcept
+{
+  String result {};
+  return result;
+}
+
+//------------------------------------------------------------------------------
+Optional< unsigned long > wrapper::impl::org::webRtc::RTCInboundRtpStreamStats::get_framesDecoded() noexcept
+{
+  Optional< unsigned long > result {};
+  return result;
+}
+
+//------------------------------------------------------------------------------
+::zsLib::Time wrapper::impl::org::webRtc::RTCInboundRtpStreamStats::get_lastPacketReceivedTimestamp() noexcept
+{
+  ::zsLib::Time result {};
+  return result;
+}
+
+//------------------------------------------------------------------------------
+double wrapper::impl::org::webRtc::RTCInboundRtpStreamStats::get_averageRtcpInterval() noexcept
+{
+  double result {};
+  return result;
+}
+
+//------------------------------------------------------------------------------
+unsigned long wrapper::impl::org::webRtc::RTCInboundRtpStreamStats::get_fecPacketsReceived() noexcept
+{
+  unsigned long result {};
+  return result;
+}
+
+//------------------------------------------------------------------------------
+unsigned long long wrapper::impl::org::webRtc::RTCInboundRtpStreamStats::get_bytesReceived() noexcept
+{
+  unsigned long long result {};
+  return result;
+}
+
+//------------------------------------------------------------------------------
+unsigned long wrapper::impl::org::webRtc::RTCInboundRtpStreamStats::get_packetsFailedDecryption() noexcept
+{
+  unsigned long result {};
+  return result;
+}
+
+//------------------------------------------------------------------------------
+unsigned long wrapper::impl::org::webRtc::RTCInboundRtpStreamStats::get_packetsDuplicated() noexcept
+{
+  unsigned long result {};
+  return result;
+}
+
+//------------------------------------------------------------------------------
+shared_ptr< map< String, unsigned long > > wrapper::impl::org::webRtc::RTCInboundRtpStreamStats::get_perDscpPacketsReceived() noexcept
+{
+  shared_ptr< map< String, unsigned long > > result {};
   return result;
 }
 

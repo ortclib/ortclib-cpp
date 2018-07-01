@@ -68,16 +68,6 @@ String wrapper::impl::org::webRtc::RTCCertificateStats::get_id() noexcept
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webRtc::RTCCertificateStats::wrapper_init_org_webRtc_RTCCertificateStats() noexcept
-{
-}
-
-//------------------------------------------------------------------------------
-void wrapper::impl::org::webRtc::RTCCertificateStats::wrapper_init_org_webRtc_RTCCertificateStats(wrapper::org::webRtc::RTCCertificateStatsPtr source) noexcept
-{
-}
-
-//------------------------------------------------------------------------------
 String wrapper::impl::org::webRtc::RTCCertificateStats::get_fingerprint() noexcept
 {
   String result {};

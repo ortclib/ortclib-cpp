@@ -68,17 +68,7 @@ String wrapper::impl::org::webRtc::RTCMediaStreamStats::get_id() noexcept
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webRtc::RTCMediaStreamStats::wrapper_init_org_webRtc_RTCMediaStreamStats() noexcept
-{
-}
-
-//------------------------------------------------------------------------------
-void wrapper::impl::org::webRtc::RTCMediaStreamStats::wrapper_init_org_webRtc_RTCMediaStreamStats(wrapper::org::webRtc::RTCMediaStreamStatsPtr source) noexcept
-{
-}
-
-//------------------------------------------------------------------------------
-String wrapper::impl::org::webRtc::RTCMediaStreamStats::get_streamId() noexcept
+String wrapper::impl::org::webRtc::RTCMediaStreamStats::get_streamIdentifier() noexcept
 {
   String result {};
   return result;

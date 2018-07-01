@@ -23,15 +23,13 @@ namespace wrapper {
           Optional< wrapper::org::webRtc::RTCStatsType > get_statsType() noexcept override;
           String get_statsTypeOther() noexcept override;
           String get_id() noexcept override;
-
-          // methods RTCDataChannelStats
           void wrapper_init_org_webRtc_RTCDataChannelStats() noexcept override;
-          void wrapper_init_org_webRtc_RTCDataChannelStats(wrapper::org::webRtc::RTCDataChannelStatsPtr source) noexcept override;
 
           // properties RTCDataChannelStats
           String get_label() noexcept override;
           String get_protocol() noexcept override;
-          long get_dataChannelId() noexcept override;
+          long get_dataChannelIdentifier() noexcept override;
+          String get_transportId() noexcept override;
           wrapper::org::webRtc::RTCDataChannelState get_state() noexcept override;
           unsigned long get_messagesSent() noexcept override;
           unsigned long long get_bytesSent() noexcept override;

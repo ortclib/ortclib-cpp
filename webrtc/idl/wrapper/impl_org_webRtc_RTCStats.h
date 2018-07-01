@@ -18,10 +18,6 @@ namespace wrapper {
           RTCStats() noexcept;
           virtual ~RTCStats() noexcept;
 
-          // methods RTCStats
-          void wrapper_init_org_webRtc_RTCStats() noexcept override;
-          void wrapper_init_org_webRtc_RTCStats(wrapper::org::webRtc::RTCStatsPtr source) noexcept override;
-
           // properties RTCStats
           ::zsLib::Time get_timestamp() noexcept override;
           Optional< wrapper::org::webRtc::RTCStatsType > get_statsType() noexcept override;

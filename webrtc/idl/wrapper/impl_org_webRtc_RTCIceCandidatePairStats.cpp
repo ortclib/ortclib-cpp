@@ -68,16 +68,6 @@ String wrapper::impl::org::webRtc::RTCIceCandidatePairStats::get_id() noexcept
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webRtc::RTCIceCandidatePairStats::wrapper_init_org_webRtc_RTCIceCandidatePairStats() noexcept
-{
-}
-
-//------------------------------------------------------------------------------
-void wrapper::impl::org::webRtc::RTCIceCandidatePairStats::wrapper_init_org_webRtc_RTCIceCandidatePairStats(wrapper::org::webRtc::RTCIceCandidatePairStatsPtr source) noexcept
-{
-}
-
-//------------------------------------------------------------------------------
 String wrapper::impl::org::webRtc::RTCIceCandidatePairStats::get_transportId() noexcept
 {
   String result {};
@@ -99,16 +89,9 @@ String wrapper::impl::org::webRtc::RTCIceCandidatePairStats::get_remoteCandidate
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webRtc::RTCIceCandidatePairState wrapper::impl::org::webRtc::RTCIceCandidatePairStats::get_state() noexcept
+wrapper::org::webRtc::RTCStatsIceCandidatePairState wrapper::impl::org::webRtc::RTCIceCandidatePairStats::get_state() noexcept
 {
-  wrapper::org::webRtc::RTCIceCandidatePairState result {};
-  return result;
-}
-
-//------------------------------------------------------------------------------
-unsigned long long wrapper::impl::org::webRtc::RTCIceCandidatePairStats::get_priority() noexcept
-{
-  unsigned long long result {};
+  wrapper::org::webRtc::RTCStatsIceCandidatePairState result {};
   return result;
 }
 
@@ -120,16 +103,16 @@ bool wrapper::impl::org::webRtc::RTCIceCandidatePairStats::get_nominated() noexc
 }
 
 //------------------------------------------------------------------------------
-bool wrapper::impl::org::webRtc::RTCIceCandidatePairStats::get_writable() noexcept
+unsigned long wrapper::impl::org::webRtc::RTCIceCandidatePairStats::get_packetsSent() noexcept
 {
-  bool result {};
+  unsigned long result {};
   return result;
 }
 
 //------------------------------------------------------------------------------
-bool wrapper::impl::org::webRtc::RTCIceCandidatePairStats::get_readable() noexcept
+unsigned long wrapper::impl::org::webRtc::RTCIceCandidatePairStats::get_packetsReceived() noexcept
 {
-  bool result {};
+  unsigned long result {};
   return result;
 }
 
@@ -148,23 +131,128 @@ unsigned long long wrapper::impl::org::webRtc::RTCIceCandidatePairStats::get_byt
 }
 
 //------------------------------------------------------------------------------
-double wrapper::impl::org::webRtc::RTCIceCandidatePairStats::get_roundTripTime() noexcept
+::zsLib::Time wrapper::impl::org::webRtc::RTCIceCandidatePairStats::get_lastPacketSentTimestamp() noexcept
 {
-  double result {};
+  ::zsLib::Time result {};
   return result;
 }
 
 //------------------------------------------------------------------------------
-double wrapper::impl::org::webRtc::RTCIceCandidatePairStats::get_availableOutgoingBitrate() noexcept
+::zsLib::Time wrapper::impl::org::webRtc::RTCIceCandidatePairStats::get_lastPacketReceivedTimestamp() noexcept
 {
-  double result {};
+  ::zsLib::Time result {};
   return result;
 }
 
 //------------------------------------------------------------------------------
-double wrapper::impl::org::webRtc::RTCIceCandidatePairStats::get_availableIncomingBitrate() noexcept
+::zsLib::Time wrapper::impl::org::webRtc::RTCIceCandidatePairStats::get_firstRequestTimestamp() noexcept
 {
-  double result {};
+  ::zsLib::Time result {};
+  return result;
+}
+
+//------------------------------------------------------------------------------
+::zsLib::Time wrapper::impl::org::webRtc::RTCIceCandidatePairStats::get_lastRequestTimestamp() noexcept
+{
+  ::zsLib::Time result {};
+  return result;
+}
+
+//------------------------------------------------------------------------------
+::zsLib::Time wrapper::impl::org::webRtc::RTCIceCandidatePairStats::get_lastResponseTimestamp() noexcept
+{
+  ::zsLib::Time result {};
+  return result;
+}
+
+//------------------------------------------------------------------------------
+::zsLib::Milliseconds wrapper::impl::org::webRtc::RTCIceCandidatePairStats::get_totalRoundTripTime() noexcept
+{
+  ::zsLib::Milliseconds result {};
+  return result;
+}
+
+//------------------------------------------------------------------------------
+::zsLib::Milliseconds wrapper::impl::org::webRtc::RTCIceCandidatePairStats::get_currentRoundTripTime() noexcept
+{
+  ::zsLib::Milliseconds result {};
+  return result;
+}
+
+//------------------------------------------------------------------------------
+Optional< double > wrapper::impl::org::webRtc::RTCIceCandidatePairStats::get_availableOutgoingBitrate() noexcept
+{
+  Optional< double > result {};
+  return result;
+}
+
+//------------------------------------------------------------------------------
+Optional< double > wrapper::impl::org::webRtc::RTCIceCandidatePairStats::get_availableIncomingBitrate() noexcept
+{
+  Optional< double > result {};
+  return result;
+}
+
+//------------------------------------------------------------------------------
+unsigned long wrapper::impl::org::webRtc::RTCIceCandidatePairStats::get_circuitBreakerTriggerCount() noexcept
+{
+  unsigned long result {};
+  return result;
+}
+
+//------------------------------------------------------------------------------
+unsigned long long wrapper::impl::org::webRtc::RTCIceCandidatePairStats::get_requestsReceived() noexcept
+{
+  unsigned long long result {};
+  return result;
+}
+
+//------------------------------------------------------------------------------
+unsigned long long wrapper::impl::org::webRtc::RTCIceCandidatePairStats::get_requestsSent() noexcept
+{
+  unsigned long long result {};
+  return result;
+}
+
+//------------------------------------------------------------------------------
+unsigned long long wrapper::impl::org::webRtc::RTCIceCandidatePairStats::get_responsesReceived() noexcept
+{
+  unsigned long long result {};
+  return result;
+}
+
+//------------------------------------------------------------------------------
+unsigned long long wrapper::impl::org::webRtc::RTCIceCandidatePairStats::get_responsesSent() noexcept
+{
+  unsigned long long result {};
+  return result;
+}
+
+//------------------------------------------------------------------------------
+unsigned long long wrapper::impl::org::webRtc::RTCIceCandidatePairStats::get_retransmissionsReceived() noexcept
+{
+  unsigned long long result {};
+  return result;
+}
+
+//------------------------------------------------------------------------------
+unsigned long long wrapper::impl::org::webRtc::RTCIceCandidatePairStats::get_retransmissionsSent() noexcept
+{
+  unsigned long long result {};
+  return result;
+}
+
+//------------------------------------------------------------------------------
+unsigned long long wrapper::impl::org::webRtc::RTCIceCandidatePairStats::get_consentRequestsSent() noexcept
+{
+  unsigned long long result {};
+  return result;
+}
+
+//------------------------------------------------------------------------------
+::zsLib::Time wrapper::impl::org::webRtc::RTCIceCandidatePairStats::get_consentExpiredTimestamp() noexcept
+{
+  ::zsLib::Time result {};
   return result;
 }
 

@@ -3,7 +3,7 @@
 #pragma once
 
 #include "types.h"
-#include "generated/org_webRtc_RTCCodec.h"
+#include "generated/org_webRtc_RTCCodecStats.h"
 
 
 namespace wrapper {
@@ -11,12 +11,12 @@ namespace wrapper {
     namespace org {
       namespace webRtc {
 
-        struct RTCCodec : public wrapper::org::webRtc::RTCCodec
+        struct RTCCodecStats : public wrapper::org::webRtc::RTCCodecStats
         {
-          RTCCodecWeakPtr thisWeak_;
+          RTCCodecStatsWeakPtr thisWeak_;
 
-          RTCCodec() noexcept;
-          virtual ~RTCCodec() noexcept;
+          RTCCodecStats() noexcept;
+          virtual ~RTCCodecStats() noexcept;
 
           // properties RTCStats
           ::zsLib::Time get_timestamp() noexcept override;
@@ -24,16 +24,16 @@ namespace wrapper {
           String get_statsTypeOther() noexcept override;
           String get_id() noexcept override;
 
-          // methods RTCCodec
-          void wrapper_init_org_webRtc_RTCCodec() noexcept override;
-          void wrapper_init_org_webRtc_RTCCodec(wrapper::org::webRtc::RTCCodecPtr source) noexcept override;
-
-          // properties RTCCodec
+          // properties RTCCodecStats
           Optional< uint8_t > get_payloadType() noexcept override;
-          String get_codec() noexcept override;
+          wrapper::org::webRtc::RTCCodecType get_codecType() noexcept override;
+          String get_transportId() noexcept override;
+          void set_transportId(String value) noexcept override;
+          String get_mimeType() noexcept override;
           unsigned long get_clockRate() noexcept override;
           Optional< unsigned long > get_channels() noexcept override;
-          String get_parameters() noexcept override;
+          String get_sdpFmtpLine() noexcept override;
+          String get_implementation() noexcept override;
         };
 
       } // webRtc

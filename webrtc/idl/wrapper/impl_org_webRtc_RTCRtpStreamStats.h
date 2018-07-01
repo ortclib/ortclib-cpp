@@ -24,22 +24,16 @@ namespace wrapper {
           String get_statsTypeOther() noexcept override;
           String get_id() noexcept override;
 
-          // methods RTCRtpStreamStats
-          void wrapper_init_org_webRtc_RTCRtpStreamStats() noexcept override;
-          void wrapper_init_org_webRtc_RTCRtpStreamStats(wrapper::org::webRtc::RTCRtpStreamStatsPtr source) noexcept override;
-
           // properties RTCRtpStreamStats
           Optional< uint32_t > get_ssrc() noexcept override;
-          String get_associatedStatId() noexcept override;
-          bool get_isRemote() noexcept override;
-          String get_mediaType() noexcept override;
-          String get_mediaTrackId() noexcept override;
+          String get_kind() noexcept override;
           String get_transportId() noexcept override;
           String get_codecId() noexcept override;
           unsigned long get_firCount() noexcept override;
           unsigned long get_pliCount() noexcept override;
           unsigned long get_nackCount() noexcept override;
           unsigned long get_sliCount() noexcept override;
+          unsigned long long get_qpSum() noexcept override;
         };
 
       } // webRtc

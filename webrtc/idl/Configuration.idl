@@ -266,7 +266,7 @@ namespace org
       /// un-preferred network, regardless of priority or network cost.
       /// </summary>
       [optional]
-      RTCAdapterType          networkPreference;
+      RTCNetworkType          networkPreference;
 
       /// <summary>
       /// Gets or sets the SDP semantics used by this PeerConnection.

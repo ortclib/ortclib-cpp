@@ -24,12 +24,8 @@ namespace wrapper {
           String get_statsTypeOther() noexcept override;
           String get_id() noexcept override;
 
-          // methods RTCMediaStreamStats
-          void wrapper_init_org_webRtc_RTCMediaStreamStats() noexcept override;
-          void wrapper_init_org_webRtc_RTCMediaStreamStats(wrapper::org::webRtc::RTCMediaStreamStatsPtr source) noexcept override;
-
           // properties RTCMediaStreamStats
-          String get_streamId() noexcept override;
+          String get_streamIdentifier() noexcept override;
           shared_ptr< list< String > > get_trackIds() noexcept override;
         };
 

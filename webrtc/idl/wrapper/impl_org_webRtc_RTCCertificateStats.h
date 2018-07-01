@@ -24,10 +24,6 @@ namespace wrapper {
           String get_statsTypeOther() noexcept override;
           String get_id() noexcept override;
 
-          // methods RTCCertificateStats
-          void wrapper_init_org_webRtc_RTCCertificateStats() noexcept override;
-          void wrapper_init_org_webRtc_RTCCertificateStats(wrapper::org::webRtc::RTCCertificateStatsPtr source) noexcept override;
-
           // properties RTCCertificateStats
           String get_fingerprint() noexcept override;
           String get_fingerprintAlgorithm() noexcept override;

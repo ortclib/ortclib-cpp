@@ -3,7 +3,7 @@
 #pragma once
 
 #include "types.h"
-#include "generated/org_webRtc_RTCOutboundRtpStreamStats.h"
+#include "generated/org_webRtc_RTCRemoteOutboundRtpStreamStats.h"
 
 
 namespace wrapper {
@@ -11,12 +11,12 @@ namespace wrapper {
     namespace org {
       namespace webRtc {
 
-        struct RTCOutboundRtpStreamStats : public wrapper::org::webRtc::RTCOutboundRtpStreamStats
+        struct RTCRemoteOutboundRtpStreamStats : public wrapper::org::webRtc::RTCRemoteOutboundRtpStreamStats
         {
-          RTCOutboundRtpStreamStatsWeakPtr thisWeak_;
+          RTCRemoteOutboundRtpStreamStatsWeakPtr thisWeak_;
 
-          RTCOutboundRtpStreamStats() noexcept;
-          virtual ~RTCOutboundRtpStreamStats() noexcept;
+          RTCRemoteOutboundRtpStreamStats() noexcept;
+          virtual ~RTCRemoteOutboundRtpStreamStats() noexcept;
 
           // properties RTCStats
           ::zsLib::Time get_timestamp() noexcept override;
@@ -42,18 +42,9 @@ namespace wrapper {
           unsigned long long get_bytesSent() noexcept override;
           unsigned long long get_bytesDiscardedOnSend() noexcept override;
 
-          // properties RTCOutboundRtpStreamStats
-          String get_trackId() noexcept override;
-          String get_senderId() noexcept override;
-          String get_remoteId() noexcept override;
-          ::zsLib::Time get_lastPacketSentTimestamp() noexcept override;
-          double get_targetBitrate() noexcept override;
-          Optional< unsigned long > get_framesEncoded() noexcept override;
-          ::zsLib::Milliseconds get_totalEncodeTime() noexcept override;
-          double get_averageRtcpInterval() noexcept override;
-          Optional< wrapper::org::webRtc::RTCQualityLimitationReason > get_qualityLimitationReason() noexcept override;
-          shared_ptr< map< wrapper::org::webRtc::RTCQualityLimitationReason, ::zsLib::Milliseconds > > get_qualityLimitationDurations() noexcept override;
-          shared_ptr< map< String, unsigned long > > get_perDscpPacketsSent() noexcept override;
+          // properties RTCRemoteOutboundRtpStreamStats
+          String get_localId() noexcept override;
+          ::zsLib::Time get_remoteTimestamp() noexcept override;
         };
 
       } // webRtc
