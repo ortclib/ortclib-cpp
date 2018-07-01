@@ -7,6 +7,11 @@
 #pragma warning(disable: 4242)
 #endif //_MSC_VER
 
+namespace cricket
+{
+  enum CaptureState;
+}
+
 // forward for webrtc can go here
 namespace rtc
 {
@@ -22,6 +27,7 @@ namespace webrtc
 {
   enum class SdpSemantics;
   enum class SdpType;
+  enum class RtpTransceiverDirection;
 
   class SessionDescriptionInterface;
   class PeerConnectionInterface;

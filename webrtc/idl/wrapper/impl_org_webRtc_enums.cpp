@@ -4,6 +4,8 @@
 #include "impl_org_webRtc_pre_include.h"
 #include "api/rtcerror.h"
 #include "rtc_base/sslidentity.h"
+#include "api/rtptransceiverinterface.h"
+#include "media/base/videocapturer.h"
 #include "impl_org_webRtc_post_include.h"
 
 #include <zsLib/Stringize.h>
@@ -25,6 +27,8 @@ using ::std::make_shared;
 using ::std::list;
 using ::std::set;
 using ::std::map;
+
+static const char kSeparator = '_';
 
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::IEnum, UseEnum);
 
@@ -480,7 +484,7 @@ const char *UseEnum::toWrapper(::webrtc::FecMechanism value) noexcept
 //-----------------------------------------------------------------------------
 ::webrtc::FecMechanism UseEnum::toNativeFecMechanism(const char *value) noexcept(false)
 {
-  const ::webrtc::FecMechanism enums[] = {
+  static const ::webrtc::FecMechanism enums[] = {
     ::webrtc::FecMechanism::RED,
     ::webrtc::FecMechanism::RED_AND_ULPFEC,
     ::webrtc::FecMechanism::FLEXFEC
@@ -538,7 +542,7 @@ const char *UseEnum::toWrapper(::webrtc::RtcpFeedbackType value) noexcept
 //-----------------------------------------------------------------------------
 ::webrtc::RtcpFeedbackType UseEnum::toNativeRtcpFeedbackType(const char *value) noexcept(false)
 {
-  const ::webrtc::RtcpFeedbackType enums[] = {
+  static const ::webrtc::RtcpFeedbackType enums[] = {
     ::webrtc::RtcpFeedbackType::CCM,
     ::webrtc::RtcpFeedbackType::NACK,
     ::webrtc::RtcpFeedbackType::REMB,
@@ -570,7 +574,7 @@ const char *UseEnum::toWrapper(::webrtc::RtcpFeedbackMessageType value) noexcept
 //-----------------------------------------------------------------------------
 ::webrtc::RtcpFeedbackMessageType UseEnum::toNativeRtcpFeedbackMessageType(const char *value) noexcept(false)
 {
-  const ::webrtc::RtcpFeedbackMessageType enums[] = {
+  static const ::webrtc::RtcpFeedbackMessageType enums[] = {
     ::webrtc::RtcpFeedbackMessageType::GENERIC_NACK,
     ::webrtc::RtcpFeedbackMessageType::PLI,
     ::webrtc::RtcpFeedbackMessageType::FIR
@@ -636,7 +640,7 @@ wrapper::org::webRtc::RTCKeyType UseEnum::toWrapper(::rtc::KeyType value) noexce
 //-----------------------------------------------------------------------------
 wrapper::org::webRtc::RTCIceCandidateType UseEnum::toWrapperRTCIceCandidateType(const char *value) noexcept(false)
 {
-  const wrapper::org::webRtc::RTCIceCandidateType enums[] = {
+  static const wrapper::org::webRtc::RTCIceCandidateType enums[] = {
     wrapper::org::webRtc::RTCIceCandidateType::RTCIceCandidateType_host,
     wrapper::org::webRtc::RTCIceCandidateType::RTCIceCandidateType_srflex,
     wrapper::org::webRtc::RTCIceCandidateType::RTCIceCandidateType_prflx,
@@ -691,7 +695,7 @@ int UseEnum::toNative(wrapper::org::webRtc::RTCIceComponent value) noexcept
 }
 
 //-----------------------------------------------------------------------------
-wrapper::org::webRtc::RTCIceConnectionState toWrapper(::webrtc::PeerConnectionInterface::IceConnectionState value) noexcept
+wrapper::org::webRtc::RTCIceConnectionState UseEnum::toWrapper(::webrtc::PeerConnectionInterface::IceConnectionState value) noexcept
 {
   switch (value)
   {
@@ -708,7 +712,7 @@ wrapper::org::webRtc::RTCIceConnectionState toWrapper(::webrtc::PeerConnectionIn
 }
 
 //-----------------------------------------------------------------------------
-::webrtc::PeerConnectionInterface::IceConnectionState toNative(wrapper::org::webRtc::RTCIceConnectionState value) noexcept
+::webrtc::PeerConnectionInterface::IceConnectionState UseEnum::toNative(wrapper::org::webRtc::RTCIceConnectionState value) noexcept
 {
   switch (value)
   {
@@ -724,3 +728,380 @@ wrapper::org::webRtc::RTCIceConnectionState toWrapper(::webrtc::PeerConnectionIn
   return ::webrtc::PeerConnectionInterface::IceConnectionState::kIceConnectionClosed;
 }
 
+//-----------------------------------------------------------------------------
+wrapper::org::webRtc::RTCIceGatheringState UseEnum::toWrapper(::webrtc::PeerConnectionInterface::IceGatheringState value) noexcept
+{
+  switch (value)
+  {
+    case ::webrtc::PeerConnectionInterface::IceGatheringState::kIceGatheringNew:          return wrapper::org::webRtc::RTCIceGatheringState::RTCIceGatheringState_new;
+    case ::webrtc::PeerConnectionInterface::IceGatheringState::kIceGatheringGathering:    return wrapper::org::webRtc::RTCIceGatheringState::RTCIceGatheringState_gathering;
+    case ::webrtc::PeerConnectionInterface::IceGatheringState::kIceGatheringComplete:     return wrapper::org::webRtc::RTCIceGatheringState::RTCIceGatheringState_complete;
+  }
+  ZS_ASSERT_FAIL("unknown type");
+  return wrapper::org::webRtc::RTCIceGatheringState::RTCIceGatheringState_complete;
+}
+
+//-----------------------------------------------------------------------------
+::webrtc::PeerConnectionInterface::IceGatheringState UseEnum::toNative(wrapper::org::webRtc::RTCIceGatheringState value) noexcept
+{
+  switch (value)
+  {
+    case wrapper::org::webRtc::RTCIceGatheringState::RTCIceGatheringState_new:        return ::webrtc::PeerConnectionInterface::IceGatheringState::kIceGatheringNew;
+    case wrapper::org::webRtc::RTCIceGatheringState::RTCIceGatheringState_gathering:  return ::webrtc::PeerConnectionInterface::IceGatheringState::kIceGatheringGathering;
+    case wrapper::org::webRtc::RTCIceGatheringState::RTCIceGatheringState_complete:   return ::webrtc::PeerConnectionInterface::IceGatheringState::kIceGatheringComplete;
+  }
+  ZS_ASSERT_FAIL("unknown type");
+  return ::webrtc::PeerConnectionInterface::IceGatheringState::kIceGatheringComplete;
+}
+
+//-----------------------------------------------------------------------------
+wrapper::org::webRtc::RTCSignalingState UseEnum::toWrapper(::webrtc::PeerConnectionInterface::SignalingState value) noexcept
+{
+  switch (value)
+  {
+    case ::webrtc::PeerConnectionInterface::SignalingState::kStable:              return wrapper::org::webRtc::RTCSignalingState::RTCSignalingState_stable;
+    case ::webrtc::PeerConnectionInterface::SignalingState::kHaveLocalOffer:      return wrapper::org::webRtc::RTCSignalingState::RTCSignalingState_haveLocalOffer;
+    case ::webrtc::PeerConnectionInterface::SignalingState::kHaveLocalPrAnswer:   return wrapper::org::webRtc::RTCSignalingState::RTCSignalingState_haveLocalPranswer;
+    case ::webrtc::PeerConnectionInterface::SignalingState::kHaveRemoteOffer:     return wrapper::org::webRtc::RTCSignalingState::RTCSignalingState_haveRemoteOffer;
+    case ::webrtc::PeerConnectionInterface::SignalingState::kHaveRemotePrAnswer:  return wrapper::org::webRtc::RTCSignalingState::RTCSignalingState_haveRemotePranswer;
+    case ::webrtc::PeerConnectionInterface::SignalingState::kClosed:              return wrapper::org::webRtc::RTCSignalingState::RTCSignalingState_closed;
+  }
+  ZS_ASSERT_FAIL("unknown type");
+  return wrapper::org::webRtc::RTCSignalingState::RTCSignalingState_closed;
+}
+
+//-----------------------------------------------------------------------------
+::webrtc::PeerConnectionInterface::SignalingState UseEnum::toNative(wrapper::org::webRtc::RTCSignalingState value) noexcept
+{
+  switch (value)
+  {
+    case wrapper::org::webRtc::RTCSignalingState::RTCSignalingState_stable:               return ::webrtc::PeerConnectionInterface::SignalingState::kStable;
+    case wrapper::org::webRtc::RTCSignalingState::RTCSignalingState_haveLocalOffer:       return ::webrtc::PeerConnectionInterface::SignalingState::kHaveLocalOffer;
+    case wrapper::org::webRtc::RTCSignalingState::RTCSignalingState_haveLocalPranswer:    return ::webrtc::PeerConnectionInterface::SignalingState::kHaveLocalPrAnswer;
+    case wrapper::org::webRtc::RTCSignalingState::RTCSignalingState_haveRemoteOffer:      return ::webrtc::PeerConnectionInterface::SignalingState::kHaveRemoteOffer;
+    case wrapper::org::webRtc::RTCSignalingState::RTCSignalingState_haveRemotePranswer:   return ::webrtc::PeerConnectionInterface::SignalingState::kHaveRemotePrAnswer;
+    case wrapper::org::webRtc::RTCSignalingState::RTCSignalingState_closed:               return ::webrtc::PeerConnectionInterface::SignalingState::kClosed;
+  }
+  ZS_ASSERT_FAIL("unknown type");
+  return ::webrtc::PeerConnectionInterface::SignalingState::kClosed;
+}
+
+//-----------------------------------------------------------------------------
+wrapper::org::webRtc::RTCIceProtocol UseEnum::toWrapperRTCIceProtocol(const char *value) noexcept(false)
+{
+  static const wrapper::org::webRtc::RTCIceProtocol enums[] = {
+    wrapper::org::webRtc::RTCIceProtocol::RTCIceProtocol_udp,
+    wrapper::org::webRtc::RTCIceProtocol::RTCIceProtocol_tcp
+  };
+
+  String str(value);
+
+  for (size_t loop = 0; loop < sizeof(enums) / sizeof(enums[0]); ++loop) {
+    if (0 == str.compareNoCase(toNative(enums[loop]))) return enums[loop];
+  }
+
+  ZS_THROW_INVALID_ARGUMENT("RTCIceProtocol is not understood: " + str);
+}
+
+//-----------------------------------------------------------------------------
+const char *UseEnum::toNative(wrapper::org::webRtc::RTCIceProtocol value) noexcept
+{
+  switch (value)
+  {
+    case wrapper::org::webRtc::RTCIceProtocol::RTCIceProtocol_udp:               return "udp";
+    case wrapper::org::webRtc::RTCIceProtocol::RTCIceProtocol_tcp:               return "tcp";
+  }
+  ZS_ASSERT_FAIL("unknown type");
+  return "unknown";
+}
+
+//-----------------------------------------------------------------------------
+wrapper::org::webRtc::RTCIceTcpCandidateType UseEnum::toWrapperRTCIceTcpCandidateType(const char *value) noexcept(false)
+{
+  static const wrapper::org::webRtc::RTCIceTcpCandidateType enums[] = {
+    wrapper::org::webRtc::RTCIceTcpCandidateType::RTCIceTcpCandidateType_active,
+    wrapper::org::webRtc::RTCIceTcpCandidateType::RTCIceTcpCandidateType_passive,
+    wrapper::org::webRtc::RTCIceTcpCandidateType::RTCIceTcpCandidateType_so
+  };
+
+  String str(value);
+
+  for (size_t loop = 0; loop < sizeof(enums) / sizeof(enums[0]); ++loop) {
+    if (0 == str.compareNoCase(toNative(enums[loop]))) return enums[loop];
+  }
+
+  ZS_THROW_INVALID_ARGUMENT("RTCIceTcpCandidateType is not understood: " + str);
+}
+
+//-----------------------------------------------------------------------------
+const char *UseEnum::toNative(wrapper::org::webRtc::RTCIceTcpCandidateType value) noexcept
+{
+  switch (value)
+  {
+    case wrapper::org::webRtc::RTCIceTcpCandidateType::RTCIceTcpCandidateType_active:     return "active";
+    case wrapper::org::webRtc::RTCIceTcpCandidateType::RTCIceTcpCandidateType_passive:    return "passive";
+    case wrapper::org::webRtc::RTCIceTcpCandidateType::RTCIceTcpCandidateType_so:         return "so";
+  }
+  ZS_ASSERT_FAIL("unknown type");
+  return "unknown";
+}
+
+//-----------------------------------------------------------------------------
+wrapper::org::webRtc::RTCPriorityType UseEnum::toWrapperRTCPriorityType(double value) noexcept
+{
+  static const wrapper::org::webRtc::RTCPriorityType values[] =
+  {
+    wrapper::org::webRtc::RTCPriorityType_veryLow,
+    wrapper::org::webRtc::RTCPriorityType_low,
+    wrapper::org::webRtc::RTCPriorityType_medium,
+    wrapper::org::webRtc::RTCPriorityType_high
+   };
+
+  for (size_t loop = 0; loop < sizeof(values) / sizeof(values[0]); ++loop) {
+    if (value <= toNative(values[loop])) return values[loop];
+  }
+  return wrapper::org::webRtc::RTCPriorityType::RTCPriorityType_high;
+}
+
+//-----------------------------------------------------------------------------
+double UseEnum::toNative(wrapper::org::webRtc::RTCPriorityType value) noexcept
+{
+  switch (value)
+  {
+    case wrapper::org::webRtc::RTCPriorityType::RTCPriorityType_veryLow:    return 0.25;
+    case wrapper::org::webRtc::RTCPriorityType::RTCPriorityType_low:        return 0.5;
+    case wrapper::org::webRtc::RTCPriorityType::RTCPriorityType_medium:     return 1.0;
+    case wrapper::org::webRtc::RTCPriorityType::RTCPriorityType_high:       return 2.0;
+  }
+  ZS_ASSERT_FAIL("unknown type");
+  return 1.0;
+}
+
+//-----------------------------------------------------------------------------
+wrapper::org::webRtc::RTCRtpTransceiverDirection UseEnum::toWrapper(::webrtc::RtpTransceiverDirection value) noexcept
+{
+  switch (value)
+  {
+    case ::webrtc::RtpTransceiverDirection::kSendRecv:   return wrapper::org::webRtc::RTCRtpTransceiverDirection::RTCRtpTransceiverDirection_sendrecv;
+    case ::webrtc::RtpTransceiverDirection::kSendOnly:   return wrapper::org::webRtc::RTCRtpTransceiverDirection::RTCRtpTransceiverDirection_sendonly;
+    case ::webrtc::RtpTransceiverDirection::kRecvOnly:   return wrapper::org::webRtc::RTCRtpTransceiverDirection::RTCRtpTransceiverDirection_recvonly;
+    case ::webrtc::RtpTransceiverDirection::kInactive:   return wrapper::org::webRtc::RTCRtpTransceiverDirection::RTCRtpTransceiverDirection_inactive;
+  }
+  ZS_ASSERT_FAIL("unknown type");
+  return wrapper::org::webRtc::RTCRtpTransceiverDirection::RTCRtpTransceiverDirection_inactive;
+}
+
+//-----------------------------------------------------------------------------
+::webrtc::RtpTransceiverDirection UseEnum::toNative(wrapper::org::webRtc::RTCRtpTransceiverDirection value) noexcept
+{
+  switch (value)
+  {
+    case wrapper::org::webRtc::RTCRtpTransceiverDirection::RTCRtpTransceiverDirection_sendrecv:   return ::webrtc::RtpTransceiverDirection::kSendRecv;
+    case wrapper::org::webRtc::RTCRtpTransceiverDirection::RTCRtpTransceiverDirection_sendonly:   return ::webrtc::RtpTransceiverDirection::kSendOnly;
+    case wrapper::org::webRtc::RTCRtpTransceiverDirection::RTCRtpTransceiverDirection_recvonly:   return ::webrtc::RtpTransceiverDirection::kRecvOnly;
+    case wrapper::org::webRtc::RTCRtpTransceiverDirection::RTCRtpTransceiverDirection_inactive:   return ::webrtc::RtpTransceiverDirection::kInactive;
+  }
+  ZS_ASSERT_FAIL("unknown type");
+  return ::webrtc::RtpTransceiverDirection::kInactive;
+}
+
+
+//-----------------------------------------------------------------------------
+wrapper::org::webRtc::VideoCaptureState UseEnum::toWrapper(::cricket::CaptureState value) noexcept
+{
+  switch (value)
+  {
+    case ::cricket::CaptureState::CS_STOPPED:   return wrapper::org::webRtc::VideoCaptureState::VideoCaptureState_stopped;
+    case ::cricket::CaptureState::CS_STARTING:  return wrapper::org::webRtc::VideoCaptureState::VideoCaptureState_starting;
+    case ::cricket::CaptureState::CS_RUNNING:   return wrapper::org::webRtc::VideoCaptureState::VideoCaptureState_running;
+    case ::cricket::CaptureState::CS_FAILED:    return wrapper::org::webRtc::VideoCaptureState::VideoCaptureState_failed;
+  }
+  ZS_ASSERT_FAIL("unknown type");
+  return wrapper::org::webRtc::VideoCaptureState::VideoCaptureState_stopped;
+}
+
+//-----------------------------------------------------------------------------
+::cricket::CaptureState UseEnum::toNative(wrapper::org::webRtc::VideoCaptureState value) noexcept
+{
+  switch (value)
+  {
+    case wrapper::org::webRtc::VideoCaptureState::VideoCaptureState_stopped:    return ::cricket::CaptureState::CS_STOPPED;
+    case wrapper::org::webRtc::VideoCaptureState::VideoCaptureState_starting:   return ::cricket::CaptureState::CS_STARTING;
+    case wrapper::org::webRtc::VideoCaptureState::VideoCaptureState_running:    return ::cricket::CaptureState::CS_RUNNING;
+    case wrapper::org::webRtc::VideoCaptureState::VideoCaptureState_failed:     return ::cricket::CaptureState::CS_FAILED;
+  }
+  ZS_ASSERT_FAIL("unknown type");
+  return ::cricket::CaptureState::CS_STOPPED;
+}
+
+//-----------------------------------------------------------------------------
+wrapper::org::webRtc::RTCStatsOutputLevel UseEnum::toWrapper(::webrtc::PeerConnectionInterface::StatsOutputLevel value) noexcept
+{
+  switch (value)
+  {
+    case ::webrtc::PeerConnectionInterface::kStatsOutputLevelStandard:   return wrapper::org::webRtc::RTCStatsOutputLevel::RTCStatsOutputLevel_standard;
+    case ::webrtc::PeerConnectionInterface::kStatsOutputLevelDebug:  return wrapper::org::webRtc::RTCStatsOutputLevel::RTCStatsOutputLevel_debug;
+  }
+  ZS_ASSERT_FAIL("unknown type");
+  return wrapper::org::webRtc::RTCStatsOutputLevel::RTCStatsOutputLevel_standard;
+}
+
+//-----------------------------------------------------------------------------
+::webrtc::PeerConnectionInterface::StatsOutputLevel UseEnum::toNative(wrapper::org::webRtc::RTCStatsOutputLevel value) noexcept
+{
+  switch (value)
+  {
+    case wrapper::org::webRtc::RTCStatsOutputLevel::RTCStatsOutputLevel_standard: return ::webrtc::PeerConnectionInterface::kStatsOutputLevelStandard;
+    case wrapper::org::webRtc::RTCStatsOutputLevel::RTCStatsOutputLevel_debug:    return ::webrtc::PeerConnectionInterface::kStatsOutputLevelDebug;
+  }
+  ZS_ASSERT_FAIL("unknown type");
+  return ::webrtc::PeerConnectionInterface::kStatsOutputLevelStandard;
+}
+
+//-----------------------------------------------------------------------------
+zsLib::Optional<::webrtc::StatsReport::Direction> UseEnum::toWrapperDirection(const char *statId) noexcept
+{
+  zsLib::Optional<::webrtc::StatsReport::Direction> result {};
+
+  String str(statId);
+  if (str.isEmpty()) return result;
+
+  const char *pos = strrchr(str.c_str(), kSeparator);
+  if (!pos) return result;
+
+  String remainder(pos + 1);
+
+  static const ::webrtc::StatsReport::Direction values[] =
+  {
+    ::webrtc::StatsReport::Direction::kSend,
+    ::webrtc::StatsReport::Direction::kReceive
+  };
+
+  for (size_t loop = 0; loop < sizeof(values) / sizeof(values[0]); ++loop) {
+    if (0 == remainder.compareNoCase(toString(values[loop]))) return values[loop];
+  }
+  return result;
+}
+
+//-----------------------------------------------------------------------------
+const char *UseEnum::toString(::webrtc::StatsReport::Direction value) noexcept
+{
+  switch (value)
+  {
+    case ::webrtc::StatsReport::Direction::kSend:     return "send";
+    case ::webrtc::StatsReport::Direction::kReceive:  return "receive";
+  }
+  ZS_ASSERT_FAIL("unknown type");
+  return "unknown";
+}
+
+#if 0
+//-----------------------------------------------------------------------------
+wrapper::org::webRtc::RTCStatsType toWrapper(::webrtc::StatsReport::StatsType value) noexcept
+{
+  switch (value)
+  {
+    case ::webrtc::StatsReport::StatsType::kStatsReportTypeSsrc:                return wrapper::org::webRtc::RTCStatsType::RTCStatsType_inboundRtp;
+    case ::webrtc::StatsReport::StatsType::kStatsReportTypeRemoteSsrc:          return wrapper::org::webRtc::RTCStatsType::RTCStatsType_outboundRtp;
+    case ::webrtc::StatsReport::StatsType::RTCStatsType_codec:                  return wrapper::org::webRtc::RTCStatsType::RTCStatsType_codec;
+    case ::webrtc::StatsReport::StatsType::RTCStatsType_sctpTransport:          return wrapper::org::webRtc::RTCStatsType::RTCStatsType_sctpTransport;
+    case ::webrtc::StatsReport::StatsType::kStatsReportTypeDataChannel:         return wrapper::org::webRtc::RTCStatsType::RTCStatsType_dataChannel;
+    case ::webrtc::StatsReport::StatsType::RTCStatsType_track:                  return wrapper::org::webRtc::RTCStatsType::RTCStatsType_stream;
+    case ::webrtc::StatsReport::StatsType::kStatsReportTypeTrack:               return wrapper::org::webRtc::RTCStatsType::RTCStatsType_track;
+    case ::webrtc::StatsReport::StatsType::RTCStatsType_dtlsTransport:          return wrapper::org::webRtc::RTCStatsType::RTCStatsType_iceGatherer;
+    case ::webrtc::StatsReport::StatsType::RTCStatsType_srtpTransport:          return wrapper::org::webRtc::RTCStatsType::RTCStatsType_iceTransport;
+    case ::webrtc::StatsReport::StatsType::RTCStatsType_certificate:            return wrapper::org::webRtc::RTCStatsType::RTCStatsType_dtlsTransport;
+    case ::webrtc::StatsReport::StatsType::RTCStatsType_candidate:              return wrapper::org::webRtc::RTCStatsType::RTCStatsType_srtpTransport;
+    case ::webrtc::StatsReport::StatsType::kStatsReportTypeCertificate:         return wrapper::org::webRtc::RTCStatsType::RTCStatsType_certificate;
+    case ::webrtc::StatsReport::StatsType::RTCStatsType_candidatePair:          return wrapper::org::webRtc::RTCStatsType::RTCStatsType_candidate;
+    case ::webrtc::StatsReport::StatsType::kStatsReportTypeCandidatePair:       return wrapper::org::webRtc::RTCStatsType::RTCStatsType_candidatePair;
+    case ::webrtc::StatsReport::StatsType::kStatsReportTypeIceLocalCandidate:   return wrapper::org::webRtc::RTCStatsType::RTCStatsType_localCandidate;
+    case ::webrtc::StatsReport::StatsType::kStatsReportTypeIceRemoteCandidate:  return wrapper::org::webRtc::RTCStatsType::RTCStatsType_remoteCandidate;
+  }
+  ZS_ASSERT_FAIL("unknown type");
+  return wrapper::org::webRtc::RTCStatsType::RTCStatsType_certificate;
+}
+
+//-----------------------------------------------------------------------------
+::webrtc::StatsReport::StatsType toNative(wrapper::org::webRtc::RTCStatsType value) noexcept
+
+
+enum RTCStatsType {
+  RTCStatsType_inboundRtp,
+  RTCStatsType_outboundRtp,
+  RTCStatsType_codec,
+  RTCStatsType_sctpTransport,
+  RTCStatsType_dataChannel,
+  RTCStatsType_stream,
+  RTCStatsType_track,
+  RTCStatsType_iceGatherer,
+  RTCStatsType_iceTransport,
+  RTCStatsType_dtlsTransport,
+  RTCStatsType_srtpTransport,
+  RTCStatsType_certificate,
+  RTCStatsType_candidate,
+  RTCStatsType_candidatePair,
+  RTCStatsType_localCandidate,
+  RTCStatsType_remoteCandidate,
+};
+
+
+
+enum StatsType {
+  // StatsReport types.
+  // A StatsReport of |type| = "googSession" contains overall information
+  // about the thing libjingle calls a session (which may contain one
+  // or more RTP sessions.
+  kStatsReportTypeSession,
+
+  // A StatsReport of |type| = "googTransport" contains information
+  // about a libjingle "transport".
+  kStatsReportTypeTransport,
+
+  // A StatsReport of |type| = "googComponent" contains information
+  // about a libjingle "channel" (typically, RTP or RTCP for a transport).
+  // This is intended to be the same thing as an ICE "Component".
+  kStatsReportTypeComponent,
+
+  // A StatsReport of |type| = "googCandidatePair" contains information
+  // about a libjingle "connection" - a single source/destination port pair.
+  // This is intended to be the same thing as an ICE "candidate pair".
+  kStatsReportTypeCandidatePair,
+
+  // A StatsReport of |type| = "VideoBWE" is statistics for video Bandwidth
+  // Estimation, which is global per-session.  The |id| field is "bweforvideo"
+  // (will probably change in the future).
+  kStatsReportTypeBwe,
+
+  // A StatsReport of |type| = "ssrc" is statistics for a specific rtp stream.
+  // The |id| field is the SSRC in decimal form of the rtp stream.
+  kStatsReportTypeSsrc,
+
+  // A StatsReport of |type| = "remoteSsrc" is statistics for a specific
+  // rtp stream, generated by the remote end of the connection.
+  kStatsReportTypeRemoteSsrc,
+
+  // A StatsReport of |type| = "googTrack" is statistics for a specific media
+  // track. The |id| field is the track id.
+  kStatsReportTypeTrack,
+
+  // A StatsReport of |type| = "localcandidate" or "remotecandidate" is
+  // attributes on a specific ICE Candidate. It links to its connection pair
+  // by candidate id. The string value is taken from
+  // http://w3c.github.io/webrtc-stats/#rtcstatstype-enum*.
+  kStatsReportTypeIceLocalCandidate,
+  kStatsReportTypeIceRemoteCandidate,
+
+  // A StatsReport of |type| = "googCertificate" contains an SSL certificate
+  // transmitted by one of the endpoints of this connection.  The |id| is
+  // controlled by the fingerprint, and is used to identify the certificate in
+  // the Channel stats (as "googLocalCertificateId" or
+  // "googRemoteCertificateId") and in any child certificates (as
+  // "googIssuerId").
+  kStatsReportTypeCertificate,
+
+  // A StatsReport of |type| = "datachannel" with statistics for a
+  // particular DataChannel.
+  kStatsReportTypeDataChannel,
+};
+#endif //0

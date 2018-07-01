@@ -7,6 +7,7 @@
 #include "api/peerconnectioninterface.h"
 #include "api/mediastreaminterface.h"
 #include "api/datachannelinterface.h"
+#include "api/statstypes.h"
 #include "rtc_base/network_constants.h"
 #include "impl_org_webRtc_post_include.h"
 
@@ -106,59 +107,38 @@ namespace wrapper {
           ZS_NO_DISCARD() static wrapper::org::webRtc::RTCIceConnectionState toWrapper(::webrtc::PeerConnectionInterface::IceConnectionState value) noexcept;
           ZS_NO_DISCARD() static ::webrtc::PeerConnectionInterface::IceConnectionState toNative(wrapper::org::webRtc::RTCIceConnectionState value) noexcept;
 
+          ZS_NO_DISCARD() static wrapper::org::webRtc::RTCIceGatheringState toWrapper(::webrtc::PeerConnectionInterface::IceGatheringState value) noexcept;
+          ZS_NO_DISCARD() static ::webrtc::PeerConnectionInterface::IceGatheringState toNative(wrapper::org::webRtc::RTCIceGatheringState value) noexcept;
+
+          ZS_NO_DISCARD() static wrapper::org::webRtc::RTCSignalingState toWrapper(::webrtc::PeerConnectionInterface::SignalingState value) noexcept;
+          ZS_NO_DISCARD() static ::webrtc::PeerConnectionInterface::SignalingState toNative(wrapper::org::webRtc::RTCSignalingState value) noexcept;
+
+          ZS_NO_DISCARD() static wrapper::org::webRtc::RTCIceProtocol toWrapperRTCIceProtocol(const char *value) noexcept(false); // throws InvalidParameters
+          ZS_NO_DISCARD() static const char * toNative(wrapper::org::webRtc::RTCIceProtocol value) noexcept;
+
+          ZS_NO_DISCARD() static wrapper::org::webRtc::RTCIceTcpCandidateType toWrapperRTCIceTcpCandidateType(const char *value) noexcept(false); // throws InvalidParameters
+          ZS_NO_DISCARD() static const char * toNative(wrapper::org::webRtc::RTCIceTcpCandidateType value) noexcept;
+
+          ZS_NO_DISCARD() static wrapper::org::webRtc::RTCPriorityType toWrapperRTCPriorityType(double value) noexcept;
+          ZS_NO_DISCARD() static double toNative(wrapper::org::webRtc::RTCPriorityType value) noexcept;
+
+          ZS_NO_DISCARD() static wrapper::org::webRtc::RTCRtpTransceiverDirection toWrapper(::webrtc::RtpTransceiverDirection value) noexcept;
+          ZS_NO_DISCARD() static ::webrtc::RtpTransceiverDirection toNative(wrapper::org::webRtc::RTCRtpTransceiverDirection value) noexcept;
+
+          ZS_NO_DISCARD() static wrapper::org::webRtc::VideoCaptureState toWrapper(::cricket::CaptureState value) noexcept;
+          ZS_NO_DISCARD() static ::cricket::CaptureState toNative(wrapper::org::webRtc::VideoCaptureState value) noexcept;
+
+          ZS_NO_DISCARD() static wrapper::org::webRtc::RTCStatsOutputLevel toWrapper(::webrtc::PeerConnectionInterface::StatsOutputLevel value) noexcept;
+          ZS_NO_DISCARD() static ::webrtc::PeerConnectionInterface::StatsOutputLevel toNative(wrapper::org::webRtc::RTCStatsOutputLevel value) noexcept;
+
+          ZS_NO_DISCARD() static zsLib::Optional<::webrtc::StatsReport::Direction> toWrapperDirection(const char *statId) noexcept;
+          ZS_NO_DISCARD() static const char *toString(::webrtc::StatsReport::Direction value) noexcept;
+
+          ZS_NO_DISCARD() static wrapper::org::webRtc::RTCStatsType toWrapper(::webrtc::StatsReport::StatsType value) noexcept;
+          ZS_NO_DISCARD() static ::webrtc::StatsReport::StatsType toNative(wrapper::org::webRtc::RTCStatsType value) noexcept;
+
 #if 0
 
-
-          enum RTCIceCredentialType {
-            RTCIceCredentialType_password,
-            RTCIceCredentialType_oauth,
-          };
-          enum RTCIceGatheringState {
-            RTCIceGatheringState_new,
-            RTCIceGatheringState_gathering,
-            RTCIceGatheringState_complete,
-          };
-          enum RTCIceProtocol {
-            RTCIceProtocol_udp,
-            RTCIceProtocol_tcp,
-          };
-          enum RTCIceTcpCandidateType {
-            RTCIceTcpCandidateType_active,
-            RTCIceTcpCandidateType_passive,
-            RTCIceTcpCandidateType_so,
-          };
-          enum RTCPeerConnectionState {
-            RTCPeerConnectionState_new,
-            RTCPeerConnectionState_connecting,
-            RTCPeerConnectionState_connected,
-            RTCPeerConnectionState_disconnected,
-            RTCPeerConnectionState_failed,
-            RTCPeerConnectionState_closed,
-          };
-          enum RTCPriorityType {
-            RTCPriorityType_veryLow,
-            RTCPriorityType_low,
-            RTCPriorityType_medium,
-            RTCPriorityType_high,
-          };
-          enum RTCRtpTransceiverDirection {
-            RTCRtpTransceiverDirection_sendrecv,
-            RTCRtpTransceiverDirection_sendonly,
-            RTCRtpTransceiverDirection_recvonly,
-            RTCRtpTransceiverDirection_inactive,
-          };
-          enum RTCSignalingState {
-            RTCSignalingState_stable,
-            RTCSignalingState_haveLocalOffer,
-            RTCSignalingState_haveLocalPranswer,
-            RTCSignalingState_haveRemoteOffer,
-            RTCSignalingState_haveRemotePranswer,
-            RTCSignalingState_closed,
-          };
-          enum RTCStatsOutputLevel {
-            RTCStatsOutputLevel_standard,
-            RTCStatsOutputLevel_debug,
-          };
           enum RTCStatsType {
             RTCStatsType_inboundRtp,
             RTCStatsType_outboundRtp,
@@ -177,41 +157,8 @@ namespace wrapper {
             RTCStatsType_localCandidate,
             RTCStatsType_remoteCandidate,
           };
-          enum VideoCaptureState {
-            VideoCaptureState_stopped,
-            VideoCaptureState_starting,
-            VideoCaptureState_running,
-            VideoCaptureState_failed,
-          };
+          
 
-          PeerConnectionInterface
-          enum SignalingState {
-            kStable,
-            kHaveLocalOffer,
-            kHaveLocalPrAnswer,
-            kHaveRemoteOffer,
-            kHaveRemotePrAnswer,
-            kClosed,
-  };
-          PeerConnectionInterface
-          enum IceGatheringState {
-            kIceGatheringNew,
-            kIceGatheringGathering,
-            kIceGatheringComplete
-          };
-
-
-
-
-
-
-          ///// StatsReport
-
-
-          enum Direction {
-            kSend = 0,
-            kReceive,
-  };
 
           enum StatsType {
             // StatsReport types.
@@ -270,6 +217,25 @@ namespace wrapper {
             // particular DataChannel.
             kStatsReportTypeDataChannel,
           };
+
+
+          // no conversion possible
+          enum RTCPeerConnectionState {
+            RTCPeerConnectionState_new,
+            RTCPeerConnectionState_connecting,
+            RTCPeerConnectionState_connected,
+            RTCPeerConnectionState_disconnected,
+            RTCPeerConnectionState_failed,
+            RTCPeerConnectionState_closed,
+          };
+
+
+          // no conversion possible
+          enum RTCIceCredentialType {
+            RTCIceCredentialType_password,
+            RTCIceCredentialType_oauth,
+          };
+
 
           enum StatsValueName {
             kStatsValueNameActiveConnection,

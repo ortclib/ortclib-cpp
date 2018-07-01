@@ -59,310 +59,733 @@ namespace org
     };
 
     /// <summary>
-    /// The RTCStats contains statistics information related to an inspected
-    /// object.
+    /// An RTCStats dictionary represents the stats object constructed
+    /// by inspecting a specific monitored object. The RTCStats dictionary
+    /// is a base type that specifies as set of default attributes, such
+    /// as timestamp and type. Specific stats are added by extending the
+    /// RTCStats dictionary.
     /// </summary>
     struct RTCStats
     {
       /// <summary>
-      /// Gets or sets the timestamp when this statistic object was generated.
+      /// Gets the timestamp, of type DOMHighResTimeStamp [HIGHRES-TIME],
+      /// associated with this object. The time is relative to the UNIX epoch
+      /// (Jan 1, 1970, UTC). For statistics that came from a remote source
+      /// (e.g., from received RTCP packets), timestamp represents the time at
+      /// which the information arrived at the local endpoint. The remote
+      /// timestamp can be found in an additional field in an RTCStats-derived
+      /// dictionary, if applicable.
       /// </summary>
       [getter]
       Time                timestamp;
+
       /// <summary>
-      /// Gets or sets the type of statistics object contained within this
-      /// RTCStats object.
+      /// Gets the type of this object.
+      ///
+      /// The type attribute MUST be initialized to the name of the most specific
+      /// type this RTCStats dictionary represents.
       /// </summary>
       [optional, getter]
       RTCStatsType        statsType;
+
       /// <summary>
-      /// Gets or sets the type of statistics object when the type is not a
+      /// Gets the type of statistics object when the type is not a
       /// pre-known type.
       /// </summary>
       [getter]
       string              statsTypeOther;
+
       /// <summary>
-      /// Gets or sets the identifier for the RTCStats object. The identifier
-      /// is unique within a RTCStatsReport but is not guaranteed to be unique
-      /// across RTCStatsReports.
+      /// A unique id that is associated with the object that was inspected
+      /// to produce this RTCStats object. Two RTCStats objects, extracted
+      /// from two different RTCStatsReport objects, MUST have the same id
+      /// if they were produced by inspecting the same underlying object.
+      /// User agents are free to pick any format for the id as long as it
+      /// meets the requirements above.
       /// </summary>
       [getter]
       string              id;
 
-      /// <summary>
-      /// Constructs an empty instance of an RTCStats object.
-      /// </summary>
-      [constructor, default]
+      [constructor, default, delete]
       void RTCStats();
-      /// <summary>
-      /// Constructs an instance of an RTCStats object by cloning object data from an existing object.
-      /// </summary>
-      [constructor, altname(RTCStatsClone)]
-      void RTCStats(RTCStats source);
     };
-
 
     struct RTCRtpStreamStats : RTCStats
     {
       /// <summary>
-      /// Gets or sets the SSRC for the RTP stream.
+      /// Gets the 32-bit unsigned integer value per [RFC3550] used to identify the
+      //// source of the stream of RTP packets that this stats object concerns.
       /// </summary>
       [optional, getter]
       SsrcType            ssrc;
+
       /// <summary>
-      /// Gets or sets the associated stats identifier for looking up the
-      /// corresponding (local/remote) RTCStats object for a given SSRC.
+      /// Gets either "audio" or "video". This must match the media type part of
+      /// the information in the corresponding codec member of RTCCodecStats,
+      /// and must match the "kind" attribute of the related MediaStreamTrack.
       /// </summary>
       [getter]
-      string              associatedStatId;
+      string              kind;
+
       /// <summary>
-      /// Gets or sets if the measurements are calculated locally ore
-      /// remotely. false indicates that the statistics are measured
-      /// locally, while true indicates that the measurements were done
-      /// at the remote endpoint and reported in an RTCP RR/XR.
-      /// </summary>
-      [getter]
-      bool                isRemote;
-      /// <summary>
-      /// Gets or sets the media type, either "audio" or "video". This must
-      /// match the media type part of the information in the corresponding
-      /// codec member of RTCCodec.
-      /// </summary>
-      [getter]
-      string              mediaType;
-      /// <summary>
-      /// Gets or sets the media stream tracks ID associated with this RTP
-      /// stream stats object.
-      /// </summary>
-      [getter]
-      string              mediaTrackId;
-      /// <summary>
-      /// Gets or sets the transport ID associated with this RTP media
-      /// stream stats object. It is a unique identifier that is associated
-      /// to the object that was inspected to produce the RTCTransportStats
-      /// associated with this RTP stream.
+      /// Gets a unique identifier that is associated to the object that
+      /// was inspected to produce the RTCTransportStats associated with this RTP stream.
       /// </summary>
       [getter]
       string              transportId;
+
       /// <summary>
-      /// Gets or set the codec ID associated with this RTP media stream stats
-      /// object.
+      /// Gets a unique identifier that is associated to the object that was
+      /// inspected to produce the RTCCodecStats associated with this RTP stream.
       /// </summary>
       [getter]
       string              codecId;
+
       /// <summary>
-      /// Gets or sets the total number of Full Intra Request (FIR) packets
-      /// received by the sender. This metric is only valid for video and is
-      /// sent by receiver. Calculated as defined in [RFC5104] section 4.3.1.
-      /// and does not use the metric indicated in [RFC2032], because it was
-      /// deprecated by [RFC4587].
+      /// Gets the count of the total number of Full Intra Request (FIR) packets received by the sender.
+      /// This metric is only valid for video and is sent by receiver. Calculated as
+      /// defined in [RFC5104] section 4.3.1. and does not use the metric indicated
+      /// in [RFC2032], because it was deprecated by [RFC4587].
       /// </summary>
       [getter]
       unsigned long       firCount;
+
       /// <summary>
-      /// Gets or sets the total number of Packet Loss Indication (PLI)
-      /// packets received by the sender and is sent by receiver. Calculated
-      /// as defined in [RFC4585] section 6.3.1.
+      /// Gets the count of the total number of Picture Loss Indication (PLI) packets received
+      /// by the sender. This metric is only valid for video and is sent by receiver.
+      /// Calculated as defined in [RFC4585] section 6.3.1.
       /// </summary>
       [getter]
       unsigned long       pliCount;
+
       /// <summary>
-      /// Gets or sets the total number of Negative ACKnowledgement (NACK)
-      /// packets received by the sender and is sent by receiver. Calculated
-      /// as defined in [RFC4585] section 6.2.1.
+      /// Gets the count of the total number of Negative ACKnowledgement (NACK) packets received
+      /// by the sender and is sent by receiver. Calculated as defined in [RFC4585]
+      /// section 6.2.1.
       /// </summary>
       [getter]
       unsigned long       nackCount;
+
       /// <summary>
-      /// Gets or sets the total number of Slice Loss Indication (SLI) packets
-      /// received by the sender. This metric is only valid for video and is
-      /// sent by receiver. Calculated as defined in [RFC4585] section 6.3.2.
+      /// Gets the count of the total number of Slice Loss Indication (SLI) packets received by
+      /// the sender. This metric is only valid for video and is sent by receiver.
+      /// Calculated as defined in [RFC4585] section 6.3.2.
       /// </summary>
       [getter]
       unsigned long       sliCount;
 
       /// <summary>
-      /// Constructs an empty instance of an RTCRtpStreamStats object.
+      /// Gets the sum of the QP values of frames passed. The count of frames is in
+      /// framesDecoded for inbound stream stats, and in framesEncoded for
+      /// outbound stream stats.
+      ///
+      /// The definition of QP value depends on the codec; for VP8, the QP value
+      /// is the value carried in the frame header as the syntax element
+      /// "y_ac_qi", and defined in [RFC6386] section 19.2. Its range is
+      /// 0..127.
+      ///
+      /// Note that the QP value is only an indication of quantizer values used;
+      /// many formats have ways to vary the quantizer value within the frame.
+      ///
+      /// Only valid for video.
       /// </summary>
-      [constructor, default]
+      [getter]
+      unsigned long long  qpSum;
+
+      [constructor, default, delete]
       void RTCRtpStreamStats();
-      /// <summary>
-      /// Constructs an instance of an RTCRtpStreamStats object by cloning object data from an existing object.
-      /// </summary>
-      [constructor, altname(RTCRtpStreamStatsClone)]
-      void RTCRtpStreamStats(RTCRtpStreamStats source);
     };
 
     /// <summary>
-    /// The RTCCodec object contains information about the codec associated
+    /// The RTCCodecStats object contains information about the codec associated
     /// with an RTP stream.
     /// </summary>
-    struct RTCCodec : RTCStats
+    struct RTCCodecStats : RTCStats
     {
       /// <summary>
-      /// Gets or sets the payload type as used in RTP encoding.
+      /// Gets the payload type as used in RTP encoding or decoding.
       /// </summary>
       [optional, getter]
       PayloadType      payloadType;
+
       /// <summary>
-      /// Gets or sets the IANA name of the codec associated with the RTP
-      /// stream. For example, "vp8" for "video/vp8" or equivalent.
+      /// Gets "encode" or "decode", depending on whether this object represents
+      /// a media format that the implementation is prepared to encode or decode.
       /// </summary>
       [getter]
-      string           codec;
+      RTCCodecType     codecType;
+
       /// <summary>
-      /// Gets or sets the media sampling rate.
+      /// Gets the unique identifier of the transport on which this codec is being used, which can be used to look up the corresponding RTCTransportStats object.
+      /// </summary>
+      string           transportId;
+
+      /// <summary>
+      /// Gets the codec MIME media type/subtype. e.g., video/vp8 or equivalent.
+      /// </summary>
+      [getter]
+      string           mimeType;
+
+      /// <summary>
+      /// Gets the media sampling rate.
       /// </summary>
       [getter]
       unsigned long    clockRate;
+
       /// <summary>
-      /// Gets or sets the number of audio channels used by the codec. For
-      /// example, 2 for stereo, 1 for mono, and missing for non-audio codecs.
+      /// Gets the number of channels. Use 2 for stereo, missing for most other cases.
       /// </summary>
       [optional, getter]
       unsigned long    channels;
-      /// <summary>
-      /// Gets or sets the SDP description line.
-      /// </summary>
-      [getter]
-      string           parameters;
 
       /// <summary>
-      /// Constructs an empty instance of an RTCCodec object.
+      /// Gets the a=fmtp line in the SDP corresponding to the codec, i.e., after the
+      /// colon following the PT. This defined by [JSEP] in Section 5.7.
       /// </summary>
-      [constructor, default]
-      void RTCCodec();
+      [getter]
+      string           sdpFmtpLine;
+
       /// <summary>
-      /// Constructs an instance of an RTCCodec object by cloning object data from an existing object.
+      /// Gets the identifier for the implementation used. This is useful for
+      /// diagnosing interoperability issues.
       /// </summary>
-      [constructor, altname(RTCCodecClone)]
-      void RTCCodec(RTCCodec source);
+      [getter]
+      string           implementation;
+
+      [constructor, default, delete]
+      void RTCCodecStats();
     };
 
     /// <summary>
-    /// The RTCInboundRTPStreamStats object represents the measurement metrics
+    /// The RTCReceivedRtpStreamStats object represents the measurement metrics
     /// for the incoming RTP media stream.
     /// </summary>
-    struct RTCInboundRtpStreamStats : RTCRtpStreamStats
+    struct RTCReceivedRtpStreamStats : RTCRtpStreamStats
     {
       /// <summary>
-      /// Gets or sets the total number of RTP packets received for this SSRC.
-      /// Calculated as defined in [RFC3550] section 6.4.1.
+      /// Gets the total number of RTP packets received for this SSRC. At the
+      /// receiving endpoint, this is calculated as defined in [RFC3550] section
+      /// 6.4.1. At the sending endpoint the packetsReceived can be calculated
+      /// by subtracting the packets lost from the expected Highest Sequence
+      /// Number reported in the RTCP Sender Report as discussed in Appendix
+      /// A.3. in [RFC3550].
       /// </summary>
       [getter]
       unsigned long       packetsReceived;
-      [getter]
+
       /// <summary>
-      /// Gets or sets the total number of bytes received for this SSRC.
-      /// Calculated as defined in [RFC3550] section 6.4.1.
-      /// </summary>
-      unsigned long long  bytesReceived;
-      /// <summary>
-      /// Gets or sets the total number of RTP packets lost for this SSRC.
-      /// Calculated as defined in [RFC3550] section 6.4.1.
+      /// Gets the total number of RTP packets lost for this SSRC. Calculated as
+      /// defined in [RFC3550] section 6.4.1. Note that because of how this is
+      /// estimated, it can be negative if more packets are received than sent.
       /// </summary>
       [getter]
       unsigned long       packetsLost;
+
       /// <summary>
-      /// Gets or sets the packet jitter measured in seconds for this SSRC.
-      /// Calculated as defined in [RFC3550] section 6.4.1.
+      /// Gets the packet Jitter measured in seconds for this SSRC.
+      /// Calculated as defined in section 6.4.1. of [RFC3550].
       /// </summary>
       [getter]
       double              jitter;
-      /// <summary>
-      /// Gets or sets the fraction packet loss reported for this SSRC.
-      /// Calculated as defined in [RFC3550] section 6.4.1 and Appendix A.3.
-      /// </summary>
-      [getter]
-      double              fractionLost;
-      /// <summary>
-      /// Gets or sets the end to end media delay in milliseconds. This value
-      /// represents the total duration between the time the media sampling was
-      /// captured to the time the media sampling was rendered.
-      /// </summary>
-      [getter]
-      Milliseconds        endToEndDelay;
 
+      [getter]
       /// <summary>
-      /// Constructs an empty instance of an RTCInboundRtpStreamStats object.
+      /// Gets the cumulative number of RTP packets discarded by the jitter buffer
+      /// due to late or early-arrival, i.e., these packets are not played out.
+      /// RTP packets discarded due to packet duplication are not reported in
+      /// this metric [XRBLOCK-STATS]. Calculated as defined in [RFC7002]
+      /// section 3.2 and Appendix A.a.
       /// </summary>
-      [constructor, default]
-      void RTCInboundRtpStreamStats();
+      unsigned long  packetsDiscarded;
+
+      [getter]
       /// <summary>
-      /// Constructs an instance of an RTCInboundRtpStreamStats object by cloning object data from an existing object.
+      /// Gets the cumulative number of lost RTP packets repaired after applying
+      /// an error-resilience mechanism [XRBLOCK-STATS]. It is measured for
+      /// the primary source RTP packets and only counted for RTP packets that
+      /// have no further chance of repair. To clarify, the value is upper-bound
+      /// to the cumulative number of lost packets. Calculated as defined in
+      /// [RFC7509] section 3.1 and Appendix A.b.
       /// </summary>
-      [constructor, altname(RTCInboundRtpStreamStatsClone)]
-      void RTCInboundRtpStreamStats(RTCInboundRtpStreamStats source);
+      unsigned long  packetsRepaired;
+
+      [getter]
+      /// <summary>
+      /// Gets the cumulative number of RTP packets lost during loss bursts,
+      /// Appendix A (c) of [RFC6958].
+      /// </summary>
+      unsigned long  burstPacketsLost;
+
+      [getter]
+      /// <summary>
+      /// Gets the cumulative number of RTP packets discarded during discard
+      /// bursts, Appendix A (b) of [RFC7003].
+      /// </summary>
+      unsigned long  burstPacketsDiscarded;
+
+      [getter]
+      /// <summary>
+      /// Gets the cumulative number of bursts of lost RTP packets, Appendix A (e) of [RFC6958].
+      ///
+      /// [RFC3611] recommends a Gmin (threshold) value of 16 for classifying a sequence
+      /// of packet losses or discards as a burst.
+      /// </summary>
+      unsigned long  burstLossCount;
+
+      [getter]
+      /// <summary>
+      /// Gets the cumulative number of bursts of discarded RTP packets, Appendix A (e) of [RFC8015].
+      /// </summary>
+      unsigned long  burstDiscardCount;
+
+      [getter]
+      /// <summary>
+      /// Gets the fraction of RTP packets lost during bursts to the total number of RTP packets
+      /// expected in the bursts. As defined in Appendix A (a) of [RFC7004], however, the
+      /// actual value is reported without multiplying by 32768.
+      /// </summary>
+      double  burstLossRate;
+
+      [getter]
+      /// <summary>
+      /// Gets the fraction of RTP packets discarded during bursts to the total number of RTP
+      /// packets expected in bursts. As defined in Appendix A (e) of [RFC7004], however,
+      /// the actual value is reported without multiplying by 32768.
+      /// </summary>
+      double  burstDiscardRate;
+
+      [getter]
+      /// <summary>
+      /// Gets the fraction of RTP packets lost during the gap periods. Appendix A (b) of
+      /// [RFC7004], however, the actual value is reported without multiplying by 32768.
+      /// </summary>
+      double  gapLossRate;
+
+      [getter]
+      /// <summary>
+      /// Gets the fraction of RTP packets discarded during the gap periods. Appendix A (f)
+      /// of [RFC7004], however, the actual value is reported without multiplying by 32768.
+      /// </summary>
+      double  gapDiscardRate;
+
+      [constructor, default, delete]
+      void RTCReceivedRtpStreamStats();
     };
 
     /// <summary>
-    /// The RTCOutboundRTPStreamStats object represents the measurement
-    /// metrics for the outgoing media stream.
+    /// The RTCInboundRtpStreamStats dictionary represents the measurement metrics
+    /// for the incoming RTP media stream. The timestamp reported in the statistics
+    /// object is the time at which the data was sampled.
     /// </summary>
-    struct RTCOutboundRtpStreamStats : RTCRtpStreamStats
-    {
+    struct RTCInboundRtpStreamStats : RTCReceivedRtpStreamStats {
       /// <summary>
-      /// Gets or sets the total number of RTP packets sent for this SSRC.
-      /// Calculated as defined in [RFC3550] section 6.4.1.
+      /// Gets the identifier of the stats object representing the receiving track,
+      /// an RTCReceiverAudioTrackAttachmentStats or RTCReceiverVideoTrackAttachmentStats.
       /// </summary>
       [getter]
-      unsigned long       packetsSent;
-      /// <summary>
-      /// Gets or sets the total number of bytes sent for this SSRC.
-      /// Calculated as defined in [RFC3550] section 6.4.1.
-      /// </summary>
-      [getter]
-      unsigned long long  bytesSent;
-      /// <summary>
-      /// Gets or sets the presently configured bitrate target of this SSRC,
-      /// in bits per second. Typically this is a configuration parameter
-      /// provided to the codec's encoder.
-      /// </summary>
-      [getter]
-      double              targetBitrate;
-      /// <summary>
-      /// Gets or sets the estimated round trip time (seconds) for this SSRC
-      /// based on the RTCP timestamp. Calculated as defined in [RFC3550]
-      /// section 6.4.1.
-      /// </summary>
-      [getter]
-      double              roundTripTime;
+      string trackId;
 
       /// <summary>
-      /// Constructs an empty instance of an RTCOutboundRtpStreamStats object.
+      /// Gets the stats ID used to look up the RTCAudioReceiverStats or
+      /// RTCVideoReceiverStats object receiving this stream.
       /// </summary>
-      [constructor, default]
-      void RTCOutboundRtpStreamStats();
+      [getter]
+      string receiverId;
+
       /// <summary>
-      /// Constructs an instance of an RTCOutboundRtpStreamStats object by cloning object data from an existing object.
+      /// Gets the remoteId is used for looking up the remote
+      /// RTCRemoteOutboundRtpStreamStats object for the same SSRC.
       /// </summary>
-      [constructor, altname(RTCOutboundRtpStreamStatsClone)]
-      void RTCOutboundRtpStreamStats(RTCOutboundRtpStreamStats source);
+      [getter]
+      string remoteId;
+
+      /// <summary>
+      /// Gets the total number of frames correctly decoded for this SSRC, i.e.,
+      /// frames that would be displayed if no frames are dropped. Only valid for video.
+      /// </summary>
+      [getter, optional]
+      unsigned long framesDecoded;
+
+      /// <summary>
+      /// Gets the timestamp at which the last packet was received for
+      /// this SSRC. This differs from timestamp, which represents the time at
+      /// which the statistics were generated by the local endpoint.
+      /// </summary>
+      [getter]
+      Time lastPacketReceivedTimestamp;
+
+      /// <summary>
+      /// Gets the average RTCP interval between two consecutive compound RTCP
+      /// packets. This is calculated by the sending endpoint when sending
+      /// compound RTCP reports. Compound packets must contain at least a RTCP
+      /// RR or SR packet and an SDES packet with the CNAME item.
+      /// </summary>
+      [getter]
+      double averageRtcpInterval;
+
+      /// <summary>
+      /// Gets the total number of RTP FEC packets received for this SSRC.
+      /// This counter can also be incremented when receiving FEC packets
+      /// in-band with media packets (e.g., with Opus).
+      /// </summary>
+      [getter]
+      unsigned long fecPacketsReceived;
+
+      /// <summary>
+      /// Gets the total number of bytes received for this SSRC. Calculated as
+      /// defined in [RFC3550] section 6.4.1.
+      /// </summary>
+      [getter]
+      unsigned long long bytesReceived;
+
+      /// <summary>
+      /// Gets the cumulative number of RTP packets that failed to be
+      /// decrypted according to the procedures in [RFC3711]. These packets
+      /// are not counted by packetsDiscarded.
+      /// </summary>
+      [getter]
+      unsigned long packetsFailedDecryption;
+
+      /// <summary>
+      /// Gets the cumulative number of packets discarded because they are
+      /// duplicated. Duplicate packets are not counted in packetsDiscarded.
+      ///
+      /// Duplicated packets have the same RTP sequence number and content as
+      /// a previously received packet. If multiple duplicates of a packet are
+      /// received, all of them are counted.
+      ///
+      /// An improved estimate of lost packets can be calculated by adding
+      /// packetsDuplicated to packetsLost; this will always result in a
+      /// positive number, but not the same number as RFC 3550 would calculate.
+      /// </summary>
+      [getter]
+      unsigned long packetsDuplicated;
+
+      /// <summary>
+      /// Total number of packets received for this SSRC, per Differentiated
+      /// Services code point (DSCP) [RFC2474]. DSCPs are identified as decimal
+      /// integers in string form. Note that due to network remapping and bleaching,
+      /// these numbers are not expected to match the numbers seen on sending.
+      /// Not all OSes make this information available.
+      /// </summary>
+      [getter]
+      std::map<string, unsigned long> perDscpPacketsReceived;
+
+      [constructor, default, delete]
+      void RTCInboundRtpStreamStats();
+    };    
+
+    /// <summary>
+    /// The RTCRemoteInboundRtpStreamStats dictionary represents the remote endpoint's
+    /// measurement metrics for a particular incoming RTP stream (corresponding to an
+    /// outgoing RTP stream at the sending endpoint). The timestamp reported in the
+    /// statistics object is the time at which the corresponding RTCP RR was received.
+    /// </summary>
+    struct RTCRemoteInboundRtpStreamStats : RTCReceivedRtpStreamStats {
+      /// <summary>
+      /// Gets the localId is used for looking up the local RTCOutboundRtpStreamStats object for the same SSRC.
+      /// </summary>
+      [getter]
+      string localId;
+
+      /// <summary>
+      /// Gets the estimated round trip time for this SSRC based on the RTCP timestamps in the
+      /// RTCP Receiver Report (RR) and measured in seconds. Calculated as defined in section
+      /// 6.4.1. of [RFC3550]. If no RTCP Receiver Report is received with a DLSR value other than
+      /// 0, the round trip time is left undefined.
+      /// </summary>
+      [getter]
+      double roundTripTime;
+
+      /// <summary>
+      /// Gets the fraction packet loss reported for this SSRC. Calculated as defined in [RFC3550]
+      /// section 6.4.1 and Appendix A.3.
+      /// </summary>
+      [getter]
+      double fractionLost;
+
+      [constructor, default, delete]
+      void RTCRemoteInboundRtpStreamStats();
     };
 
-    struct RTCSctpTransportStats : RTCStats
-    {
+    struct RTCSentRtpStreamStats : RTCRtpStreamStats {
       /// <summary>
-      /// Gets or sets the number of unique datachannels opened.
+      /// Gets the total number of RTP packets sent for this SSRC. Calculated as
+      /// defined in [RFC3550] section 6.4.1.
+      /// </summary>
+      [getter]
+      unsigned long packetsSent;
+    
+      /// <summary>
+      /// Gets the total number of RTP packets for this SSRC that have been discarded
+      /// due to socket errors, i.e. a socket error occured when handing the packets
+      /// to the socket. This might happen due to various reasons, including full
+      /// buffer or no available memory.
+      /// </summary>
+      [getter]
+      unsigned long packetsDiscardedOnSend;
+    
+      /// <summary>
+      /// Gets the total number of RTP FEC packets sent for this SSRC. This counter can
+      /// also be incremented when sending FEC packets in-band with media packets
+      /// (e.g., with Opus).
+      /// </summary>
+      [getter]
+      unsigned long fecPacketsSent;
+    
+      /// <summary>
+      /// Gets the total number of bytes sent for this SSRC. Calculated as defined in
+      /// [RFC3550] section 6.4.1.
+      /// </summary>
+      [getter]
+      unsigned long long bytesSent;
+    
+      /// <summary>
+      /// Gets the total number of bytes for this SSRC that have been discarded due to
+      /// socket errors, i.e. a socket error occured when handing the packets containing
+      /// the bytes to the socket. This might happen due to various reasons, including full
+      /// buffer or no available memory. Calculated as defined in [RFC3550] section 6.4.1.
+      /// </summary>
+      [getter]
+      unsigned long long bytesDiscardedOnSend;
+
+      /// <summary>
+      /// Constructs an empty instance of an RTCSentRtpStreamStats object.
+      /// </summary>
+      [constructor, default]
+      void RTCSentRtpStreamStats();
+    };
+
+    /// <summary>
+    /// The RTCOutboundRtpStreamStats dictionary represents the measurement
+    /// metrics for the outgoing RTP stream. The timestamp reported in the statistics
+    /// object is the time at which the data was sampled.
+    /// </summary>
+    struct RTCOutboundRtpStreamStats : RTCSentRtpStreamStats
+    {
+
+      /// <summary>
+      /// Gets the identifier of the stats object representing the current track
+      /// attachment to the sender of this stream, an RTCSenderAudioTrackAttachmentStats
+      /// or RTCSenderVideoTrackAttachmentStats.
+      /// </summary>
+      [getter]
+      string trackId;
+
+      /// <summary>
+      /// Gets the stats ID used to look up the RTCAudioSenderStats or RTCVideoSenderStats
+      /// object sending this stream.
+      /// </summary>
+      [getter]
+      string senderId;
+
+      /// <summary>
+      /// Gets the remoteId is used for looking up the remote RTCRemoteInboundRtpStreamStats
+      /// object for the same SSRC.
+      /// </summary>
+      [getter]
+      string remoteId;
+
+      /// <summary>
+      /// Gets the timestamp at which the last packet was sent for this SSRC.
+      /// This differs from timestamp, which represents the time at which the statistics
+      /// were generated by the local endpoint.
+      /// </summary>
+      [getter]
+      Time lastPacketSentTimestamp;
+
+      /// <summary>
+      /// Gets the current target bitrate configured for this particular SSRC and is
+      /// the Transport Independent Application Specific (TIAS) bitrate [RFC3890].
+      /// Typically, the target bitrate is a configuration parameter provided to the
+      /// codec's encoder and does not count the size of the IP or other transport layers
+      /// like TCP or UDP. It is measured in bits per second and the bitrate is calculated
+      /// over a 1 second window.
+      /// </summary>
+      [getter]
+      double targetBitrate;
+
+      /// <summary>
+      /// Gets the total number of frames successfully
+      /// encoded for this RTP media stream. Only valid for video. 
+      /// </summary>
+      [getter, optional]
+      unsigned long framesEncoded;
+
+      /// <summary>
+      /// Gets the total number of milliseconds that has been spent encoding the framesEncoded frames
+      /// of this stream. The average encode time can be calculated by dividing this value
+      /// with framesEncoded. The time it takes to encode one frame is the time passed between
+      /// feeding the encoder a frame and the encoder returning encoded data for that frame.
+      /// This does not include any additional time it may take to packetize the resulting data.
+      /// </summary>
+      [getter]
+      Milliseconds totalEncodeTime;
+
+      /// <summary>
+      /// Gets the average RTCP interval between two consecutive compound RTCP packets.
+      /// This is calculated by the sending endpoint when sending compound RTCP reports.
+      /// Compound packets must contain at least a RTCP RR or SR packet and an SDES packet
+      /// with the CNAME item.
+      /// </summary>
+      [getter]
+      double averageRtcpInterval;
+
+      /// <summary>
+      /// Gets the current reason for limiting the resolution and/or
+      /// framerate, or "none" if not limited. Only valid for video. 
+      /// </summary>
+      [getter, optional]
+      RTCQualityLimitationReason qualityLimitationReason;
+
+      /// <summary>
+      /// Gets a record of the total time, in milliseconds, that this
+      /// stream has spent in each quality limitation state. The record includes a
+      /// mapping for all RTCQualityLimitationReason types, including "none". Only
+      /// valid for video.
+      /// 
+      /// The sum of all entries minus qualityLimidationDurations["none"] gives the
+      /// total time that the stream has been limited.
+      /// </summary>
+      [getter]
+      std::map<RTCQualityLimitationReason, Milliseconds> qualityLimitationDurations;
+
+      /// <summary>
+      /// Gets the total number of packets sent for this SSRC, per DSCP. DSCPs are identified
+      /// as decimal integers in string form.
+      /// </summary>
+      [getter]
+      std::map<string, unsigned long> perDscpPacketsSent;
+
+      [constructor, default, delete]
+      void RTCOutboundRtpStreamStats();
+    };
+
+    /// <summary>
+    /// The RTCRemoteOutboundRtpStreamStats dictionary represents the remote
+    /// endpoint's measurement metrics for its outgoing RTP stream (corresponding
+    /// to an outgoing RTP stream at the sending endpoint). The timestamp reported
+    /// in the statistics object is the time at which the corresponding RTCP SR was received.
+    /// </summary>
+    struct RTCRemoteOutboundRtpStreamStats : RTCSentRtpStreamStats {
+      /// <summary>
+      /// Gets the localId is used for looking up the local
+      /// RTCInboundRtpStreamStats object for the same SSRC.
+      /// </summary>
+      [getter]
+      String localId;
+
+      /// <summary>
+      /// Gets remoteTimestamp, of type DOMHighResTimeStamp [HIGHRES-TIME],
+      /// representing the remote timestamp at which these statistics were
+      /// sent by the remote endpoint. This differs from timestamp, which
+      /// represents the time at which the statistics were generated or
+      /// received by the local endpoint. The remoteTimestamp, if present,
+      /// is derived from the NTP timestamp in an RTCP Sender Report (SR)
+      /// packet, which reflects the remote endpoint's clock. That clock
+      /// may not be synchronized with the local clock.
+      /// </summary>
+      [getter]
+      Time remoteTimestamp;
+
+      [constructor, default, delete]
+      void RTCRemoteOutboundRtpStreamStats();
+    };
+
+    /// <summary>
+    /// The RTCRtpContributingSourceStats dictionary represents the measurement
+    /// metrics for a contributing source (CSRC) that is contributing to an
+    /// incoming RTP stream. Each contributing source produces a stream of
+    /// RTP packets, which are combined by a mixer into a single stream of
+    /// RTP packets that is ultimately received by the WebRTC endpoint.
+    /// Information about the sources that contributed to this combined
+    /// stream may be provided in the CSRC list or [RFC6465] header
+    /// extension of received RTP packets. The timestamp of this stats
+    /// object is the most recent time an RTP packet the source contributed
+    /// to was received and counted by packetsContributedTo.
+    /// </summary>
+    struct RTCRtpContributingSourceStats : RTCStats {
+      /// <summary>
+      /// Gets the SSRC identifier of the contributing source represented by this
+      /// stats object, as defined by [RFC3550]. It is a 32-bit unsigned integer
+      /// that appears in the CSRC list of any packets the relevant source contributed to.
+      /// </summary>
+      [getter]
+      unsigned long contributorSsrc;
+
+      /// <summary>
+      /// Gets the ID of the RTCInboundRtpStreamStats object representing the
+      /// inbound RTP stream that this contributing source is contributing to.
+      /// </summary>
+      [getter]
+      string inboundRtpStreamId;
+      
+      /// <summary>
+      /// Gets the total number of RTP packets that this contributing source contributed
+      /// to. This value is incremented each time a packet is counted by
+      /// RTCInboundRtpStreamStats.packetsReceived, and the packet's CSRC list
+      /// (as defined by [RFC3550] section 5.1) contains the SSRC identifier
+      /// of this contributing source, contributorSsrc.
+      /// </summary>
+      [getter]
+      unsigned long packetsContributedTo;
+      
+      /// <summary>
+      /// Gets the value of audioLevel is between 0..1 (linear), where 1.0 represents 0
+      /// dBov, 0 represents silence, and 0.5 represents approximately 6 dBSPL
+      /// change in the sound pressure level from 0 dBov. Present if the last received
+      /// RTP packet that this source contributed to contained an [RFC6465]
+      /// mixer-to-client audio level header extension.
+      ///
+      /// The [RFC6465] header extension contains values in the range 0..127, in
+      /// units of -dBov, where 127 represents silence. To convert these values 
+      /// to the linear 0..1 range of audioLevel, a value of 127 is converted to
+      /// 0, and all other values are converted using the equation:
+      /// f(rfc6465_level) = 10^(-rfc6465_level/20).
+      /// </summary>
+      [getter, optional]
+      double audioLevel;
+
+      [constructor, default, delete]
+      void RTCRtpContributingSourceStats();
+    };
+
+    struct RTCPeerConnectionStats : RTCStats {
+
+      /// <summary>
+      /// Gets the number of unique DataChannels that have
+      /// entered the "open" state during their lifetime.
       /// </summary>
       [getter]
       unsigned long dataChannelsOpened;
+
       /// <summary>
-      /// Gets or sets the number of unique datachannels closed.
+      /// Gets the number of unique DataChannels that have
+      /// left the "open" state during their lifetime (due to being
+      /// closed by either end or the underlying transport being closed).
+      /// DataChannels that transition from "connecting" to "closing" or
+      /// "closed" without ever being "open" are not counted in this number.
       /// </summary>
       [getter]
       unsigned long dataChannelsClosed;
 
       /// <summary>
-      /// Constructs an empty instance of an RTCSctpTransportStats object.
+      /// Gets the number of unique DataChannels returned from a successful
+      /// createDataChannel() call on the RTCPeerConnection. If the underlying
+      /// data transport is not established, these may be in the "connecting" state.
       /// </summary>
-      [constructor, default]
-      void RTCSctpTransportStats();
+      [getter]
+      unsigned long dataChannelsRequested;
+
       /// <summary>
-      /// Constructs an instance of an RTCSctpTransportStats object by cloning object data from an existing object.
+      /// Gets the number of unique DataChannels signaled in a "datachannel"
+      /// event on the RTCPeerConnection.
       /// </summary>
-      [constructor, altname(RTCSctpTransportStatsClone)]
-      void RTCSctpTransportStats(RTCSctpTransportStats source);
+      [getter]
+      unsigned long dataChannelsAccepted;
+
+      [constructor, default, delete]
+      void RTCPeerConnectionStats();
     };
 
     /// <summary>
@@ -372,541 +795,951 @@ namespace org
     struct RTCMediaStreamStats : RTCStats
     {
       /// <summary>
-      /// Gets or sets the stream.id property.
+      /// Gets the stream.id property.
       /// </summary>
       [getter]
-      string      streamId;
+      string      streamIdentifier;
+
       /// <summary>
-      /// Gets or sets the the id of the media stream track stats object, not
-      /// the track.id.
+      /// Gets the id of the stats object, not the track.id.
       /// </summary>
       [getter]
       StringList  trackIds;
 
-      /// <summary>
-      /// Constructs an empty instance of an RTCMediaStreamStats object.
-      /// </summary>
-      [constructor, default]
+      [constructor, default, delete]
       void RTCMediaStreamStats();
+    };
+
+    struct RTCMediaHandlerStats : RTCStats {
+
       /// <summary>
-      /// Constructs an instance of an RTCMediaStreamStats object by cloning object data from an existing object.
+      /// Gets the id property of the track.
       /// </summary>
-      [constructor, altname(RTCMediaStreamStatsClone)]
-      void RTCMediaStreamStats(RTCMediaStreamStats source);
+      [getter]
+      string trackIdentifier;
+
+      /// <summary>
+      /// Gets true if the source is remote, for instance if it is sourced from
+      /// another host via an RTCPeerConnection. False otherwise. Only applicable
+      /// for 'track' stats.
+      /// </summary>
+      [getter, optionsl]
+      bool remoteSource;
+
+      /// <summary>
+      /// Gets the "ended" state of the track.
+      /// </summary>
+      [getter]
+      bool ended;
+
+      /// <summary>
+      /// Gets either "audio" or "video". This reflects the "kind"
+      /// attribute of the MediaStreamTrack, see [GETUSERMEDIA].
+      /// </summary>
+      [getter]
+      string kind;
+
+      /// <summary>
+      /// Gets the priority set for the track. It is specified
+      /// in [RTCWEB-TRANSPORT], Section 4.
+      /// </summary>
+      [getter]
+      RTCPriorityType priority;
+
+      [constructor, default, delete]
+      void RTCMediaHandlerStats();
+    };
+
+
+    struct RTCVideoHandlerStats : RTCMediaHandlerStats {
+
+      /// <summary>
+      /// Gets the width of the last processed frame for this track.
+      /// Before the first frame is processed this attribute is missing.
+      /// </summary>
+      [getter]
+      unsigned long frameWidth;
+    
+      /// <summary>
+      /// Gets the height of the last processed frame for this track.
+      /// Before the first frame is processed this attribute is missing.
+      /// </summary>
+      [getter]
+      unsigned long frameHeight;
+    
+      /// <summary>
+      /// Gets the nominal FPS value before the degradation preference
+      /// is applied. It is the number of complete frames in the last
+      /// second. For sending tracks it is the current captured FPS
+      /// and for the receiving tracks it is the current decoding framerate.
+      /// </summary>
+      [getter]
+      double framesPerSecond;
+    };
+
+    /// <summary>
+    /// An RTCVideoSenderStats object represents the stats about one
+    /// video sender of a RTCPeerConnection object for which one calls
+    /// getStats.
+    ///
+    /// It appears in the stats as soon as the sender is added by either
+    /// addTrack or addTransceiver, or by media negotiation.
+    /// </summary>
+    struct RTCVideoSenderStats : RTCVideoHandlerStats {
+    
+      /// <summary>
+      /// Gets the total number of frames captured, before encoding,
+      /// for this RTCRtpSender (or for this MediaStreamTrack, if type is
+      /// "track"). For example, if type is "sender" and this sender's track
+      /// represents a camera, then this is the number of frames produced by the
+      /// camera for this track while being sent by this sender, combined with
+      /// the number of frames produced by all tracks previously attached to this
+      /// sender while being sent by this sender. Framerates can vary due to
+      /// hardware limitations or environmental factors such as lighting conditions.
+      /// </summary>
+      [getter]
+      unsigned long framesCaptured;
+    
+      /// <summary>
+      /// Gets the total number of frames sent by this RTCRtpSender (or for
+      /// this MediaStreamTrack, if type is "track").
+      /// </summary>
+      [getter]
+      unsigned long framesSent;
+    
+      /// <summary>
+      /// Gets the total number of huge frames sent by this RTCRtpSender
+      /// (or for this MediaStreamTrack, if type is "track"). Huge frames,
+      /// by definition, are frames that have an encoded size at least 2.5 times
+      /// the average size of the frames. The average size of the frames is defined
+      /// as the target bitrate per second divided by the target fps at the time the
+      /// frame was encoded. These are usually complex to encode frames with a lot
+      /// of changes in the picture. This can be used to estimate, e.g slide
+      /// changes in the streamed presentation. If a huge frame is also a key
+      /// frame, then both counters hugeFramesSent and keyFramesSent are incremented.
+      ///
+      /// The multiplier of 2.5 is choosen from analyzing encoded frame sizes for a
+      /// sample presentation using webrtc standalone implementation. 2.5 is a
+      /// reasonably large multiplier which still caused all slide change events to be
+      /// identified as a huge frames. It, however, produced 1.4% of false positive
+      /// slide change detections which is deemed reasonable.
+      /// </summary>
+      [getter]
+      unsigned long hugeFramesSent;
+    
+      /// <summary>
+      /// Gets the total number of key frames sent by this RTCRtpSender (or for
+      /// this MediaStreamTrack, if type is "track"), such as Infra-frames in VP8
+      /// [RFC6386] or I-frames in H.264 [RFC6184]. This is a subset of framesSent.
+      /// framesSent - keyFramesSent gives you the number of delta frames sent.
+      /// </summary>
+      [getter]
+      unsigned long keyFramesSent;
+
+      [constructor, default, delete]
+      void RTCVideoSenderStats();
+    };
+
+    /// <summary>
+    /// An RTCSenderVideoTrackAttachmentStats object represents the stats about one attachment of a
+    /// video MediaStreamTrack to the RTCPeerConnection object for which one calls getStats.
+    ///
+    /// It appears in the stats as soon as it is attached (via addTrack, via addTransceiver, via
+    /// replaceTrack on an RTCRtpSender object).
+    /// 
+    /// If a video track is attached twice (via addTransceiver or replaceTrack), there will be
+    /// two RTCSenderVideoTrackAttachmentStats objects, one for each attachment. They will have
+    /// the same "trackIdentifier" attribute, but different "id" attributes.
+    ///
+    /// If the track is detached from the RTCPeerConnection (via removeTrack or via replaceTrack),
+    /// it continues to appear, but with the "objectDeleted" member set to true.
+    /// <summary>
+    struct RTCSenderVideoTrackAttachmentStats : RTCVideoSenderStats {
+
+      [constructor, default, delete]
+      void RTCSenderVideoTrackAttachmentStats();
+    };
+
+    /// <summary>
+    /// An RTCVideoReceiverStats object represents the stats about one video receiver
+    /// of a RTCPeerConnection object for which one calls getStats.
+    ///
+    /// It appears in the stats as soon as the RTCRtpReceiver is added by either
+    /// addTrack or addTransceiver, or by media negotiation.
+    /// </summary>
+    dictionary RTCVideoReceiverStats : RTCVideoHandlerStats {
+
+      /// <summary>
+      /// Gets the estimated playout time of this receiver's track. The playout time
+      /// is the NTP timestamp of the last playable video frame that has a known timestamp
+      /// (from an RTCP SR packet mapping RTP timestamps to NTP timestamps), extrapolated
+      /// with the time elapsed since it was ready to be played out. This is the "current
+      /// time" of the track in NTP clock time of the sender and can be present even if
+      /// there is no video currently playing.
+      ///
+      /// This can be useful for estimating how much audio and video is out of sync for
+      /// two tracks from the same remote source, audioTrackStats.estimatedPlayoutTimestamp -
+      /// videoTrackStats.estimatedPlayoutTimestamp.
+      /// </summary>
+      [getter]
+      Time estimatedPlayoutTimestamp;
+    
+      /// <summary>
+      /// Gets the sum of the time, in milliseconds, each frame takes from the time it is
+      /// received and to the time it exits the jitter buffer. This increases upon frames
+      /// exiting, having completed their time in the buffer
+      /// (incrementing jitterBufferEmittedCount). The average jitter buffer delay can
+      /// be calculated by dividing the jitterBufferDelay with the jitterBufferEmittedCount.
+      /// </summary>
+      [getter]
+      Milliseconds jitterBufferDelay;
+    
+      /// <summary>
+      /// Gets the total number of frames that have come out of the jitter buffer
+      /// (increasing jitterBufferDelay).
+      /// </summary>
+      [getter]
+      unsigned long long jitterBufferEmittedCount;
+    
+      /// <summary>
+      /// Gets 
+      /// </summary>
+      [getter]
+      unsigned long framesReceived;
+    
+      /// <summary>
+      /// Gets the total number of complete frames received for this receiver. This metric
+      /// is incremented when the complete frame is received.
+      /// </summary>
+      [getter]
+      unsigned long keyFramesReceived;
+    
+      /// <summary>
+      /// Gets the total number of complete key frames received for this MediaStreamTrack,
+      /// such as Infra-frames in VP8 [RFC6386] or I-frames in H.264 [RFC6184]. This is a
+      /// subset of framesReceived. framesReceived - keyFramesReceived gives you the number
+      /// of delta frames received. This metric is incremented when the complete key frame
+      /// is received. It is not incremented if a partial key frames is received and sent
+      /// for decoding, i.e., the frame could not be recovered via retransmission or FEC.
+      /// </summary>
+      [getter]
+      unsigned long framesDecoded;
+    
+      /// <summary>
+      /// Gets the total number of frames correctly decoded for this SSRC, i.e., frames
+      /// that would be displayed if no frames are dropped. Only valid for video.
+      /// </summary>
+      [getter]
+      unsigned long framesDropped;
+    
+      /// <summary>
+      /// Gets the total number of frames dropped predecode or dropped because
+      /// the frame missed its display deadline for this receiver's track. As defined in Appendix A (g) of [RFC7004].
+      /// </summary>
+      [getter]
+      unsigned long partialFramesLost;
+    
+      /// <summary>
+      /// Gets the cumulative number of full frames lost, as defined in Appendix A (i) of [RFC7004].
+      /// </summary>
+      [getter]
+      unsigned long fullFramesLost;
+
+      [constructor, default, delete]
+      void RTCVideoReceiverStats();
+    };
+
+    struct RTCAudioHandlerStats : RTCMediaHandlerStats {
+    
+      /// <summary>
+      /// Gets the value is between 0..1 (linear), where 1.0 represents 0 dBov,
+      /// 0 represents silence, and 0.5 represents approximately 6 dBSPL change
+      /// in the sound pressure level from 0 dBov.
+      ///
+      /// The "audio level" value defined in [RFC6464] (as 0..127, where 0 represents
+      /// 0 dBov, 126 represents -126 dBov and 127 represents silence) is obtained by
+      /// the calculation given in appendix A of [RFC6465]: informally,
+      /// level = -round(log10(audioLevel) * 20), with audioLevel 0.0 and values
+      /// above 127 mapped to 127.
+      ///
+      /// The audioLevel represents the output audio level of the track; thus, if
+      /// the track is sourced from an RTCReceiver, does no audio processing, has a
+      /// constant level, and has a volume setting of 1.0, the audio level is expected
+      /// to be the same as the audio level of the source SSRC, while if the volume
+      /// setting is 0.5, the audioLevel is expected to be half that value.
+      ///
+      /// For outgoing audio tracks, the audioLevel is the level of the audio being sent.
+      ///
+      /// The audioLevel is averaged over some small interval, using the algorithm
+      /// described under totalAudioEnergy. The interval used is implementation dependent.
+      /// </summary>
+      [getter]
+      double audioLevel;
+    
+      /// <summary>
+      /// Gets the value computed as follows: for each audio sample sent/received
+      /// for this object (and counted by totalSamplesSent or totalSamplesReceived),
+      /// add the sample's value divided by the highest-intensity encodable value,
+      /// squared and then multiplied by the duration of the sample in seconds. In
+      /// other words, duration * Math.pow(energy/maxEnergy, 2).
+      ///
+      /// This can be used to obtain a root mean square (RMS) value that uses the same
+      /// units as audioLevel, as defined in [RFC6464]. It can be converted to these
+      /// units using the formula Math.sqrt(totalAudioEnergy/totalSamplesDuration).
+      /// This calculation can also be performed using the differences between the
+      /// values of two different getStats() calls, in order to compute the average
+      /// audio level over any desired time interval. In other words, do
+      /// Math.sqrt((energy2 - energy1)/(duration2 - duration1)).
+      ///
+      /// For example, if a 10ms packet of audio is received with an RMS of 0.5 (out
+      /// of 1.0), this should add 0.5 * 0.5 * 0.01 = 0.0025 to totalAudioEnergy. If
+      /// another 10ms packet with an RMS of 0.1 is received, this should similarly
+      /// add 0.0001 to totalAudioEnergy. Then,
+      /// Math.sqrt(totalAudioEnergy/totalSamplesDuration) becomes
+      /// Math.sqrt(0.0026/0.02) = 0.36, which is the same value that would be obtained
+      /// by doing an RMS calculation over the contiguous 20ms segment of audio.
+      /// </summary>
+      [getter]
+      double totalAudioEnergy;
+    
+      /// <summary>
+      /// Gets whether the last RTP packet sent or played out by this track
+      /// contained voice activity or not based on the presence of the V bit in the
+      /// extension header, as defined in [RFC6464].
+      ///
+      /// This value indicates the voice activity in the latest RTP packet played
+      /// out from a given SSRC, and is defined in the
+      /// RTCRtpSynchronizationSource.voiceActivityFlag of [[WEBRTC].
+      /// </summary>
+      [getter]
+      bool voiceActivityFlag;
+    
+      /// <summary>
+      /// Gets the total duration in seconds of all samples that have sent or received
+      /// (and thus counted by totalSamplesSent or totalSamplesReceived). Can be used
+      /// with totalAudioEnergy to compute an average audio level over different intervals.
+      /// </summary>
+      [getter]
+      double totalSamplesDuration;
+
+      [constructor, default, delete]
+      void RTCAudioHandlerStats();
     };
 
 
     /// <summary>
-    /// The RTCMediaStreamTrackStats object contains the statistics for the
-    /// RTCMediaStreamTrack object.
+    /// An RTCAudioSenderStats object represents the stats about one audio sender
+    /// of a RTCPeerConnection object for which one calls getStats.
+    ///
+    ///
+    /// It appears in the stats as soon as the RTCRtpSender is added by either addTrack
+    /// or addTransceiver, or by media negotiation.
     /// </summary>
-    struct RTCMediaStreamTrackStats : RTCStats
-    {
-      /// <summary>
-      /// Gets or sets the track.id property.
-      /// </summary>
-      [getter]
-      string          trackId;
-      /// <summary>
-      /// Gets or sets if this source represents a local or remote media
-      /// stream track source. The value is true for remote, false for local.
-      /// </summary>
-      [getter]
-      bool            remoteSource;
-      /// <summary>
-      /// Gets or sets the SSRCs associated with this media stream track stats
-      /// object.
-      /// </summary>
-      [getter]
-      SsrcTypeList    ssrcIds;
-      /// <summary>
-      /// Gets or sets the width value for video. The property only makes
-      /// sense for video media streams and represents the width of the video
-      /// frame for this SSRC.
-      /// </summary>
-      [getter]
-      unsigned long   frameWidth;
-      /// <summary>
-      /// Gets or sets the height value for video. The property only makes
-      /// sense for video media streams and represents the height of the video
-      /// frame for this SSRC.
-      /// </summary>
-      [getter]
-      unsigned long   frameHeight;
-      /// <summary>
-      /// Gets or sets the video frames per second. Only valid for video.
-      /// </summary>
-      [getter]
-      double          framesPerSecond;
-      /// <summary>
-      /// Gets or sets the total number of frames sent for this SSRC. Only
-      /// valid for video. 
-      /// </summary>
-      [getter]
-      unsigned long   framesSent;
-      /// <summary>
-      /// Gets or sets the total number of frames received for this SSRC. Only
-      /// valid for video and when RemoteSource is set to true.
-      /// </summary>
-      [getter]
-      unsigned long   framesReceived;
-      /// <summary>
-      /// Gets or sets the total number of frames correctly decoded for this
-      /// SSRC. Only valid for video. Same definition as totalVideoFrames in
-      /// Section 5 of [http://www.w3.org/TR/media-source/].
-      /// </summary>
-      [getter]
-      unsigned long   framesDecoded;
-      /// <summary>
-      /// Gets or sets the total number of frames dropped. Only valid for
-      /// video. Same definition as droppedVideoFrames in Section 5 of
-      /// [http://www.w3.org/TR/media-source/].
-      /// </summary>
-      [getter]
-      unsigned long   framesDropped;
-      /// <summary>
-      /// Gets or sets the total number of frames determined to be corrupted.
-      /// Only valid for video. Same definition as corruptedVideoFrames in
-      /// Section 5 of [http://www.w3.org/TR/media-source/].
-      /// </summary>
-      [getter]
-      unsigned long   framesCorrupted;
-      /// <summary>
-      /// Gets or sets the audio level. Only valid for audio, and the value is
-      /// between 0..1 (linear), where 1.0 represents 0 dBov. Calculated as
-      /// defined in [RFC6464].
-      /// </summary>
-      [getter]
-      double          audioLevel;
-      /// <summary>
-      /// Gets or sets the echo return loss calculated in decibels, as defined
-      /// in [https://www.itu.int/rec/T-REC-G.168/en] (2012) section 3.14.
-      /// Only present on audio tracks sourced from a microphone where echo
-      /// cancellation is applied. 
-      /// </summary>
-      [getter]
-      double          echoReturnLoss;
-      /// <summary>
-      /// Gets or sets the echo return loss enhancement as calculated in
-      /// decibels, as defined in [https://www.itu.int/rec/T-REC-G.168/en]
-      /// (2012) section 3.15.Only present on audio tracks sourced from a
-      /// microphone where echo cancellation is applied. 
-      /// </summary>
-      [getter]
-      double          echoReturnLossEnhancement;
+    struct RTCAudioSenderStats : RTCAudioHandlerStats {
 
       /// <summary>
-      /// Constructs an empty instance of an RTCMediaStreamTrackStats object.
+      /// Gets the value calculated in decibels, as defined in [ECHO] (2012) section 3.14.
+      /// Only present while the sender is sending a track sourced from a microphone where
+      /// echo cancellation is applied.
       /// </summary>
-      [constructor, default]
-      void RTCMediaStreamTrackStats();
+      [getter, optional]
+      double echoReturnLoss;
+    
       /// <summary>
-      /// Constructs an instance of an RTCMediaStreamTrackStats object by cloning object data from an existing object.
+      /// Gets the value calculated in decibels, as defined in [ECHO] (2012) section 3.15.
+      /// Only present while the sender is sending a track sourced from a microphone where echo cancellation is applied.
       /// </summary>
-      [constructor, altname(RTCMediaStreamTrackStatsClone)]
-      void RTCMediaStreamTrackStats(RTCMediaStreamTrackStats source);
+      [getter, optional]
+      double echoReturnLossEnhancement;
+    
+      /// <summary>
+      /// Gets the total number of samples that have been sent by this sender.
+      /// </summary>
+      [getter]
+      unsigned long long totalSamplesSent;
+
+      [constructor, default, delete]
+      void RTCAudioSenderStats();
     };
 
     /// <summary>
-    /// The RTCDataChannelStats object contains the statistics related to the
-    /// associated RTCDataChannel object.
+    /// An RTCSenderAudioTrackAttachmentStats object represents the stats about one
+    /// attachment of an audio MediaStreamTrack to the RTCPeerConnection object for
+    /// which one calls getStats.
+    ///
+    /// It appears in the stats as soon as it is attached (via addTrack, via
+    /// addTransceiver, via replaceTrack on an RTCRtpSender object).
+    ///
+    /// If an audio track is attached twice (via addTransceiver or replaceTrack),
+    /// there will be two RTCSenderAudioTrackAttachmentStats objects, one for each
+    /// attachment. They will have the same "trackIdentifier" attribute, but
+    /// different "id" attributes.
+    ///
+    /// If the track is detached from the RTCPeerConnection (via removeTrack or
+    /// via replaceTrack), it continues to appear, but with the "objectDeleted" member set to true.
     /// </summary>
-    struct RTCDataChannelStats : RTCStats
-    {
-      /// <summary>
-      /// Gets or sets the data channel label.
-      /// </summary>
-      [getter]
-      string                    label;
-      /// <summary>
-      /// Gets or sets the data channel protocol.
-      /// </summary>
-      [getter]
-      string                    protocol;
-      /// <summary>
-      /// Gets or sets the "id" of the RTCDataChannel object.
-      /// </summary>
-      [getter]
-      long                      dataChannelId;
-      /// <summary>
-      /// Gets or sets the RTCDataChannelState for the RTCDataChannel object.
-      /// </summary>
-      [getter]
-      RTCDataChannelState       state;
-      /// <summary>
-      /// Gets or sets the total number of API "message" events sent.
-      /// </summary>
-      [getter]
-      unsigned long             messagesSent;
-      /// <summary>
-      /// Gets or sets the total number of payload bytes sent on this
-      /// RTCDatachannel, i.e., not including headers or padding.
-      /// </summary>
-      [getter]
-      unsigned long long        bytesSent;
-      /// <summary>
-      /// Gets or sets the total number of bytes received on this
-      /// RTCDatachannel, i.e., not including headers or padding.
-      /// </summary>
-      [getter]
-      unsigned long             messagesReceived;
-      /// <summary>
-      /// Gets or sets the total number of bytes received on this
-      /// RTCDatachannel, i.e., not including headers or padding.
-      /// </summary>
-      [getter]
-      unsigned long long        bytesReceived;
+    struct RTCSenderAudioTrackAttachmentStats : RTCAudioSenderStats {
 
-      /// <summary>
-      /// Constructs an empty instance of an RTCDataChannelStats object.
-      /// </summary>
-      [constructor, default]
-      void RTCDataChannelStats();
-      /// <summary>
-      /// Constructs an instance of an RTCDataChannelStats object by cloning object data from an existing object.
-      /// </summary>
-      [constructor, altname(RTCDataChannelStatsClone)]
-      void RTCDataChannelStats(RTCDataChannelStats source);
+      [constructor, default, delete]
+      void RTCSenderAudioTrackAttachmentStats();
     };
 
     /// <summary>
-    /// The RTCIceGathererStats object contains the statistics information
-    /// related to the RTCIceGatherer object.
+    /// An RTCAudioReceiverStats object represents the stats about one audio receiver
+    /// of a RTCPeerConnection object for which one calls getStats.
+    ///
+    /// It appears in the stats as soon as the RTCRtpReceiver is added by either addTrack
+    /// or addTransceiver, or by media negotiation.
     /// </summary>
-    struct RTCIceGathererStats : RTCStats
-    {
-      /// <summary>
-      /// Gets or sets the total number of bytes received on this
-      /// RTCIceGatherer, i.e., not including headers or padding.
-      /// </summary>
-      [getter]
-      unsigned long long  bytesSent;
-      /// <summary>
-      /// Gets or sets the total number of payload bytes sent on this
-      /// RTCIceGatherer, i.e., not including headers or padding.
-      /// </summary>
-      [getter]
-      unsigned long long  bytesReceived;
-      /// <summary>
-      /// Gets or sets the RTCIceGathererStats identifier for the associated
-      /// RTCP RTCIceGatherer (if applicable).
-      /// </summary>
-      [getter]
-      string              rtcpGathererStatsId;
+    struct RTCAudioReceiverStats : RTCAudioHandlerStats {
 
       /// <summary>
-      /// Constructs an empty instance of an RTCIceGathererStats object.
+      /// Gets the estimated playout time of this receiver's track. The
+      /// playout time is the NTP timestamp of the last playable sample that
+      /// has a known timestamp (from an RTCP SR packet mapping RTP timestamps
+      /// to NTP timestamps), extrapolated with the time elapsed since it was
+      /// ready to be played out. This is the "current time" of the track in NTP
+      /// clock time of the sender and can be present even if there is no audio currently playing.
+      /// 
+      /// This can be useful for estimating how much audio and video is out of sync for
+      /// two tracks from the same source,
+      /// audioTrackStats.estimatedPlayoutTimestamp - videoTrackStats.estimatedPlayoutTimestamp.
       /// </summary>
-      [constructor, default]
-      void RTCIceGathererStats();
+      [getter]
+      Time estimatedPlayoutTimestamp;
+
       /// <summary>
-      /// Constructs an instance of an RTCIceGathererStats object by cloning object data from an existing object.
+      /// Gets the sum of the time, in seconds, each sample takes from the time it is
+      /// received and to the time it exits the jitter buffer. This increases upon samples
+      /// exiting, having completed their time in the buffer (incrementing
+      /// jitterBufferEmittedCount). The average jitter buffer delay can be calculated by
+      /// dividing the jitterBufferDelay with the jitterBufferEmittedCount.
       /// </summary>
-      [constructor, altname(RTCIceGathererStatsClone)]
-      void RTCIceGathererStats(RTCIceGathererStats source);
+      [getter]
+      Milliseconds jitterBufferDelay;
+
+      /// <summary>
+      /// Gets the total number of samples that have come out of the jitter buffer (increasing jitterBufferDelay).
+      /// </summary>
+      [getter]
+      unsigned long long jitterBufferEmittedCount;
+
+      /// <summary>
+      /// Gets the total number of samples that have been received by this receiver. This includes concealedSamples.
+      /// </summary>
+      [getter]
+      unsigned long long totalSamplesReceived;
+
+      /// <summary>
+      /// Gets the total number of samples that are concealed samples. A concealed sample is a sample
+      /// that is based on data that was synthesized to conceal packet loss and does not represent incoming data.
+      /// </summary>
+      [getter]
+      unsigned long long concealedSamples;
+
+      /// <summary>
+      /// Gets the number of concealment events. This counter increases every time a concealed sample
+      /// is synthesized after a non-concealed sample. That is, multiple consecutive concealed samples
+      /// will increase the concealedSamples count multiple times but is a single concealment event.
+      /// </summary>
+      [getter]
+      unsigned long long concealmentEvents;
+
+      [constructor, default, delete]
+      void RTCAudioReceiverStats();
+    };
+
+    struct RTCDataChannelStats : RTCStats {
+
+      /// <summary>
+      /// Gets the "label" value of the RTCDataChannel object.
+      /// </summary>
+      [getter]
+      string label;
+
+      /// <summary>
+      /// Gets the "protocol" value of the RTCDataChannel object.
+      /// </summary>
+      [getter]
+      string protocol;
+
+      /// <summary>
+      /// Gets the "id" attribute of the RTCDataChannel object.
+      /// </summary>
+      [getter]
+      long dataChannelIdentifier;
+
+      /// <summary>
+      /// Gets a stats object reference for the transport used to carry this datachannel.
+      /// </summary>
+      [getter]
+      string transportId;
+
+      /// <summary>
+      /// Gets the "readyState" value of the RTCDataChannel object.
+      /// </summary>
+      [getter]
+      RTCDataChannelState state;
+
+      /// <summary>
+      /// Gets the total number of API "message" events sent.
+      /// </summary>
+      [getter]
+      unsigned long messagesSent;
+
+      /// <summary>
+      /// Gets the total number of payload bytes sent on this RTCDatachannel,
+      /// i.e., not including headers or padding.
+      /// </summary>
+      [getter]
+      unsigned long long bytesSent;
+
+      /// <summary>
+      /// Gets the total number of API "message" events received.
+      /// </summary>
+      [getter]
+      unsigned long messagesReceived;
+
+      /// <summary>
+      /// Gets the total number of bytes received on this RTCDatachannel,
+      /// i.e., not including headers or padding.
+      /// </summary>
+      [getter]
+      unsigned long long bytesReceived;
     };
 
     /// <summary>
-    /// The RTCIceTransportStats object contains the statistics related to the
-    /// RTCIceTransport object.
+    /// An RTCTransportStats object represents the stats corresponding to
+    /// an RTCDtlsTransport and its underlying RTCIceTransport. When RTCP
+    /// multiplexing is used, one transport is used for both RTP and RTCP.
+    ///
+    /// Otherwise, RTP and RTCP will be sent on separate transports, and
+    /// rtcpTransportStatsId can be used to pair the resulting RTCTransportStats
+    /// objects. Additionally, when bundling is used, a single transport will
+    /// be used for all MediaStreamTracks in the bundle group. If bundling is
+    /// not used, different MediaStreamTrack will use different transports.
+    /// RTCP multiplexing and bundling are described in [WEBRTC].
     /// </summary>
-    struct RTCIceTransportStats : RTCStats
-    {
-      /// <summary>
-      /// Gets or sets the total number of bytes received on this
-      /// RTCIceTransport, i.e., not including headers or padding.
-      /// </summary>
-      [getter]
-      unsigned long long  bytesSent;
-      /// <summary>
-      /// Gets or sets the total number of payload bytes sent on this
-      /// RTCIceTransport, i.e., not including headers or padding.
-      /// </summary>
-      [getter]
-      unsigned long long  bytesReceived;
-      /// <summary>
-      /// Gets or sets the RTCIceGathererStats identifier for the associated
-      /// RTCP RTCIceTransport (if applicable).
-      /// </summary>
-      [getter]
-      string              rtcpTransportStatsId;
-      /// <summary>
-      /// Gets or sets if the connection is active. Set to true when transport
-      /// is active.
-      /// </summary>
-      [getter]
-      bool                activeConnection;
-      /// <summary>
-      /// Gets or sets a unique identifier that is associated to the object
-      /// that was inspected to produce the RTCIceCandidatePairStats
-      /// associated with this transport.
-      /// </summary>
-      [getter]
-      string              selectedCandidatePairId;
+    struct RTCTransportStats : RTCStats {
 
       /// <summary>
-      /// Constructs an empty instance of an RTCIceTransportStats object.
+      /// Gets the total number of packets sent over this transport.
       /// </summary>
-      [constructor, default]
-      void RTCIceTransportStats();
-      /// <summary>
-      /// Constructs an instance of an RTCIceTransportStats object by cloning object data from an existing object.
-      /// </summary>
-      [constructor, altname(RTCIceTransportStatsClone)]
-      void RTCIceTransportStats(RTCIceTransportStats source);
-    };
+      [getter]
+      unsigned long packetsSent;
 
-    /// <summary>
-    /// The RTCDtlsTransportStats object contains the statistics related to the
-    /// RTCDtlsTransport object.
-    /// </summary>
-    struct RTCDtlsTransportStats : RTCStats
-    {
       /// <summary>
-      /// Gets or sets the local certificate stats object identifier.
+      /// Gets the total number of packets received on this transport.
+      /// </summary>
+      [getter]
+      unsigned long packetsReceived;
+
+      /// <summary>
+      /// Gets the total number of payload bytes sent on this PeerConnection, i.e., not including headers or padding.
+      /// </summary>
+      [getter]
+      unsigned long long bytesSent;
+
+      /// <summary>
+      /// Gets the total number of bytes received on this PeerConnection, i.e., not including headers or padding.
+      /// </summary>
+      [getter]
+      unsigned long long bytesReceived;
+
+      /// <summary>
+      /// Gets the id of the transport that gives stats for the RTCP component, and this record has only
+      /// the RTP component stats, if RTP and RTCP are not multiplexed
+      /// </summary>
+      [getter]
+      string rtcpTransportStatsId;
+
+      /// <summary>
+      /// Gets the current value of the "role" attribute of the underlying RTCDtlsTransport's "transport".
+      /// </summary>
+      [getter]
+      RTCIceRole iceRole;
+
+      /// <summary>
+      /// Gets the current value of the "state" attribute of the underlying RTCDtlsTransport.
+      /// </summary>
+      [getter]
+      RTCDtlsTransportState dtlsState;
+
+      /// <summary>
+      /// Gets a unique identifier that is associated to the object that was inspected
+      /// to produce the RTCIceCandidatePairStats associated with this transport.
+      /// </summary>
+      [getter]
+      string selectedCandidatePairId;
+
+      /// <summary>
+      /// Gets the local certificate for components where DTLS is negotiated.
       /// </summary>
       [getter]
       string localCertificateId;
+
       /// <summary>
-      /// Gets or sets the remote certificate stats object identifier.
+      /// Gets the remote certificate for components where DTLS is negotiated.
       /// </summary>
       [getter]
       string remoteCertificateId;
 
       /// <summary>
-      /// Constructs an empty instance of an RTCDtlsTransportStats object.
+      /// Gets the descriptive name of the cipher suite used for the DTLS
+      /// transport, as defined in the "Description" column of the IANA cipher
+      /// suite registry [IANA-TLS-CIPHERS].
       /// </summary>
-      [constructor, default]
-      void RTCDtlsTransportStats();
+      [getter]
+      string dtlsCipher;
+
       /// <summary>
-      /// Constructs an instance of an RTCDtlsTransportStats object by cloning object data from an existing object.
+      /// Gets the descriptive name of the protection profile used for the
+      /// SRTP transport, as defined in the "Profile" column of the IANA DTLS-SRTP
+      /// protection profile registry [IANA-DTLS-SRTP] and described further in [RFC5764].
       /// </summary>
-      [constructor, altname(RTCDtlsTransportStatsClone)]
-      void RTCDtlsTransportStats(RTCDtlsTransportStats source);
+      [getter]
+      string srtpCipher;
+
+      [constructor, default, delete]
+      void RTCTransportStats();
     };
 
     /// <summary>
-    /// The RTCSrtpTransportStats object contains the statistics related to the
-    /// RTCSrtpSdesTransport object.
+    /// RTCIceCandidateStats reflects the properties of a candidate in Section
+    /// 15.1 of [RFC5245]. It corresponds to a RTCIceCandidate object.
     /// </summary>
-    struct RTCSrtpTransportStats : RTCStats
-    {
+    struct RTCIceCandidateStats : RTCStats {
+
       /// <summary>
-      /// Constructs an empty instance of an RTCInboundRtpStreamStats object.
+      /// Gets a unique identifier that is associated to the object that was
+      /// inspected to produce the RTCTransportStats associated with this candidate.
       /// </summary>
-      [constructor, default]
-      void RTCSrtpTransportStats();
+      [getter]
+      string transportId;
+
       /// <summary>
-      /// Constructs an instance of an RTCSrtpTransportStats object by cloning object data from an existing object.
+      /// Gets the type of network interface used by the base of a local candidate
+      /// (the address the ICE agent sends from). Only present for local candidates;
+      /// it's not possible to know what type of network interface a remote candidate
+      /// is using.
       /// </summary>
-      [constructor, altname(RTCSrtpTransportStatsClone)]
-      void RTCSrtpTransportStats(RTCSrtpTransportStats source);
+      [getter]
+      RTCNetworkType networkType;
+
+      /// <summary>
+      /// Gets the IP address of the candidate, allowing for IPv4 addresses and
+      /// IPv6 addresses, but fully qualified domain names (FQDNs) are not allowed.
+      /// See [RFC5245] section 15.1 for details.
+      /// </summary>
+      [getter]
+      string ip;
+
+      /// <summary>
+      /// Gets the port number of the candidate.
+      /// </summary>
+      [getter]
+      long port;
+
+      /// <summary>
+      /// Gets the value based on the "transport" defined in [RFC5245] section 15.1.
+      /// Valid values for transport is one of udp and tcp.
+      /// </summary>
+      [getter]
+      string protocol;
+
+      /// <summary>
+      /// Gets the enumeration as defined in [WEBRTC].
+      /// </summary>
+      [getter]
+      RTCIceCandidateType candidateType;
+
+      /// <summary>
+      /// Gets the value calculated as defined in [RFC5245] section 15.1.
+      /// </summary>
+      [getter]
+      long priority;
+
+      /// <summary>
+      /// Gets the URL of the TURN or STUN server indicated in the that
+      /// translated this IP address. It is the URL address surfaced in
+      /// an RTCPeerConnectionIceEvent.
+      /// </summary>
+      [getter]
+      string url;
+
+      /// <summary>
+      /// Gets the protocol used by the endpoint to communicate with the TURN server.
+      /// This is only present for local candidates. Valid values for the TURN URL
+      /// protocol is one of udp, tcp, or tls.
+      /// </summary>
+      [getter]
+      string relayProtocol;
+
+      /// <summary>
+      /// Gets true if the candidate has been deleted/freed as described by [RFC5245].
+      /// For host candidates, this means that any network resources (typically a socket)
+      /// associated with the candidate have been released. For TURN candidates, this
+      /// means the TURN allocation is no longer active.
+      ///
+      /// For remote candidates, this property is not applicable.
+      /// </summary>
+      [getter, optional]
+      boolean deleted = false;
+
+      [constructor, default, delete]
+      void RTCIceCandidateStats();
     };
 
-    /// <summary>
-    /// RTCIceCandidateAttributes reflects the properties of a candidate in
-    /// Section 15.1 of [RFC5245].
-    /// </summary>
-    struct RTCIceCandidateAttributes : RTCStats
-    {
-      /// <summary>
-      /// Gets or sets a unique identifier that is associated to the object
-      /// that was inspected to produce the RTCTransportStats associated with
-      /// this candidate.
-      /// </summary>
-      [getter]
-      string                  relatedId;
-      /// <summary>
-      /// Gets or sets the IP address of the candidate, allowing for IPv4
-      /// addresses, IPv6 addresses, and fully qualified domain names
-      /// (FQDNs). See [RFC5245] section 15.1 for details.
-      /// </summary>
-      [getter]
-      string                  ipAddress;
-      /// <summary>
-      /// Gets or sets the port number of the candidate.
-      /// </summary>
-      [getter]
-      unsigned long           portNumber;
-      /// <summary>
-      /// Gets or sets the transport type. Valid values for transport is one o
-      /// udp and tcp. Based on the "transport" defined in [RFC5245] section
-      /// 15.1.
-      /// </summary>
-      [getter]
-      string                  transport;
-      /// <summary>
-      /// Gets or sets the enumeration RTCStatsIceCandidateType based on the
-      /// cand-type defined in [RFC5245] section 15.1.
-      /// </summary>
-      [getter]
-      RTCIceCandidateType     candidateType;
-      /// <summary>
-      /// Gets or sets the candidate priority as calculated as defined in 
-      /// [RFC5245] section 15.1.
-      /// </summary>
-      [getter]
-      unsigned long           priority;
-      /// <summary>
-      /// Gets or sets the URL of the TURN or STUN server indicated in the
-      /// RTCIceServers that translated this IP address.
-      /// </summary>
-      [getter]
-      string                  addressSourceUrl;
+    struct RTCIceCandidatePairStats : RTCStats {
 
       /// <summary>
-      /// Constructs an empty instance of an RTCIceCandidateAttributes object.
-      /// </summary>
-      [constructor, default]
-      void RTCIceCandidateAttributes();
-      /// <summary>
-      /// Constructs an instance of an RTCIceCandidateAttributes object by cloning object data from an existing object.
-      /// </summary>
-      [constructor, altname(RTCIceCandidateAttributesClone)]
-      void RTCIceCandidateAttributes(RTCIceCandidateAttributes source);
-    };
-
-    /// <summary>
-    /// </summary>
-    struct RTCIceCandidatePairStats : RTCStats
-    {
-      /// <summary>
-      /// Gets or sets a unique identifier that is associated to the object
-      /// that was inspected to produce the RTCTransportStats associated with
+      /// Gets a unique identifier that is associated to the object that
+      /// was inspected to produce the RTCTransportStats associated with
       /// this candidate pair.
       /// </summary>
       [getter]
-      string                          transportId;
-      /// <summary>
-      /// Gets or sets a unique identifier that is associated to the object
-      /// that was inspected to produce the RTCIceCandidateAttributes for the
-      /// local candidate associated with this candidate pair.
-      /// </summary>
-      [getter]
-      string                          localCandidateId;
-      /// <summary>
-      /// Gets or sets a unique identifier that is associated to the object
-      /// that was inspected to produce the RTCIceCandidateAttributes for the
-      /// remote candidate associated with this candidate pair.
-      /// </summary>
-      [getter]
-      string                          remoteCandidateId;
-      /// <summary>
-      /// Gets or sets the state of the checklist for the local and remote
-      /// candidates in a pair.
-      /// </summary>
-      [getter]
-      RTCIceCandidatePairState        state;
-      /// <summary>
-      /// Gets or sets the calculated candidate pair priority as as defined in
-      /// [RFC5245] section 5.7.2.
-      /// </summary>
-      [getter]
-      unsigned long long              priority;
-      /// <summary>
-      /// Gets or sets the nominated flag described in Section 7.1.3.2.4 of [RFC5245].
-      /// </summary>
-      [getter]
-      bool                            nominated;
-      /// <summary>
-      /// Gets or sets if the candidate pair has received an ACK to an ICE
-      /// request.
-      /// </summary>
-      [getter]
-      bool                            writable;
-      /// <summary>
-      /// Gets or sets if the candidate pair has received a valid incoming
-      /// ICE request.
-      /// </summary>
-      [getter]
-      bool                            readable;
-      /// <summary>
-      /// Gets or sets the total number of payload bytes sent on this
-      /// candidate pair, i.e., not including headers or padding.
-      /// </summary>
-      [getter]
-      unsigned long long              bytesSent;
-      /// <summary>
-      /// Gets or sets the total number of payload bytes received on this
-      /// candidate pair, i.e., not including headers or padding.
-      /// </summary>
-      [getter]
-      unsigned long long              bytesReceived;
-      /// <summary>
-      /// Gets or sets the RTT computed by the STUN connectivity checks
-      /// [draft-reddy-tram-stun-path-data].
-      /// </summary>
-      [getter]
-      double                          roundTripTime;
-      /// <summary>
-      /// Gets or sets the available outgoing bitrate measured in Bits per
-      /// second, and is implementation dependent. It may be calculated by the
-      /// underlying congestion control.
-      /// </summary>
-      [getter]
-      double                          availableOutgoingBitrate;
-      /// <summary>
-      /// Gets or sets the available incoming bitrate measured in Bits per
-      /// second, and is implementation dependent. It may be calculated by the
-      /// underlying congestion control.
-      /// </summary>
-      [getter]
-      double                          availableIncomingBitrate;
+      string transportId;
 
       /// <summary>
-      /// Constructs an empty instance of an RTCIceCandidatePairStats object.
+      /// Gets a unique identifier that is associated to the object that
+      /// was inspected to produce the RTCIceCandidateStats for the local
+      /// candidate associated with this candidate pair.
       /// </summary>
-      [constructor, default]
-      void RTCIceCandidatePairStats();
+      [getter]
+      string localCandidateId;
+
       /// <summary>
-      /// Constructs an instance of an RTCIceCandidatePairStats object by cloning object data from an existing object.
+      /// Gets a unique identifier that is associated to the object that was
+      /// inspected to produce the RTCIceCandidateStats for the remote candidate
+      /// associated with this candidate pair.
       /// </summary>
-      [constructor, altname(RTCIceCandidatePairStatsClone)]
-      void RTCIceCandidatePairStats(RTCIceCandidatePairStats source);
+      [getter]
+      string remoteCandidateId;
+
+      /// <summary>
+      /// Gets the state of the checklist for the local and remote candidates in a pair.
+      /// </summary>
+      [getter]
+      RTCStatsIceCandidatePairState state;
+
+      /// <summary>
+      /// Gets the nominated flag described in Section 7.1.3.2.4 of [RFC5245].
+      /// </summary>
+      [getter]
+      boolean nominated;
+
+      /// <summary>
+      /// Gets the total number of packets sent on this candidate pair.
+      /// </summary>
+      [getter]
+      unsigned long packetsSent;
+
+      /// <summary>
+      /// Gets the total number of packets received on this candidate pair.
+      /// </summary>
+      [getter]
+      unsigned long packetsReceived;
+
+      /// <summary>
+      /// Gets the total number of payload bytes sent on this candidate pair, i.e.,
+      /// not including headers or padding.
+      /// </summary>
+      [getter]
+      unsigned long long bytesSent;
+
+      /// <summary>
+      /// Gets the total number of payload bytes received on this candidate pair,
+      /// i.e., not including headers or padding.
+      /// </summary>
+      [getter]
+      unsigned long long bytesReceived;
+
+      /// <summary>
+      /// Gets the timestamp at which the last packet was sent on this
+      /// particular candidate pair, excluding STUN packets.
+      /// </summary>
+      [getter]
+      Time lastPacketSentTimestamp;
+
+      /// <summary>
+      /// Gets the timestamp at which the last packet was received on this
+      /// particular candidate pair, excluding STUN packets.
+      /// </summary>
+      [getter]
+      Time lastPacketReceivedTimestamp;
+
+      /// <summary>
+      /// Gets the timestamp at which the first STUN request was sent on this particular candidate pair.
+      /// </summary>
+      [getter]
+      Time firstRequestTimestamp;
+
+      /// <summary>
+      /// Gets the timestamp at which the last STUN request was sent on this particular candidate pair.
+      /// The average interval between two consecutive connectivity checks sent can be calculated with
+      /// (lastRequestTimestamp - firstRequestTimestamp) / requestsSent.
+      /// </summary>
+      [getter]
+      Time lastRequestTimestamp;
+
+      /// <summary>
+      /// Gets the timestamp at which the last STUN response was received on this particular candidate pair.
+      /// </summary>
+      [getter]
+      Time lastResponseTimestamp;
+
+      /// <summary>
+      /// Gets the sum of all round trip time measurements in milliseconds since the beginning of the session,
+      /// based on STUN connectivity check [STUN-PATH-CHAR] responses (responsesReceived), including those
+      /// that reply to requests that are sent in order to verify consent [RFC7675]. The average round
+      /// trip time can be computed from totalRoundTripTime by dividing it by responsesReceived.
+      /// </summary>
+      [getter]
+      Milliseconds totalRoundTripTime;
+
+      /// <summary>
+      /// Gets the latest round trip time measured in milliseconds, computed from both STUN connectivity
+      /// checks [STUN-PATH-CHAR], including those that are sent for consent verification [RFC7675].
+      /// </summary>
+      [getter]
+      Milliseconds currentRoundTripTime;
+
+      /// <summary>
+      /// Gets the value calculated by the underlying congestion control by combining the
+      /// available bitrate for all the outgoing RTP streams using this candidate pair. The
+      /// bitrate measurement does not count the size of the IP or other transport layers
+      /// like TCP or UDP. It is similar to the TIAS defined in [RFC3890], i.e., it is
+      /// measured in bits per second and the bitrate is calculated over a 1 second window.
+      /// 
+      /// Implementations that do not calculate a sender-side estimate must leave this
+      /// undefined. Additionally, the value must be undefined for candidate pairs that
+      /// were never used. For pairs in use, the estimate is normally no lower than the bitrate for
+      /// the packets sent at lastPacketSentTimestamp, but might be higher. For candidate pairs
+      // that are not currently in use but were used before, implementations must return undefined.
+      /// </summary>
+      [getter, optional]
+      double availableOutgoingBitrate;
+
+      /// <summary>
+      /// Gets the value calculated by the underlying congestion control by combining the
+      /// available bitrate for all the incoming RTP streams using this candidate pair. The
+      /// bitrate measurement does not count the size of the IP or other transport layers
+      /// like TCP or UDP. It is similar to the TIAS defined in [RFC3890], i.e., it is
+      /// measured in bits per second and the bitrate is calculated over a 1 second window.
+      ///
+      /// Implementations that do not calculate a receiver-side estimate must leave this
+      /// undefined. Additionally, the value should be undefined for candidate pairs that
+      /// were never used. For pairs in use, the estimate is normally no lower than the
+      /// bitrate for the packets received at lastPacketReceivedTimestamp, but might be
+      /// higher. For candidate pairs that are not currently in use but were used before,
+      /// implementations must return undefined.
+      /// </summary>
+      [getter, optional]
+      double availableIncomingBitrate;
+
+      /// <summary>
+      /// Gets the number of times the circuit breaker is triggered for this particular
+      /// 5-tuple. Ceasing transmission when a circuit breaker is triggered is defined
+      /// in Section 4.5 of [RFC8083]. The field must return undefined for user-agents
+      /// that do not implement the circuit-breaker algorithm.
+      /// </summary>
+      [getter]
+      unsigned long circuitBreakerTriggerCount;
+
+      /// <summary>
+      /// Gets the total number of connectivity check requests received (including
+      /// retransmissions). It is impossible for the receiver to tell whether the
+      /// request was sent in order to check connectivity or check consent, so all
+      /// connectivity checks requests are counted here.
+      /// </summary>
+      [getter]
+      unsigned long long requestsReceived;
+
+      /// <summary>
+      /// Gets the total number of connectivity check requests sent (not including retransmissions).
+      /// </summary>
+      [getter]
+      unsigned long long requestsSent;
+
+      /// <summary>
+      /// Gets the total number of connectivity check responses received.
+      /// </summary>
+      [getter]
+      unsigned long long responsesReceived;
+
+      /// <summary>
+      /// Gets the total number of connectivity check responses sent. Since we cannot distinguish
+      /// connectivity check requests and consent requests, all responses are counted.
+      /// </summary>
+      [getter]
+      unsigned long long responsesSent;
+
+      /// <summary>
+      /// Gets the total number of connectivity check request retransmissions received.
+      /// Retransmissions are defined as connectivity check requests with a
+      /// TRANSACTION_TRANSMIT_COUNTER attribute where the "req" field is larger
+      /// than 1, as defined in [RFC7982].
+      /// </summary>
+      [getter]
+      unsigned long long retransmissionsReceived;
+
+      /// <summary>
+      /// Gets the total number of connectivity check request retransmissions sent.
+      /// </summary>
+      [getter]
+      unsigned long long retransmissionsSent;
+
+      /// <summary>
+      /// Gets the total number of consent requests sent.
+      /// </summary>
+      [getter]
+      unsigned long long consentRequestsSent;
+
+      /// <summary>
+      /// Gets the timestamp at which the latest valid STUN binding response expired,
+      /// as defined in [RFC7675] section 5.1. If a valid STUN binding response has not
+      /// been made (responsesReceived is zero) or the latest one has not expired this
+      /// value must be undefined.
+      /// </summary>
+      [getter]
+      Time consentExpiredTimestamp;
+
+      [constructor, default, delete]
+      void RTCIceCandidatePairStats();
     };
 
+    struct RTCCertificateStats : RTCStats {
 
-    /// <summary>
-    /// The RTCCertificateStats contains the statistics information related
-    /// to an RTCCertificate object.
-    /// </summary>
-    struct RTCCertificateStats : RTCStats
-    {
       /// <summary>
-      /// Gets or sets the the fingerprint value as defined in Section 5 of
-      /// [RFC4572].
+      /// Gets the fingerprint of the certificate. Only use the fingerprint
+      /// value as defined in Section 5 of [RFC4572].
       /// </summary>
       [getter]
       string fingerprint;
+
       /// <summary>
-      /// Gets or sets the fingerprint algorithm used with this certificate.
+      /// Gets the hash function used to compute the certificate fingerprint.
       /// For instance, "sha-256".
       /// </summary>
       [getter]
       string fingerprintAlgorithm;
+
       /// <summary>
-      /// Gets or sets the DER-encoded, base-64 representation of a
-      /// certificate.
+      /// Gets the DER-encoded base-64 representation of the certificate.
       /// </summary>
       [getter]
       string base64Certificate;
+
       /// <summary>
-      /// Gets or sets the issuer certificate identifier associates with this
-      /// RTCCertificateStats object.
+      /// Gets the issuerCertificateId refers to the stats object that contains
+      /// the next certificate in the certificate chain. If the current certificate
+      /// is at the end of the chain (i.e. a self-signed certificate), this will not be set.
       /// </summary>
       [getter]
       string issuerCertificateId;
 
-      /// <summary>
-      /// Constructs an empty instance of an RTCCertificateStats object.
-      /// </summary>
-      [constructor, default]
+      [constructor, default, delete]
       void RTCCertificateStats();
-      /// <summary>
-      /// Constructs an instance of an RTCCertificateStats object by cloning object data from an existing object.
-      /// </summary>
-      [constructor, altname(RTCCertificateStatsClone)]
-      void RTCCertificateStats(RTCCertificateStats source);
     };
 
     /// <summary>

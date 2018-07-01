@@ -294,13 +294,15 @@ namespace org
     /// <summary>
     /// This enum resembles the one in Chromium net::ConnectionType.
     /// </summary>
-    enum RTCAdapterType {
+    enum RTCNetworkType {
       unknown = 0,
       ethernet = 1,
       wifi = 2,
       cellular = 4,
       vpn = 8,
       loopback = 16,
+      bluetooth = 32,
+      wimax = 64,      
     };
 
     /// <summary>
@@ -419,87 +421,105 @@ namespace org
     enum RTCStatsType
     {
       /// <summary>
-      /// Statistics for the inbound RTP stream that is currently received
-      /// with this RTCRtpReceiver object. It is accessed by the
-      /// RTCInboundRtpStreamStats.
-      /// </summary>
-      inboundRtp,
-      /// <summary>
-      /// Statistics for the outbound RTP stream that is currently sent with
-      /// this RTCRtpSender object. It is accessed by the
-      /// RTCOutboundRtpStreamStats.
-      /// </summary>
-      outboundRtp,
-      /// <summary>
-      /// Codec information for the RTCRtpReceiver or RTCRtpSender objects. It
-      /// is accessed by the RTCCodec.
+      /// Statistics for a codec that is currently being used by RTP streams being
+      /// sent or received by this RTCPeerConnection object. It is accessed by the RTCCodecStats.
       /// </summary>
       codec,
       /// <summary>
-      /// Statistics for the RTCSctpTransport object. It is accessed by the
-      /// RTCSctpTransportStats.
+      /// Statistics for an inbound RTP stream that is currently received with this
+      /// RTCPeerConnection object. It is accessed by the RTCInboundRtpStreamStats.
       /// </summary>
-      sctpTransport,
+      inboundRtp,
       /// <summary>
-      /// Statistics for the RTCDataChannel object. It is accessed by the
-      /// RTCDataChannelStats.
+      /// Statistics for an outbound RTP stream that is currently sent with
+      /// this RTCPeerConnection object. It is accessed by the RTCOutboundRtpStreamStats.
+      /// </summary>
+      outboundRtp,
+      /// <summary>
+      /// Statistics for the remote endpoint's inbound RTP stream corresponding to
+      /// an outbound stream that is currently sent with this RTCPeerConnection object.
+      /// It is measured at the remote endpoint and reported in an RTCP Receiver Report
+      /// (RR) or RTCP Extended Report (XR). It is accessed by the RTCRemoteInboundRtpStreamStats.
+      /// </summary>
+      remoteInboundRtp,
+      /// <summary>
+      /// Statistics for the remote endpoint's outbound RTP stream corresponding to
+      /// an inbound stream that is currently received with this RTCPeerConnection
+      /// object. It is measured at the remote endpoint and reported in an RTCP Sender
+      /// Report (SR). It is accessed by the RTCRemoteOutboundRtpStreamStats.
+      /// </summary>
+      remoteOutboundRtp,
+      /// <summary>
+      /// Statistics for a contributing source (CSRC) that contributed to an
+      /// inbound RTP stream. It is accessed by the RTCRtpContributingSourceStats.
+      /// </summary>
+      csrc,
+      /// <summary>
+      /// Statistics related to the RTCPeerConnection object. It is accessed by the RTCPeerConnectionStats.
+      /// </summary>
+      peerConnection,
+      /// <summary>
+      /// Statistics related to each RTCDataChannel id. It is accessed by the RTCDataChannelStats.
       /// </summary>
       dataChannel,
       /// <summary>
-      /// Statistics for the RTCMediaStream object. It is accessed by the
-      /// RTCMediaStreamStats.
+      /// Contains statistics related to a specific MediaStream. It is accessed by the RTCMediaStreamStats.
       /// </summary>
       stream,
       /// <summary>
-      /// Statistics for the RTCMediaStreamTrack object. It is accessed by the
-      /// RTCMediaStreamTrackStats.
+      /// Contains statistics related to a specific MediaStreamTrack's attachment to an RTCRtpSender
+      /// and the corresponding media-level metrics. It is accessed by either
+      /// RTCSenderVideoTrackAttachmentStats or RTCSenderAudioTrackAttachmentStats, both inherited from RTCMediaHandlerStats.
+      /// 
+      /// The monitored "track" object is deleted when the sender it reports on has its "track" value changed
+      /// to no longer refer to the same track.
       /// </summary>
       track,
       /// <summary>
-      /// Statistics for the RTCIceGatherer object. It is accessed by the
-      /// RTCIceGathererStats.
+      /// Contains statistics related to a specific RTCRtpSender and the corresponding media-level metrics.
+      /// It is accessed by the RTCAudioSenderStats or the RTCVideoSenderStats depending on kind.
       /// </summary>
-      iceGatherer,
+      sender,
       /// <summary>
-      /// Statistics for the RTCIceTransport object. It is accessed by the
-      /// RTCIceTransportStats.
+      /// Contains statistics related to a specific receiver and the corresponding media-level metrics.
+      /// It is accessed by the RTCAudioReceiverStats or the RTCVideoSenderStats depending on kind.
       /// </summary>
-      iceTransport,
+      receiver,
       /// <summary>
-      /// Statistics for the RTCDtlsTransport object. It is accessed by the
-      /// RTCDtlsTransportStats.
+      /// Transport statistics related to the RTCPeerConnection object. It is accessed by the RTCTransportStats.
       /// </summary>
-      dtlsTransport,
+      transport,
       /// <summary>
-      /// Statistics for the RTCSrtpTransport object. It is accessed by the
-      /// RTCSrtpTransportStats.
-      /// </summary>
-      srtpTransport,
-      /// <summary>
-      /// Statistics for the RTCCertificate object. It is accessed by the
-      /// RTCCertificateStats.
-      /// </summary>
-      certificate,
-      /// <summary>
-      /// Statistics for the RTCIceGatherer or RTCIceTransport object. It is
-      /// accessed by the RTCIceCandidateAttributes.
-      /// </summary>
-      candidate,
-      /// <summary>
-      /// Statistics for the RTCIceCandidate object from the RTCIceGatherer
-      /// object. It is accessed by the RTCIceCandidatePairStats.
+      /// ICE candidate pair statistics related to the RTCIceTransport objects. It is accessed by
+      /// the RTCIceCandidatePairStats.
+      ///
+      /// A candidate pair that is not the current pair for a transport is deleted when the RTCIceTransport
+      /// does an ICE restart, at the time the state changes to "new". The candidate pair that is the current
+      /// pair for a transport is deleted after an ICE restart when the RTCIceTransport switches to using a
+      /// candidate pair generated from the new candidates; this time doesn't correspond to any other
+      /// externally observable event.
       /// </summary>
       candidatePair,
       /// <summary>
-      /// Statistics for the local RTCIceCandidate from the RTCIceTransport
-      /// object. It is accessed by the RTCIceCandidateAttributes.
+      /// ICE local candidate statistics related to the RTCIceTransport objects. It is accessed
+      /// by the RTCIceCandidateStats for the local candidate.
+      ///
+      /// A local candidate is deleted when the RTCIceTransport does an ICE restart, and the candidate
+      /// is no longer a member of any non-deleted candidate pair.
       /// </summary>
       localCandidate,
       /// <summary>
-      /// Statistics for the remote RTCIceCandidate from the RTCIceTransport
-      /// object. It is accessed by the RTCIceCandidateAttributes.
+      /// ICE remote candidate statistics related to the RTCIceTransport objects. It is accessed by
+      /// the RTCIceCandidateStats for the remote candidate.
+      ///
+      /// A remote candidate is deleted when the RTCIceTransport does an ICE restart, and the candidate
+      /// is no longer a member of any non-deleted candidate pair.
       /// </summary>
       remoteCandidate,
+      /// <summary>
+      /// Information about a certificate used by an RTCIceTransport. It is accessed by the RTCCertificateStats.
+      /// </summary>
+      certificate
     };
 
     /// <summary>
@@ -554,7 +574,7 @@ namespace org
     /// <summary>
     /// Candidate pair state is defined in Section 5.7.4 of [RFC5245].
     /// </summary>
-    enum RTCIceCandidatePairState
+    enum RTCStatsIceCandidatePairState
     {
       /// <summary>
       /// Defined in Section 5.7.4 of [RFC5245].
@@ -827,6 +847,42 @@ namespace org
       /// The capturer failed to start.
       /// </summary>
       failed,
+    };
+
+    enum RTCCodecType
+    {
+      /// <summary>
+      /// The attached RTCCodecStats represents a media format that is
+      /// being encoded, or that the implementation is prepared to encode.
+      /// </summary>
+      encode,
+      /// <summary>
+      /// The attached RTCCodecStats represents a media format that
+      /// the implementation is prepared to decode.
+      /// </summary>
+      decode,
+    };
+
+    enum RTCQualityLimitationReason {
+      /// <summary>
+      /// The resolution and/or framerate is not limited.
+      /// </summary>
+      none,
+      /// <summary>
+      /// The resolution and/or framerate is primarily limited due to CPU load.
+      /// </summary>
+      cpu,
+      /// <summary>
+      /// The resolution and/or framerate is primarily limited due to congestion
+      /// cues during bandwidth estimation. Typical, congestion control algorithms
+      /// use inter-arrival time, round-trip time, packet or other congestion cues
+      /// to perform bandwidth estimation.
+      /// </summary>
+      bandwidth,
+      /// <summary>
+      /// The resolution and/or framerate is primarily limited for a reason other than the above.
+      /// </summary>
+      other,
     };
 
   }
