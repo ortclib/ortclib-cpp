@@ -31,6 +31,9 @@ namespace wrapper {
           String get_text() noexcept override;
 
           ZS_NO_DISCARD() static WrapperImplTypePtr toWrapper(const NativeType &native) noexcept;
+          ZS_NO_DISCARD() static WrapperImplTypePtr toWrapper(const SecureByteBlock &native) noexcept;
+          ZS_NO_DISCARD() static WrapperImplTypePtr toWrapper(SecureByteBlockPtr native) noexcept;
+          ZS_NO_DISCARD() static WrapperImplTypePtr toWrapper(const String &native) noexcept;
           ZS_NO_DISCARD() static NativeType toNative(WrapperTypePtr wrapper) noexcept;
         };
 

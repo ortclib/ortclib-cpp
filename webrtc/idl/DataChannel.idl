@@ -135,6 +135,9 @@ namespace org
     /// </summary>
     interface RTCDataChannel : RTCStatsProvider
     {
+      [constructor, delete, default]
+      void RTCDataChannel();
+
       /// <summary>
       /// Gets the attribute representing the ID for this RTCDataChannel.
       /// The value is initally null, which is what will be returned if

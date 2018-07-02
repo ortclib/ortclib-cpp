@@ -371,17 +371,17 @@ WrapperImplTypePtr WrapperImplType::toWrapper(NativeType *native) noexcept
 {
   if (!native) return WrapperImplTypePtr();
 
-  ::webrtc::MediaStreamTrackInterface *originalTrack {};
-  if (!originalTrack) {
-    originalTrack = unproxyAudioTrack(native);
+  ::webrtc::MediaStreamTrackInterface *original {};
+  if (!original) {
+    original = unproxyAudioTrack(native);
   }
-  if (!originalTrack) {
-    originalTrack = unproxyVideoTrack(native);
+  if (!original) {
+    original = unproxyVideoTrack(native);
   }
-  if (!originalTrack) return WrapperImplTypePtr();
+  if (!original) original = native;
 
   // search for original non-proxied pointer in map
-  auto wrapper = mapperSingleton().getExistingOrCreateNew(originalTrack, [native]() {
+  auto wrapper = mapperSingleton().getExistingOrCreateNew(original, [native]() {
     auto result = make_shared<WrapperImplType>();
     result->thisWeak_ = result;
     result->native_ = rtc::scoped_refptr<NativeType>(native); // only use proxy and never original pointer

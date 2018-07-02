@@ -37,7 +37,7 @@ namespace org
     [dictionary]
     struct RTCBitrateParameters {
       [optional]
-      int minNitrateBps;
+      int minBitrateBps;
       [optional]
       int currentBitrateBps;
       [optional]

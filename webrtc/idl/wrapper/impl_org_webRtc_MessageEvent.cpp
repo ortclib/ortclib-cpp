@@ -76,6 +76,33 @@ WrapperImplTypePtr WrapperImplType::toWrapper(const NativeType &native) noexcept
 }
 
 //------------------------------------------------------------------------------
+WrapperImplTypePtr WrapperImplType::toWrapper(const SecureByteBlock &native) noexcept
+{
+  auto wrapper = make_shared<WrapperImplType>();
+  wrapper->thisWeak_ = wrapper;
+  wrapper->native_ = make_shared<SecureByteBlock>(native);
+  wrapper->isBinary_ = true;
+  return wrapper;
+}
+
+//------------------------------------------------------------------------------
+WrapperImplTypePtr WrapperImplType::toWrapper(SecureByteBlockPtr native) noexcept
+{
+  if (!native) return WrapperImplTypePtr();
+  return toWrapper(*native);
+}
+
+//------------------------------------------------------------------------------
+WrapperImplTypePtr WrapperImplType::toWrapper(const String &native) noexcept
+{
+  auto wrapper = make_shared<WrapperImplType>();
+  wrapper->thisWeak_ = wrapper;
+  wrapper->native_ = UseHelper::convertToBuffer(native);
+  wrapper->isBinary_ = false;
+  return wrapper;
+}
+
+//------------------------------------------------------------------------------
 NativeType WrapperImplType::toNative(WrapperTypePtr wrapper) noexcept
 {
   if (!wrapper) return NativeType(rtc::CopyOnWriteBuffer(), true);

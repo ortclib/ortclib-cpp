@@ -22,7 +22,7 @@ namespace wrapper {
           ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::AudioTrackSource, WrapperImplType);
           ZS_DECLARE_TYPEDEF_PTR(::webrtc::AudioSourceInterface, NativeType);
 
-          typedef rtc::scoped_refptr<::webrtc::AudioSourceInterface> NativeScopedPtr;
+          typedef rtc::scoped_refptr<NativeType> NativeScopedPtr;
 
           ZS_DECLARE_STRUCT_PTR(WebrtcObserver);
 
