@@ -30,7 +30,7 @@ namespace wrapper {
           unsigned long long get_bytesSent() noexcept override;
           unsigned long long get_bytesReceived() noexcept override;
           String get_rtcpTransportStatsId() noexcept override;
-          wrapper::org::webRtc::RTCIceRole get_iceRole() noexcept override;
+          Optional< wrapper::org::webRtc::RTCIceRole > get_iceRole() noexcept override;
           wrapper::org::webRtc::RTCDtlsTransportState get_dtlsState() noexcept override;
           String get_selectedCandidatePairId() noexcept override;
           String get_localCertificateId() noexcept override;

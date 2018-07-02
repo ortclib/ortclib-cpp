@@ -103,9 +103,9 @@ String wrapper::impl::org::webRtc::RTCTransportStats::get_rtcpTransportStatsId()
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webRtc::RTCIceRole wrapper::impl::org::webRtc::RTCTransportStats::get_iceRole() noexcept
+Optional< wrapper::org::webRtc::RTCIceRole > wrapper::impl::org::webRtc::RTCTransportStats::get_iceRole() noexcept
 {
-  wrapper::org::webRtc::RTCIceRole result {};
+  Optional< wrapper::org::webRtc::RTCIceRole > result {};
   return result;
 }
 

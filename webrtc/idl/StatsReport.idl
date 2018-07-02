@@ -110,6 +110,9 @@ namespace org
       void RTCStats();
     };
 
+    /// <summary>
+    /// Stats that apply to any end of any RTP stream.
+    /// </summary>
     struct RTCRtpStreamStats : RTCStats
     {
       /// <summary>
@@ -212,7 +215,7 @@ namespace org
       /// Gets "encode" or "decode", depending on whether this object represents
       /// a media format that the implementation is prepared to encode or decode.
       /// </summary>
-      [getter]
+      [getter, optional]
       RTCCodecType     codecType;
 
       /// <summary>
@@ -508,6 +511,10 @@ namespace org
       void RTCRemoteInboundRtpStreamStats();
     };
 
+    /// <summary>
+    /// Stats measured at the sending end of an RTP stream, known either because they're
+    /// measured locally or because they're received via RTCP, usually in an RTCP Sender Report (SR).
+    /// </summary>
     struct RTCSentRtpStreamStats : RTCRtpStreamStats {
       /// <summary>
       /// Gets the total number of RTP packets sent for this SSRC. Calculated as
@@ -750,6 +757,9 @@ namespace org
       void RTCRtpContributingSourceStats();
     };
 
+    /// <summary>
+    /// Statistics related to the RTCPeerConnection object.
+    /// </summary>
     struct RTCPeerConnectionStats : RTCStats {
 
       /// <summary>
@@ -810,6 +820,10 @@ namespace org
       void RTCMediaStreamStats();
     };
 
+    /// <summary>
+    /// Contains statistics related to a specific MediaStreamTrack's attachment to an
+    /// RTCRtpSender and the corresponding media-level metrics.
+    /// </summary>
     struct RTCMediaHandlerStats : RTCStats {
 
       /// <summary>
@@ -850,7 +864,12 @@ namespace org
       void RTCMediaHandlerStats();
     };
 
-
+    /// <summary>
+    /// Contains statistics related to a specific MediaStreamTrack's attachment to
+    /// an RTCRtpSender and the corresponding media-level metrics. It is accessed
+    /// by either RTCSenderVideoTrackAttachmentStats or
+    /// RTCSenderAudioTrackAttachmentStats, both inherited from RTCMediaHandlerStats.
+    /// </summary>
     struct RTCVideoHandlerStats : RTCMediaHandlerStats {
 
       /// <summary>
@@ -1049,6 +1068,12 @@ namespace org
       void RTCVideoReceiverStats();
     };
 
+    /// <summary>
+    /// Contains statistics related to a specific MediaStreamTrack's attachment to
+    /// an RTCRtpSender and the corresponding media-level metrics. It is accessed
+    /// by either RTCSenderVideoTrackAttachmentStats or
+    /// RTCSenderAudioTrackAttachmentStats, both inherited from RTCMediaHandlerStats.
+    /// </summary>
     struct RTCAudioHandlerStats : RTCMediaHandlerStats {
     
       /// <summary>
@@ -1249,6 +1274,9 @@ namespace org
       void RTCAudioReceiverStats();
     };
 
+    /// <summary>
+    /// Statistics related to each RTCDataChannel id. It is accessed by the RTCDataChannelStats.
+    /// </summary>
     struct RTCDataChannelStats : RTCStats {
 
       /// <summary>
@@ -1356,7 +1384,7 @@ namespace org
       /// <summary>
       /// Gets the current value of the "role" attribute of the underlying RTCDtlsTransport's "transport".
       /// </summary>
-      [getter]
+      [getter, optional]
       RTCIceRole iceRole;
 
       /// <summary>
@@ -1490,6 +1518,10 @@ namespace org
       void RTCIceCandidateStats();
     };
 
+    /// <summary>
+    /// ICE candidate pair statistics related to the RTCIceTransport objects.
+    /// It is accessed by the RTCIceCandidatePairStats.
+    /// </summary>
     struct RTCIceCandidatePairStats : RTCStats {
 
       /// <summary>
@@ -1708,6 +1740,9 @@ namespace org
       void RTCIceCandidatePairStats();
     };
 
+    /// <summary>
+    /// Information about a certificate used by an RTCIceTransport. It is accessed by the RTCCertificateStats.
+    /// </summary>
     struct RTCCertificateStats : RTCStats {
 
       /// <summary>
