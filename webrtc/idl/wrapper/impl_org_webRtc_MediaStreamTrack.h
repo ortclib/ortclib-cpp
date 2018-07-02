@@ -13,6 +13,8 @@
 #include "api/mediastreaminterface.h"
 #include "impl_org_webRtc_post_include.h"
 
+#include <zsLib/IMessageQueue.h>
+
 #include <set>
 
 namespace wrapper {
@@ -38,13 +40,16 @@ namespace wrapper {
 
           struct WebrtcObserver : public rtc::VideoSinkInterface<::webrtc::VideoFrame>
           {
-            WebrtcObserver(WrapperImplTypePtr wrapper) noexcept : outer_(wrapper) {}
+            WebrtcObserver(
+                           WrapperImplTypePtr wrapper,
+                           IMessageQueuePtr queue
+                           ) noexcept : outer_(wrapper), queue_(queue) {}
 
             void OnFrame(const ::webrtc::VideoFrame& frame) final
             {
               auto outer = outer_.lock();
               if (!outer) return;
-              outer->notifyFrame(frame);
+              outer->notifyWebrtcObserverFrame(frame);  // NOTE: intentionally called synchronously
             }
 
             // Should be called by the source when it discards the frame due to rate
@@ -53,11 +58,12 @@ namespace wrapper {
             {
               auto outer = outer_.lock();
               if (!outer) return;
-              outer->notifyDiscardedFrame();
+              outer->notifyWebrtcObserverDiscardedFrame(); // NOTE: intentionally called synchronously
             }
 
           private:
             WrapperImplTypeWeakPtr outer_;
+            IMessageQueuePtr queue_;
           };
 
           WebrtcObserverUniPtr observer_;
@@ -94,8 +100,8 @@ namespace wrapper {
           void teardownObserver();
 
           // WebrtcObserver methods
-          void notifyFrame(const ::webrtc::VideoFrame& frame) noexcept;
-          void notifyDiscardedFrame() noexcept;
+          void notifyWebrtcObserverFrame(const ::webrtc::VideoFrame& frame) noexcept;
+          void notifyWebrtcObserverDiscardedFrame() noexcept;
 
           ZS_NO_DISCARD() static WrapperImplTypePtr toWrapper(NativeType *native) noexcept;
           ZS_NO_DISCARD() static NativeTypeScopedPtr toNative(WrapperTypePtr wrapper) noexcept;

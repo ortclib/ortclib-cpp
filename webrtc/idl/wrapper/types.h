@@ -12,6 +12,7 @@ namespace wrapper {
       namespace webRtc {
 
         ZS_DECLARE_TYPEDEF_PTR(::zsLib::Exceptions::InvalidArgument, InvalidParameters);
+        ZS_DECLARE_TYPEDEF_PTR(::zsLib::IMessageQueue, IMessageQueue);
 
         ZS_DECLARE_STRUCT_PTR(AudioOptions);
         ZS_DECLARE_STRUCT_PTR(AudioTrackSource);

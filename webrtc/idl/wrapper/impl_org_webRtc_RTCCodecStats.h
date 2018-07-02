@@ -26,7 +26,7 @@ namespace wrapper {
 
           // properties RTCCodecStats
           Optional< uint8_t > get_payloadType() noexcept override;
-          wrapper::org::webRtc::RTCCodecType get_codecType() noexcept override;
+          Optional< wrapper::org::webRtc::RTCCodecType> get_codecType() noexcept override;
           String get_transportId() noexcept override;
           void set_transportId(String value) noexcept override;
           String get_mimeType() noexcept override;

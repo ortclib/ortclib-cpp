@@ -141,7 +141,7 @@ void wrapper::impl::org::webRtc::AudioTrackSource::set_volume(double value) noex
 }
 
 //------------------------------------------------------------------------------
-void WrapperImplType::notifyVolume(double volume) noexcept
+void WrapperImplType::onWebrtcObserverSetVolume(double volume) noexcept
 {
   onSetVolume(volume);
 }
@@ -153,7 +153,7 @@ void WrapperImplType::setupObserver()
   if (!native_) return;
   if (observer_) return;
 
-  observer_ = std::make_unique<WebrtcObserver>(thisWeak_.lock());
+  observer_ = std::make_unique<WebrtcObserver>(thisWeak_.lock(), UseWebrtcLib::delegateQueue());
   native_->RegisterAudioObserver(observer_.get());
 }
 

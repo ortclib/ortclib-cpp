@@ -311,7 +311,7 @@ void WrapperImplType::setupObserver()
   ZS_ASSERT(converted);
   if (!converted) return;
 
-  observer_ = std::make_unique<WebrtcObserver>(thisWeak_.lock());
+  observer_ = std::make_unique<WebrtcObserver>(thisWeak_.lock(), UseWebrtcLib::delegateQueue());
 
   rtc::VideoSinkWants wants;
 
@@ -340,7 +340,7 @@ void WrapperImplType::teardownObserver()
 }
 
 //------------------------------------------------------------------------------
-void WrapperImplType::notifyFrame(const ::webrtc::VideoFrame& frame) noexcept
+void WrapperImplType::notifyWebrtcObserverFrame(const ::webrtc::VideoFrame& frame) noexcept
 {
   VideoFrameType frameType {};
 	if (frame.video_frame_buffer()->ToI420() != nullptr)
@@ -362,7 +362,7 @@ void WrapperImplType::notifyFrame(const ::webrtc::VideoFrame& frame) noexcept
 }
 
 //------------------------------------------------------------------------------
-void WrapperImplType::notifyDiscardedFrame() noexcept
+void WrapperImplType::notifyWebrtcObserverDiscardedFrame() noexcept
 {
 }
 

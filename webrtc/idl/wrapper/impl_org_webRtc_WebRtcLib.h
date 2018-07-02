@@ -69,6 +69,7 @@ namespace wrapper {
           virtual bool actual_checkSetup(bool assert = true) noexcept;
           virtual PeerConnectionFactoryInterfaceScopedPtr actual_peerConnectionFactory() noexcept;
           virtual UseVideoDeviceCaptureFacrtoryPtr actual_videoDeviceCaptureFactory() noexcept;
+          virtual zsLib::IMessageQueuePtr actual_delegateQueue() noexcept;
 
           //-------------------------------------------------------------------
           //
@@ -83,6 +84,7 @@ namespace wrapper {
           static PeerConnectionFactoryInterfaceScopedPtr peerConnectionFactory() noexcept;
           static UseVideoDeviceCaptureFacrtoryPtr videoDeviceCaptureFactory() noexcept;
           static bool checkSetup(bool assert = true) noexcept;
+          static zsLib::IMessageQueuePtr delegateQueue() noexcept;
         };
 
       } // webRtc

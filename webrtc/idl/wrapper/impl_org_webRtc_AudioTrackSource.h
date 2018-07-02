@@ -4,11 +4,12 @@
 #include "types.h"
 #include "generated/org_webRtc_AudioTrackSource.h"
 
-
 #include "impl_org_webRtc_pre_include.h"
 #include "rtc_base/scoped_ref_ptr.h"
 #include "api/mediastreaminterface.h"
 #include "impl_org_webRtc_post_include.h"
+
+#include <zsLib/IMessageQueue.h>
 
 namespace wrapper {
   namespace impl {
@@ -27,17 +28,21 @@ namespace wrapper {
 
           struct WebrtcObserver : public NativeType::AudioObserver
           {
-            WebrtcObserver(WrapperImplTypePtr wrapper) noexcept : outer_(wrapper) {}
+            WebrtcObserver(
+                           WrapperImplTypePtr wrapper,
+                           IMessageQueuePtr queue
+                           ) noexcept : outer_(wrapper), queue_(queue) {}
 
             void OnSetVolume(double volume) final
             {
               auto outer = outer_.lock();
               if (!outer) return;
-              outer->notifyVolume(volume);
+              queue_->postClosure([outer, volume]() { outer->onWebrtcObserverSetVolume(volume); });
             }
 
           private:
             WrapperImplTypeWeakPtr outer_;
+            IMessageQueuePtr queue_;
           };
 
           std::atomic<double> lastVolume_;
@@ -62,7 +67,7 @@ namespace wrapper {
           void teardownObserver();
 
           // WebrtcObserver methods
-          void notifyVolume(double volume) noexcept;
+          void onWebrtcObserverSetVolume(double volume) noexcept;
 
           ZS_NO_DISCARD() static WrapperImplTypePtr toWrapper(NativeType *native) noexcept;
           ZS_NO_DISCARD() static NativeScopedPtr toNative(WrapperTypePtr wrapper) noexcept;

@@ -75,7 +75,7 @@ Optional< uint8_t > wrapper::impl::org::webRtc::RTCCodecStats::get_payloadType()
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webRtc::RTCCodecType wrapper::impl::org::webRtc::RTCCodecStats::get_codecType() noexcept
+Optional< wrapper::org::webRtc::RTCCodecType> wrapper::impl::org::webRtc::RTCCodecStats::get_codecType() noexcept
 {
   wrapper::org::webRtc::RTCCodecType result {};
   return result;

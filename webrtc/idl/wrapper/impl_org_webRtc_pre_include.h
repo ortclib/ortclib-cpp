@@ -33,6 +33,7 @@ namespace webrtc
   class PeerConnectionInterface;
   class PeerConnectionFactoryInterface;
 
+  class MediaSourceInterface;
   class AudioSourceInterface;
   class VideoTrackSourceInterface;
 

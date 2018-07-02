@@ -36,6 +36,8 @@
 #include "media/engine/webrtcvideocapturerfactory.h"
 #include "impl_org_webRtc_post_include.h"
 
+#include <zsLib/IMessageQueueThread.h>
+
 using ::zsLib::String;
 using ::zsLib::Optional;
 using ::zsLib::Any;
@@ -441,6 +443,11 @@ UseVideoDeviceCaptureFacrtoryPtr WrapperImplType::actual_videoDeviceCaptureFacto
   return videoDeviceCaptureFactory_;
 }
 
+//------------------------------------------------------------------------------
+zsLib::IMessageQueuePtr WrapperImplType::actual_delegateQueue() noexcept
+{
+  return zsLib::IMessageQueueThread::singletonUsingCurrentGUIThreadsMessageQueue();
+}
 
 //------------------------------------------------------------------------------
 void WrapperImplType::notifySingletonCleanup() noexcept
@@ -500,7 +507,7 @@ WrapperImplTypePtr WrapperImplType::singleton() noexcept
       bool actual_checkSetup(bool) noexcept final { return false; }
 
       //-----------------------------------------------------------------------
-      PeerConnectionFactoryInterfaceScopedPtr actual_peerConnectionFactory() noexcept override
+      PeerConnectionFactoryInterfaceScopedPtr actual_peerConnectionFactory() noexcept final
       {
         ZS_ASSERT_FAIL("why is the factory needed during shutdown?");
         // no way around this one with a bogus factory...
@@ -508,11 +515,17 @@ WrapperImplTypePtr WrapperImplType::singleton() noexcept
       }
 
       //-----------------------------------------------------------------------
-      UseVideoDeviceCaptureFacrtoryPtr actual_videoDeviceCaptureFactory() noexcept override
+      UseVideoDeviceCaptureFacrtoryPtr actual_videoDeviceCaptureFactory() noexcept final
       {
         ZS_ASSERT_FAIL("why is the factory needed during shutdown?");
         // no way around this one with a bogus factory...
         return UseVideoDeviceCaptureFacrtoryPtr();
+      }
+
+      //-----------------------------------------------------------------------
+      zsLib::IMessageQueuePtr actual_delegateQueue() noexcept final
+      {
+        return zsLib::IMessageQueueThread::singletonUsingCurrentGUIThreadsMessageQueue();
       }
 
       void notifySingletonCleanup() noexcept final {}
@@ -542,4 +555,11 @@ UseVideoDeviceCaptureFacrtoryPtr WrapperImplType::videoDeviceCaptureFactory() no
 {
   auto singleton = WrapperImplType::singleton();
   return singleton->actual_videoDeviceCaptureFactory();
+}
+
+//------------------------------------------------------------------------------
+zsLib::IMessageQueuePtr WrapperImplType::delegateQueue() noexcept
+{
+  auto singleton = WrapperImplType::singleton();
+  return singleton->actual_delegateQueue();
 }
