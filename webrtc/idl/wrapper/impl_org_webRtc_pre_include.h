@@ -29,6 +29,8 @@ namespace webrtc
   enum class SdpType;
   enum class RtpTransceiverDirection;
 
+  struct DataBuffer;
+
   class SessionDescriptionInterface;
   class PeerConnectionInterface;
   class PeerConnectionFactoryInterface;

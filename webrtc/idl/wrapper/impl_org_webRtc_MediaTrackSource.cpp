@@ -1,5 +1,6 @@
 
 #include "impl_org_webRtc_MediaTrackSource.h"
+#include "impl_org_webRtc_enums.h"
 
 #include "impl_org_webRtc_pre_include.h"
 #include "api/mediastreaminterface.h"
@@ -31,6 +32,8 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::MediaTrackSource::NativeType,
 
 typedef WrapperImplType::NativeTypeScopedPtr NativeTypeScopedPtr;
 
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::IEnum, UseEnum);
+
 //------------------------------------------------------------------------------
 wrapper::impl::org::webRtc::MediaTrackSource::MediaTrackSource() noexcept
 {
@@ -53,15 +56,17 @@ wrapper::impl::org::webRtc::MediaTrackSource::~MediaTrackSource() noexcept
 //------------------------------------------------------------------------------
 wrapper::org::webRtc::MediaSourceState wrapper::impl::org::webRtc::MediaTrackSource::get_state() noexcept
 {
-  wrapper::org::webRtc::MediaSourceState result {};
-  return result;
+  ZS_ASSERT(native_);
+  if (!native_) return wrapper::org::webRtc::MediaSourceState::MediaSourceState_ended;
+  return UseEnum::toWrapper(native_->state());
 }
 
 //------------------------------------------------------------------------------
 bool wrapper::impl::org::webRtc::MediaTrackSource::get_remote() noexcept
 {
-  bool result {};
-  return result;
+  ZS_ASSERT(native_);
+  if (!native_) return false;
+  return native_->remote();
 }
 
 //------------------------------------------------------------------------------
