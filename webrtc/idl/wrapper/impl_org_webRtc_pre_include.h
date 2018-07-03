@@ -32,7 +32,11 @@ namespace webrtc
   struct DataBuffer;
   struct DataChannelInit;
 
+  class AudioTrackInterface;
+  class VideoTrackInterface;
+  class RtpSenderInterface;
   class RtpReceiverInterface;
+  class RtpTransceiverInterface;
   class SessionDescriptionInterface;
   class PeerConnectionInterface;
   class PeerConnectionFactoryInterface;

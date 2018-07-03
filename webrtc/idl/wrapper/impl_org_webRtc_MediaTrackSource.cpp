@@ -80,6 +80,12 @@ WrapperImplTypePtr WrapperImplType::toWrapper(NativeType *native) noexcept
 }
 
 //------------------------------------------------------------------------------
+WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypeScopedPtr native) noexcept
+{
+  return toWrapper(native.get());
+}
+
+//------------------------------------------------------------------------------
 NativeTypeScopedPtr WrapperImplType::toNative(WrapperTypePtr wrapper) noexcept
 {
   if (!wrapper) return NativeTypeScopedPtr();

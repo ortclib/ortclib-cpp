@@ -32,7 +32,7 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::VideoTrackSource::WrapperType
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::VideoTrackSource::WrapperImplType, WrapperImplType);
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::VideoTrackSource::NativeType, NativeType);
 
-typedef WrapperImplType::NativeScopedPtr NativeScopedPtr;
+typedef WrapperImplType::NativeTypeScopedPtr NativeTypeScopedPtr;
 
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::WebRtcLib, UseWebrtcLib);
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::MediaConstraints, UseMediaConstraints);
@@ -135,15 +135,21 @@ WrapperImplTypePtr WrapperImplType::toWrapper(NativeType *native) noexcept
 
   auto result = make_shared<WrapperImplType>();
   result->thisWeak_ = result;
-  result->native_ = NativeScopedPtr(native);
+  result->native_ = NativeTypeScopedPtr(native);
   return result;
 }
 
 //------------------------------------------------------------------------------
-NativeScopedPtr WrapperImplType::toNative(WrapperTypePtr wrapper) noexcept
+WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypeScopedPtr native) noexcept
 {
-  if (!wrapper) return NativeScopedPtr();
+  return toWrapper(native.get());
+}
+
+//------------------------------------------------------------------------------
+NativeTypeScopedPtr WrapperImplType::toNative(WrapperTypePtr wrapper) noexcept
+{
+  if (!wrapper) return NativeTypeScopedPtr();
   auto converted = ZS_DYNAMIC_PTR_CAST(WrapperImplType, wrapper);
-  if (!converted) return NativeScopedPtr();
+  if (!converted) return NativeTypeScopedPtr();
   return converted->native_;
 }

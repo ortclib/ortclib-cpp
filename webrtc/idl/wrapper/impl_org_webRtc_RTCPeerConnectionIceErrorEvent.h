@@ -17,7 +17,6 @@ namespace wrapper {
 
           RTCPeerConnectionIceErrorEvent() noexcept;
           virtual ~RTCPeerConnectionIceErrorEvent() noexcept;
-          void wrapper_init_org_webRtc_RTCPeerConnectionIceErrorEvent() noexcept override;
 
           // properties RTCPeerConnectionIceErrorEvent
           String get_hostCandidate() noexcept override;

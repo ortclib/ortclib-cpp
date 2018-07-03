@@ -42,5 +42,3 @@ wrapper::impl::org::webRtc::RTCSessionDescriptionInit::~RTCSessionDescriptionIni
 void wrapper::impl::org::webRtc::RTCSessionDescriptionInit::wrapper_init_org_webRtc_RTCSessionDescriptionInit() noexcept
 {
 }
-
-

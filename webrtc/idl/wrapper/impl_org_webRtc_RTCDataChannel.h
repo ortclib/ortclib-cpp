@@ -20,7 +20,7 @@ namespace wrapper {
           ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCDataChannel, WrapperImplType);
           ZS_DECLARE_TYPEDEF_PTR(::webrtc::DataChannelInterface, NativeType);
 
-          typedef rtc::scoped_refptr<NativeType> NativeScopedPtr;
+          typedef rtc::scoped_refptr<NativeType> NativeTypeScopedPtr;
 
           ZS_DECLARE_STRUCT_PTR(WebrtcObserver);
 
@@ -63,7 +63,7 @@ namespace wrapper {
           String binaryType_ {};
 
           WebrtcObserverUniPtr observer_;
-          NativeScopedPtr native_;
+          NativeTypeScopedPtr native_;
           RTCDataChannelWeakPtr thisWeak_;
 
           RTCDataChannel() noexcept;
@@ -104,7 +104,8 @@ namespace wrapper {
           void onWebrtcObserverBufferedAmountChange(uint64_t previous_amount) noexcept;
 
           ZS_NO_DISCARD() static WrapperImplTypePtr toWrapper(NativeType *native) noexcept;
-          ZS_NO_DISCARD() static NativeScopedPtr toNative(WrapperTypePtr wrapper) noexcept;
+          ZS_NO_DISCARD() static WrapperImplTypePtr toWrapper(NativeTypeScopedPtr native) noexcept;
+          ZS_NO_DISCARD() static NativeTypeScopedPtr toNative(WrapperTypePtr wrapper) noexcept;
         };
 
       } // webRtc

@@ -49,6 +49,9 @@ namespace org
     /// RTCPeerConnectionIceEvent interface.
     /// </summary>
     interface RTCPeerConnectionIceEvent {
+      [constructor, delete, default]
+      void RTCPeerConnectionIceEvent();
+
       /// <summary>
       /// Gets the attribute for the RTCIceCandidate object with
       /// the new ICE candidate that caused the event.
@@ -69,6 +72,9 @@ namespace org
     /// The track event uses the RTCTrackEvent interface.
     /// </summary>
     interface RTCTrackEvent  {
+      [constructor, delete, default]
+      void RTCTrackEvent();
+
       /// <summary>
       /// Gets the attribute representing the RTCRtpReceiver object associated with the event.
       /// </summary>
@@ -89,6 +95,9 @@ namespace org
     };
 
     interface RTCPeerConnectionIceErrorEvent {
+      [constructor, delete, default]
+      void RTCPeerConnectionIceErrorEvent();
+
       /// <summary>
       /// Gets the attribute for the local IP address and port used to
       /// communicate with the STUN or TURN server.
@@ -256,7 +265,7 @@ namespace org
       /// <summary>
       /// Gets the attribute returning the connection state of the RTCPeerConnection instance.
       /// </summary>
-      [getter]
+      [getter, optional]
       RTCPeerConnectionState  connectionState_NotAvailable;
 
       /// <summary>
@@ -460,10 +469,22 @@ namespace org
       void onConnectionStateChange();
 
       /// <summary>
-      /// New incoming media has been negotiated for a specific RTCRtpReceiver, and that receiver's track has been added to any associated remote MediaStreams.
+      /// New incoming media has been negotiated for a specific RTCRtpReceiver, and that
+      /// receiver's track has been added to any associated remote MediaStreams.
       /// </summary>
       [event]
       void onTrack(RTCTrackEvent event);
+
+      /// <summary>
+      /// Called when a receiver is completely removed. This is current (Plan B SDP)
+      /// behavior that occurs when processing the removal of a remote track, and is
+      /// called when the receiver is removed and the track is muted. When Unified
+      /// Plan SDP is supported, transceivers can change direction (and receivers
+      /// stopped) but receivers are never removed, so this is never called.
+      /// https://w3c.github.io/webrtc-pc/#process-remote-track-removal
+      /// </summary>
+      [event]
+      void onRemoveTrack(RTCTrackEvent event);
     };
   }
 }

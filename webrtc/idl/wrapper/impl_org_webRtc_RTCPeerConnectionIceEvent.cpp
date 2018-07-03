@@ -44,11 +44,6 @@ wrapper::impl::org::webRtc::RTCPeerConnectionIceEvent::~RTCPeerConnectionIceEven
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webRtc::RTCPeerConnectionIceEvent::wrapper_init_org_webRtc_RTCPeerConnectionIceEvent() noexcept
-{
-}
-
-//------------------------------------------------------------------------------
 wrapper::org::webRtc::RTCIceCandidatePtr wrapper::impl::org::webRtc::RTCPeerConnectionIceEvent::get_candidate() noexcept
 {
   return candidate_;

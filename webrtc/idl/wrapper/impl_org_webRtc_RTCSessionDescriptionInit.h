@@ -12,6 +12,9 @@ namespace wrapper {
 
         struct RTCSessionDescriptionInit : public wrapper::org::webRtc::RTCSessionDescriptionInit
         {
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::org::webRtc::RTCSessionDescriptionInit, WrapperType);
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCSessionDescriptionInit, WrapperImplType);
+
           RTCSessionDescriptionInitWeakPtr thisWeak_;
 
           RTCSessionDescriptionInit() noexcept;

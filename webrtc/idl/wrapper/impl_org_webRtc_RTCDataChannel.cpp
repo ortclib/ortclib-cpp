@@ -35,7 +35,7 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCDataChannel::WrapperType, 
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCDataChannel::WrapperImplType, WrapperImplType);
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCDataChannel::NativeType, NativeType);
 
-typedef WrapperImplType::NativeScopedPtr NativeScopedPtr;
+typedef WrapperImplType::NativeTypeScopedPtr NativeTypeScopedPtr;
 
 typedef wrapper::impl::org::webRtc::WrapperMapper<NativeType, WrapperImplType> UseWrapperMapper;
 
@@ -75,6 +75,7 @@ wrapper::impl::org::webRtc::RTCDataChannel::~RTCDataChannel() noexcept
 {
   thisWeak_.reset();
   teardownObserver();
+  mapperSingleton().remove(native_.get());
 }
 
 //------------------------------------------------------------------------------
@@ -333,11 +334,17 @@ WrapperImplTypePtr WrapperImplType::toWrapper(NativeType *native) noexcept
 }
 
 //------------------------------------------------------------------------------
-rtc::scoped_refptr<NativeType> WrapperImplType::toNative(WrapperTypePtr wrapper) noexcept
+WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypeScopedPtr native) noexcept
 {
-  if (!wrapper) return rtc::scoped_refptr<NativeType>();
+  return toWrapper(native.get());
+}
+
+//------------------------------------------------------------------------------
+NativeTypeScopedPtr WrapperImplType::toNative(WrapperTypePtr wrapper) noexcept
+{
+  if (!wrapper) return NativeTypeScopedPtr();
   auto converted = ZS_DYNAMIC_PTR_CAST(WrapperImplType, wrapper);
-  if (!converted) return rtc::scoped_refptr<NativeType>();
+  if (!converted) return NativeTypeScopedPtr();
   return converted->native_;
 }
 

@@ -19,9 +19,9 @@ namespace wrapper {
           ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCRtpReceiver, WrapperImplType);
           ZS_DECLARE_TYPEDEF_PTR(::webrtc::RtpReceiverInterface, NativeType);
 
-          typedef rtc::scoped_refptr<::webrtc::RtpReceiverInterface> NativeScopedPtr;
+          typedef rtc::scoped_refptr<NativeType> NativeTypeScopedPtr;
 
-          NativeScopedPtr native_;
+          NativeTypeScopedPtr native_;
           RTCRtpReceiverWeakPtr thisWeak_;
 
           RTCRtpReceiver() noexcept;
@@ -40,8 +40,9 @@ namespace wrapper {
           void teardownObserver();
 
           ZS_NO_DISCARD() static WrapperImplTypePtr toWrapper(NativeType *native) noexcept;
+          ZS_NO_DISCARD() static WrapperImplTypePtr toWrapper(NativeTypeScopedPtr native) noexcept;
 
-          ZS_NO_DISCARD() static NativeScopedPtr toNative(WrapperTypePtr wrapper) noexcept;
+          ZS_NO_DISCARD() static NativeTypeScopedPtr toNative(WrapperTypePtr wrapper) noexcept;
         };
 
       } // webRtc

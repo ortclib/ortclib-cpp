@@ -32,6 +32,7 @@ namespace wrapper {
           shared_ptr< list< wrapper::org::webRtc::RTCDtlsFingerprintPtr > > get_fingerprints() noexcept override;
 
           ZS_NO_DISCARD() static WrapperImplTypePtr toWrapper(NativeType *native) noexcept;
+          ZS_NO_DISCARD() static WrapperImplTypePtr toWrapper(NativeTypeScopedPtr native) noexcept;
           ZS_NO_DISCARD() static NativeTypeScopedPtr toNative(WrapperTypePtr wrapper) noexcept;
         };
 

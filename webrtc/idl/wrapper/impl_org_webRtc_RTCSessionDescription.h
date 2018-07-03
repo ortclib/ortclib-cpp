@@ -20,7 +20,7 @@ namespace wrapper {
 
           ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCSessionDescriptionInit, UseSessionDescriptionInit);
 
-          UseSessionDescriptionInitPtr init_;
+          NativeTypeUniPtr native_;
           RTCSessionDescriptionWeakPtr thisWeak_;
 
           RTCSessionDescription() noexcept;
@@ -34,9 +34,12 @@ namespace wrapper {
           String get_sdp() noexcept override;
 
           ZS_NO_DISCARD() static WrapperImplTypePtr toWrapper(const NativeType &native) noexcept;
-          ZS_NO_DISCARD() static WrapperImplTypePtr toWrapper(NativeTypePtr native) noexcept;
+          ZS_NO_DISCARD() static WrapperImplTypePtr toWrapper(const NativeType *native) noexcept;
 
-          ZS_NO_DISCARD() static NativeTypePtr toNative(WrapperTypePtr wrapper) noexcept;
+          ZS_NO_DISCARD() static WrapperImplTypePtr toWrapper(const UseSessionDescriptionInit &value) noexcept;
+          ZS_NO_DISCARD() static WrapperImplTypePtr toWrapper(UseSessionDescriptionInitPtr value) noexcept;
+
+          ZS_NO_DISCARD() static NativeTypeUniPtr toNative(WrapperTypePtr wrapper) noexcept;
         };
 
       } // webRtc

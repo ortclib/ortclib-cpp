@@ -31,7 +31,7 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCRtpReceiver::WrapperImplTy
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCRtpReceiver::WrapperType, WrapperType);
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCRtpReceiver::NativeType, NativeType);
 
-typedef wrapper::impl::org::webRtc::RTCRtpReceiver::NativeScopedPtr NativeScopedPtr;
+typedef WrapperImplType::NativeTypeScopedPtr NativeTypeScopedPtr;
 
 typedef wrapper::impl::org::webRtc::WrapperMapper<NativeType, WrapperImplType> UseWrapperMapper;
 
@@ -45,14 +45,14 @@ static UseWrapperMapper &mapperSingleton()
 }
 
 //------------------------------------------------------------------------------
-static ::webrtc::RtpReceiverInterface *unproxyAudioNative(NativeType *native)
+static NativeType *unproxyAudioNative(NativeType *native)
 {
   if (!native) return nullptr;
   return WRAPPER_DEPROXIFY_CLASS(::webrtc::RtpReceiver, ::webrtc::AudioRtpReceiver,  native);
 }
 
 //------------------------------------------------------------------------------
-static ::webrtc::RtpReceiverInterface *unproxyVideoNative(NativeType *native)
+static NativeType *unproxyVideoNative(NativeType *native)
 {
   if (!native) return nullptr;
   return WRAPPER_DEPROXIFY_CLASS(::webrtc::RtpReceiver, ::webrtc::VideoRtpReceiver, native);
@@ -75,6 +75,7 @@ wrapper::org::webRtc::RTCRtpReceiverPtr wrapper::org::webRtc::RTCRtpReceiver::wr
 wrapper::impl::org::webRtc::RTCRtpReceiver::~RTCRtpReceiver() noexcept
 {
   thisWeak_.reset();
+  mapperSingleton().remove(native_.get());
 }
 
 //------------------------------------------------------------------------------
@@ -117,7 +118,6 @@ void wrapper::impl::org::webRtc::RTCRtpReceiver::set_track(wrapper::org::webRtc:
 {
 }
 
-
 //------------------------------------------------------------------------------
 void WrapperImplType::setupObserver()
 {
@@ -152,7 +152,13 @@ WrapperImplTypePtr WrapperImplType::toWrapper(NativeType *native) noexcept
 }
 
 //------------------------------------------------------------------------------
-NativeScopedPtr WrapperImplType::toNative(WrapperTypePtr wrapper) noexcept
+WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypeScopedPtr native) noexcept
+{
+  return toWrapper(native.get());
+}
+
+//------------------------------------------------------------------------------
+NativeTypeScopedPtr WrapperImplType::toNative(WrapperTypePtr wrapper) noexcept
 {
   if (!wrapper) return rtc::scoped_refptr<NativeType>();
   auto converted = ZS_DYNAMIC_PTR_CAST(WrapperImplType, wrapper);

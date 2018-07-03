@@ -27,8 +27,12 @@ namespace wrapper {
           ZS_DECLARE_TYPEDEF_PTR(wrapper::org::webRtc::MediaStreamTrack, WrapperType);
           ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::MediaStreamTrack, WrapperImplType);
           ZS_DECLARE_TYPEDEF_PTR(::webrtc::MediaStreamTrackInterface, NativeType);
+          ZS_DECLARE_TYPEDEF_PTR(::webrtc::AudioTrackInterface, AudioNativeType);
+          ZS_DECLARE_TYPEDEF_PTR(::webrtc::VideoTrackInterface, VideoNativeType);
 
           typedef rtc::scoped_refptr<NativeType> NativeTypeScopedPtr;
+          typedef rtc::scoped_refptr<AudioNativeType> AudioNativeTypeScopedPtr;
+          typedef rtc::scoped_refptr<VideoNativeType> VideoNativeTypeScopedPtr;
 
           ZS_DECLARE_TYPEDEF_PTR(wrapper::org::webRtc::MediaElement, UseMediaElement);
           ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::MediaElement, UseMediaElementImpl);
@@ -104,6 +108,17 @@ namespace wrapper {
           void notifyWebrtcObserverDiscardedFrame() noexcept;
 
           ZS_NO_DISCARD() static WrapperImplTypePtr toWrapper(NativeType *native) noexcept;
+          ZS_NO_DISCARD() static WrapperImplTypePtr toWrapper(NativeTypeScopedPtr native) noexcept;
+
+          ZS_NO_DISCARD() static WrapperImplTypePtr toWrapperBase(NativeType *native) noexcept;
+          ZS_NO_DISCARD() static WrapperImplTypePtr toWrapperBase(NativeTypeScopedPtr native) noexcept;
+
+          ZS_NO_DISCARD() static WrapperImplTypePtr toWrapper(AudioNativeType *native) noexcept;
+          ZS_NO_DISCARD() static WrapperImplTypePtr toWrapper(AudioNativeTypeScopedPtr native) noexcept;
+
+          ZS_NO_DISCARD() static WrapperImplTypePtr toWrapper(VideoNativeType *native) noexcept;
+          ZS_NO_DISCARD() static WrapperImplTypePtr toWrapper(VideoNativeTypeScopedPtr native) noexcept;
+
           ZS_NO_DISCARD() static NativeTypeScopedPtr toNative(WrapperTypePtr wrapper) noexcept;
         };
 

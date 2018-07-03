@@ -392,6 +392,48 @@ WrapperImplTypePtr WrapperImplType::toWrapper(NativeType *native) noexcept
 }
 
 //------------------------------------------------------------------------------
+WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypeScopedPtr native) noexcept
+{
+  return toWrapper(native.get());
+}
+
+//------------------------------------------------------------------------------
+WrapperImplTypePtr WrapperImplType::toWrapperBase(NativeType *native) noexcept
+{
+  return toWrapper(native);
+}
+
+//------------------------------------------------------------------------------
+WrapperImplTypePtr WrapperImplType::toWrapperBase(NativeTypeScopedPtr native) noexcept
+{
+  return toWrapper(native);
+}
+
+//------------------------------------------------------------------------------
+WrapperImplTypePtr WrapperImplType::toWrapper(AudioNativeType *native) noexcept
+{
+  return toWrapperBase(native);
+}
+
+//------------------------------------------------------------------------------
+WrapperImplTypePtr WrapperImplType::toWrapper(AudioNativeTypeScopedPtr native) noexcept
+{
+  return toWrapperBase(native.get());
+}
+
+//------------------------------------------------------------------------------
+WrapperImplTypePtr WrapperImplType::toWrapper(VideoNativeType *native) noexcept
+{
+  return toWrapperBase(native);
+}
+
+//------------------------------------------------------------------------------
+WrapperImplTypePtr WrapperImplType::toWrapper(VideoNativeTypeScopedPtr native) noexcept
+{
+  return toWrapperBase(native.get());
+}
+
+//------------------------------------------------------------------------------
 NativeTypeScopedPtr WrapperImplType::toNative(WrapperTypePtr wrapper) noexcept
 {
   if (!wrapper) return rtc::scoped_refptr<NativeType>();

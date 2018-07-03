@@ -21,9 +21,10 @@ namespace wrapper {
           ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCPeerConnection, WrapperImplType);
           ZS_DECLARE_TYPEDEF_PTR(::webrtc::PeerConnectionInterface, NativeType);
 
-          typedef rtc::scoped_refptr<::webrtc::PeerConnectionInterface> NativeScopedPtr;
+          typedef rtc::scoped_refptr<NativeType> NativeTypeScopedPtr;
 
           ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCIceCandidate, UseIceCandidate);
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCSessionDescription, UseSessionDescription);
 
           ZS_DECLARE_STRUCT_PTR(WebrtcObserver);
 
@@ -126,7 +127,7 @@ namespace wrapper {
           };
 
           WebrtcObserverUniPtr observer_;
-          NativeScopedPtr native_;
+          NativeTypeScopedPtr native_;
           RTCPeerConnectionWeakPtr thisWeak_;
 
           RTCPeerConnection() noexcept;
@@ -169,7 +170,7 @@ namespace wrapper {
           wrapper::org::webRtc::RTCSignalingState get_signalingState() noexcept override;
           wrapper::org::webRtc::RTCIceGatheringState get_iceGatheringState() noexcept override;
           wrapper::org::webRtc::RTCIceConnectionState get_iceConnectionState() noexcept override;
-          wrapper::org::webRtc::RTCPeerConnectionState get_connectionState_NotAvailable() noexcept override;
+          Optional< wrapper::org::webRtc::RTCPeerConnectionState > get_connectionState_NotAvailable() noexcept override;
           Optional< bool > get_canTrickleIceCandidates_NotAvailable() noexcept override;
           wrapper::org::webRtc::RTCSessionDescriptionPtr get_localDescription() noexcept override;
           wrapper::org::webRtc::RTCSessionDescriptionPtr get_currentLocalDescription() noexcept override;
@@ -196,8 +197,9 @@ namespace wrapper {
           void teardownObserver();
 
           ZS_NO_DISCARD() static WrapperImplTypePtr toWrapper(NativeType *native) noexcept;
+          ZS_NO_DISCARD() static WrapperImplTypePtr toWrapper(NativeTypeScopedPtr native) noexcept;
 
-          ZS_NO_DISCARD() static NativeScopedPtr toNative(WrapperTypePtr wrapper) noexcept;
+          ZS_NO_DISCARD() static NativeTypeScopedPtr toNative(WrapperTypePtr wrapper) noexcept;
         };
 
       } // webRtc

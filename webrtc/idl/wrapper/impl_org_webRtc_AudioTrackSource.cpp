@@ -31,7 +31,7 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::AudioTrackSource::WrapperType
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::AudioTrackSource::WrapperImplType, WrapperImplType);
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::AudioTrackSource::NativeType, NativeType);
 
-typedef WrapperImplType::NativeScopedPtr NativeScopedPtr;
+typedef WrapperImplType::NativeTypeScopedPtr NativeTypeScopedPtr;
 
 typedef wrapper::impl::org::webRtc::WrapperMapper<NativeType, WrapperImplType> UseWrapperMapper;
 
@@ -74,6 +74,7 @@ wrapper::impl::org::webRtc::AudioTrackSource::~AudioTrackSource() noexcept
 {
   thisWeak_.reset();
   teardownObserver();
+  mapperSingleton().remove(native_.get());
 }
 
 //------------------------------------------------------------------------------
@@ -179,6 +180,12 @@ WrapperImplTypePtr WrapperImplType::toWrapper(NativeType *native) noexcept
     return result;
   });
   return wrapper;
+}
+
+//------------------------------------------------------------------------------
+WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypeScopedPtr native) noexcept
+{
+  return toWrapper(native.get());
 }
 
 //------------------------------------------------------------------------------

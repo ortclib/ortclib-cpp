@@ -1,11 +1,18 @@
 
 #include "impl_org_webRtc_RTCPeerConnection.h"
 #include "impl_org_webRtc_helpers.h"
+#include "impl_org_webRtc_enums.h"
 #include "impl_org_webRtc_RTCConfiguration.h"
 #include "impl_org_webRtc_RTCDataChannelEvent.h"
 #include "impl_org_webRtc_RTCDataChannel.h"
+#include "impl_org_webRtc_RTCDataChannelInit.h"
 #include "impl_org_webRtc_RTCIceCandidate.h"
 #include "impl_org_webRtc_RTCPeerConnectionIceEvent.h"
+#include "impl_org_webRtc_RTCTrackEvent.h"
+#include "impl_org_webRtc_RTCRtpSender.h"
+#include "impl_org_webRtc_RTCRtpReceiver.h"
+#include "impl_org_webRtc_RTCRtpTransceiver.h"
+#include "impl_org_webRtc_RTCSessionDescription.h"
 #include "impl_org_webRtc_RTCError.h"
 #include "impl_org_webRtc_WebrtcLib.h"
 
@@ -38,17 +45,23 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCPeerConnection::WrapperImp
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCPeerConnection::WrapperType, WrapperType);
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCPeerConnection::NativeType, NativeType);
 
-typedef wrapper::impl::org::webRtc::RTCPeerConnection::NativeScopedPtr NativeScopedPtr;
+typedef wrapper::impl::org::webRtc::RTCPeerConnection::NativeTypeScopedPtr NativeTypeScopedPtr;
 
 typedef wrapper::impl::org::webRtc::WrapperMapper<NativeType, WrapperImplType> UseWrapperMapper;
 
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::WebRtcLib, UseWebrtcLib);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::IEnum, UseEnum);
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCConfiguration, UseConfiguration);
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCError, UseError);
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCDataChannel, UseDataChannel);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCDataChannelInit, UseDataChannelInit);
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCDataChannelEvent, UseDataChannelEvent);
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCIceCandidate, UseIceCandidate);
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCPeerConnectionIceEvent, UseIceCandidateEvent);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCRtpSender, UseRtpSender);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCRtpReceiver, UseRtpReceiver);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCRtpTransceiver, UseRtpTransceiver);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCTrackEvent, UseTrackEvent);
 
 //------------------------------------------------------------------------------
 static UseWrapperMapper &mapperSingleton()
@@ -240,28 +253,57 @@ wrapper::org::webRtc::RTCRtpSenderPtr wrapper::impl::org::webRtc::RTCPeerConnect
   String trackId
   ) noexcept
 {
-  wrapper::org::webRtc::RTCRtpSenderPtr result {};
-  return result;
+  ZS_ASSERT(native_);
+  if (!native_) return UseRtpSenderPtr();
+
+  return UseRtpSender::toWrapper(native_->CreateSender(kind, trackId));
 }
 
 //------------------------------------------------------------------------------
 shared_ptr< list< wrapper::org::webRtc::RTCRtpSenderPtr > > wrapper::impl::org::webRtc::RTCPeerConnection::getSenders() noexcept
 {
-  shared_ptr< list< wrapper::org::webRtc::RTCRtpSenderPtr > > result {};
+  auto result = make_shared< list< wrapper::org::webRtc::RTCRtpSenderPtr > >();
+  ZS_ASSERT(native_);
+  if (!native_) return result;
+
+  auto values = native_->GetSenders();
+  for (auto iter = values.begin(); iter != values.end(); ++iter) {
+    auto wrapper = UseRtpSender::toWrapper(*iter);
+    if (!wrapper) continue;
+    result->push_back(wrapper);
+  }
   return result;
 }
 
 //------------------------------------------------------------------------------
 shared_ptr< list< wrapper::org::webRtc::RTCRtpReceiverPtr > > wrapper::impl::org::webRtc::RTCPeerConnection::getReceivers() noexcept
 {
-  shared_ptr< list< wrapper::org::webRtc::RTCRtpReceiverPtr > > result {};
+  auto result = make_shared< list< wrapper::org::webRtc::RTCRtpReceiverPtr > >();
+  ZS_ASSERT(native_);
+  if (!native_) return result;
+
+  auto values = native_->GetReceivers();
+  for (auto iter = values.begin(); iter != values.end(); ++iter) {
+    auto wrapper = UseRtpReceiver::toWrapper(*iter);
+    if (!wrapper) continue;
+    result->push_back(wrapper);
+  }
   return result;
 }
 
 //------------------------------------------------------------------------------
 shared_ptr< list< wrapper::org::webRtc::RTCRtpTransceiverPtr > > wrapper::impl::org::webRtc::RTCPeerConnection::getTransceivers() noexcept
 {
-  shared_ptr< list< wrapper::org::webRtc::RTCRtpTransceiverPtr > > result {};
+  auto result = make_shared< list< wrapper::org::webRtc::RTCRtpTransceiverPtr > >();
+  ZS_ASSERT(native_);
+  if (!native_) return result;
+
+  auto values = native_->GetTransceivers();
+  for (auto iter = values.begin(); iter != values.end(); ++iter) {
+    auto wrapper = UseRtpTransceiver::toWrapper(*iter);
+    if (!wrapper) continue;
+    result->push_back(wrapper);
+  }
   return result;
 }
 
@@ -271,95 +313,113 @@ wrapper::org::webRtc::RTCDataChannelPtr wrapper::impl::org::webRtc::RTCPeerConne
   wrapper::org::webRtc::RTCDataChannelInitPtr init
   ) noexcept
 {
-  wrapper::org::webRtc::RTCDataChannelPtr result {};
-  return result;
+  ZS_ASSERT(native_);
+  if (!native_) return wrapper::org::webRtc::RTCDataChannelPtr();
+
+  auto nativeInit = UseDataChannelInit::toNative(init);
+  if (!nativeInit) return wrapper::org::webRtc::RTCDataChannelPtr();
+
+  return UseDataChannel::toWrapper(native_->CreateDataChannel(label, nativeInit.get()));
 }
 
 //------------------------------------------------------------------------------
 wrapper::org::webRtc::RTCSignalingState wrapper::impl::org::webRtc::RTCPeerConnection::get_signalingState() noexcept
 {
-  wrapper::org::webRtc::RTCSignalingState result {};
-  return result;
+  ZS_ASSERT(native_);
+  if (!native_) return wrapper::org::webRtc::RTCSignalingState::RTCSignalingState_closed;
+  return UseEnum::toWrapper(native_->signaling_state());
 }
 
 //------------------------------------------------------------------------------
 wrapper::org::webRtc::RTCIceGatheringState wrapper::impl::org::webRtc::RTCPeerConnection::get_iceGatheringState() noexcept
 {
-  wrapper::org::webRtc::RTCIceGatheringState result {};
-  return result;
+  ZS_ASSERT(native_);
+  if (!native_) return wrapper::org::webRtc::RTCIceGatheringState::RTCIceGatheringState_complete;
+  return UseEnum::toWrapper(native_->ice_gathering_state());
 }
 
 //------------------------------------------------------------------------------
 wrapper::org::webRtc::RTCIceConnectionState wrapper::impl::org::webRtc::RTCPeerConnection::get_iceConnectionState() noexcept
 {
-  wrapper::org::webRtc::RTCIceConnectionState result {};
-  return result;
+  ZS_ASSERT(native_);
+  if (!native_) return wrapper::org::webRtc::RTCIceConnectionState::RTCIceConnectionState_closed;
+  return UseEnum::toWrapper(native_->ice_connection_state());
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webRtc::RTCPeerConnectionState wrapper::impl::org::webRtc::RTCPeerConnection::get_connectionState_NotAvailable() noexcept
+Optional< wrapper::org::webRtc::RTCPeerConnectionState > wrapper::impl::org::webRtc::RTCPeerConnection::get_connectionState_NotAvailable() noexcept
 {
-  wrapper::org::webRtc::RTCPeerConnectionState result {};
+#pragma ZS_BUILD_NOTE("LATER","Does not appear to be any way to ask peer connection for connection state")
+  Optional< wrapper::org::webRtc::RTCPeerConnectionState > result {};
   return result;
 }
 
 //------------------------------------------------------------------------------
 Optional< bool > wrapper::impl::org::webRtc::RTCPeerConnection::get_canTrickleIceCandidates_NotAvailable() noexcept
 {
-  Optional< bool > result {};
-  return result;
+#pragma ZS_BUILD_NOTE("LATER","Does not appear to be any way to check if peer connection is allowed to trickle or not")
+  return Optional< bool >();
 }
 
 //------------------------------------------------------------------------------
 wrapper::org::webRtc::RTCSessionDescriptionPtr wrapper::impl::org::webRtc::RTCPeerConnection::get_localDescription() noexcept
 {
-  wrapper::org::webRtc::RTCSessionDescriptionPtr result {};
-  return result;
+  auto result = get_pendingLocalDescription();
+  if (result) return result;
+  return get_currentLocalDescription();
 }
 
 //------------------------------------------------------------------------------
 wrapper::org::webRtc::RTCSessionDescriptionPtr wrapper::impl::org::webRtc::RTCPeerConnection::get_currentLocalDescription() noexcept
 {
-  wrapper::org::webRtc::RTCSessionDescriptionPtr result {};
-  return result;
+  ZS_ASSERT(native_);
+  if (!native_) return UseSessionDescriptionPtr();
+  return UseSessionDescription::toWrapper(native_->current_local_description());
 }
 
 //------------------------------------------------------------------------------
 wrapper::org::webRtc::RTCSessionDescriptionPtr wrapper::impl::org::webRtc::RTCPeerConnection::get_pendingLocalDescription() noexcept
 {
-  wrapper::org::webRtc::RTCSessionDescriptionPtr result {};
-  return result;
+  ZS_ASSERT(native_);
+  if (!native_) return UseSessionDescriptionPtr();
+  return UseSessionDescription::toWrapper(native_->pending_local_description());
 }
 
 //------------------------------------------------------------------------------
 wrapper::org::webRtc::RTCSessionDescriptionPtr wrapper::impl::org::webRtc::RTCPeerConnection::get_remoteDescription() noexcept
 {
-  wrapper::org::webRtc::RTCSessionDescriptionPtr result {};
-  return result;
+  auto result = get_pendingRemoteDescription();
+  if (result) return result;
+  return get_currentRemoteDescription();
 }
 
 //------------------------------------------------------------------------------
 wrapper::org::webRtc::RTCSessionDescriptionPtr wrapper::impl::org::webRtc::RTCPeerConnection::get_currentRemoteDescription() noexcept
 {
-  wrapper::org::webRtc::RTCSessionDescriptionPtr result {};
-  return result;
+  ZS_ASSERT(native_);
+  if (!native_) return UseSessionDescriptionPtr();
+  return UseSessionDescription::toWrapper(native_->current_remote_description());
 }
 
 //------------------------------------------------------------------------------
 wrapper::org::webRtc::RTCSessionDescriptionPtr wrapper::impl::org::webRtc::RTCPeerConnection::get_pendingRemoteDescription() noexcept
 {
-  wrapper::org::webRtc::RTCSessionDescriptionPtr result {};
-  return result;
+  ZS_ASSERT(native_);
+  if (!native_) return UseSessionDescriptionPtr();
+  return UseSessionDescription::toWrapper(native_->pending_remote_description());
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webRtc::RTCPeerConnection::wrapper_onObserverCountChanged(size_t count) noexcept
+void wrapper::impl::org::webRtc::RTCPeerConnection::wrapper_onObserverCountChanged(ZS_MAYBE_USED() size_t count) noexcept
 {
+  ZS_MAYBE_USED(count);
 }
 
 //------------------------------------------------------------------------------
-void WrapperImplType::onWebrtcObserverSignalingChange(NativeType::SignalingState new_state) noexcept
+void WrapperImplType::onWebrtcObserverSignalingChange(ZS_MAYBE_USED() NativeType::SignalingState new_state) noexcept
 {
+  ZS_MAYBE_USED(new_state);
+  onSignalingStateChange();
 }
 
 //------------------------------------------------------------------------------
@@ -419,16 +479,25 @@ void WrapperImplType::onWebrtcObserverIceConnectionReceivingChange(ZS_MAYBE_USED
 //------------------------------------------------------------------------------
 void WrapperImplType::onWebrtcObserverAddTrack(rtc::scoped_refptr<::webrtc::RtpReceiverInterface> receiver) noexcept
 {
+  auto event = UseTrackEvent::toWrapper(UseRtpReceiver::toWrapper(receiver));
+  if (event) return;
+  onTrack(event);
 }
 
 //------------------------------------------------------------------------------
 void WrapperImplType::onWebrtcObserverTrack(rtc::scoped_refptr<::webrtc::RtpTransceiverInterface> transceiver) noexcept
 {
+  auto event = UseTrackEvent::toWrapper(UseRtpTransceiver::toWrapper(transceiver));
+  if (event) return;
+  onTrack(event);
 }
 
 //------------------------------------------------------------------------------
 void WrapperImplType::onWebrtcObserverRemoveTrack(rtc::scoped_refptr<::webrtc::RtpReceiverInterface> receiver) noexcept
 {
+  auto event = UseTrackEvent::toWrapper(UseRtpReceiver::toWrapper(receiver));
+  if (event) return;
+  onRemoveTrack(event);
 }
 
 //------------------------------------------------------------------------------
@@ -467,7 +536,13 @@ WrapperImplTypePtr WrapperImplType::toWrapper(NativeType *native) noexcept
 }
 
 //------------------------------------------------------------------------------
-NativeScopedPtr WrapperImplType::toNative(WrapperTypePtr wrapper) noexcept
+WrapperImplTypePtr WrapperImplType::toWrapper(NativeTypeScopedPtr native) noexcept
+{
+  return toWrapper(native.get());
+}
+
+//------------------------------------------------------------------------------
+NativeTypeScopedPtr WrapperImplType::toNative(WrapperTypePtr wrapper) noexcept
 {
   if (!wrapper) return rtc::scoped_refptr<NativeType>();
   auto converted = ZS_DYNAMIC_PTR_CAST(WrapperImplType, wrapper);

@@ -40,11 +40,6 @@ wrapper::impl::org::webRtc::RTCPeerConnectionIceErrorEvent::~RTCPeerConnectionIc
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webRtc::RTCPeerConnectionIceErrorEvent::wrapper_init_org_webRtc_RTCPeerConnectionIceErrorEvent() noexcept
-{
-}
-
-//------------------------------------------------------------------------------
 String wrapper::impl::org::webRtc::RTCPeerConnectionIceErrorEvent::get_hostCandidate() noexcept
 {
   String result {};
