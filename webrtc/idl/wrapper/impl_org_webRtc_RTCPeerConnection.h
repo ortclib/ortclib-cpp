@@ -143,8 +143,8 @@ namespace wrapper {
           shared_ptr< PromiseWithHolderPtr< wrapper::org::webRtc::RTCSessionDescriptionPtr > > createOffer(wrapper::org::webRtc::MediaConstraintsPtr constraints) noexcept override;
           shared_ptr< PromiseWithHolderPtr< wrapper::org::webRtc::RTCSessionDescriptionPtr > > createAnswer(wrapper::org::webRtc::RTCAnswerOptionsPtr options) noexcept override;
           shared_ptr< PromiseWithHolderPtr< wrapper::org::webRtc::RTCSessionDescriptionPtr > > createAnswer(wrapper::org::webRtc::MediaConstraintsPtr constraints) noexcept override;
-          PromisePtr setLocalDescription(wrapper::org::webRtc::RTCSessionDescriptionPtr constraints) noexcept override;
-          PromisePtr setRemoteDescription(wrapper::org::webRtc::RTCSessionDescriptionPtr constraints) noexcept override;
+          PromisePtr setLocalDescription(wrapper::org::webRtc::RTCSessionDescriptionPtr description) noexcept override;
+          PromisePtr setRemoteDescription(wrapper::org::webRtc::RTCSessionDescriptionPtr description) noexcept override;
           wrapper::org::webRtc::RTCConfigurationPtr getConfiguration() noexcept override;
           void setConfiguration(wrapper::org::webRtc::RTCConfigurationPtr config) noexcept(false) override; // throws wrapper::org::webRtc::RTCErrorPtr
           PromisePtr addIceCandidate(wrapper::org::webRtc::RTCIceCandidatePtr candidate) noexcept override;

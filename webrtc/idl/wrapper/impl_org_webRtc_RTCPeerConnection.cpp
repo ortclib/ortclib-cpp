@@ -16,12 +16,14 @@
 #include "impl_org_webRtc_RTCRtpTransceiverInit.h"
 #include "impl_org_webRtc_RTCSessionDescription.h"
 #include "impl_org_webRtc_RTCError.h"
+#include "impl_org_webRtc_RTCBitrateParameters.h"
 #include "impl_org_webRtc_WebrtcLib.h"
 
 #include "impl_org_webRtc_pre_include.h"
 #include "api/peerconnectionproxy.h"
 #include "api/rtcerror.h"
 #include "pc/peerconnection.h"
+#include "rtc_base/refcountedobject.h"
 #include "impl_org_webRtc_post_include.h"
 
 using ::zsLib::String;
@@ -66,6 +68,8 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCRtpTransceiver, UseRtpTran
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCRtpTransceiverInit, UseRtpTransceiverInit);
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCTrackEvent, UseTrackEvent);
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::MediaStreamTrack, UseMediaStreamTrack);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCBitrateParameters, UseBitrateParameters);
+
 
 //------------------------------------------------------------------------------
 static UseWrapperMapper &mapperSingleton()
@@ -161,17 +165,76 @@ shared_ptr< PromiseWithHolderPtr< wrapper::org::webRtc::RTCSessionDescriptionPtr
 }
 
 //------------------------------------------------------------------------------
-PromisePtr wrapper::impl::org::webRtc::RTCPeerConnection::setLocalDescription(wrapper::org::webRtc::RTCSessionDescriptionPtr constraints) noexcept
+PromisePtr wrapper::impl::org::webRtc::RTCPeerConnection::setLocalDescription(wrapper::org::webRtc::RTCSessionDescriptionPtr description) noexcept
 {
-  PromisePtr result {};
-  return result;
+  class Observer : public ::rtc::RefCountedObject<::webrtc::SetSessionDescriptionObserver> {
+  public:
+    typedef rtc::scoped_refptr<Observer> ObserverScopedPtr;
+
+    void OnSuccess() override
+    {
+      promise_->resolve();
+    }
+
+    void OnFailure(const std::string& error) override
+    {
+      UseError::rejectPromise(promise_, ::webrtc::RTCError(::webrtc::RTCErrorType::INVALID_PARAMETER, error.c_str()));
+    }
+
+    static ObserverScopedPtr create(PromisePtr promise) {
+      ObserverScopedPtr result(new Observer());
+      result->promise_ = promise;
+      return result;
+    }
+
+    PromisePtr promise_;
+  };
+
+  ZS_ASSERT(native_);
+  if (!native_) return UseError::toPromise(::webrtc::RTCError(::webrtc::RTCErrorType::INVALID_STATE));
+
+  auto nativeDescription = UseSessionDescription::toNative(description);
+  if (!nativeDescription) return UseError::toPromise(::webrtc::RTCError(::webrtc::RTCErrorType::INVALID_PARAMETER));
+
+  auto promise = Promise::create(UseWebrtcLib::delegateQueue());
+  native_->SetLocalDescription(Observer::create(promise), nativeDescription.release());
+  return promise;
 }
 
 //------------------------------------------------------------------------------
-PromisePtr wrapper::impl::org::webRtc::RTCPeerConnection::setRemoteDescription(wrapper::org::webRtc::RTCSessionDescriptionPtr constraints) noexcept
+PromisePtr wrapper::impl::org::webRtc::RTCPeerConnection::setRemoteDescription(wrapper::org::webRtc::RTCSessionDescriptionPtr description) noexcept
 {
-  PromisePtr result {};
-  return result;
+  class Observer : public ::rtc::RefCountedObject<::webrtc::SetRemoteDescriptionObserverInterface> {
+  public:
+    typedef rtc::scoped_refptr<Observer> ObserverScopedPtr;
+
+    void OnSetRemoteDescriptionComplete(::webrtc::RTCError error) override
+    {
+      if (error.ok()) {
+        promise_->resolve();
+        return;
+      }
+      UseError::rejectPromise(promise_, error);
+    }
+
+    static ObserverScopedPtr create(PromisePtr promise) {
+      ObserverScopedPtr result(new Observer());
+      result->promise_ = promise;
+      return result;
+    }
+
+    PromisePtr promise_;
+  };
+
+  ZS_ASSERT(native_);
+  if (!native_) return UseError::toPromise(::webrtc::RTCError(::webrtc::RTCErrorType::INVALID_STATE));
+
+  auto nativeDescription = UseSessionDescription::toNative(description);
+  if (!nativeDescription) return UseError::toPromise(::webrtc::RTCError(::webrtc::RTCErrorType::INVALID_PARAMETER));
+
+  auto promise = Promise::create(UseWebrtcLib::delegateQueue());
+  native_->SetRemoteDescription(std::move(nativeDescription), Observer::create(promise));
+  return promise;
 }
 
 //------------------------------------------------------------------------------
@@ -201,18 +264,45 @@ void wrapper::impl::org::webRtc::RTCPeerConnection::setConfiguration(wrapper::or
 //------------------------------------------------------------------------------
 PromisePtr wrapper::impl::org::webRtc::RTCPeerConnection::addIceCandidate(wrapper::org::webRtc::RTCIceCandidatePtr candidate) noexcept
 {
-  PromisePtr result {};
-  return result;
+  ZS_ASSERT(native_);
+  if (!native_) return zsLib::Promise::createRejected(UseWebrtcLib::delegateQueue());
+
+  auto nativeCandidate = UseIceCandidate::toNative(candidate);
+  if (!nativeCandidate) return zsLib::Promise::createRejected(UseWebrtcLib::delegateQueue());
+
+  auto result = native_->AddIceCandidate(nativeCandidate.get());
+  if (!result) return zsLib::Promise::createRejected(UseWebrtcLib::delegateQueue());
+  return zsLib::Promise::createResolved(UseWebrtcLib::delegateQueue());
 }
 
 //------------------------------------------------------------------------------
 void wrapper::impl::org::webRtc::RTCPeerConnection::removeIceCandidates(shared_ptr< list< wrapper::org::webRtc::RTCIceCandidatePtr > > candidates) noexcept
 {
+  ZS_ASSERT(native_);
+  if (!native_) return;
+
+  if (!candidates) return;
+
+  std::vector<cricket::Candidate> nativeCandidates;
+
+  for (auto iter = candidates->begin(); iter != candidates->end(); ++iter) {
+    auto native = UseIceCandidate::toNative(*iter);
+    if (!native) continue;
+    nativeCandidates.push_back(native->candidate());
+  }
+
+  native_->RemoveIceCandidates(nativeCandidates);
 }
 
 //------------------------------------------------------------------------------
 void wrapper::impl::org::webRtc::RTCPeerConnection::setBitrate(wrapper::org::webRtc::RTCBitrateParametersPtr params) noexcept(false)
 {
+  ZS_ASSERT(native_);
+  if (!native_) return;
+  auto nativeParams = UseBitrateParameters::toNative(params);
+
+  auto result = native_->SetBitrate(*nativeParams);
+  if (!result.ok()) throw UseError::toWrapper(result);
 }
 
 //------------------------------------------------------------------------------
@@ -226,15 +316,26 @@ void wrapper::impl::org::webRtc::RTCPeerConnection::close() noexcept
 //------------------------------------------------------------------------------
 wrapper::org::webRtc::RTCRtpSenderPtr wrapper::impl::org::webRtc::RTCPeerConnection::addTrack(wrapper::org::webRtc::MediaStreamTrackPtr track) noexcept(false)
 {
-  wrapper::org::webRtc::RTCRtpSenderPtr result {};
-  return result;
+  ZS_ASSERT(native_);
+  if (!native_) return wrapper::org::webRtc::RTCRtpSenderPtr();
+
+  auto nativeTrack = UseMediaStreamTrack::toNative(track);
+  if (!nativeTrack) return wrapper::org::webRtc::RTCRtpSenderPtr();
+
+  std::vector<::webrtc::MediaStreamInterface*> ignored;
+  return UseRtpSender::toWrapper(native_->AddTrack(nativeTrack, ignored));
 }
 
 //------------------------------------------------------------------------------
 bool wrapper::impl::org::webRtc::RTCPeerConnection::removeTrack(wrapper::org::webRtc::RTCRtpSenderPtr sender) noexcept
 {
-  bool result {};
-  return result;
+  ZS_ASSERT(native_);
+  if (!native_) return false;
+
+  auto nativeSender = UseRtpSender::toNative(sender);
+  if (!nativeSender) return false;
+
+  return native_->RemoveTrack(nativeSender);
 }
 
 //------------------------------------------------------------------------------

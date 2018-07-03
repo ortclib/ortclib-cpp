@@ -1,6 +1,7 @@
 
 #include "impl_org_webRtc_RTCError.h"
 #include "impl_org_webRtc_enums.h"
+#include "impl_org_webRtc_WebrtcLib.h"
 
 #include "impl_org_webRtc_pre_include.h"
 #include "api/rtcerror.h"
@@ -28,6 +29,7 @@ using ::std::map;
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCError::WrapperImplType, WrapperImplType);
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCError::WrapperType, WrapperType);
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCError::NativeType, NativeType);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::WebRtcLib, UseWebrtcLib);
 
 //------------------------------------------------------------------------------
 wrapper::impl::org::webRtc::RTCError::RTCError() noexcept
@@ -73,6 +75,65 @@ bool wrapper::impl::org::webRtc::RTCError::get_ok() noexcept
 {
   if (!native_) return false;
   return native_->ok();
+}
+
+//------------------------------------------------------------------------------
+void WrapperImplType::reject(PromisePtr promise) noexcept
+{
+  if (!promise) return;
+
+  auto pThis = thisWeak_.lock();
+  ZS_ASSERT(pThis);
+
+  auto holder = make_shared< ::zsLib::AnyHolder< wrapper::org::webRtc::RTCErrorPtr > >();
+  holder->value_ = pThis;
+  promise->reject(holder);
+}
+
+//------------------------------------------------------------------------------
+void WrapperImplType::rejectPromise(PromisePtr promise, const NativeType &native) noexcept
+{
+  if (!promise) return;
+
+  auto wrapper = toWrapper(native);
+
+  auto holder = make_shared< ::zsLib::AnyHolder< wrapper::org::webRtc::RTCErrorPtr > >();
+  holder->value_ = wrapper;
+
+  promise->reject(holder);
+}
+
+//------------------------------------------------------------------------------
+void WrapperImplType::rejectPromise(PromisePtr promise, NativeTypePtr native) noexcept
+{
+  if (!promise) return;
+  if (!native) {
+    ::webrtc::RTCError error(::webrtc::RTCErrorType::INTERNAL_ERROR);
+    rejectPromise(promise, error);
+    return;
+  }
+  rejectPromise(promise, *native);
+}
+
+//------------------------------------------------------------------------------
+PromisePtr WrapperImplType::toPromise(const NativeType &native) noexcept
+{
+  auto wrapper = toWrapper(native);
+
+  auto holder = make_shared< ::zsLib::AnyHolder< wrapper::org::webRtc::RTCErrorPtr > >();
+  holder->value_ = wrapper;
+
+  return Promise::createRejected(holder, UseWebrtcLib::delegateQueue());
+}
+
+//------------------------------------------------------------------------------
+PromisePtr WrapperImplType::toPromise(NativeTypePtr native) noexcept
+{
+  if (!native) {
+    ::webrtc::RTCError error(::webrtc::RTCErrorType::INTERNAL_ERROR);
+    return toPromise(error);
+  }
+  return toPromise(native);
 }
 
 //------------------------------------------------------------------------------

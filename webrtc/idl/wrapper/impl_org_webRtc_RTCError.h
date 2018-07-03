@@ -30,6 +30,14 @@ namespace wrapper {
           String get_message() noexcept override;
           bool get_ok() noexcept override;
 
+          void reject(PromisePtr promise) noexcept;
+
+          static void rejectPromise(PromisePtr promise, const NativeType &native) noexcept;
+          static void rejectPromise(PromisePtr promise, NativeTypePtr native) noexcept;
+
+          ZS_NO_DISCARD() static PromisePtr toPromise(const NativeType &native) noexcept;
+          ZS_NO_DISCARD() static PromisePtr toPromise(NativeTypePtr native) noexcept;
+
           ZS_NO_DISCARD() static WrapperImplTypePtr toWrapper(const NativeType &native) noexcept;
           ZS_NO_DISCARD() static WrapperImplTypePtr toWrapper(NativeTypePtr native) noexcept;
 

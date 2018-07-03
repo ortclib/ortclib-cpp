@@ -90,6 +90,7 @@ namespace org
     interface RTCKeyParams;
     interface VideoCapturer;
 
+    typedef zs::PromiseRejectionReason<RTCError> PromiseWithRejectionRTCError;
     typedef zs::PromiseWith<RTCSessionDescription> PromiseWithDescription;
     typedef zs::PromiseWith<RTCCertificate> PromiseWithRTCCertificate;
 
