@@ -166,6 +166,7 @@ namespace org
       /// </summary>
       [optional]
       double          maxFramerate;
+
       /// <summary>
       /// Gets or sets the resolution scale. This member is only
       /// present if the sender's kind is "video". The video's
@@ -180,6 +181,16 @@ namespace org
       /// </summary>
       double          scaleResolutionDownBy = 1.0;
       double          scaleFramerateDownBy = 1.0;
+
+      /// <summary>
+      /// The encodingIds on which this layer depends. Within this specification
+      /// encodingIds are permitted only within the same RTCRtpCodingParameters
+      /// sequence. In the future if MST were to be supported, then if searching
+      /// within an encodings[] sequence did not produce a match, then a global
+      /// search would be carried out. In order to send scalable video coding (SVC),
+      /// both the encodingId and dependencyEncodingIds are required.
+      /// </summary>
+      StringList      dependencyEncodingIds;
     };
 
     /// The RTCRtpCodecCapability dictionary provides information on the capabilities of a codec.

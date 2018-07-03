@@ -86,6 +86,7 @@ namespace wrapper {
         ZS_DECLARE_STRUCT_PTR(RTCRtpStreamStats);
         ZS_DECLARE_STRUCT_PTR(RTCRtpSynchronizationSource);
         ZS_DECLARE_STRUCT_PTR(RTCRtpTransceiver);
+        ZS_DECLARE_STRUCT_PTR(RTCRtpTransceiverInit);
         ZS_DECLARE_STRUCT_PTR(RTCSenderAudioTrackAttachmentStats);
         ZS_DECLARE_STRUCT_PTR(RTCSenderVideoTrackAttachmentStats);
         ZS_DECLARE_STRUCT_PTR(RTCSentRtpStreamStats);

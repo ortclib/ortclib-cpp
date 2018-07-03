@@ -124,6 +124,12 @@ namespace org
       string          errorText;
     };
 
+    [dictionary]
+    struct RTCRtpTransceiverInit {
+      RTCRtpTransceiverDirection          direction = sendrecv;
+      std::list<RTCRtpEncodingParameters> sendEncodings;
+    };
+
     /// <summary>
     /// The [JSEP] specification, as a whole, describes the details of how
     /// the RTCPeerConnection operates. References to specific subsections of
@@ -308,6 +314,19 @@ namespace org
       /// </summary>
       [default]
       RTCRtpTransceiver addTransceiver(MediaStreamTrack track) throws (RTCError);
+
+      /// <summary>
+      /// The RTCRtpTransceiver interface represents a combination of an
+      /// RTCRtpSender and an RTCRtpReceiver that share a common mid. As
+      /// defined in [JSEP] (section 3.4.1.), an RTCRtpTransceiver is said
+      /// to be associated with a media description if its mid property is
+      /// non-null; otherwise it is said to be disassociated. Conceptually,
+      /// an associated transceiver is one that's represented in the last
+      /// applied session description.
+      /// </summary>
+      [default, altname(addTransceiverWithInit)]
+      RTCRtpTransceiver addTransceiver(MediaStreamTrack track, RTCRtpTransceiverInit init) throws (RTCError);
+
 
       /// <summary>
       /// The RTCRtpTransceiver interface represents a combination of an

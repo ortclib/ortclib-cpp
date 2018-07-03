@@ -9,9 +9,11 @@
 #include "impl_org_webRtc_RTCIceCandidate.h"
 #include "impl_org_webRtc_RTCPeerConnectionIceEvent.h"
 #include "impl_org_webRtc_RTCTrackEvent.h"
+#include "impl_org_webRtc_MediaStreamTrack.h"
 #include "impl_org_webRtc_RTCRtpSender.h"
 #include "impl_org_webRtc_RTCRtpReceiver.h"
 #include "impl_org_webRtc_RTCRtpTransceiver.h"
+#include "impl_org_webRtc_RTCRtpTransceiverInit.h"
 #include "impl_org_webRtc_RTCSessionDescription.h"
 #include "impl_org_webRtc_RTCError.h"
 #include "impl_org_webRtc_WebrtcLib.h"
@@ -61,7 +63,9 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCPeerConnectionIceEvent, Us
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCRtpSender, UseRtpSender);
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCRtpReceiver, UseRtpReceiver);
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCRtpTransceiver, UseRtpTransceiver);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCRtpTransceiverInit, UseRtpTransceiverInit);
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCTrackEvent, UseTrackEvent);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::MediaStreamTrack, UseMediaStreamTrack);
 
 //------------------------------------------------------------------------------
 static UseWrapperMapper &mapperSingleton()
@@ -236,15 +240,59 @@ bool wrapper::impl::org::webRtc::RTCPeerConnection::removeTrack(wrapper::org::we
 //------------------------------------------------------------------------------
 wrapper::org::webRtc::RTCRtpTransceiverPtr wrapper::impl::org::webRtc::RTCPeerConnection::addTransceiver(wrapper::org::webRtc::MediaStreamTrackPtr track) noexcept(false)
 {
-  wrapper::org::webRtc::RTCRtpTransceiverPtr result {};
-  return result;
+  ZS_ASSERT(native_);
+  if (!native_) return UseRtpTransceiverPtr();
+
+  auto nativeTrack = UseMediaStreamTrack::toNative(track);
+  if (!nativeTrack) {
+    ::webrtc::RTCError error(::webrtc::RTCErrorType::INVALID_PARAMETER);
+    throw UseError::toWrapper(error);
+  }
+
+  auto result = native_->AddTransceiver(nativeTrack);
+  if (!result.ok()) throw UseError::toWrapper(result.error());
+  return UseRtpTransceiver::toWrapper(result.value());
+}
+
+//------------------------------------------------------------------------------
+wrapper::org::webRtc::RTCRtpTransceiverPtr wrapper::impl::org::webRtc::RTCPeerConnection::addTransceiver(
+  wrapper::org::webRtc::MediaStreamTrackPtr track,
+  wrapper::org::webRtc::RTCRtpTransceiverInitPtr init
+  ) noexcept(false)
+{
+  ZS_ASSERT(native_);
+  if (!native_) return UseRtpTransceiverPtr();
+
+  auto nativeTrack = UseMediaStreamTrack::toNative(track);
+  auto nativeInit = UseRtpTransceiverInit::toNative(init);
+  if ((!nativeTrack) ||
+      (!nativeInit)) {
+    ::webrtc::RTCError error(::webrtc::RTCErrorType::INVALID_PARAMETER);
+    throw UseError::toWrapper(error);
+  }
+
+  auto result = native_->AddTransceiver(nativeTrack, *nativeInit);
+  if (!result.ok()) throw UseError::toWrapper(result.error());
+  return UseRtpTransceiver::toWrapper(result.value());
 }
 
 //------------------------------------------------------------------------------
 wrapper::org::webRtc::RTCRtpTransceiverPtr wrapper::impl::org::webRtc::RTCPeerConnection::addTransceiver(String kind) noexcept(false)
 {
-  wrapper::org::webRtc::RTCRtpTransceiverPtr result {};
-  return result;
+  ZS_ASSERT(native_);
+  if (!native_) return UseRtpTransceiverPtr();
+
+  ::cricket::MediaType type {};
+  try {
+    type = UseEnum::toNativeMediaType(kind);
+  } catch (const ::zsLib::Exceptions::InvalidArgument &) {
+    ::webrtc::RTCError error(::webrtc::RTCErrorType::INVALID_PARAMETER);
+    throw UseError::toWrapper(error);
+  }
+
+  auto result = native_->AddTransceiver(type);
+  if (!result.ok()) throw UseError::toWrapper(result.error());
+  return UseRtpTransceiver::toWrapper(result.value());
 }
 
 //------------------------------------------------------------------------------

@@ -3,6 +3,7 @@
 
 #include "impl_org_webRtc_pre_include.h"
 #include "api/rtcerror.h"
+#include "api/mediatypes.h"
 #include "rtc_base/sslidentity.h"
 #include "api/rtptransceiverinterface.h"
 #include "media/base/videocapturer.h"
@@ -29,7 +30,12 @@ using ::std::list;
 using ::std::set;
 using ::std::map;
 
-static const char kSeparator = '_';
+
+
+namespace {
+  static const char kSeparator = '_';
+  static const char *kMediaTypeData = "data";
+}  // namespace
 
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::IEnum, UseEnum);
 
@@ -1200,3 +1206,34 @@ const char *UseEnum::toString(wrapper::org::webRtc::RTCDataChannelState value) n
   return "unknown";
 }
 
+
+//-----------------------------------------------------------------------------
+const char *UseEnum::toString(::cricket::MediaType value) noexcept
+{
+  switch (value)
+  {
+    case ::cricket::MediaType::MEDIA_TYPE_AUDIO:  return ::webrtc::MediaStreamTrackInterface::kAudioKind;
+    case ::cricket::MediaType::MEDIA_TYPE_VIDEO:  return ::webrtc::MediaStreamTrackInterface::kVideoKind;
+    case ::cricket::MediaType::MEDIA_TYPE_DATA:   return kMediaTypeData;
+  }
+  ZS_ASSERT_FAIL("unknown type");
+  return "unknown";
+}
+
+//-----------------------------------------------------------------------------
+::cricket::MediaType UseEnum::toNativeMediaType(const char *value) noexcept(false)
+{
+  static const ::cricket::MediaType values[] =
+  {
+    ::cricket::MediaType::MEDIA_TYPE_AUDIO,
+    ::cricket::MediaType::MEDIA_TYPE_VIDEO,
+    ::cricket::MediaType::MEDIA_TYPE_DATA
+  };
+
+  String str(value);
+
+  for (size_t loop = 0; loop < sizeof(values) / sizeof(values[0]); ++loop) {
+    if (0 == str.compareNoCase(toString(values[loop]))) return values[loop];
+  }
+  ZS_THROW_INVALID_ARGUMENT("MediaType is not understood: " + str);
+}

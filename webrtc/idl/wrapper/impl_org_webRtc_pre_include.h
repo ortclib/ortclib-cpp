@@ -10,6 +10,7 @@
 namespace cricket
 {
   enum CaptureState;
+  enum MediaType;
 }
 
 // forward for webrtc can go here
@@ -31,6 +32,11 @@ namespace webrtc
 
   struct DataBuffer;
   struct DataChannelInit;
+  struct RtpTransceiverInit;
+  struct RtpParameters;
+  struct RtpEncodingParameters;
+  struct RtpRtxParameters;
+  struct RtpFecParameters;
 
   class AudioTrackInterface;
   class VideoTrackInterface;

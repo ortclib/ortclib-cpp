@@ -137,22 +137,29 @@ namespace wrapper {
           ZS_NO_DISCARD() static zsLib::Optional<::webrtc::StatsReport::Direction> toWrapperDirection(const char *statId) noexcept;
           ZS_NO_DISCARD() static const char *toString(::webrtc::StatsReport::Direction value) noexcept;
 
-          ZS_NO_DISCARD() static wrapper::org::webRtc::RTCStatsType toWrapperRTCStatsType(const char *value) noexcept(false);
+          ZS_NO_DISCARD() static wrapper::org::webRtc::RTCStatsType toWrapperRTCStatsType(const char *value) noexcept(false); // throws InvalidParameters
           ZS_NO_DISCARD() static const char *toString(wrapper::org::webRtc::RTCStatsType value) noexcept;
 
-          ZS_NO_DISCARD() static wrapper::org::webRtc::RTCDtlsTransportState toWrapperRTCDtlsTransportState(const char *value) noexcept(false);
+          ZS_NO_DISCARD() static wrapper::org::webRtc::RTCDtlsTransportState toWrapperRTCDtlsTransportState(const char *value) noexcept(false); // throws InvalidParameters
           ZS_NO_DISCARD() static const char *toString(wrapper::org::webRtc::RTCDtlsTransportState value) noexcept;
 
-          ZS_NO_DISCARD() static wrapper::org::webRtc::RTCStatsIceCandidatePairState toWrapperRTCStatsIceCandidatePairState(const char *value) noexcept(false);
+          ZS_NO_DISCARD() static wrapper::org::webRtc::RTCStatsIceCandidatePairState toWrapperRTCStatsIceCandidatePairState(const char *value) noexcept(false); // throws InvalidParameters
           ZS_NO_DISCARD() static const char *toString(wrapper::org::webRtc::RTCStatsIceCandidatePairState value) noexcept;
 
           ZS_NO_DISCARD() static wrapper::org::webRtc::RTCDataChannelState toWrapperRTCDataChannelState(const char *value) noexcept(false);
           ZS_NO_DISCARD() static const char *toString(wrapper::org::webRtc::RTCDataChannelState value) noexcept;
 
+          ZS_NO_DISCARD() static const char *toString(::cricket::MediaType value) noexcept;
+          ZS_NO_DISCARD() static ::cricket::MediaType toNativeMediaType(const char *value) noexcept(false); // throws InvalidParameters
 
 
 #if 0
 
+          enum MediaType {
+            MEDIA_TYPE_AUDIO,
+            MEDIA_TYPE_VIDEO,
+            MEDIA_TYPE_DATA
+          };
           // not possible to convery
           enum RTCCodecType {
             RTCCodecType_encode,

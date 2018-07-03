@@ -99,9 +99,10 @@ namespace wrapper {
 
             void OnAddTrack(
                             rtc::scoped_refptr<::webrtc::RtpReceiverInterface> receiver,
-                            const std::vector<rtc::scoped_refptr<::webrtc::MediaStreamInterface>>& streams
+                            ZS_MAYBE_USED() const std::vector<rtc::scoped_refptr<::webrtc::MediaStreamInterface>>& streams
                             ) final
             {
+              ZS_MAYBE_USED(streams);
               auto outer = outer_.lock();
               if (!outer) return;
               queue_->postClosure([outer, receiver]() { outer->onWebrtcObserverAddTrack(receiver); });
@@ -153,6 +154,10 @@ namespace wrapper {
           wrapper::org::webRtc::RTCRtpSenderPtr addTrack(wrapper::org::webRtc::MediaStreamTrackPtr track) noexcept(false) override; // throws wrapper::org::webRtc::RTCErrorPtr
           bool removeTrack(wrapper::org::webRtc::RTCRtpSenderPtr sender) noexcept override;
           wrapper::org::webRtc::RTCRtpTransceiverPtr addTransceiver(wrapper::org::webRtc::MediaStreamTrackPtr track) noexcept(false) override; // throws wrapper::org::webRtc::RTCErrorPtr
+          wrapper::org::webRtc::RTCRtpTransceiverPtr addTransceiver(
+            wrapper::org::webRtc::MediaStreamTrackPtr track,
+            wrapper::org::webRtc::RTCRtpTransceiverInitPtr init
+            ) noexcept(false) override; // throws wrapper::org::webRtc::RTCErrorPtr
           wrapper::org::webRtc::RTCRtpTransceiverPtr addTransceiver(String kind) noexcept(false) override; // throws wrapper::org::webRtc::RTCErrorPtr
           wrapper::org::webRtc::RTCRtpSenderPtr addSender(
             String kind,
