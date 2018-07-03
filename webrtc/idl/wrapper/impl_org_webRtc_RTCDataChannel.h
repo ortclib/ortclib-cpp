@@ -81,8 +81,8 @@ namespace wrapper {
           unsigned short get_id() noexcept override;
           String get_label() noexcept override;
           bool get_ordered() noexcept override;
-          ::zsLib::Milliseconds get_maxPacketLifeTime() noexcept override;
-          unsigned short get_maxRetransmits() noexcept override;
+          Optional< ::zsLib::Milliseconds > get_maxPacketLifeTime() noexcept override;
+          Optional< unsigned short > get_maxRetransmits() noexcept override;
           String get_protocol() noexcept override;
           bool get_negotiated() noexcept override;
           wrapper::org::webRtc::RTCPriorityType get_priority() noexcept override;

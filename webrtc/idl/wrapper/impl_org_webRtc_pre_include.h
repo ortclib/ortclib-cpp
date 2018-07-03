@@ -30,6 +30,7 @@ namespace webrtc
   enum class RtpTransceiverDirection;
 
   struct DataBuffer;
+  struct DataChannelInit;
 
   class SessionDescriptionInterface;
   class PeerConnectionInterface;

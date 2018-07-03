@@ -48,11 +48,6 @@ namespace org
     struct RTCDataChannelInit
     {
       /// <summary>
-      /// Gets or sets a label that can be used to distinguish this
-      /// RTCDataChannel object from other RTCDataChannel objects.
-      /// </summary>
-      string            label;
-      /// <summary>
       /// Gets or sets the if the RTCDataChannel is ordered, and false if out
       /// of order delivery is allowed.
       /// </summary>
@@ -62,11 +57,13 @@ namespace org
       /// of the time window (in milliseconds) during which retransmissions
       /// may occur in unreliable mode. A value of 0 means not used.
       /// </summary>
+      [optional]
       Milliseconds      maxPacketLifetime;
       /// <summary>
       /// Gets or sets the maxRetransmits attribute returns the maximum number
       /// of retransmissions that are attempted in unreliable mode if set.
       /// </summary>
+      [optional]
       uint32            maxRetransmits;
       /// <summary>
       /// Custom definition of the protocol being carried over the data channel.
@@ -176,7 +173,7 @@ namespace org
       /// may occur in unreliable mode. On getting, the attribute MUST
       /// return the value of the [[MaxPacketLifeTime]] slot.
       /// </summary>
-      [getter]
+      [getter, optional]
       Milliseconds maxPacketLifeTime;
 
       /// <summary>
@@ -184,7 +181,7 @@ namespace org
       /// that are attempted in unreliable mode. On getting, the attribute MUST
       /// return the value of the [[MaxRetransmits]] slot.
       /// </summary>
-      [getter]
+      [getter, optional]
       unsigned short maxRetransmits;
 
       /// <summary>

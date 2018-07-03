@@ -353,60 +353,57 @@ void wrapper::impl::org::webRtc::RTCPeerConnection::wrapper_onObserverCountChang
 }
 
 //------------------------------------------------------------------------------
-void WrapperImplType::notifySignalingChange(NativeType::SignalingState new_state) noexcept
+void WrapperImplType::onWebrtcObserverSignalingChange(NativeType::SignalingState new_state) noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void WrapperImplType::notifyDataChannel(rtc::scoped_refptr<::webrtc::DataChannelInterface> data_channel) noexcept
+void WrapperImplType::onWebrtcObserverDataChannel(rtc::scoped_refptr<::webrtc::DataChannelInterface> data_channel) noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void WrapperImplType::notifyRenegotiationNeeded() noexcept
+void WrapperImplType::onWebrtcObserverRenegotiationNeeded() noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void WrapperImplType::notifyIceConnectionChange(NativeType::PeerConnectionInterface::IceConnectionState new_state) noexcept
+void WrapperImplType::onWebrtcObserverIceConnectionChange(NativeType::PeerConnectionInterface::IceConnectionState new_state) noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void WrapperImplType::notifyIceGatheringChange(NativeType::PeerConnectionInterface::IceGatheringState new_state) noexcept
+void WrapperImplType::onWebrtcObserverIceGatheringChange(NativeType::PeerConnectionInterface::IceGatheringState new_state) noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void WrapperImplType::notifyIceCandidate(const ::webrtc::IceCandidateInterface* candidate) noexcept
+void WrapperImplType::onWebrtcObserverIceCandidate(UseIceCandidatePtr candidate) noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void WrapperImplType::notifyIceCandidatesRemoved(const std::vector<cricket::Candidate>& candidates) noexcept
+void WrapperImplType::onWebrtcObserverIceCandidatesRemoved(shared_ptr< list< UseIceCandidatePtr > > candidates) noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void WrapperImplType::notifyIceConnectionReceivingChange(bool receiving) noexcept
+void WrapperImplType::onWebrtcObserverIceConnectionReceivingChange(bool receiving) noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void WrapperImplType::notifyAddTrack(
-                                     rtc::scoped_refptr<::webrtc::RtpReceiverInterface> receiver,
-                                     const std::vector<rtc::scoped_refptr<::webrtc::MediaStreamInterface>>& streams
-                                     ) noexcept
+void WrapperImplType::onWebrtcObserverAddTrack(rtc::scoped_refptr<::webrtc::RtpReceiverInterface> receiver) noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void WrapperImplType::notifyTrack(rtc::scoped_refptr<::webrtc::RtpTransceiverInterface> transceiver) noexcept
+void WrapperImplType::onWebrtcObserverTrack(rtc::scoped_refptr<::webrtc::RtpTransceiverInterface> transceiver) noexcept
 {
 }
 
 //------------------------------------------------------------------------------
-void WrapperImplType::notifyRemoveTrack(rtc::scoped_refptr<::webrtc::RtpReceiverInterface> receiver) noexcept
+void WrapperImplType::onWebrtcObserverRemoveTrack(rtc::scoped_refptr<::webrtc::RtpReceiverInterface> receiver) noexcept
 {
 }
 
@@ -414,7 +411,7 @@ void WrapperImplType::notifyRemoveTrack(rtc::scoped_refptr<::webrtc::RtpReceiver
 void WrapperImplType::setupObserver()
 {
   if (!native_) return;
-  observer_ = std::make_unique<WebrtcObserver>(thisWeak_.lock());
+  observer_ = std::make_unique<WebrtcObserver>(thisWeak_.lock(), UseWebrtcLib::delegateQueue());
 }
 
 //------------------------------------------------------------------------------

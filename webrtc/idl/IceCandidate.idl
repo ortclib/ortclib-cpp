@@ -34,6 +34,7 @@ namespace org
 {
   namespace webRtc
   {
+    [dictionary]
     struct RTCIceCandidateInit {
         /// <summary>
         /// This carries the candidate-attribute as defined in section 15.1 of [ICE].
@@ -154,6 +155,7 @@ namespace org
       /// <summary>
       /// Gets the ufrag as defined in section 15.4 of [ICE].
       /// </summary>
+      [getter]
       string                  usernameFragment;
 
       /// <summary>

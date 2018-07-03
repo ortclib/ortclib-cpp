@@ -149,20 +149,23 @@ bool wrapper::impl::org::webRtc::RTCDataChannel::get_ordered() noexcept
 }
 
 //------------------------------------------------------------------------------
-::zsLib::Milliseconds wrapper::impl::org::webRtc::RTCDataChannel::get_maxPacketLifeTime() noexcept
+Optional< ::zsLib::Milliseconds > wrapper::impl::org::webRtc::RTCDataChannel::get_maxPacketLifeTime() noexcept
 {
   ZS_ASSERT(native_);
   if (!native_) return ::zsLib::Milliseconds();
   auto max = native_->maxRetransmitTime();
+  if (max < 0) return Optional< ::zsLib::Milliseconds >();
   return ::zsLib::Milliseconds(SafeInt<::zsLib::Milliseconds::rep>());
 }
 
 //------------------------------------------------------------------------------
-unsigned short wrapper::impl::org::webRtc::RTCDataChannel::get_maxRetransmits() noexcept
+Optional< unsigned short > wrapper::impl::org::webRtc::RTCDataChannel::get_maxRetransmits() noexcept
 {
   ZS_ASSERT(native_);
-  if (!native_) return 0;
-  return native_->maxRetransmits();
+  if (!native_) return Optional< unsigned short >();
+  auto value = native_->maxRetransmits();
+  if (value < 0) return Optional< unsigned short >();
+  return value;
 }
 
 //------------------------------------------------------------------------------
