@@ -13,6 +13,8 @@ namespace wrapper {
 
         struct RTCPeerConnectionStats : public wrapper::org::webRtc::RTCPeerConnectionStats
         {
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::org::webRtc::RTCPeerConnectionStats, WrapperType);
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCPeerConnectionStats, WrapperImplType);
           RTCPeerConnectionStatsWeakPtr thisWeak_;
 
           RTCPeerConnectionStats() noexcept;

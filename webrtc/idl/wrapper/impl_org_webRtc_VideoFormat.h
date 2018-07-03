@@ -13,6 +13,8 @@ namespace wrapper {
 
         struct VideoFormat : public wrapper::org::webRtc::VideoFormat
         {
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::org::webRtc::VideoFormat, WrapperType);
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::VideoFormat, WrapperImplType);
           VideoFormatWeakPtr thisWeak_;
 
           VideoFormat() noexcept;

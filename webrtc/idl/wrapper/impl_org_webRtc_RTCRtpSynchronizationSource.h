@@ -13,6 +13,8 @@ namespace wrapper {
 
         struct RTCRtpSynchronizationSource : public wrapper::org::webRtc::RTCRtpSynchronizationSource
         {
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::org::webRtc::RTCRtpSynchronizationSource, WrapperType);
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCRtpSynchronizationSource, WrapperImplType);
           RTCRtpSynchronizationSourceWeakPtr thisWeak_;
 
           RTCRtpSynchronizationSource() noexcept;

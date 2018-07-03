@@ -13,6 +13,8 @@ namespace wrapper {
 
         struct VideoTrackSourceStats : public wrapper::org::webRtc::VideoTrackSourceStats
         {
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::org::webRtc::VideoTrackSourceStats, WrapperType);
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::VideoTrackSourceStats, WrapperImplType);
           VideoTrackSourceStatsWeakPtr thisWeak_;
 
           VideoTrackSourceStats() noexcept;

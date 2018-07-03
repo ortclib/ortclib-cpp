@@ -13,6 +13,8 @@ namespace wrapper {
 
         struct RTCDtmfToneChangeEvent : public wrapper::org::webRtc::RTCDtmfToneChangeEvent
         {
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::org::webRtc::RTCDtmfToneChangeEvent, WrapperType);
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCDtmfToneChangeEvent, WrapperImplType);
           RTCDtmfToneChangeEventWeakPtr thisWeak_;
 
           RTCDtmfToneChangeEvent() noexcept;

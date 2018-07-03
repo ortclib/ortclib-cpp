@@ -13,6 +13,8 @@ namespace wrapper {
 
         struct RTCRtpContributingSourceStats : public wrapper::org::webRtc::RTCRtpContributingSourceStats
         {
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::org::webRtc::RTCRtpContributingSourceStats, WrapperType);
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCRtpContributingSourceStats, WrapperImplType);
           RTCRtpContributingSourceStatsWeakPtr thisWeak_;
 
           RTCRtpContributingSourceStats() noexcept;

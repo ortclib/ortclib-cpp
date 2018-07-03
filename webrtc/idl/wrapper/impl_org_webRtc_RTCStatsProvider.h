@@ -13,6 +13,8 @@ namespace wrapper {
 
         struct RTCStatsProvider : public wrapper::org::webRtc::RTCStatsProvider
         {
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::org::webRtc::RTCStatsProvider, WrapperType);
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCStatsProvider, WrapperImplType);
           RTCStatsProvider() noexcept = delete;
           RTCStatsProvider(const RTCStatsProvider &) noexcept = delete;
           virtual ~RTCStatsProvider() noexcept;

@@ -11,8 +11,8 @@ namespace wrapper {
 
         struct EventQueue : public wrapper::org::webRtc::EventQueue
         {
-          ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::EventQueue, WrapperImplType);
           ZS_DECLARE_TYPEDEF_PTR(wrapper::org::webRtc::EventQueue, WrapperType);
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::EventQueue, WrapperImplType);
 
           EventQueueWeakPtr thisWeak_;
 

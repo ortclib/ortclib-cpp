@@ -19,8 +19,8 @@ namespace wrapper {
 
         struct MediaElement : public wrapper::org::webRtc::MediaElement
         {
-          ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::MediaElement, WrapperImplType);
           ZS_DECLARE_TYPEDEF_PTR(wrapper::org::webRtc::MediaElement, WrapperType);
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::MediaElement, WrapperImplType);
 
           AnyPtr element_{};
           MediaElementWeakPtr thisWeak_;

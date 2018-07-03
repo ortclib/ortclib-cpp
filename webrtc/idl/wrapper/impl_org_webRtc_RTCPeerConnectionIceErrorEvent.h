@@ -13,6 +13,8 @@ namespace wrapper {
 
         struct RTCPeerConnectionIceErrorEvent : public wrapper::org::webRtc::RTCPeerConnectionIceErrorEvent
         {
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::org::webRtc::RTCPeerConnectionIceErrorEvent, WrapperType);
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCPeerConnectionIceErrorEvent, WrapperImplType);
           RTCPeerConnectionIceErrorEventWeakPtr thisWeak_;
 
           RTCPeerConnectionIceErrorEvent() noexcept;

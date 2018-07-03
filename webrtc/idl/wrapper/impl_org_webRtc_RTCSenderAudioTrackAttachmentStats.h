@@ -13,6 +13,8 @@ namespace wrapper {
 
         struct RTCSenderAudioTrackAttachmentStats : public wrapper::org::webRtc::RTCSenderAudioTrackAttachmentStats
         {
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::org::webRtc::RTCSenderAudioTrackAttachmentStats, WrapperType);
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCSenderAudioTrackAttachmentStats, WrapperImplType);
           RTCSenderAudioTrackAttachmentStatsWeakPtr thisWeak_;
 
           RTCSenderAudioTrackAttachmentStats() noexcept;

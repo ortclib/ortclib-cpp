@@ -13,6 +13,8 @@ namespace wrapper {
 
         struct RTCDtlsFingerprint : public wrapper::org::webRtc::RTCDtlsFingerprint
         {
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::org::webRtc::RTCDtlsFingerprint, WrapperType);
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCDtlsFingerprint, WrapperImplType);
           RTCDtlsFingerprintWeakPtr thisWeak_;
 
           RTCDtlsFingerprint() noexcept;

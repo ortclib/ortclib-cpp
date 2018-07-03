@@ -13,6 +13,8 @@ namespace wrapper {
 
         struct RTCCodecStats : public wrapper::org::webRtc::RTCCodecStats
         {
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::org::webRtc::RTCCodecStats, WrapperType);
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCCodecStats, WrapperImplType);
           RTCCodecStatsWeakPtr thisWeak_;
 
           RTCCodecStats() noexcept;
@@ -26,7 +28,7 @@ namespace wrapper {
 
           // properties RTCCodecStats
           Optional< uint8_t > get_payloadType() noexcept override;
-          Optional< wrapper::org::webRtc::RTCCodecType> get_codecType() noexcept override;
+          Optional< wrapper::org::webRtc::RTCCodecType > get_codecType() noexcept override;
           String get_transportId() noexcept override;
           void set_transportId(String value) noexcept override;
           String get_mimeType() noexcept override;

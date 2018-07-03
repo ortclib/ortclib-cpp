@@ -13,6 +13,8 @@ namespace wrapper {
 
         struct RTCStatsReport : public wrapper::org::webRtc::RTCStatsReport
         {
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::org::webRtc::RTCStatsReport, WrapperType);
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCStatsReport, WrapperImplType);
           RTCStatsReportWeakPtr thisWeak_;
 
           RTCStatsReport() noexcept;

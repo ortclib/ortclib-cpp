@@ -13,6 +13,8 @@ namespace wrapper {
 
         struct VideoCapturerInputSize : public wrapper::org::webRtc::VideoCapturerInputSize
         {
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::org::webRtc::VideoCapturerInputSize, WrapperType);
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::VideoCapturerInputSize, WrapperImplType);
           VideoCapturerInputSizeWeakPtr thisWeak_;
 
           VideoCapturerInputSize() noexcept;

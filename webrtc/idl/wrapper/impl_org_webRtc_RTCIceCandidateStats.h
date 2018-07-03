@@ -13,6 +13,8 @@ namespace wrapper {
 
         struct RTCIceCandidateStats : public wrapper::org::webRtc::RTCIceCandidateStats
         {
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::org::webRtc::RTCIceCandidateStats, WrapperType);
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCIceCandidateStats, WrapperImplType);
           RTCIceCandidateStatsWeakPtr thisWeak_;
 
           RTCIceCandidateStats() noexcept;

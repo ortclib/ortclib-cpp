@@ -13,6 +13,8 @@ namespace wrapper {
 
         struct RTCRtcpFeedback : public wrapper::org::webRtc::RTCRtcpFeedback
         {
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::org::webRtc::RTCRtcpFeedback, WrapperType);
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCRtcpFeedback, WrapperImplType);
           RTCRtcpFeedbackWeakPtr thisWeak_;
 
           RTCRtcpFeedback() noexcept;

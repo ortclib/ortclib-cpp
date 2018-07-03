@@ -13,6 +13,8 @@ namespace wrapper {
 
         struct RTCMediaHandlerStats : public wrapper::org::webRtc::RTCMediaHandlerStats
         {
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::org::webRtc::RTCMediaHandlerStats, WrapperType);
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCMediaHandlerStats, WrapperImplType);
           RTCMediaHandlerStatsWeakPtr thisWeak_;
 
           RTCMediaHandlerStats() noexcept;

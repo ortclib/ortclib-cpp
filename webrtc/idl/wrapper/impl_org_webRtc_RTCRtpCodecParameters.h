@@ -13,6 +13,8 @@ namespace wrapper {
 
         struct RTCRtpCodecParameters : public wrapper::org::webRtc::RTCRtpCodecParameters
         {
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::org::webRtc::RTCRtpCodecParameters, WrapperType);
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCRtpCodecParameters, WrapperImplType);
           RTCRtpCodecParametersWeakPtr thisWeak_;
 
           RTCRtpCodecParameters() noexcept;

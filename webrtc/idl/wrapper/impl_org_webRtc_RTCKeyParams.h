@@ -13,6 +13,8 @@ namespace wrapper {
 
         struct RTCKeyParams : public wrapper::org::webRtc::RTCKeyParams
         {
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::org::webRtc::RTCKeyParams, WrapperType);
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCKeyParams, WrapperImplType);
           RTCKeyParamsWeakPtr thisWeak_;
 
           RTCKeyParams() noexcept;

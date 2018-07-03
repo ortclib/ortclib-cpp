@@ -13,6 +13,8 @@ namespace wrapper {
 
         struct RTCSenderVideoTrackAttachmentStats : public wrapper::org::webRtc::RTCSenderVideoTrackAttachmentStats
         {
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::org::webRtc::RTCSenderVideoTrackAttachmentStats, WrapperType);
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCSenderVideoTrackAttachmentStats, WrapperImplType);
           RTCSenderVideoTrackAttachmentStatsWeakPtr thisWeak_;
 
           RTCSenderVideoTrackAttachmentStats() noexcept;

@@ -13,6 +13,8 @@ namespace wrapper {
 
         struct RTCAudioHandlerStats : public wrapper::org::webRtc::RTCAudioHandlerStats
         {
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::org::webRtc::RTCAudioHandlerStats, WrapperType);
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCAudioHandlerStats, WrapperImplType);
           RTCAudioHandlerStatsWeakPtr thisWeak_;
 
           RTCAudioHandlerStats() noexcept;

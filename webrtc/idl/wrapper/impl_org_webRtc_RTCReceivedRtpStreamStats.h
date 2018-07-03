@@ -13,6 +13,8 @@ namespace wrapper {
 
         struct RTCReceivedRtpStreamStats : public wrapper::org::webRtc::RTCReceivedRtpStreamStats
         {
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::org::webRtc::RTCReceivedRtpStreamStats, WrapperType);
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCReceivedRtpStreamStats, WrapperImplType);
           RTCReceivedRtpStreamStatsWeakPtr thisWeak_;
 
           RTCReceivedRtpStreamStats() noexcept;

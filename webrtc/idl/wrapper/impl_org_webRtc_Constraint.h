@@ -15,9 +15,9 @@ namespace wrapper {
 
         struct Constraint : public wrapper::org::webRtc::Constraint
         {
-          ZS_DECLARE_TYPEDEF_PTR(::webrtc::MediaConstraintsInterface::Constraint, NativeType);
-          ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::Constraint, WrapperImplType);
           ZS_DECLARE_TYPEDEF_PTR(wrapper::org::webRtc::Constraint, WrapperType);
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::Constraint, WrapperImplType);
+          ZS_DECLARE_TYPEDEF_PTR(::webrtc::MediaConstraintsInterface::Constraint, NativeType);
 
           NativeTypePtr native_;
           ConstraintWeakPtr thisWeak_;

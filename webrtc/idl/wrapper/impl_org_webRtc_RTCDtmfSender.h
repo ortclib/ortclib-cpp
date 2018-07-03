@@ -13,6 +13,8 @@ namespace wrapper {
 
         struct RTCDtmfSender : public wrapper::org::webRtc::RTCDtmfSender
         {
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::org::webRtc::RTCDtmfSender, WrapperType);
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCDtmfSender, WrapperImplType);
           RTCDtmfSenderWeakPtr thisWeak_;
 
           RTCDtmfSender() noexcept;

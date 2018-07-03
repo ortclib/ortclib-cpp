@@ -13,6 +13,8 @@ namespace wrapper {
 
         struct RTCRtpHeaderExtensionParameters : public wrapper::org::webRtc::RTCRtpHeaderExtensionParameters
         {
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::org::webRtc::RTCRtpHeaderExtensionParameters, WrapperType);
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCRtpHeaderExtensionParameters, WrapperImplType);
           RTCRtpHeaderExtensionParametersWeakPtr thisWeak_;
 
           RTCRtpHeaderExtensionParameters() noexcept;

@@ -13,6 +13,8 @@ namespace wrapper {
 
         struct RTCRtpCapabilities : public wrapper::org::webRtc::RTCRtpCapabilities
         {
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::org::webRtc::RTCRtpCapabilities, WrapperType);
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCRtpCapabilities, WrapperImplType);
           RTCRtpCapabilitiesWeakPtr thisWeak_;
 
           RTCRtpCapabilities() noexcept;

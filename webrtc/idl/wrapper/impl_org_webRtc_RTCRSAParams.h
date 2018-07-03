@@ -13,6 +13,8 @@ namespace wrapper {
 
         struct RTCRSAParams : public wrapper::org::webRtc::RTCRSAParams
         {
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::org::webRtc::RTCRSAParams, WrapperType);
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCRSAParams, WrapperImplType);
           RTCRSAParamsWeakPtr thisWeak_;
 
           RTCRSAParams() noexcept;

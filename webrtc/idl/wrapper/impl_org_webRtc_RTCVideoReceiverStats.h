@@ -13,6 +13,8 @@ namespace wrapper {
 
         struct RTCVideoReceiverStats : public wrapper::org::webRtc::RTCVideoReceiverStats
         {
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::org::webRtc::RTCVideoReceiverStats, WrapperType);
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCVideoReceiverStats, WrapperImplType);
           RTCVideoReceiverStatsWeakPtr thisWeak_;
 
           RTCVideoReceiverStats() noexcept;

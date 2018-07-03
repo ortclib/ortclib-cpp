@@ -15,8 +15,8 @@ namespace wrapper {
 
         struct MediaSource : public wrapper::org::webRtc::MediaSource
         {
-          ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::MediaSource, WrapperImplType);
           ZS_DECLARE_TYPEDEF_PTR(wrapper::org::webRtc::MediaSource, WrapperType);
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::MediaSource, WrapperImplType);
 
           AnyPtr source_{};
 

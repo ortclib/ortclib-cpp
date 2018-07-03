@@ -15,6 +15,9 @@ namespace wrapper {
 
         struct MediaConstraints : public wrapper::org::webRtc::MediaConstraints
         {
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::org::webRtc::MediaConstraints, WrapperType);
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::MediaConstraints, WrapperImplType);
+
           struct MediaConstraintsImpl : public ::webrtc::MediaConstraintsInterface {
           public:
             virtual ~MediaConstraintsImpl() noexcept;
@@ -31,8 +34,6 @@ namespace wrapper {
 
           ZS_DECLARE_TYPEDEF_PTR(::webrtc::MediaConstraintsInterface, NativeType);
           ZS_DECLARE_TYPEDEF_PTR(MediaConstraintsImpl, NativeImplType);
-          ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::MediaConstraints, WrapperImplType);
-          ZS_DECLARE_TYPEDEF_PTR(wrapper::org::webRtc::MediaConstraints, WrapperType);
 
           NativeImplTypePtr native_;
           MediaConstraintsWeakPtr thisWeak_;

@@ -13,6 +13,8 @@ namespace wrapper {
 
         struct RTCOfferAnswerOptions : public wrapper::org::webRtc::RTCOfferAnswerOptions
         {
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::org::webRtc::RTCOfferAnswerOptions, WrapperType);
+          ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCOfferAnswerOptions, WrapperImplType);
           RTCOfferAnswerOptions() noexcept = delete;
           RTCOfferAnswerOptions(const RTCOfferAnswerOptions &) noexcept = delete;
           virtual ~RTCOfferAnswerOptions() noexcept;
