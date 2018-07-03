@@ -2,6 +2,10 @@
 #include "impl_org_webRtc_RTCPeerConnection.h"
 #include "impl_org_webRtc_helpers.h"
 #include "impl_org_webRtc_RTCConfiguration.h"
+#include "impl_org_webRtc_RTCDataChannelEvent.h"
+#include "impl_org_webRtc_RTCDataChannel.h"
+#include "impl_org_webRtc_RTCIceCandidate.h"
+#include "impl_org_webRtc_RTCPeerConnectionIceEvent.h"
 #include "impl_org_webRtc_RTCError.h"
 #include "impl_org_webRtc_WebrtcLib.h"
 
@@ -41,6 +45,10 @@ typedef wrapper::impl::org::webRtc::WrapperMapper<NativeType, WrapperImplType> U
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::WebRtcLib, UseWebrtcLib);
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCConfiguration, UseConfiguration);
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCError, UseError);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCDataChannel, UseDataChannel);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCDataChannelEvent, UseDataChannelEvent);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCIceCandidate, UseIceCandidate);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCPeerConnectionIceEvent, UseIceCandidateEvent);
 
 //------------------------------------------------------------------------------
 static UseWrapperMapper &mapperSingleton()
@@ -53,10 +61,7 @@ static UseWrapperMapper &mapperSingleton()
 static ::webrtc::PeerConnectionInterface *unproxyNative(NativeType *native)
 {
   if (!native) return nullptr;
-  auto converted = dynamic_cast<::webrtc::PeerConnection *>(native);
-  if (!converted) return nullptr;
-
-  return WRAPPER_DEPROXIFY_CLASS(::webrtc, PeerConnection, converted);
+  return WRAPPER_DEPROXIFY_CLASS(::webrtc::PeerConnection, ::webrtc::PeerConnection, native);
 }
 
 //------------------------------------------------------------------------------
@@ -360,36 +365,55 @@ void WrapperImplType::onWebrtcObserverSignalingChange(NativeType::SignalingState
 //------------------------------------------------------------------------------
 void WrapperImplType::onWebrtcObserverDataChannel(rtc::scoped_refptr<::webrtc::DataChannelInterface> data_channel) noexcept
 {
+  auto event = RTCDataChannelEvent::toWrapper(UseDataChannel::toWrapper(data_channel));
+  if (!event) return;
+  onDataChannel(event);
 }
 
 //------------------------------------------------------------------------------
 void WrapperImplType::onWebrtcObserverRenegotiationNeeded() noexcept
 {
+  onNegotiationNeeded();
 }
 
 //------------------------------------------------------------------------------
-void WrapperImplType::onWebrtcObserverIceConnectionChange(NativeType::PeerConnectionInterface::IceConnectionState new_state) noexcept
+void WrapperImplType::onWebrtcObserverIceConnectionChange(ZS_MAYBE_USED() NativeType::PeerConnectionInterface::IceConnectionState new_state) noexcept
 {
+  ZS_MAYBE_USED(new_state);
+  onIceConnectionStateChange();
 }
 
 //------------------------------------------------------------------------------
-void WrapperImplType::onWebrtcObserverIceGatheringChange(NativeType::PeerConnectionInterface::IceGatheringState new_state) noexcept
+void WrapperImplType::onWebrtcObserverIceGatheringChange(ZS_MAYBE_USED() NativeType::PeerConnectionInterface::IceGatheringState new_state) noexcept
 {
+  ZS_MAYBE_USED(new_state);
+  onIceGatheringStateChange();
 }
 
 //------------------------------------------------------------------------------
 void WrapperImplType::onWebrtcObserverIceCandidate(UseIceCandidatePtr candidate) noexcept
 {
+  auto event = UseIceCandidateEvent::toWrapper(candidate);
+  if (!event) return;
+  onIceCandidate(event);
 }
 
 //------------------------------------------------------------------------------
 void WrapperImplType::onWebrtcObserverIceCandidatesRemoved(shared_ptr< list< UseIceCandidatePtr > > candidates) noexcept
 {
+  if (!candidates) return;
+  for (auto iter = candidates->begin(); iter != candidates->end(); ++iter) {
+    auto &candidate = (*iter);
+    auto event = UseIceCandidateEvent::toWrapper(candidate);
+    if (!event) continue;
+    onIceCandidateRemoved(event);
+  }
 }
 
 //------------------------------------------------------------------------------
-void WrapperImplType::onWebrtcObserverIceConnectionReceivingChange(bool receiving) noexcept
+void WrapperImplType::onWebrtcObserverIceConnectionReceivingChange(ZS_MAYBE_USED() bool receiving) noexcept
 {
+  ZS_MAYBE_USED(receiving);
 }
 
 //------------------------------------------------------------------------------

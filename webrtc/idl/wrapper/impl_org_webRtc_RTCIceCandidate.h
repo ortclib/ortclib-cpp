@@ -53,6 +53,8 @@ namespace wrapper {
           Optional< uint16_t > get_relatedPort() noexcept override;
           String get_usernameFragment() noexcept override;
 
+          String serverUrl() const noexcept { return serverUrl_; }
+
           ZS_NO_DISCARD() static WrapperImplTypePtr toWrapper(const UseIceCandidateInit &candidate) noexcept;
           ZS_NO_DISCARD() static WrapperImplTypePtr toWrapper(UseIceCandidateInitPtr candidate) noexcept;
 

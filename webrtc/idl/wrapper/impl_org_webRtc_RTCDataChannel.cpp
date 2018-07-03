@@ -54,10 +54,7 @@ static UseWrapperMapper &mapperSingleton()
 static NativeType *unproxy(NativeType *native)
 {
   if (!native) return native;
-  auto converted = dynamic_cast<::webrtc::DataChannel *>(native);
-  if (!converted) return native;
-
-  return WRAPPER_DEPROXIFY_CLASS(::webrtc, DataChannel, converted);
+  return WRAPPER_DEPROXIFY_CLASS(::webrtc::DataChannel, ::webrtc::DataChannel, native);
 }
 
 //------------------------------------------------------------------------------

@@ -77,20 +77,20 @@ static UseWrapperMapper &mapperSingleton()
 static ::webrtc::AudioTrackInterface *unproxyAudioTrack(NativeType *native)
 {
   if (!native) return nullptr;
-  auto converted = dynamic_cast<::webrtc::AudioTrack *>(native);
+  auto converted = dynamic_cast<::webrtc::AudioTrackInterface *>(native);
   if (!converted) return nullptr;
 
-  return WRAPPER_DEPROXIFY_CLASS(::webrtc, AudioTrack, converted);
+  return WRAPPER_DEPROXIFY_CLASS(::webrtc::AudioTrack, ::webrtc::AudioTrack, converted);
 }
 
 //------------------------------------------------------------------------------
 static ::webrtc::VideoTrackInterface *unproxyVideoTrack(NativeType *native)
 {
   if (!native) return nullptr;
-  auto converted = dynamic_cast<::webrtc::VideoTrack *>(native);
+  auto converted = dynamic_cast<::webrtc::VideoTrackInterface *>(native);
   if (!converted) return nullptr;
 
-  return WRAPPER_DEPROXIFY_CLASS(::webrtc, VideoTrack, converted);
+  return WRAPPER_DEPROXIFY_CLASS(::webrtc::VideoTrack, ::webrtc::VideoTrack, converted);
 }
 
 #ifdef WINUWP

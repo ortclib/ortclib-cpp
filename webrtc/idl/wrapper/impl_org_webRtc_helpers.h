@@ -6,8 +6,8 @@
 #include <zsLib/types.h>
 #include <map>
 
-#define WRAPPER_DEPROXIFY_CLASS(xClassNamespace, xClassType, xPtr) \
-        ::wrapper::impl::org::webRtc::deproxifyClass<xClassNamespace::xClassType, xClassNamespace::xClassType##Proxy, xClassNamespace::xClassType##Interface>(xPtr)
+#define WRAPPER_DEPROXIFY_CLASS(xProxyClass, xDerivedClassType, xPtr) \
+        ::wrapper::impl::org::webRtc::deproxifyClass<xDerivedClassType, xProxyClass##Proxy, xProxyClass##Interface>(xPtr)
 
 #ifdef WINUWP
 #if defined(__cplusplus_winrt) && defined(CPPWINRT_VERSION)
@@ -36,8 +36,8 @@ namespace wrapper {
         //
 
         //---------------------------------------------------------------------
-        template<class XClassType, class XProxyType, class XOriginalInterfaceType>
-        ZS_NO_DISCARD() XOriginalInterfaceType *deproxifyClass(XClassType *possibleProxy) noexcept
+        template<class xDerivedClassType, class XProxyType, class XOriginalInterfaceType>
+        ZS_NO_DISCARD() XOriginalInterfaceType *deproxifyClass(XOriginalInterfaceType *possibleProxy) noexcept
         {
           do
           {
@@ -45,7 +45,7 @@ namespace wrapper {
             if (!proxy) break;
             auto temp = proxy->internal();
             if (!temp) return possibleProxy;
-            possibleProxy = dynamic_cast<XClassType *>(temp);
+            possibleProxy = dynamic_cast<xDerivedClassType *>(temp);
             if (!possibleProxy) return temp;
           } while (true);
           return possibleProxy;

@@ -51,10 +51,8 @@ static UseWrapperMapper &mapperSingleton()
 static NativeType *unproxy(NativeType *native)
 {
   if (!native) return nullptr;
-  auto converted = dynamic_cast<::webrtc::AudioSource *>(native);
-  if (!converted) return nullptr;
 
-  return WRAPPER_DEPROXIFY_CLASS(::webrtc, AudioSource, converted);
+  return WRAPPER_DEPROXIFY_CLASS(::webrtc::AudioSource, ::webrtc::AudioSource, native);
 }
 #endif //0
 
