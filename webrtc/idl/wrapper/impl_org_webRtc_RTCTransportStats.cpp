@@ -20,6 +20,10 @@ using ::std::list;
 using ::std::set;
 using ::std::map;
 
+// borrow definitions from class
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCTransportStats::WrapperImplType, WrapperImplType);
+ZS_DECLARE_TYPEDEF_PTR(WrapperImplType::WrapperType, WrapperType);
+
 //------------------------------------------------------------------------------
 wrapper::impl::org::webRtc::RTCTransportStats::RTCTransportStats() noexcept
 {

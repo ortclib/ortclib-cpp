@@ -20,6 +20,10 @@ using ::std::list;
 using ::std::set;
 using ::std::map;
 
+// borrow definitions from class
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCCodecStats::WrapperImplType, WrapperImplType);
+ZS_DECLARE_TYPEDEF_PTR(WrapperImplType::WrapperType, WrapperType);
+
 //------------------------------------------------------------------------------
 wrapper::impl::org::webRtc::RTCCodecStats::RTCCodecStats() noexcept
 {
@@ -75,9 +79,9 @@ Optional< uint8_t > wrapper::impl::org::webRtc::RTCCodecStats::get_payloadType()
 }
 
 //------------------------------------------------------------------------------
-Optional< wrapper::org::webRtc::RTCCodecType> wrapper::impl::org::webRtc::RTCCodecStats::get_codecType() noexcept
+Optional< wrapper::org::webRtc::RTCCodecType > wrapper::impl::org::webRtc::RTCCodecStats::get_codecType() noexcept
 {
-  wrapper::org::webRtc::RTCCodecType result {};
+  Optional< wrapper::org::webRtc::RTCCodecType > result {};
   return result;
 }
 

@@ -19,6 +19,10 @@ using ::std::list;
 using ::std::set;
 using ::std::map;
 
+// borrow definitions from class
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCSessionDescriptionInit::WrapperImplType, WrapperImplType);
+ZS_DECLARE_TYPEDEF_PTR(WrapperImplType::WrapperType, WrapperType);
+
 //------------------------------------------------------------------------------
 wrapper::impl::org::webRtc::RTCSessionDescriptionInit::RTCSessionDescriptionInit() noexcept
 {
@@ -42,3 +46,5 @@ wrapper::impl::org::webRtc::RTCSessionDescriptionInit::~RTCSessionDescriptionIni
 void wrapper::impl::org::webRtc::RTCSessionDescriptionInit::wrapper_init_org_webRtc_RTCSessionDescriptionInit() noexcept
 {
 }
+
+
