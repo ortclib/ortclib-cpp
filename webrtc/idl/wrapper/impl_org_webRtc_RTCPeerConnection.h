@@ -198,8 +198,8 @@ namespace wrapper {
           void onWebrtcObserverTrack(rtc::scoped_refptr<::webrtc::RtpTransceiverInterface> transceiver) noexcept;
           void onWebrtcObserverRemoveTrack(rtc::scoped_refptr<::webrtc::RtpReceiverInterface> receiver) noexcept;
 
-          void setupObserver();
-          void teardownObserver();
+          void setupObserver() noexcept;
+          void teardownObserver() noexcept;
 
           ZS_NO_DISCARD() static WrapperImplTypePtr toWrapper(NativeType *native) noexcept;
           ZS_NO_DISCARD() static WrapperImplTypePtr toWrapper(NativeTypeScopedPtr native) noexcept;

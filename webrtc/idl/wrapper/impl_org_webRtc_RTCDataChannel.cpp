@@ -297,7 +297,7 @@ void WrapperImplType::onWebrtcObserverBufferedAmountChange(ZS_MAYBE_USED() uint6
 }
 
 //------------------------------------------------------------------------------
-void WrapperImplType::setupObserver()
+void WrapperImplType::setupObserver() noexcept
 {
   if (!native_) return;
   if (observer_) return;
@@ -307,7 +307,7 @@ void WrapperImplType::setupObserver()
 }
 
 //------------------------------------------------------------------------------
-void WrapperImplType::teardownObserver()
+void WrapperImplType::teardownObserver() noexcept
 {
   if (!observer_) return;
   if (!native_) return;

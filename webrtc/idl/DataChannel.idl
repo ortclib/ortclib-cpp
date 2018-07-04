@@ -97,6 +97,9 @@ namespace org
     /// The datachannel event uses the RTCDataChannelEvent interface.
     /// </summary>
     interface RTCDataChannelEvent {
+      [constructor, delete, default]
+      void RTCDataChannelEvent();
+      
       /// <summary>
       /// Gets the channel attribute representing the RTCDataChannel object associated with the event.
       /// </summary>

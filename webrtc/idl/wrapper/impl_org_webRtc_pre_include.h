@@ -44,6 +44,7 @@ namespace webrtc
 
   class AudioTrackInterface;
   class VideoTrackInterface;
+  class DtmfSenderInterface;
   class RtpSenderInterface;
   class RtpReceiverInterface;
   class RtpTransceiverInterface;

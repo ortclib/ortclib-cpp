@@ -147,7 +147,7 @@ void WrapperImplType::onWebrtcObserverSetVolume(double volume) noexcept
 
 
 //------------------------------------------------------------------------------
-void WrapperImplType::setupObserver()
+void WrapperImplType::setupObserver() noexcept
 {
   if (!native_) return;
   if (observer_) return;
@@ -156,9 +156,8 @@ void WrapperImplType::setupObserver()
   native_->RegisterAudioObserver(observer_.get());
 }
 
-
 //------------------------------------------------------------------------------
-void WrapperImplType::teardownObserver()
+void WrapperImplType::teardownObserver() noexcept
 {
   if (!observer_) return;
   if (!native_) return;

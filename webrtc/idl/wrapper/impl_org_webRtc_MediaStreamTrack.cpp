@@ -305,7 +305,7 @@ void WrapperImplType::autoAttachSourceToElement()
 }
 
 //------------------------------------------------------------------------------
-void WrapperImplType::setupObserver()
+void WrapperImplType::setupObserver() noexcept
 {
   auto converted = dynamic_cast<::webrtc::VideoTrackInterface *>(native_.get());
   ZS_ASSERT(converted);
@@ -327,7 +327,7 @@ void WrapperImplType::setupObserver()
 }
 
 //------------------------------------------------------------------------------
-void WrapperImplType::teardownObserver()
+void WrapperImplType::teardownObserver() noexcept
 {
   if (!observer_) return;
 

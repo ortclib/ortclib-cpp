@@ -55,6 +55,12 @@ void wrapper::impl::org::webRtc::RTCDtlsFingerprint::wrapper_init_org_webRtc_RTC
 //------------------------------------------------------------------------------
 void wrapper::impl::org::webRtc::RTCDtlsFingerprint::wrapper_init_org_webRtc_RTCDtlsFingerprint(wrapper::org::webRtc::RTCDtlsFingerprintPtr source) noexcept
 {
+  if (!source) {
+    wrapper_init_org_webRtc_RTCDtlsFingerprint();
+    return;
+  }
+  algorithm = source->algorithm;
+  value = source->value;
 }
 
 //------------------------------------------------------------------------------

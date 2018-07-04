@@ -75,6 +75,7 @@ wrapper::org::webRtc::RTCRtpReceiverPtr wrapper::org::webRtc::RTCRtpReceiver::wr
 wrapper::impl::org::webRtc::RTCRtpReceiver::~RTCRtpReceiver() noexcept
 {
   thisWeak_.reset();
+  teardownObserver();
   mapperSingleton().remove(native_.get());
 }
 
@@ -119,14 +120,14 @@ void wrapper::impl::org::webRtc::RTCRtpReceiver::set_track(wrapper::org::webRtc:
 }
 
 //------------------------------------------------------------------------------
-void WrapperImplType::setupObserver()
+void WrapperImplType::setupObserver() noexcept
 {
 //  if (!native_) return;
 //  observer_ = std::make_unique<WebrtcObserver>(thisWeak_.lock(), UseWebrtcLib::delegateQueue());
 }
 
 //------------------------------------------------------------------------------
-void WrapperImplType::teardownObserver()
+void WrapperImplType::teardownObserver() noexcept
 {
 //  if (!observer_) return;
 //  if (!native_) return;

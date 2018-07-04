@@ -43,10 +43,6 @@ wrapper::impl::org::webRtc::RTCDataChannelEvent::~RTCDataChannelEvent() noexcept
   thisWeak_.reset();
 }
 
-//------------------------------------------------------------------------------
-void wrapper::impl::org::webRtc::RTCDataChannelEvent::wrapper_init_org_webRtc_RTCDataChannelEvent() noexcept
-{
-}
 
 //------------------------------------------------------------------------------
 wrapper::org::webRtc::RTCDataChannelPtr wrapper::impl::org::webRtc::RTCDataChannelEvent::get_channel() noexcept

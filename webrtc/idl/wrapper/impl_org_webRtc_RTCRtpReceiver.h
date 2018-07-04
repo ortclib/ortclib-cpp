@@ -36,8 +36,8 @@ namespace wrapper {
           wrapper::org::webRtc::MediaStreamTrackPtr get_track() noexcept override;
           void set_track(wrapper::org::webRtc::MediaStreamTrackPtr value) noexcept override;
 
-          void setupObserver();
-          void teardownObserver();
+          void setupObserver() noexcept;
+          void teardownObserver() noexcept;
 
           ZS_NO_DISCARD() static WrapperImplTypePtr toWrapper(NativeType *native) noexcept;
           ZS_NO_DISCARD() static WrapperImplTypePtr toWrapper(NativeTypeScopedPtr native) noexcept;

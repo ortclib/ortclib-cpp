@@ -28,8 +28,8 @@ using ::std::map;
 
 // borrow definitions from class
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCRtpSender::WrapperImplType, WrapperImplType);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCRtpSender::WrapperType, WrapperType);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCRtpSender::NativeType, NativeType);
+ZS_DECLARE_TYPEDEF_PTR(WrapperImplType::WrapperType, WrapperType);
+ZS_DECLARE_TYPEDEF_PTR(WrapperImplType::NativeType, NativeType);
 
 typedef WrapperImplType::NativeTypeScopedPtr NativeTypeScopedPtr;
 
@@ -75,6 +75,7 @@ wrapper::org::webRtc::RTCRtpSenderPtr wrapper::org::webRtc::RTCRtpSender::wrappe
 wrapper::impl::org::webRtc::RTCRtpSender::~RTCRtpSender() noexcept
 {
   thisWeak_.reset();
+  teardownObserver();
   mapperSingleton().remove(native_.get());
 }
 
@@ -120,16 +121,15 @@ wrapper::org::webRtc::RTCDtmfSenderPtr wrapper::impl::org::webRtc::RTCRtpSender:
   return result;
 }
 
-
 //------------------------------------------------------------------------------
-void WrapperImplType::setupObserver()
+void WrapperImplType::setupObserver() noexcept
 {
   //  if (!native_) return;
   //  observer_ = std::make_unique<WebrtcObserver>(thisWeak_.lock(), UseWebrtcLib::delegateQueue());
 }
 
 //------------------------------------------------------------------------------
-void WrapperImplType::teardownObserver()
+void WrapperImplType::teardownObserver() noexcept
 {
   //  if (!observer_) return;
   //  if (!native_) return;

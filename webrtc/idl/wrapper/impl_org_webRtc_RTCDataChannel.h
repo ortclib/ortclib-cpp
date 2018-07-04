@@ -95,8 +95,8 @@ namespace wrapper {
 
           void wrapper_onObserverCountChanged(size_t count) noexcept override;
 
-          void setupObserver();
-          void teardownObserver();
+          void setupObserver() noexcept;
+          void teardownObserver() noexcept;
 
           // WebrtcObserver methods
           void onWebrtcObserverStateChange() noexcept;

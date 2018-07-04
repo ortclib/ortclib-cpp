@@ -41,8 +41,8 @@ namespace wrapper {
           void set_direction(wrapper::org::webRtc::RTCRtpTransceiverDirection value) noexcept override;
           Optional< wrapper::org::webRtc::RTCRtpTransceiverDirection > get_currentDirection() noexcept override;
 
-          void setupObserver();
-          void teardownObserver();
+          void setupObserver() noexcept;
+          void teardownObserver() noexcept;
 
           ZS_NO_DISCARD() static WrapperImplTypePtr toWrapper(NativeType *native) noexcept;
           ZS_NO_DISCARD() static WrapperImplTypePtr toWrapper(NativeTypeScopedPtr native) noexcept;

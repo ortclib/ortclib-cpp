@@ -100,8 +100,8 @@ namespace wrapper {
           void notifySourceChanged(UseMediaSourcePtr source);
           void autoAttachSourceToElement();
 
-          void setupObserver();
-          void teardownObserver();
+          void setupObserver() noexcept;
+          void teardownObserver() noexcept;
 
           // WebrtcObserver methods
           void notifyWebrtcObserverFrame(const ::webrtc::VideoFrame& frame) noexcept;
