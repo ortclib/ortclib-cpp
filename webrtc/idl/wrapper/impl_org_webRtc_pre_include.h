@@ -19,6 +19,7 @@ namespace rtc
   class Thread;
   class RTCCertificate;
   class IntervalRange;
+  class KeyParams;
 
   enum ECCurve;
   enum KeyType;

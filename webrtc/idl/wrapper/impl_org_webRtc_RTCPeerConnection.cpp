@@ -3,6 +3,10 @@
 #include "impl_org_webRtc_helpers.h"
 #include "impl_org_webRtc_enums.h"
 #include "impl_org_webRtc_RTCConfiguration.h"
+#include "impl_org_webRtc_RTCCertificate.h"
+#include "impl_org_webRtc_RTCOfferOptions.h"
+#include "impl_org_webRtc_RTCAnswerOptions.h"
+#include "impl_org_webRtc_RTCSessionDescription.h"
 #include "impl_org_webRtc_RTCDataChannelEvent.h"
 #include "impl_org_webRtc_RTCDataChannel.h"
 #include "impl_org_webRtc_RTCDataChannelInit.h"
@@ -10,6 +14,7 @@
 #include "impl_org_webRtc_RTCPeerConnectionIceEvent.h"
 #include "impl_org_webRtc_RTCTrackEvent.h"
 #include "impl_org_webRtc_MediaStreamTrack.h"
+#include "impl_org_webRtc_MediaConstraints.h"
 #include "impl_org_webRtc_RTCRtpSender.h"
 #include "impl_org_webRtc_RTCRtpReceiver.h"
 #include "impl_org_webRtc_RTCRtpTransceiver.h"
@@ -17,6 +22,7 @@
 #include "impl_org_webRtc_RTCSessionDescription.h"
 #include "impl_org_webRtc_RTCError.h"
 #include "impl_org_webRtc_RTCBitrateParameters.h"
+#include "impl_org_webRtc_RTCKeyParams.h"
 #include "impl_org_webRtc_WebrtcLib.h"
 
 #include "impl_org_webRtc_pre_include.h"
@@ -24,6 +30,7 @@
 #include "api/rtcerror.h"
 #include "pc/peerconnection.h"
 #include "rtc_base/refcountedobject.h"
+#include "rtc_base/rtccertificategenerator.h"
 #include "impl_org_webRtc_post_include.h"
 
 using ::zsLib::String;
@@ -56,7 +63,11 @@ typedef wrapper::impl::org::webRtc::WrapperMapper<NativeType, WrapperImplType> U
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::WebRtcLib, UseWebrtcLib);
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::IEnum, UseEnum);
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCConfiguration, UseConfiguration);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCCertificate, UseCertificate);
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCError, UseError);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCOfferOptions, UseOfferOptions);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCAnswerOptions, UseAnswerOptions);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCSessionDescription, UseSessionDescription);
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCDataChannel, UseDataChannel);
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCDataChannelInit, UseDataChannelInit);
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCDataChannelEvent, UseDataChannelEvent);
@@ -68,7 +79,9 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCRtpTransceiver, UseRtpTran
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCRtpTransceiverInit, UseRtpTransceiverInit);
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCTrackEvent, UseTrackEvent);
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::MediaStreamTrack, UseMediaStreamTrack);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::MediaConstraints, UseMediaConstraints);
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCBitrateParameters, UseBitrateParameters);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCKeyParams, UseKeyParams);
 
 
 //------------------------------------------------------------------------------
@@ -84,6 +97,46 @@ static ::webrtc::PeerConnectionInterface *unproxyNative(NativeType *native)
   if (!native) return nullptr;
   return WRAPPER_DEPROXIFY_CLASS(::webrtc::PeerConnection, ::webrtc::PeerConnection, native);
 }
+
+namespace wrapper {
+  namespace impl {
+    namespace org {
+      namespace webRtc {
+        namespace peer_connection {
+          typedef PromiseWithHolderPtr< wrapper::org::webRtc::RTCSessionDescriptionPtr > SessionDescriptionPromiseType;
+          ZS_DECLARE_PTR(SessionDescriptionPromiseType);
+
+          class SessionDescriptionObserver : public ::rtc::RefCountedObject<::webrtc::CreateSessionDescriptionObserver> {
+          public:
+            typedef rtc::scoped_refptr<SessionDescriptionObserver> ObserverScopedPtr;
+
+            void OnSuccess(::webrtc::SessionDescriptionInterface* desc) override
+            {
+              auto wrapper = UseSessionDescription::toWrapper(desc);
+              promise_->resolve(wrapper);
+            }
+
+            void OnFailure(const std::string& error) override
+            {
+              UseError::rejectPromise(promise_, ::webrtc::RTCError(::webrtc::RTCErrorType::INVALID_PARAMETER, error.c_str()));
+            }
+
+            static ObserverScopedPtr create(SessionDescriptionPromiseTypePtr promise) noexcept {
+              ObserverScopedPtr result(new SessionDescriptionObserver());
+              result->promise_ = promise;
+              return result;
+            }
+
+            SessionDescriptionPromiseTypePtr promise_;
+          };
+        } // namespace peer_connection
+      } // namespace webRtc
+    } // namespace org
+  } // namespace impl
+} // namespace wrapper
+
+using namespace wrapper::impl::org::webRtc::peer_connection;
+
 
 //------------------------------------------------------------------------------
 wrapper::impl::org::webRtc::RTCPeerConnection::RTCPeerConnection() noexcept
@@ -112,11 +165,105 @@ shared_ptr< PromiseWithHolderPtr< wrapper::org::webRtc::RTCStatsReportPtr > > wr
   shared_ptr< PromiseWithHolderPtr< wrapper::org::webRtc::RTCStatsReportPtr > > result {};
   return result;
 }
+#if 0
+
+// Standard implementation of |RTCCertificateGeneratorInterface|.
+// The static function |GenerateCertificate| generates a certificate on the
+// current thread. The |RTCCertificateGenerator| instance generates certificates
+// asynchronously on the worker thread with |GenerateCertificateAsync|.
+class RTCCertificateGenerator : public RTCCertificateGeneratorInterface {
+public:
+  // Generates a certificate on the current thread. Returns null on failure.
+  // If |expires_ms| is specified, the certificate will expire in approximately
+  // that many milliseconds from now. |expires_ms| is limited to a year, a
+  // larger value than that is clamped down to a year. If |expires_ms| is not
+  // specified, a default expiration time is used.
+  static scoped_refptr<RTCCertificate> GenerateCertificate(
+    const KeyParams& key_params,
+    const Optional<uint64_t>& expires_ms);
+
+  RTCCertificateGenerator(Thread* signaling_thread, Thread* worker_thread);
+  ~RTCCertificateGenerator() override {}
+
+  // |RTCCertificateGeneratorInterface| overrides.
+  // If |expires_ms| is specified, the certificate will expire in approximately
+  // that many milliseconds from now. |expires_ms| is limited to a year, a
+  // larger value than that is clamped down to a year. If |expires_ms| is not
+  // specified, a default expiration time is used.
+  void GenerateCertificateAsync(
+    const KeyParams& key_params,
+    const Optional<uint64_t>& expires_ms,
+    const scoped_refptr<RTCCertificateGeneratorCallback>& callback) override;
+
+private:
+  Thread * const signaling_thread_;
+  Thread* const worker_thread_;
+};
+#endif //0
 
 //------------------------------------------------------------------------------
 shared_ptr< PromiseWithHolderPtr< wrapper::org::webRtc::RTCCertificatePtr > > wrapper::org::webRtc::RTCPeerConnection::generateCertificate(wrapper::org::webRtc::RTCKeyParamsPtr keygenAlgorithm) noexcept
 {
-  shared_ptr< PromiseWithHolderPtr< wrapper::org::webRtc::RTCCertificatePtr > > result {};
+  typedef PromiseWithHolderPtr< wrapper::org::webRtc::RTCCertificatePtr > CertificatePromiseType;
+  ZS_DECLARE_PTR(CertificatePromiseType);
+
+  class Observer : public ::rtc::RefCountedObject<::rtc::RTCCertificateGeneratorCallback> {
+  public:
+    typedef rtc::scoped_refptr<Observer> ObserverScopedPtr;
+    typedef rtc::scoped_refptr<::rtc::RTCCertificate> CertificateScopedPtr;
+
+    void OnSuccess(const CertificateScopedPtr& certificate) override
+    {
+      auto wrapper = UseCertificate::toWrapper(certificate);
+      promise_->resolve(wrapper);
+    }
+
+    void OnFailure()
+    {
+      UseError::rejectPromise(promise_, ::webrtc::RTCError(::webrtc::RTCErrorType::UNSUPPORTED_PARAMETER));
+    }
+    
+    static ObserverScopedPtr create(
+      CertificatePromiseTypePtr promise,
+      const std::shared_ptr<rtc::RTCCertificateGenerator> &gen
+    ) noexcept
+    {
+      ObserverScopedPtr result(new Observer());
+      result->promise_ = promise;
+      result->gen_ = std::move(gen);
+      return result;
+    }
+
+    CertificatePromiseTypePtr promise_;
+    std::shared_ptr<rtc::RTCCertificateGenerator> gen_;
+  };
+
+
+  auto result = CertificatePromiseType::create(UseWebrtcLib::delegateQueue());
+
+  auto factory = UseWebrtcLib::peerConnectionFactory();
+  if (!factory) {
+    UseError::rejectPromise(result, ::webrtc::RTCError(::webrtc::RTCErrorType::INVALID_STATE));
+    return result;
+  }
+
+  auto realFactory = dynamic_cast<::webrtc::PeerConnection *>(factory.get());
+  ZS_ASSERT(realFactory);
+
+  auto nativeValue = UseKeyParams::toNative(keygenAlgorithm);
+  if (!nativeValue) nativeValue = UseKeyParams::toNative(UseKeyParams::createDefault());
+  ZS_ASSERT(nativeValue);
+  if (!nativeValue) {
+    UseError::rejectPromise(result, ::webrtc::RTCError(::webrtc::RTCErrorType::INVALID_STATE));
+    return result;
+  }
+
+  auto gen = std::make_shared<rtc::RTCCertificateGenerator>(realFactory->signaling_thread(), realFactory->network_thread());
+
+  auto observer = Observer::create(result, std::move(gen));
+
+  gen->GenerateCertificateAsync(*nativeValue, ::rtc::Optional<uint64_t>(), observer);
+
   return result;
 }
 
@@ -134,33 +281,90 @@ void wrapper::impl::org::webRtc::RTCPeerConnection::wrapper_init_org_webRtc_RTCP
   auto nativeConfig = UseConfiguration::toNative(config);
 
   native_ = factory->CreatePeerConnection(*nativeConfig, nullptr, nullptr, observer_.get());
+  ZS_ASSERT(native_);
 }
 
 //------------------------------------------------------------------------------
 shared_ptr< PromiseWithHolderPtr< wrapper::org::webRtc::RTCSessionDescriptionPtr > > wrapper::impl::org::webRtc::RTCPeerConnection::createOffer(wrapper::org::webRtc::RTCOfferOptionsPtr options) noexcept
 {
-  shared_ptr< PromiseWithHolderPtr< wrapper::org::webRtc::RTCSessionDescriptionPtr > > result {};
+  auto result = SessionDescriptionPromiseType::create(UseWebrtcLib::delegateQueue());
+
+  ZS_ASSERT(native_);
+  if (!native_) {
+    UseError::rejectPromise(result, ::webrtc::RTCError(::webrtc::RTCErrorType::INVALID_STATE));
+    return result;
+  }
+
+  auto nativeOptions = UseOfferOptions::toNative(options);
+  if (!nativeOptions) {
+    UseError::rejectPromise(result, ::webrtc::RTCError(::webrtc::RTCErrorType::INVALID_PARAMETER));
+    return result;
+  }
+
+  native_->CreateOffer(SessionDescriptionObserver::create(result), *nativeOptions);
   return result;
 }
 
 //------------------------------------------------------------------------------
 shared_ptr< PromiseWithHolderPtr< wrapper::org::webRtc::RTCSessionDescriptionPtr > > wrapper::impl::org::webRtc::RTCPeerConnection::createOffer(wrapper::org::webRtc::MediaConstraintsPtr constraints) noexcept
 {
-  shared_ptr< PromiseWithHolderPtr< wrapper::org::webRtc::RTCSessionDescriptionPtr > > result {};
+  auto result = SessionDescriptionPromiseType::create(UseWebrtcLib::delegateQueue());
+
+  ZS_ASSERT(native_);
+  if (!native_) {
+    UseError::rejectPromise(result, ::webrtc::RTCError(::webrtc::RTCErrorType::INVALID_STATE));
+    return result;
+  }
+
+  auto nativeConstraints = UseMediaConstraints::toNative(constraints);
+  if (!nativeConstraints) {
+    UseError::rejectPromise(result, ::webrtc::RTCError(::webrtc::RTCErrorType::INVALID_PARAMETER));
+    return result;
+  }
+
+  native_->CreateOffer(SessionDescriptionObserver::create(result), nativeConstraints.get());
   return result;
 }
 
 //------------------------------------------------------------------------------
 shared_ptr< PromiseWithHolderPtr< wrapper::org::webRtc::RTCSessionDescriptionPtr > > wrapper::impl::org::webRtc::RTCPeerConnection::createAnswer(wrapper::org::webRtc::RTCAnswerOptionsPtr options) noexcept
 {
-  shared_ptr< PromiseWithHolderPtr< wrapper::org::webRtc::RTCSessionDescriptionPtr > > result {};
+  auto result = SessionDescriptionPromiseType::create(UseWebrtcLib::delegateQueue());
+
+  ZS_ASSERT(native_);
+  if (!native_) {
+    UseError::rejectPromise(result, ::webrtc::RTCError(::webrtc::RTCErrorType::INVALID_STATE));
+    return result;
+  }
+
+  auto nativeOptions = UseAnswerOptions::toNative(options);
+  if (!nativeOptions) {
+    UseError::rejectPromise(result, ::webrtc::RTCError(::webrtc::RTCErrorType::INVALID_PARAMETER));
+    return result;
+  }
+
+  native_->CreateAnswer(SessionDescriptionObserver::create(result), *nativeOptions);
   return result;
 }
 
 //------------------------------------------------------------------------------
 shared_ptr< PromiseWithHolderPtr< wrapper::org::webRtc::RTCSessionDescriptionPtr > > wrapper::impl::org::webRtc::RTCPeerConnection::createAnswer(wrapper::org::webRtc::MediaConstraintsPtr constraints) noexcept
 {
-  shared_ptr< PromiseWithHolderPtr< wrapper::org::webRtc::RTCSessionDescriptionPtr > > result {};
+  auto result = SessionDescriptionPromiseType::create(UseWebrtcLib::delegateQueue());
+
+  ZS_ASSERT(native_);
+  if (!native_) {
+    UseError::rejectPromise(result, ::webrtc::RTCError(::webrtc::RTCErrorType::INVALID_STATE));
+    return result;
+  }
+
+  auto nativeConstraints = UseMediaConstraints::toNative(constraints);
+  if (!nativeConstraints) {
+    UseError::rejectPromise(result, ::webrtc::RTCError(::webrtc::RTCErrorType::INVALID_PARAMETER));
+    return result;
+  }
+
+  native_->CreateAnswer(SessionDescriptionObserver::create(result), nativeConstraints.get());
   return result;
 }
 
@@ -181,7 +385,7 @@ PromisePtr wrapper::impl::org::webRtc::RTCPeerConnection::setLocalDescription(wr
       UseError::rejectPromise(promise_, ::webrtc::RTCError(::webrtc::RTCErrorType::INVALID_PARAMETER, error.c_str()));
     }
 
-    static ObserverScopedPtr create(PromisePtr promise) {
+    static ObserverScopedPtr create(PromisePtr promise) noexcept {
       ObserverScopedPtr result(new Observer());
       result->promise_ = promise;
       return result;
@@ -217,7 +421,7 @@ PromisePtr wrapper::impl::org::webRtc::RTCPeerConnection::setRemoteDescription(w
       UseError::rejectPromise(promise_, error);
     }
 
-    static ObserverScopedPtr create(PromisePtr promise) {
+    static ObserverScopedPtr create(PromisePtr promise) noexcept {
       ObserverScopedPtr result(new Observer());
       result->promise_ = promise;
       return result;
