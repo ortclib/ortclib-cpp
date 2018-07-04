@@ -1,5 +1,7 @@
 
 #include "impl_org_webRtc_RTCKeyParams.h"
+#include "impl_org_webRtc_enums.h"
+#include "impl_org_webRtc_RTCRSAParams.h"
 
 #include "impl_org_webRtc_pre_include.h"
 #include "rtc_base/sslidentity.h"
@@ -28,6 +30,9 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCKeyParams::WrapperImplType
 ZS_DECLARE_TYPEDEF_PTR(WrapperImplType::WrapperType, WrapperType);
 ZS_DECLARE_TYPEDEF_PTR(WrapperImplType::NativeType, NativeType);
 
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::IEnum, UseEnum);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCRSAParams, UseRsaParams);
+
 //------------------------------------------------------------------------------
 wrapper::impl::org::webRtc::RTCKeyParams::RTCKeyParams() noexcept
 {
@@ -50,68 +55,86 @@ wrapper::impl::org::webRtc::RTCKeyParams::~RTCKeyParams() noexcept
 //------------------------------------------------------------------------------
 void wrapper::impl::org::webRtc::RTCKeyParams::wrapper_init_org_webRtc_RTCKeyParams() noexcept
 {
+  native_ = make_shared<NativeType>();
 }
 
 //------------------------------------------------------------------------------
 void wrapper::impl::org::webRtc::RTCKeyParams::wrapper_init_org_webRtc_RTCKeyParams(wrapper::org::webRtc::RTCKeyType key_type) noexcept
 {
-#pragma ZS_BUILD_NOTE("TODO","TODO")
+  native_ = make_shared<NativeType>(UseEnum::toNative(key_type));
 }
 
 //------------------------------------------------------------------------------
 wrapper::org::webRtc::RTCKeyParamsPtr wrapper::org::webRtc::RTCKeyParams::createRsa() noexcept
 {
-  wrapper::org::webRtc::RTCKeyParamsPtr result {};
+  auto result = make_shared<WrapperImplType>();
+  result->thisWeak_ = result;
+  result->native_ = make_shared<NativeType>(NativeType::RSA());
   return result;
 }
 
 //------------------------------------------------------------------------------
 wrapper::org::webRtc::RTCKeyParamsPtr wrapper::org::webRtc::RTCKeyParams::createRsaWithParams(wrapper::org::webRtc::RTCRSAParamsPtr params) noexcept
 {
-  wrapper::org::webRtc::RTCKeyParamsPtr result {};
+  if (!params) return createRsa();
+
+  auto native = UseRsaParams::toNative(params);
+  if (!native) return createRsa();
+
+  auto result = make_shared<WrapperImplType>();
+  result->thisWeak_ = result;
+  result->native_ = make_shared<NativeType>(NativeType::RSA(native->mod_size, native->pub_exp));
   return result;
 }
 
 //------------------------------------------------------------------------------
 wrapper::org::webRtc::RTCKeyParamsPtr wrapper::org::webRtc::RTCKeyParams::createEcdsa() noexcept
 {
-  wrapper::org::webRtc::RTCKeyParamsPtr result {};
+  auto result = make_shared<WrapperImplType>();
+  result->thisWeak_ = result;
+  result->native_ = make_shared<NativeType>(NativeType::ECDSA());
   return result;
 }
 
 //------------------------------------------------------------------------------
 wrapper::org::webRtc::RTCKeyParamsPtr wrapper::org::webRtc::RTCKeyParams::createEcdsaWithCurve(wrapper::org::webRtc::RTCECCurve curve) noexcept
 {
-  wrapper::org::webRtc::RTCKeyParamsPtr result {};
+  auto result = make_shared<WrapperImplType>();
+  result->thisWeak_ = result;
+  result->native_ = make_shared<NativeType>(NativeType::ECDSA(UseEnum::toNative(curve)));
   return result;
 }
 
 //------------------------------------------------------------------------------
 bool wrapper::impl::org::webRtc::RTCKeyParams::get_valid() noexcept
 {
-  bool result {};
-  return result;
+  ZS_ASSERT(native_);
+  if (!native_) return false;
+  return native_->IsValid();
 }
 
 //------------------------------------------------------------------------------
 wrapper::org::webRtc::RTCRSAParamsPtr wrapper::impl::org::webRtc::RTCKeyParams::get_rsa() noexcept
 {
-  wrapper::org::webRtc::RTCRSAParamsPtr result {};
-  return result;
+  ZS_ASSERT(native_);
+  if (!native_) return false;
+  return UseRsaParams::toWrapper(native_->rsa_params());
 }
 
 //------------------------------------------------------------------------------
 wrapper::org::webRtc::RTCECCurve wrapper::impl::org::webRtc::RTCKeyParams::get_ec() noexcept
 {
-  wrapper::org::webRtc::RTCECCurve result {};
-  return result;
+  ZS_ASSERT(native_);
+  if (!native_) return wrapper::org::webRtc::RTCECCurve {};
+  return UseEnum::toWrapper(native_->ec_curve());
 }
 
 //------------------------------------------------------------------------------
 wrapper::org::webRtc::RTCKeyType wrapper::impl::org::webRtc::RTCKeyParams::get_type() noexcept
 {
-  wrapper::org::webRtc::RTCKeyType result {};
-  return result;
+  ZS_ASSERT(native_);
+  if (!native_) return wrapper::org::webRtc::RTCKeyType{};
+  return UseEnum::toWrapper(native_->type());
 }
 
 //------------------------------------------------------------------------------

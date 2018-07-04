@@ -21,6 +21,8 @@ namespace rtc
   class IntervalRange;
   class KeyParams;
 
+  struct RSAParams;
+
   enum ECCurve;
   enum KeyType;
 }
