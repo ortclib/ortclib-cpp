@@ -1,8 +1,11 @@
 
 #include "impl_org_webRtc_RTCCertificate.h"
+#include "impl_org_webRtc_RTCDtlsFingerprint.h"
 
 #include "impl_org_webRtc_pre_include.h"
 #include "rtc_base/rtccertificate.h"
+#include "rtc_base/sslidentity.h"
+#include "rtc_base/sslfingerprint.h"
 #include "impl_org_webRtc_post_include.h"
 
 #include <zsLib/date.h>
@@ -32,6 +35,8 @@ using namespace date;
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCCertificate::WrapperImplType, WrapperImplType);
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCCertificate::WrapperType, WrapperType);
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCCertificate::NativeType, NativeType);
+
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCDtlsFingerprint, UseFingerprint);
 
 typedef WrapperImplType::NativeTypeScopedPtr NativeTypeScopedPtr;
 
@@ -69,11 +74,24 @@ wrapper::impl::org::webRtc::RTCCertificate::~RTCCertificate() noexcept
 //------------------------------------------------------------------------------
 shared_ptr< list< wrapper::org::webRtc::RTCDtlsFingerprintPtr > > wrapper::impl::org::webRtc::RTCCertificate::get_fingerprints() noexcept
 {
-  ZS_ASSERT(native_);
-  if (!native_) return shared_ptr< list< wrapper::org::webRtc::RTCDtlsFingerprintPtr > >();
+  typedef list< wrapper::org::webRtc::RTCDtlsFingerprintPtr > ResultType;
 
-#pragma ZS_BUILD_NOTE("LATER","No direct api in webrtc to obtain certificates given algorithms")
-  return make_shared< list< wrapper::org::webRtc::RTCDtlsFingerprintPtr > >();
+  auto result = make_shared<ResultType>();
+
+  ZS_ASSERT(native_);
+  if (!native_) return result;
+
+  std::string digest_alg;
+  auto &sslCert = native_->ssl_certificate();
+  if (!sslCert.GetSignatureDigestAlgorithm(&digest_alg)) return result;
+
+  std::unique_ptr<::rtc::SSLFingerprint> nativeFingerprint(::rtc::SSLFingerprint::Create(digest_alg, &sslCert));
+  
+  auto wrapperFingerprint = UseFingerprint::toWrapper(digest_alg, std::move(nativeFingerprint));
+  if (wrapperFingerprint) {
+    result->push_back(wrapperFingerprint);
+  }
+  return result;
 }
 
 //------------------------------------------------------------------------------

@@ -20,6 +20,7 @@ namespace rtc
   class RTCCertificate;
   class IntervalRange;
   class KeyParams;
+  struct SSLFingerprint;
 
   struct RSAParams;
 
