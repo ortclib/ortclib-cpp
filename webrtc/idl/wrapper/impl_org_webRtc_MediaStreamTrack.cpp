@@ -307,6 +307,8 @@ void WrapperImplType::autoAttachSourceToElement()
 //------------------------------------------------------------------------------
 void WrapperImplType::setupObserver() noexcept
 {
+  if (!native_) return;
+
   auto converted = dynamic_cast<::webrtc::VideoTrackInterface *>(native_.get());
   ZS_ASSERT(converted);
   if (!converted) return;

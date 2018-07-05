@@ -819,7 +819,6 @@ void WrapperImplType::onWebrtcObserverRemoveTrack(rtc::scoped_refptr<::webrtc::R
 //------------------------------------------------------------------------------
 void WrapperImplType::setupObserver() noexcept
 {
-  if (!native_) return;
   observer_ = std::make_unique<WebrtcObserver>(thisWeak_.lock(), UseWebrtcLib::delegateQueue());
 }
 
