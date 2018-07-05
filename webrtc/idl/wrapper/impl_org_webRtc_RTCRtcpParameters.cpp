@@ -24,6 +24,8 @@ using ::std::map;
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCRtcpParameters::WrapperImplType, WrapperImplType);
 ZS_DECLARE_TYPEDEF_PTR(WrapperImplType::WrapperType, WrapperType);
 
+#pragma ZS_BUILD_NOTE("LATER","No way to convert RTCRtcpParameters")
+
 //------------------------------------------------------------------------------
 wrapper::impl::org::webRtc::RTCRtcpParameters::RTCRtcpParameters() noexcept
 {

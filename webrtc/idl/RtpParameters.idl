@@ -78,10 +78,7 @@ namespace org
       /// </summary>
       [optional]
       uint32          ssrc;
-    };
-
-    [dictionary]
-    struct RTCRtpEncodingParameters : RTCRtpCodingParameters {
+      
       /// <summary>
       /// Gets or sets a codec to be sent. Must reference a
       /// payload type from the codecs member of RTCRtpParameters.
@@ -104,6 +101,21 @@ namespace org
       RTCRtpRtxParameters rtx;
 
       /// <summary>
+      /// Gets or sets a flag that this encoding is actively being
+      /// sent. Setting it to false causes this encoding to no
+      /// longer be sent. Setting it to true causes this encoding
+      /// to be sent.
+      /// </summary>
+      bool            active = true;
+    };
+
+    [dictionary]
+    struct RTCRtpDecodingParameters : RTCRtpCodingParameters {
+    };
+
+    [dictionary]
+    struct RTCRtpEncodingParameters : RTCRtpCodingParameters {
+      /// <summary>
       /// Gets or sets the discontinuous transmission mode. This
       /// member is only used if the sender's kind is "audio".
       /// It indicates whether discontinuous transmission will
@@ -119,13 +131,6 @@ namespace org
       /// </summary>
       [optional]
       RTCDtxStatus    dtx;
-      /// <summary>
-      /// Gets or sets a flag that this encoding is actively being
-      /// sent. Setting it to false causes this encoding to no
-      /// longer be sent. Setting it to true causes this encoding
-      /// to be sent.
-      /// </summary>
-      bool            active = true;
       /// <summary>
       /// Gets or sets the priority of this encoding. It is
       /// specified in [RTCWEB-TRANSPORT], Section 4.
@@ -242,13 +247,11 @@ namespace org
       /// <summary>
       /// The maximum packetization time supported by the RTCRtpReceiver.
       /// </summary>
-      [optional]
-      Milliseconds          maxptime;
+      Milliseconds          maxPtime;
 
       /// <summary>
       /// The preferred duration of media represented by a packet in milliseconds for the RTCRtpSender or RTCRtpReceiver.
       /// </summary>
-      [optional]
       Milliseconds          ptime;
 
       /// <summary>
@@ -457,6 +460,8 @@ namespace org
       /// Transport layer and codec-specific feedback messages for this codec.
       /// </summary>
       RTCRtcpFeedbackList rtcpFeedback;
+
+
     };
 
     [dictionary]
@@ -482,7 +487,22 @@ namespace org
       /// sdpFmtpLine attribute (providing the "apt" and "rtx-time"
       /// parameters).
       /// </summary>
-      RTCRtpCodecParametersList           codecs;    
+      RTCRtpCodecParametersList           codecs;
+
+      /// <summary>
+      /// The muxId assigned to the RTP stream, if any. In an RTCRtpReceiver
+      /// or RTCRtpSender, this corresponds to MID RTP header extension defined
+      /// in [BUNDLE]. This is a stable identifier that permits the track
+      /// corresponding to an RTP stream to be identified, rather than relying
+      /// on an SSRC. An SSRC is randomly generated and can change arbitrarily
+      /// due to conflicts with other SSRCs, whereas the muxId has a value whose
+      /// meaning can be defined in advance between RTP sender and receiver,
+      /// assisting in RTP demultiplexing. Since muxId is included in
+      /// RTCRtpParameters, if it is desired to send simulcast streams with
+      /// different muxId values for each stream, then multiple RTCRtpSender
+      /// objects are needed.
+      /// </summary>
+      string muxId;
     };
 
     [dictionary]

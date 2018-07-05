@@ -41,6 +41,13 @@ namespace webrtc
   struct RtpEncodingParameters;
   struct RtpRtxParameters;
   struct RtpFecParameters;
+  struct RtcpFeedback;
+  struct RtpCodecParameters;
+  struct RtpCodecCapability;
+  struct RtpHeaderExtensionCapability;
+  struct RtpExtension;
+  struct RtpCapabilities;
+  struct RtpParameters;
 
   class AudioTrackInterface;
   class VideoTrackInterface;

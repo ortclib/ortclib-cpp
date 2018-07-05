@@ -1,7 +1,6 @@
 
 #include "impl_org_webRtc_RTCRtpEncodingParameters.h"
-#include "impl_org_webRtc_RTCRtpRtxParameters.h"
-#include "impl_org_webRtc_RTCRtpFecParameters.h"
+#include "impl_org_webRtc_RTCRtpCodingParameters.h"
 #include "impl_org_webRtc_enums.h"
 
 #include "impl_org_webRtc_pre_include.h"
@@ -34,8 +33,7 @@ ZS_DECLARE_TYPEDEF_PTR(WrapperImplType::WrapperType, WrapperType);
 ZS_DECLARE_TYPEDEF_PTR(WrapperImplType::NativeType, NativeType);
 
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::IEnum, UseEnum);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCRtpRtxParameters, UseRtxParameters);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCRtpFecParameters, UseFecParameters);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCRtpCodingParameters, UseRtpCodingParameters);
 
 //------------------------------------------------------------------------------
 wrapper::impl::org::webRtc::RTCRtpEncodingParameters::RTCRtpEncodingParameters() noexcept
@@ -62,29 +60,14 @@ void wrapper::impl::org::webRtc::RTCRtpEncodingParameters::wrapper_init_org_webR
 }
 
 //------------------------------------------------------------------------------
-static void apply(const NativeType &from, WrapperImplType &to)
+static void apply(const NativeType &from, WrapperImplType &to) noexcept
 {
-  to.rid = from.rid;
-  if (from.ssrc.has_value()) {
-    to.ssrc = SafeInt<decltype(to.ssrc)::value_type>(from.ssrc.value());
-  }
-  if (from.codec_payload_type.has_value()) {
-    to.codecPayloadType = SafeInt<decltype(to.codecPayloadType)::value_type>(from.codec_payload_type.value());
-  }
+  UseRtpCodingParameters::apply(from, to);
 
-  if (from.fec.has_value()) {
-    auto temp = UseFecParameters::toWrapper(from.fec.value());
-    if (temp) to.fec = temp;
-  }
-  if (from.rtx.has_value()) {
-    auto temp = UseRtxParameters::toWrapper(from.rtx.value());
-    if (temp) to.rtx = temp;
-  }
   if (from.dtx.has_value()) {
     to.dtx = UseEnum::toWrapper(from.dtx.value());
   }
 
-  to.active = from.active;
   to.priority = UseEnum::toWrapperRTCPriorityType(from.bitrate_priority);
 
   if (from.ptime.has_value()) {
@@ -111,29 +94,14 @@ static void apply(const NativeType &from, WrapperImplType &to)
 }
 
 //------------------------------------------------------------------------------
-static void apply(const WrapperImplType &from, NativeType &to)
+static void apply(const WrapperImplType &from, NativeType &to) noexcept
 {
-  to.rid = from.rid;
-  if (from.ssrc.has_value()) {
-    to.ssrc = (uint32_t)SafeInt<uint32_t>(from.ssrc.value());
-  }
-  if (from.codecPayloadType.has_value()) {
-    to.codec_payload_type = (int)SafeInt<int>(from.codecPayloadType.value());
-  }
+  UseRtpCodingParameters::apply(from, to);
 
-  if (from.fec.has_value()) {
-    auto temp = UseFecParameters::toNative(from.fec.value());
-    if (temp) to.fec = *temp;
-  }
-  if (from.rtx.has_value()) {
-    auto temp = UseRtxParameters::toNative(from.rtx.value());
-    if (temp) to.rtx = *temp;
-  }
   if (from.dtx.has_value()) {
     to.dtx = UseEnum::toNative(from.dtx.value());
   }
 
-  to.active = from.active;
   to.bitrate_priority = UseEnum::toNative(from.priority);
 
   if (from.ptime != decltype(from.ptime)()) {
