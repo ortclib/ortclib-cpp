@@ -43,6 +43,9 @@ namespace org
     /// </summary>
     [dictionary]
     struct RTCRtpContributingSource {
+      [constructor, default, delete]
+      void RTCRtpContributingSource();
+
       /// <summary>
       /// Get or sets the timestamp indicating the most recent time
       /// of playout of media that arrived in an RTP packet
@@ -92,6 +95,9 @@ namespace org
     /// </summary>
     [dictionary]
     struct  RTCRtpSynchronizationSource : RTCRtpContributingSource {
+      [constructor, default, delete]
+      void RTCRtpSynchronizationSource();
+
       /// <summary>
       /// Gets or sets whether the last RTP packet played from
       /// this source contains voice activity (true) or not
@@ -101,6 +107,7 @@ namespace org
       /// to "off", as described in [RFC6464], Section 4,
       /// voiceActivityFlag will be absent.
       /// </summary>
+      [optional]
       bool voiceActivityFlag;
     };
 
@@ -135,6 +142,7 @@ namespace org
       /// getting, the attribute MUST return the value of the
       /// [[ReceiverTrack]] slot.
       /// </summary>
+      [getter]
       MediaStreamTrack  track;
       /// <summary>
       /// The getParameters() method returns the RTCRtpReceiver

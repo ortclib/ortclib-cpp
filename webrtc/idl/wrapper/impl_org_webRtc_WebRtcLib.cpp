@@ -27,6 +27,7 @@
 #include "api/audio_codecs/builtin_audio_decoder_factory.h"
 #include "api/audio_codecs/builtin_audio_encoder_factory.h"
 #include "api/peerconnectioninterface.h"
+#include "api/peerconnectionfactoryproxy.h"
 #include "api/test/fakeconstraints.h"
 #include "common_video/video_common_winuwp.h"
 #include "rtc_base/event_tracer.h"
@@ -34,6 +35,7 @@
 #include "rtc_base/win32socketinit.h"
 #include "third_party/winuwp_h264/winuwp_h264_factory.h"
 #include "media/engine/webrtcvideocapturerfactory.h"
+#include "pc/peerconnectionfactory.h"
 #include "impl_org_webRtc_post_include.h"
 
 #include <zsLib/IMessageQueueThread.h>
@@ -66,6 +68,11 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::WebRtcLib::WrapperType, Wrapp
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::WebRtcLib::WrapperImplType, WrapperImplType);
 
 typedef WrapperImplType::PeerConnectionFactoryInterfaceScopedPtr PeerConnectionFactoryInterfaceScopedPtr;
+typedef WrapperImplType::PeerConnectionFactoryScopedPtr PeerConnectionFactoryScopedPtr;
+
+ZS_DECLARE_TYPEDEF_PTR(::webrtc::PeerConnectionFactory, NativePeerConnectionFactory)
+ZS_DECLARE_TYPEDEF_PTR(::webrtc::PeerConnectionFactoryInterface, NativePeerConnectionFactoryInterface)
+
 ZS_DECLARE_TYPEDEF_PTR(WrapperImplType::UseVideoDeviceCaptureFacrtory, UseVideoDeviceCaptureFacrtory);
 
 ZS_DECLARE_TYPEDEF_PTR(::cricket::WebRtcVideoDeviceCapturerFactory, UseWebrtcVideoDeviceCaptureFacrtory);
@@ -74,6 +81,13 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::EventQueue::WrapperImplType, 
 
 
 ZS_DECLARE_TYPEDEF_PTR(zsLib::eventing::IHelper, UseHelper);
+
+//------------------------------------------------------------------------------
+static NativePeerConnectionFactoryInterface *unproxy(NativePeerConnectionFactoryInterface *native)
+{
+  if (!native) return native;
+  return WRAPPER_DEPROXIFY_CLASS(::webrtc::PeerConnectionFactory, ::webrtc::PeerConnectionFactory, native);
+}
 
 //------------------------------------------------------------------------------
 WrapperImplType::WebRtcLib() noexcept
@@ -434,6 +448,14 @@ PeerConnectionFactoryInterfaceScopedPtr WrapperImplType::actual_peerConnectionFa
   return peerConnectionFactory_;
 }
 
+//------------------------------------------------------------------------------
+PeerConnectionFactoryScopedPtr WrapperImplType::actual_realPeerConnectionFactory() noexcept
+{
+  if (!actual_checkSetup()) return PeerConnectionFactoryScopedPtr();
+
+  auto realInterface = unproxy(peerConnectionFactory_);
+  return dynamic_cast<NativePeerConnectionFactory *>(realInterface);
+}
 
 //------------------------------------------------------------------------------
 UseVideoDeviceCaptureFacrtoryPtr WrapperImplType::actual_videoDeviceCaptureFactory() noexcept
@@ -515,6 +537,14 @@ WrapperImplTypePtr WrapperImplType::singleton() noexcept
       }
 
       //-----------------------------------------------------------------------
+      PeerConnectionFactoryScopedPtr actual_realPeerConnectionFactory() noexcept final
+      {
+        ZS_ASSERT_FAIL("why is the factory needed during shutdown?");
+        // no way around this one with a bogus factory...
+        return PeerConnectionFactoryScopedPtr();
+      }
+
+      //-----------------------------------------------------------------------
       UseVideoDeviceCaptureFacrtoryPtr actual_videoDeviceCaptureFactory() noexcept final
       {
         ZS_ASSERT_FAIL("why is the factory needed during shutdown?");
@@ -542,12 +572,18 @@ bool WrapperImplType::checkSetup(bool assert) noexcept
   return singleton->actual_checkSetup(assert);
 }
 
-
 //------------------------------------------------------------------------------
 PeerConnectionFactoryInterfaceScopedPtr WrapperImplType::peerConnectionFactory() noexcept
 {
   auto singleton = WrapperImplType::singleton();
   return singleton->actual_peerConnectionFactory();
+}
+
+//------------------------------------------------------------------------------
+PeerConnectionFactoryScopedPtr WrapperImplType::realPeerConnectionFactory() noexcept
+{
+  auto singleton = WrapperImplType::singleton();
+  return singleton->actual_realPeerConnectionFactory();
 }
 
 //------------------------------------------------------------------------------

@@ -1,6 +1,7 @@
 
 #include "impl_org_webRtc_RTCRtpSender.h"
 #include "impl_org_webRtc_helpers.h"
+#include "generated/org_webRtc_RTCRtpReceiver.h"
 #include "impl_org_webRtc_WebrtcLib.h"
 
 #include "impl_org_webRtc_pre_include.h"
@@ -82,8 +83,8 @@ wrapper::impl::org::webRtc::RTCRtpSender::~RTCRtpSender() noexcept
 //------------------------------------------------------------------------------
 wrapper::org::webRtc::RTCRtpCapabilitiesPtr wrapper::org::webRtc::RTCRtpSender::getCapabilities(String kind) noexcept
 {
-  wrapper::org::webRtc::RTCRtpCapabilitiesPtr result {};
-  return result;
+#pragm ZS_BUILD_NOTE("NOTE","Sender and receiver share same capabilities within WebRTC (for now)")
+  return wrapper::org::webRtc::RTCRtpReceiver::getCapabilities(kind);
 }
 
 //------------------------------------------------------------------------------

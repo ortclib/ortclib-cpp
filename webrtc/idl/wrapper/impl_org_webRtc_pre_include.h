@@ -49,6 +49,7 @@ namespace webrtc
   struct RtpCapabilities;
   struct RtpParameters;
 
+  class RtpSource;
   class AudioTrackInterface;
   class VideoTrackInterface;
   class DtmfSenderInterface;
@@ -58,6 +59,7 @@ namespace webrtc
   class SessionDescriptionInterface;
   class PeerConnectionInterface;
   class PeerConnectionFactoryInterface;
+  class PeerConnectionFactory;
 
   class MediaSourceInterface;
   class AudioSourceInterface;

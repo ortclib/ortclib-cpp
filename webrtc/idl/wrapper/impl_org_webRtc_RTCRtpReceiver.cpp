@@ -1,11 +1,19 @@
 
 #include "impl_org_webRtc_RTCRtpReceiver.h"
+#include "impl_org_webRtc_RTCRtpReceiveParameters.h"
+#include "impl_org_webRtc_RTCRtpCapabilities.h"
+#include "impl_org_webRtc_MediaStreamTrack.h"
 #include "impl_org_webRtc_helpers.h"
+#include "impl_org_webRtc_enums.h"
+#include "impl_org_webRtc_RTCRtpContributingSource.h"
+#include "impl_org_webRtc_RTCRtpSynchronizationSource.h"
 #include "impl_org_webRtc_WebrtcLib.h"
 
 #include "impl_org_webRtc_pre_include.h"
 #include "api/rtpreceiverinterface.h"
 #include "pc/rtpreceiver.h"
+#include "pc/peerconnectionfactory.h"
+#include "media/base/mediaengine.h"
 #include "impl_org_webRtc_post_include.h"
 
 using ::zsLib::String;
@@ -28,14 +36,47 @@ using ::std::map;
 
 // borrow definitions from class
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCRtpReceiver::WrapperImplType, WrapperImplType);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCRtpReceiver::WrapperType, WrapperType);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCRtpReceiver::NativeType, NativeType);
+ZS_DECLARE_TYPEDEF_PTR(WrapperImplType::WrapperType, WrapperType);
+ZS_DECLARE_TYPEDEF_PTR(WrapperImplType::NativeType, NativeType);
 
 typedef WrapperImplType::NativeTypeScopedPtr NativeTypeScopedPtr;
 
 typedef wrapper::impl::org::webRtc::WrapperMapper<NativeType, WrapperImplType> UseWrapperMapper;
 
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::WebRtcLib, UseWebrtcLib);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::IEnum, UseEnum);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCRtpReceiveParameters, UseRtpReceiveParameters);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCRtpCapabilities, UseRtpCapabilities);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::MediaStreamTrack, UseMediaStreamTrack);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCRtpContributingSource, UseRtpContributingSource);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCRtpSynchronizationSource, UseRtpSynchronizationSource);
+
+
+//-----------------------------------------------------------------------------
+// NOTE: borrowed from webrtc/ortc/ortcfactory.cc
+namespace {
+
+  // Asserts that all of the built-in capabilities can be converted to
+  // RtpCapabilities. If they can't, something's wrong (for example, maybe a new
+  // feedback mechanism is supported, but an enum value wasn't added to
+  // rtpparameters.h).
+  template <typename C>
+  webrtc::RtpCapabilities ToRtpCapabilitiesWithAsserts(
+    const std::vector<C>& cricket_codecs,
+    const cricket::RtpHeaderExtensions& cricket_extensions) {
+    webrtc::RtpCapabilities capabilities =
+      webrtc::ToRtpCapabilities(cricket_codecs, cricket_extensions);
+    RTC_DCHECK_EQ(capabilities.codecs.size(), cricket_codecs.size());
+    for (size_t i = 0; i < capabilities.codecs.size(); ++i) {
+      RTC_DCHECK_EQ(capabilities.codecs[i].rtcp_feedback.size(),
+        cricket_codecs[i].feedback_params.params().size());
+    }
+    RTC_DCHECK_EQ(capabilities.header_extensions.size(),
+      cricket_extensions.size());
+    return capabilities;
+  }
+
+}  // namespace
 
 //------------------------------------------------------------------------------
 static UseWrapperMapper &mapperSingleton()
@@ -80,43 +121,95 @@ wrapper::impl::org::webRtc::RTCRtpReceiver::~RTCRtpReceiver() noexcept
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webRtc::RTCRtpCapabilitiesPtr wrapper::org::webRtc::RTCRtpReceiver::getCapabilities(String kind) noexcept
+wrapper::org::webRtc::RTCRtpCapabilitiesPtr wrapper::org::webRtc::RTCRtpReceiver::getCapabilities(String kindStr) noexcept
 {
-  wrapper::org::webRtc::RTCRtpCapabilitiesPtr result {};
-  return result;
+  auto realFactory = UseWebrtcLib::realPeerConnectionFactory();
+  ZS_ASSERT(realFactory);
+  if (!realFactory) return wrapper::org::webRtc::RTCRtpCapabilitiesPtr();
+
+  auto channelManager = realFactory->channel_manager();
+
+  try {
+    auto kind = UseEnum::toNativeMediaType(kindStr);
+
+    switch (kind) {
+    case cricket::MEDIA_TYPE_AUDIO: {
+      cricket::AudioCodecs cricket_codecs;
+      cricket::RtpHeaderExtensions cricket_extensions;
+      channelManager->GetSupportedAudioReceiveCodecs(&cricket_codecs);
+      channelManager->GetSupportedAudioRtpHeaderExtensions(
+        &cricket_extensions);
+      return UseRtpCapabilities::toWrapper(ToRtpCapabilitiesWithAsserts(cricket_codecs, cricket_extensions));
+    }
+    case cricket::MEDIA_TYPE_VIDEO: {
+      cricket::VideoCodecs cricket_codecs;
+      cricket::RtpHeaderExtensions cricket_extensions;
+      channelManager->GetSupportedVideoCodecs(&cricket_codecs);
+      channelManager->GetSupportedVideoRtpHeaderExtensions(
+        &cricket_extensions);
+      return UseRtpCapabilities::toWrapper(ToRtpCapabilitiesWithAsserts(cricket_codecs, cricket_extensions));
+    }
+    case cricket::MEDIA_TYPE_DATA:
+      return UseRtpCapabilities::toWrapper(::webrtc::RtpCapabilities());
+    }
+  } catch (const ::zsLib::Exceptions::InvalidArgument &) {
+  }
+
+  return wrapper::org::webRtc::RTCRtpCapabilitiesPtr();
 }
 
 //------------------------------------------------------------------------------
 wrapper::org::webRtc::RTCRtpReceiveParametersPtr wrapper::impl::org::webRtc::RTCRtpReceiver::getParameters() noexcept
 {
-  wrapper::org::webRtc::RTCRtpReceiveParametersPtr result {};
-  return result;
+  ZS_ASSERT(!native_);
+  if (!native_) return wrapper::org::webRtc::RTCRtpReceiveParametersPtr();
+
+  return UseRtpReceiveParameters::toWrapper(native_->GetParameters());
 }
 
 //------------------------------------------------------------------------------
 shared_ptr< list< wrapper::org::webRtc::RTCRtpContributingSourcePtr > > wrapper::impl::org::webRtc::RTCRtpReceiver::getContributingSources() noexcept
 {
-  shared_ptr< list< wrapper::org::webRtc::RTCRtpContributingSourcePtr > > result {};
+  typedef shared_ptr< list< wrapper::org::webRtc::RTCRtpContributingSourcePtr > > ReturnType;
+  ZS_ASSERT(!native_);
+  if (!native_) return ReturnType();
+
+  auto result = make_shared< ReturnType::element_type >();
+
+  auto sources = native_->GetSources();
+  for (auto iter = sources.begin(); iter != sources.end(); ++iter) {
+    auto wrapper = UseRtpContributingSource::toWrapper(*iter);
+    if (!wrapper) continue;
+    result->push_back(wrapper);
+  }
   return result;
 }
 
 //------------------------------------------------------------------------------
 shared_ptr< list< wrapper::org::webRtc::RTCRtpSynchronizationSourcePtr > > wrapper::impl::org::webRtc::RTCRtpReceiver::getSynchronizationSources() noexcept
 {
-  shared_ptr< list< wrapper::org::webRtc::RTCRtpSynchronizationSourcePtr > > result {};
+  typedef shared_ptr< list< wrapper::org::webRtc::RTCRtpSynchronizationSourcePtr > > ReturnType;
+  ZS_ASSERT(!native_);
+  if (!native_) return ReturnType();
+
+  auto result = make_shared< ReturnType::element_type >();
+
+  auto sources = native_->GetSources();
+  for (auto iter = sources.begin(); iter != sources.end(); ++iter) {
+    auto wrapper = UseRtpSynchronizationSource::toWrapper(*iter);
+    if (!wrapper) continue;
+    result->push_back(wrapper);
+  }
   return result;
 }
 
 //------------------------------------------------------------------------------
 wrapper::org::webRtc::MediaStreamTrackPtr wrapper::impl::org::webRtc::RTCRtpReceiver::get_track() noexcept
 {
-  wrapper::org::webRtc::MediaStreamTrackPtr result {};
-  return result;
-}
+  ZS_ASSERT(!native_);
+  if (!native_) return wrapper::org::webRtc::MediaStreamTrackPtr();
 
-//------------------------------------------------------------------------------
-void wrapper::impl::org::webRtc::RTCRtpReceiver::set_track(wrapper::org::webRtc::MediaStreamTrackPtr value) noexcept
-{
+  return UseMediaStreamTrack::toWrapper(native_->track());
 }
 
 //------------------------------------------------------------------------------

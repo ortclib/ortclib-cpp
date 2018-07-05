@@ -24,6 +24,7 @@ namespace wrapper {
           ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::WebRtcLib, WrapperImplType);
 
           typedef rtc::scoped_refptr<::webrtc::PeerConnectionFactoryInterface> PeerConnectionFactoryInterfaceScopedPtr;
+          typedef rtc::scoped_refptr<::webrtc::PeerConnectionFactory> PeerConnectionFactoryScopedPtr;
 
           ZS_DECLARE_TYPEDEF_PTR(::cricket::VideoDeviceCapturerFactory, UseVideoDeviceCaptureFacrtory);
 
@@ -68,6 +69,7 @@ namespace wrapper {
           // addition methods needed
           virtual bool actual_checkSetup(bool assert = true) noexcept;
           virtual PeerConnectionFactoryInterfaceScopedPtr actual_peerConnectionFactory() noexcept;
+          virtual PeerConnectionFactoryScopedPtr actual_realPeerConnectionFactory() noexcept;
           virtual UseVideoDeviceCaptureFacrtoryPtr actual_videoDeviceCaptureFactory() noexcept;
           virtual zsLib::IMessageQueuePtr actual_delegateQueue() noexcept;
 
@@ -82,6 +84,7 @@ namespace wrapper {
 
           // addition methods needed
           static PeerConnectionFactoryInterfaceScopedPtr peerConnectionFactory() noexcept;
+          static PeerConnectionFactoryScopedPtr realPeerConnectionFactory() noexcept;
           static UseVideoDeviceCaptureFacrtoryPtr videoDeviceCaptureFactory() noexcept;
           static bool checkSetup(bool assert = true) noexcept;
           static zsLib::IMessageQueuePtr delegateQueue() noexcept;

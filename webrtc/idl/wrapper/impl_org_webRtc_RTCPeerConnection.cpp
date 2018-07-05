@@ -206,14 +206,12 @@ shared_ptr< PromiseWithHolderPtr< wrapper::org::webRtc::RTCCertificatePtr > > wr
 
   auto result = CertificatePromiseType::create(UseWebrtcLib::delegateQueue());
 
-  auto factory = UseWebrtcLib::peerConnectionFactory();
-  if (!factory) {
+  auto realFactory = UseWebrtcLib::realPeerConnectionFactory();
+  ZS_ASSERT(realFactory);
+  if (!realFactory) {
     UseError::rejectPromise(result, ::webrtc::RTCError(::webrtc::RTCErrorType::INVALID_STATE));
     return result;
   }
-
-  auto realFactory = dynamic_cast<::webrtc::PeerConnection *>(factory.get());
-  ZS_ASSERT(realFactory);
 
   auto nativeValue = UseKeyParams::toNative(keygenAlgorithm);
   if (!nativeValue) nativeValue = UseKeyParams::toNative(UseKeyParams::createDefault());

@@ -34,7 +34,6 @@ namespace wrapper {
 
           // properties RTCRtpReceiver
           wrapper::org::webRtc::MediaStreamTrackPtr get_track() noexcept override;
-          void set_track(wrapper::org::webRtc::MediaStreamTrackPtr value) noexcept override;
 
           void setupObserver() noexcept;
           void teardownObserver() noexcept;
