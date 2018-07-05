@@ -22,10 +22,21 @@ using ::std::map;
 // borrow definitions from class
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCOfferAnswerOptions::WrapperImplType, WrapperImplType);
 ZS_DECLARE_TYPEDEF_PTR(WrapperImplType::WrapperType, WrapperType);
+ZS_DECLARE_TYPEDEF_PTR(WrapperImplType::NativeType, NativeType);
 
 //------------------------------------------------------------------------------
 wrapper::impl::org::webRtc::RTCOfferAnswerOptions::~RTCOfferAnswerOptions() noexcept
 {
 }
 
+//------------------------------------------------------------------------------
+void WrapperImplType::apply(const NativeType &from, WrapperType &to) noexcept
+{
+  to.voiceActivityDetection = from.voice_activity_detection;
+}
 
+//------------------------------------------------------------------------------
+void WrapperImplType::apply(const WrapperType &from, NativeType &to) noexcept
+{
+  to.voice_activity_detection = from.voiceActivityDetection;
+}

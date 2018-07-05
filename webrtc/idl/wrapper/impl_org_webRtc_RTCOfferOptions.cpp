@@ -1,5 +1,6 @@
 
 #include "impl_org_webRtc_RTCOfferOptions.h"
+#include "impl_org_webRtc_RTCOfferAnswerOptions.h"
 
 using ::zsLib::String;
 using ::zsLib::Optional;
@@ -22,8 +23,10 @@ using ::std::map;
 
 // borrow definitions from class
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCOfferOptions::WrapperImplType, WrapperImplType);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCOfferOptions::WrapperType, WrapperType);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCOfferOptions::NativeType, NativeType);
+ZS_DECLARE_TYPEDEF_PTR(WrapperImplType::WrapperType, WrapperType);
+ZS_DECLARE_TYPEDEF_PTR(WrapperImplType::NativeType, NativeType);
+
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCOfferAnswerOptions, UseOfferAnswerOptions);
 
 //------------------------------------------------------------------------------
 wrapper::impl::org::webRtc::RTCOfferOptions::RTCOfferOptions() noexcept
@@ -57,7 +60,8 @@ void wrapper::impl::org::webRtc::RTCOfferOptions::wrapper_init_org_webRtc_RTCOff
 //------------------------------------------------------------------------------
 static void apply(const NativeType &from, WrapperImplType &to)
 {
-  to.voiceActivityDetection = from.voice_activity_detection;
+  UseOfferAnswerOptions::apply(from, to);
+
   to.iceRestart = from.ice_restart;
   if (NativeType::kUndefined != from.offer_to_receive_video) {
     to.offerToReceiveVideo = (0 == from.offer_to_receive_video ? false : true);
@@ -71,7 +75,8 @@ static void apply(const NativeType &from, WrapperImplType &to)
 //------------------------------------------------------------------------------
 static void apply(const WrapperImplType &from, NativeType &to)
 {
-  to.voice_activity_detection = from.voiceActivityDetection;
+  UseOfferAnswerOptions::apply(from, to);
+
   to.ice_restart = from.iceRestart;
   if (from.offerToReceiveVideo.has_value()) {
     to.offer_to_receive_video = (from.offerToReceiveVideo.value() ? 1 : 0);

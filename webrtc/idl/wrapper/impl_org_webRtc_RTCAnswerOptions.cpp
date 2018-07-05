@@ -1,5 +1,6 @@
 
 #include "impl_org_webRtc_RTCAnswerOptions.h"
+#include "impl_org_webRtc_RTCOfferAnswerOptions.h"
 
 using ::zsLib::String;
 using ::zsLib::Optional;
@@ -21,8 +22,10 @@ using ::std::map;
 
 // borrow definitions from class
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCAnswerOptions::WrapperImplType, WrapperImplType);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCAnswerOptions::WrapperType, WrapperType);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCAnswerOptions::NativeType, NativeType);
+ZS_DECLARE_TYPEDEF_PTR(WrapperImplType::WrapperType, WrapperType);
+ZS_DECLARE_TYPEDEF_PTR(WrapperImplType::NativeType, NativeType);
+
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCOfferAnswerOptions, UseOfferAnswerOptions);
 
 //------------------------------------------------------------------------------
 wrapper::impl::org::webRtc::RTCAnswerOptions::RTCAnswerOptions() noexcept
@@ -56,13 +59,13 @@ void wrapper::impl::org::webRtc::RTCAnswerOptions::wrapper_init_org_webRtc_RTCAn
 //------------------------------------------------------------------------------
 static void apply(const NativeType &from, WrapperImplType &to)
 {
-  to.voiceActivityDetection = from.voice_activity_detection;
+  UseOfferAnswerOptions::apply(from, to);
 }
 
 //------------------------------------------------------------------------------
 static void apply(const WrapperImplType &from, NativeType &to)
 {
-  to.voice_activity_detection = from.voiceActivityDetection;
+  UseOfferAnswerOptions::apply(from, to);
 }
 
 //------------------------------------------------------------------------------
