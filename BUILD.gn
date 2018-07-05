@@ -1212,7 +1212,7 @@ shared_library("libOrtc") {
     "//modules/audio_device",
     "//system_wrappers:metrics_default",
     "//modules/video_capture:video_capture_module",
-    "//modules/video_capture"
+    "//modules/video_capture:video_capture_internal_impl"
   ]
 
   if (is_win && (current_os != "winuwp")) {
