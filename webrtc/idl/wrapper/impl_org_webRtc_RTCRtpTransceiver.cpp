@@ -1,11 +1,16 @@
 
 #include "impl_org_webRtc_RTCRtpTransceiver.h"
+#include "impl_org_webRtc_enums.h"
 #include "impl_org_webRtc_helpers.h"
+#include "impl_org_webRtc_RTCRtpCodecCapability.h"
+#include "impl_org_webRtc_RTCRtpSender.h"
+#include "impl_org_webRtc_RTCRtpReceiver.h"
 #include "impl_org_webRtc_WebrtcLib.h"
 
 #include "impl_org_webRtc_pre_include.h"
 #include "api/rtptransceiverinterface.h"
 #include "pc/rtptransceiver.h"
+#include "api/array_view.h"
 #include "impl_org_webRtc_post_include.h"
 
 using ::zsLib::String;
@@ -36,7 +41,11 @@ typedef WrapperImplType::NativeTypeScopedPtr NativeTypeScopedPtr;
 
 typedef wrapper::impl::org::webRtc::WrapperMapper<NativeType, WrapperImplType> UseWrapperMapper;
 
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::IEnum, UseEnum);
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::WebRtcLib, UseWebrtcLib);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCRtpCodecCapability, UseRtpCodecCapability);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCRtpSender, UseRtpSender);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCRtpReceiver, UseRtpReceiver);
 
 //------------------------------------------------------------------------------
 static UseWrapperMapper &mapperSingleton()
@@ -76,58 +85,101 @@ wrapper::impl::org::webRtc::RTCRtpTransceiver::~RTCRtpTransceiver() noexcept
 //------------------------------------------------------------------------------
 void wrapper::impl::org::webRtc::RTCRtpTransceiver::stop() noexcept
 {
+  ZS_ASSERT(native_);
+  if (!native_) return;
+
+  native_->Stop();
 }
 
 //------------------------------------------------------------------------------
 void wrapper::impl::org::webRtc::RTCRtpTransceiver::setCodecPreferences(shared_ptr< list< wrapper::org::webRtc::RTCRtpCodecCapabilityPtr > > codecs) noexcept(false)
 {
+  ZS_ASSERT(native_);
+  if (!native_) return;
+
+  if (!codecs) return;
+  if (codecs->size() < 1) return;
+
+  std::unique_ptr<::webrtc::RtpCodecCapability[]> nativeCodecs(new ::webrtc::RtpCodecCapability[codecs->size()]);
+
+  size_t found = 0;
+  for (auto iter = codecs->begin(); iter != codecs->end(); ++iter) {
+    auto nativeValue = UseRtpCodecCapability::toNative(*iter);
+    if (!nativeValue) continue;
+    (nativeCodecs.get())[found] = *nativeValue;
+      ++found;
+  }
+
+  rtc::ArrayView<::webrtc::RtpCodecCapability> view(nativeCodecs.get(), found);
+  native_->SetCodecPreferences(view);
 }
 
 //------------------------------------------------------------------------------
 String wrapper::impl::org::webRtc::RTCRtpTransceiver::get_mid() noexcept
 {
-  String result {};
-  return result;
+  ZS_ASSERT(native_);
+  if (!native_) return String();
+
+  auto value = native_->mid();
+  if (value.has_value()) return value.value();
+  return String();
 }
 
 //------------------------------------------------------------------------------
 wrapper::org::webRtc::RTCRtpSenderPtr wrapper::impl::org::webRtc::RTCRtpTransceiver::get_sender() noexcept
 {
-  wrapper::org::webRtc::RTCRtpSenderPtr result {};
-  return result;
+  ZS_ASSERT(native_);
+  if (!native_) return wrapper::org::webRtc::RTCRtpSenderPtr();
+
+  return UseRtpSender::toWrapper(native_->sender());
 }
 
 //------------------------------------------------------------------------------
 wrapper::org::webRtc::RTCRtpReceiverPtr wrapper::impl::org::webRtc::RTCRtpTransceiver::get_receiver() noexcept
 {
-  wrapper::org::webRtc::RTCRtpReceiverPtr result {};
-  return result;
+  ZS_ASSERT(native_);
+  if (!native_) return wrapper::org::webRtc::RTCRtpReceiverPtr();
+
+  return UseRtpReceiver::toWrapper(native_->receiver());
 }
 
 //------------------------------------------------------------------------------
 bool wrapper::impl::org::webRtc::RTCRtpTransceiver::get_stopped() noexcept
 {
-  bool result {};
-  return result;
+  ZS_ASSERT(native_);
+  if (!native_) return true;
+
+  return native_->stopped();
 }
 
 //------------------------------------------------------------------------------
 wrapper::org::webRtc::RTCRtpTransceiverDirection wrapper::impl::org::webRtc::RTCRtpTransceiver::get_direction() noexcept
 {
-  wrapper::org::webRtc::RTCRtpTransceiverDirection result {};
-  return result;
+  ZS_ASSERT(native_);
+  if (!native_) return wrapper::org::webRtc::RTCRtpTransceiverDirection::RTCRtpTransceiverDirection_inactive;
+
+  return UseEnum::toWrapper(native_->direction());
 }
 
 //------------------------------------------------------------------------------
 void wrapper::impl::org::webRtc::RTCRtpTransceiver::set_direction(wrapper::org::webRtc::RTCRtpTransceiverDirection value) noexcept
 {
+  ZS_ASSERT(native_);
+  if (!native_) return;
+
+  native_->SetDirection(UseEnum::toNative(value));
 }
 
 //------------------------------------------------------------------------------
 Optional< wrapper::org::webRtc::RTCRtpTransceiverDirection > wrapper::impl::org::webRtc::RTCRtpTransceiver::get_currentDirection() noexcept
 {
-  Optional< wrapper::org::webRtc::RTCRtpTransceiverDirection > result {};
-  return result;
+  ZS_ASSERT(native_);
+  if (!native_) return Optional< wrapper::org::webRtc::RTCRtpTransceiverDirection >();
+
+  auto result = native_->current_direction();
+  if (!result.has_value()) return Optional< wrapper::org::webRtc::RTCRtpTransceiverDirection >();
+
+  return UseEnum::toWrapper(result.value());
 }
 
 //------------------------------------------------------------------------------
