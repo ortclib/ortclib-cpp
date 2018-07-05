@@ -20,6 +20,7 @@
 #endif //WINUWP
 
 #include "impl_org_webRtc_MediaElement.h"
+#include "impl_org_webRtc_helpers.h"
 
 using ::zsLib::String;
 using ::zsLib::Optional;
@@ -140,7 +141,13 @@ Windows::UI::Xaml::Controls::MediaElement^ wrapper::impl::org::webRtc::MediaElem
   AnyPtr any = element->get_element();
   if (!any) return nullptr;
   auto castedAny = ZS_DYNAMIC_PTR_CAST(wrapper::impl::org::webRtc::MediaElementWrapperAnyCx, any);
-  if (!castedAny) return nullptr;
+  if (!castedAny) {
+#ifdef CPPWINRT_VERSION
+    auto result = toNative_winrt(element);
+    if (result) return WRAPPER_TO_CX(Windows::UI::Xaml::Controls::MediaElement, result);
+#endif //CPPWINRT_VERSION
+    return nullptr;
+  }
   return castedAny->element_;
 }
 #endif //__cplusplus_winrt
@@ -163,7 +170,13 @@ winrt::Windows::UI::Xaml::Controls::MediaElement wrapper::impl::org::webRtc::Med
   AnyPtr any = element->get_element();
   if (!any) return nullptr;
   auto castedAny = ZS_DYNAMIC_PTR_CAST(wrapper::impl::org::webRtc::MediaElementWrapperAnyWinrt, any);
-  if (!castedAny) return nullptr;
+  if (!castedAny) {
+#ifdef __cplusplus_winrt
+    auto result = toNative_cx(element);
+    if (result) return WRAPPER_FROM_CX(winrt::Windows::UI::Xaml::Controls::MediaElement, result);
+#endif //__cplusplus_winrt
+    return nullptr;
+  }
   return castedAny->element_;
 }
 

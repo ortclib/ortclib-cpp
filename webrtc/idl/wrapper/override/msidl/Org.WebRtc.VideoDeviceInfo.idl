@@ -1,0 +1,29 @@
+import "forwards.idl";
+import "output.idl";
+
+namespace Org
+{
+    namespace WebRtc
+    {
+
+
+        [version(1.0)]
+        [uuid(8f3d54d9-07d1-1747-6795-031a5c3b67f3)]
+        interface IVideoDeviceInfo : IInspectable
+        {
+
+          Windows.Devices.Enumeration.DeviceInformation Info { get; };
+        };
+
+        runtimeclass VideoDeviceInfo : [default] IVideoDeviceInfo
+        {
+
+            /// <summary>
+            /// Cast from Org.WebRtc.IVideoDeviceInfo to Org.WebRtc.VideoDeviceInfo
+            /// </summary>
+            static Org.WebRtc.VideoDeviceInfo CastFromIVideoDeviceInfo(Org.WebRtc.IVideoDeviceInfo source);
+        };
+
+    } // namespace WebRtc
+} // namespace Org
+

@@ -208,16 +208,6 @@ void WrapperImplType::actual_setup(wrapper::org::webRtc::EventQueuePtr queue) no
 
 #endif //defined(__cplusplus_winrt) && defined(CPPWINRT_VERSION)
 
-#ifdef __cplusplus_winrt
-  // Setup if WinUWP CX is defined...
-  {
-    auto nativeCx = UseEventQueue::toNative_cx(queue);
-    if ((nativeCx) && (!didSetupZsLib_.test_and_set())) {
-      UseHelper::setup(nativeCx);
-    }
-  }
-#endif //__cplusplus_winrt
-
 #ifdef CPPWINRT_VERSION
   {
     // Setup if WinUWP CppWinRT is defined...
@@ -227,6 +217,16 @@ void WrapperImplType::actual_setup(wrapper::org::webRtc::EventQueuePtr queue) no
     }
   }
 #endif //CPPWINRT_VERSION
+
+#ifdef __cplusplus_winrt
+  // Setup if WinUWP CX is defined...
+  {
+    auto nativeCx = UseEventQueue::toNative_cx(queue);
+    if ((nativeCx) && (!didSetupZsLib_.test_and_set())) {
+      UseHelper::setup(nativeCx);
+    }
+  }
+#endif //__cplusplus_winrt
 
 #else
 
@@ -248,22 +248,11 @@ void WrapperImplType::actual_setup(wrapper::org::webRtc::EventQueuePtr queue) no
 
   // Setup for WinWUP...
 
-#if (defined(__cplusplus_winrt) && defined(CPPWINRT_VERSION)) || defined(__cplusplus_winrt)
+#if defined(__cplusplus_winrt)
 
   Windows::UI::Core::CoreDispatcher^ dispatcher{};
 
-#if defined(CPPWINRT_VERSION)
-  if (!dispatcher) {
-    auto nativeCppWinrt = UseEventQueue::toNative_winrt(queue);
-    if (nativeCppWinrt) {
-      dispatcher = WRAPPER_TO_CX(Windows::UI::Core::CoreDispatcher, nativeCppWinrt);
-    }
-  }
-#endif //defined(CPPWINRT_VERSION)
-
-  if (!dispatcher) {
-    dispatcher = UseEventQueue::toNative_cx(queue);
-  }
+  dispatcher = UseEventQueue::toNative_cx(queue);
 
   // on WinUWP a dispatcher is not optional
   ZS_ASSERT(dispatcher);

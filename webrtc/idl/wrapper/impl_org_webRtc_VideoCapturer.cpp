@@ -1,11 +1,28 @@
 
+#ifdef WINUWP
+
+#ifdef __cplusplus_winrt
+#include <windows.devices.enumeration.h>
+#endif //__cplusplus_winrt
+
+#ifdef __has_include
+#if __has_include(<winrt/Windows.Devices.Enumeration.h>)
+#include <winrt/Windows.Devices.Enumeration.h>
+#endif //__has_include(<winrt/Windows.Devices.Enumeration.h>)
+#endif //__has_include
+
+#endif //WINUWP
+
 #include "impl_org_webRtc_VideoCapturer.h"
+#include "impl_org_webRtc_RTCError.h"
+#include "impl_org_webRtc_VideoDeviceInfo.h"
 #include "impl_org_webRtc_WebrtcLib.h"
 
 #include "impl_org_webRtc_pre_include.h"
 #ifdef WINUWP
 #include "media/engine/webrtcvideocapturer.h"
 #endif //WINUWP
+#include "api/rtcerror.h"
 #include "impl_org_webRtc_post_include.h"
 
 using ::zsLib::String;
@@ -26,6 +43,12 @@ using ::std::list;
 using ::std::set;
 using ::std::map;
 
+#ifdef WINUWP
+#ifdef __cplusplus_winrt
+#include <ppltasks.h>
+#endif //__cplusplus_winrt
+#endif //WINUWP
+
 
 // borrow types from call defintions
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::VideoCapturer::WrapperType, WrapperType);
@@ -33,6 +56,8 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::VideoCapturer::WrapperImplTyp
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::VideoCapturer::NativeType, NativeType);
 
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::WebRtcLib, UseWebrtcLib);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCError, UseError);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::VideoDeviceInfo, UseVideoDeviceInfo);
 
 //------------------------------------------------------------------------------
 wrapper::impl::org::webRtc::VideoCapturer::VideoCapturer() noexcept
@@ -70,6 +95,73 @@ wrapper::org::webRtc::VideoCapturerPtr wrapper::org::webRtc::VideoCapturer::crea
   result->thisWeak_ = result;
   result->native_ = std::move(native);
   return result;
+}
+
+static bool alwaysTrue() { return true; }
+
+//------------------------------------------------------------------------------
+shared_ptr< PromiseWithHolderPtr< shared_ptr< list< wrapper::org::webRtc::VideoDeviceInfoPtr > > > > wrapper::org::webRtc::VideoCapturer::getDevices() noexcept
+{
+  typedef shared_ptr< PromiseWithHolderPtr< shared_ptr< list< wrapper::org::webRtc::VideoDeviceInfoPtr > > > > ResultType;
+  typedef shared_ptr< list< wrapper::org::webRtc::VideoDeviceInfoPtr > > ResultListType;
+
+  auto delegateQueue = UseWebrtcLib::delegateQueue();
+  if (!delegateQueue) {
+    auto failedResult = ResultType::element_type::create();
+    UseError::rejectPromise(failedResult, ::webrtc::RTCError(::webrtc::RTCErrorType::INVALID_STATE));
+    return failedResult;
+  }
+
+  auto promise = ResultType::element_type::create(delegateQueue);
+
+#ifdef WINUWP
+
+#ifdef CPPWINRT_VERSION
+  if (alwaysTrue()) {
+    //auto results = winrt::Windows::Devices::Enumeration::DeviceInformation::FindAllAsync();
+    //co_await results;
+    delegateQueue->postClosure([promise]() {
+
+      auto output = make_shared<ResultListType::element_type>();
+      auto results = winrt::Windows::Devices::Enumeration::DeviceInformation::FindAllAsync(winrt::Windows::Devices::Enumeration::DeviceClass::VideoCapture).get();
+      for (auto device : results) {
+        auto wrapper = UseVideoDeviceInfo::toWrapper(device);
+        if (!wrapper) continue;
+        output->push_back(wrapper);
+      }
+
+      promise->resolve(output);
+    });
+    return promise;
+  }
+#endif // CPPWINRT_VERSION
+
+#ifdef __cplusplus_winrt
+  if (alwaysTrue()) {
+    delegateQueue->postClosure([promise]() {
+
+      concurrency::create_task(Windows::Devices::Enumeration::DeviceInformation::FindAllAsync(Windows::Devices::Enumeration::DeviceClass::VideoCapture)).then([promise](Windows::Devices::Enumeration::DeviceInformationCollection^ devices) {
+        
+        auto output = make_shared<ResultListType::element_type>();
+        for (decltype(devices->Size) i = 0; i < devices->Size; i++)
+        {
+          Windows::Devices::Enumeration::DeviceInformation^ device = devices->GetAt(i);
+          auto wrapper = UseVideoDeviceInfo::toWrapper(device);
+          if (!wrapper) continue;
+          output->push_back(wrapper);
+        }
+
+        promise->resolve(output);
+      });
+    });
+    return promise;
+  }
+#endif //__cplusplus_winrt
+
+#endif //WINUWP
+
+  UseError::rejectPromise(promise, ::webrtc::RTCError(::webrtc::RTCErrorType::RESOURCE_EXHAUSTED));
+  return promise;
 }
 
 //------------------------------------------------------------------------------

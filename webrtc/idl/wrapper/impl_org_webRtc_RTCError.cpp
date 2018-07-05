@@ -82,6 +82,13 @@ void WrapperImplType::reject(PromisePtr promise) noexcept
 {
   if (!promise) return;
 
+  if (native_) {
+    if (native_->ok()) {
+      promise->resolve();
+      return;
+    }
+  }
+
   auto pThis = thisWeak_.lock();
   ZS_ASSERT(pThis);
 
@@ -94,6 +101,10 @@ void WrapperImplType::reject(PromisePtr promise) noexcept
 void WrapperImplType::rejectPromise(PromisePtr promise, const NativeType &native) noexcept
 {
   if (!promise) return;
+  if (native.ok()) {
+    promise->resolve();
+    return;
+  }
 
   auto wrapper = toWrapper(native);
 

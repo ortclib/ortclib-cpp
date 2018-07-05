@@ -34,6 +34,18 @@ namespace org
 {
   namespace webRtc
   {
+    [special]
+    struct VideoDeviceInfo
+    {
+      [constructor, default, delete]
+      void VideoDeviceInfo();
+
+      [getter]
+      zs::Any info;
+    };
+    typedef std::list<VideoDeviceInfo> VideoDeviceInfoList;
+    typedef zs::PromiseWith<VideoDeviceInfoList> PromiseWithVideoDeviceInfoList;
+
     struct VideoFormat
     {
       /// <summary>
@@ -88,6 +100,9 @@ namespace org
 
       [static]
       VideoCapturer create(string name, string id);
+
+      [static]
+      PromiseWithVideoDeviceInfoList getDevices();
 
       /// <summary>
       /// Get the capture formats supported by the video capturer. The supported

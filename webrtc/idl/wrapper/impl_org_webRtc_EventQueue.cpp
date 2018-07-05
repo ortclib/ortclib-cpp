@@ -17,6 +17,7 @@
 #endif //WINUWP
 
 #include "impl_org_webRtc_EventQueue.h"
+#include "impl_org_webRtc_helpers.h"
 
 #include <zsLib/IMessageQueueThread.h>
 
@@ -150,7 +151,13 @@ Windows::UI::Core::CoreDispatcher^ wrapper::impl::org::webRtc::EventQueue::toNat
   AnyPtr any = queue->get_queue();
   if (!any) return nullptr;
   auto castedAny = ZS_DYNAMIC_PTR_CAST(wrapper::impl::org::webRtc::EventQueueWrapperAnyCx, any);
-  if (!castedAny) return nullptr;
+  if (!castedAny) {
+#ifdef CPPWINRT_VERSION
+    auto result = toNative_winrt(queue);
+    if (result) return WRAPPER_TO_CX(Windows::UI::Core::CoreDispatcher, result);
+#endif //CPPWINRT_VERSION
+    return nullptr;
+  }
   return castedAny->queue_;
 }
 #endif //__cplusplus_winrt
@@ -172,7 +179,13 @@ winrt::Windows::UI::Core::CoreDispatcher wrapper::impl::org::webRtc::EventQueue:
   AnyPtr any = queue->get_queue();
   if (!any) return nullptr;
   auto castedAny = ZS_DYNAMIC_PTR_CAST(wrapper::impl::org::webRtc::EventQueueWrapperAnyWinrt, any);
-  if (!castedAny) return nullptr;
+  if (!castedAny) {
+#ifdef __cplusplus_winrt
+    auto result = toNative_cx(queue);
+    if (result) return WRAPPER_FROM_CX(winrt::Windows::UI::Core::CoreDispatcher, result);
+#endif //__cplusplus_winrt
+    return nullptr;
+  }
   return castedAny->queue_;
 }
 

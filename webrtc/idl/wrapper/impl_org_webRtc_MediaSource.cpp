@@ -19,6 +19,7 @@
 #endif //WINUWP
 
 #include "impl_org_webRtc_MediaSource.h"
+#include "impl_org_webRtc_helpers.h"
 
 using ::zsLib::String;
 using ::zsLib::Optional;
@@ -139,7 +140,13 @@ Windows::Media::Core::IMediaSource^ wrapper::impl::org::webRtc::MediaSource::toN
   AnyPtr any = source->get_source();
   if (!any) return nullptr;
   auto castedAny = ZS_DYNAMIC_PTR_CAST(wrapper::impl::org::webRtc::MediaSourceWrapperAnyCx, any);
-  if (!castedAny) return nullptr;
+  if (!castedAny) {
+#ifdef CPPWINRT_VERSION
+    auto result = toNative_winrt(source);
+    if (result) return WRAPPER_TO_CX(Windows::Media::Core::IMediaSource, result);
+#endif //CPPWINRT_VERSION
+    return nullptr;
+  }
   return castedAny->source_;
 }
 #endif //__cplusplus_winrt
@@ -162,7 +169,13 @@ winrt::Windows::Media::Core::IMediaSource wrapper::impl::org::webRtc::MediaSourc
   AnyPtr any = source->get_source();
   if (!any) return nullptr;
   auto castedAny = ZS_DYNAMIC_PTR_CAST(wrapper::impl::org::webRtc::MediaSourceWrapperAnyWinrt, any);
-  if (!castedAny) return nullptr;
+  if (!castedAny) {
+#ifdef __cplusplus_winrt
+    auto result = toNative_cx(source);
+    if (result) return WRAPPER_FROM_CX(winrt::Windows::Media::Core::IMediaSource, result);
+#endif //__cplusplus_winrt
+    return nullptr;
+  }
   return castedAny->source_;
 }
 
