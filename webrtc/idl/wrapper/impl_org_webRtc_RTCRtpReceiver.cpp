@@ -14,6 +14,7 @@
 #include "pc/rtpreceiver.h"
 #include "pc/peerconnectionfactory.h"
 #include "media/base/mediaengine.h"
+#include "ortc/rtpparametersconversion.h"
 #include "impl_org_webRtc_post_include.h"
 
 using ::zsLib::String;
@@ -61,11 +62,11 @@ namespace {
   // feedback mechanism is supported, but an enum value wasn't added to
   // rtpparameters.h).
   template <typename C>
-  webrtc::RtpCapabilities ToRtpCapabilitiesWithAsserts(
+  ::webrtc::RtpCapabilities ToRtpCapabilitiesWithAsserts(
     const std::vector<C>& cricket_codecs,
     const cricket::RtpHeaderExtensions& cricket_extensions) {
-    webrtc::RtpCapabilities capabilities =
-      webrtc::ToRtpCapabilities(cricket_codecs, cricket_extensions);
+    ::webrtc::RtpCapabilities capabilities =
+      ::webrtc::ToRtpCapabilities(cricket_codecs, cricket_extensions);
     RTC_DCHECK_EQ(capabilities.codecs.size(), cricket_codecs.size());
     for (size_t i = 0; i < capabilities.codecs.size(); ++i) {
       RTC_DCHECK_EQ(capabilities.codecs[i].rtcp_feedback.size(),
