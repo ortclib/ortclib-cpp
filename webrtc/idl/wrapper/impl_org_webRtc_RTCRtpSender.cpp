@@ -1,8 +1,12 @@
 
 #include "impl_org_webRtc_RTCRtpSender.h"
 #include "impl_org_webRtc_helpers.h"
-#include "generated/org_webRtc_RTCRtpReceiver.h"
+#include "impl_org_webRtc_RTCError.h"
+#include "impl_org_webRtc_MediaStreamTrack.h"
+#include "impl_org_webRtc_RTCDtmfSender.h"
+#include "impl_org_webRtc_RTCRtpSendParameters.h"
 #include "impl_org_webRtc_WebrtcLib.h"
+#include "generated/org_webRtc_RTCRtpReceiver.h"
 
 #include "impl_org_webRtc_pre_include.h"
 #include "api/rtpsenderinterface.h"
@@ -36,6 +40,10 @@ typedef WrapperImplType::NativeTypeScopedPtr NativeTypeScopedPtr;
 
 typedef wrapper::impl::org::webRtc::WrapperMapper<NativeType, WrapperImplType> UseWrapperMapper;
 
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCRtpSendParameters, UseRtpSendParameters);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCError, UseRtcError);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCDtmfSender, UseDtmfSender);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::MediaStreamTrack, UseMediaStreamTrack);
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::WebRtcLib, UseWebrtcLib);
 
 //------------------------------------------------------------------------------
@@ -90,36 +98,54 @@ wrapper::org::webRtc::RTCRtpCapabilitiesPtr wrapper::org::webRtc::RTCRtpSender::
 //------------------------------------------------------------------------------
 wrapper::org::webRtc::RTCRtpSendParametersPtr wrapper::impl::org::webRtc::RTCRtpSender::getParameters() noexcept
 {
-  wrapper::org::webRtc::RTCRtpSendParametersPtr result {};
-  return result;
+  ZS_ASSERT(!native_);
+  if (!native_) return wrapper::org::webRtc::RTCRtpSendParametersPtr();
+
+  return UseRtpSendParameters::toWrapper(native_->GetParameters());
 }
 
 //------------------------------------------------------------------------------
 PromisePtr wrapper::impl::org::webRtc::RTCRtpSender::setParameters(wrapper::org::webRtc::RTCRtpSendParametersPtr parameters) noexcept(false)
 {
-  PromisePtr result {};
-  return result;
+  ZS_ASSERT(!native_);
+  if (!native_) return UseRtcError::toPromise(::webrtc::RTCError(::webrtc::RTCErrorType::INTERNAL_ERROR));
+
+  auto nativeValue = UseRtpSendParameters::toNative(parameters);
+  if (!nativeValue) return UseRtcError::toPromise(::webrtc::RTCError(::webrtc::RTCErrorType::INVALID_PARAMETER));
+
+  return UseRtcError::toPromise(native_->SetParameters(*nativeValue));
 }
 
 //------------------------------------------------------------------------------
 PromisePtr wrapper::impl::org::webRtc::RTCRtpSender::replaceTrack(wrapper::org::webRtc::MediaStreamTrackPtr withTrack) noexcept
 {
-  PromisePtr result {};
-  return result;
+  ZS_ASSERT(!native_);
+  if (!native_) return UseRtcError::toPromise(::webrtc::RTCError(::webrtc::RTCErrorType::INTERNAL_ERROR));
+
+  auto nativeValue = UseMediaStreamTrack::toNative(withTrack);
+  bool result = native_->SetTrack(nativeValue);
+
+  if (!result) return UseRtcError::toPromise(::webrtc::RTCError(::webrtc::RTCErrorType::INVALID_PARAMETER));
+
+  return UseRtcError::toPromise(::webrtc::RTCError::OK());
 }
 
 //------------------------------------------------------------------------------
 wrapper::org::webRtc::MediaStreamTrackPtr wrapper::impl::org::webRtc::RTCRtpSender::get_track() noexcept
 {
-  wrapper::org::webRtc::MediaStreamTrackPtr result {};
-  return result;
+  ZS_ASSERT(!native_);
+  if (!native_) return wrapper::org::webRtc::MediaStreamTrackPtr();
+
+  return UseMediaStreamTrack::toWrapper(native_->track());
 }
 
 //------------------------------------------------------------------------------
 wrapper::org::webRtc::RTCDtmfSenderPtr wrapper::impl::org::webRtc::RTCRtpSender::get_dtmf() noexcept
 {
-  wrapper::org::webRtc::RTCDtmfSenderPtr result {};
-  return result;
+  ZS_ASSERT(!native_);
+  if (!native_) return wrapper::org::webRtc::RTCDtmfSenderPtr();
+
+  return UseDtmfSender::toWrapper(native_->GetDtmfSender());
 }
 
 //------------------------------------------------------------------------------

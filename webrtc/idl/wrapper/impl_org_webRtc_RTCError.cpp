@@ -118,6 +118,7 @@ void WrapperImplType::rejectPromise(PromisePtr promise, NativeTypePtr native) no
 //------------------------------------------------------------------------------
 PromisePtr WrapperImplType::toPromise(const NativeType &native) noexcept
 {
+  if (native.ok()) return Promise::createResolved(UseWebrtcLib::delegateQueue());
   auto wrapper = toWrapper(native);
 
   auto holder = make_shared< ::zsLib::AnyHolder< wrapper::org::webRtc::RTCErrorPtr > >();
