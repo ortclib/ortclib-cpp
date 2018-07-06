@@ -25,6 +25,8 @@
 #include "api/rtcerror.h"
 #include "impl_org_webRtc_post_include.h"
 
+#include <experimental/generator>
+
 using ::zsLib::String;
 using ::zsLib::Optional;
 using ::zsLib::Any;
@@ -122,15 +124,19 @@ shared_ptr< PromiseWithHolderPtr< shared_ptr< list< wrapper::org::webRtc::VideoD
     //co_await results;
     delegateQueue->postClosure([promise]() {
 
-      auto output = make_shared<ResultListType::element_type>();
-      auto results = winrt::Windows::Devices::Enumeration::DeviceInformation::FindAllAsync(winrt::Windows::Devices::Enumeration::DeviceClass::VideoCapture).get();
-      for (auto device : results) {
-        auto wrapper = UseVideoDeviceInfo::toWrapper(device);
-        if (!wrapper) continue;
-        output->push_back(wrapper);
-      }
+      auto asyncResults = winrt::Windows::Devices::Enumeration::DeviceInformation::FindAllAsync(winrt::Windows::Devices::Enumeration::DeviceClass::VideoCapture);
 
-      promise->resolve(output);
+      asyncResults.Completed([promise](auto &&asyncResults, ZS_MAYBE_USED() winrt::Windows::Foundation::AsyncStatus status) {
+        auto results = asyncResults.GetResults();
+        ZS_MAYBE_USED(status);
+        auto output = make_shared<ResultListType::element_type>();
+        for (auto device : results) {
+          auto wrapper = UseVideoDeviceInfo::toWrapper(device);
+          if (!wrapper) continue;
+          output->push_back(wrapper);
+        }
+        promise->resolve(output);
+      });
     });
     return promise;
   }
