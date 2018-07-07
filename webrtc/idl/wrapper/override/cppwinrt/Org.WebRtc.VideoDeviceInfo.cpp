@@ -82,15 +82,15 @@ Org::WebRtc::IVideoDeviceInfo Org::WebRtc::implementation::VideoDeviceInfo::ToCp
 //------------------------------------------------------------------------------
 Org::WebRtc::IVideoDeviceInfo Org::WebRtc::implementation::VideoDeviceInfo::ToCppWinrtInterface(Org::WebRtc::VideoDeviceInfo const & value)
 {
-  if (!value) return Org::WebRtc::VideoDeviceInfo {nullptr};
-  return value.as< Org::WebRtc::VideoDeviceInfo >();
+  if (!value) return Org::WebRtc::IVideoDeviceInfo{nullptr};
+  return value.as< Org::WebRtc::IVideoDeviceInfo >();
 }
 
 //------------------------------------------------------------------------------
 Org::WebRtc::IVideoDeviceInfo Org::WebRtc::implementation::VideoDeviceInfo::ToCppWinrtInterface(winrt::com_ptr< Org::WebRtc::implementation::VideoDeviceInfo > const & value)
 {
-  if (!value) return Org::WebRtc::VideoDeviceInfo {nullptr};
-  return value.as< Org::WebRtc::VideoDeviceInfo >();
+  if (!value) return Org::WebRtc::IVideoDeviceInfo{nullptr};
+  return value.as< Org::WebRtc::IVideoDeviceInfo >();
 }
 
 //------------------------------------------------------------------------------

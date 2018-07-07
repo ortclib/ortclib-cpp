@@ -43,6 +43,7 @@ winrt::com_ptr< Org::WebRtc::implementation::EventQueue > Org::WebRtc::implement
 Org::WebRtc::EventQueue Org::WebRtc::implementation::EventQueue::ToCppWinrt(wrapper::org::webRtc::EventQueuePtr value)
 {
   auto result = ToCppWinrtImpl(value);
+  if (!result) return Org::WebRtc::EventQueue{ nullptr };
   return result.as< Org::WebRtc::EventQueue >();
 }
 
@@ -55,12 +56,14 @@ Org::WebRtc::EventQueue Org::WebRtc::implementation::EventQueue::ToCppWinrt(Org:
 //------------------------------------------------------------------------------
 Org::WebRtc::EventQueue Org::WebRtc::implementation::EventQueue::ToCppWinrt(winrt::com_ptr< Org::WebRtc::implementation::EventQueue > const & value)
 {
+  if (!value) return Org::WebRtc::EventQueue{ nullptr };
   return value.as< Org::WebRtc::EventQueue >();
 }
 
 //------------------------------------------------------------------------------
 Org::WebRtc::EventQueue Org::WebRtc::implementation::EventQueue::ToCppWinrt(Org::WebRtc::IEventQueue const & value)
 {
+  if (!value) return Org::WebRtc::EventQueue{ nullptr };
   return value.as< Org::WebRtc::EventQueue >();
 }
 
@@ -68,19 +71,22 @@ Org::WebRtc::EventQueue Org::WebRtc::implementation::EventQueue::ToCppWinrt(Org:
 Org::WebRtc::IEventQueue Org::WebRtc::implementation::EventQueue::ToCppWinrtInterface(wrapper::org::webRtc::EventQueuePtr value)
 {
   auto result = ToCppWinrtImpl(value);
+  if (!result) return Org::WebRtc::IEventQueue{ nullptr };
   return result.as< Org::WebRtc::IEventQueue >();
 }
 
 //------------------------------------------------------------------------------
 Org::WebRtc::IEventQueue Org::WebRtc::implementation::EventQueue::ToCppWinrtInterface(Org::WebRtc::EventQueue const & value)
 {
-  return value.as< Org::WebRtc::EventQueue >();
+  if (!value) return Org::WebRtc::IEventQueue{ nullptr };
+  return value.as< Org::WebRtc::IEventQueue >();
 }
 
 //------------------------------------------------------------------------------
 Org::WebRtc::IEventQueue Org::WebRtc::implementation::EventQueue::ToCppWinrtInterface(winrt::com_ptr< Org::WebRtc::implementation::EventQueue > const & value)
 {
-  return value.as< Org::WebRtc::EventQueue >();
+  if (!value) return Org::WebRtc::IEventQueue{ nullptr };
+  return value.as< Org::WebRtc::IEventQueue >();
 }
 
 //------------------------------------------------------------------------------

@@ -45,6 +45,7 @@ winrt::com_ptr< Org::WebRtc::implementation::MediaSource > Org::WebRtc::implemen
 Org::WebRtc::MediaSource Org::WebRtc::implementation::MediaSource::ToCppWinrt(wrapper::org::webRtc::MediaSourcePtr value)
 {
   auto result = ToCppWinrtImpl(value);
+  if (!result) return Org::WebRtc::MediaSource{ nullptr };
   return result.as< Org::WebRtc::MediaSource >();
 }
 
@@ -57,12 +58,14 @@ Org::WebRtc::MediaSource Org::WebRtc::implementation::MediaSource::ToCppWinrt(Or
 //------------------------------------------------------------------------------
 Org::WebRtc::MediaSource Org::WebRtc::implementation::MediaSource::ToCppWinrt(winrt::com_ptr< Org::WebRtc::implementation::MediaSource > const & value)
 {
+  if (!value) return Org::WebRtc::MediaSource{ nullptr };
   return value.as< Org::WebRtc::MediaSource >();
 }
 
 //------------------------------------------------------------------------------
 Org::WebRtc::MediaSource Org::WebRtc::implementation::MediaSource::ToCppWinrt(Org::WebRtc::IMediaSource const & value)
 {
+  if (!value) return Org::WebRtc::MediaSource{ nullptr };
   return value.as< Org::WebRtc::MediaSource >();
 }
 
@@ -70,18 +73,21 @@ Org::WebRtc::MediaSource Org::WebRtc::implementation::MediaSource::ToCppWinrt(Or
 Org::WebRtc::IMediaSource Org::WebRtc::implementation::MediaSource::ToCppWinrtInterface(wrapper::org::webRtc::MediaSourcePtr value)
 {
   auto result = ToCppWinrtImpl(value);
+  if (!result) return Org::WebRtc::IMediaSource{ nullptr };
   return result.as< Org::WebRtc::IMediaSource >();
 }
 
 //------------------------------------------------------------------------------
 Org::WebRtc::IMediaSource Org::WebRtc::implementation::MediaSource::ToCppWinrtInterface(Org::WebRtc::MediaSource const & value)
 {
+  if (!value) return Org::WebRtc::IMediaSource{ nullptr };
   return value.as< Org::WebRtc::MediaSource >();
 }
 
 //------------------------------------------------------------------------------
 Org::WebRtc::IMediaSource Org::WebRtc::implementation::MediaSource::ToCppWinrtInterface(winrt::com_ptr< Org::WebRtc::implementation::MediaSource > const & value)
 {
+  if (!value) return Org::WebRtc::IMediaSource{ nullptr };
   return value.as< Org::WebRtc::MediaSource >();
 }
 

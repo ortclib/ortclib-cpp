@@ -45,6 +45,7 @@ winrt::com_ptr< Org::WebRtc::implementation::MediaElement > Org::WebRtc::impleme
 Org::WebRtc::MediaElement Org::WebRtc::implementation::MediaElement::ToCppWinrt(wrapper::org::webRtc::MediaElementPtr value)
 {
   auto result = ToCppWinrtImpl(value);
+  if (!result) return Org::WebRtc::MediaElement {nullptr};
   return result.as< Org::WebRtc::MediaElement >();
 }
 
@@ -57,12 +58,14 @@ Org::WebRtc::MediaElement Org::WebRtc::implementation::MediaElement::ToCppWinrt(
 //------------------------------------------------------------------------------
 Org::WebRtc::MediaElement Org::WebRtc::implementation::MediaElement::ToCppWinrt(winrt::com_ptr< Org::WebRtc::implementation::MediaElement > const & value)
 {
+  if (!value) return Org::WebRtc::MediaElement{ nullptr };
   return value.as< Org::WebRtc::MediaElement >();
 }
 
 //------------------------------------------------------------------------------
 Org::WebRtc::MediaElement Org::WebRtc::implementation::MediaElement::ToCppWinrt(Org::WebRtc::IMediaElement const & value)
 {
+  if (!value) return Org::WebRtc::MediaElement{ nullptr };
   return value.as< Org::WebRtc::MediaElement >();
 }
 
@@ -70,19 +73,22 @@ Org::WebRtc::MediaElement Org::WebRtc::implementation::MediaElement::ToCppWinrt(
 Org::WebRtc::IMediaElement Org::WebRtc::implementation::MediaElement::ToCppWinrtInterface(wrapper::org::webRtc::MediaElementPtr value)
 {
   auto result = ToCppWinrtImpl(value);
+  if (!result) return Org::WebRtc::IMediaElement{ nullptr };
   return result.as< Org::WebRtc::IMediaElement >();
 }
 
 //------------------------------------------------------------------------------
 Org::WebRtc::IMediaElement Org::WebRtc::implementation::MediaElement::ToCppWinrtInterface(Org::WebRtc::MediaElement const & value)
 {
-  return value.as< Org::WebRtc::MediaElement >();
+  if (!value) return Org::WebRtc::IMediaElement{ nullptr };
+  return value.as< Org::WebRtc::IMediaElement >();
 }
 
 //------------------------------------------------------------------------------
 Org::WebRtc::IMediaElement Org::WebRtc::implementation::MediaElement::ToCppWinrtInterface(winrt::com_ptr< Org::WebRtc::implementation::MediaElement > const & value)
 {
-  return value.as< Org::WebRtc::MediaElement >();
+  if (!value) return Org::WebRtc::IMediaElement{ nullptr };
+  return value.as< Org::WebRtc::IMediaElement >();
 }
 
 //------------------------------------------------------------------------------
