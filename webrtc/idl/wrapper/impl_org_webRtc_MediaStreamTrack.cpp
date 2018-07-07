@@ -275,32 +275,36 @@ void WrapperImplType::autoAttachSourceToElement()
   if ((!element) || (!source)) return;
 
   {
-    zsLib::AutoLock lock(lock_);
+    auto queue = UseWebrtcLib::delegateQueue();
+    ZS_ASSERT(queue);
 
-    ZS_MAYBE_USED() bool didAttachment = false;
-    ZS_MAYBE_USED(didAttachment);
+    queue->postClosure([element, source]() {
+      ZS_MAYBE_USED() bool didAttachment = false;
+      ZS_MAYBE_USED(didAttachment);
 
 #ifdef __cplusplus_winrt
-    if (!didAttachment) {
-      auto nativeElement = UseMediaElementImpl::toNative_cx(element);
-      if (nativeElement) {
-        auto nativeSource = UseMediaSourceImpl::toNative_cx(source);
-        nativeElement->SetMediaStreamSource(nativeSource);
-        didAttachment = true;
+      if (!didAttachment) {
+        auto nativeElement = UseMediaElementImpl::toNative_cx(element);
+        if (nativeElement) {
+          auto nativeSource = UseMediaSourceImpl::toNative_cx(source);
+          nativeElement->SetMediaStreamSource(nativeSource);
+          didAttachment = true;
+        }
       }
-    }
 #endif //__cplusplus_winrt
 
 #ifdef CPPWINRT_VERSION
-    if (!didAttachment) {
-      auto nativeElement = UseMediaElementImpl::toNative_winrt(element);
-      if (nativeElement) {
-        auto nativeSource = UseMediaSourceImpl::toNative_winrt(source);
-        nativeElement.SetMediaStreamSource(nativeSource);
-        didAttachment = true;
+      if (!didAttachment) {
+        auto nativeElement = UseMediaElementImpl::toNative_winrt(element);
+        if (nativeElement) {
+          auto nativeSource = UseMediaSourceImpl::toNative_winrt(source);
+          nativeElement.SetMediaStreamSource(nativeSource);
+          didAttachment = true;
+        }
       }
-    }
 #endif //CPPWINRT_VERSION
+
+    });
   }
 }
 
