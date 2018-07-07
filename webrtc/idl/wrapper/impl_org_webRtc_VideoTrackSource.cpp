@@ -82,7 +82,7 @@ wrapper::org::webRtc::VideoTrackSourcePtr wrapper::org::webRtc::VideoTrackSource
 
   auto converted = UseVideoCapturer::toNative(capturer);
 
-  return WrapperImplType::toWrapper(factory->CreateVideoSource(converted.get()));
+  return WrapperImplType::toWrapper(factory->CreateVideoSource(std::move(converted)));
 }
 
 //------------------------------------------------------------------------------
