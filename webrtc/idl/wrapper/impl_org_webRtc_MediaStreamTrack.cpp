@@ -272,7 +272,7 @@ void WrapperImplType::autoAttachSourceToElement()
     source = source_;
   }
 
-  if (!element) return;
+  if ((!element) || (!source)) return;
 
   {
     zsLib::AutoLock lock(lock_);
