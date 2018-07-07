@@ -310,35 +310,36 @@ void WrapperImplType::setupObserver() noexcept
   if (!native_) return;
 
   auto converted = dynamic_cast<::webrtc::VideoTrackInterface *>(native_.get());
-  ZS_ASSERT(converted);
-  if (!converted) return;
+  if (converted) {
+    if (!converted) return;
 
-  observer_ = std::make_unique<WebrtcObserver>(thisWeak_.lock(), UseWebrtcLib::delegateQueue());
+    videoObserver_ = std::make_unique<WebrtcVideoObserver>(thisWeak_.lock(), UseWebrtcLib::delegateQueue());
 
-  rtc::VideoSinkWants wants;
+    rtc::VideoSinkWants wants;
 
 #pragma ZS_BUILD_NOTE("TODO","(mosa) you may want to tweak these properties -- not sure")
 
-  // wants.rotation_applied = ;
-  // wants.black_frames = ;
-  // wants.max_pixel_count = ;
-  // wants.target_pixel_count = ;
-  // wants.max_framerate_fps = ;
+    // wants.rotation_applied = ;
+    // wants.black_frames = ;
+    // wants.max_pixel_count = ;
+    // wants.target_pixel_count = ;
+    // wants.max_framerate_fps = ;
 
-  converted->AddOrUpdateSink(observer_.get(), wants);
+    converted->AddOrUpdateSink(videoObserver_.get(), wants);
+  }
 }
 
 //------------------------------------------------------------------------------
 void WrapperImplType::teardownObserver() noexcept
 {
-  if (!observer_) return;
+  if (videoObserver_) {
+    auto converted = dynamic_cast<::webrtc::VideoTrackInterface *>(native_.get());
+    ZS_ASSERT(converted);
+    if (!converted) return;
 
-  auto converted = dynamic_cast<::webrtc::VideoTrackInterface *>(native_.get());
-  ZS_ASSERT(converted);
-  if (!converted) return;
-
-  converted->RemoveSink(observer_.get());
-  observer_.reset();
+    converted->RemoveSink(videoObserver_.get());
+    videoObserver_.reset();
+  }
 }
 
 //------------------------------------------------------------------------------

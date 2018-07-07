@@ -40,14 +40,14 @@ namespace wrapper {
           ZS_DECLARE_TYPEDEF_PTR(wrapper::org::webRtc::MediaSource, UseMediaSource);
           ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::MediaSource, UseMediaSourceImpl);
 
-          ZS_DECLARE_STRUCT_PTR(WebrtcObserver);
+          ZS_DECLARE_STRUCT_PTR(WebrtcVideoObserver);
 
-          struct WebrtcObserver : public rtc::VideoSinkInterface<::webrtc::VideoFrame>
+          struct WebrtcVideoObserver : public rtc::VideoSinkInterface<::webrtc::VideoFrame>
           {
-            WebrtcObserver(
-                           WrapperImplTypePtr wrapper,
-                           IMessageQueuePtr queue
-                           ) noexcept : outer_(wrapper), queue_(queue) {}
+            WebrtcVideoObserver(
+                                WrapperImplTypePtr wrapper,
+                                IMessageQueuePtr queue
+                                ) noexcept : outer_(wrapper), queue_(queue) {}
 
             void OnFrame(const ::webrtc::VideoFrame& frame) final
             {
@@ -70,7 +70,7 @@ namespace wrapper {
             IMessageQueuePtr queue_;
           };
 
-          WebrtcObserverUniPtr observer_;
+          WebrtcVideoObserverUniPtr videoObserver_;
           rtc::scoped_refptr<NativeType> native_;
 
           mutable zsLib::Lock lock_;
