@@ -228,12 +228,12 @@ static void apply(const WrapperImplType &from, NativeType &to) noexcept
   to.enable_ice_renomination = from.enableIceRenomination;
   to.redetermine_role_on_ice_restart = from.redetermineRoleOnIceRestart;
 
-  if (Milliseconds() == from.iceCheckMinInterval) {
+  if (Milliseconds() != from.iceCheckMinInterval) {
     to.ice_check_min_interval = (int)SafeInt<int>(from.iceCheckMinInterval.count());
   } else {
     to.ice_check_min_interval.reset();
   }
-  if (Milliseconds() == from.stunCandidateKeepaliveInterval) {
+  if (Milliseconds() != from.stunCandidateKeepaliveInterval) {
     to.stun_candidate_keepalive_interval = (int)SafeInt<int>(from.stunCandidateKeepaliveInterval.count());
   }
   else {
