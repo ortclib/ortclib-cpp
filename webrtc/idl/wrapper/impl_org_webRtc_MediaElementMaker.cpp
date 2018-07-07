@@ -1,6 +1,5 @@
 
-#include "impl_org_webRtc_EventQueue.h"
-#include "impl_org_webRtc_EventQueueMaker.h"
+#include "impl_org_webRtc_MediaElementMaker.h"
 
 using ::zsLib::String;
 using ::zsLib::Optional;
@@ -21,28 +20,27 @@ using ::std::set;
 using ::std::map;
 
 // borrow definitions from class
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::EventQueueMaker::WrapperImplType, WrapperImplType);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::MediaElementMaker::WrapperImplType, WrapperImplType);
 ZS_DECLARE_TYPEDEF_PTR(WrapperImplType::WrapperType, WrapperType);
 
 //------------------------------------------------------------------------------
-wrapper::impl::org::webRtc::EventQueueMaker::~EventQueueMaker() noexcept
+wrapper::impl::org::webRtc::MediaElementMaker::~MediaElementMaker() noexcept
 {
 }
 
 #if 0
 //------------------------------------------------------------------------------
-wrapper::org::webRtc::EventQueuePtr wrapper::org::webRtc::EventQueueMaker::bind(AnyPtr queue) noexcept
+wrapper::org::webRtc::MediaElementPtr wrapper::org::webRtc::MediaElementMaker::bind(AnyPtr element) noexcept
 {
-  wrapper::org::webRtc::EventQueuePtr result = wrapper::org::webRtc::EventQueue::wrapper_create();
-  result->wrapper_init_org_webRtc_EventQueue(queue);
+  wrapper::org::webRtc::MediaElementPtr result {};
   return result;
 }
 
 //------------------------------------------------------------------------------
-AnyPtr wrapper::org::webRtc::EventQueueMaker::extract(wrapper::org::webRtc::EventQueuePtr queue) noexcept
+AnyPtr wrapper::org::webRtc::MediaElementMaker::extract(wrapper::org::webRtc::MediaElementPtr element) noexcept
 {
-  if (!queue) return nullptr;
-  return queue->get_queue();
+  AnyPtr result {};
+  return result;
 }
 #endif //0
 

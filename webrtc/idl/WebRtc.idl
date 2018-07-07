@@ -178,12 +178,12 @@ namespace org
       /// Creates an event queue object from a native queue type.
       /// </summary>
       [static]
-      EventQueue bindQueue(Any queue);
+      EventQueue bind(Any queue);
       /// <summary>
       /// Extracts a native queue from an event queue object.
       /// </summary>
       [static]
-      Any extractQueue(EventQueue queue);
+      Any extract(EventQueue queue);
     };
 
     /// <summary>

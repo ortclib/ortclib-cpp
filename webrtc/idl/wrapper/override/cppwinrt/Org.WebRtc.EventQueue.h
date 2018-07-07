@@ -58,8 +58,14 @@ namespace winrt {
           /// </summary>
           static Org::WebRtc::EventQueue CastFromIEventQueue(Org::WebRtc::IEventQueue const & value);
 
-          // ::org::webrtc::EventQueue
+          // ::org::webRtc::EventQueue
 
+#if 0
+          /// <summary>
+          /// Constructs an event queue object from a native queue type.
+          /// </summary>
+          EventQueue(Windows::Foundation::IInspectable const & queue);
+#endif //0
           /// <summary>
           /// The default windows message queue for the system GUI thread.
           /// </summary>
@@ -70,6 +76,12 @@ namespace winrt {
           /// </summary>
           static Org::WebRtc::IEventQueue Singleton();
           static void Singleton(Org::WebRtc::IEventQueue const & value);
+#if 0
+          /// <summary>
+          /// Gets a native queue from an event queue object.
+          /// </summary>
+          Windows::Foundation::IInspectable Queue();
+#endif //0
 
         };
 
@@ -86,5 +98,4 @@ namespace winrt {
     } // namespace WebRtc
   } // namespace Org
 } // namespace winrt
-
 #endif //ifndef CPPWINRT_USE_GENERATED_ORG_WEBRTC_EVENTQUEUE

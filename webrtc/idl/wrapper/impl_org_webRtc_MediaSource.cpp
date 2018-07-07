@@ -39,7 +39,7 @@ using ::std::list;
 using ::std::set;
 using ::std::map;
 
-// borrow existing definitions from wrapper implementation
+// borrow definitions from class
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::MediaSource::WrapperImplType, WrapperImplType);
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::MediaSource::WrapperType, WrapperType);
 
@@ -105,8 +105,10 @@ wrapper::impl::org::webRtc::MediaSource::~MediaSource() noexcept
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webRtc::MediaSource::wrapper_init_org_webRtc_MediaSource() noexcept
+void wrapper::impl::org::webRtc::MediaSource::wrapper_init_org_webRtc_MediaSource(AnyPtr source) noexcept
 {
+  ZS_ASSERT(source);
+  source_ = source;
 }
 
 //------------------------------------------------------------------------------
@@ -115,16 +117,11 @@ AnyPtr wrapper::impl::org::webRtc::MediaSource::get_source() noexcept
   return source_;
 }
 
-//------------------------------------------------------------------------------
-void wrapper::impl::org::webRtc::MediaSource::set_source(AnyPtr value) noexcept
-{
-  source_ = value;
-}
 
 #ifdef WINUWP
 #ifdef __cplusplus_winrt
 
-wrapper::org::webRtc::MediaSourcePtr wrapper::impl::org::webRtc::MediaSource::toWrapper(Windows::Media::Core::IMediaSource^ source) noexcept
+WrapperImplTypePtr wrapper::impl::org::webRtc::MediaSource::toWrapper(Windows::Media::Core::IMediaSource^ source) noexcept
 {
   auto any{ make_shared<wrapper::impl::org::webRtc::MediaSourceWrapperAnyCx>() };
   any->source_ = source;
@@ -153,7 +150,7 @@ Windows::Media::Core::IMediaSource^ wrapper::impl::org::webRtc::MediaSource::toN
 
 #ifdef CPPWINRT_VERSION
 
-wrapper::org::webRtc::MediaSourcePtr wrapper::impl::org::webRtc::MediaSource::toWrapper(winrt::Windows::Media::Core::IMediaSource const & source) noexcept
+WrapperImplTypePtr wrapper::impl::org::webRtc::MediaSource::toWrapper(winrt::Windows::Media::Core::IMediaSource const & source) noexcept
 {
   auto any{ make_shared<wrapper::impl::org::webRtc::MediaSourceWrapperAnyWinrt>() };
   any->source_ = source;

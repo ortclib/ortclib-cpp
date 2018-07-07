@@ -1,3 +1,4 @@
+//import "windows.foundation.idl";
 import "forwards.idl";
 import "output.idl";
 
@@ -12,14 +13,14 @@ namespace Org
         /// media source.
         /// </summary>
         [version(1.0)]
-        [uuid(58a56d3e-a3d5-0b90-6729-2da6b742b9d9)]
+        [uuid(1c5627cf-8a22-f886-578a-8f7b872ef42d)]
         interface IMediaSource : IInspectable
         {
 
             /// <summary>
-            /// Gets or sets the platform specific media source.
+            /// Gets the platform specific media source.
             /// </summary>
-            Windows.Media.Core.IMediaSource Source { get; set; };
+            Windows.Media.Core.IMediaSource Source { get; };
         };
 
         /// <summary>
@@ -28,6 +29,14 @@ namespace Org
         /// </summary>
         runtimeclass MediaSource : [default] IMediaSource
         {
+
+            /// <summary>
+            /// Constructs a media source object from a native media source
+            /// type.
+            /// </summary>
+            [method_name("MediaSourceWithNativeSource")]
+            [default_overload]
+            MediaSource(Windows.Media.Core.IMediaSource Source);
 
             /// <summary>
             /// Cast from Org.WebRtc.IMediaSource to Org.WebRtc.MediaSource

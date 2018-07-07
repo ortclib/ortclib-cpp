@@ -15,8 +15,8 @@ namespace wrapper {
         virtual ~EventQueueMaker() noexcept {}
 
 #if 0
-        static wrapper::org::webRtc::EventQueuePtr bindQueue(AnyPtr queue) noexcept;
-        static AnyPtr extractQueue(wrapper::org::webRtc::EventQueuePtr queue) noexcept;
+        static wrapper::org::webRtc::EventQueuePtr bind(AnyPtr queue) noexcept;
+        static AnyPtr extract(wrapper::org::webRtc::EventQueuePtr queue) noexcept;
 #endif //0
 
       };

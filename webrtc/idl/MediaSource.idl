@@ -42,9 +42,21 @@ namespace org
     struct MediaSource
     {
       /// <summary>
-      /// Gets or sets the platform specific media source.
+      /// Constructs a media source object.
       /// </summary>
-      [getter, setter]
+      [constructor, delete]
+      void MediaSource();
+
+      /// <summary>
+      /// Constructs a media source object from a native media source type.
+      /// </summary>
+      [constructor, default, altname(MediaSourceWithNativeSource)]
+      void MediaSource(Any source);
+
+      /// <summary>
+      /// Gets the platform specific media source.
+      /// </summary>
+      [getter]
       zs::Any source;
     };
 

@@ -55,17 +55,25 @@ namespace winrt {
 
 
         public:
-          MediaElement();
           /// <summary>
           /// Cast from Org::WebRtc::IMediaElement to MediaElement
           /// </summary>
           static Org::WebRtc::MediaElement CastFromIMediaElement(Org::WebRtc::IMediaElement const & value);
 
+          // ::org::webRtc::MediaElement
+
+#if 0
           /// <summary>
-          /// Gets or sets the platform specific media element.
+          /// Constructs a media element object from a native media element
+          /// type.
+          /// </summary>
+          MediaElement(Windows::UI::Xaml::Controls::MediaElement const & element);
+
+          /// <summary>
+          /// Gets the platform specific media element.
           /// </summary>
           Windows::UI::Xaml::Controls::MediaElement Element();
-          void Element(Windows::UI::Xaml::Controls::MediaElement const & value);
+#endif //0
 
         };
 
@@ -82,5 +90,4 @@ namespace winrt {
     } // namespace WebRtc
   } // namespace Org
 } // namespace winrt
-
 #endif //ifndef CPPWINRT_USE_GENERATED_ORG_WEBRTC_MEDIAELEMENT

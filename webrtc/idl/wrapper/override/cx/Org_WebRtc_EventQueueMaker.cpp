@@ -1,15 +1,12 @@
 
-#ifndef CX_USE_GENERATED_ORG_ORTC_EVENTQUEUEMAKER
 
-#include <wrapper/generated/cx/cx_Helpers.h>
-
-#include "Org_Ortc_EventQueueMaker.h"
-#include "Org_Ortc_EventQueue.h"
-
-#include <wrapper/impl_org_ortc_EventQueue.h>
+#ifndef CX_USE_GENERATED_ORG_WEBRTC_EVENTQUEUEMAKER
+#include <wrappers/generated/cx/cx_Helpers.h>
+#include <wrappers/generated/cx/Org_WebRtc_EventQueueMaker.h>
+#include <wrappers/generated/cx/Org_WebRtc_EventQueue.h>
 
 //------------------------------------------------------------------------------
-::Org::Ortc::EventQueueMaker^ Org::Ortc::EventQueueMaker::ToCx(wrapper::org::ortc::EventQueueMakerPtr value)
+::Org::WebRtc::EventQueueMaker^ Org::WebRtc::EventQueueMaker::ToCx(wrapper::org::webRtc::EventQueueMakerPtr value)
 {
   if (!value) return nullptr;
   auto result = ref new EventQueueMaker(WrapperCreate{});
@@ -18,27 +15,27 @@
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::ortc::EventQueueMakerPtr Org::Ortc::EventQueueMaker::FromCx(::Org::Ortc::EventQueueMaker^ value)
+wrapper::org::webRtc::EventQueueMakerPtr Org::WebRtc::EventQueueMaker::FromCx(::Org::WebRtc::EventQueueMaker^ value)
 {
-  if (nullptr == value) return wrapper::org::ortc::EventQueueMakerPtr();
+  if (nullptr == value) return wrapper::org::webRtc::EventQueueMakerPtr();
   return value->native_;
 }
 
 //------------------------------------------------------------------------------
-::Org::Ortc::EventQueue^ Org::Ortc::EventQueueMaker::BindQueue(Windows::UI::Core::CoreDispatcher^ queue)
+::Org::WebRtc::EventQueue^ Org::WebRtc::EventQueueMaker::Bind(Platform::Object^ queue)
 {
-  ::Org::Ortc::EventQueue^ result {};
-  result = ::Org::Ortc::EventQueue::ToCx(wrapper::impl::org::ortc::EventQueue::toWrapper(queue));
+  ::Org::WebRtc::EventQueue^ result {};
+  result = ::Internal::Helper::ToCx_Org_WebRtc_EventQueue(wrapper::org::webRtc::EventQueueMaker::bind(::Internal::Helper::FromCx(queue)));
   return result;
 }
 
 //------------------------------------------------------------------------------
-Windows::UI::Core::CoreDispatcher^ Org::Ortc::EventQueueMaker::ExtractQueue(::Org::Ortc::EventQueue^ queue)
+Platform::Object^ Org::WebRtc::EventQueueMaker::Extract(::Org::WebRtc::EventQueue^ queue)
 {
-  Windows::UI::Core::CoreDispatcher^ result {};
-  result = wrapper::impl::org::ortc::EventQueue::toNative_cx(::Org::Ortc::EventQueue::FromCx(queue));
+  Platform::Object^ result {};
+  result = ::Internal::Helper::ToCx(wrapper::org::webRtc::EventQueueMaker::extract(::Internal::Helper::FromCx_Org_WebRtc_EventQueue(queue)));
   return result;
 }
 
 
-#endif //ifndef CX_USE_GENERATED_ORG_ORTC_EVENTQUEUEMAKER
+#endif //ifndef CX_USE_GENERATED_ORG_WEBRTC_EVENTQUEUEMAKER

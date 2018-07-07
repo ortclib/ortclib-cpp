@@ -4,6 +4,7 @@
 #include "types.h"
 #include "generated/org_webRtc_EventQueue.h"
 
+
 namespace wrapper {
   namespace impl {
     namespace org {
@@ -13,7 +14,6 @@ namespace wrapper {
         {
           ZS_DECLARE_TYPEDEF_PTR(wrapper::org::webRtc::EventQueue, WrapperType);
           ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::EventQueue, WrapperImplType);
-
           EventQueueWeakPtr thisWeak_;
 
           AnyPtr queue_{};
@@ -22,7 +22,7 @@ namespace wrapper {
           virtual ~EventQueue() noexcept;
 
           // methods EventQueue
-          void wrapper_init_org_webRtc_EventQueue(AnyPtr queue) noexcept override { queue_ = queue; }
+          void wrapper_init_org_webRtc_EventQueue(AnyPtr queue) noexcept override;
 
           // properties EventQueue
           AnyPtr get_queue() noexcept override { return queue_; }

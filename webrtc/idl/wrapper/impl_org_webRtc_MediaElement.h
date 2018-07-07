@@ -27,11 +27,12 @@ namespace wrapper {
 
           MediaElement() noexcept;
           virtual ~MediaElement() noexcept;
-          void wrapper_init_org_webRtc_MediaElement() noexcept override;
+
+          // methods MediaElement
+          void wrapper_init_org_webRtc_MediaElement(AnyPtr element) noexcept override;
 
           // properties MediaElement
           AnyPtr get_element() noexcept override;
-          void set_element(AnyPtr value) noexcept override;
 
 #ifdef WINUWP
 #ifdef __cplusplus_winrt

@@ -12,7 +12,7 @@ namespace Org
         /// A message queue for receiving delegate events.
         /// </summary>
         [version(1.0)]
-        [uuid(98479893-fbbc-baf1-674b-020a498a996d)]
+        [uuid(f9ad235b-42b0-0239-d7a3-6617a42ae227)]
         interface IEventQueue : IInspectable
         {
         };

@@ -40,7 +40,7 @@ using ::std::list;
 using ::std::set;
 using ::std::map;
 
-// borrow existing definitions from wrapper implementation
+// borrow definitions from class
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::MediaElement::WrapperImplType, WrapperImplType);
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::MediaElement::WrapperType, WrapperType);
 
@@ -105,20 +105,16 @@ wrapper::impl::org::webRtc::MediaElement::~MediaElement() noexcept
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webRtc::MediaElement::wrapper_init_org_webRtc_MediaElement() noexcept
+void wrapper::impl::org::webRtc::MediaElement::wrapper_init_org_webRtc_MediaElement(AnyPtr element) noexcept
 {
+  ZS_ASSERT(element);
+  element_ = element;
 }
 
 //------------------------------------------------------------------------------
 AnyPtr wrapper::impl::org::webRtc::MediaElement::get_element() noexcept
 {
   return element_;
-}
-
-//------------------------------------------------------------------------------
-void wrapper::impl::org::webRtc::MediaElement::set_element(AnyPtr value) noexcept
-{
-  element_ = value;
 }
 
 

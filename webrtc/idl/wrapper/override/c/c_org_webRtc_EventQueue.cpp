@@ -46,7 +46,7 @@ instance_id_t WEBRTC_WRAPPER_C_CALLING_CONVENTION org_webRtc_EventQueue_wrapperI
 
 #if 0
 //------------------------------------------------------------------------------
-org_webRtc_EventQueue_t WEBRTC_WRAPPER_C_CALLING_CONVENTION org_webRtc_EventQueue_wrapperCreate_EventQueue(zs_Any_t queue)
+org_webRtc_EventQueue_t WEBRTC_WRAPPER_C_CALLING_CONVENTION org_webRtc_EventQueue_wrapperCreate_EventQueueWithNativeQueue(zs_Any_t queue)
 {
   auto wrapperThis = wrapper::org::webRtc::EventQueue::wrapper_create();
   wrapperThis->wrapper_init_org_webRtc_EventQueue(wrapper::zs_Any_wrapperFromHandle(queue));

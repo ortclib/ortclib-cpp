@@ -56,16 +56,16 @@ namespace winrt {
           /// </summary>
           static Org::WebRtc::EventQueueMaker CastFromIEventQueueMaker(Org::WebRtc::IEventQueueMaker const & value);
 
-          // ::org::webrtc::EventQueueMaker
+          // ::org::webRtc::EventQueueMaker
 
           /// <summary>
           /// Creates an event queue object from a native queue type.
           /// </summary>
-          static Org::WebRtc::IEventQueue BindQueue(Windows::UI::Core::CoreDispatcher const & queue);
+          static Org::WebRtc::IEventQueue Bind(Windows::UI::Core::CoreDispatcher const & queue);
           /// <summary>
           /// Extracts a native queue from an event queue object.
           /// </summary>
-          static Windows::UI::Core::CoreDispatcher ExtractQueue(Org::WebRtc::IEventQueue const & queue);
+          static Windows::UI::Core::CoreDispatcher Extract(Org::WebRtc::IEventQueue const & queue);
 
 
         };

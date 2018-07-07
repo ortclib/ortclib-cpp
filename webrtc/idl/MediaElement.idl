@@ -42,10 +42,38 @@ namespace org
     struct MediaElement
     {
       /// <summary>
-      /// Gets or sets the platform specific media element.
+      /// Constructs a media element object.
       /// </summary>
-      [getter, setter]
+      [constructor, delete]
+      void MediaElement();
+
+      /// <summary>
+      /// Constructs a media element object from a native media element type.
+      /// </summary>
+      [constructor, default, altname(MediaElementWithNativeQueue)]
+      void MediaElement(Any element);
+
+      /// <summary>
+      /// Gets the platform specific media element.
+      /// </summary>
+      [getter]
       Any element;
+    };
+
+
+    [special, static, platform(webhidden)]
+    interface MediaElementMaker
+    {
+      /// <summary>
+      /// Creates an media element object from a media element type.
+      /// </summary>
+      [static]
+      MediaElement bind(Any element);
+      /// <summary>
+      /// Extracts a native media element from an media element object.
+      /// </summary>
+      [static]
+      Any extract(MediaElement element);
     };
 
   }

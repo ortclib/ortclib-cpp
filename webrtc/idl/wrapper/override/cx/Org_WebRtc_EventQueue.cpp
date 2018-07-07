@@ -6,7 +6,7 @@
 #include "Org_Webrtc_EventQueue.h"
 
 //------------------------------------------------------------------------------
-::Org::Webrtc::EventQueue^ Org::Webrtc::EventQueue::ToCx(wrapper::org::webRtc::EventQueuePtr value)
+::Org::WebRtc::EventQueue^ Org::WebRtc::EventQueue::ToCx(wrapper::org::webRtc::EventQueuePtr value)
 {
   if (!value) return nullptr;
   auto result = ref new EventQueue(WrapperCreate{});
@@ -15,30 +15,45 @@
 }
 
 //------------------------------------------------------------------------------
-wrapper::org::webRtc::EventQueuePtr Org::Webrtc::EventQueue::FromCx(::Org::Webrtc::EventQueue^ value)
+wrapper::org::webRtc::EventQueuePtr Org::WebRtc::EventQueue::FromCx(::Org::WebRtc::EventQueue^ value)
 {
   if (nullptr == value) return wrapper::org::webRtc::EventQueuePtr();
   return value->native_;
 }
 
 //------------------------------------------------------------------------------
-::Org::Webrtc::EventQueue^ Org::Webrtc::EventQueue::GetDefaultForUi()
+Org::WebRtc::EventQueue::EventQueue(Platform::Object^ queue)
+ : native_(wrapper::org::webRtc::EventQueue::wrapper_create())
 {
-  ::Org::Webrtc::EventQueue^ result {};
-  result = ::Internal::Helper::ToCx_Org_Webrtc_EventQueue(wrapper::org::webRtc::EventQueue::getDefaultForUi());
+  if (!native_) {throw ref new Platform::NullReferenceException();}
+  native_->wrapper_init_org_webRtc_EventQueue(::Internal::Helper::FromCx(queue));
+}
+
+//------------------------------------------------------------------------------
+::Org::WebRtc::EventQueue^ Org::WebRtc::EventQueue::GetDefaultForUi()
+{
+  ::Org::WebRtc::EventQueue^ result {};
+  result = ::Internal::Helper::ToCx_Org_WebRtc_EventQueue(wrapper::org::webRtc::EventQueue::getDefaultForUi());
   return result;
 }
 
 //------------------------------------------------------------------------------
-::Org::Webrtc::EventQueue^ Org::Webrtc::EventQueue::Singleton::get()
+::Org::WebRtc::EventQueue^ Org::WebRtc::EventQueue::Singleton::get()
 {
-  return ::Internal::Helper::ToCx_Org_Webrtc_EventQueue(wrapper::org::webRtc::EventQueue::get_singleton());
+  return ::Internal::Helper::ToCx_Org_WebRtc_EventQueue(wrapper::org::webRtc::EventQueue::get_singleton());
 }
 
 //------------------------------------------------------------------------------
-void Org::Webrtc::EventQueue::Singleton::set(::Org::Webrtc::EventQueue^ value)
+void Org::WebRtc::EventQueue::Singleton::set(::Org::WebRtc::EventQueue^ value)
 {
-  wrapper::org::webRtc::EventQueue::set_singleton(::Internal::Helper::FromCx_Org_Webrtc_EventQueue(value));
+  wrapper::org::webRtc::EventQueue::set_singleton(::Internal::Helper::FromCx_Org_WebRtc_EventQueue(value));
+}
+
+//------------------------------------------------------------------------------
+Platform::Object^ Org::WebRtc::EventQueue::Queue::get()
+{
+  if (!native_) {throw ref new Platform::NullReferenceException();}
+  return ::Internal::Helper::ToCx(native_->get_queue());
 }
 
 

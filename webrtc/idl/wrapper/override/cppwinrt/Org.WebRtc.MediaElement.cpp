@@ -58,14 +58,14 @@ Org::WebRtc::MediaElement Org::WebRtc::implementation::MediaElement::ToCppWinrt(
 //------------------------------------------------------------------------------
 Org::WebRtc::MediaElement Org::WebRtc::implementation::MediaElement::ToCppWinrt(winrt::com_ptr< Org::WebRtc::implementation::MediaElement > const & value)
 {
-  if (!value) return Org::WebRtc::MediaElement{ nullptr };
+  if (!value) return Org::WebRtc::MediaElement {nullptr};
   return value.as< Org::WebRtc::MediaElement >();
 }
 
 //------------------------------------------------------------------------------
 Org::WebRtc::MediaElement Org::WebRtc::implementation::MediaElement::ToCppWinrt(Org::WebRtc::IMediaElement const & value)
 {
-  if (!value) return Org::WebRtc::MediaElement{ nullptr };
+  if (!value) return Org::WebRtc::MediaElement {nullptr};
   return value.as< Org::WebRtc::MediaElement >();
 }
 
@@ -73,21 +73,21 @@ Org::WebRtc::MediaElement Org::WebRtc::implementation::MediaElement::ToCppWinrt(
 Org::WebRtc::IMediaElement Org::WebRtc::implementation::MediaElement::ToCppWinrtInterface(wrapper::org::webRtc::MediaElementPtr value)
 {
   auto result = ToCppWinrtImpl(value);
-  if (!result) return Org::WebRtc::IMediaElement{ nullptr };
+  if (!result) return Org::WebRtc::IMediaElement {nullptr};
   return result.as< Org::WebRtc::IMediaElement >();
 }
 
 //------------------------------------------------------------------------------
 Org::WebRtc::IMediaElement Org::WebRtc::implementation::MediaElement::ToCppWinrtInterface(Org::WebRtc::MediaElement const & value)
 {
-  if (!value) return Org::WebRtc::IMediaElement{ nullptr };
+  if (!value) return Org::WebRtc::IMediaElement {nullptr};
   return value.as< Org::WebRtc::IMediaElement >();
 }
 
 //------------------------------------------------------------------------------
 Org::WebRtc::IMediaElement Org::WebRtc::implementation::MediaElement::ToCppWinrtInterface(winrt::com_ptr< Org::WebRtc::implementation::MediaElement > const & value)
 {
-  if (!value) return Org::WebRtc::IMediaElement{ nullptr };
+  if (!value) return Org::WebRtc::IMediaElement {nullptr};
   return value.as< Org::WebRtc::IMediaElement >();
 }
 
@@ -123,13 +123,6 @@ wrapper::org::webRtc::MediaElementPtr Org::WebRtc::implementation::MediaElement:
 }
 
 //------------------------------------------------------------------------------
-Org::WebRtc::implementation::MediaElement::MediaElement()
-  : native_(wrapper::org::webRtc::MediaElement::wrapper_create())
-{
-  native_->wrapper_init_org_webRtc_MediaElement();
-}
-
-//------------------------------------------------------------------------------
 Org::WebRtc::MediaElement Org::WebRtc::implementation::MediaElement::CastFromIMediaElement(Org::WebRtc::IMediaElement const & value)
 {
   if (!value) return nullptr;
@@ -140,6 +133,7 @@ Org::WebRtc::MediaElement Org::WebRtc::implementation::MediaElement::CastFromIMe
   return ToCppWinrt(result);
 }
 
+#if 0
 //------------------------------------------------------------------------------
 Windows::UI::Xaml::Controls::MediaElement Org::WebRtc::implementation::MediaElement::Element()
 {
@@ -155,5 +149,7 @@ void Org::WebRtc::implementation::MediaElement::Element(Windows::UI::Xaml::Contr
 {
   native_ = wrapper::impl::org::webRtc::MediaElement::toWrapper(element);
 }
+#endif //0
+
 
 #endif //ifndef CPPWINRT_USE_GENERATED_ORG_WEBRTC_MEDIAELEMENT

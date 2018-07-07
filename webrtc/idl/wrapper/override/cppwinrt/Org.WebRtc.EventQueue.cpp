@@ -43,7 +43,7 @@ winrt::com_ptr< Org::WebRtc::implementation::EventQueue > Org::WebRtc::implement
 Org::WebRtc::EventQueue Org::WebRtc::implementation::EventQueue::ToCppWinrt(wrapper::org::webRtc::EventQueuePtr value)
 {
   auto result = ToCppWinrtImpl(value);
-  if (!result) return Org::WebRtc::EventQueue{ nullptr };
+  if (!result) return Org::WebRtc::EventQueue {nullptr};
   return result.as< Org::WebRtc::EventQueue >();
 }
 
@@ -56,14 +56,14 @@ Org::WebRtc::EventQueue Org::WebRtc::implementation::EventQueue::ToCppWinrt(Org:
 //------------------------------------------------------------------------------
 Org::WebRtc::EventQueue Org::WebRtc::implementation::EventQueue::ToCppWinrt(winrt::com_ptr< Org::WebRtc::implementation::EventQueue > const & value)
 {
-  if (!value) return Org::WebRtc::EventQueue{ nullptr };
+  if (!value) return Org::WebRtc::EventQueue {nullptr};
   return value.as< Org::WebRtc::EventQueue >();
 }
 
 //------------------------------------------------------------------------------
 Org::WebRtc::EventQueue Org::WebRtc::implementation::EventQueue::ToCppWinrt(Org::WebRtc::IEventQueue const & value)
 {
-  if (!value) return Org::WebRtc::EventQueue{ nullptr };
+  if (!value) return Org::WebRtc::EventQueue {nullptr};
   return value.as< Org::WebRtc::EventQueue >();
 }
 
@@ -71,21 +71,21 @@ Org::WebRtc::EventQueue Org::WebRtc::implementation::EventQueue::ToCppWinrt(Org:
 Org::WebRtc::IEventQueue Org::WebRtc::implementation::EventQueue::ToCppWinrtInterface(wrapper::org::webRtc::EventQueuePtr value)
 {
   auto result = ToCppWinrtImpl(value);
-  if (!result) return Org::WebRtc::IEventQueue{ nullptr };
+  if (!result) return Org::WebRtc::IEventQueue {nullptr};
   return result.as< Org::WebRtc::IEventQueue >();
 }
 
 //------------------------------------------------------------------------------
 Org::WebRtc::IEventQueue Org::WebRtc::implementation::EventQueue::ToCppWinrtInterface(Org::WebRtc::EventQueue const & value)
 {
-  if (!value) return Org::WebRtc::IEventQueue{ nullptr };
+  if (!value) return Org::WebRtc::IEventQueue {nullptr};
   return value.as< Org::WebRtc::IEventQueue >();
 }
 
 //------------------------------------------------------------------------------
 Org::WebRtc::IEventQueue Org::WebRtc::implementation::EventQueue::ToCppWinrtInterface(winrt::com_ptr< Org::WebRtc::implementation::EventQueue > const & value)
 {
-  if (!value) return Org::WebRtc::IEventQueue{ nullptr };
+  if (!value) return Org::WebRtc::IEventQueue {nullptr};
   return value.as< Org::WebRtc::IEventQueue >();
 }
 
@@ -131,6 +131,16 @@ Org::WebRtc::EventQueue Org::WebRtc::implementation::EventQueue::CastFromIEventQ
   return ToCppWinrt(result);
 }
 
+#if 0
+//------------------------------------------------------------------------------
+Org::WebRtc::implementation::EventQueue::EventQueue(Windows::Foundation::IInspectable const & queue)
+ : native_(wrapper::org::webRtc::EventQueue::wrapper_create())
+{
+  if (!native_) {throw hresult_error(E_POINTER);}
+  native_->wrapper_init_org_webRtc_EventQueue(::Internal::Helper::FromCppWinrt(queue));
+}
+#endif //0
+
 //------------------------------------------------------------------------------
 Org::WebRtc::IEventQueue Org::WebRtc::implementation::EventQueue::GetDefaultForUi()
 {
@@ -151,5 +161,13 @@ void Org::WebRtc::implementation::EventQueue::Singleton(Org::WebRtc::IEventQueue
   wrapper::org::webRtc::EventQueue::set_singleton(::Internal::Helper::FromCppWinrt_Org_WebRtc_EventQueue(value));
 }
 
+#if 0
+//------------------------------------------------------------------------------
+Windows::Foundation::IInspectable Org::WebRtc::implementation::EventQueue::Queue()
+{
+  if (!native_) {throw hresult_error(E_POINTER);}
+  return ::Internal::Helper::ToCppWinrt(native_->get_queue());
+}
+#endif //0
 
 #endif //ifndef CPPWINRT_USE_GENERATED_ORG_WEBRTC_EVENTQUEUE

@@ -55,18 +55,22 @@ namespace winrt {
 
 
         public:
-          MediaSource();
           /// <summary>
           /// Cast from Org::WebRtc::IMediaSource to MediaSource
           /// </summary>
           static Org::WebRtc::MediaSource CastFromIMediaSource(Org::WebRtc::IMediaSource const & value);
 
+          // ::org::webRtc::MediaSource
+
           /// <summary>
-          /// Gets or sets the platform specific media source.
+          /// Constructs a media source object from a native media source type.
+          /// </summary>
+          MediaSource(Windows::Media::Core::IMediaSource const & source);
+
+          /// <summary>
+          /// Gets the platform specific media source.
           /// </summary>
           Windows::Media::Core::IMediaSource Source();
-          void Source(Windows::Media::Core::IMediaSource const & value);
-          
 
         };
 

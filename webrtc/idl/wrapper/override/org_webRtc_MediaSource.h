@@ -14,10 +14,10 @@ namespace wrapper {
         static MediaSourcePtr wrapper_create() noexcept;
         virtual ~MediaSource() noexcept {}
 
-        virtual void wrapper_init_org_webRtc_MediaSource() noexcept {}
+
+        virtual void wrapper_init_org_webRtc_MediaSource(AnyPtr source) noexcept { ZS_MAYBE_USED(source); }
 
         virtual AnyPtr get_source() noexcept = 0;
-        virtual void set_source(AnyPtr value) noexcept = 0;
       };
 
     } // webRtc

@@ -46,7 +46,7 @@ winrt::com_ptr< Org::WebRtc::implementation::EventQueueMaker > Org::WebRtc::impl
 Org::WebRtc::EventQueueMaker Org::WebRtc::implementation::EventQueueMaker::ToCppWinrt(wrapper::org::webRtc::EventQueueMakerPtr value)
 {
   auto result = ToCppWinrtImpl(value);
-  if (!result) return Org::WebRtc::EventQueueMaker{ nullptr };
+  if (!result) return Org::WebRtc::EventQueueMaker {nullptr};
   return result.as< Org::WebRtc::EventQueueMaker >();
 }
 
@@ -59,14 +59,14 @@ Org::WebRtc::EventQueueMaker Org::WebRtc::implementation::EventQueueMaker::ToCpp
 //------------------------------------------------------------------------------
 Org::WebRtc::EventQueueMaker Org::WebRtc::implementation::EventQueueMaker::ToCppWinrt(winrt::com_ptr< Org::WebRtc::implementation::EventQueueMaker > const & value)
 {
-  if (!value) return Org::WebRtc::EventQueueMaker{ nullptr };
+  if (!value) return Org::WebRtc::EventQueueMaker {nullptr};
   return value.as< Org::WebRtc::EventQueueMaker >();
 }
 
 //------------------------------------------------------------------------------
 Org::WebRtc::EventQueueMaker Org::WebRtc::implementation::EventQueueMaker::ToCppWinrt(Org::WebRtc::IEventQueueMaker const & value)
 {
-  if (!value) return Org::WebRtc::EventQueueMaker{ nullptr };
+  if (!value) return Org::WebRtc::EventQueueMaker {nullptr};
   return value.as< Org::WebRtc::EventQueueMaker >();
 }
 
@@ -74,22 +74,22 @@ Org::WebRtc::EventQueueMaker Org::WebRtc::implementation::EventQueueMaker::ToCpp
 Org::WebRtc::IEventQueueMaker Org::WebRtc::implementation::EventQueueMaker::ToCppWinrtInterface(wrapper::org::webRtc::EventQueueMakerPtr value)
 {
   auto result = ToCppWinrtImpl(value);
-  if (!result) return Org::WebRtc::IEventQueueMaker{ nullptr };
+  if (!result) return Org::WebRtc::IEventQueueMaker {nullptr};
   return result.as< Org::WebRtc::IEventQueueMaker >();
 }
 
 //------------------------------------------------------------------------------
 Org::WebRtc::IEventQueueMaker Org::WebRtc::implementation::EventQueueMaker::ToCppWinrtInterface(Org::WebRtc::EventQueueMaker const & value)
 {
-  if (!value) return Org::WebRtc::IEventQueueMaker{ nullptr };
-  return value.as< Org::WebRtc::EventQueueMaker >();
+  if (!value) return Org::WebRtc::IEventQueueMaker {nullptr};
+  return value.as< Org::WebRtc::IEventQueueMaker >();
 }
 
 //------------------------------------------------------------------------------
 Org::WebRtc::IEventQueueMaker Org::WebRtc::implementation::EventQueueMaker::ToCppWinrtInterface(winrt::com_ptr< Org::WebRtc::implementation::EventQueueMaker > const & value)
 {
-  if (!value) return Org::WebRtc::IEventQueueMaker{ nullptr };
-  return value.as< Org::WebRtc::EventQueueMaker >();
+  if (!value) return Org::WebRtc::IEventQueueMaker {nullptr};
+  return value.as< Org::WebRtc::IEventQueueMaker >();
 }
 
 //------------------------------------------------------------------------------
@@ -135,7 +135,7 @@ Org::WebRtc::EventQueueMaker Org::WebRtc::implementation::EventQueueMaker::CastF
 }
 
 //------------------------------------------------------------------------------
-Org::WebRtc::IEventQueue Org::WebRtc::implementation::EventQueueMaker::BindQueue(Windows::UI::Core::CoreDispatcher const & queue)
+Org::WebRtc::IEventQueue Org::WebRtc::implementation::EventQueueMaker::Bind(Windows::UI::Core::CoreDispatcher const & queue)
 {
   Org::WebRtc::IEventQueue result {nullptr};
   result = Org::WebRtc::implementation::EventQueue::ToCppWinrtInterface(wrapper::impl::org::webRtc::EventQueue::toWrapper(queue));
@@ -143,7 +143,7 @@ Org::WebRtc::IEventQueue Org::WebRtc::implementation::EventQueueMaker::BindQueue
 }
 
 //------------------------------------------------------------------------------
-Windows::UI::Core::CoreDispatcher Org::WebRtc::implementation::EventQueueMaker::ExtractQueue(Org::WebRtc::IEventQueue const & queue)
+Windows::UI::Core::CoreDispatcher Org::WebRtc::implementation::EventQueueMaker::Extract(Org::WebRtc::IEventQueue const & queue)
 {
   Windows::UI::Core::CoreDispatcher result {nullptr};
   result = wrapper::impl::org::webRtc::EventQueue::toNative_winrt(Org::WebRtc::implementation::EventQueue::FromCppWinrt(queue));

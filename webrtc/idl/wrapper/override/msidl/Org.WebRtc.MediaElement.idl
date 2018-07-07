@@ -1,3 +1,4 @@
+//import "windows.foundation.idl";
 import "forwards.idl";
 import "output.idl";
 
@@ -12,14 +13,10 @@ namespace Org
         /// media element.
         /// </summary>
         [version(1.0)]
-        [uuid(63b69797-058b-8f50-b94a-76ba7ab67922)]
+        [uuid(dcbb7685-ecf3-119e-a677-61d3379e6b5f)]
         interface IMediaElement : IInspectable
         {
 
-            /// <summary>
-            /// Gets or sets the platform specific media element.
-            /// </summary>
-          Windows.UI.Xaml.Controls.MediaElement Element { get; set; };
         };
 
         /// <summary>

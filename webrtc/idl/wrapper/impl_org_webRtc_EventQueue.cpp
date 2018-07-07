@@ -40,6 +40,10 @@ using ::std::list;
 using ::std::set;
 using ::std::map;
 
+// borrow definitions from class
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::EventQueue::WrapperImplType, WrapperImplType);
+ZS_DECLARE_TYPEDEF_PTR(WrapperImplType::WrapperType, WrapperType);
+
 #ifdef WINUWP
 #ifdef __cplusplus_winrt
 
@@ -81,7 +85,6 @@ namespace wrapper { namespace impl { namespace org { namespace webRtc {
 
 #endif //WINUWP
 
-
 //------------------------------------------------------------------------------
 static wrapper::org::webRtc::EventQueuePtr &getSingleton() noexcept
 {
@@ -105,6 +108,14 @@ wrapper::org::webRtc::EventQueuePtr wrapper::org::webRtc::EventQueue::wrapper_cr
 //------------------------------------------------------------------------------
 wrapper::impl::org::webRtc::EventQueue::~EventQueue() noexcept
 {
+  thisWeak_.reset();
+}
+
+//------------------------------------------------------------------------------
+void wrapper::impl::org::webRtc::EventQueue::wrapper_init_org_webRtc_EventQueue(AnyPtr queue) noexcept
+{
+  ZS_ASSERT(queue);
+  queue_ = queue;
 }
 
 //------------------------------------------------------------------------------

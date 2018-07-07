@@ -55,6 +55,14 @@ instance_id_t WEBRTC_WRAPPER_C_CALLING_CONVENTION org_webRtc_MediaSource_wrapper
 }
 
 //------------------------------------------------------------------------------
+org_webRtc_MediaSource_t WEBRTC_WRAPPER_C_CALLING_CONVENTION org_webRtc_MediaSource_wrapperCreate_MediaSourceWithNativeQueue(zs_Any_t queue)
+{
+  auto wrapperThis = wrapper::org::webRtc::MediaSource::wrapper_create();
+  wrapperThis->wrapper_init_org_webRtc_MediaSource(wrapper::zs_Any_wrapperFromHandle(queue));
+  return wrapper::org_webRtc_MediaSource_wrapperToHandle(wrapperThis);
+}
+
+//------------------------------------------------------------------------------
 zs_Any_t WEBRTC_WRAPPER_C_CALLING_CONVENTION org_webRtc_MediaSource_get_source(org_webRtc_MediaSource_t wrapperThisHandle)
 {
   auto wrapperThis = wrapper::org_webRtc_MediaSource_wrapperFromHandle(wrapperThisHandle);
@@ -66,13 +74,6 @@ void WEBRTC_WRAPPER_C_CALLING_CONVENTION org_webRtc_MediaSource_set_source(org_w
 {
   auto wrapperThis = wrapper::org_webRtc_MediaSource_wrapperFromHandle(wrapperThisHandle);
   wrapperThis->set_source(wrapper::zs_Any_wrapperFromHandle(value));
-}
-
-//------------------------------------------------------------------------------
-zs_Any_t WEBRTC_WRAPPER_C_CALLING_CONVENTION org_webRtc_MediaSource_get_track(org_webRtc_MediaSource_t wrapperThisHandle)
-{
-  auto wrapperThis = wrapper::org_webRtc_MediaSource_wrapperFromHandle(wrapperThisHandle);
-  return wrapper::zs_Any_wrapperToHandle(wrapperThis->get_track());
 }
 
 

@@ -13,10 +13,10 @@ namespace wrapper {
         static MediaElementPtr wrapper_create() noexcept;
         virtual ~MediaElement() noexcept {}
 
-        virtual void wrapper_init_org_webRtc_MediaElement() noexcept {}
+
+        virtual void wrapper_init_org_webRtc_MediaElement(AnyPtr queue) noexcept { ZS_MAYBE_USED(queue); }
 
         virtual AnyPtr get_element() noexcept = 0;
-        virtual void set_element(AnyPtr value) noexcept = 0;
       };
 
     } // webRtc

@@ -20,15 +20,15 @@ using namespace wrapper;
 
 #if 0
 //------------------------------------------------------------------------------
-org_webRtc_EventQueue_t WEBRTC_WRAPPER_C_CALLING_CONVENTION org_webRtc_EventQueueMaker_bindQueue(zs_Any_t queue)
+org_webRtc_EventQueue_t WEBRTC_WRAPPER_C_CALLING_CONVENTION org_webRtc_EventQueueMaker_bind(zs_Any_t queue)
 {
-  return wrapper::org_webRtc_EventQueue_wrapperToHandle(wrapper::org::webRtc::EventQueueMaker::bindQueue(wrapper::zs_Any_wrapperFromHandle(queue)));
+  return wrapper::org_webRtc_EventQueue_wrapperToHandle(wrapper::org::webRtc::EventQueueMaker::bind(wrapper::zs_Any_wrapperFromHandle(queue)));
 }
 
 //------------------------------------------------------------------------------
-zs_Any_t WEBRTC_WRAPPER_C_CALLING_CONVENTION org_webRtc_EventQueueMaker_extractQueue(org_webRtc_EventQueue_t queue)
+zs_Any_t WEBRTC_WRAPPER_C_CALLING_CONVENTION org_webRtc_EventQueueMaker_extract(org_webRtc_EventQueue_t queue)
 {
-  return wrapper::zs_Any_wrapperToHandle(wrapper::org::webRtc::EventQueueMaker::extractQueue(wrapper::org_webRtc_EventQueue_wrapperFromHandle(queue)));
+  return wrapper::zs_Any_wrapperToHandle(wrapper::org::webRtc::EventQueueMaker::extract(wrapper::org_webRtc_EventQueue_wrapperFromHandle(queue)));
 }
 #endif //0
 
