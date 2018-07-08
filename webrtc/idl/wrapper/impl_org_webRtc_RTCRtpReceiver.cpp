@@ -162,7 +162,7 @@ wrapper::org::webRtc::RTCRtpCapabilitiesPtr wrapper::org::webRtc::RTCRtpReceiver
 //------------------------------------------------------------------------------
 wrapper::org::webRtc::RTCRtpReceiveParametersPtr wrapper::impl::org::webRtc::RTCRtpReceiver::getParameters() noexcept
 {
-  ZS_ASSERT(!native_);
+  ZS_ASSERT(native_);
   if (!native_) return wrapper::org::webRtc::RTCRtpReceiveParametersPtr();
 
   return UseRtpReceiveParameters::toWrapper(native_->GetParameters());
@@ -172,7 +172,7 @@ wrapper::org::webRtc::RTCRtpReceiveParametersPtr wrapper::impl::org::webRtc::RTC
 shared_ptr< list< wrapper::org::webRtc::RTCRtpContributingSourcePtr > > wrapper::impl::org::webRtc::RTCRtpReceiver::getContributingSources() noexcept
 {
   typedef shared_ptr< list< wrapper::org::webRtc::RTCRtpContributingSourcePtr > > ReturnType;
-  ZS_ASSERT(!native_);
+  ZS_ASSERT(native_);
   if (!native_) return ReturnType();
 
   auto result = make_shared< ReturnType::element_type >();
@@ -190,7 +190,7 @@ shared_ptr< list< wrapper::org::webRtc::RTCRtpContributingSourcePtr > > wrapper:
 shared_ptr< list< wrapper::org::webRtc::RTCRtpSynchronizationSourcePtr > > wrapper::impl::org::webRtc::RTCRtpReceiver::getSynchronizationSources() noexcept
 {
   typedef shared_ptr< list< wrapper::org::webRtc::RTCRtpSynchronizationSourcePtr > > ReturnType;
-  ZS_ASSERT(!native_);
+  ZS_ASSERT(native_);
   if (!native_) return ReturnType();
 
   auto result = make_shared< ReturnType::element_type >();
@@ -207,7 +207,7 @@ shared_ptr< list< wrapper::org::webRtc::RTCRtpSynchronizationSourcePtr > > wrapp
 //------------------------------------------------------------------------------
 wrapper::org::webRtc::MediaStreamTrackPtr wrapper::impl::org::webRtc::RTCRtpReceiver::get_track() noexcept
 {
-  ZS_ASSERT(!native_);
+  ZS_ASSERT(native_);
   if (!native_) return wrapper::org::webRtc::MediaStreamTrackPtr();
 
   return UseMediaStreamTrack::toWrapper(native_->track());

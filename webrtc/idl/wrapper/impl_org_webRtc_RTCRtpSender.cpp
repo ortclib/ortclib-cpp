@@ -98,7 +98,7 @@ wrapper::org::webRtc::RTCRtpCapabilitiesPtr wrapper::org::webRtc::RTCRtpSender::
 //------------------------------------------------------------------------------
 wrapper::org::webRtc::RTCRtpSendParametersPtr wrapper::impl::org::webRtc::RTCRtpSender::getParameters() noexcept
 {
-  ZS_ASSERT(!native_);
+  ZS_ASSERT(native_);
   if (!native_) return wrapper::org::webRtc::RTCRtpSendParametersPtr();
 
   return UseRtpSendParameters::toWrapper(native_->GetParameters());
@@ -107,7 +107,7 @@ wrapper::org::webRtc::RTCRtpSendParametersPtr wrapper::impl::org::webRtc::RTCRtp
 //------------------------------------------------------------------------------
 PromisePtr wrapper::impl::org::webRtc::RTCRtpSender::setParameters(wrapper::org::webRtc::RTCRtpSendParametersPtr parameters) noexcept(false)
 {
-  ZS_ASSERT(!native_);
+  ZS_ASSERT(native_);
   if (!native_) return UseRtcError::toPromise(::webrtc::RTCError(::webrtc::RTCErrorType::INTERNAL_ERROR));
 
   auto nativeValue = UseRtpSendParameters::toNative(parameters);
@@ -119,7 +119,7 @@ PromisePtr wrapper::impl::org::webRtc::RTCRtpSender::setParameters(wrapper::org:
 //------------------------------------------------------------------------------
 PromisePtr wrapper::impl::org::webRtc::RTCRtpSender::replaceTrack(wrapper::org::webRtc::MediaStreamTrackPtr withTrack) noexcept
 {
-  ZS_ASSERT(!native_);
+  ZS_ASSERT(native_);
   if (!native_) return UseRtcError::toPromise(::webrtc::RTCError(::webrtc::RTCErrorType::INTERNAL_ERROR));
 
   auto nativeValue = UseMediaStreamTrack::toNative(withTrack);
@@ -133,7 +133,7 @@ PromisePtr wrapper::impl::org::webRtc::RTCRtpSender::replaceTrack(wrapper::org::
 //------------------------------------------------------------------------------
 wrapper::org::webRtc::MediaStreamTrackPtr wrapper::impl::org::webRtc::RTCRtpSender::get_track() noexcept
 {
-  ZS_ASSERT(!native_);
+  ZS_ASSERT(native_);
   if (!native_) return wrapper::org::webRtc::MediaStreamTrackPtr();
 
   return UseMediaStreamTrack::toWrapper(native_->track());
@@ -142,7 +142,7 @@ wrapper::org::webRtc::MediaStreamTrackPtr wrapper::impl::org::webRtc::RTCRtpSend
 //------------------------------------------------------------------------------
 wrapper::org::webRtc::RTCDtmfSenderPtr wrapper::impl::org::webRtc::RTCRtpSender::get_dtmf() noexcept
 {
-  ZS_ASSERT(!native_);
+  ZS_ASSERT(native_);
   if (!native_) return wrapper::org::webRtc::RTCDtmfSenderPtr();
 
   return UseDtmfSender::toWrapper(native_->GetDtmfSender());
