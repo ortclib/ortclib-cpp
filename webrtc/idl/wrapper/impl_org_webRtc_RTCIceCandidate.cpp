@@ -61,6 +61,16 @@ void wrapper::impl::org::webRtc::RTCIceCandidate::wrapper_init_org_webRtc_RTCIce
 //------------------------------------------------------------------------------
 void wrapper::impl::org::webRtc::RTCIceCandidate::wrapper_init_org_webRtc_RTCIceCandidate(wrapper::org::webRtc::RTCIceCandidateInitPtr init) noexcept(false)
 {
+	if (!init) {
+		native_ = std::make_unique<CricketNativeType>();
+		return;
+	}
+	webrtc::SdpParseError error;
+	candidate_.reset(webrtc::CreateIceCandidate(init->sdpMid, init->sdpMLineIndex, init->candidate, &error));
+	native_ = std::make_unique<CricketNativeType>(candidate_->candidate());
+	mid_ = candidate_->sdp_mid();
+	mLineIndex = candidate_->sdp_mline_index();
+	serverUrl_ = candidate_->server_url();
 }
 
 //------------------------------------------------------------------------------
