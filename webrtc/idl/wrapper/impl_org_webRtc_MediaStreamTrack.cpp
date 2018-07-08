@@ -366,6 +366,7 @@ void WrapperImplType::notifyWebrtcObserverFrame(const ::webrtc::VideoFrame& fram
 		Windows::Media::Core::IMediaSource^ source = mediaStreamSource_->GetMediaStreamSource();
 		notifyAboutNewMediaSource(*this, source);
 	}
+	mediaStreamSource_->RenderFrame(&frame);
 }
 
 //------------------------------------------------------------------------------
