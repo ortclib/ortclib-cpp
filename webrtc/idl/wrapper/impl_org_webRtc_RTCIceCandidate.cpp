@@ -102,7 +102,11 @@ String wrapper::impl::org::webRtc::RTCIceCandidate::get_candidate() noexcept
   ZS_ASSERT(native_);
   if (!native_) return String();
   ::zsLib::AutoLock lock(lock_);
-  return native_->ToString();
+
+  ::webrtc::JsepIceCandidate temp(mid_, mLineIndex.has_value() ? mLineIndex.value() : 0, *native_);
+  String result;
+  temp.ToString(&result);
+  return result;
 }
 
 //------------------------------------------------------------------------------
