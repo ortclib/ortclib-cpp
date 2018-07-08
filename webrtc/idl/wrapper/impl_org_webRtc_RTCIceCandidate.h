@@ -25,8 +25,7 @@ namespace wrapper {
           String mid_;
           Optional<unsigned short> mLineIndex {};
           String serverUrl_;
-		  NativeTypeUniPtr candidate_;
-		  CricketNativeTypeUniPtr native_;
+          CricketNativeTypeUniPtr native_;
           zsLib::Lock lock_;
           RTCIceCandidateWeakPtr thisWeak_;
 

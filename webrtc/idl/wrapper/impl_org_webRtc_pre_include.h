@@ -11,6 +11,8 @@ namespace cricket
 {
   enum CaptureState;
   enum MediaType;
+
+  struct VideoFormat;
 }
 
 // forward for webrtc can go here

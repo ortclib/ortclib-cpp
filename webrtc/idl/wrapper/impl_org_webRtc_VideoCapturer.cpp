@@ -14,9 +14,12 @@
 #endif //WINUWP
 
 #include "impl_org_webRtc_VideoCapturer.h"
+#include "impl_org_webRtc_VideoFormat.h"
 #include "impl_org_webRtc_RTCError.h"
 #include "impl_org_webRtc_VideoDeviceInfo.h"
 #include "impl_org_webRtc_WebrtcLib.h"
+#include "impl_org_webRtc_enums.h"
+#include "impl_org_webRtc_VideoCapturerInputSize.h"
 
 #include "impl_org_webRtc_pre_include.h"
 #ifdef WINUWP
@@ -60,6 +63,10 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::VideoCapturer::NativeType, Na
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::WebRtcLib, UseWebrtcLib);
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCError, UseError);
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::VideoDeviceInfo, UseVideoDeviceInfo);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::VideoFormat, UseVideoFormat);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::IEnum, UseEnum);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::VideoCapturerInputSize, UseVideoCapturerInputSize);
+
 
 //------------------------------------------------------------------------------
 wrapper::impl::org::webRtc::VideoCapturer::VideoCapturer() noexcept
@@ -173,13 +180,23 @@ shared_ptr< PromiseWithHolderPtr< shared_ptr< list< wrapper::org::webRtc::VideoD
 //------------------------------------------------------------------------------
 shared_ptr< list< wrapper::org::webRtc::VideoFormatPtr > > wrapper::impl::org::webRtc::VideoCapturer::getSupportedFormats() noexcept
 {
+  typedef shared_ptr< list< wrapper::org::webRtc::VideoFormatPtr > > ResultType;
+  ResultType result = make_shared< ResultType::element_type >();
+
   if (!native_) {
     ZS_ASSERT_FAIL("Cannot call into VideoCapturer after VideoCapturer has been passed into to a VideoTrackSource.");
-    return make_shared< list< wrapper::org::webRtc::VideoFormatPtr > >();
+    return result;
   }
-#pragma ZS_BUILD_NOTE("TODO","(robin)")
 
-  shared_ptr< list< wrapper::org::webRtc::VideoFormatPtr > > result {};
+  auto formats = native_->GetSupportedFormats();
+  if (!formats) return result;
+
+  for (auto iter = formats->begin(); iter != formats->end(); ++iter) {
+    auto converted = UseVideoFormat::toWrapper(*iter);
+    if (!converted) continue;
+    result->push_back(converted);
+  }
+
   return result;
 }
 
@@ -190,10 +207,18 @@ wrapper::org::webRtc::VideoFormatPtr wrapper::impl::org::webRtc::VideoCapturer::
     ZS_ASSERT_FAIL("Cannot call into VideoCapturer after VideoCapturer has been passed into to a VideoTrackSource.");
     return wrapper::org::webRtc::VideoFormatPtr();
   }
-#pragma ZS_BUILD_NOTE("TODO","(robin)")
 
-  wrapper::org::webRtc::VideoFormatPtr result {};
-  return result;
+  ZS_ASSERT(desired);
+  if (!desired) return wrapper::org::webRtc::VideoFormatPtr();
+
+  auto converted = UseVideoFormat::toNative(desired);
+  ZS_ASSERT(converted);
+  if (!converted) return wrapper::org::webRtc::VideoFormatPtr();
+
+  ::cricket::VideoFormat format;
+  if (!native_->GetBestCaptureFormat(*converted, &format)) return wrapper::org::webRtc::VideoFormatPtr();
+
+  return UseVideoFormat::toWrapper(format);
 }
 
 //------------------------------------------------------------------------------
@@ -203,10 +228,15 @@ wrapper::org::webRtc::VideoCaptureState wrapper::impl::org::webRtc::VideoCapture
     ZS_ASSERT_FAIL("Cannot call into VideoCapturer after VideoCapturer has been passed into to a VideoTrackSource.");
     return wrapper::org::webRtc::VideoCaptureState::VideoCaptureState_failed;
   }
-#pragma ZS_BUILD_NOTE("TODO","(robin)")
 
-  wrapper::org::webRtc::VideoCaptureState result {};
-  return result;
+  ZS_ASSERT(captureFormat);
+  if (!captureFormat) return wrapper::org::webRtc::VideoCaptureState::VideoCaptureState_failed;
+
+  auto converted = UseVideoFormat::toNative(captureFormat);
+  ZS_ASSERT(converted);
+  if (!converted) return wrapper::org::webRtc::VideoCaptureState::VideoCaptureState_failed;
+
+  return UseEnum::toWrapper(native_->Start(*converted));
 }
 
 //------------------------------------------------------------------------------
@@ -216,9 +246,8 @@ wrapper::org::webRtc::VideoFormatPtr wrapper::impl::org::webRtc::VideoCapturer::
     ZS_ASSERT_FAIL("Cannot call into VideoCapturer after VideoCapturer has been passed into to a VideoTrackSource.");
     return wrapper::org::webRtc::VideoFormatPtr();
   }
-#pragma ZS_BUILD_NOTE("TODO","(robin)")
-  wrapper::org::webRtc::VideoFormatPtr result {};
-  return result;
+
+  return UseVideoFormat::toWrapper(native_->GetCaptureFormat());
 }
 
 //------------------------------------------------------------------------------
@@ -327,9 +356,12 @@ wrapper::org::webRtc::VideoCapturerInputSizePtr wrapper::impl::org::webRtc::Vide
     ZS_ASSERT_FAIL("Cannot call into VideoCapturer after VideoCapturer has been passed into to a VideoTrackSource.");
     return wrapper::org::webRtc::VideoCapturerInputSizePtr();
   }
-#pragma ZS_BUILD_NOTE("TODO","(robin)")
-  wrapper::org::webRtc::VideoCapturerInputSizePtr result {};
-  return result;
+
+  int width{};
+  int height{};
+  if (!native_->GetInputSize(&width, &height)) return wrapper::org::webRtc::VideoCapturerInputSizePtr();
+
+  return UseVideoCapturerInputSize::toWrapper(width, height);
 }
 
 //------------------------------------------------------------------------------
@@ -339,9 +371,7 @@ wrapper::org::webRtc::VideoCaptureState wrapper::impl::org::webRtc::VideoCapture
     ZS_ASSERT_FAIL("Cannot call into VideoCapturer after VideoCapturer has been passed into to a VideoTrackSource.");
     return wrapper::org::webRtc::VideoCaptureState::VideoCaptureState_failed;
   }
-#pragma ZS_BUILD_NOTE("TODO","(robin)")
-  wrapper::org::webRtc::VideoCaptureState result {};
-  return result;
+  return UseEnum::toWrapper(native_->capture_state());
 }
 
 //------------------------------------------------------------------------------

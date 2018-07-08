@@ -152,8 +152,9 @@ String wrapper::impl::org::webRtc::RTCDtmfSender::get_toneBuffer() noexcept
 }
 
 //------------------------------------------------------------------------------
-void wrapper::impl::org::webRtc::RTCDtmfSender::wrapper_onObserverCountChanged(size_t count) noexcept
+void wrapper::impl::org::webRtc::RTCDtmfSender::wrapper_onObserverCountChanged(ZS_MAYBE_USED() size_t count) noexcept
 {
+  ZS_MAYBE_USED(count);
 }
 
 //------------------------------------------------------------------------------

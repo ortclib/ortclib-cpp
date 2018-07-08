@@ -74,6 +74,9 @@ WrapperImplTypePtr WrapperImplType::toWrapper(UseRtpReceiverPtr value) noexcept
   auto result = make_shared<WrapperImplType>();
   result->thisWeak_ = result;
   result->receiver_ = value;
+  if (value) {
+    result->track_ = value->get_track();
+  }
   return result;
 }
 
@@ -94,5 +97,11 @@ WrapperImplTypePtr WrapperImplType::toWrapper(UseRtpTransceiverPtr value) noexce
   auto result = make_shared<WrapperImplType>();
   result->thisWeak_ = result;
   result->transceiver_ = value;
+  if (value) {
+    result->receiver_ = value->get_receiver();
+    if (result->receiver_) {
+      result->track_ = result->receiver_->get_track();
+    }
+  }
   return result;
 }

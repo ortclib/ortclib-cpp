@@ -19,9 +19,9 @@ namespace wrapper {
           ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::MediaStreamTrack, UseMediaStreamTrack);
           ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCRtpTransceiver, UseRtpTransceiver);
 
-          UseRtpReceiverPtr receiver_;
-          UseMediaStreamTrackPtr track_;
-          RTCRtpTransceiverPtr transceiver_;
+          wrapper::org::webRtc::RTCRtpReceiverPtr receiver_;
+          wrapper::org::webRtc::MediaStreamTrackPtr track_;
+          wrapper::org::webRtc::RTCRtpTransceiverPtr transceiver_;
           RTCTrackEventWeakPtr thisWeak_;
 
           RTCTrackEvent() noexcept;

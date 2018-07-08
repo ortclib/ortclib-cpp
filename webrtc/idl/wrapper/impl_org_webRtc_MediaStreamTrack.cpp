@@ -27,6 +27,7 @@
 #include "impl_org_webRtc_AudioTrackSource.h"
 #include "impl_org_webRtc_VideoTrackSource.h"
 #include "impl_org_webRtc_WebrtcLib.h"
+#include "impl_org_webRtc_enums.h"
 
 #include "impl_org_webRtc_pre_include.h"
 #include "pc/audiotrack.h"
@@ -65,6 +66,7 @@ typedef wrapper::impl::org::webRtc::WrapperMapper<NativeType, WrapperImplType> U
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::WebRtcLib, UseWebrtcLib);
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::AudioTrackSource, UseAudioTrackSource);
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::VideoTrackSource, UseVideoTrackSource);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::IEnum, UseEnum);
 
 //------------------------------------------------------------------------------
 static UseWrapperMapper &mapperSingleton()
@@ -175,6 +177,7 @@ wrapper::org::webRtc::MediaStreamTrackPtr wrapper::org::webRtc::MediaStreamTrack
 //------------------------------------------------------------------------------
 String wrapper::impl::org::webRtc::MediaStreamTrack::get_kind() noexcept
 {
+  ZS_ASSERT(native_);
   if (!native_) return String();
   return native_->kind();
 }
@@ -182,6 +185,7 @@ String wrapper::impl::org::webRtc::MediaStreamTrack::get_kind() noexcept
 //------------------------------------------------------------------------------
 String wrapper::impl::org::webRtc::MediaStreamTrack::get_id() noexcept
 {
+  ZS_ASSERT(native_);
   if (!native_) return String();
   return native_->id();
 }
@@ -189,6 +193,7 @@ String wrapper::impl::org::webRtc::MediaStreamTrack::get_id() noexcept
 //------------------------------------------------------------------------------
 bool wrapper::impl::org::webRtc::MediaStreamTrack::get_enabled() noexcept
 {
+  ZS_ASSERT(native_);
   if (!native_) return false;
   return native_->enabled();
 }
@@ -196,6 +201,7 @@ bool wrapper::impl::org::webRtc::MediaStreamTrack::get_enabled() noexcept
 //------------------------------------------------------------------------------
 void wrapper::impl::org::webRtc::MediaStreamTrack::set_enabled(bool value) noexcept
 {
+  ZS_ASSERT(native_);
   if (!native_) return;
 
   native_->set_enabled(value);
@@ -204,9 +210,10 @@ void wrapper::impl::org::webRtc::MediaStreamTrack::set_enabled(bool value) noexc
 //------------------------------------------------------------------------------
 wrapper::org::webRtc::MediaStreamTrackState wrapper::impl::org::webRtc::MediaStreamTrack::get_state() noexcept
 {
-#pragma ZS_BUILD_NOTE("IMPLEMENT","(robin)")
-  wrapper::org::webRtc::MediaStreamTrackState result {};
-  return result;
+  ZS_ASSERT(native_);
+  if (!native_) return wrapper::org::webRtc::MediaStreamTrackState::MediaStreamTrackState_ended;
+
+  return UseEnum::toWrapper(native_->state());
 }
 
 //------------------------------------------------------------------------------

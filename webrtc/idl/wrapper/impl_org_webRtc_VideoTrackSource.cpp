@@ -3,6 +3,7 @@
 #include "impl_org_webRtc_MediaConstraints.h"
 #include "impl_org_webRtc_VideoCapturer.h"
 #include "impl_org_webRtc_WebrtcLib.h"
+#include "impl_org_webRtc_enums.h"
 
 #include "impl_org_webRtc_pre_include.h"
 #include "api/mediastreaminterface.h"
@@ -37,6 +38,7 @@ typedef WrapperImplType::NativeTypeScopedPtr NativeTypeScopedPtr;
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::WebRtcLib, UseWebrtcLib);
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::MediaConstraints, UseMediaConstraints);
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::VideoCapturer, UseVideoCapturer);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::IEnum, UseEnum);
 
 //------------------------------------------------------------------------------
 wrapper::impl::org::webRtc::VideoTrackSource::VideoTrackSource() noexcept
@@ -60,9 +62,10 @@ wrapper::impl::org::webRtc::VideoTrackSource::~VideoTrackSource() noexcept
 //------------------------------------------------------------------------------
 wrapper::org::webRtc::MediaSourceState wrapper::impl::org::webRtc::VideoTrackSource::get_state() noexcept
 {
-#pragma ZS_BUILD_NOTE("TODO","(robin)")
-  wrapper::org::webRtc::MediaSourceState result {};
-  return result;
+  ZS_ASSERT(native_);
+  if (!native_) return wrapper::org::webRtc::MediaSourceState::MediaSourceState_ended;
+
+  return UseEnum::toWrapper(native_->state());
 }
 
 //------------------------------------------------------------------------------
@@ -123,7 +126,7 @@ Optional< bool > wrapper::impl::org::webRtc::VideoTrackSource::get_needsDenoisin
 //------------------------------------------------------------------------------
 Optional< wrapper::org::webRtc::VideoTrackSourceStatsPtr > wrapper::impl::org::webRtc::VideoTrackSource::get_stats() noexcept
 {
-#pragma ZS_BUILD_NOTE("TODO","(robin)")
+#pragma ZS_BUILD_NOTE("TODO","(robin) get_stats")
   Optional< wrapper::org::webRtc::VideoTrackSourceStatsPtr > result {};
   return result;
 }

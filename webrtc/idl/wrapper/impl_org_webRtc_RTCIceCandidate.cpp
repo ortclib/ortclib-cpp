@@ -1,6 +1,7 @@
 
 #include "impl_org_webRtc_RTCIceCandidate.h"
 #include "impl_org_webRtc_RTCIceCandidateInit.h"
+#include "impl_org_webRtc_RTCError.h"
 #include "impl_org_webRtc_enums.h"
 
 #include "impl_org_webRtc_pre_include.h"
@@ -8,6 +9,8 @@
 #include "impl_org_webRtc_post_include.h"
 
 #include <zsLib/SafeInt.h>
+
+#include <sstream>
 
 using ::zsLib::String;
 using ::zsLib::Optional;
@@ -33,6 +36,8 @@ ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCIceCandidate::WrapperType,
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCIceCandidate::NativeType, NativeType);
 
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::IEnum, UseEnum);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCError, UseError);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCIceCandidateInit, UseIceCandidateInit);
 
 //------------------------------------------------------------------------------
 wrapper::impl::org::webRtc::RTCIceCandidate::RTCIceCandidate() noexcept
@@ -56,28 +61,39 @@ wrapper::impl::org::webRtc::RTCIceCandidate::~RTCIceCandidate() noexcept
 //------------------------------------------------------------------------------
 void wrapper::impl::org::webRtc::RTCIceCandidate::wrapper_init_org_webRtc_RTCIceCandidate() noexcept
 {
+  native_ = std::make_unique<CricketNativeType>();
 }
 
 //------------------------------------------------------------------------------
 void wrapper::impl::org::webRtc::RTCIceCandidate::wrapper_init_org_webRtc_RTCIceCandidate(wrapper::org::webRtc::RTCIceCandidateInitPtr init) noexcept(false)
 {
-	if (!init) {
-		native_ = std::make_unique<CricketNativeType>();
-		return;
-	}
-	webrtc::SdpParseError error;
-	candidate_.reset(webrtc::CreateIceCandidate(init->sdpMid, init->sdpMLineIndex, init->candidate, &error));
-	native_ = std::make_unique<CricketNativeType>(candidate_->candidate());
-	mid_ = candidate_->sdp_mid();
-	mLineIndex = candidate_->sdp_mline_index();
-	serverUrl_ = candidate_->server_url();
+  if (!init) {
+    wrapper_init_org_webRtc_RTCIceCandidate();
+    return;
+  }
+  webrtc::SdpParseError error;
+  NativeTypeUniPtr candidate(webrtc::CreateIceCandidate(init->sdpMid, init->sdpMLineIndex, init->candidate, &error));
+
+  if (!candidate) {
+    std::stringstream ss;
+    ss << error.line;
+    if (error.line.length() > 0) {
+      ss << " <- ";
+    }
+    ss << error.description;
+    throw UseError::toWrapper(::webrtc::RTCError(::webrtc::RTCErrorType::SYNTAX_ERROR, ss.str()));
+  }
+
+  native_ = std::make_unique<CricketNativeType>(candidate->candidate());
+  mid_ = candidate->sdp_mid();
+  mLineIndex = SafeInt<decltype(mLineIndex)::value_type>(candidate->sdp_mline_index());
+  serverUrl_ = candidate->server_url();
 }
 
 //------------------------------------------------------------------------------
 wrapper::org::webRtc::RTCIceCandidateInitPtr wrapper::impl::org::webRtc::RTCIceCandidate::toJson() noexcept
 {
-  wrapper::org::webRtc::RTCIceCandidateInitPtr result {};
-  return result;
+  return UseIceCandidateInit::toWrapper(thisWeak_.lock());
 }
 
 //------------------------------------------------------------------------------

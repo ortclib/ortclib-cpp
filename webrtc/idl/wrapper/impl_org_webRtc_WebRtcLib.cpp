@@ -188,8 +188,6 @@ void WrapperImplType::actual_setup(wrapper::org::webRtc::EventQueuePtr queue) no
   // prevent multiple setups being called simulatuously
   if (setupCalledOnce_.test_and_set()) return;
 
-#pragma ZS_BUILD_NOTE("TODO","(robin) prepare webrtc peer connection factory here")
-
 #ifdef WINUWP
 
   // Setup for WinWUP...

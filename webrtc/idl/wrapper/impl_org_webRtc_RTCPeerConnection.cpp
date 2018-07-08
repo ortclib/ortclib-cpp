@@ -796,7 +796,7 @@ void WrapperImplType::onWebrtcObserverIceConnectionReceivingChange(ZS_MAYBE_USED
 void WrapperImplType::onWebrtcObserverAddTrack(rtc::scoped_refptr<::webrtc::RtpReceiverInterface> receiver) noexcept
 {
   auto event = UseTrackEvent::toWrapper(UseRtpReceiver::toWrapper(receiver));
-  if (event) return;
+  if (!event) return;
   onTrack(event);
 }
 
@@ -804,7 +804,7 @@ void WrapperImplType::onWebrtcObserverAddTrack(rtc::scoped_refptr<::webrtc::RtpR
 void WrapperImplType::onWebrtcObserverTrack(rtc::scoped_refptr<::webrtc::RtpTransceiverInterface> transceiver) noexcept
 {
   auto event = UseTrackEvent::toWrapper(UseRtpTransceiver::toWrapper(transceiver));
-  if (event) return;
+  if (!event) return;
   onTrack(event);
 }
 
@@ -812,7 +812,7 @@ void WrapperImplType::onWebrtcObserverTrack(rtc::scoped_refptr<::webrtc::RtpTran
 void WrapperImplType::onWebrtcObserverRemoveTrack(rtc::scoped_refptr<::webrtc::RtpReceiverInterface> receiver) noexcept
 {
   auto event = UseTrackEvent::toWrapper(UseRtpReceiver::toWrapper(receiver));
-  if (event) return;
+  if (!event) return;
   onRemoveTrack(event);
 }
 
