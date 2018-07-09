@@ -289,7 +289,7 @@ void WrapperImplType::autoAttachSourceToElement()
     source = source_;
   }
 
-  if ((!element) || (!source)) return;
+  if (!element) return;
 
   {
     auto queue = UseWebrtcLib::delegateQueue();
@@ -304,7 +304,11 @@ void WrapperImplType::autoAttachSourceToElement()
         auto nativeElement = UseMediaElementImpl::toNative_cx(element);
         if (nativeElement) {
           auto nativeSource = UseMediaSourceImpl::toNative_cx(source);
-          nativeElement->SetMediaStreamSource(nativeSource);
+          if (nativeSource) {
+            nativeElement->SetMediaStreamSource(nativeSource);
+          } else {
+            nativeElement->Source = nullptr;
+          }
           didAttachment = true;
         }
       }
@@ -315,7 +319,11 @@ void WrapperImplType::autoAttachSourceToElement()
         auto nativeElement = UseMediaElementImpl::toNative_winrt(element);
         if (nativeElement) {
           auto nativeSource = UseMediaSourceImpl::toNative_winrt(source);
-          nativeElement.SetMediaStreamSource(nativeSource);
+          if (nativeSource) {
+            nativeElement.SetMediaStreamSource(nativeSource);
+          } else {
+            nativeElement.Source(winrt::Windows::Foundation::Uri{ nullptr });
+          }
           didAttachment = true;
         }
       }
