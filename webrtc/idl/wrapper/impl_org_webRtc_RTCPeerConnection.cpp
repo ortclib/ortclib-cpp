@@ -53,8 +53,8 @@ using ::std::map;
 
 // borrow definitions from class
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCPeerConnection::WrapperImplType, WrapperImplType);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCPeerConnection::WrapperType, WrapperType);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCPeerConnection::NativeType, NativeType);
+ZS_DECLARE_TYPEDEF_PTR(WrapperImplType::WrapperType, WrapperType);
+ZS_DECLARE_TYPEDEF_PTR(WrapperImplType::NativeType, NativeType);
 
 typedef wrapper::impl::org::webRtc::RTCPeerConnection::NativeTypeScopedPtr NativeTypeScopedPtr;
 
@@ -155,8 +155,21 @@ wrapper::org::webRtc::RTCPeerConnectionPtr wrapper::org::webRtc::RTCPeerConnecti
 wrapper::impl::org::webRtc::RTCPeerConnection::~RTCPeerConnection() noexcept
 {
   thisWeak_.reset();
+  wrapper_dispose();
+}
+
+//------------------------------------------------------------------------------
+void wrapper::impl::org::webRtc::RTCPeerConnection::wrapper_dispose() noexcept
+{
+  if (!native_) return;
+
+  if (!closeCalled_.exchange(true)) {
+    native_->Close();
+  }
+
   teardownObserver();
   mapperSingleton().remove(native_.get());
+  native_ = NativeTypeScopedPtr();
 }
 
 //------------------------------------------------------------------------------
@@ -477,6 +490,7 @@ void wrapper::impl::org::webRtc::RTCPeerConnection::close() noexcept
 {
   ZS_ASSERT(native_);
   if (!native_) return;
+  closeCalled_ = true;
   native_->Close();
 }
 

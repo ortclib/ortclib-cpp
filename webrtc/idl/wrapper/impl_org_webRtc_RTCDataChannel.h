@@ -55,6 +55,7 @@ namespace wrapper {
             IMessageQueuePtr queue_;
           };
 
+          std::atomic_bool closeCalled_ {};
           std::atomic<uint64_t> bufferLowThreshold_ {};
           std::atomic<bool> bufferLowNotified_ {};
           std::atomic<bool> notifiedOpen_ {};
@@ -68,6 +69,8 @@ namespace wrapper {
 
           RTCDataChannel() noexcept;
           virtual ~RTCDataChannel() noexcept;
+          void wrapper_dispose() noexcept override;
+
 
           // methods RTCStatsProvider
           shared_ptr< PromiseWithHolderPtr< wrapper::org::webRtc::RTCStatsReportPtr > > getStats(wrapper::org::webRtc::RTCStatsTypeSetPtr statTypes) noexcept(false) override; // throws wrapper::org::webRtc::RTCErrorPtr

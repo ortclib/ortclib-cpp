@@ -19,6 +19,7 @@ namespace wrapper {
 
           VideoTrackSourceStats() noexcept;
           virtual ~VideoTrackSourceStats() noexcept;
+
           void wrapper_init_org_webRtc_VideoTrackSourceStats() noexcept override;
         };
 

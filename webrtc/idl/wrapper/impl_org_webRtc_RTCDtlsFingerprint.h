@@ -24,6 +24,7 @@ namespace wrapper {
           RTCDtlsFingerprint() noexcept;
           virtual ~RTCDtlsFingerprint() noexcept;
 
+
           // methods RTCDtlsFingerprint
           void wrapper_init_org_webRtc_RTCDtlsFingerprint() noexcept override;
           void wrapper_init_org_webRtc_RTCDtlsFingerprint(wrapper::org::webRtc::RTCDtlsFingerprintPtr source) noexcept override;

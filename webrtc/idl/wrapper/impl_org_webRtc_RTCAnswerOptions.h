@@ -24,6 +24,7 @@ namespace wrapper {
           RTCAnswerOptions() noexcept;
           virtual ~RTCAnswerOptions() noexcept;
 
+
           // methods RTCAnswerOptions
           void wrapper_init_org_webRtc_RTCAnswerOptions() noexcept override;
           void wrapper_init_org_webRtc_RTCAnswerOptions(wrapper::org::webRtc::RTCAnswerOptionsPtr source) noexcept override;

@@ -23,6 +23,7 @@ namespace wrapper {
           RTCDataChannelEvent() noexcept;
           virtual ~RTCDataChannelEvent() noexcept;
 
+
           // properties RTCDataChannelEvent
           wrapper::org::webRtc::RTCDataChannelPtr get_channel() noexcept override;
 

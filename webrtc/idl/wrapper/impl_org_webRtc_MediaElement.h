@@ -28,6 +28,7 @@ namespace wrapper {
           MediaElement() noexcept;
           virtual ~MediaElement() noexcept;
 
+
           // methods MediaElement
           void wrapper_init_org_webRtc_MediaElement(AnyPtr element) noexcept override;
 

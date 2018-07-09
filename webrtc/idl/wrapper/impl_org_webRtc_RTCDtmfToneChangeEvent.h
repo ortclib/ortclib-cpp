@@ -21,6 +21,7 @@ namespace wrapper {
           RTCDtmfToneChangeEvent() noexcept;
           virtual ~RTCDtmfToneChangeEvent() noexcept;
 
+
           // properties RTCDtmfToneChangeEvent
           String get_tone() noexcept override;
 

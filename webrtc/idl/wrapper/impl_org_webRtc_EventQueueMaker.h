@@ -17,6 +17,7 @@ namespace wrapper {
           EventQueueMaker() noexcept = delete;
           EventQueueMaker(const EventQueueMaker &) noexcept = delete;
           virtual ~EventQueueMaker() noexcept;
+
         };
 
       } // webRtc

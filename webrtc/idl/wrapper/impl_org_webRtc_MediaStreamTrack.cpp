@@ -54,10 +54,10 @@ using ::std::list;
 using ::std::set;
 using ::std::map;
 
-// borrow types from call defintions
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::MediaStreamTrack::WrapperType, WrapperType);
+// borrow definitions from class
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::MediaStreamTrack::WrapperImplType, WrapperImplType);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::MediaStreamTrack::NativeType, NativeType);
+ZS_DECLARE_TYPEDEF_PTR(WrapperImplType::WrapperType, WrapperType);
+ZS_DECLARE_TYPEDEF_PTR(WrapperImplType::NativeType, NativeType);
 
 typedef WrapperImplType::NativeTypeScopedPtr NativeTypeScopedPtr;
 
@@ -138,6 +138,16 @@ wrapper::impl::org::webRtc::MediaStreamTrack::~MediaStreamTrack() noexcept
   thisWeak_.reset();
   teardownObserver();
   mapperSingleton().remove(native_.get());
+}
+
+//------------------------------------------------------------------------------
+void wrapper::impl::org::webRtc::MediaStreamTrack::wrapper_dispose() noexcept
+{
+  if (!native_) return;
+
+  teardownObserver();
+  mapperSingleton().remove(native_.get());
+  native_ = NativeTypeScopedPtr();
 }
 
 //------------------------------------------------------------------------------
@@ -343,6 +353,8 @@ void WrapperImplType::setupObserver() noexcept
 //------------------------------------------------------------------------------
 void WrapperImplType::teardownObserver() noexcept
 {
+  if (!native_) return;
+
   if (videoObserver_) {
     auto converted = dynamic_cast<::webrtc::VideoTrackInterface *>(native_.get());
     ZS_ASSERT(converted);

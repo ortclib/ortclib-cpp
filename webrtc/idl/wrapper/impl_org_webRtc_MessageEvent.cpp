@@ -26,8 +26,8 @@ using ::std::map;
 
 // borrow definitions from class
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::MessageEvent::WrapperImplType, WrapperImplType);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::MessageEvent::WrapperType, WrapperType);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::MessageEvent::NativeType, NativeType);
+ZS_DECLARE_TYPEDEF_PTR(WrapperImplType::WrapperType, WrapperType);
+ZS_DECLARE_TYPEDEF_PTR(WrapperImplType::NativeType, NativeType);
 
 ZS_DECLARE_TYPEDEF_PTR(zsLib::eventing::IHelper, UseHelper);
 

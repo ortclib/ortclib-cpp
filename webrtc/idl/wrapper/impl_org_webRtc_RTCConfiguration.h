@@ -25,6 +25,7 @@ namespace wrapper {
           RTCConfiguration() noexcept;
           virtual ~RTCConfiguration() noexcept;
 
+
           // methods RTCConfiguration
           void wrapper_init_org_webRtc_RTCConfiguration() noexcept override;
           void wrapper_init_org_webRtc_RTCConfiguration(wrapper::org::webRtc::RTCConfigurationType type) noexcept override;

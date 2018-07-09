@@ -20,6 +20,7 @@ namespace wrapper {
           RTCPeerConnectionIceErrorEvent() noexcept;
           virtual ~RTCPeerConnectionIceErrorEvent() noexcept;
 
+
           // properties RTCPeerConnectionIceErrorEvent
           String get_hostCandidate() noexcept override;
           String get_url() noexcept override;

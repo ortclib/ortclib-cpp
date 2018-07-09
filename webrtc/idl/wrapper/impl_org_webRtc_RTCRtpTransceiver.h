@@ -27,6 +27,8 @@ namespace wrapper {
 
           RTCRtpTransceiver() noexcept;
           virtual ~RTCRtpTransceiver() noexcept;
+          void wrapper_dispose() noexcept override;
+
 
           // methods RTCRtpTransceiver
           void stop() noexcept override;

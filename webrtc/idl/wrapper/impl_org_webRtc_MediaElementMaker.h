@@ -17,6 +17,7 @@ namespace wrapper {
           MediaElementMaker() noexcept = delete;
           MediaElementMaker(const MediaElementMaker &) noexcept = delete;
           virtual ~MediaElementMaker() noexcept;
+
         };
 
       } // webRtc

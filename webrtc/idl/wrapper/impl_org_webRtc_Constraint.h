@@ -25,6 +25,7 @@ namespace wrapper {
           Constraint() noexcept;
           virtual ~Constraint() noexcept;
 
+
           // methods Constraint
           void wrapper_init_org_webRtc_Constraint() noexcept override;
           void wrapper_init_org_webRtc_Constraint(wrapper::org::webRtc::ConstraintPtr source) noexcept override;

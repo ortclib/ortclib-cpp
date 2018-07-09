@@ -25,6 +25,7 @@ namespace wrapper {
           MediaSource() noexcept;
           virtual ~MediaSource() noexcept;
 
+
           // methods MediaSource
           void wrapper_init_org_webRtc_MediaSource(AnyPtr source) noexcept override;
 

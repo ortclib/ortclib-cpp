@@ -24,10 +24,9 @@ using ::std::list;
 using ::std::set;
 using ::std::map;
 
-
 // borrow definitions from class
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::MediaTrackSource::WrapperImplType, WrapperImplType);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::MediaTrackSource::WrapperType, WrapperType);
+ZS_DECLARE_TYPEDEF_PTR(WrapperImplType::WrapperType, WrapperType);
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::MediaTrackSource::NativeType, NativeType);
 
 typedef WrapperImplType::NativeTypeScopedPtr NativeTypeScopedPtr;
@@ -51,6 +50,15 @@ wrapper::org::webRtc::MediaTrackSourcePtr wrapper::org::webRtc::MediaTrackSource
 wrapper::impl::org::webRtc::MediaTrackSource::~MediaTrackSource() noexcept
 {
   thisWeak_.reset();
+  wrapper_dispose();
+}
+
+//------------------------------------------------------------------------------
+void wrapper::impl::org::webRtc::MediaTrackSource::wrapper_dispose() noexcept
+{
+  if (!native_) return;
+
+  native_ = NativeTypeScopedPtr();
 }
 
 //------------------------------------------------------------------------------

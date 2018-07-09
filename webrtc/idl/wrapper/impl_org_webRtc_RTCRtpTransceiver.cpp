@@ -31,11 +31,10 @@ using ::std::list;
 using ::std::set;
 using ::std::map;
 
-
 // borrow definitions from class
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCRtpTransceiver::WrapperImplType, WrapperImplType);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCRtpTransceiver::WrapperType, WrapperType);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCRtpTransceiver::NativeType, NativeType);
+ZS_DECLARE_TYPEDEF_PTR(WrapperImplType::WrapperType, WrapperType);
+ZS_DECLARE_TYPEDEF_PTR(WrapperImplType::NativeType, NativeType);
 
 typedef WrapperImplType::NativeTypeScopedPtr NativeTypeScopedPtr;
 
@@ -78,8 +77,17 @@ wrapper::org::webRtc::RTCRtpTransceiverPtr wrapper::org::webRtc::RTCRtpTransceiv
 wrapper::impl::org::webRtc::RTCRtpTransceiver::~RTCRtpTransceiver() noexcept
 {
   thisWeak_.reset();
+  wrapper_dispose();
+}
+
+//------------------------------------------------------------------------------
+void wrapper::impl::org::webRtc::RTCRtpTransceiver::wrapper_dispose() noexcept
+{
+  if (!native_) return;
+
   teardownObserver();
   mapperSingleton().remove(native_.get());
+  native_ = NativeTypeScopedPtr();
 }
 
 //------------------------------------------------------------------------------

@@ -24,6 +24,7 @@ namespace wrapper {
           RTCOfferOptions() noexcept;
           virtual ~RTCOfferOptions() noexcept;
 
+
           // methods RTCOfferOptions
           void wrapper_init_org_webRtc_RTCOfferOptions() noexcept override;
           void wrapper_init_org_webRtc_RTCOfferOptions(wrapper::org::webRtc::RTCOfferOptionsPtr source) noexcept override;

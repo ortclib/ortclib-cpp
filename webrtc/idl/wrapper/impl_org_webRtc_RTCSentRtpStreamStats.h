@@ -20,6 +20,7 @@ namespace wrapper {
           RTCSentRtpStreamStats() noexcept;
           virtual ~RTCSentRtpStreamStats() noexcept;
 
+
           // properties RTCStats
           ::zsLib::Time get_timestamp() noexcept override;
           Optional< wrapper::org::webRtc::RTCStatsType > get_statsType() noexcept override;

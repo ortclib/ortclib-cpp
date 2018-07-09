@@ -25,6 +25,7 @@ namespace wrapper {
           VideoDeviceInfo() noexcept;
           virtual ~VideoDeviceInfo() noexcept;
 
+
           // properties VideoDeviceInfo
           AnyPtr get_info() noexcept override;
 

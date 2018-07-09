@@ -23,7 +23,7 @@ using ::std::set;
 using ::std::map;
 
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCTrackEvent::WrapperImplType, WrapperImplType);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCTrackEvent::WrapperType, WrapperType);
+ZS_DECLARE_TYPEDEF_PTR(WrapperImplType::WrapperType, WrapperType);
 
 ZS_DECLARE_TYPEDEF_PTR(WrapperImplType::UseRtpReceiver, UseRtpReceiver);
 ZS_DECLARE_TYPEDEF_PTR(WrapperImplType::UseMediaStreamTrack, UseMediaStreamTrack);

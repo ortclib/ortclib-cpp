@@ -38,6 +38,7 @@ namespace org
     /// Base class for sources. A MediaStreamTrack has an underlying source that
     /// provides media. A source can be shared by multiple tracks.
     /// </summary>
+    [disposable]
     interface MediaTrackSource
     {
       [constructor,delete]

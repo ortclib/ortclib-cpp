@@ -72,8 +72,17 @@ wrapper::org::webRtc::RTCDtmfSenderPtr wrapper::org::webRtc::RTCDtmfSender::wrap
 wrapper::impl::org::webRtc::RTCDtmfSender::~RTCDtmfSender() noexcept
 {
   thisWeak_.reset();
+  wrapper_dispose();
+}
+
+//------------------------------------------------------------------------------
+void wrapper::impl::org::webRtc::RTCDtmfSender::wrapper_dispose() noexcept
+{
+  if (!native_) return;
+
   teardownObserver();
   mapperSingleton().remove(native_.get());
+  native_ = NativeTypeScopedPtr();
 }
 
 //------------------------------------------------------------------------------

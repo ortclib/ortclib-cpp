@@ -26,6 +26,8 @@ namespace wrapper {
 
           RTCRtpSender() noexcept;
           virtual ~RTCRtpSender() noexcept;
+          void wrapper_dispose() noexcept override;
+
 
           // methods RTCRtpSender
           wrapper::org::webRtc::RTCRtpSendParametersPtr getParameters() noexcept override;

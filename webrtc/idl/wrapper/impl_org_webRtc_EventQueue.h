@@ -21,6 +21,7 @@ namespace wrapper {
           EventQueue() noexcept;
           virtual ~EventQueue() noexcept;
 
+
           // methods EventQueue
           void wrapper_init_org_webRtc_EventQueue(AnyPtr queue) noexcept override;
 

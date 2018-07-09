@@ -24,8 +24,8 @@ using ::std::map;
 
 // borrow definitions from class
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCOAuthCredential::WrapperImplType, WrapperImplType);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCOAuthCredential::WrapperType, WrapperType);
-//ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCOAuthCredential::NativeType, NativeType);
+ZS_DECLARE_TYPEDEF_PTR(WrapperImplType::WrapperType, WrapperType);
+//ZS_DECLARE_TYPEDEF_PTR(WrapperImplType::NativeType, NativeType);
 
 //------------------------------------------------------------------------------
 wrapper::impl::org::webRtc::RTCOAuthCredential::RTCOAuthCredential() noexcept

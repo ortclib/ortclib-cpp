@@ -24,6 +24,7 @@ namespace wrapper {
           MillisecondIntervalRange() noexcept;
           virtual ~MillisecondIntervalRange() noexcept;
 
+
           // methods MillisecondIntervalRange
           void wrapper_init_org_webRtc_MillisecondIntervalRange() noexcept override;
           void wrapper_init_org_webRtc_MillisecondIntervalRange(wrapper::org::webRtc::MillisecondIntervalRangePtr source) noexcept override;

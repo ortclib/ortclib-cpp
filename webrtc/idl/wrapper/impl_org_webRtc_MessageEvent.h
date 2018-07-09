@@ -26,6 +26,7 @@ namespace wrapper {
           MessageEvent() noexcept;
           virtual ~MessageEvent() noexcept;
 
+
           // properties MessageEvent
           SecureByteBlockPtr get_binary() noexcept override;
           String get_text() noexcept override;

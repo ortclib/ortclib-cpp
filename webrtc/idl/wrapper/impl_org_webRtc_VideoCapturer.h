@@ -21,11 +21,14 @@ namespace wrapper {
           ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::VideoCapturer, WrapperImplType);
           ZS_DECLARE_TYPEDEF_PTR(::cricket::VideoCapturer, NativeType);
 
+          std::atomic_bool stopCalled_{};
           NativeTypeUniPtr native_;
           VideoCapturerWeakPtr thisWeak_;
 
           VideoCapturer() noexcept;
           virtual ~VideoCapturer() noexcept;
+          void wrapper_dispose() noexcept override;
+
 
           // methods VideoCapturer
           shared_ptr< list< wrapper::org::webRtc::VideoFormatPtr > > getSupportedFormats() noexcept override;

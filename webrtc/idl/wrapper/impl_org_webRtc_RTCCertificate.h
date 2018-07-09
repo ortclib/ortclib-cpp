@@ -27,6 +27,7 @@ namespace wrapper {
           RTCCertificate() noexcept;
           virtual ~RTCCertificate() noexcept;
 
+
           // properties RTCCertificate
           ::zsLib::Time get_expires() noexcept override;
           shared_ptr< list< wrapper::org::webRtc::RTCDtlsFingerprintPtr > > get_fingerprints() noexcept override;

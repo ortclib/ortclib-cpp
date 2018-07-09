@@ -44,6 +44,7 @@ namespace org
     /// associated transceiver is one that's represented in the
     /// last applied session description.
     /// </summary>
+    [disposable]
     interface RTCRtpTransceiver
     {
       [constructor, delete]

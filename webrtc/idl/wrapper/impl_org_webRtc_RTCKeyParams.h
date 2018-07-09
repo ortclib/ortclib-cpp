@@ -24,6 +24,7 @@ namespace wrapper {
           RTCKeyParams() noexcept;
           virtual ~RTCKeyParams() noexcept;
 
+
           // methods RTCKeyParams
           void wrapper_init_org_webRtc_RTCKeyParams() noexcept override;
           void wrapper_init_org_webRtc_RTCKeyParams(wrapper::org::webRtc::RTCKeyType key_type) noexcept override;

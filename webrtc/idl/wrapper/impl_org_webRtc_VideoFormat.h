@@ -24,6 +24,7 @@ namespace wrapper {
           VideoFormat() noexcept;
           virtual ~VideoFormat() noexcept;
 
+
           // methods VideoFormat
           bool IsPixelRateLess(wrapper::org::webRtc::VideoFormatPtr other) noexcept override;
           void wrapper_init_org_webRtc_VideoFormat() noexcept override;

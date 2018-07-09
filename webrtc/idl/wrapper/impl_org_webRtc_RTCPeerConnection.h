@@ -127,12 +127,15 @@ namespace wrapper {
             IMessageQueuePtr queue_;
           };
 
+          std::atomic_bool closeCalled_{};
           WebrtcObserverUniPtr observer_;
           NativeTypeScopedPtr native_;
           RTCPeerConnectionWeakPtr thisWeak_;
 
           RTCPeerConnection() noexcept;
           virtual ~RTCPeerConnection() noexcept;
+          void wrapper_dispose() noexcept override;
+
 
           // methods RTCStatsProvider
           shared_ptr< PromiseWithHolderPtr< wrapper::org::webRtc::RTCStatsReportPtr > > getStats(wrapper::org::webRtc::RTCStatsTypeSetPtr statTypes) noexcept(false) override; // throws wrapper::org::webRtc::RTCErrorPtr

@@ -117,8 +117,17 @@ wrapper::org::webRtc::RTCRtpReceiverPtr wrapper::org::webRtc::RTCRtpReceiver::wr
 wrapper::impl::org::webRtc::RTCRtpReceiver::~RTCRtpReceiver() noexcept
 {
   thisWeak_.reset();
+  wrapper_dispose();
+}
+
+//------------------------------------------------------------------------------
+void wrapper::impl::org::webRtc::RTCRtpReceiver::wrapper_dispose() noexcept
+{
+  if (!native_) return;
+
   teardownObserver();
   mapperSingleton().remove(native_.get());
+  native_ = NativeTypeScopedPtr();
 }
 
 //------------------------------------------------------------------------------

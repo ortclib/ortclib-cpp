@@ -20,6 +20,7 @@ namespace wrapper {
           RTCStatsTypeSet() noexcept;
           virtual ~RTCStatsTypeSet() noexcept;
 
+
           // methods RTCStatsTypeSet
           void wrapper_init_org_webRtc_RTCStatsTypeSet() noexcept override;
           void wrapper_init_org_webRtc_RTCStatsTypeSet(shared_ptr< set< wrapper::org::webRtc::RTCStatsType > > values) noexcept override;

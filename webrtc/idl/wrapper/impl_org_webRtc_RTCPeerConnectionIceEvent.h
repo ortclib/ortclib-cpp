@@ -23,6 +23,7 @@ namespace wrapper {
           RTCPeerConnectionIceEvent() noexcept;
           virtual ~RTCPeerConnectionIceEvent() noexcept;
 
+
           // properties RTCPeerConnectionIceEvent
           wrapper::org::webRtc::RTCIceCandidatePtr get_candidate() noexcept override;
           String get_url() noexcept override;

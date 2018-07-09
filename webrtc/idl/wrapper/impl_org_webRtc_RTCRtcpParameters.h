@@ -19,6 +19,7 @@ namespace wrapper {
 
           RTCRtcpParameters() noexcept;
           virtual ~RTCRtcpParameters() noexcept;
+
           void wrapper_init_org_webRtc_RTCRtcpParameters() noexcept override;
         };
 

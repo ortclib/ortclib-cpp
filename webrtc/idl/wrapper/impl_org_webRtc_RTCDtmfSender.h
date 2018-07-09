@@ -50,6 +50,8 @@ namespace wrapper {
 
           RTCDtmfSender() noexcept;
           virtual ~RTCDtmfSender() noexcept;
+          void wrapper_dispose() noexcept override;
+
 
           // methods RTCDtmfSender
           bool canInsertDtmf() noexcept override;

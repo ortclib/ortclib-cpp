@@ -20,6 +20,7 @@ namespace wrapper {
           RTCStatsReport() noexcept;
           virtual ~RTCStatsReport() noexcept;
 
+
           // methods RTCStatsReport
           wrapper::org::webRtc::RTCStatsPtr getStats(String id) noexcept override;
 

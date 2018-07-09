@@ -52,6 +52,8 @@ namespace wrapper {
 
           AudioTrackSource() noexcept;
           virtual ~AudioTrackSource() noexcept;
+          void wrapper_dispose() noexcept override;
+
 
           // properties MediaTrackSource
           wrapper::org::webRtc::MediaSourceState get_state() noexcept override;

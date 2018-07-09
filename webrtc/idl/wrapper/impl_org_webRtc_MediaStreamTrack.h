@@ -84,6 +84,8 @@ namespace wrapper {
 
           MediaStreamTrack() noexcept;
           virtual ~MediaStreamTrack() noexcept;
+          void wrapper_dispose() noexcept override;
+
 
           // properties MediaStreamTrack
           String get_kind() noexcept override;

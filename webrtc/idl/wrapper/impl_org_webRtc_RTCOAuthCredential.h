@@ -22,6 +22,7 @@ namespace wrapper {
           RTCOAuthCredential() noexcept;
           virtual ~RTCOAuthCredential() noexcept;
 
+
           // methods RTCOAuthCredential
           void wrapper_init_org_webRtc_RTCOAuthCredential() noexcept override;
           void wrapper_init_org_webRtc_RTCOAuthCredential(wrapper::org::webRtc::RTCOAuthCredentialPtr source) noexcept override;

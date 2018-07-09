@@ -26,6 +26,7 @@ namespace wrapper {
           RTCSessionDescription() noexcept;
           virtual ~RTCSessionDescription() noexcept;
 
+
           // methods RTCSessionDescription
           void wrapper_init_org_webRtc_RTCSessionDescription(wrapper::org::webRtc::RTCSessionDescriptionInitPtr init) noexcept(false) override; // throws wrapper::org::webRtc::RTCErrorPtr
 

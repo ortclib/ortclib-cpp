@@ -23,6 +23,7 @@ namespace wrapper {
 
           RTCError() noexcept;
           virtual ~RTCError() noexcept;
+
           void wrapper_init_org_webRtc_RTCError() noexcept override;
 
           // properties RTCError

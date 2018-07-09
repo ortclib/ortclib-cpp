@@ -32,6 +32,7 @@ namespace wrapper {
           RTCIceCandidate() noexcept;
           virtual ~RTCIceCandidate() noexcept;
 
+
           // methods RTCIceCandidate
           void wrapper_init_org_webRtc_RTCIceCandidate() noexcept override;
           void wrapper_init_org_webRtc_RTCIceCandidate(wrapper::org::webRtc::RTCIceCandidateInitPtr init) noexcept(false) override; // throws wrapper::org::webRtc::RTCErrorPtr

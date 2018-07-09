@@ -27,10 +27,10 @@ using ::std::list;
 using ::std::set;
 using ::std::map;
 
-// borrow types from call defintions
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::AudioTrackSource::WrapperType, WrapperType);
+// borrow definitions from class
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::AudioTrackSource::WrapperImplType, WrapperImplType);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::AudioTrackSource::NativeType, NativeType);
+ZS_DECLARE_TYPEDEF_PTR(WrapperImplType::WrapperType, WrapperType);
+ZS_DECLARE_TYPEDEF_PTR(WrapperImplType::NativeType, NativeType);
 
 typedef WrapperImplType::NativeTypeScopedPtr NativeTypeScopedPtr;
 
@@ -75,8 +75,17 @@ wrapper::org::webRtc::AudioTrackSourcePtr wrapper::org::webRtc::AudioTrackSource
 wrapper::impl::org::webRtc::AudioTrackSource::~AudioTrackSource() noexcept
 {
   thisWeak_.reset();
+  wrapper_dispose();
+}
+
+//------------------------------------------------------------------------------
+void wrapper::impl::org::webRtc::AudioTrackSource::wrapper_dispose() noexcept
+{
+  if (!native_) return;
+
   teardownObserver();
   mapperSingleton().remove(native_.get());
+  native_ = NativeTypeScopedPtr();
 }
 
 //------------------------------------------------------------------------------

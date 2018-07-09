@@ -41,6 +41,7 @@ namespace wrapper {
           MediaConstraints() noexcept;
           virtual ~MediaConstraints() noexcept;
 
+
           // methods MediaConstraints
           void wrapper_init_org_webRtc_MediaConstraints() noexcept override;
           void wrapper_init_org_webRtc_MediaConstraints(wrapper::org::webRtc::MediaConstraintsPtr source) noexcept override;

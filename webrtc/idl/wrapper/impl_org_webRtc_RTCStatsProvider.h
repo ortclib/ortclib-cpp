@@ -19,6 +19,7 @@ namespace wrapper {
           RTCStatsProvider(const RTCStatsProvider &) noexcept = delete;
           virtual ~RTCStatsProvider() noexcept;
 
+
           // methods RTCStatsProvider
           shared_ptr< PromiseWithHolderPtr< wrapper::org::webRtc::RTCStatsReportPtr > > getStats(wrapper::org::webRtc::RTCStatsTypeSetPtr statTypes) noexcept(false) override; // throws wrapper::org::webRtc::RTCErrorPtr
         };

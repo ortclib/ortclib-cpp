@@ -31,9 +31,9 @@ using ::std::map;
 
 
 // borrow types from call defintions
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCDataChannel::WrapperType, WrapperType);
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCDataChannel::WrapperImplType, WrapperImplType);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::RTCDataChannel::NativeType, NativeType);
+ZS_DECLARE_TYPEDEF_PTR(WrapperImplType::WrapperType, WrapperType);
+ZS_DECLARE_TYPEDEF_PTR(WrapperImplType::NativeType, NativeType);
 
 typedef WrapperImplType::NativeTypeScopedPtr NativeTypeScopedPtr;
 
@@ -74,8 +74,21 @@ wrapper::org::webRtc::RTCDataChannelPtr wrapper::org::webRtc::RTCDataChannel::wr
 wrapper::impl::org::webRtc::RTCDataChannel::~RTCDataChannel() noexcept
 {
   thisWeak_.reset();
+  wrapper_dispose();
+}
+
+//------------------------------------------------------------------------------
+void wrapper::impl::org::webRtc::RTCDataChannel::wrapper_dispose() noexcept
+{
+  if (!native_) return;
+
+  if (!closeCalled_.exchange(true)) {
+    native_->Close();
+  }
+
   teardownObserver();
   mapperSingleton().remove(native_.get());
+  native_ = NativeTypeScopedPtr();
 }
 
 //------------------------------------------------------------------------------
@@ -91,6 +104,7 @@ void wrapper::impl::org::webRtc::RTCDataChannel::close() noexcept
 {
   ZS_ASSERT(native_);
   if (!native_) return;
+  closeCalled_ = true;
   notifiedOpen_ = true;
   notifiedClosed_ = true;
   native_->Close();

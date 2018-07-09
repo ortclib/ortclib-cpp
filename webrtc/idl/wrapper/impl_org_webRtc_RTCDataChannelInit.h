@@ -23,6 +23,7 @@ namespace wrapper {
           RTCDataChannelInit() noexcept;
           virtual ~RTCDataChannelInit() noexcept;
 
+
           // methods RTCDataChannelInit
           void wrapper_init_org_webRtc_RTCDataChannelInit() noexcept override;
           void wrapper_init_org_webRtc_RTCDataChannelInit(wrapper::org::webRtc::RTCDataChannelInitPtr source) noexcept override;

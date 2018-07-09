@@ -85,6 +85,18 @@ wrapper::org::webRtc::VideoCapturerPtr wrapper::org::webRtc::VideoCapturer::wrap
 wrapper::impl::org::webRtc::VideoCapturer::~VideoCapturer() noexcept
 {
   thisWeak_.reset();
+  wrapper_dispose();
+}
+
+//------------------------------------------------------------------------------
+void wrapper::impl::org::webRtc::VideoCapturer::wrapper_dispose() noexcept
+{
+  if (!native_) return;
+
+  if (!stopCalled_.exchange(true)) {
+    native_->Stop();
+  }
+  native_.reset();
 }
 
 //------------------------------------------------------------------------------
@@ -257,6 +269,7 @@ void wrapper::impl::org::webRtc::VideoCapturer::stop() noexcept
     ZS_ASSERT_FAIL("Cannot call into VideoCapturer after VideoCapturer has been passed into to a VideoTrackSource.");
     return;
   }
+  stopCalled_ = true;
   native_->Stop();
 }
 

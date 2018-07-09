@@ -24,6 +24,7 @@ namespace wrapper {
           RTCIceServer() noexcept;
           virtual ~RTCIceServer() noexcept;
 
+
           // methods RTCIceServer
           void wrapper_init_org_webRtc_RTCIceServer() noexcept override;
           void wrapper_init_org_webRtc_RTCIceServer(wrapper::org::webRtc::RTCIceServerPtr source) noexcept override;

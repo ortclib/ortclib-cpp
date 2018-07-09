@@ -20,9 +20,11 @@ using ::std::list;
 using ::std::set;
 using ::std::map;
 
+// borrow definitions from class
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::MediaConstraints::WrapperImplType, WrapperImplType);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::MediaConstraints::NativeType, NativeType);
-ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::MediaConstraints::NativeImplType, NativeImplType);
+ZS_DECLARE_TYPEDEF_PTR(WrapperImplType::WrapperType, WrapperType);
+ZS_DECLARE_TYPEDEF_PTR(WrapperImplType::NativeType, NativeType);
+ZS_DECLARE_TYPEDEF_PTR(WrapperImplType::NativeImplType, NativeImplType);
 
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::Constraint, WrapperConstraintType);
 
