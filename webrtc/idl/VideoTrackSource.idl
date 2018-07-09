@@ -47,6 +47,7 @@ namespace org
     /// VideoTrackSourceInterface is a used for VideoTracks. The same source can
     /// be used by multiple VideoTracks.
     /// </summary>
+    [disposable]
     interface VideoTrackSource : MediaTrackSource
     {
       [constructor, delete]

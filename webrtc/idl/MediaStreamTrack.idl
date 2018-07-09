@@ -42,6 +42,7 @@ namespace org
     /// represent the same media source, e.g., when the user chooses the
     /// same camera in the UI shown by two consecutive calls to getUserMedia().
     /// </summary>
+    [disposable]
     interface MediaStreamTrack
     {
       [constructor,delete]

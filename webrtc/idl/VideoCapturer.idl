@@ -93,6 +93,7 @@ namespace org
       int height;
     };
 
+    [disposable]
     interface VideoCapturer
     {
       [constructor, default, delete]

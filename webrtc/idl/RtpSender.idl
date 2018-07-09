@@ -40,6 +40,7 @@ namespace org
     /// peer. When setParameters is called on an RTCRtpSender object,
     /// the encoding is changed appropriately.
     /// </summary>
+    [disposable]
     interface RTCRtpSender
     {
       [constructor, delete]

@@ -115,6 +115,7 @@ namespace org
     /// The RTCRtpReceiver interface allows an application to
     /// inspect the receipt of a MediaStreamTrack.
     /// </summary>
+    [disposable]
     interface RTCRtpReceiver
     {
       [constructor, delete]

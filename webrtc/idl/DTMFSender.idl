@@ -55,6 +55,7 @@ namespace org
     /// An RTCDtmfSender instance allows sending DTMF tones to/from the remote
     /// peer, as per [RFC4733].
     /// </summary>
+    [disposable]
     interface RTCDtmfSender
     {
       [constructor, delete]

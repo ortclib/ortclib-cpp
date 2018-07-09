@@ -4,6 +4,7 @@
 #include "impl_org_webRtc_AudioOptions.h"
 #include "impl_org_webRtc_MediaConstraints.h"
 #include "impl_org_webRtc_WebrtcLib.h"
+#include "impl_org_webRtc_enums.h"
 
 //#include "impl_org_webRtc_pre_include.h"
 //#include "impl_org_webRtc_post_include.h"
@@ -38,6 +39,7 @@ typedef wrapper::impl::org::webRtc::WrapperMapper<NativeType, WrapperImplType> U
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::WebRtcLib, UseWebrtcLib);
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::MediaConstraints, UseMediaConstraints);
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::AudioOptions, UseAudioOptions);
+ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::IEnum, UseEnum);
 
 //------------------------------------------------------------------------------
 static UseWrapperMapper &mapperSingleton()
@@ -109,9 +111,9 @@ void wrapper::impl::org::webRtc::AudioTrackSource::wrapper_onObserverCountChange
 //------------------------------------------------------------------------------
 wrapper::org::webRtc::MediaSourceState wrapper::impl::org::webRtc::AudioTrackSource::get_state() noexcept
 {
-#pragma ZS_BUILD_NOTE("TODO","(robin)")
-  wrapper::org::webRtc::MediaSourceState result {};
-  return result;
+  ZS_ASSERT(native_);
+  if (!native_) return wrapper::org::webRtc::MediaSourceState::MediaSourceState_ended;
+  return UseEnum::toWrapper(native_->state());
 }
 
 //------------------------------------------------------------------------------

@@ -54,6 +54,7 @@ namespace org
     /// AudioSourceInterface is a source used for AudioTracks.
     /// The same source can be used by multiple AudioTracks.
     /// </summary>
+    [disposable]
     interface AudioTrackSource : MediaTrackSource
     {
       [constructor,delete]

@@ -135,6 +135,7 @@ namespace org
     /// the RTCPeerConnection operates. References to specific subsections of
     /// [JSEP] are provided as appropriate.
     /// </summary>
+    [disposable]
     interface RTCPeerConnection : RTCStatsProvider
     {
       /// <summary>

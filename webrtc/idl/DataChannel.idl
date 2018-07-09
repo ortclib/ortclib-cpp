@@ -133,6 +133,7 @@ namespace org
     /// An RTCDataChannel class instance allows sending data messages to/from
     /// the remote peer.
     /// </summary>
+    [disposable]
     interface RTCDataChannel : RTCStatsProvider
     {
       [constructor, delete, default]
