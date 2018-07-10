@@ -56,7 +56,7 @@ namespace winrt {
           /// <summary>
           /// Cast from Org::Ortc::IEventQueue to EventQueue
           /// </summary>
-          static Org::Ortc::EventQueue CastFromIEventQueue(Org::Ortc::IEventQueue const & value);
+          static Org::Ortc::EventQueue Cast(Org::Ortc::IEventQueue const & value);
 
           // ::org::ortc::EventQueue
 

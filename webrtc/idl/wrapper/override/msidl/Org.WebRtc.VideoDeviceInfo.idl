@@ -21,7 +21,9 @@ namespace Org
             /// <summary>
             /// Cast from Org.WebRtc.IVideoDeviceInfo to Org.WebRtc.VideoDeviceInfo
             /// </summary>
-            static Org.WebRtc.VideoDeviceInfo CastFromIVideoDeviceInfo(Org.WebRtc.IVideoDeviceInfo source);
+            [default_overload]
+            [method_name("CastFromIVideoDeviceInfo")]
+            static Org.WebRtc.VideoDeviceInfo Cast(Org.WebRtc.IVideoDeviceInfo source);
         };
 
     } // namespace WebRtc

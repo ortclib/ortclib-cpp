@@ -115,7 +115,7 @@ wrapper::org::ortc::EventQueuePtr Org::Ortc::implementation::EventQueue::FromCpp
 }
 
 //------------------------------------------------------------------------------
-Org::Ortc::EventQueue Org::Ortc::implementation::EventQueue::CastFromIEventQueue(Org::Ortc::IEventQueue const & value)
+Org::Ortc::EventQueue Org::Ortc::implementation::EventQueue::Cast(Org::Ortc::IEventQueue const & value)
 {
   if (!value) return nullptr;
   auto nativeObject = ::Internal::Helper::FromCppWinrt_Org_Ortc_EventQueue(value);  

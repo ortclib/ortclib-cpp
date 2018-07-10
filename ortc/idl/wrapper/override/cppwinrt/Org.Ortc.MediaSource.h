@@ -59,7 +59,7 @@ namespace winrt {
           /// <summary>
           /// Cast from Org::Ortc::IMediaSource to MediaSource
           /// </summary>
-          static Org::Ortc::MediaSource CastFromIMediaSource(Org::Ortc::IMediaSource const & value);
+          static Org::Ortc::MediaSource Cast(Org::Ortc::IMediaSource const & value);
 
           /// <summary>
           /// Gets or sets the platform specific media source.

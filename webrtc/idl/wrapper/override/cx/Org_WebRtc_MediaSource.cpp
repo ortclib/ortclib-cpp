@@ -2,8 +2,10 @@
 
 #ifndef CX_USE_GENERATED_ORG_WEBRTC_MEDIASOURCE
 
-#include <wrappers/generated/cx/cx_Helpers.h>
-#include <wrappers/generated/cx/Org_WebRtc_MediaSource.h>
+#include <wrapper/generated/cx/cx_Helpers.h>
+#include <wrapper/generated/cx/Org_WebRtc_MediaSource.h>
+
+#include <wrapper/impl_org_webRtc_MediaSource.h>
 
 //------------------------------------------------------------------------------
 ::Org::WebRtc::MediaSource^ Org::WebRtc::MediaSource::ToCx(wrapper::org::webRtc::MediaSourcePtr value)
@@ -22,25 +24,21 @@ wrapper::org::webRtc::MediaSourcePtr Org::WebRtc::MediaSource::FromCx(::Org::Web
 }
 
 //------------------------------------------------------------------------------
-Org::WebRtc::MediaSource::MediaSource(Platform::Object^ queue)
+Org::WebRtc::MediaSource::MediaSource(Windows::Media::Core::IMediaSource^ source)
  : native_(wrapper::org::webRtc::MediaSource::wrapper_create())
 {
   if (!native_) {throw ref new Platform::NullReferenceException();}
-  native_->wrapper_init_org_webRtc_MediaSource(::Internal::Helper::FromCx(queue));
+
+  auto wrapperSource = wrapper::impl::org::webRtc::MediaSource::toWrapper(source);
+  ZS_ASSERT(wrapperSource);
+  native_->wrapper_init_org_webRtc_MediaSource(wrapperSource->source_);
 }
 
 //------------------------------------------------------------------------------
-Platform::Object^ Org::WebRtc::MediaSource::Source::get()
+Windows::Media::Core::IMediaSource^ Org::WebRtc::MediaSource::Source::get()
 {
   if (!native_) {throw ref new Platform::NullReferenceException();}
-  return ::Internal::Helper::ToCx(native_->get_source());
-}
-
-//------------------------------------------------------------------------------
-void Org::WebRtc::MediaSource::Source::set(Platform::Object^ value)
-{
-  if (!native_) {throw ref new Platform::NullReferenceException();}
-  native_->set_source(::Internal::Helper::FromCx(value));
+  return  wrapper::impl::org::webRtc::MediaSource::toNative_cx(native_);
 }
 
 

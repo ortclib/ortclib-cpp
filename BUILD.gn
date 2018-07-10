@@ -721,6 +721,7 @@ if(current_os == "winuwp"){
   "$target_gen_dir/../../../../../../third_party/ortc/ortclib/webRtc/idl/wrapper/generated/cx/cx_Helpers.h",
  ]
  ortc_sources = [
+  "$target_gen_dir/../../../../../../third_party/ortc/ortclib/ortc/idl/wrapper/override/cx/cx_Helpers_Throwers.cpp",
   "$target_gen_dir/../../../../../../third_party/ortc/ortclib/ortc/idl/wrapper/generated/cx/cx_Helpers.cpp",
   "$target_gen_dir/../../../../../../third_party/ortc/ortclib/ortc/idl/wrapper/generated/cx/cx_Helpers.h",
   "$target_gen_dir/../../../../../../third_party/ortc/ortclib/ortc/idl/wrapper/generated/cx/Org_Ortc_Adapter_MediaStream.cpp",

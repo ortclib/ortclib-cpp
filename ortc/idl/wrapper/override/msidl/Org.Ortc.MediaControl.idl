@@ -25,6 +25,8 @@ namespace Org
             /// <summary>
             /// Cast from Org.Ortc.IMediaControl to Org.Ortc.MediaControl
             /// </summary>
+            [default_overload]
+            [method_name("CastFromIMediaControl")]
             static Org.Ortc.MediaControl CastFromIMediaControl(Org.Ortc.IMediaControl source);
 
             /// <summary>

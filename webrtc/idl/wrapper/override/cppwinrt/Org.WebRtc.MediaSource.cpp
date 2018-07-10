@@ -123,7 +123,7 @@ wrapper::org::webRtc::MediaSourcePtr Org::WebRtc::implementation::MediaSource::F
 }
 
 //------------------------------------------------------------------------------
-Org::WebRtc::MediaSource Org::WebRtc::implementation::MediaSource::CastFromIMediaSource(Org::WebRtc::IMediaSource const & value)
+Org::WebRtc::MediaSource Org::WebRtc::implementation::MediaSource::Cast(Org::WebRtc::IMediaSource const & value)
 {
   if (!value) return nullptr;
   auto nativeObject = ::Internal::Helper::FromCppWinrt_Org_WebRtc_MediaSource(value);  

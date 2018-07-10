@@ -58,7 +58,7 @@ namespace winrt {
           /// <summary>
           /// Cast from Org::WebRtc::IMediaSource to MediaSource
           /// </summary>
-          static Org::WebRtc::MediaSource CastFromIMediaSource(Org::WebRtc::IMediaSource const & value);
+          static Org::WebRtc::MediaSource Cast(Org::WebRtc::IMediaSource const & value);
 
           // ::org::webRtc::MediaSource
 

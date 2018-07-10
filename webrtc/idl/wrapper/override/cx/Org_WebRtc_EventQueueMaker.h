@@ -32,14 +32,12 @@ namespace Org {
       /// <summary>
       /// Creates an event queue object from a native queue type.
       /// </summary>
-      static ::Org::WebRtc::EventQueue^ Bind(Platform::Object^ queue);
+      static ::Org::WebRtc::EventQueue^ Bind(Windows::UI::Core::CoreDispatcher^ queue);
       /// <summary>
       /// Extracts a native queue from an event queue object.
       /// </summary>
-      static Platform::Object^ Extract(::Org::WebRtc::EventQueue^ queue);
+      static Windows::UI::Core::CoreDispatcher^ Extract(::Org::WebRtc::EventQueue^ queue);
 
-      static ::Org::Ortc::EventQueue^ BindQueue(Windows::UI::Core::CoreDispatcher^ queue);
-      static Windows::UI::Core::CoreDispatcher^ ExtractQueue(::Org::Ortc::EventQueue^ queue);
 
     };
 

@@ -121,7 +121,7 @@ wrapper::org::webRtc::EventQueuePtr Org::WebRtc::implementation::EventQueue::Fro
 }
 
 //------------------------------------------------------------------------------
-Org::WebRtc::EventQueue Org::WebRtc::implementation::EventQueue::CastFromIEventQueue(Org::WebRtc::IEventQueue const & value)
+Org::WebRtc::EventQueue Org::WebRtc::implementation::EventQueue::Cast(Org::WebRtc::IEventQueue const & value)
 {
   if (!value) return nullptr;
   auto nativeObject = ::Internal::Helper::FromCppWinrt_Org_WebRtc_EventQueue(value);  

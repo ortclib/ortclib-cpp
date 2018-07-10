@@ -22,7 +22,9 @@ namespace Org
             /// <summary>
             /// Cast from Org.WebRtc.IMediaElementMaker to Org.WebRtc.MediaElementMaker
             /// </summary>
-            static Org.WebRtc.MediaElementMaker CastFromIMediaElementMaker(Org.WebRtc.IMediaElementMaker source);
+            [default_overload]
+            [method_name("CastFromIMediaElementMaker")]
+            static Org.WebRtc.MediaElementMaker Cast(Org.WebRtc.IMediaElementMaker source);
 
             /// <summary>
             /// Creates an media element object from a media element type.

@@ -122,7 +122,7 @@ Org::Ortc::implementation::MediaSource::MediaSource()
 }
 
 //------------------------------------------------------------------------------
-Org::Ortc::MediaSource Org::Ortc::implementation::MediaSource::CastFromIMediaSource(Org::Ortc::IMediaSource const & value)
+Org::Ortc::MediaSource Org::Ortc::implementation::MediaSource::Cast(Org::Ortc::IMediaSource const & value)
 {
   if (!value) return nullptr;
   auto nativeObject = ::Internal::Helper::FromCppWinrt_Org_Ortc_MediaSource(value);

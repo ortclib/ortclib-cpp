@@ -54,7 +54,7 @@ namespace winrt {
           /// <summary>
           /// Cast from Org::WebRtc::IEventQueueMaker to EventQueueMaker
           /// </summary>
-          static Org::WebRtc::EventQueueMaker CastFromIEventQueueMaker(Org::WebRtc::IEventQueueMaker const & value);
+          static Org::WebRtc::EventQueueMaker Cast(Org::WebRtc::IEventQueueMaker const & value);
 
           // ::org::webRtc::EventQueueMaker
 

@@ -124,7 +124,7 @@ wrapper::org::webRtc::MediaElementMakerPtr Org::WebRtc::implementation::MediaEle
 }
 
 //------------------------------------------------------------------------------
-Org::WebRtc::MediaElementMaker Org::WebRtc::implementation::MediaElementMaker::CastFromIMediaElementMaker(Org::WebRtc::IMediaElementMaker const & value)
+Org::WebRtc::MediaElementMaker Org::WebRtc::implementation::MediaElementMaker::Cast(Org::WebRtc::IMediaElementMaker const & value)
 {
   if (!value) return nullptr;
   auto nativeObject = ::Internal::Helper::FromCppWinrt_Org_WebRtc_MediaElementMaker(value);  

@@ -41,7 +41,9 @@ namespace Org
             /// <summary>
             /// Cast from Org.WebRtc.IMediaSource to Org.WebRtc.MediaSource
             /// </summary>
-            static Org.WebRtc.MediaSource CastFromIMediaSource(Org.WebRtc.IMediaSource source);
+            [default_overload]
+            [method_name("CastFromIMediaSource")]
+            static Org.WebRtc.MediaSource Cast(Org.WebRtc.IMediaSource source);
         };
 
     } // namespace WebRtc

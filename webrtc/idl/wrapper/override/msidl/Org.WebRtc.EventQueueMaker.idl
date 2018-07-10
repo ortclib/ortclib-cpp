@@ -22,7 +22,9 @@ namespace Org
             /// <summary>
             /// Cast from Org.WebRtc.IEventQueueMaker to Org.WebRtc.EventQueueMaker
             /// </summary>
-            static Org.WebRtc.EventQueueMaker CastFromIEventQueueMaker(Org.WebRtc.IEventQueueMaker source);
+            [default_overload]
+            [method_name("CastFromIEventQueueMaker")]
+            static Org.WebRtc.EventQueueMaker Cast(Org.WebRtc.IEventQueueMaker source);
 
             /// <summary>
             /// Creates an event queue object from a native queue type.

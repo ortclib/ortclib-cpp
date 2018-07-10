@@ -1,9 +1,12 @@
 
 
 #ifndef CX_USE_GENERATED_ORG_WEBRTC_EVENTQUEUEMAKER
-#include <wrappers/generated/cx/cx_Helpers.h>
-#include <wrappers/generated/cx/Org_WebRtc_EventQueueMaker.h>
-#include <wrappers/generated/cx/Org_WebRtc_EventQueue.h>
+
+#include <wrapper/generated/cx/cx_Helpers.h>
+#include <wrapper/generated/cx/Org_WebRtc_EventQueueMaker.h>
+#include <wrapper/generated/cx/Org_WebRtc_EventQueue.h>
+
+#include <wrapper/impl_org_webRtc_EventQueue.h>
 
 //------------------------------------------------------------------------------
 ::Org::WebRtc::EventQueueMaker^ Org::WebRtc::EventQueueMaker::ToCx(wrapper::org::webRtc::EventQueueMakerPtr value)
@@ -22,19 +25,17 @@ wrapper::org::webRtc::EventQueueMakerPtr Org::WebRtc::EventQueueMaker::FromCx(::
 }
 
 //------------------------------------------------------------------------------
-::Org::WebRtc::EventQueue^ Org::WebRtc::EventQueueMaker::Bind(Platform::Object^ queue)
+::Org::WebRtc::EventQueue^ Org::WebRtc::EventQueueMaker::Bind(Windows::UI::Core::CoreDispatcher^ queue)
 {
   ::Org::WebRtc::EventQueue^ result {};
-  result = ::Internal::Helper::ToCx_Org_WebRtc_EventQueue(wrapper::org::webRtc::EventQueueMaker::bind(::Internal::Helper::FromCx(queue)));
+  result = ::Internal::Helper::ToCx_Org_WebRtc_EventQueue(wrapper::impl::org::webRtc::EventQueue::toWrapper(queue));
   return result;
 }
 
 //------------------------------------------------------------------------------
-Platform::Object^ Org::WebRtc::EventQueueMaker::Extract(::Org::WebRtc::EventQueue^ queue)
+Windows::UI::Core::CoreDispatcher^ Org::WebRtc::EventQueueMaker::Extract(::Org::WebRtc::EventQueue^ queue)
 {
-  Platform::Object^ result {};
-  result = ::Internal::Helper::ToCx(wrapper::org::webRtc::EventQueueMaker::extract(::Internal::Helper::FromCx_Org_WebRtc_EventQueue(queue)));
-  return result;
+  return wrapper::impl::org::webRtc::EventQueue::toNative_cx(::Internal::Helper::FromCx_Org_WebRtc_EventQueue(queue));
 }
 
 

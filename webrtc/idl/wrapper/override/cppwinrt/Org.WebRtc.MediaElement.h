@@ -58,7 +58,7 @@ namespace winrt {
           /// <summary>
           /// Cast from Org::WebRtc::IMediaElement to MediaElement
           /// </summary>
-          static Org::WebRtc::MediaElement CastFromIMediaElement(Org::WebRtc::IMediaElement const & value);
+          static Org::WebRtc::MediaElement Cast(Org::WebRtc::IMediaElement const & value);
 
           // ::org::webRtc::MediaElement
 

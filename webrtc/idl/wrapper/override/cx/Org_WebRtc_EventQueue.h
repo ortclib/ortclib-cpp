@@ -1,7 +1,8 @@
 
-#pragma once
 
 #ifndef CX_USE_GENERATED_ORG_WEBRTC_EVENTQUEUE
+
+#pragma once
 
 #include <wrapper/generated/cx/types.h>
 #include <wrapper/generated/org_webRtc_EventQueue.h>
@@ -30,11 +31,13 @@ namespace Org {
     public:
       // ::org::webRtc::EventQueue
 
+#if 0
       /// <summary>
       /// Constructs an event queue object from a native queue type.
       /// </summary>
       [Windows::Foundation::Metadata::DefaultOverloadAttribute, Windows::Foundation::Metadata::OverloadAttribute("EventQueueWithNativeQueue")]
       EventQueue(Platform::Object^ queue);
+#endif //0
       /// <summary>
       /// The default windows message queue for the system GUI thread.
       /// </summary>
@@ -48,10 +51,12 @@ namespace Org {
         ::Org::WebRtc::EventQueue^ get();
         void set(::Org::WebRtc::EventQueue^ value);
       }
+#if 0
       /// <summary>
       /// Gets a native queue from an event queue object.
       /// </summary>
       property Platform::Object^ Queue { Platform::Object^ get(); }
+#endif //0
 
     };
 

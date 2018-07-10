@@ -55,7 +55,7 @@ namespace winrt {
           /// <summary>
           /// Cast from Org::WebRtc::IVideoDeviceInfo to VideoDeviceInfo
           /// </summary>
-          static Org::WebRtc::VideoDeviceInfo CastFromIVideoDeviceInfo(Org::WebRtc::IVideoDeviceInfo const & value);
+          static Org::WebRtc::VideoDeviceInfo Cast(Org::WebRtc::IVideoDeviceInfo const & value);
 
           Windows::Devices::Enumeration::DeviceInformation Info();
         };

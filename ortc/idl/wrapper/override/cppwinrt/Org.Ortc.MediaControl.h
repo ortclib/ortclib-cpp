@@ -57,7 +57,7 @@ namespace winrt {
           /// <summary>
           /// Cast from Org::Ortc::IMediaControl to MediaControl
           /// </summary>
-          static Org::Ortc::MediaControl CastFromIMediaControl(Org::Ortc::IMediaControl const & value);
+          static Org::Ortc::MediaControl Cast(Org::Ortc::IMediaControl const & value);
 
           /// <summary>
           /// Gets or sets the media engine the application orientation has

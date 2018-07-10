@@ -29,7 +29,9 @@ namespace Org
             /// <summary>
             /// Cast from Org.WebRtc.IMediaElement to Org.WebRtc.MediaElement
             /// </summary>
-            static Org.WebRtc.MediaElement CastFromIMediaElement(Org.WebRtc.IMediaElement source);
+            [default_overload]
+            [method_name("CastFromIMediaElement")]
+            static Org.WebRtc.MediaElement Cast(Org.WebRtc.IMediaElement source);
         };
 
     } // namespace WebRtc

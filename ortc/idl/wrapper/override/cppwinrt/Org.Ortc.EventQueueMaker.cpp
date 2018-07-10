@@ -119,7 +119,7 @@ wrapper::org::ortc::EventQueueMakerPtr Org::Ortc::implementation::EventQueueMake
 }
 
 //------------------------------------------------------------------------------
-Org::Ortc::EventQueueMaker Org::Ortc::implementation::EventQueueMaker::CastFromIEventQueueMaker(Org::Ortc::IEventQueueMaker const & value)
+Org::Ortc::EventQueueMaker Org::Ortc::implementation::EventQueueMaker::Cast(Org::Ortc::IEventQueueMaker const & value)
 {
   if (!value) return nullptr;
   auto nativeObject = ::Internal::Helper::FromCppWinrt_Org_Ortc_EventQueueMaker(value);  

@@ -1,7 +1,8 @@
 
-#pragma once
 
 #ifndef CX_USE_GENERATED_ORG_WEBRTC_MEDIASOURCE
+
+#pragma once
 
 #include <wrapper/generated/cx/types.h>
 #include <wrapper/generated/org_webRtc_MediaSource.h>
@@ -34,17 +35,13 @@ namespace Org {
       /// <summary>
       /// Constructs a media source object from a native media source type.
       /// </summary>
-      [Windows::Foundation::Metadata::DefaultOverloadAttribute, Windows::Foundation::Metadata::OverloadAttribute("MediaSourceWithNativeQueue")]
-      MediaSource(Platform::Object^ queue);
+      [Windows::Foundation::Metadata::DefaultOverloadAttribute, Windows::Foundation::Metadata::OverloadAttribute("MediaSourceWithNativeSource")]
+      MediaSource(Windows::Media::Core::IMediaSource^ source);
 
       /// <summary>
-      /// Gets or sets the platform specific media source.
+      /// Gets the platform specific media source.
       /// </summary>
-      property Platform::Object^ Source
-      {
-        Platform::Object^ get();
-        void set(Platform::Object^ value);
-      }
+      property Windows::Media::Core::IMediaSource^ Source { Windows::Media::Core::IMediaSource^ get(); }
 
     };
 

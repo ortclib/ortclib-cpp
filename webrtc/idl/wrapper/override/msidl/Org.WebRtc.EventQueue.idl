@@ -25,7 +25,9 @@ namespace Org
             /// <summary>
             /// Cast from Org.WebRtc.IEventQueue to Org.WebRtc.EventQueue
             /// </summary>
-            static Org.WebRtc.EventQueue CastFromIEventQueue(Org.WebRtc.IEventQueue source);
+            [default_overload]
+            [method_name("CastFromIEventQueue")]
+            static Org.WebRtc.EventQueue Cast(Org.WebRtc.IEventQueue source);
 
             /// <summary>
             /// The default windows message queue for the system GUI thread.

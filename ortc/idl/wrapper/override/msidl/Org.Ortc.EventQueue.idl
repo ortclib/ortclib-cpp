@@ -25,6 +25,8 @@ namespace Org
             /// <summary>
             /// Cast from Org.Ortc.IEventQueue to Org.Ortc.EventQueue
             /// </summary>
+            [default_overload]
+            [method_name("CastFromIEventQueue")]
             static Org.Ortc.EventQueue CastFromIEventQueue(Org.Ortc.IEventQueue source);
 
             /// <summary>

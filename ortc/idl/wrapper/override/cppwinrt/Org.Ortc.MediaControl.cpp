@@ -114,7 +114,7 @@ wrapper::org::ortc::MediaControlPtr Org::Ortc::implementation::MediaControl::Fro
 }
 
 //------------------------------------------------------------------------------
-Org::Ortc::MediaControl Org::Ortc::implementation::MediaControl::CastFromIMediaControl(Org::Ortc::IMediaControl const & value)
+Org::Ortc::MediaControl Org::Ortc::implementation::MediaControl::Cast(Org::Ortc::IMediaControl const & value)
 {
   if (!value) return nullptr;
   auto nativeObject = ::Internal::Helper::FromCppWinrt_Org_Ortc_MediaControl(value);

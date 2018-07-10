@@ -125,7 +125,7 @@ wrapper::org::webRtc::VideoDeviceInfoPtr Org::WebRtc::implementation::VideoDevic
 }
 
 //------------------------------------------------------------------------------
-Org::WebRtc::VideoDeviceInfo Org::WebRtc::implementation::VideoDeviceInfo::CastFromIVideoDeviceInfo(Org::WebRtc::IVideoDeviceInfo const & value)
+Org::WebRtc::VideoDeviceInfo Org::WebRtc::implementation::VideoDeviceInfo::Cast(Org::WebRtc::IVideoDeviceInfo const & value)
 {
   if (!value) return nullptr;
   auto nativeObject = ::Internal::Helper::FromCppWinrt_Org_WebRtc_VideoDeviceInfo(value);  
