@@ -4,7 +4,7 @@
 #ifndef CPPWINRT_USE_GENERATED_ORG_WEBRTC_MEDIASOURCE
 
 #include <wrapper/generated/cppwinrt/cppwinrt_Helpers.h>
-#include <wrapper/override/cppwinrt/Org.WebRtc.MediaSource.h>
+#include <wrapper/override/cppwinrt/MediaSource.h>
 
 #include <wrapper/impl_org_webRtc_MediaSource.h>
 

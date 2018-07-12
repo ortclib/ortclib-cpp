@@ -6,7 +6,7 @@
 
 #include <wrapper/generated/cppwinrt/types.h>
 
-#include "Org/WebRtc/MediaElement.g.h"
+#include "MediaElement.g.h"
 #include <wrapper/generated/org_webRtc_MediaElement.h>
 
 namespace winrt {

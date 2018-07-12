@@ -6,7 +6,7 @@
 
 #include <wrapper/generated/cppwinrt/types.h>
 
-#include "Org/WebRtc/VideoDeviceInfo.g.h"
+#include "VideoDeviceInfo.g.h"
 #include <wrapper/generated/org_webRtc_VideoDeviceInfo.h>
 
 namespace winrt {

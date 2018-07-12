@@ -6,7 +6,7 @@
 
 #include <wrapper/generated/cppwinrt/types.h>
 
-#include "Org/WebRtc/EventQueueMaker.g.h"
+#include "EventQueueMaker.g.h"
 #include <wrapper/generated/org_webRtc_EventQueueMaker.h>
 
 namespace winrt {

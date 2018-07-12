@@ -6,7 +6,7 @@
 
 #include <wrapper/generated/cppwinrt/types.h>
 
-#include "Org/Ortc/EventQueueMaker.g.h"
+#include "EventQueueMaker.g.h"
 #include <wrapper/generated/org_ortc_EventQueueMaker.h>
 
 namespace winrt {
@@ -61,11 +61,11 @@ namespace winrt {
           /// <summary>
           /// Creates an event queue object from a native queue type.
           /// </summary>
-          static Org::Ortc::IEventQueue BindQueue(Windows::UI::Core::CoreDispatcher const & queue);
+          static Org::Ortc::IEventQueue Bind(Windows::UI::Core::CoreDispatcher const & queue);
           /// <summary>
           /// Extracts a native queue from an event queue object.
           /// </summary>
-          static Windows::UI::Core::CoreDispatcher ExtractQueue(Org::Ortc::IEventQueue const & queue);
+          static Windows::UI::Core::CoreDispatcher Extract(Org::Ortc::IEventQueue const & queue);
 
 
         };

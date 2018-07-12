@@ -4,8 +4,8 @@
 #ifndef CPPWINRT_USE_GENERATED_ORG_WEBRTC_MEDIAELEMENTMAKER
 
 #include <wrapper/generated/cppwinrt/cppwinrt_Helpers.h>
-#include <wrapper/generated/cppwinrt/Org.WebRtc.MediaElementMaker.h>
-#include <wrapper/generated/cppwinrt/Org.WebRtc.MediaElement.h>
+#include <wrapper/generated/cppwinrt/MediaElementMaker.h>
+#include <wrapper/generated/cppwinrt/MediaElement.h>
 
 #include <wrapper/impl_org_webRtc_MediaElement.h>
 

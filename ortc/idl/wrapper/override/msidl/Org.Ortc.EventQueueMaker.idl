@@ -23,17 +23,17 @@ namespace Org
             /// </summary>
             [default_overload]
             [method_name("CastFromIEventQueueMaker")]
-            static Org.Ortc.EventQueueMaker CastFromIEventQueueMaker(Org.Ortc.IEventQueueMaker source);
+            static Org.Ortc.EventQueueMaker Cast(Org.Ortc.IEventQueueMaker source);
 
             /// <summary>
             /// Creates an event queue object from a native queue type.
             /// </summary>
-            static Org.Ortc.IEventQueue BindQueue(Windows.UI.Core.CoreDispatcher Queue);
+            static Org.Ortc.IEventQueue Bind(Windows.UI.Core.CoreDispatcher Queue);
 
             /// <summary>
             /// Extracts a native queue from an event queue object.
             /// </summary>
-            static Windows.UI.Core.CoreDispatcher ExtractQueue(Org.Ortc.IEventQueue Queue);
+            static Windows.UI.Core.CoreDispatcher Extract(Org.Ortc.IEventQueue Queue);
         };
 
     } // namespace Ortc

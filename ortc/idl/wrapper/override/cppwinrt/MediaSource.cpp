@@ -4,7 +4,7 @@
 #ifndef CPPWINRT_USE_GENERATED_ORG_ORTC_MEDIASOURCE
 
 #include <wrapper/generated/cppwinrt/cppwinrt_Helpers.h>
-#include <wrapper/override/cppwinrt/Org.Ortc.MediaSource.h>
+#include <wrapper/override/cppwinrt/MediaSource.h>
 
 using namespace winrt;
 
@@ -133,24 +133,10 @@ Org::Ortc::MediaSource Org::Ortc::implementation::MediaSource::Cast(Org::Ortc::I
 }
 
 //------------------------------------------------------------------------------
-Windows::Foundation::IInspectable Org::Ortc::implementation::MediaSource::Source()
+Windows::Media::Core::IMediaSource Org::Ortc::implementation::MediaSource::Source()
 {
   if (!native_) { throw hresult_error(E_POINTER); }
   return nullptr; // ::Internal::Helper::ToCppWinrt(native_->get_source());
-}
-
-//------------------------------------------------------------------------------
-void Org::Ortc::implementation::MediaSource::Source(Windows::Foundation::IInspectable const & value)
-{
-  if (!native_) { throw hresult_error(E_POINTER); }
-  //native_->set_source(::Internal::Helper::FromCppWinrt(value));
-}
-
-//------------------------------------------------------------------------------
-Windows::Foundation::IInspectable Org::Ortc::implementation::MediaSource::Track()
-{
-  if (!native_) { throw hresult_error(E_POINTER); }
-  return nullptr; // ::Internal::Helper::ToCppWinrt(native_->get_track());
 }
 
 

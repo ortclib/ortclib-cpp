@@ -6,7 +6,7 @@
 
 #include "types.h"
 
-#include "Org/Ortc/MediaSource.g.h"
+#include "MediaSource.g.h"
 #include <wrapper/generated/org_ortc_MediaSource.h>
 
 namespace winrt {
@@ -62,14 +62,9 @@ namespace winrt {
           static Org::Ortc::MediaSource Cast(Org::Ortc::IMediaSource const & value);
 
           /// <summary>
-          /// Gets or sets the platform specific media source.
+          /// Gets the platform specific media source.
           /// </summary>
-          Windows::Foundation::IInspectable Source();
-          void Source(Windows::Foundation::IInspectable const & value);
-          /// <summary>
-          /// Gets or sets the media track associated to the media source.
-          /// </summary>
-          Windows::Foundation::IInspectable Track();
+          Windows::Media::Core::IMediaSource Source();
 
         };
 

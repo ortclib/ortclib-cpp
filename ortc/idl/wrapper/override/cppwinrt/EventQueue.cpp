@@ -4,7 +4,7 @@
 #ifndef CPPWINRT_USE_GENERATED_ORG_ORTC_EVENTQUEUE
 
 #include <wrapper/generated/cppwinrt/cppwinrt_Helpers.h>
-#include "Org.Ortc.EventQueue.h"
+#include "EventQueue.h"
 
 using namespace winrt;
 

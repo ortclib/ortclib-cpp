@@ -27,7 +27,7 @@ namespace Org
             /// </summary>
             [default_overload]
             [method_name("CastFromIMediaControl")]
-            static Org.Ortc.MediaControl CastFromIMediaControl(Org.Ortc.IMediaControl source);
+            static Org.Ortc.MediaControl Cast(Org.Ortc.IMediaControl source);
 
             /// <summary>
             /// Gets or sets the media engine the application orientation has

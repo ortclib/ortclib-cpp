@@ -3,10 +3,10 @@
 
 #ifndef CPPWINRT_USE_GENERATED_ORG_WEBRTC_VIDEODEVICEINFO
 
-#include "Org.WebRtc.VideoDeviceInfo.h"
+#include "VideoDeviceInfo.h"
 
 #include <wrapper/generated/cppwinrt/cppwinrt_Helpers.h>
-#include <wrapper/override/cppwinrt/Org.WebRtc.VideoDeviceInfo.h>
+#include <wrapper/override/cppwinrt/VideoDeviceInfo.h>
 
 #include <wrapper/impl_org_webRtc_VideoDeviceInfo.h>
 

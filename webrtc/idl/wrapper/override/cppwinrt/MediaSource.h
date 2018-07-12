@@ -6,7 +6,7 @@
 
 #include <wrapper/generated/cppwinrt/types.h>
 
-#include "Org/WebRtc/MediaSource.g.h"
+#include "MediaSource.g.h"
 #include <wrapper/generated/org_webRtc_MediaSource.h>
 
 namespace winrt {

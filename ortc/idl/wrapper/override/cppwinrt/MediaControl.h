@@ -6,7 +6,7 @@
 
 #include "types.h"
 
-#include "Org/Ortc/MediaControl.g.h"
+#include "MediaControl.g.h"
 #include <wrapper/generated/org_ortc_MediaControl.h>
 
 namespace winrt {

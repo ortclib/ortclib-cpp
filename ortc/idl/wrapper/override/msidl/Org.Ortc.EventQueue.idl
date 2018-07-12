@@ -27,7 +27,7 @@ namespace Org
             /// </summary>
             [default_overload]
             [method_name("CastFromIEventQueue")]
-            static Org.Ortc.EventQueue CastFromIEventQueue(Org.Ortc.IEventQueue source);
+            static Org.Ortc.EventQueue Cast(Org.Ortc.IEventQueue source);
 
             /// <summary>
             /// The default windows message queue for the system GUI thread.

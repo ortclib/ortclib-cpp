@@ -3,7 +3,7 @@
 
 #ifndef CPPWINRT_USE_GENERATED_ORG_ORTC_MEDIACONTROL
 #include <wrapper/generated/cppwinrt/cppwinrt_Helpers.h>
-#include <wrapper/override/cppwinrt/Org.Ortc.MediaControl.h>
+#include <wrapper/override/cppwinrt/MediaControl.h>
 
 using namespace winrt;
 

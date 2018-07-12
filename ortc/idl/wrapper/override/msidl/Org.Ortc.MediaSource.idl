@@ -17,14 +17,9 @@ namespace Org
         {
 
             /// <summary>
-            /// Gets or sets the platform specific media source.
+            /// Gets the platform specific media source.
             /// </summary>
-            Object Source { get; set; };
-
-            /// <summary>
-            /// Gets or sets the media track associated to the media source.
-            /// </summary>
-            Object Track { get; };
+            Windows.Media.Core.IMediaSource Source { get; };
         };
 
         /// <summary>
@@ -39,7 +34,7 @@ namespace Org
             /// </summary>
             [default_overload]
             [method_name("CastFromIMediaSource")]
-            static Org.Ortc.MediaSource CastFromIMediaSource(Org.Ortc.IMediaSource source);
+            static Org.Ortc.MediaSource Cast(Org.Ortc.IMediaSource source);
         };
 
     } // namespace Ortc

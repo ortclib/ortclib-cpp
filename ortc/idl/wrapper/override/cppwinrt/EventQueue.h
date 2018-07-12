@@ -5,7 +5,7 @@
 
 #include <wrapper/generated/cppwinrt/types.h>
 
-#include "Org/Ortc/EventQueue.g.h"
+#include "EventQueue.g.h"
 #include <wrapper/generated/org_ortc_EventQueue.h>
 
 namespace winrt {

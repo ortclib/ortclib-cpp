@@ -4,8 +4,8 @@
 #ifndef CPPWINRT_USE_GENERATED_ORG_WEBRTC_EVENTQUEUEMAKER
 
 #include <wrapper/generated/cppwinrt/cppwinrt_Helpers.h>
-#include "Org.WebRtc.EventQueueMaker.h"
-#include "Org.WebRtc.EventQueue.h"
+#include "EventQueueMaker.h"
+#include "EventQueue.h"
 
 #include <wrapper/impl_org_webRtc_EventQueue.h>
 
