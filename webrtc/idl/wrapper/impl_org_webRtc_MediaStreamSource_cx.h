@@ -9,7 +9,10 @@
 
 #pragma once
 
-#include "impl_org_webRtc_MediaSourceHelper.h"
+#ifdef WINUWP
+#ifdef __cplusplus_winrt
+
+#include "impl_org_webRtc_MediaSourceHelper_cx.h"
 
 #include <wrapper/impl_org_webRtc_pre_include.h>
 #include "api/mediastreaminterface.h"
@@ -123,3 +126,6 @@ namespace wrapper {
     } // namespace org
   } // namespace impl
 }  // namespace wrapper
+
+#endif // __cplusplus_winrt
+#endif // WINUWP

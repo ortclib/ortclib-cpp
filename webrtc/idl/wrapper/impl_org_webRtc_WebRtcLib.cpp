@@ -1,4 +1,5 @@
 
+#define ZS_DECLARE_TEMPLATE_GENERATE_IMPLEMENTATION
 
 #ifdef WINUWP
 
@@ -22,6 +23,7 @@
 #include "impl_org_webRtc_WebRtcLib.h"
 #include "impl_org_webRtc_EventQueue.h"
 #include "impl_org_webRtc_helpers.h"
+#include "impl_webrtc_IMediaStreamSource.h"
 
 #include "impl_org_webRtc_pre_include.h"
 #include "api/audio_codecs/builtin_audio_decoder_factory.h"
@@ -62,6 +64,12 @@ using ::std::map;
 
 namespace wrapper { namespace impl { namespace org { namespace webRtc { ZS_DECLARE_SUBSYSTEM(wrapper_org_webRtc); } } } }
 
+#ifdef WINUWP
+#ifdef CPPWINRT_VERSION
+ZS_DECLARE_PROXY_IMPLEMENT(webrtc::IMediaStreamSourceDelegate)
+ZS_DECLARE_PROXY_SUBSCRIPTIONS_IMPLEMENT(webrtc::IMediaStreamSourceDelegate, webrtc::IMediaStreamSourceSubscription)
+#endif //CPPWINRT_VERSION
+#endif //WINUWP
 
 // borrow definitions from class
 ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::WebRtcLib::WrapperImplType, WrapperImplType);

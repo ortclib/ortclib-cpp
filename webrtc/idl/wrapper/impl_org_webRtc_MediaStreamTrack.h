@@ -4,8 +4,9 @@
 #include "types.h"
 #include "generated/org_webRtc_MediaStreamTrack.h"
 
-#include "impl_org_webRtc_MediaSourceHelper.h"
-#include "impl_org_webRtc_MediaStreamSource.h"
+#include "impl_org_webRtc_MediaSourceHelper_cx.h"
+#include "impl_org_webRtc_MediaStreamSource_cx.h"
+#include "impl_webrtc_IMediaStreamSource.h"
 
 #include "impl_org_webRtc_pre_include.h"
 #include "rtc_base/scoped_ref_ptr.h"
@@ -34,6 +35,17 @@ namespace wrapper {
           typedef rtc::scoped_refptr<AudioNativeType> AudioNativeTypeScopedPtr;
           typedef rtc::scoped_refptr<VideoNativeType> VideoNativeTypeScopedPtr;
 
+#ifdef WINUWP
+#ifdef CPPWINRT_VERSION
+          ZS_DECLARE_TYPEDEF_PTR(webrtc::IMediaStreamSource, UseMediaStreamSource);
+          typedef UseMediaStreamSource::VideoFrameType UseVideoFrameType;
+#elif defined(__cplusplus_winrt)
+          typedef MediaStreamSource UseMediaStreamSource;
+          typedef VideoFrameType UseVideoFrameType;
+#endif // CPPWINRT_VERSION
+#endif //WINUWP
+
+
           ZS_DECLARE_TYPEDEF_PTR(wrapper::org::webRtc::MediaElement, UseMediaElement);
           ZS_DECLARE_TYPEDEF_PTR(wrapper::impl::org::webRtc::MediaElement, UseMediaElementImpl);
 
@@ -43,6 +55,11 @@ namespace wrapper {
           ZS_DECLARE_STRUCT_PTR(WebrtcVideoObserver);
 
           struct WebrtcVideoObserver : public rtc::VideoSinkInterface<::webrtc::VideoFrame>
+#ifdef WINUWP
+#ifdef CPPWINRT_VERSION
+                                       , public ::webrtc::IMediaStreamSourceDelegate
+#endif // CPPWINRT_VERSION
+#endif //WINUWP
           {
             WebrtcVideoObserver(
                                 WrapperImplTypePtr wrapper,
@@ -65,6 +82,41 @@ namespace wrapper {
               outer->notifyWebrtcObserverDiscardedFrame(); // NOTE: intentionally called synchronously
             }
 
+#ifdef WINUWP
+#ifdef CPPWINRT_VERSION
+            void onMediaStreamSourceResolutionChanged(
+                                                      UseMediaStreamSourcePtr source,
+                                                      uint32_t width,
+                                                      uint32_t height
+                                                      ) override
+            {
+              auto outer = outer_.lock();
+              if (!outer) return;
+              outer->onWebrtcObserverResolutionChanged(width, height);
+            }
+
+            void onMediaStreamSourceRotationChanged(
+                                                    UseMediaStreamSourcePtr source,
+                                                    int rotation
+                                                    ) override
+            {
+              auto outer = outer_.lock();
+              if (!outer) return;
+              outer->onWebrtcObserverRotationChanged(rotation);
+            }
+
+            void onMediaStreamSourceFrameRateChanged(
+                                                     UseMediaStreamSourcePtr source,
+                                                     float frameRate
+                                                     ) override
+            {
+              auto outer = outer_.lock();
+              if (!outer) return;
+              outer->onWebrtcObserverFrameRateChanged(frameRate);
+            }
+#endif // CPPWINRT_VERSION
+#endif //WINUWP
+
           private:
             WrapperImplTypeWeakPtr outer_;
             IMessageQueuePtr queue_;
@@ -76,8 +128,15 @@ namespace wrapper {
           mutable zsLib::Lock lock_;
           UseMediaElementPtr element_;
           UseMediaSourcePtr source_;
-          MediaStreamSource^ mediaStreamSource_;
-          VideoFrameType currentFrameType_;
+
+#ifdef WINUWP
+#ifdef CPPWINRT_VERSION
+          UseMediaStreamSourcePtr mediaStreamSource_;
+#elif defined(__cplusplus_winrt)
+          UseMediaStreamSource^ mediaStreamSource_;
+#endif // CPPWINRT_VERSION
+#endif //WINUWP
+          UseVideoFrameType currentFrameType_{};
           bool firstFrameReceived_ { false };
 
           MediaStreamTrackWeakPtr thisWeak_;
@@ -108,6 +167,12 @@ namespace wrapper {
           // WebrtcObserver methods
           void notifyWebrtcObserverFrame(const ::webrtc::VideoFrame& frame) noexcept;
           void notifyWebrtcObserverDiscardedFrame() noexcept;
+          void onWebrtcObserverResolutionChanged(
+                                                 uint32_t width,
+                                                 uint32_t height
+                                                 ) noexcept;
+          void onWebrtcObserverRotationChanged(int rotation) noexcept;
+          void onWebrtcObserverFrameRateChanged(float frameRate) noexcept;
 
           ZS_NO_DISCARD() static WrapperImplTypePtr toWrapper(NativeType *native) noexcept;
           ZS_NO_DISCARD() static WrapperImplTypePtr toWrapper(NativeTypeScopedPtr native) noexcept;

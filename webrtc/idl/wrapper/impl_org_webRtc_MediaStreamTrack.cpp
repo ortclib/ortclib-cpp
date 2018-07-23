@@ -373,14 +373,17 @@ void WrapperImplType::teardownObserver() noexcept
   }
 }
 
+#ifdef WINUWP
+#ifdef CPPWINRT_VERSION
+
 //------------------------------------------------------------------------------
 void WrapperImplType::notifyWebrtcObserverFrame(const ::webrtc::VideoFrame& frame) noexcept
 {
-  VideoFrameType frameType {};
+  UseVideoFrameType frameType {};
 	if (frame.video_frame_buffer()->ToI420() != nullptr)
-		frameType = VideoFrameType::FrameTypeI420;
+		frameType = UseMediaStreamSource::VideoFrameType::VideoFrameType_I420;
 	else
-		frameType = VideoFrameType::FrameTypeH264;
+		frameType = UseMediaStreamSource::VideoFrameType::VideoFrameType_H264;
 
 	if (frameType != currentFrameType_ || !firstFrameReceived_) {
 		{
@@ -388,17 +391,66 @@ void WrapperImplType::notifyWebrtcObserverFrame(const ::webrtc::VideoFrame& fram
 
 			firstFrameReceived_ = true;
 			currentFrameType_ = frameType;
-			mediaStreamSource_ = MediaStreamSource::CreateMediaSource(frameType, "");
+      mediaStreamSource_ = UseMediaStreamSource::create(UseMediaStreamSource::CreationProperties { frameType });
 		}
-		Windows::Media::Core::IMediaSource^ source = mediaStreamSource_->GetMediaStreamSource();
+
+		auto source = mediaStreamSource_->source();
 		notifyAboutNewMediaSource(*this, source);
 	}
-	mediaStreamSource_->RenderFrame(&frame);
+
+	mediaStreamSource_->notifyFrame(frame);
 }
+
+#elif defined(__cplusplus_winrt)
+//------------------------------------------------------------------------------
+void WrapperImplType::notifyWebrtcObserverFrame(const ::webrtc::VideoFrame& frame) noexcept
+{
+  UseVideoFrameType frameType{};
+  if (frame.video_frame_buffer()->ToI420() != nullptr)
+    frameType = UseVideoFrameType::FrameTypeI420;
+  else
+    frameType = UseVideoFrameType::FrameTypeH264;
+  
+  if (frameType != currentFrameType_ || !firstFrameReceived_) {
+    {
+      zsLib::AutoLock lock(lock_);
+
+      firstFrameReceived_ = true;
+      currentFrameType_ = frameType;
+      mediaStreamSource_ = UseMediaStreamSource::CreateMediaSource(frameType, "");
+    }
+    Windows::Media::Core::IMediaSource^ source = mediaStreamSource_->GetMediaStreamSource();
+    notifyAboutNewMediaSource(*this, source);
+  }
+  mediaStreamSource_->RenderFrame(&frame);
+}
+#endif // CPPWINRT_VERSION
+#endif //WINUWP
 
 //------------------------------------------------------------------------------
 void WrapperImplType::notifyWebrtcObserverDiscardedFrame() noexcept
 {
+}
+
+//------------------------------------------------------------------------------
+void WrapperImplType::onWebrtcObserverResolutionChanged(
+                                                        uint32_t width,
+                                                        uint32_t height
+                                                        ) noexcept
+{
+  onResolutionChanged(width, height);
+}
+
+//------------------------------------------------------------------------------
+void WrapperImplType::onWebrtcObserverRotationChanged(int rotation) noexcept
+{
+  onRotationChanged(rotation);
+}
+
+//------------------------------------------------------------------------------
+void WrapperImplType::onWebrtcObserverFrameRateChanged(float frameRate) noexcept
+{
+  onFrameRateChanged(frameRate);
 }
 
 //------------------------------------------------------------------------------

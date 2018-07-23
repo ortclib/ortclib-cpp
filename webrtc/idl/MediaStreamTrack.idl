@@ -108,6 +108,27 @@ namespace org
       /// </summary>
       [event]
       void onMediaSourceChanged();
+
+      /// <summary>
+      /// Event indicates the source resolution has changed.
+      /// </summary>
+      [event]
+      void onResolutionChanged(uint32 width, uint32 height);
+
+      /// <summary>
+      /// Event indicates the source rotation has changed.
+      /// Rotation value represents degrees.
+      /// </summary>
+      [event]
+      void onRotationChanged(int rotation);
+
+      /// <summary>
+      /// Event indicates the source frame rate has changed
+      /// (in frames per second).
+      /// </summary>
+      [event]
+      void onFrameRateChanged(float frameRate);
+
     };
   }
 }

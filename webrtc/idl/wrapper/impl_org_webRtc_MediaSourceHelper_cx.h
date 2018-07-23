@@ -9,6 +9,9 @@
 
 #pragma once
 
+#ifdef WINUWP
+#ifdef __cplusplus_winrt
+
 #include <wrl.h>
 #include <collection.h>
 #include <mfidl.h>
@@ -117,3 +120,5 @@ namespace wrapper {
   } // namespace impl
 }  // namespace wrapper
 
+#endif // __cplusplus_winrt
+#endif // WINUWP
