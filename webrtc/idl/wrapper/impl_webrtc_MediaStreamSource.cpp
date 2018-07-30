@@ -476,11 +476,6 @@ bool MediaStreamSource::makeI420Sample(SampleData &sample)
   }
 
   try {
-#pragma ZS_BUILD_NOTE("TODO", "(mosa) What is this MakeExclusive about?")
-    
-    //TODO Check
-    //frame->MakeExclusive();
-
     // Convert to NV12
     rtc::scoped_refptr<webrtc::PlanarYuvBuffer> frameBuffer = static_cast<webrtc::PlanarYuvBuffer*>(sample.frame_->video_frame_buffer().get());
 
