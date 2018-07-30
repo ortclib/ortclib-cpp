@@ -310,20 +310,20 @@ void MediaStreamSource::pendingRequestRespondToRequestedFrame() noexcept
   {
     AutoRecursiveLock lock(lock_);
     deferral = requestingSampleDeferral_;
+    requestingSampleDeferral_ = nullptr;
     request = requestSample_;
+    requestSample_ = nullptr;
   }
 
   if (!deferral) return;
 
-  bool responded = respondToRequest(request);
-  if (responded) {
-    {
-      AutoRecursiveLock lock(lock_);
-      requestingSampleDeferral_ = nullptr;
-      requestSample_ = nullptr;
-    }
-    deferral.Complete();
+  if (!respondToRequest(request)) {
+    AutoRecursiveLock lock(lock_);
+    requestingSampleDeferral_ = deferral;
+    requestSample_ = request;
+    return;
   }
+  deferral.Complete();
   deferral = nullptr;
 }
 
