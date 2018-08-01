@@ -95,8 +95,6 @@ void MediaStreamSource::init(const CreationProperties &props) noexcept
   id_ = String(props.id_);
   frameRateChangeTolerance_ = props.frameRateChangeTolerance_;
 
-  updateFrameRate();
-
   if (props.delegate_) {
     defaultSubscription_ = subscriptions_.subscribe(props.delegate_, zsLib::IMessageQueueThread::singletonUsingCurrentGUIThreadsMessageQueue());
   }
@@ -505,7 +503,7 @@ bool MediaStreamSource::updateFrameRate() noexcept
   if (Time() == lastTimeChecked_) {
     lastTimeChecked_ = zsLib::now();
     totalFrameCounted_ = 0;
-    return false;
+    return true;
   }
 
   auto tick = zsLib::now();
@@ -518,9 +516,12 @@ bool MediaStreamSource::updateFrameRate() noexcept
   auto diffFps = abs(lastAverageFrameRate_ - fps);
   if (diffFps > frameRateChangeTolerance_) {
     lastAverageFrameRate_ = fps;
+    totalFrameCounted_ = 0;
+    return true;
+  } else {
+    totalFrameCounted_ = 0;
+    return false;
   }
-  totalFrameCounted_ = 0;
-  return false;
 }
 
 //-----------------------------------------------------------------------------

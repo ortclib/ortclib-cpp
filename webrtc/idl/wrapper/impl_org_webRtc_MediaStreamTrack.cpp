@@ -342,7 +342,7 @@ void WrapperImplType::setupObserver() noexcept
   if (converted) {
     if (!converted) return;
 
-    videoObserver_ = std::make_unique<WebrtcVideoObserver>(thisWeak_.lock(), UseWebrtcLib::delegateQueue());
+    videoObserver_ = std::make_shared<WebrtcVideoObserver>(thisWeak_.lock(), UseWebrtcLib::delegateQueue());
 
     rtc::VideoSinkWants wants;
 
@@ -392,7 +392,8 @@ void WrapperImplType::notifyWebrtcObserverFrame(const ::webrtc::VideoFrame& fram
 			firstFrameReceived_ = true;
 			currentFrameType_ = frameType;
       mediaStreamSource_ = UseMediaStreamSource::create(UseMediaStreamSource::CreationProperties { frameType });
-		}
+      subscription_ = mediaStreamSource_->subscribe(videoObserver_);
+    }
 
 		auto source = mediaStreamSource_->source();
 		notifyAboutNewMediaSource(*this, source);

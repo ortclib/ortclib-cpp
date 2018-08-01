@@ -122,12 +122,13 @@ namespace wrapper {
             IMessageQueuePtr queue_;
           };
 
-          WebrtcVideoObserverUniPtr videoObserver_;
+          WebrtcVideoObserverPtr videoObserver_;
           rtc::scoped_refptr<NativeType> native_;
 
           mutable zsLib::Lock lock_;
           UseMediaElementPtr element_;
           UseMediaSourcePtr source_;
+          webrtc::IMediaStreamSourceSubscriptionPtr subscription_;
 
 #ifdef WINUWP
 #ifdef CPPWINRT_VERSION
