@@ -99,6 +99,7 @@ void wrapper::impl::org::webRtc::MediaConstraints::wrapper_init_org_webRtc_Media
   shared_ptr< list< wrapper::org::webRtc::ConstraintPtr > > optional
   ) noexcept
 {
+  native_ = make_shared<NativeImplType>();
   set_mandatory(mandatory);
   set_optional(optional);
 }
