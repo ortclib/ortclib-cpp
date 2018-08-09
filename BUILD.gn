@@ -2,7 +2,7 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-import("//third_party/ortc/zsLib-eventing/zslib_eventing_tool.gni")
+import("//third_party/idl/zsLib-eventing/zslib_eventing_tool.gni")
 import("//third_party/ortc/ortclib/ortc/idl/sources.gni")
 
 config("ortclib_config") {
@@ -31,9 +31,9 @@ config("ortclib_config") {
     include_dirs = [ 
         ".",
         "..",
-        "../zsLib",
-        "../zsLib/zsLib/extras",
-        "../zsLib-eventing",
+        "../../idl/zsLib",
+        "../../idl/zsLib/zsLib/extras",
+        "../../idl/zsLib-eventing",
         "../ortclib-services",
         "../../usrsctp/usrsctplib",
         "../../libsrtp/srtp/include",
@@ -46,6 +46,7 @@ config("ortclib_config") {
         "../../libsrtp/crypto/include", 
         "../../boringssl/src/include",        
         "../..",
+        "../../idl",
         "../ortclib",
         "../ortclib/ortc",
         "../ortclib/ortc/idl",
@@ -1130,9 +1131,9 @@ shared_library("libOrtc") {
   include_dirs = [ 
     ".",
     "..",
-    "../zsLib",
-    "../zsLib/zsLib/extras",
-    "../zsLib-eventing",
+    "../../idl/zsLib",
+    "../../idl/zsLib/zsLib/extras",
+    "../../idl/zsLib-eventing",
     "../ortclib-services",
     "../..",
     "../../boringssl/include",
@@ -1201,10 +1202,10 @@ shared_library("libOrtc") {
   } 
 
   deps = [
-    "//third_party/ortc/zsLib:zslib",
-    "//third_party/ortc/zsLib-eventing:zslib-eventing",
-    "//third_party/idnkit:idnkit",
-    "//third_party/udns:udns",
+    "//third_party/idl/zsLib:zslib",
+    "//third_party/idl/zsLib-eventing:zslib-eventing",
+    "//third_party/ortc/idnkit:idnkit",
+    "//third_party/ortc/udns:udns",
     ":ortclib_generated_static",
     "//third_party/ortc/ortclib-services",
     "//third_party/boringssl:boringssl",
