@@ -390,13 +390,8 @@ ortc_sources_cxx_generated = [
 ]
 
 ortc_sources = []
-webrtc_sources = []
 
 if(current_os != "winuwp"){
-webrtc_sources = [
- "$target_gen_dir/../../../../../../third_party/ortc/ortclib/webRtc/idl/wrapper/generated/c/c_helpers.cpp",
- "$target_gen_dir/../../../../../../third_party/ortc/ortclib/webRtc/idl/wrapper/generated/c/c_helpers.h",
-]
 ortc_sources = [
  "$target_gen_dir/../../../../../../third_party/ortc/ortclib/ortc/idl/wrapper/generated/c/c_helpers.cpp",
  "$target_gen_dir/../../../../../../third_party/ortc/ortclib/ortc/idl/wrapper/generated/c/c_helpers.h",
@@ -717,10 +712,6 @@ ortc_sources = [
 }
 
 if(current_os == "winuwp"){
- webrtc_sources = [
-  "$target_gen_dir/../../../../../../third_party/ortc/ortclib/webRtc/idl/wrapper/generated/cx/cx_Helpers.cpp",
-  "$target_gen_dir/../../../../../../third_party/ortc/ortclib/webRtc/idl/wrapper/generated/cx/cx_Helpers.h",
- ]
  ortc_sources = [
   "$target_gen_dir/../../../../../../third_party/ortc/ortclib/ortc/idl/wrapper/override/cx/cx_Helpers_Throwers.cpp",
   "$target_gen_dir/../../../../../../third_party/ortc/ortclib/ortc/idl/wrapper/generated/cx/cx_Helpers.cpp",
@@ -1091,7 +1082,6 @@ static_library("ortclib_static") {
   public_deps = [ 
     ":ortclib_events",
     ":ortclib_idl",
-    ":webrtc_idl",
     "//pc/:libjingle_peerconnection",
     "//system_wrappers/:system_wrappers_default",
   ]
@@ -1326,16 +1316,4 @@ compile_idl_macro("ortclib_idl") {
   outputs = ortc_sources
 
   idlAlreadyCompletedFlag =  "ortclibIdlCompiledFlag.flg"
-}
-
-
-compile_idl_macro("webrtc_idl") {
-  
-  sources = [
-    "webrtc/idl/config.json",
-  ]
-    
-  outputs = webrtc_sources
-
-  idlAlreadyCompletedFlag =  "webrtcIdlCompiledFlag.flg"
 }
