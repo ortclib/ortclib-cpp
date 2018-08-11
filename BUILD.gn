@@ -31,6 +31,7 @@ config("ortclib_config") {
     include_dirs = [ 
         ".",
         "..",
+        "../../idl",
         "../../idl/zsLib",
         "../../idl/zsLib/zsLib/extras",
         "../../idl/zsLib-eventing",
@@ -46,7 +47,7 @@ config("ortclib_config") {
         "../../libsrtp/crypto/include", 
         "../../boringssl/src/include",        
         "../..",
-        "../../idl",
+        "../../../webrtc/xplatform/third_party/idl",
         "../ortclib",
         "../ortclib/ortc",
         "../ortclib/ortc/idl",
@@ -1121,6 +1122,7 @@ shared_library("libOrtc") {
   include_dirs = [ 
     ".",
     "..",
+    "../../idl",
     "../../idl/zsLib",
     "../../idl/zsLib/zsLib/extras",
     "../../idl/zsLib-eventing",
