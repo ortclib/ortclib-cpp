@@ -59,6 +59,13 @@ wrapper::org::ortc::adapter::RTCPeerConnectionPtr wrapper::org::ortc::adapter::R
 }
 
 //------------------------------------------------------------------------------
+void wrapper::impl::org::ortc::adapter::RTCPeerConnection::wrapper_dispose() noexcept
+{
+  if (!native_) return;
+  close();
+}
+
+//------------------------------------------------------------------------------
 wrapper::impl::org::ortc::adapter::RTCPeerConnection::~RTCPeerConnection() noexcept
 {
   thisWeak_.reset();

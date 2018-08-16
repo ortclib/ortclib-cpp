@@ -274,6 +274,7 @@ namespace org
       /// The general operation of the RTCPeerConnection is described in
       /// [draft-ietf-rtcweb-jsep].
       /// </summary>
+      [disposable]
       interface RTCPeerConnection : RTCStatsProvider
       {
         typedef std::list<MediaStream> MediaStreamList;

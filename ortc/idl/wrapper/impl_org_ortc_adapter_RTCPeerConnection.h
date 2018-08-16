@@ -47,6 +47,7 @@ namespace wrapper {
             // methods RTCPeerConnection
             void wrapper_init_org_ortc_adapter_RTCPeerConnection() noexcept override;
             void wrapper_init_org_ortc_adapter_RTCPeerConnection(wrapper::org::ortc::adapter::RTCConfigurationPtr configuration) noexcept override;
+            virtual void wrapper_dispose() noexcept;
             shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > createOffer() noexcept override;
             shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > createOffer(wrapper::org::ortc::adapter::RTCOfferOptionsPtr options) noexcept override;
             shared_ptr< PromiseWithHolderPtr< wrapper::org::ortc::adapter::RTCSessionDescriptionPtr > > createAnswer() noexcept override;
