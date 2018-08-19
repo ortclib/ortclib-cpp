@@ -89,7 +89,7 @@ namespace ortc
     static double getTimestamp(const Time &originalTimestamp) noexcept
     {
       // Time since 1970-01-01T00:00:00Z in milliseconds.
-      auto t = day_point(jan / 1 / 1601);
+      auto t = sys_days(jan / 1 / 1601);
 
       auto diff = originalTimestamp - t;
       auto milli = zsLib::toMilliseconds(diff);
