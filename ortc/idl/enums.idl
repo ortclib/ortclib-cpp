@@ -297,11 +297,11 @@ namespace org
       /// Filter all private candidates.
       /// See: https://en.wikipedia.org/wiki/Private_network
       /// </summary>
-      noPrivate = 0x00001010,
+      noPrivate = 0x00001000,
       /// <summary>
       /// Filter all but relay candidates.
       /// </summary>
-      relayOnly = 0x00000707,
+      relayOnly = 0x00001707,
       /// <summary>
       /// Filter all candidates.
       /// </summary>
